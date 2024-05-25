@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
   CreateUserDefinedTransformerSchema,
@@ -28,6 +28,17 @@ export default function UserDefinedGenerateStringForm(
   >();
 
   const { isDisabled } = props;
+
+  const min = fc.watch('config.value.min');
+  const max = fc.watch('config.value.max');
+
+  useEffect(() => {
+    fc.trigger('config.value.min');
+  }, [max, fc.trigger]);
+
+  useEffect(() => {
+    fc.trigger('config.value.max');
+  }, [min, fc.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -78,7 +89,7 @@ export default function UserDefinedGenerateStringForm(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       value={field.value ? parseInt(field.value) : 1}
                       type="number"

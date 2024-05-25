@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
   CreateUserDefinedTransformerSchema,
@@ -30,6 +30,17 @@ export default function UserDefinedGenerateInt64Form(
 
   const { isDisabled } = props;
 
+  const min = fc.watch('config.value.min');
+  const max = fc.watch('config.value.max');
+
+  useEffect(() => {
+    fc.trigger('config.value.min');
+  }, [max, fc.trigger]);
+
+  useEffect(() => {
+    fc.trigger('config.value.max');
+  }, [min, fc.trigger]);
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -47,7 +58,7 @@ export default function UserDefinedGenerateInt64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
@@ -75,7 +86,7 @@ export default function UserDefinedGenerateInt64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       type="number"
                       value={field.value ? parseInt(field.value) : 0}
@@ -108,7 +119,7 @@ export default function UserDefinedGenerateInt64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       type="number"
                       value={field.value ? parseInt(field.value) : 1}

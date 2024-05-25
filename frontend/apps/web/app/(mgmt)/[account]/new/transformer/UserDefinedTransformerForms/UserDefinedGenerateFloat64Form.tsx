@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
   CreateUserDefinedTransformerSchema,
@@ -30,6 +30,17 @@ export default function UserDefinedGenerateFloat64Form(
 
   const { isDisabled } = props;
 
+  const min = fc.watch('config.value.min');
+  const max = fc.watch('config.value.max');
+
+  useEffect(() => {
+    fc.trigger('config.value.min');
+  }, [max, fc.trigger]);
+
+  useEffect(() => {
+    fc.trigger('config.value.max');
+  }, [min, fc.trigger]);
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -39,7 +50,7 @@ export default function UserDefinedGenerateFloat64Form(
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Randomize Sign</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[80%]">
                 {`After the value has been generated, will randomly flip the sign. This may cause the generated value to be out of the defined min/max range.
                   If the min/max is 20-40, the value may be in the following ranges: 20 <= x <= 40 and -40 <= x <= -20`}
               </FormDescription>
@@ -47,7 +58,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
@@ -75,7 +86,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       value={field.value ? parseFloat(field.value) : 0}
                       type="number"
@@ -108,7 +119,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       value={field.value ? parseFloat(field.value) : 1}
                       type="number"
@@ -143,7 +154,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       type="number"
                       value={field.value ? parseInt(field.value) : 1}
