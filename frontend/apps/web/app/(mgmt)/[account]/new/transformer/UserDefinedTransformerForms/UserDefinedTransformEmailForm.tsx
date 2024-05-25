@@ -124,7 +124,7 @@ export default function UserDefinedTransformEmailForm(
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Email Type</FormLabel>
-                <FormDescription className="w-[90%]">
+                <FormDescription>
                   Configure the email type that will be used during
                   transformation.
                 </FormDescription>
@@ -141,7 +141,7 @@ export default function UserDefinedTransformEmailForm(
                   }}
                   value={generateEmailTypeStringToEnum(field.value).toString()}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-[300px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

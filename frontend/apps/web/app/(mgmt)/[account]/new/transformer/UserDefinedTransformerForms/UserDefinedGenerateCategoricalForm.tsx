@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ReactElement } from 'react';
@@ -32,7 +33,7 @@ export default function UserDefinedGenerateCategoricalForm(
         name={`config.value.categories`}
         control={fc.control}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+          <FormItem className="flex flex-row items-start justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Categories</FormLabel>
               <FormDescription>
@@ -41,13 +42,14 @@ export default function UserDefinedGenerateCategoricalForm(
               </FormDescription>
             </div>
             <FormControl>
-              <div className="w-[600px]">
+              <div className="flex flex-col items-start w-[300px]">
                 <Input
                   value={field.value}
                   type="string"
                   onChange={field.onChange}
                   disabled={isDisabled}
                 />
+                <FormMessage />
               </div>
             </FormControl>
           </FormItem>
