@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -21,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -35,7 +37,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 
 export default function AwsS3Form() {
   const searchParams = useSearchParams();
@@ -333,7 +334,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               <FormLabel>AWS Secret Access Key</FormLabel>
               <FormDescription>AWS Secret Access Key</FormDescription>
               <FormControl>
-                <Input placeholder="Secret Access Key" {...field} />
+                <PasswordInput placeholder="Secret Access Key" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
@@ -211,7 +212,7 @@ export default function AwsS3Form(props: Props) {
               <FormLabel>AWS Secret Access Key</FormLabel>
               <FormDescription>AWS Secret Access Key</FormDescription>
               <FormControl>
-                <Input placeholder="Secret Access Key" {...field} />
+                <PasswordInput placeholder="Secret Access Key" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

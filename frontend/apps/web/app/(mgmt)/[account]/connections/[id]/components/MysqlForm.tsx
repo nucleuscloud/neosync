@@ -2,6 +2,7 @@
 import { checkMysqlConnection } from '@/app/(mgmt)/[account]/new/connection/mysql/MysqlForm';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
@@ -214,7 +215,7 @@ export default function MysqlForm(props: Props) {
               </FormLabel>
               <FormDescription>The database password</FormDescription>
               <FormControl>
-                <Input type="password" placeholder="mysql" {...field} />
+                <PasswordInput placeholder="mysql" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
