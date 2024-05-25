@@ -1,5 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
@@ -118,11 +119,7 @@ export default function OpenAiForm(props: Props): ReactElement {
               </FormLabel>
               <FormDescription>The api key to the API server</FormDescription>
               <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="Your api key here"
-                />
+                <PasswordInput placeholder="Your api key here" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

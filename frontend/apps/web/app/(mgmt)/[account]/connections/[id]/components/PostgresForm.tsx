@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
@@ -291,7 +292,7 @@ export default function PostgresForm(props: Props): ReactElement {
                   </FormLabel>
                   <FormDescription>The database password</FormDescription>
                   <FormControl>
-                    <Input type="password" placeholder="postgres" {...field} />
+                    <PasswordInput placeholder="postgres" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

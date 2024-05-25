@@ -1,5 +1,6 @@
 'use client';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { PasswordInput } from '@/components/PasswordComponent';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Button } from '@/components/ui/button';
@@ -211,11 +212,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 to learn how to do so.{' '}
               </FormDescription>
               <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="Your api key here"
-                />
+                <PasswordInput placeholder="Your api key here" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -401,7 +402,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               </FormLabel>
               <FormDescription>The database password</FormDescription>
               <FormControl>
-                <Input type="password" placeholder="mysql" {...field} />
+                <PasswordInput placeholder="mysql" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
