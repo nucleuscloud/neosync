@@ -135,7 +135,7 @@ WHERE
 ORDER BY
     a.attnum;
 
--- name: GetDatabaseTableSchemasBySchemas :many
+-- name: GetDatabaseTableSchemasBySchemasAndTables :many
 SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
@@ -196,7 +196,7 @@ FROM
     INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
 WHERE
-    n.nspname = ANY(sqlc.arg('schema')::TEXT[])
+    (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
     AND a.attnum > 0
     AND NOT a.attisdropped
     AND c.relkind = 'r' -- ensures only tables are present

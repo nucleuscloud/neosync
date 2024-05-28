@@ -321,12 +321,32 @@ func toConstraintType(constraintType string) (ConstraintType, error) {
 	return -1, errors.ErrUnsupported
 }
 
-func (p *PostgresManager) GetTableInitStatements(ctx context.Context, schemas []string) ([]*TableInitStatement, error) {
-	if len(schemas) == 0 {
+type SchemaTable struct {
+	Schema string
+	Table  string
+}
+
+func (s SchemaTable) String() string {
+	return BuildTable(s.Schema, s.Table)
+}
+
+func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
+	if len(tables) == 0 {
 		return []*TableInitStatement{}, nil
 	}
 
-	results, err := p.querier.GetDatabaseTableSchemasBySchemas(ctx, p.pool, schemas)
+	combined := []string{}
+	schemaset := map[string]struct{}{}
+	for _, table := range tables {
+		combined = append(combined, table.String())
+		schemaset[table.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for schema := range schemaset {
+		schemas = append(schemas, schema)
+	}
+
+	results, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(ctx, p.pool, combined)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +361,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, schemas []
 		constraintmap[key] = append(constraintmap[key], constraint)
 	}
 
-	infomap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasRow{}
+	infomap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
 	for _, result := range results {
 		key := fmt.Sprintf("%s.%s", result.SchemaName, result.TableName)
 		infomap[key] = append(infomap[key], result)

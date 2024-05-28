@@ -245,7 +245,7 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 	return items, nil
 }
 
-const getDatabaseTableSchemasBySchemas = `-- name: GetDatabaseTableSchemasBySchemas :many
+const getDatabaseTableSchemasBySchemasAndTables = `-- name: GetDatabaseTableSchemasBySchemasAndTables :many
 SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
@@ -306,7 +306,7 @@ FROM
     INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
 WHERE
-    n.nspname = ANY($1::TEXT[])
+    (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
     AND a.attnum > 0
     AND NOT a.attisdropped
     AND c.relkind = 'r' -- ensures only tables are present
@@ -314,7 +314,7 @@ ORDER BY
     a.attnum
 `
 
-type GetDatabaseTableSchemasBySchemasRow struct {
+type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	SchemaName             string
 	TableName              string
 	ColumnName             string
@@ -328,15 +328,15 @@ type GetDatabaseTableSchemasBySchemasRow struct {
 	GeneratedType          string
 }
 
-func (q *Queries) GetDatabaseTableSchemasBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetDatabaseTableSchemasBySchemasRow, error) {
-	rows, err := db.Query(ctx, getDatabaseTableSchemasBySchemas, schema)
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+	rows, err := db.Query(ctx, getDatabaseTableSchemasBySchemasAndTables, schematables)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetDatabaseTableSchemasBySchemasRow
+	var items []*GetDatabaseTableSchemasBySchemasAndTablesRow
 	for rows.Next() {
-		var i GetDatabaseTableSchemasBySchemasRow
+		var i GetDatabaseTableSchemasBySchemasAndTablesRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,

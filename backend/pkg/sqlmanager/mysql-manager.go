@@ -280,7 +280,7 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context, role string) (
 }
 
 // todo
-func (m *MysqlManager) GetTableInitStatements(ctx context.Context, schemas []string) ([]*TableInitStatement, error) {
+func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
 	return nil, errors.ErrUnsupported
 }
 

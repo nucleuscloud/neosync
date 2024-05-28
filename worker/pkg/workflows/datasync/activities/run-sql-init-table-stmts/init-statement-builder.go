@@ -150,7 +150,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
 				}
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, uniqueSchemas)
+				tables := []*sql_manager.SchemaTable{}
+				for tableKey := range uniqueTables {
+					schema, table := shared.SplitTableKey(tableKey)
+					tables = append(tables, &sql_manager.SchemaTable{Schema: schema, Table: table})
+				}
+				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
 				if err != nil {
 					return nil, err
 				}
