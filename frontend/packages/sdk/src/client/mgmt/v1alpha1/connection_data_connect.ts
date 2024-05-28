@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
+import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -36,17 +36,6 @@ export const ConnectionDataService = {
       name: "GetConnectionSchema",
       I: GetConnectionSchemaRequest,
       O: GetConnectionSchemaResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionTableConstraints
-     */
-    getConnectionTableConstraints: {
-      name: "GetConnectionTableConstraints",
-      I: GetConnectionTableConstraintsRequest,
-      O: GetConnectionTableConstraintsResponse,
       kind: MethodKind.Unary,
     },
     /**
