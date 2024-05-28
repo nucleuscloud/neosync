@@ -328,7 +328,7 @@ function GithubIcon(): ReactElement {
   return (
     <div className="flex flex-row items-center gap-2">
       <GitHubLogoIcon className="h-4 w-4" />
-      <div className="text-sm font-extrabold">2k</div>
+      <div className="text-sm font-extrabold">2.1k</div>
     </div>
   );
 }
