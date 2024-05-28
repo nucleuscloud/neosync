@@ -1065,8 +1065,6 @@ func (s *Service) GetConnectionTableConstraints(
 		schemas = append(schemas, s)
 	}
 
-	schemas = []string{"public"}
-
 	connectionTimeout := 5
 	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
 	if err != nil {
