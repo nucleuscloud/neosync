@@ -1,6 +1,8 @@
 {
   "scripts": {
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter=./packages/*",
+    "build:pkgs": "npm run build:packages",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
@@ -15,5 +17,8 @@
     "prettier": "^3.2.5",
     "turbo": "^1.13.3"
   },
-  "workspaces": ["apps/*", "packages/*"]
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

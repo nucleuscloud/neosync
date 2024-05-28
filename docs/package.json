@@ -41,10 +41,10 @@
     "@docusaurus/module-type-aliases": "^3.3.2",
     "@docusaurus/types": "^3.3.2",
     "@tsconfig/docusaurus": "^2.0.3",
-    "cspell": "^8.8.1",
-    "knip": "^5.16.0",
+    "cspell": "^8.8.3",
+    "knip": "^5.17.0",
     "postcss-import": "^16.1.0",
-    "postcss-nesting": "^12.1.4",
+    "postcss-nesting": "^12.1.5",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5"
   },

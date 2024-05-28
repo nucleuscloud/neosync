@@ -3,7 +3,11 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [
+        "apps/web/.next/**",
+        "!apps/web/.next/cache/**",
+        "packages/sdk/dist"
+      ]
     },
     "deploy": {
       "dependsOn": ["build"]
@@ -16,6 +20,7 @@
     },
     "clean": {
       "cache": false
-    }
+    },
+    "typecheck": {}
   }
 }

@@ -26,16 +26,19 @@ This container comes pre-packaged with all of the tools needed for developing Ne
 
 The docker compose environment runs almost entirely by itself. However, the Golang services (backend, worker), must be built on the host system.
 
-Each service can be built simply by `cd`ing into each directory (`backend`, `worker`) and running the command `make dbuild`. This builds the service specifically for Linux.
+This can be done easily from the root by simply running `make dbuild`. This will build the project for Docker (Linux). It builds the entire project so it may take some time.
+Note: This command will not build the frontend and will only install node modules. This is because Nextjs runs in dev mode and only builds what it needs to. The frontend build command is meant for production deployments.
 
-Running `make compose-dev-up` will stand up Neosync and it's dependencies.
+Afterwards, running `make compose/dev/up` will stand up Neosync and it's dependencies.
 **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
 
 The frontend, backend, and worker will be in watch mode, which will cause them to look for changes and reload. The frontend will reload on save, where as the backend/worker will reload on the next `make dbuild` run.
 
+You can run the sub-commands to make this faster as you won't need to rebuild the entire project.
+
 ```sh
-cd backend && make dbuild
-cd worker && make dbuild
+make dbuild/backend
+make dbuild/worker
 ```
 
 Once everything is up and running, The app can be accessed locally at [http://localhost:3000](http://localhost:3000).
@@ -45,13 +48,13 @@ Once everything is up and running, The app can be accessed locally at [http://lo
 This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
 
 ```sh
-make compose-dev-auth-up
+make compose/dev/auth/up
 ```
 
 To stop, run:
 
 ```sh
-make compose-dev-auth-down
+make compose/dev/auth/down
 ```
 
 ## Setup with Tilt
@@ -76,7 +79,7 @@ The cluster is declaratively defined [here](https://github.com/nucleuscloud/neos
 The below command invokes the cluster-create script that can be found [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/scripts/cluster-create.sh)
 
 ```
-make cluster-create
+make cluster/create
 ```
 
 After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.

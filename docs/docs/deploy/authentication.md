@@ -115,13 +115,13 @@ Starting Neosync in Auth Mode is done in a similar way as starting Neosync in no
 To stand up Neosync with auth, simply run the following command from the repo root:
 
 ```sh
-make compose-auth-up
+make compose/auth/up
 ```
 
 To stop, run:
 
 ```sh
-make compose-auth-down
+make compose/auth/down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000) with authentication pre-configured!

@@ -79,13 +79,13 @@ Neosync uses the newer `docker compose` command, so be sure to have that install
 To start Neosync, clone the repo into a local directory, be sure to have docker insalled and running, and then run:
 
 ```sh
-make compose-up
+make compose/up
 ```
 
 To stop, run:
 
 ```sh
-make compose-down
+make compose/down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000).
