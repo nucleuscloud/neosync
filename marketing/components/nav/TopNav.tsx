@@ -113,7 +113,7 @@ const links: NavLinks[] = [
     title: '',
     href: 'https://github.com/nucleuscloud/neosync',
     description: '',
-    icon: <GitHubLogoIcon className="h-4 w-4" />,
+    icon: <GithubIcon />,
     children: [],
     newTab: true,
   },
@@ -323,3 +323,12 @@ const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
 );
 
 ListItem.displayName = 'ListItem';
+
+function GithubIcon(): ReactElement {
+  return (
+    <div className="flex flex-row items-center gap-2">
+      <GitHubLogoIcon className="h-4 w-4" />
+      <div className="text-sm font-extrabold">2k</div>
+    </div>
+  );
+}
