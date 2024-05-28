@@ -1,6 +1,6 @@
 ---
 title: How we reduced our data generation times by 50%
-description: A walkthrough of how we reduced the time it takes to generate data in Neosync by 50% + benchmarks.
+description: A walkthrough of how we reduced the time it takes to generate data in Neosync by 50%. Also see our updated performance benchmarks.
 date: 2024-04-10
 published: true
 image: /images/blogs/datagentime.svg
@@ -8,13 +8,13 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 Data generation is at the heart of what we do at [Neosync](https://www.neosync.dev) so it's no surprise that we're constantly trying to optimize our performance. We recently spent a few days digging into how we do our batching and connection pooling when we connect to a database and were able to further optimize our system and reduce the time it takes to generate data by 50%!.
 
 Let's jump in.
 
-# Initial benchmarks
+## Initial benchmarks
 
 To start, let's look at what we were benchmarking before we optimized our data pipelines across both job types.
 
@@ -41,13 +41,13 @@ Up until 10,000 rows, the times are very close to each other regardless of the n
 
 Interestingly, we don't see as much separation between the 14 and 21 column runs as we do for the 7 and 14 column runs.
 
-# Optimizations
+## Optimizations
 
 Optimizing code can be really fun but you can also get trapped into hyper-optimizations. We tried really hard to narrow down our optimizations to only the most impactful ones and said early on that we only wanted to implement one or two in this round.
 
 Luckily, we had talked about doing these optimizations for a few weeks so they were top of mind.
 
-## Batching inserts
+### Batching inserts
 
 One of the first things we built when we started building Neosync was our data insertion module. It basically handled all of the data insertion logic when we insert data into one or multiple destinations.
 
@@ -59,7 +59,7 @@ With some work, we were able to introduce batching into this process, where we c
 
 This really helped to speed things up. We also moved away from creating our own `INSERT` statements in raw SQL to using [goqu](https://github.com/doug-martin/goqu) as a SQL builder. It's fast and flexible and really helped to streamline our data insertion process.
 
-## Connection limits
+### Connection limits
 
 Our first implementation of Neosync didn't optimize how many connections we were opening to the database which caused intermittent connection errors if we were opening too many without closing existing ones.
 
@@ -69,13 +69,13 @@ This would occasionally throw an error saying that have reached the connection l
 
 After some work to implement connection limits, we saw a massive drop off in connection errors and much faster data generation times. So now for each database integration, we expose a max connection limit, with the default of 80, to ensure that we don't (or rarely) hit any connection limit errors. By preventing this error, we don't have to wait and retry to open another connection which saves a lot of time.
 
-# Post optimization benchmarks
+## Post optimization benchmarks
 
 Once we implemented our optimizations, we saw a pretty big reduction in the time it takes to run our data generation and sync jobs.
 
 Let's take a look.
 
-## Data generation
+### Data generation
 
 Here are the new benchmarks for data generation jobs across the same dimensions as before.
 
@@ -94,7 +94,7 @@ The structure of our graph stayed pretty much the same except the difference in 
 
 The 21 column, 1,000,000 row job now only takes 4 minutes and 4 seconds instead of 7 minutes and 51 seconds before. That's pretty cool!
 
-# Conclusion
+## Conclusion
 
 We've been making a lot of optimizations to speed up the time it takes for us to generate, transform and sync records across databases. Anytime you can reduce your processing time by 50% you take that as a win. But there are still more things that we can do to optimize our pipelines even further. Particularly around our transformers and how we generate and anonymize data. Those will be coming soon enough and we'll publish another blog post once those improvements are out.
 

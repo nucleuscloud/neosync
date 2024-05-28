@@ -113,7 +113,7 @@ const links: NavLinks[] = [
     title: '',
     href: 'https://github.com/nucleuscloud/neosync',
     description: '',
-    icon: <GitHubLogoIcon className="h-4 w-4" />,
+    icon: <GithubIcon />,
     children: [],
     newTab: true,
   },
@@ -212,20 +212,20 @@ function MobileMenu(): ReactElement {
   const router = useRouter();
   return (
     <div className="block md:hidden lg:hidden">
-      <Menubar className="bg-transparent border border-gray-700 cursor-pointer">
+      <Menubar className="bg-transparent border border-transparent cursor-pointer">
         <MenubarMenu>
           <MenubarTrigger className="cursor-pointer data-[state=open]:bg-transparent focus:bg-transparent">
-            <GiHamburgerMenu color="black" />
+            <GiHamburgerMenu />
           </MenubarTrigger>
-          <MenubarContent className="bg-white border border-gray-700 mx-2 mt-1 w-[244px] py-2">
+          <MenubarContent className="bg-white border border-gray-700 mx-2 mt-1 w-[220px] py-2">
             {links.map((link) =>
               link.children.length > 0 ? (
                 <Accordion type="single" collapsible key={link.href}>
                   <AccordionItem value="solutions">
-                    <AccordionTrigger className="no-underline flex justify-center text-[14px]">
+                    <AccordionTrigger className="no-underline flex justify-center text-[14px] data-[state=open]:border-b data-[state=open]:border-b-gray-400 data-[state=open]:mx-6">
                       Solutions
                     </AccordionTrigger>
-                    <AccordionContent className="flex flex-col items-start gap-4 p-2 pl-8">
+                    <AccordionContent className="flex flex-col items-center gap-4 p-2 px-4 text-center">
                       {link.children.map((sublink) => (
                         <Link
                           href={sublink.href}
@@ -262,8 +262,7 @@ function MobileMenu(): ReactElement {
             <div className="flex justify-center">
               <Link href="https://app.neosync.dev" target="_blank">
                 <Button
-                  className="px-6 w-[188px] ml-10"
-                  variant="secondary"
+                  className="px-6 w-[188px]"
                   onClick={() =>
                     posthog.capture('user click', {
                       page: 'deployment options app sign up',
@@ -324,3 +323,12 @@ const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
 );
 
 ListItem.displayName = 'ListItem';
+
+function GithubIcon(): ReactElement {
+  return (
+    <div className="flex flex-row items-center gap-2">
+      <GitHubLogoIcon className="h-4 w-4" />
+      <div className="text-sm font-extrabold">2k</div>
+    </div>
+  );
+}

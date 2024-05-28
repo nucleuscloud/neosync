@@ -46,10 +46,10 @@ export default function UserDefinedGenerateEmailForm(
         control={fc.control}
         render={({ field }) => {
           return (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>Email Type</FormLabel>
-                <FormDescription className="w-[90%]">
+                <FormDescription>
                   Configure the email type that will be used during generation.
                 </FormDescription>
               </div>
@@ -65,7 +65,7 @@ export default function UserDefinedGenerateEmailForm(
                   }}
                   value={generateEmailTypeStringToEnum(field.value).toString()}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-[300px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

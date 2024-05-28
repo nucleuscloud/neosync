@@ -1,5 +1,6 @@
 ---
 title: Initializing your Schema
+description: Learn how to use Neosync to initialize your schema in your destination database to make it easier to hydrate your database with data
 id: initializing-your-schema
 hide_title: false
 slug: /guides/initializing-schemas
@@ -18,7 +19,7 @@ This can potentially have some issues if you have a lot of migrations or if your
 If your migrations are any of the following you may run into issues:
 
 - Not Idempotent, meaning that running the migration multiple times (or against a completely blank/fresh database) will cause issues
-- Have hard coded database names (if you are choosing to run neosync against a separate logical database in your single instance)
+- Have hard coded database names (if you are choosing to run Neosync against a separate logical database in your single instance)
 - Edit database users, global configurations or other settings that are not related to the schema/data
 
 Some of the above issues can be resolved by choosing to run your migrations against a completely fresh database.

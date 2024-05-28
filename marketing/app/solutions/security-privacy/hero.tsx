@@ -9,9 +9,9 @@ export default function Hero(): ReactElement {
   return (
     <div className="flex flex-col lg:flex-row items-center lg:pb-20 z-40 pt-20">
       <div className="flex flex-col items-center lg:items-start gap-2 lg:gap-10">
-        <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center lg:text-left">
+        <h1 className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center lg:text-left">
           Frictionless Security, Privacy and Compliance
-        </div>
+        </h1>
         <h3 className="text-gray-800 text-md lg:text-lg font-semibold text-center lg:text-left lg:px-0 px-6 lg:w-[80%]">
           Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified
           and synthetic data that structurally and statistically looks just like

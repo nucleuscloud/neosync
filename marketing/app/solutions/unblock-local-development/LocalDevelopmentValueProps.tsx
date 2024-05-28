@@ -4,7 +4,7 @@ import { ReactElement } from 'react';
 export default function LocalDevelopmentValueProps(): ReactElement {
   const features = [
     {
-      title: 'Reproduce errors locally',
+      title: 'Reproduce production errors locally',
       description:
         'Subset or filter anonymized production data to easily and quickly identify or reproduce errors.',
       image:
@@ -41,18 +41,20 @@ export default function LocalDevelopmentValueProps(): ReactElement {
         {features.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto h-[360px] hover:border-gray-400"
+            className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full max-w-[300px] lg:w-[270px] lg:max-w-[400px] mx-auto sm:h-[100px] md:h-[360px] hover:border-gray-400"
           >
-            <div className="text-gray-900 ">
-              <Image
-                src={item.image}
-                alt="NeosyncLogo"
-                width="178"
-                height="131"
-                className="w-[178px] h-[131px]"
-              />
+            <div>
+              <div className="flex justify-center">
+                <Image
+                  src={item.image}
+                  alt="NeosyncLogo"
+                  width="178"
+                  height="131"
+                  className="w-[178px] h-[131px]"
+                />
+              </div>
+              <div className="text-gray-900 text-2xl pt-6">{item.title}</div>
             </div>
-            <div className="text-gray-900 text-2xl">{item.title}</div>
           </div>
         ))}
       </div>

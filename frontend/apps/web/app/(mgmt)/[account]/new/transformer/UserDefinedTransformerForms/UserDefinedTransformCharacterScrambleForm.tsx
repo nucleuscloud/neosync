@@ -109,12 +109,10 @@ export default function UserDefinedTransformCharacterScrambleForm(
               </FormDescription>
               <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
             </div>
-
             <FormControl>
-              <div className="min-w-[500px]">
+              <div className="w-[300px]">
                 <Input
                   type="string"
-                  className="min-w-[500px]"
                   value={field.value}
                   onChange={(e) => {
                     field.onChange(e);

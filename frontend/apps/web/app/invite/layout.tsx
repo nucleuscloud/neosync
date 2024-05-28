@@ -10,7 +10,7 @@ import BaseLayout from '../BaseLayout';
 
 export const metadata: Metadata = {
   title: 'Neosync',
-  description: 'Open Source Test Data Management',
+  description: 'Open Source Data Anonymization and Synthetic Data',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 

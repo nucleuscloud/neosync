@@ -21,7 +21,6 @@ export default async function sitemap() {
   const routes = [
     '',
     '/about',
-    '/docs',
     '/blog',
     '/solutions/fix-staging-environments',
     '/solutions/reproduce-prod-bugs-locally',

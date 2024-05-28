@@ -1,6 +1,6 @@
 ---
 title: How to seed your AWS RDS DB with Synthetic Data
-description: A walkthrough tutorial on how to seed an RDS DB with Synthetic Data
+description: A walkthrough tutorial on how to seed an RDS with Synthetic Data for a better developer experience while working with AWS RDS.
 date: 2024-03-20
 published: true
 image: /images/blogs/rds/rds-header.svg
@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 [AWS RDS](https://aws.amazon.com/rds/) is a relational database service from AWS that is easy to set up and scale. It's used by thousands of companies across the world.
 
@@ -16,14 +16,14 @@ In this guide, we're going to walk through how you can seed your RDS database wi
 
 Let's jump in.
 
-# Prerequisites
+## Prerequisites
 
 We're going to need an AWS account and a Neosync account. If you don't already have those, we can get those here:
 
 - [Sign up for AWS](https://aws.amazon.com/rds/)
 - [Sign up for Neosync](https://www.neosync.dev)
 
-# Setting up RDS
+## Setting up RDS
 
 Now that we have our accounts, we can get this ball rolling. First, let's log into our AWS console and create a new RDS instance. For this guide, we're going to create a PostgreSQL database and select basic options that will suffice for a Dev DB. If you're creating a production database, you'll likely want to optimize your RDS instance for better memory, security and Storage.
 
@@ -60,11 +60,11 @@ We can do a quick sanity check by querying to see that our table was successfull
 
 Nice! Easy enough to get started.
 
-# Setting up Neosync
+## Setting up Neosync
 
 Next let's set up Neosync.
 
-## Creating a Connection
+### Creating a Connection
 
 Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**.
 
@@ -87,7 +87,7 @@ Once you've completed filling out the form, you can click on **Test Connection**
 
 Let's click **Submit** and move onto the last part.
 
-## Creating a Job
+### Creating a Job
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
@@ -144,6 +144,6 @@ SELECT * FROM users;
 
 Looking pretty good! We have seeded our RDS database with 1000 rows of completely synthetic data and it only took 1 second.
 
-# Conclusion
+## Conclusion
 
 In this guide, we walked through how to seed your RDS database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.

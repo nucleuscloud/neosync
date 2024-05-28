@@ -1,6 +1,6 @@
 ---
 title: The Future is Synthetic Data Engineering
-description: Our thoughts on why Synthetic Data Engineering is the future
+description: Synthetic Data Engineering is the feature and in this blog we describe how it can massively improve developer experience and privacy.
 date: 2024-01-15
 published: true
 image: https://assets.nucleuscloud.com/neosync/blog/synthetic-data 1.png
@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 For most companies, sensitive data is radioactive. If put to use correctly, it can be powerful, helping you to understand your customers and power personalized experiences. If mishandled, it can be extremely damaging. Our infrastructures are contaminated with this radioactivity.
 
@@ -24,19 +24,19 @@ So how do we de-contaminate our infrastructures?
 
 The answer is Synthetic Data Engineering.
 
-# Synthetic Data Engineering
+## Synthetic Data Engineering
 
 Synthetic Data Engineering replaces traditional sensitive data with synthetic data in all engineering workflows where real data is not absolutely required. When we can create synthetic data that is almost structurally and statistically identical to our production data, we can reduce the flow and usage of sensitive production data throughout our infrastructure, and not only increase our security and privacy posture but also be more productive.
 
 Let's look at some use-cases.
 
-## Product Engineering
+### Product Engineering
 
 Product engineers are typically building features for customers. In order to build and test those features, product engineers will either run a database locally or connect to a staging database thats in the cloud. These testing databases need high-quality [test data](/blog/what-is-test-data) in order to replicate real world scenarios and ensure that the features are stable. Many companies will just replicate their production database to their staging database or even to the developers local database. This is obviously not great from a security and privacy standpoint and in some industries, like healthcare where HIPAA reigns strong, not allowed.
 
 Synthetic Data Engineering for product engineers means that they can have a local or staging database with synthetic data that looks just like their production database without any of the security and privacy concerns. They can tear down and re-hydrate this database over and over again without touching back up copies or a live database. Also, they can test their features with different levels of data quality to ensure that they're handling edge cases. Overall, this creates a safer and more reliable application in the long run.
 
-## Machine learning
+### Machine learning
 
 If you ask a Machine Learning Engineer or Data Scientist what their main problems are, you'll most likely hear some version of the following:
 
@@ -49,7 +49,7 @@ For Machine Learning Engineers and Data Scientists who are training models and s
 
 This is especially powerful in regulated industries where sensitive data is sometimes not even available to be used by Machine Learning Engineers and Data Scientists.
 
-## Data Engineering
+### Data Engineering
 
 Data Engineers spend most of their days building and maintaining pipelines that ingest, transform and move data across the organization. The two biggest problems that Data Engineers face is getting enough data to test the stability and performance of their pipelines and getting data representative enough to test out the business logic.
 
@@ -57,7 +57,7 @@ Synthetic data engineering comes to the rescue here again. Data Engineers are no
 
 Additionally, it's all self-serve. Whether you're a Developer, Machine Learning Engineer, Date Scientist or Data Engineer, you can define the data set you need and get the data generated automatically without having to go through long review cycles.
 
-# Core Features of Synthetic Data Engineering
+## Core Features of Synthetic Data Engineering
 
 We've talked about what Synthetic Data Engineering is and how it can help engineering teams and companies move faster with less risk. Now let's talk about what the core features of Synthetic Data Engineering.
 
@@ -73,7 +73,7 @@ Synthetic Data Engineering revolves around four key concepts:
 
 Synthetic Data Engineering starts from these core concepts and then can expand into other areas such as data anonymization, tokenization and more.
 
-# Conclusion
+## Conclusion
 
 Driving a new architecture is an audacious goal. But it's one that we strongly believe in. We imagine a world where Developers, Machine Learning Engineers and Data Engineers have unlimited access to high-fidelity data that is structurally and statistically identical to their production data yet doesn't have any of the security and privacy risk.
 

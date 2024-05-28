@@ -8,11 +8,11 @@ vet:
 	$(GO) vet ./...
 
 build: gen vet
-	hack/build.sh
+	scripts/build.sh
 .PHONY: build
 
 dbuild: gen vet
-	GOOS=linux hack/build.sh
+	GOOS=linux scripts/build.sh
 .PHONY: dbuild
 
 run:
@@ -27,7 +27,7 @@ protos: gen
 .PHONY: protos
 
 gen:
-	./hack/gen.sh
+	./scripts/gen.sh
 .PHONY: gen
 
 clean:

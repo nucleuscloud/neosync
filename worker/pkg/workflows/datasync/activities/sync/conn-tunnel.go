@@ -17,7 +17,7 @@ import (
 type defaultSqlProvider struct{}
 
 func (d *defaultSqlProvider) GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error) {
-	return sqlconnect.GetConnectionDetails(cc, connTimeout, logger)
+	return sqlconnect.GetConnectionDetails(cc, connTimeout, sqlconnect.UpsertCLientTlsFiles, logger)
 }
 func (d *defaultSqlProvider) DbOpen(driver, dsn string, maxConnectionLimits *int32) (neosync_benthos_sql.SqlDbtx, error) {
 	db, err := sql.Open(driver, dsn)

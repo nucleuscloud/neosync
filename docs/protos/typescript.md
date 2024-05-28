@@ -1,5 +1,6 @@
 ---
 title: Neosync for TypeScript
+description: Learn about Neosync's Typescript SDK and how you can use it to anonymize data and generate synthetic data
 id: typescript
 hide_title: false
 slug: /typescript

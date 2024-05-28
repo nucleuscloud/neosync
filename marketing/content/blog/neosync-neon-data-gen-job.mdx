@@ -1,6 +1,6 @@
 ---
 title: How to seed your Neon DB with Synthetic Data
-description: A walkthrough tutorial on how to seed a Neon DB with Synthetic Data
+description: A walkthrough tutorial on how to seed a Neon DB with Synthetic Data for a better developer experience while working with Neon.
 date: 2024-02-21
 published: true
 image: /images/blogs/neon/neondatagen.svg
@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 [Neon DB](https://neon.tech/) is a fast-growing database that offer serverless Postgres. It's open source and gaining a lot of traction with individual developers working on side projects as well as businesses running mission critical applications.
 
@@ -16,14 +16,14 @@ In this guide, we're going to walk through how you can seed your Neon database w
 
 Let's jump in.
 
-# Prerequisites
+## Prerequisites
 
 We're going to need a Neon account and a Neosync account. If you don't already have those, we can get those here:
 
 - [Sign up for Neon](https://console.neon/tech/login)
 - [Sign up for Neosync](https://www.neosync.dev)
 
-# Setting up Neon
+## Setting up Neon
 
 Now that we have our accounts, we can get this ball rolling. First, let's log into Neon. If you already have a Neon account then you can either create a new project or a new database. If you don't have a Neon account then give your project a name, your database a name and select a region like below:
 
@@ -52,11 +52,11 @@ We can do a quick sanity check by going to **Tables** and seeing that our table 
 
 Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Hold onto this for a minute while we get Neosync set up.
 
-# Setting up Neosync
+## Setting up Neosync
 
 Now that we're in Neosync, we'll want to first create a connection to our Neon database and then create a job to generate data. Let's get started.
 
-## Creating a Connection
+### Creating a Connection
 
 Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**.
 
@@ -79,7 +79,7 @@ Once you've completed filling out the form, you can click on **Test Connection**
 
 Let's click **Submit** and move onto the last part.
 
-## Creating a Job
+### Creating a Job
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
@@ -136,6 +136,6 @@ SELECT * FROM users;
 
 Looking pretty good! We have seeded our Neon database with 1000 rows of completely synthetic data and it only took 12 seconds.
 
-# Conclusion
+## Conclusion
 
 In this guide, we walked through how to seed your Neon database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.

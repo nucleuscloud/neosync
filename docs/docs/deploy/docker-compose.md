@@ -1,5 +1,6 @@
 ---
 title: Docker Compose
+description: Learn how to deploy Neosync using Docker compose for a better local developer experience
 id: docker-compose
 hide_title: false
 slug: /deploy/docker-compose

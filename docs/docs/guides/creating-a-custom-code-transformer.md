@@ -1,5 +1,6 @@
 ---
 title: Creating a Custom Code Transformer
+description: Learn how to create a custom code transformer that you can use to implement your own anonymization and synthetic data logic
 id: custom-code-transformers
 hide_title: false
 slug: /guides/custom-code-transformers

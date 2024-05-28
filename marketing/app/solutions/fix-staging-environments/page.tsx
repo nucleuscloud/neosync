@@ -9,6 +9,8 @@ import Hero from './hero';
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
   title: 'Fix Staging Environments | Neosync',
+  description:
+    'Fix broken staging environments using Neosync in order to deliver a better developer experience.',
   openGraph: {
     title: 'Fix Staging Environments | Neosync',
     description:

@@ -1,5 +1,6 @@
 ---
 title: PostgreSQL
+description: Postgres is one of the most commonly used databases in the world and Neosync natively supports most postgres-compatible databases.
 id: postgres
 hide_title: false
 slug: /connections/postgres

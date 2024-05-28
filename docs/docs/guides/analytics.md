@@ -1,5 +1,6 @@
 ---
 title: Configuring Analytics
+description: Learn how to configure analytics within Neosync open source and turn it off or not based on your preferences
 id: analytics
 hide_title: false
 slug: /guides/analytics

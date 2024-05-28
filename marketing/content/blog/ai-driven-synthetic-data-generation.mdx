@@ -1,6 +1,6 @@
 ---
 title: Generating Synthetic Data with LLMs
-description: A guide to using AI to generate synthetic data
+description: A guide to using AI to generate synthetic data for your database and application using any LLM that is available at an endpoint.
 image: /images/blogs/llmheader.png
 date: 2024-05-21
 published: true
@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Intro
+## Intro
 
 We recently published a blog on how to use [Neosync and Open AI to generate synthetic data](/blog/neosync-llm-integration) at the row level. That was just v0 of our AI features. We're excited to launch v1 of using LLMs to generate synthetic data on Neosync!
 
@@ -16,7 +16,7 @@ Now you can use any model that is hosted on an endpoint to be able to generate s
 
 Let's go through a walk-through example and guide.
 
-## Pre-requisites
+### Pre-requisites
 
 In order to get started, you'll need the following:
 
@@ -24,7 +24,7 @@ In order to get started, you'll need the following:
 2. Access to an LLM hosted at an endpoint. I'll be using OpenAI but you can use any other LLM as long as it's available at a REST endpoint.
 3. A database to store your data. I'm going to use Neon but either Postgres or Mysql works.
 
-# Setting up our database
+## Setting up our database
 
 For this guide, I'm going to use a Postgres database from [Neon](https://neon.tech).
 
@@ -54,7 +54,7 @@ Last thing we'll need to do is to just get the connection URL that we'll use to 
 
 Hang on to this for a minute and we can move onto setting up Neosync.
 
-# Creating a Connection
+## Creating a Connection
 
 Now that we have our database set up, we can connect Neosync to it.
 
@@ -66,7 +66,7 @@ Let's name our connection `cust-gen-db` and then in the **Connection URL** field
 
 Nice! Looks like we can see our database and table and that our permissions are correct. Click on **Close** and then **Submit** to save the connection.
 
-# Creating a Connection to our LLM
+## Creating a Connection to our LLM
 
 Next, we need to create a connection to our LLM provider. click on **Connections** -> **+ New Connection** -> **OpenAI**. We support any LLM that uses the OpenAI interface.
 
@@ -76,7 +76,7 @@ Fill in you Connection Name, model endpoint and then the API key.
 
 Click on **Submit** to save the connection.
 
-# Creating a Job
+## Creating a Job
 
 Jobs are how we configure and execute workflows to run and generate data or anonymize existing data. Click on **Jobs** in the top navigation menu and then click on the **+ New Job** button. Select the **AI Data Generation** job type and click **Next**.
 
@@ -120,7 +120,7 @@ Lastly, set the total number of records that you want. We support up to 1000 rec
 
 And we're done creating the job!
 
-# Checking the output
+## Checking the output
 
 Now is the fun part. We can open up our database and see what our data looks like.
 
@@ -138,6 +138,6 @@ I've been using the skin care app for a month now, and I must say I'm impressed.
 
 This looks pretty realistic!. Also, we can just do a quick scan and see that the interviews are all different and not a copy and paste which is great.
 
-# Conclusion
+## Conclusion
 
 There is a lot more that we can do here and we will continue to expand on this as we build out more features and support. Let us know if you have any feedback!

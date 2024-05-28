@@ -8,11 +8,11 @@ import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 
 export default function Platform(): ReactElement {
   return (
-    <div>
+    <div className=" mx-10 sm:mx-0">
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center bg-white/60">
         A Powerful Platform Built For Engineering Teams
       </div>
-      <div className="flex flex-col items-center justify-center border border-gray-400 rounded-xl mt-20 z-30 bg-white max-w-[1105px] overflow-hidden">
+      <div className="flex flex-col items-center justify-center border border-gray-400 rounded-xl mt-10 sm:mt-20 z-30 bg-white max-w-[1105px] overflow-hidden">
         <GenerateAndAnonymize />
         <ReferentialIntegrity />
         <OrchestrationAndSubset />
@@ -25,17 +25,17 @@ export default function Platform(): ReactElement {
 function GenerateAndAnonymize(): ReactElement {
   return (
     <div className="flex flex-col lg:flex-row items-center bg-white w-full">
-      <div className="flex flex-col gap-6 p-10 w-full">
+      <div className="flex flex-col gap-6 p-6 sm:p-10 w-full">
         <div className="flex flex-col gap-2">
           <div className="flex flex-row items-center gap-2">
             <div>
               <PiFlaskLight className="h-4 w-4" />
             </div>
-            <div className="text-2xl font-semibold text-left">
+            <div className="text-xl sm:text-2xl font-semibold text-left">
               Generate Synthetic Data
             </div>
           </div>
-          <div className="text-md font-normal text-left pl-6">
+          <div className="text-sm sm:text-md font-normal text-left pl-6">
             Choose from 40+ pre-built Synthetic Data Transformers.
           </div>
         </div>
@@ -47,16 +47,16 @@ function GenerateAndAnonymize(): ReactElement {
           className="border border-gray-300 shadow-lg rounded-xl"
         />
       </div>
-      <div className="flex flex-col gap-4 p-10 border-gray-400 border-l w-full">
+      <div className="flex flex-col gap-4 p-6 sm:p-10 sm:border-gray-400 sm:border-l w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
             <LinkBreak1Icon className="h-4 w-4" />
           </div>
-          <div className="text-2xl font-semibold text-left">
+          <div className="text-xl sm:text-2xl font-semibold text-left">
             Anonymize Sensitive Data
           </div>
         </div>
-        <div className="text-md font-normal text-left pl-6">
+        <div className="text-sm sm:text-md  font-normal text-left pl-6">
           Mask, redact, scramble or obfuscate sensitive data in code.
         </div>
         <Image
@@ -73,16 +73,16 @@ function GenerateAndAnonymize(): ReactElement {
 
 function ReferentialIntegrity(): ReactElement {
   return (
-    <div className="flex flex-col gap-4 p-10 w-full border-t border-gray-400 bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea]">
+    <div className="flex flex-col gap-4 p-6 sm:p-10 w-full border-t border-gray-400 bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea]">
       <div className="flex flex-row items-center gap-2">
         <div>
           <GoWorkflow className="h-4 w-4" />
         </div>
-        <div className="text-2xl font-semibold text-left">
+        <div className="text-xl sm:text-2xl font-semibold text-left">
           Full Referential Integrity
         </div>
       </div>
-      <div className="text-md font-normal text-left pl-6">
+      <div className="text-sm sm:text-md font-normal text-left pl-6">
         Neosync automatically handles Primary keys, Foreign keys, Unique
         constraints, Circular dependencies and more. Perfectly preserving your
         data&apos;s referential integrity every time.
@@ -100,16 +100,16 @@ function ReferentialIntegrity(): ReactElement {
 function OrchestrationAndSubset(): ReactElement {
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full border-t border-gray-400">
-      <div className="flex flex-col gap-4 p-10 w-full">
+      <div className="flex flex-col gap-4 p-6 sm:p-10 w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
             <PiArrowsSplitLight className="h-4 w-4" />
           </div>
-          <div className="text-2xl font-semibold text-left">
+          <div className="text-xl sm:text-2xl font-semibold text-left">
             Reliable Orchestration
           </div>
         </div>
-        <div className="text-md font-normal text-left pl-6">
+        <div className="text-sm sm:text-md font-normal text-left pl-6">
           Sync to multiple destinations. Full control over scheduling, retries,
           back-offs, timeouts and multiple destinations.
         </div>
@@ -121,16 +121,16 @@ function OrchestrationAndSubset(): ReactElement {
           className="border border-gray-300 shadow-lg rounded-xl"
         />
       </div>
-      <div className="flex flex-col gap-4 p-10 border-gray-400 border-l w-full">
+      <div className="flex flex-col gap-4 p-6 sm:p-10 sm:border-gray-400 sm:border-l w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
             <BsFunnel className="h-4 w-4 " />
           </div>
-          <div className="text-2xl font-semibold text-left">
+          <div className="text-xl sm:text-2xl font-semibold text-left">
             Powerful Subsetting
           </div>
         </div>
-        <div className="text-md font-normal text-left pl-6">
+        <div className="text-sm sm:text-md font-normal text-left pl-6">
           Subset your database by schema, table, column or a custom SQL query.
           Neosync automatically handles referential integrity.
         </div>

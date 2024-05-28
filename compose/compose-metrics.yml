@@ -6,7 +6,7 @@ services:
       - neosync-network
       - metrics
     volumes:
-      - $PWD/hack/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+      - $PWD/scripts/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
       - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector
@@ -23,7 +23,7 @@ services:
       - neosync-network
       - metrics
     volumes:
-      - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - $PWD/scripts/prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
 
@@ -38,7 +38,7 @@ services:
   #     - 2003:2003/udp
   #     - 4242:4242
   #   volumes:
-  #     - $PWD/hack/prometheus.yaml:/etc/victoriametrics/prometheus.yaml
+  #     - $PWD/scripts/prometheus.yaml:/etc/victoriametrics/prometheus.yaml
   #     - vmdata:/storage
   #   command:
   #     - "--storageDataPath=/storage"
@@ -92,7 +92,7 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/loki-config.yaml
     volumes:
-      - $PWD/hack/loki-config.yaml:/etc/loki/loki-config.yaml
+      - $PWD/scripts/loki-config.yaml:/etc/loki/loki-config.yaml
     networks:
       - metrics
       - neosync-network
@@ -102,7 +102,7 @@ services:
     image: grafana/promtail:2.9.4
     command: -config.file=/etc/promtail/config.yml
     volumes:
-      - $PWD/hack/promtail-config.yaml:/etc/promtail/config.yml
+      - $PWD/scripts/promtail-config.yaml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/log/docker/containers:ro
     networks:
       - metrics

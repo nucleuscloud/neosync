@@ -11,30 +11,60 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2Icon } from 'lucide-react';
+import Head from 'next/head';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 
 export default function Pricing() {
   return (
-    <div className="flex flex-col gap-6 justify-center z-40 py-20  mx-auto">
-      <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
-        Simple, Transparent Pricing
+    <>
+      <Head>
+        <title>Neosync | Simple, transparent pricing</title>
+        <meta
+          name="description"
+          content="Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package."
+        />
+        <link rel="canonical" href="https://www.neosync.dev/pricing" />
+        <meta
+          property="og:title"
+          content="Neosync | Simple, transparent pricing"
+        />
+        <meta
+          property="og:description"
+          content="Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package."
+        />
+        <meta property="og:url" content="https://www.neosync.dev" />
+        <meta property="og:site_name" content="Neosync" />
+        <meta
+          property="og:image"
+          content="/neosync/marketingsite/mainOGHero.svg"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="flex flex-col gap-6 justify-center z-40 py-20 mx-auto">
+        <h1 className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
+          Flexible Pricing
+        </h1>
+        <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
+          From Open Source to Enterprise, Neosync has flexible pricing and
+          packaging that can work for every company
+        </div>
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10">
+          <OpenSourcePlan />
+          <FreePlan />
+          <TeamPlan />
+          <CustomPlan />
+        </div>
+        <FAQs />
+        <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
+          <CTA />
+        </div>
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
-        Pricing shouldn&apos;t be complicated, so we made it easy.
-      </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10 ">
-        <OpenSourcePlan />
-        <FreePlan />
-        <TeamPlan />
-        <CustomPlan />
-      </div>
-      <FAQs />
-      <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
-        <CTA />
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -146,9 +176,9 @@ function FreePlan(): ReactElement {
 
 function TeamPlan(): ReactElement {
   const features = [
-    '5M records/mo ($60/1M after)',
+    'Unlimited Records',
     'Unlimited Jobs',
-    '5 users ($10/user after)',
+    'Unlimited Users',
     'US or EU Region',
     'Social, SSO',
     'Neosync Infrastructure',
@@ -168,8 +198,7 @@ function TeamPlan(): ReactElement {
             </Badge>
           </div>
           <div className="flex justify-center flex-row gap-2">
-            <div className="text-3xl ">$299</div>
-            <div className="text-sm self-end pb-1">/mo</div>
+            <div className="text-3xl ">Contact Us</div>
           </div>
         </div>
         <Separator className="mt-6" />
@@ -215,7 +244,7 @@ function CustomPlan(): ReactElement {
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[360px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
+    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[310px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline" className="border-gray-400 border">

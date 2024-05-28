@@ -2,6 +2,7 @@ package sqlconnect
 
 import (
 	context "context"
+	"fmt"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,6 +47,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 			return nil, err
 		}
 		<-ready
+
 		_, localport := s.details.Tunnel.GetLocalHostPort()
 		newPort := int32(localport)
 		s.details.GeneralDbConnectConfig.Port = newPort
@@ -53,7 +55,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 
 		config, err := pgxpool.ParseConfig(dsn)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to parse dsn into pg config: %w", err)
 		}
 
 		// set max number of connections.

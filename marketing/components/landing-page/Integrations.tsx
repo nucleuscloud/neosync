@@ -68,7 +68,7 @@ export default function Intergrations(): ReactElement {
   ];
   return (
     <div>
-      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center z-30">
+      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center z-30 px-10 sm:px-0">
         Seamlessly Integrate With Your Stack
       </div>
       <div className="lg:p-6 mt-10">

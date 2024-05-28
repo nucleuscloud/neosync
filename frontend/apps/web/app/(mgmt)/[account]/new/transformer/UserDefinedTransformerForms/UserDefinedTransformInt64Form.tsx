@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
   CreateUserDefinedTransformerSchema,
@@ -26,6 +26,17 @@ export default function UserDefinedTransformInt64Form(
     UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
   >();
   const { isDisabled } = props;
+
+  const min = fc.watch('config.value.randomizationRangeMin');
+  const max = fc.watch('config.value.randomizationRangeMax');
+
+  useEffect(() => {
+    fc.trigger('config.value.randomizationRangeMin');
+  }, [max, fc.trigger]);
+
+  useEffect(() => {
+    fc.trigger('config.value.randomizationRangeMax');
+  }, [min, fc.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -46,7 +57,7 @@ export default function UserDefinedTransformInt64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       value={field.value ? parseInt(field.value) : 0}
                       type="number"
@@ -82,7 +93,7 @@ export default function UserDefinedTransformInt64Form(
             <div className="flex flex-col h-14">
               <div className="justify-end flex">
                 <FormControl>
-                  <div className="max-w-[180px]">
+                  <div className="w-[300px]">
                     <Input
                       value={field.value ? parseInt(field.value) : 1}
                       type="number"

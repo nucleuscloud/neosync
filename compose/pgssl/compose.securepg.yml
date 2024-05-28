@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - ./certs:/certs
+    ports:
+      - "5555:5432"
+    user: postgres
+    networks:
+      - neosync-network
+    command:
+      [
+        "postgres",
+        "-c",
+        "ssl=on",
+        "-c",
+        "ssl_cert_file=/certs/server.crt",
+        "-c",
+        "ssl_key_file=/certs/server.key",
+        "-c",
+        "ssl_ca_file=/certs/root.crt",
+      ]
+networks:
+  neosync-network:
+    name: neosync-network
+    external: true
