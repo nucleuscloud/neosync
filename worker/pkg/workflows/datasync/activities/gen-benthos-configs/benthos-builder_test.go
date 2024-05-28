@@ -720,12 +720,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 		"public.users":  {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.orders": {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":  {"id"},
-		"public.orders": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
+			"public.orders": {"id"}},
 	}, nil)
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
@@ -993,12 +991,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 		"public.users":  {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.orders": {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":  {"id"},
-		"public.orders": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":  {"id"},
+			"public.orders": {"id"}},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
@@ -1234,11 +1231,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
 		"public.jobs": {"id": &sql_manager.ColumnInfo{}, "parent_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.jobs": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.jobs": {{Columns: []string{"parent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.jobs": {{Columns: []string{"parent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"id"}}}}},
+		PrimaryKeyConstraints: map[string][]string{"public.jobs": {"id"}},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
@@ -1517,12 +1512,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":                     {"id"},
-		"public.user_account_associations": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":                     {"id"},
+			"public.user_account_associations": {"id"},
+		},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
@@ -1682,13 +1677,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":                     {"id"},
-		"public.user_account_associations": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-		"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":                     {"id"},
+			"public.user_account_associations": {"id"},
+		},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
@@ -2024,14 +2021,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":                     {"id"},
-		"public.user_account_associations": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-		"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":                     {"id"},
+			"public.user_account_associations": {"id"},
+		},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
@@ -2383,12 +2381,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":                     {"id"},
-		"public.user_account_associations": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":                     {"id"},
+			"public.user_account_associations": {"id"},
+		},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
@@ -2641,13 +2641,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
 		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
-		"public.users":                     {"id"},
-		"public.user_account_associations": {"id"},
-	}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-		"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{
+			"public.users":                     {"id"},
+			"public.user_account_associations": {"id"},
+		},
 	}, nil)
 
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
