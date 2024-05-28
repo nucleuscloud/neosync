@@ -346,30 +346,40 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		schemas = append(schemas, schema)
 	}
 
-	results, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(ctx, p.pool, combined)
-	if err != nil {
-		return nil, err
-	}
+	errgrp, errctx := errgroup.WithContext(ctx)
 
-	constraints, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil {
-		return nil, err
-	}
+	colDefMap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	errgrp.Go(func() error {
+		columnDefs, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.pool, combined)
+		if err != nil {
+			return err
+		}
+		for _, columnDefinition := range columnDefs {
+			key := fmt.Sprintf("%s.%s", columnDefinition.SchemaName, columnDefinition.TableName)
+			colDefMap[key] = append(colDefMap[key], columnDefinition)
+		}
+		return nil
+	})
+
 	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, constraint := range constraints {
-		key := fmt.Sprintf("%s.%s", constraint.SchemaName, constraint.TableName)
-		constraintmap[key] = append(constraintmap[key], constraint)
-	}
+	errgrp.Go(func() error {
+		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.pool, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		if err != nil {
+			return err
+		}
+		for _, constraint := range constraints {
+			key := fmt.Sprintf("%s.%s", constraint.SchemaName, constraint.TableName)
+			constraintmap[key] = append(constraintmap[key], constraint)
+		}
+		return nil
+	})
 
-	infomap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
-	for _, result := range results {
-		key := fmt.Sprintf("%s.%s", result.SchemaName, result.TableName)
-		infomap[key] = append(infomap[key], result)
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
 	}
 
 	output := []*TableInitStatement{}
-
-	for key, tableData := range infomap {
+	for key, tableData := range colDefMap {
 		columns := make([]string, 0, len(tableData))
 		for _, td := range tableData {
 			columns = append(columns, buildTableCol(&buildTableColRequest{
@@ -422,7 +432,7 @@ BEGIN
 	END IF;
 END $$;
 	`, constraintName, schema, table, alterStatement)
-	return stmt
+	return strings.TrimSpace(stmt)
 }
 
 func buildAlterStatementByConstraint(

@@ -67,12 +67,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
 	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
-	tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
-	}
-	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
-
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
 		if err != nil {
@@ -117,6 +111,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if sqlopts.InitSchema {
 			switch sourceConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+				}
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
 				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 				if err != nil {
@@ -225,6 +224,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 				}
 			} else if sqlopts.TruncateBeforeInsert {
+				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+				}
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
 				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 				if err != nil {
