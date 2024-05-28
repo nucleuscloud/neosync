@@ -290,7 +290,35 @@ func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, t
 
 type TableInitStatement struct {
 	CreateTableStatement string
-	AlterTableStatements []string
+	AlterTableStatements []*AlterTableStatement
+}
+
+type AlterTableStatement struct {
+	Statement      string
+	ConstraintType ConstraintType
+}
+
+type ConstraintType int
+
+const (
+	PrimaryConstraintType ConstraintType = iota
+	ForeignConstraintType
+	UniqueConstraintType
+	CheckConstraintType
+)
+
+func toConstraintType(constraintType string) (ConstraintType, error) {
+	switch constraintType {
+	case "p":
+		return PrimaryConstraintType, nil
+	case "u":
+		return UniqueConstraintType, nil
+	case "f":
+		return ForeignConstraintType, nil
+	case "c":
+		return CheckConstraintType, nil
+	}
+	return -1, errors.ErrUnsupported
 }
 
 func (p *PostgresManager) GetTableInitStatements(ctx context.Context, schemas []string) ([]*TableInitStatement, error) {
@@ -334,14 +362,21 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, schemas []
 
 		info := &TableInitStatement{
 			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
-			AlterTableStatements: []string{},
+			AlterTableStatements: []*AlterTableStatement{},
 		}
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
 			if err != nil {
 				return nil, err
 			}
-			info.AlterTableStatements = append(info.AlterTableStatements, wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt))
+			constraintType, err := toConstraintType(constraint.ConstraintType)
+			if err != nil {
+				return nil, err
+			}
+			info.AlterTableStatements = append(info.AlterTableStatements, &AlterTableStatement{
+				Statement:      wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt),
+				ConstraintType: constraintType,
+			})
 		}
 		output = append(output, info)
 	}

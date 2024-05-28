@@ -115,37 +115,88 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		// create statements
 		if sqlopts.InitSchema {
-			tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
-			if err != nil {
-				destdb.Db.Close()
-				return nil, err
-			}
-			if orderedTablesResp.HasCycles {
-				destdb.Db.Close()
-				return nil, errors.New("init schema: unable to handle circular dependencies")
-			}
-
-			tableCreateStmts := []string{}
-			for _, table := range orderedTablesResp.OrderedTables {
-				split := strings.Split(table, ".")
-				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				initStmt, err := sourcedb.Db.GetCreateTableStatement(
-					ctx,
-					split[0],
-					split[1],
-				)
+			switch sourceConnection.ConnectionConfig.Config.(type) {
+			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 				if err != nil {
 					destdb.Db.Close()
-					return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
+					return nil, err
 				}
-				tableCreateStmts = append(tableCreateStmts, initStmt)
-			}
-			slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-			err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
-			if err != nil {
-				destdb.Db.Close()
-				return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
+				if orderedTablesResp.HasCycles {
+					destdb.Db.Close()
+					return nil, errors.New("init schema: unable to handle circular dependencies")
+				}
+
+				tableCreateStmts := []string{}
+				for _, table := range orderedTablesResp.OrderedTables {
+					split := strings.Split(table, ".")
+					// todo: make this more efficient to reduce amount of times we have to connect to the source database
+					initStmt, err := sourcedb.Db.GetCreateTableStatement(
+						ctx,
+						split[0],
+						split[1],
+					)
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
+					}
+					tableCreateStmts = append(tableCreateStmts, initStmt)
+				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
+				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
+				if err != nil {
+					destdb.Db.Close()
+					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
+				}
+			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, err
+				}
+				createTables := []string{}
+				nonFkAlterStmts := []string{}
+				fkAlterStmts := []string{}
+				for _, stmtCfg := range initStatementCfgs {
+					createTables = append(createTables, stmtCfg.CreateTableStatement)
+					for _, alter := range stmtCfg.AlterTableStatements {
+						if alter.ConstraintType == sql_manager.ForeignConstraintType {
+							fkAlterStmts = append(fkAlterStmts, alter.Statement)
+						} else {
+							nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+						}
+					}
+				}
+
+				destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
+				if destPgConfig == nil {
+					continue
+				}
+				if len(createTables) > 0 {
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, createTables, &sql_manager.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec pg create table statements: %w", err)
+					}
+				}
+
+				if len(nonFkAlterStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, nonFkAlterStmts, &sql_manager.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec pg alter table statements: %w", err)
+					}
+				}
+				if len(fkAlterStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, fkAlterStmts, &sql_manager.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec pg fk alter table statements: %w", err)
+					}
+				}
+
+			default:
+				return nil, fmt.Errorf("unsupport source connection for schema initialization: %T", sourceConnection.ConnectionConfig.Config)
 			}
 		}
 		switch destinationConnection.ConnectionConfig.Config.(type) {
