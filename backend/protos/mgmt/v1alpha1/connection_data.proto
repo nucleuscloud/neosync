@@ -89,13 +89,19 @@ message GetConnectionForeignConstraintsRequest {
 
 message ForeignKey {
   string table = 1;
+  // @deprecated - use columns
   string column = 2;
+  repeated string columns = 3;
 }
 
 message ForeignConstraint {
+  // @deprecated - use columns
   string column = 1;
+  // @deprecated - use not_nullable
   bool is_nullable = 2;
   ForeignKey foreign_key = 3;
+  repeated string columns = 4;
+  repeated bool not_nullable = 5;
 }
 
 message ForeignConstraintTables {
@@ -180,13 +186,17 @@ message GetConnectionTableConstraintsRequest {
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
+message UniqueConstraints {
+  repeated UniqueConstraint constraints = 1;
+}
+
 message GetConnectionTableConstraintsResponse {
   // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
   map<string, ForeignConstraintTables> foreign_key_constraints = 1;
   // the key here is <schema>.<table> and value is the primary constraint
   map<string, PrimaryConstraint> primary_key_constraints = 2;
   // the key here is <schema>.<table> and value is the unique constraint
-  map<string, UniqueConstraint> unique_constraints = 3;
+  map<string, UniqueConstraints> unique_constraints = 3;
 }
 
 // Service for managing connection data.

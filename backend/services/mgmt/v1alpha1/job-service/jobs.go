@@ -1484,45 +1484,45 @@ func (s *Service) ValidateJobMappings(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.AccountId)
 
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// userUuid, err := s.getUserUuid(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
-	if err != nil {
-		return nil, err
-	}
-	if connectionIdToVerify == nil {
-		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
-	}
-	if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
-		return nil, err
-	}
+	// connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if connectionIdToVerify == nil {
+	// 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
+	// }
+	// if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
+	// 	return nil, err
+	// }
 
-	sourceUuid, err := nucleusdb.ToUuid(*connectionIdToVerify)
-	if err != nil {
-		return nil, err
-	}
-	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, sourceUuid)
-	if err != nil {
-		return nil, err
-	}
+	// sourceUuid, err := nucleusdb.ToUuid(*connectionIdToVerify)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, sourceUuid)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db.Close()
-	foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
+	// connectionTimeout := 5
+	// db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer db.Db.Close()
+	// foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// verify if any circular dependencies don't have a nullable entrypoint
 	// verify that all non nullable foreign key constraints are not missing from mapping

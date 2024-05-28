@@ -1065,33 +1065,56 @@ func (s *Service) GetConnectionTableConstraints(
 		schemas = append(schemas, s)
 	}
 
+	schemas = []string{"public"}
+
 	connectionTimeout := 5
 	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Db.Close()
-	foreignKeyMap, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
-	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for tableName, d := range foreignKeyMap {
-		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
+	fkConstraintsMap := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for tableName, d := range tableConstraints.ForeignKeyConstraints {
+		fkConstraintsMap[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
 			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
 		}
 		for _, constraint := range d {
-			for idx, col := range constraint.Columns {
-				tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-					Column: col, IsNullable: !constraint.NotNullable[idx], ForeignKey: &mgmtv1alpha1.ForeignKey{
-						Table:  constraint.ForeignKey.Table,
-						Column: constraint.ForeignKey.Columns[idx],
-					},
-				})
-			}
+			fkConstraintsMap[tableName].Constraints = append(fkConstraintsMap[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+				Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
+					Table:   constraint.ForeignKey.Table,
+					Columns: constraint.ForeignKey.Columns,
+				},
+			})
 		}
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{}), nil
+	pkConstraintsMap := map[string]*mgmtv1alpha1.PrimaryConstraint{}
+	for table, pks := range tableConstraints.PrimaryKeyConstraints {
+		pkConstraintsMap[table] = &mgmtv1alpha1.PrimaryConstraint{
+			Columns: pks,
+		}
+	}
+
+	uniqueConstraintsMap := map[string]*mgmtv1alpha1.UniqueConstraints{}
+	for table, uniqueConstraints := range tableConstraints.UniqueConstraints {
+		uniqueConstraintsMap[table] = &mgmtv1alpha1.UniqueConstraints{
+			Constraints: []*mgmtv1alpha1.UniqueConstraint{},
+		}
+		for _, uc := range uniqueConstraints {
+			uniqueConstraintsMap[table].Constraints = append(uniqueConstraintsMap[table].Constraints, &mgmtv1alpha1.UniqueConstraint{
+				Columns: uc,
+			})
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{
+		ForeignKeyConstraints: fkConstraintsMap,
+		PrimaryKeyConstraints: pkConstraintsMap,
+		UniqueConstraints:     uniqueConstraintsMap,
+	}), nil
 }

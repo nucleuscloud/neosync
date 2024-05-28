@@ -655,9 +655,16 @@ export class ForeignKey extends Message<ForeignKey> {
   table = "";
 
   /**
+   * @deprecated - use columns
+   *
    * @generated from field: string column = 2;
    */
   column = "";
+
+  /**
+   * @generated from field: repeated string columns = 3;
+   */
+  columns: string[] = [];
 
   constructor(data?: PartialMessage<ForeignKey>) {
     super();
@@ -669,6 +676,7 @@ export class ForeignKey extends Message<ForeignKey> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignKey {
@@ -693,11 +701,15 @@ export class ForeignKey extends Message<ForeignKey> {
  */
 export class ForeignConstraint extends Message<ForeignConstraint> {
   /**
+   * @deprecated - use columns
+   *
    * @generated from field: string column = 1;
    */
   column = "";
 
   /**
+   * @deprecated - use not_nullable
+   *
    * @generated from field: bool is_nullable = 2;
    */
   isNullable = false;
@@ -706,6 +718,16 @@ export class ForeignConstraint extends Message<ForeignConstraint> {
    * @generated from field: mgmt.v1alpha1.ForeignKey foreign_key = 3;
    */
   foreignKey?: ForeignKey;
+
+  /**
+   * @generated from field: repeated string columns = 4;
+   */
+  columns: string[] = [];
+
+  /**
+   * @generated from field: repeated bool not_nullable = 5;
+   */
+  notNullable: boolean[] = [];
 
   constructor(data?: PartialMessage<ForeignConstraint>) {
     super();
@@ -718,6 +740,8 @@ export class ForeignConstraint extends Message<ForeignConstraint> {
     { no: 1, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "is_nullable", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "foreign_key", kind: "message", T: ForeignKey },
+    { no: 4, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "not_nullable", kind: "scalar", T: 8 /* ScalarType.BOOL */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignConstraint {
@@ -1373,6 +1397,43 @@ export class GetConnectionTableConstraintsRequest extends Message<GetConnectionT
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.UniqueConstraints
+ */
+export class UniqueConstraints extends Message<UniqueConstraints> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.UniqueConstraint constraints = 1;
+   */
+  constraints: UniqueConstraint[] = [];
+
+  constructor(data?: PartialMessage<UniqueConstraints>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UniqueConstraints";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "constraints", kind: "message", T: UniqueConstraint, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UniqueConstraints {
+    return new UniqueConstraints().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UniqueConstraints {
+    return new UniqueConstraints().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UniqueConstraints {
+    return new UniqueConstraints().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UniqueConstraints | PlainMessage<UniqueConstraints> | undefined, b: UniqueConstraints | PlainMessage<UniqueConstraints> | undefined): boolean {
+    return proto3.util.equals(UniqueConstraints, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetConnectionTableConstraintsResponse
  */
 export class GetConnectionTableConstraintsResponse extends Message<GetConnectionTableConstraintsResponse> {
@@ -1393,9 +1454,9 @@ export class GetConnectionTableConstraintsResponse extends Message<GetConnection
   /**
    * the key here is <schema>.<table> and value is the unique constraint
    *
-   * @generated from field: map<string, mgmt.v1alpha1.UniqueConstraint> unique_constraints = 3;
+   * @generated from field: map<string, mgmt.v1alpha1.UniqueConstraints> unique_constraints = 3;
    */
-  uniqueConstraints: { [key: string]: UniqueConstraint } = {};
+  uniqueConstraints: { [key: string]: UniqueConstraints } = {};
 
   constructor(data?: PartialMessage<GetConnectionTableConstraintsResponse>) {
     super();
@@ -1407,7 +1468,7 @@ export class GetConnectionTableConstraintsResponse extends Message<GetConnection
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "foreign_key_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ForeignConstraintTables} },
     { no: 2, name: "primary_key_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: PrimaryConstraint} },
-    { no: 3, name: "unique_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: UniqueConstraint} },
+    { no: 3, name: "unique_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: UniqueConstraints} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionTableConstraintsResponse {
