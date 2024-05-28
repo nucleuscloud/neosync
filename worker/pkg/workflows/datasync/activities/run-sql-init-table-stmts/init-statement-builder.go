@@ -107,48 +107,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
 
-		// create statements
-		if sqlopts.InitSchema {
-			switch sourceConnection.ConnectionConfig.Config.(type) {
-			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
-				}
-				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
-				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
-				if err != nil {
-					destdb.Db.Close()
-					return nil, err
-				}
-				if orderedTablesResp.HasCycles {
-					destdb.Db.Close()
-					return nil, errors.New("init schema: unable to handle circular dependencies")
-				}
-
-				tableCreateStmts := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					split := strings.Split(table, ".")
-					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					initStmt, err := sourcedb.Db.GetCreateTableStatement(
-						ctx,
-						split[0],
-						split[1],
-					)
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
-					}
-					tableCreateStmts = append(tableCreateStmts, initStmt)
-				}
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
-				if err != nil {
-					destdb.Db.Close()
-					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
-				}
-			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		switch destinationConnection.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			if sqlopts.InitSchema {
 				tables := []*sql_manager.SchemaTable{}
 				for tableKey := range uniqueTables {
 					schema, table := shared.SplitTableKey(tableKey)
@@ -198,13 +159,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						return nil, fmt.Errorf("unable to exec pg fk alter table statements: %w", err)
 					}
 				}
-
-			default:
-				return nil, fmt.Errorf("unsupport source connection for schema initialization: %T", sourceConnection.ConnectionConfig.Config)
 			}
-		}
-		switch destinationConnection.ConnectionConfig.Config.(type) {
-		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 			// truncate statements
 			if sqlopts.TruncateCascade {
 				tableTruncateStmts := []string{}
@@ -251,6 +206,45 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+			if sqlopts.InitSchema {
+				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+				}
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
+				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+				if orderedTablesResp.HasCycles {
+					destdb.Db.Close()
+					return nil, errors.New("init schema: unable to handle circular dependencies")
+				}
+
+				tableCreateStmts := []string{}
+				for _, table := range orderedTablesResp.OrderedTables {
+					split := strings.Split(table, ".")
+					// todo: make this more efficient to reduce amount of times we have to connect to the source database
+					initStmt, err := sourcedb.Db.GetCreateTableStatement(
+						ctx,
+						split[0],
+						split[1],
+					)
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
+					}
+					tableCreateStmts = append(tableCreateStmts, initStmt)
+				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
+				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
+				if err != nil {
+					destdb.Db.Close()
+					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
+				}
+			}
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
 				tableTruncate := []string{}
