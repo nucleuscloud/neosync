@@ -60,17 +60,13 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	}
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
-	tableDependencyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+		return nil, fmt.Errorf("unable to retrieve database table constraints: %w", err)
 	}
-	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableDependencyMap)))
 
-	primaryKeyMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, uniqueSchemas)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
-	}
-	slogger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(primaryKeyMap)))
+	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableConstraints.ForeignKeyConstraints)))
+	slogger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(tableConstraints.PrimaryKeyConstraints)))
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
@@ -78,20 +74,20 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(tableDependencyMap, tableSubsetMap, primaryKeyMap, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(tableConstraints.ForeignKeyConstraints, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
 	if err != nil {
 		return nil, err
 	}
-	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(tableDependencyMap)
+	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(tableConstraints.ForeignKeyConstraints)
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	tableRunTypeQueryMap, err := buildSelectQueryMap(db.Driver, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+	tableRunTypeQueryMap, err := buildSelectQueryMap(db.Driver, tableConstraints.ForeignKeyConstraints, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, tableDependencyMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, tableConstraints.ForeignKeyConstraints, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}

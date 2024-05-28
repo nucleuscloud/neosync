@@ -618,6 +618,65 @@ func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetTableConstraintsBySchema provides a mock function with given fields: ctx, schemas
+func (_m *MockSqlDatabase) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
+	ret := _m.Called(ctx, schemas)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTableConstraintsBySchema")
+	}
+
+	var r0 *TableConstraints
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) (*TableConstraints, error)); ok {
+		return rf(ctx, schemas)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) *TableConstraints); ok {
+		r0 = rf(ctx, schemas)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*TableConstraints)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, schemas)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetTableConstraintsBySchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTableConstraintsBySchema'
+type MockSqlDatabase_GetTableConstraintsBySchema_Call struct {
+	*mock.Call
+}
+
+// GetTableConstraintsBySchema is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schemas []string
+func (_e *MockSqlDatabase_Expecter) GetTableConstraintsBySchema(ctx interface{}, schemas interface{}) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+	return &MockSqlDatabase_GetTableConstraintsBySchema_Call{Call: _e.mock.On("GetTableConstraintsBySchema", ctx, schemas)}
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) Run(run func(ctx context.Context, schemas []string)) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) Return(_a0 *TableConstraints, _a1 error) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, []string) (*TableConstraints, error)) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUniqueConstraintsMap provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	ret := _m.Called(ctx, schemas)
