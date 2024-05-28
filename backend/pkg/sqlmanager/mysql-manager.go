@@ -2,6 +2,7 @@ package sqlmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -276,6 +277,11 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context, role string) (
 		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err
+}
+
+// todo
+func (m *MysqlManager) GetTableInitStatements(ctx context.Context, schemas []string) ([]*TableInitStatement, error) {
+	return nil, errors.ErrUnsupported
 }
 
 func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {

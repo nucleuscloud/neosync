@@ -140,6 +140,66 @@ func (_c *MockQuerier_GetDatabaseTableSchema_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetDatabaseTableSchemasBySchemas provides a mock function with given fields: ctx, db, schema
+func (_m *MockQuerier) GetDatabaseTableSchemasBySchemas(ctx context.Context, db DBTX, schema []string) ([]*GetDatabaseTableSchemasBySchemasRow, error) {
+	ret := _m.Called(ctx, db, schema)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDatabaseTableSchemasBySchemas")
+	}
+
+	var r0 []*GetDatabaseTableSchemasBySchemasRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetDatabaseTableSchemasBySchemasRow, error)); ok {
+		return rf(ctx, db, schema)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetDatabaseTableSchemasBySchemasRow); ok {
+		r0 = rf(ctx, db, schema)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetDatabaseTableSchemasBySchemasRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schema)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetDatabaseTableSchemasBySchemas_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDatabaseTableSchemasBySchemas'
+type MockQuerier_GetDatabaseTableSchemasBySchemas_Call struct {
+	*mock.Call
+}
+
+// GetDatabaseTableSchemasBySchemas is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - schema []string
+func (_e *MockQuerier_Expecter) GetDatabaseTableSchemasBySchemas(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetDatabaseTableSchemasBySchemas_Call {
+	return &MockQuerier_GetDatabaseTableSchemasBySchemas_Call{Call: _e.mock.On("GetDatabaseTableSchemasBySchemas", ctx, db, schema)}
+}
+
+func (_c *MockQuerier_GetDatabaseTableSchemasBySchemas_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetDatabaseTableSchemasBySchemas_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetDatabaseTableSchemasBySchemas_Call) Return(_a0 []*GetDatabaseTableSchemasBySchemasRow, _a1 error) *MockQuerier_GetDatabaseTableSchemasBySchemas_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetDatabaseTableSchemasBySchemas_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetDatabaseTableSchemasBySchemasRow, error)) *MockQuerier_GetDatabaseTableSchemasBySchemas_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPostgresRolePermissions provides a mock function with given fields: ctx, db, role
 func (_m *MockQuerier) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
 	ret := _m.Called(ctx, db, role)

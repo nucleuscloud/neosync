@@ -2,6 +2,7 @@ package sqlmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,6 +16,10 @@ type PostgresManager struct {
 	querier pg_queries.Querier
 	pool    pg_queries.DBTX
 	close   func()
+}
+
+func NewPgManager(querier pg_queries.Querier, pool pg_queries.DBTX) *PostgresManager {
+	return &PostgresManager{querier: querier, pool: pool, close: func() {}}
 }
 
 func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
@@ -283,6 +288,100 @@ func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, t
 	), nil
 }
 
+type TableInitStatement struct {
+	CreateTableStatement string
+	AlterTableStatements []string
+}
+
+func (p *PostgresManager) GetTableInitStatements(ctx context.Context, schemas []string) ([]*TableInitStatement, error) {
+	if len(schemas) == 0 {
+		return []*TableInitStatement{}, nil
+	}
+
+	results, err := p.querier.GetDatabaseTableSchemasBySchemas(ctx, p.pool, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	constraints, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
+	if err != nil {
+		return nil, err
+	}
+	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
+	for _, constraint := range constraints {
+		key := fmt.Sprintf("%s.%s", constraint.SchemaName, constraint.TableName)
+		constraintmap[key] = append(constraintmap[key], constraint)
+	}
+
+	infomap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasRow{}
+	for _, result := range results {
+		key := fmt.Sprintf("%s.%s", result.SchemaName, result.TableName)
+		infomap[key] = append(infomap[key], result)
+	}
+
+	output := []*TableInitStatement{}
+
+	for key, tableData := range infomap {
+		columns := make([]string, 0, len(tableData))
+		for _, td := range tableData {
+			columns = append(columns, buildTableCol(&buildTableColRequest{
+				ColumnName:    td.ColumnName,
+				ColumnDefault: td.ColumnDefault,
+				DataType:      td.DataType,
+				IsNullable:    td.IsNullable == "YES",
+			}))
+		}
+
+		info := &TableInitStatement{
+			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			AlterTableStatements: []string{},
+		}
+		for _, constraint := range constraintmap[key] {
+			stmt, err := buildAlterStatementByConstraint(constraint)
+			if err != nil {
+				return nil, err
+			}
+			info.AlterTableStatements = append(info.AlterTableStatements, wrapPgIdempotentConstraint(constraint.SchemaName, constraint.TableName, constraint.ConstraintName, stmt))
+		}
+		output = append(output, info)
+	}
+	return output, nil
+}
+
+func wrapPgIdempotentConstraint(
+	schema, table,
+	constraintName,
+	alterStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM pg_constraint
+		WHERE conname = '%s'
+		AND connamespace = '%s'::regnamespace
+		AND conrelid = '%s'::regclass
+	) THEN
+		%s
+	END IF;
+END $$;
+	`, constraintName, schema, table, alterStatement)
+	return stmt
+}
+
+func buildAlterStatementByConstraint(
+	constraint *pg_queries.GetTableConstraintsBySchemaRow,
+) (string, error) {
+	if constraint == nil {
+		return "", errors.New("unable to build alter statement as constraint is nil")
+	}
+	return fmt.Sprintf(
+		"ALTER TABLE %q.%q ADD CONSTRAINT %s %s;",
+		constraint.SchemaName, constraint.TableName, constraint.ConstraintName, constraint.ConstraintDefinition,
+	), nil
+}
+
 // This assumes that the schemas and constraints as for a single table, not an entire db schema
 func generateCreateTableStatement(
 	schema string,
@@ -293,7 +392,12 @@ func generateCreateTableStatement(
 	columns := make([]string, len(tableSchemas))
 	for idx := range tableSchemas {
 		record := tableSchemas[idx]
-		columns[idx] = buildTableCol(record)
+		columns[idx] = buildTableCol(&buildTableColRequest{
+			ColumnName:    record.ColumnName,
+			ColumnDefault: record.ColumnDefault,
+			DataType:      record.DataType,
+			IsNullable:    record.IsNullable == "YES",
+		})
 	}
 
 	constraints := make([]string, len(tableConstraints))
@@ -305,8 +409,16 @@ func generateCreateTableStatement(
 	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %q.%q (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
-func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	pieces := []string{EscapePgColumn(record.ColumnName), buildDataType(record), buildNullableText(record)}
+type buildTableColRequest struct {
+	ColumnName    string
+	ColumnDefault string
+	DataType      string
+	IsNullable    bool
+}
+
+// todo: handle generated columns!
+func buildTableCol(record *buildTableColRequest) string {
+	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 	if record.ColumnDefault != "" {
 		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
@@ -321,15 +433,11 @@ func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	return strings.Join(pieces, " ")
 }
 
-func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	return record.DataType
-}
-
-func buildNullableText(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	if record.IsNullable == "NO" {
-		return "NOT NULL"
+func buildNullableText(isNullable bool) string {
+	if isNullable {
+		return "NULL"
 	}
-	return "NULL"
+	return "NOT NULL"
 }
 
 func (p *PostgresManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error {
