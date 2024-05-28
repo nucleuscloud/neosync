@@ -22,7 +22,7 @@ We split out the Temporal compose file to make it easier to include in other pla
 To run this you can run one of the two following commands:
 
 ```sh
-$ make compose-up
+$ make compose/up
 $ docker compose up -d
 ```
 
@@ -40,7 +40,7 @@ Once all of the containers come online, the app is now routable via [http://loca
 Neosync provides an auth friendly compose file that will stand up Neosync in auth-mode with Keycloak.
 
 ```sh
-$ make compose-auth-up
+$ make compose/auth/up
 $ docker compose -f compose.yml -f compose.auth.yml up -d
 ```
 

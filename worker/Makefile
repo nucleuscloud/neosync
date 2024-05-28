@@ -1,36 +1,33 @@
-GO=go
-BUF=buf
-SOPS=sops
+.PHONY: help default \
+				vet \
+				gen build dbuild \
+				run \
+				clean \
+				lint \
 
-default: all
+default: help
 
-all: build
+help:
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z_\/]+:.*##/ { printf "\033[36m%-30s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-vet:
-	$(GO) vet ./...
+vet: ## Runs go vet
+	go vet ./...
 
-build: vet ## Build and grpc gateway
-	go generate ./...
+build: gen vet ## Generates code, runs go vet and builds the project
 	scripts/build.sh
-.PHONY: build
 
-dbuild: vet
-	go generate ./...
+dbuild: gen vet ## Generates code, runs go vet, and builds the project specifically for Linux
 	GOOS=linux scripts/build.sh
-.PHONY: dbuild
 
-run:
+run: ## Runs the project
 	./bin/sync serve
-.PHONY: run
 
-clean:
+gen: ## Runs go generate
+	go generate ./...
+
+clean: ## Cleans the bin directory
 	rm -rf bin
-.PHONY: clean
 
-# build-debug:
-# 	CGO_ENABLED=0 $(GO) build -gcflags="all=-N -l" -o bin/mgmt cmd/mgmt/*.go
-# .PHONY: build-debug
-
-help: ## Show this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[/.a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-.PHONY: help
+lint: ## Runs the Go Linter
+	golangic-lint run

@@ -1,0 +1,17 @@
+{
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "no-console": "error",
+    "@typescript-eslint/no-explicit-any": "error"
+  },
+  "plugins": ["@typescript-eslint"],
+  "parser": "@typescript-eslint/parser"
+}
