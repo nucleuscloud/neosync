@@ -91,7 +91,7 @@ func Test_FindCircularDependencies(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := findCircularDependencies(tt.dependencies)
+			actual := FindCircularDependencies(tt.dependencies)
 
 			for i := range actual {
 				sort.Strings(actual[i])

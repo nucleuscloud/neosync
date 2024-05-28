@@ -27,6 +27,45 @@ func MapSlice[T any, V any](slice []T, fn func(T) V) []V {
 	return newSlice
 }
 
+func AllElementsEqual[T comparable](slice []T, value T) bool {
+	for _, el := range slice {
+		if el != value {
+			return false
+		}
+	}
+	return true
+}
+
+func AnyElementEqual[T comparable](slice []T, value T) bool {
+	for _, el := range slice {
+		if el == value {
+			return true
+		}
+	}
+	return false
+}
+
+func NoElementEqual[T comparable](slice []T, value T) bool {
+	for _, el := range slice {
+		if el == value {
+			return false
+		}
+	}
+	return true
+}
+
+func DedupeSlice[T comparable](input []T) []T {
+	set := map[T]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
+	}
+	output := make([]T, 0, len(set))
+	for key := range set {
+		output = append(output, key)
+	}
+	return output
+}
+
 func ToSha256(input string) string {
 	h := sha256.New()
 	h.Write([]byte(input))

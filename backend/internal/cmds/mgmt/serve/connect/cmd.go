@@ -329,6 +329,9 @@ func serve(ctx context.Context) error {
 		tfwfmgr,
 		connectionService,
 		useraccountService,
+		sqlConnector,
+		pgquerier,
+		mysqlquerier,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(

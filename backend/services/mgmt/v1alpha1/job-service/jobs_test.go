@@ -11,11 +11,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -1569,8 +1572,11 @@ func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTemporalWfManager := clientmanager.NewMockTemporalClientManagerClient(t)
+	mockPgquerier := pg_queries.NewMockQuerier(t)
+	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockTemporalWfManager, mockConnectionService, mockUserAccountService)
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockTemporalWfManager, mockConnectionService, mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier)
 
 	return &serviceMocks{
 		Service:                     service,

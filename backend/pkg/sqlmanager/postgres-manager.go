@@ -53,7 +53,7 @@ func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]ma
 	if err != nil {
 		return nil, err
 	}
-	result := getUniqueSchemaColMappings(dbSchemas)
+	result := GetUniqueSchemaColMappings(dbSchemas)
 	return result, nil
 }
 

@@ -2,8 +2,10 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,6 +17,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
@@ -1484,49 +1489,180 @@ func (s *Service) ValidateJobMappings(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("accountId", req.Msg.AccountId)
 
-	// accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
 	// userUuid, err := s.getUserUuid(ctx)
 	// if err != nil {
 	// 	return nil, err
 	// }
 
-	// connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if connectionIdToVerify == nil {
-	// 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
-	// }
-	// if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
-	// 	return nil, err
-	// }
+	connectionId, err := getJobSourceConnectionId(req.Msg.GetSource())
+	if err != nil {
+		return nil, err
+	}
 
-	// sourceUuid, err := nucleusdb.ToUuid(*connectionIdToVerify)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, sourceUuid)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: *connectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
 
-	// connectionTimeout := 5
-	// db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer db.Db.Close()
-	// foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil {
+		return nil, errors.New("unsupported connection config type")
+	}
 
-	// verify if any circular dependencies don't have a nullable entrypoint
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	dbschema, err := db.Db.GetDatabaseSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	schemasMap := map[string]struct{}{}
+	for _, row := range dbschema {
+		schemasMap[row.TableSchema] = struct{}{}
+	}
+
+	schemas := []string{}
+	for s := range schemasMap {
+		schemas = append(schemas, s)
+	}
+
+	colInfoMap := sql_manager.GetUniqueSchemaColMappings(dbschema)
+
+	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
+	for _, m := range req.Msg.Mappings {
+		tn := fmt.Sprintf("%s.%s", m.Schema, m.Table)
+		if _, ok := tableColMappings[tn]; !ok {
+			tableColMappings[tn] = map[string]*mgmtv1alpha1.JobMapping{}
+		}
+		tableColMappings[tn][m.Column] = m
+	}
+
+	colErrorsMap := map[string]map[string][]string{}
+	dbErrorsMap := []string{}
+
+	// verify if any circular dependencies have a nullable entrypoint
+	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
+	for table, fks := range tableConstraints.ForeignKeyConstraints {
+		colMappings, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for _, fk := range fks {
+			for idx, col := range fk.Columns {
+				_, ok := colMappings[col]
+				if !ok {
+					continue
+				}
+				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
+				if !ok {
+					continue
+				}
+				fkCol := fk.ForeignKey.Columns[idx]
+				_, ok = fkColMappings[fkCol]
+				if !ok {
+					continue
+				}
+				filteredDepsMap[table] = append(filteredDepsMap[table], fk.ForeignKey.Table)
+			}
+		}
+	}
+
+	for table, deps := range filteredDepsMap {
+		filteredDepsMap[table] = utils.DedupeSlice(deps)
+	}
+
+	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
+
+	for _, cycle := range cycles {
+		for _, table := range cycle {
+			fks, ok := tableConstraints.ForeignKeyConstraints[table]
+			if !ok {
+				continue
+			}
+			for _, fk := range fks {
+				if !slices.Contains(cycle, fk.ForeignKey.Table) {
+					continue
+				}
+				if !utils.AllElementsEqual(fk.NotNullable, false) {
+					// add error
+					dbErrorsMap = append(dbErrorsMap, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
+				}
+			}
+		}
+
+	}
+
 	// verify that all non nullable foreign key constraints are not missing from mapping
-	// verify that no non nullable columns are missing
+	for table, fks := range tableConstraints.ForeignKeyConstraints {
+		colMappings, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for _, fk := range fks {
+			for idx, notNull := range fk.NotNullable {
+				if notNull {
+					// check if foreign key exists
+					fkCol := fk.ForeignKey.Columns[idx]
+					_, ok := colMappings[fkCol]
+					if ok {
+						// skip. foreign key exists in mapping
+						continue
+					}
+					if _, ok := colErrorsMap[table]; !ok {
+						colErrorsMap[table] = map[string][]string{}
+					}
+					// add error
+					col := fk.Columns[idx]
+					colErrorsMap[table][col] = append(colErrorsMap[table][col], fmt.Sprintf("Violates foreign key constraint. Missing required foreign key. Foreign Table: %s  Foreign Column: %s", fk.ForeignKey.Table, fkCol))
+				}
+			}
+		}
+	}
+
+	// verify that no non nullable columns are missing for tables in mapping
+	for table, colMap := range colInfoMap {
+		cm, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for col, info := range colMap {
+			if info.IsNullable {
+				// skip. column is nullable
+				continue
+			}
+			if _, ok := cm[col]; !ok {
+				if _, ok := colErrorsMap[table]; !ok {
+					colErrorsMap[table] = map[string][]string{}
+				}
+				// add error
+				colErrorsMap[table][col] = append(colErrorsMap[table][col], fmt.Sprintf("Violates not-null constraint. Missing required column. Table: %s  Column: %s", table, col))
+			}
+		}
+	}
+
+	jsonF, _ := json.MarshalIndent(dbErrorsMap, "", " ")
+	fmt.Printf("\n dbErrorsMap: %s \n", string(jsonF))
+
+	jsonF, _ = json.MarshalIndent(colErrorsMap, "", " ")
+	fmt.Printf("\n colErrorsMap: %s \n", string(jsonF))
 
 	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 }
