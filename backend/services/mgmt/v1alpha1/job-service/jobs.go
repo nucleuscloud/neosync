@@ -364,9 +364,26 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
-	connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
-	if err != nil {
-		return nil, err
+	var connectionIdToVerify *string
+	switch config := req.Msg.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionIdToVerify = &config.Mysql.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionIdToVerify = &config.Postgres.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
+		connectionIdToVerify = &config.AwsS3.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		fkConnId := config.Generate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
+	default:
+		return nil, errors.New("unsupported source option config type")
 	}
 	if connectionIdToVerify != nil {
 		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
@@ -1475,83 +1492,4 @@ func (s *Service) SetJobSyncOptions(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{Job: updatedJob.Msg.Job}), nil
-}
-
-func (s *Service) ValidateJobMappings(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest],
-) (*connect.Response[mgmtv1alpha1.ValidateJobMappingsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("accountId", req.Msg.AccountId)
-
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
-	if err != nil {
-		return nil, err
-	}
-	if connectionIdToVerify == nil {
-		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
-	}
-	if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
-		return nil, err
-	}
-
-	sourceUuid, err := nucleusdb.ToUuid(*connectionIdToVerify)
-	if err != nil {
-		return nil, err
-	}
-	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, sourceUuid)
-	if err != nil {
-		return nil, err
-	}
-
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db.Close()
-	foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	// verify if any circular dependencies don't have a nullable entrypoint
-	// verify that all non nullable foreign key constraints are not missing from mapping
-	// verify that no non nullable columns are missing
-
-	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
-}
-
-func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
-	var connectionIdToVerify *string
-	switch config := jobSource.Options.Config.(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		connectionIdToVerify = &config.Mysql.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		connectionIdToVerify = &config.Postgres.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
-		connectionIdToVerify = &config.AwsS3.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		fkConnId := config.Generate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
-	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
-	default:
-		return nil, errors.New("unsupported source option config type")
-	}
-	return connectionIdToVerify, nil
 }
