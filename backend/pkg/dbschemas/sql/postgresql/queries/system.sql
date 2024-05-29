@@ -335,3 +335,25 @@ AND grantee =  sqlc.arg('role')
 ORDER BY
     table_schema,
     table_name;
+
+-- name: GetIndicesBySchemasAndTables :many
+SELECT
+    ns.nspname AS schema_name,
+    t.relname AS table_name,
+    i.relname AS index_name,
+    pg_get_indexdef(ix.indexrelid) AS index_definition
+FROM
+    pg_catalog.pg_class t
+    JOIN pg_catalog.pg_index ix ON t.oid = ix.indrelid
+    JOIN pg_catalog.pg_class i ON i.oid = ix.indexrelid
+    JOIN pg_catalog.pg_namespace ns ON t.relnamespace = ns.oid
+LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
+WHERE
+    con.conindid IS NULL -- Excludes indexes created as part of constraints
+    AND (ns.nspname || '.' || t.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+GROUP BY
+    ns.nspname, t.relname, i.relname, ix.indexrelid
+ORDER BY
+    schema_name,
+    table_name,
+    index_name;

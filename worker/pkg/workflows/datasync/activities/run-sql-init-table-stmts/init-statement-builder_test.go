@@ -138,21 +138,26 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sql_manager.TableInitStatement{
-		{CreateTableStatement: "test-create-statement", AlterTableStatements: []*sql_manager.AlterTableStatement{
-			{
-				Statement:      "test-pk-statement",
-				ConstraintType: sql_manager.PrimaryConstraintType,
+		{
+			CreateTableStatement: "test-create-statement",
+			AlterTableStatements: []*sql_manager.AlterTableStatement{
+				{
+					Statement:      "test-pk-statement",
+					ConstraintType: sql_manager.PrimaryConstraintType,
+				},
+				{
+					Statement:      "test-fk-statement",
+					ConstraintType: sql_manager.ForeignConstraintType,
+				},
 			},
-			{
-				Statement:      "test-fk-statement",
-				ConstraintType: sql_manager.ForeignConstraintType,
-			},
-		}},
+			IndexStatements: []string{"test-idx-statement"},
+		},
 	}, nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -653,21 +658,26 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sql_manager.TableInitStatement{
-		{CreateTableStatement: "test-create-statement", AlterTableStatements: []*sql_manager.AlterTableStatement{
-			{
-				Statement:      "test-pk-statement",
-				ConstraintType: sql_manager.PrimaryConstraintType,
+		{
+			CreateTableStatement: "test-create-statement",
+			AlterTableStatements: []*sql_manager.AlterTableStatement{
+				{
+					Statement:      "test-pk-statement",
+					ConstraintType: sql_manager.PrimaryConstraintType,
+				},
+				{
+					Statement:      "test-fk-statement",
+					ConstraintType: sql_manager.ForeignConstraintType,
+				},
 			},
-			{
-				Statement:      "test-fk-statement",
-				ConstraintType: sql_manager.ForeignConstraintType,
-			},
-		}},
+			IndexStatements: []string{"test-idx-statement"},
+		},
 	}, nil)
 
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
