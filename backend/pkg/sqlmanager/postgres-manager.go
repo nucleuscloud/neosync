@@ -441,7 +441,8 @@ DO $$
 BEGIN
 	IF NOT EXISTS (
 		SELECT 1
-		FROM pg_namespace n ON n.oid = c.relnamespace
+		FROM pg_class c
+		JOIN pg_namespace n ON n.oid = c.relnamespace
 		WHERE c.relkind = 'i'
 		AND c.relname = '%s'
 		AND n.nspname = '%s'
@@ -449,7 +450,7 @@ BEGIN
 		%s
 	END IF;
 END $$;
-`, constraintname, schema, alterStatement)
+`, constraintname, schema, addSuffixIfNotExist(alterStatement, ";"))
 	return strings.TrimSpace(stmt)
 }
 
@@ -471,8 +472,15 @@ BEGIN
 		%s
 	END IF;
 END $$;
-	`, constraintName, schema, table, alterStatement)
+	`, constraintName, schema, table, addSuffixIfNotExist(alterStatement, ";"))
 	return strings.TrimSpace(stmt)
+}
+
+func addSuffixIfNotExist(input, suffix string) string {
+	if !strings.HasSuffix(input, suffix) {
+		return fmt.Sprintf("%s%s", input, suffix)
+	}
+	return input
 }
 
 func buildAlterStatementByConstraint(
