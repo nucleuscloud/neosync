@@ -54,7 +54,7 @@ export default function FeatureMatrix() {
       description: 'The main support channel for your Neosync account.',
       Plan: [
         'Community Discord',
-        'Community',
+        'Community Discord',
         'Private Slack',
         'Private Slack',
       ],
@@ -80,7 +80,7 @@ export default function FeatureMatrix() {
       feature: 'Audit Logs (coming soon!)',
       description:
         'Whether or not your Neosync instance retains audit logs of user and machine actions.',
-      Plan: ['no', 'no', 'yes', 'yes'],
+      Plan: ['no', 'no', 'no', 'yes'],
     },
     {
       feature: 'Slack Integration (coming soon!)',
