@@ -360,6 +360,62 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 	return items, nil
 }
 
+const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
+SELECT
+    ns.nspname AS schema_name,
+    t.relname AS table_name,
+    i.relname AS index_name,
+    pg_get_indexdef(ix.indexrelid) AS index_definition
+FROM
+    pg_catalog.pg_class t
+    JOIN pg_catalog.pg_index ix ON t.oid = ix.indrelid
+    JOIN pg_catalog.pg_class i ON i.oid = ix.indexrelid
+    JOIN pg_catalog.pg_namespace ns ON t.relnamespace = ns.oid
+    JOIN pg_catalog.pg_attribute a ON a.attnum = ANY(ix.indkey) AND a.attrelid = t.oid
+LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
+WHERE
+    con.conindid IS NULL -- Excludes indexes created as part of constraints
+    AND (n.nspname || '.' || t.relname) = ANY($1::TEXT[])
+GROUP BY
+    ns.nspname, t.relname, i.relname, ix.indexrelid
+ORDER BY
+    schema_name,
+    table_name,
+    index_name
+`
+
+type GetIndicesBySchemasAndTablesRow struct {
+	SchemaName      string
+	TableName       string
+	IndexName       string
+	IndexDefinition string
+}
+
+func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetIndicesBySchemasAndTablesRow, error) {
+	rows, err := db.Query(ctx, getIndicesBySchemasAndTables, schematables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetIndicesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetIndicesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.IndexName,
+			&i.IndexDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
 SELECT
     rtg.table_schema as table_schema,
