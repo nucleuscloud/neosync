@@ -130,7 +130,6 @@ linters:
 
 issues:
   excluded-dirs:
-    - marketing
     - frontend
     - charts
     - docs
