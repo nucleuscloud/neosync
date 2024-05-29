@@ -379,7 +379,13 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 	}
 
 	output := []*TableInitStatement{}
-	for key, tableData := range colDefMap {
+	// using input here causes the output to always be consistent
+	for _, schematable := range tables {
+		key := schematable.String()
+		tableData, ok := colDefMap[key]
+		if !ok {
+			continue
+		}
 		columns := make([]string, 0, len(tableData))
 		for _, td := range tableData {
 			columns = append(columns, buildTableCol(&buildTableColRequest{
