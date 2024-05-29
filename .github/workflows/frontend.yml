@@ -63,6 +63,8 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
+        with:
+          node-version: lts
 
       - name: Cache node modules
         id: cache-npm
