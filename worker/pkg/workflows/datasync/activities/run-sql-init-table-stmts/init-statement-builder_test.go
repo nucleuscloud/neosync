@@ -14,12 +14,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
+func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
 	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
+	fkconnectionId := "789"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -39,7 +40,7 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 										},
 									},
 								},
-								FkSourceConnectionId: &connectionId,
+								FkSourceConnectionId: &fkconnectionId,
 							},
 						},
 					},
@@ -76,7 +77,7 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 				},
 				Destinations: []*mgmtv1alpha1.JobDestination{
 					{
-						ConnectionId: "456",
+						ConnectionId: connectionId,
 						Options: &mgmtv1alpha1.JobDestinationOptions{
 							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
@@ -97,11 +98,32 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 		"GetConnection",
 		mock.Anything,
 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
+			Id: fkconnectionId,
 		}),
 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
+			Id:   connectionId,
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "postgresql://postgres:foofar@localhost:5435/nucleus",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: connectionId,
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   connectionId,
 			Name: "stage",
 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -115,8 +137,22 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
+	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sql_manager.TableInitStatement{
+		{CreateTableStatement: "test-create-statement", AlterTableStatements: []*sql_manager.AlterTableStatement{
+			{
+				Statement:      "test-pk-statement",
+				ConstraintType: sql_manager.PrimaryConstraintType,
+			},
+			{
+				Statement:      "test-fk-statement",
+				ConstraintType: sql_manager.ForeignConstraintType,
+			},
+		}},
+	}, nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -218,7 +254,6 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -348,7 +383,6 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	stmts := []string{"TRUNCATE \"public\".\"users\" CASCADE;", "TRUNCATE \"public\".\"accounts\" CASCADE;"}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -618,19 +652,22 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
-		"public.users": {{
-			Columns:     []string{"account_id"},
-			NotNullable: []bool{true},
-			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sql_manager.TableInitStatement{
+		{CreateTableStatement: "test-create-statement", AlterTableStatements: []*sql_manager.AlterTableStatement{
+			{
+				Statement:      "test-pk-statement",
+				ConstraintType: sql_manager.PrimaryConstraintType,
+			},
+			{
+				Statement:      "test-fk-statement",
+				ConstraintType: sql_manager.ForeignConstraintType,
+			},
 		}},
 	}, nil)
-	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
-	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
-	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "accounts").Return(accountCreateStmt, nil)
-	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "users").Return(usersCreateStmt, nil)
 
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{accountCreateStmt, usersCreateStmt}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -742,7 +779,6 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
