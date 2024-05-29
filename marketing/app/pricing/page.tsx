@@ -15,6 +15,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
+import FeatureMatrix from './FeatureMatrix';
 
 export default function Pricing() {
   return (
@@ -59,6 +60,7 @@ export default function Pricing() {
           <TeamPlan />
           <CustomPlan />
         </div>
+        <FeatureMatrix />
         <FAQs />
         <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
           <CTA />
