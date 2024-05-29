@@ -18,10 +18,6 @@ type PostgresManager struct {
 	close   func()
 }
 
-func NewPgManager(querier pg_queries.Querier, pool pg_queries.DBTX) *PostgresManager {
-	return &PostgresManager{querier: querier, pool: pool, close: func() {}}
-}
-
 func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
 	dbSchemas, err := p.querier.GetDatabaseSchema(ctx, p.pool)
 	if err != nil && !nucleusdb.IsNoRows(err) {
