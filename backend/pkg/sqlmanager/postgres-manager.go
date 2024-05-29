@@ -380,7 +380,6 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		for _, record := range idxrecords {
 			key := SchemaTable{Schema: record.SchemaName, Table: record.TableName}
 			indexmap[key.String()] = append(indexmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
-
 		}
 		return nil
 	})

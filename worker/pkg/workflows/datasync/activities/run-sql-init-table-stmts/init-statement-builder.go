@@ -152,7 +152,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					{label: "table index", statements: idxStmts},
 				}
 				for _, block := range initblocks {
-					slogger.Info("[%s] found %d statements to execute during schema initialization", block.label, len(block.statements))
+					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.label, len(block.statements)))
 					if len(block.statements) == 0 {
 						continue
 					}
