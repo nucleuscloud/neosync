@@ -1,4 +1,0 @@
-User-Agent: *
-Allow: /
-
-Sitemap: https://www.neosync.dev/sitemap.xml
