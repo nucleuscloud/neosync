@@ -2,10 +2,9 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { FormError } from '@/components/jobs/SchemaTable/FormErrorsCard';
 import {
   SchemaTable,
-  extractAllFormErrors,
+  getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
@@ -16,11 +15,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
-import {
-  JobMappingFormValues,
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-} from '@/yup-validations/jobs';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
@@ -30,12 +25,12 @@ import {
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { FieldErrors, useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { ConnectFormValues, SingleTableSchemaFormValues } from '../schema';
+import { ConnectFormValues } from '../schema';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -229,36 +224,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-function getAllFormErrors(
-  formErrors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
-  values: JobMappingFormValues[],
-  validationErrors: ValidateJobMappingsResponse | undefined
-): FormError[] {
-  let messages: FormError[] = [];
-  const formErr = extractAllFormErrors(formErrors, values);
-  if (!validationErrors) {
-    return formErr;
-  }
-  const colErr = validationErrors.columnErrors.map((e) => {
-    return {
-      path: `${e.schema}.${e.table}.${e.column}`,
-      message: e.errors.join('. '),
-    };
-  });
-  const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
-    return {
-      path: '',
-      message: e,
-    };
-  });
-  messages = messages.concat(colErr, formErr);
-  if (dbErr) {
-    messages = messages.concat(dbErr);
-  }
-
-  return messages;
 }
 
 function getFormValues(

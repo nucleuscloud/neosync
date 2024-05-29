@@ -2,7 +2,7 @@
 import { SingleTableEditSourceFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   SchemaTable,
-  extractAllFormErrors,
+  getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
@@ -35,6 +35,7 @@ import {
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -52,6 +53,7 @@ import {
   JobSourceOptions,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
+  ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -67,6 +69,12 @@ interface Props {
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
+
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
   const {
     data,
@@ -176,6 +184,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     [isConnectionsValidating]
   );
 
+  useEffect(() => {
+    const validateJobMappings = async () => {
+      await validateMappings();
+    };
+    validateJobMappings();
+  }, [selectedTables]);
+
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
   }
@@ -199,6 +214,26 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         description: getErrorMessage(err),
         variant: 'destructive',
       });
+    }
+  }
+
+  async function validateMappings() {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        fkSourceConnectionId || '',
+        fields,
+        account?.id || ''
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast({
+        title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
     }
   }
 
@@ -341,7 +376,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           isSchemaDataReloading={isSchemaMapValidating}
           selectedTables={selectedTables}
           onSelectedTableToggle={onSelectedTableToggle}
-          formErrors={extractAllFormErrors(form.formState.errors, fields)}
+          formErrors={getAllFormErrors(
+            form.formState.errors,
+            fields,
+            validateMappingsResponse
+          )}
+          isJobMappingsValidating={isValidatingMappings}
+          onValidate={validateMappings}
         />
 
         {form.formState.errors.mappings && (

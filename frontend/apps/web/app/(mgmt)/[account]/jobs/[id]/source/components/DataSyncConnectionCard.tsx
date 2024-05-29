@@ -2,7 +2,7 @@
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import {
   SchemaTable,
-  extractAllFormErrors,
+  getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
@@ -34,6 +34,7 @@ import {
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   SCHEMA_FORM_SCHEMA,
@@ -53,6 +54,7 @@ import {
   PostgresSourceConnectionOptions,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
+  ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -105,6 +107,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
+
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
@@ -189,6 +197,26 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
+  async function validateMappings() {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        sourceConnectionId || '',
+        formMappings,
+        account?.id || ''
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast({
+        title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
   const onSelectedTableToggle = getOnSelectedTableToggle(
     connectionSchemaDataMap?.schemaMap ?? {},
     selectedTables,
@@ -197,6 +225,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     remove,
     append
   );
+
+  useEffect(() => {
+    const validateJobMappings = async () => {
+      await validateMappings();
+    };
+    validateJobMappings();
+  }, [selectedTables]);
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
@@ -270,10 +305,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             isSchemaDataReloading={isSchemaMapValidating}
             selectedTables={selectedTables}
             onSelectedTableToggle={onSelectedTableToggle}
-            formErrors={extractAllFormErrors(
+            formErrors={getAllFormErrors(
               form.formState.errors,
-              formMappings
+              formMappings,
+              validateMappingsResponse
             )}
+            isJobMappingsValidating={isValidatingMappings}
+            onValidate={validateMappings}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>

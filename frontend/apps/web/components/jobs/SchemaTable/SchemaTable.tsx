@@ -17,6 +17,7 @@ import {
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
+import { ValidateJobMappingsResponse } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
@@ -160,5 +161,35 @@ export function extractAllFormErrors(
       messages = messages.concat(extractAllFormErrors(error, values, newPath));
     }
   }
+  return messages;
+}
+
+export function getAllFormErrors(
+  formErrors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
+  values: JobMappingFormValues[],
+  validationErrors: ValidateJobMappingsResponse | undefined
+): FormError[] {
+  let messages: FormError[] = [];
+  const formErr = extractAllFormErrors(formErrors, values);
+  if (!validationErrors) {
+    return formErr;
+  }
+  const colErr = validationErrors.columnErrors.map((e) => {
+    return {
+      path: `${e.schema}.${e.table}.${e.column}`,
+      message: e.errors.join('. '),
+    };
+  });
+  const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
+    return {
+      path: '',
+      message: e,
+    };
+  });
+  messages = messages.concat(colErr, formErr);
+  if (dbErr) {
+    messages = messages.concat(dbErr);
+  }
+
   return messages;
 }

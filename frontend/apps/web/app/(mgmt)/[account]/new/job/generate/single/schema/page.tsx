@@ -5,7 +5,7 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
-  extractAllFormErrors,
+  getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -28,6 +28,7 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -48,6 +49,7 @@ import {
   JobSource,
   JobSourceOptions,
   RetryPolicy,
+  ValidateJobMappingsResponse,
   WorkflowOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -74,6 +76,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
+
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -201,6 +209,26 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
+  async function validateMappings() {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        connectFormValues.fkSourceConnectionId,
+        formMappings,
+        account?.id || ''
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast({
+        title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
   const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
     useGetConnectionTableConstraints(
       account?.id ?? '',
@@ -233,6 +261,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     remove,
     append
   );
+
+  useEffect(() => {
+    const validateJobMappings = async () => {
+      await validateMappings();
+    };
+    validateJobMappings();
+  }, [selectedTables]);
+
   useEffect(() => {
     if (isSchemaMapLoading || selectedTables.size > 0) {
       return;
@@ -302,10 +338,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               jobType={'generate'}
               selectedTables={selectedTables}
               onSelectedTableToggle={onSelectedTableToggle}
-              formErrors={extractAllFormErrors(
+              formErrors={getAllFormErrors(
                 form.formState.errors,
-                formMappings
+                formMappings,
+                validateMappingsResponse
               )}
+              onValidate={validateMappings}
+              isJobMappingsValidating={isValidatingMappings}
             />
           )}
           {form.formState.errors.root && (
