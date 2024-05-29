@@ -76,7 +76,7 @@ A [compose.yml](./compose.yml) file at the root contains production image refs t
 
 Neosync uses the newer `docker compose` command, so be sure to have that installed on your machine.
 
-To start Neosync, clone the repo into a local directory, be sure to have docker insalled and running, and then run:
+To start Neosync, clone the repo into a local directory, be sure to have docker installed and running, and then run:
 
 ```sh
 make compose/up
