@@ -415,6 +415,60 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 	return output, nil
 }
 
+func (p *PostgresManager) GetTableIndexStatements(ctx context.Context, tables []*SchemaTable) ([]string, error) {
+	if len(tables) == 0 {
+		return []string{}, nil
+	}
+
+	combined := make([]string, 0, len(tables))
+	for _, table := range tables {
+		combined = append(combined, table.String())
+	}
+
+	records, err := p.querier.GetIndicesBySchemasAndTables(ctx, p.pool, combined)
+	if err != nil {
+		return nil, err
+	}
+
+	recordmap := map[string][]string{}
+	for _, record := range records {
+		key := SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+		recordmap[key.String()] = append(recordmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
+	}
+
+	output := []string{}
+	for _, table := range tables {
+		statements, ok := recordmap[table.String()]
+		if !ok {
+			continue
+		}
+		output = append(output, statements...)
+	}
+	return output, nil
+}
+
+func wrapPgIdempotentIndex(
+	schema,
+	constraintname,
+	alterStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM pg_namespace n ON n.oid = c.relnamespace
+		WHERE c.relkind = 'i'
+		AND c.relname = '%s'
+		AND n.nspname = '%s'
+	) THEN
+		%s
+	END IF;
+END $$;
+`, constraintname, schema, alterStatement)
+	return strings.TrimSpace(stmt)
+}
+
 func wrapPgIdempotentConstraint(
 	schema, table,
 	constraintName,

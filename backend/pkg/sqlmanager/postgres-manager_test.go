@@ -402,6 +402,46 @@ func Test_GetTableInitStatements(t *testing.T) {
 	)
 }
 
+func Test_GetTableIndexStatements(t *testing.T) {
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mockpool := pg_queries.NewMockDBTX(t)
+	manager := PostgresManager{
+		querier: pgquerier,
+		pool:    mockpool,
+	}
+
+	pgquerier.On("GetIndicesBySchemasAndTables", mock.Anything, mockpool, []string{"public.users", "public2.users"}).
+		Return(
+			[]*pg_queries.GetIndicesBySchemasAndTablesRow{
+				{
+					SchemaName:      "public",
+					TableName:       "users",
+					IndexName:       "foo",
+					IndexDefinition: "CREATE INDEX foo ON public.users USING btree (users_id)",
+				},
+				{
+					SchemaName:      "public2",
+					TableName:       "users",
+					IndexName:       "foo",
+					IndexDefinition: "CREATE INDEX foo ON public2.users USING btree (users_id)",
+				},
+			},
+			nil,
+		)
+
+	statements, err := manager.GetTableIndexStatements(context.TODO(), []*SchemaTable{{Schema: "public", Table: "users"}, {Schema: "public2", Table: "users"}})
+	require.NoError(t, err)
+	require.Len(t, statements, 2)
+	require.ElementsMatch(
+		t,
+		[]string{
+			"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id)\n\tEND IF;\nEND $$;",
+			"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public2'\n\t) THEN\n\t\tCREATE INDEX foo ON public2.users USING btree (users_id)\n\tEND IF;\nEND $$;",
+		},
+		statements,
+	)
+}
+
 func Test_GenerateCreateTableStatement(t *testing.T) {
 	type testcase struct {
 		schema      string
