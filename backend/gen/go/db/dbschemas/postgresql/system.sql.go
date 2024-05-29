@@ -375,7 +375,7 @@ FROM
 LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
 WHERE
     con.conindid IS NULL -- Excludes indexes created as part of constraints
-    AND (n.nspname || '.' || t.relname) = ANY($1::TEXT[])
+    AND (ns.nspname || '.' || t.relname) = ANY($1::TEXT[])
 GROUP BY
     ns.nspname, t.relname, i.relname, ix.indexrelid
 ORDER BY

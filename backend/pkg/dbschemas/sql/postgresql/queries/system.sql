@@ -351,7 +351,7 @@ FROM
 LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
 WHERE
     con.conindid IS NULL -- Excludes indexes created as part of constraints
-    AND (n.nspname || '.' || t.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+    AND (ns.nspname || '.' || t.relname) = ANY(sqlc.arg('schematables')::TEXT[])
 GROUP BY
     ns.nspname, t.relname, i.relname, ix.indexrelid
 ORDER BY
