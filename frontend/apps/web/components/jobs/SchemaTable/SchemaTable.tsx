@@ -34,6 +34,7 @@ interface Props {
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
   onSelectedTableToggle(items: Set<string>, action: Action): void;
+  onValidate(): void;
 
   formErrors: FormError[];
 }
@@ -48,6 +49,7 @@ export function SchemaTable(props: Props): ReactElement {
     onSelectedTableToggle,
     formErrors,
     isJobMappingsValidating,
+    onValidate,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -101,6 +103,7 @@ export function SchemaTable(props: Props): ReactElement {
         <FormErrorsCard
           formErrors={formErrors}
           isValidating={isJobMappingsValidating}
+          onValidate={onValidate}
         />
       </div>
       <SchemaPageTable

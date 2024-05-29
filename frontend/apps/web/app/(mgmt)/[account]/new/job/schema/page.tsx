@@ -53,11 +53,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
 
-  const [validationResponse, setValidationResponse] = useState<
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
     ValidateJobMappingsResponse | undefined
   >();
 
-  const [isValidating, setIsValidating] = useState(false);
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -115,6 +115,26 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
+  async function validateMappings() {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        connectFormValues,
+        formMappings,
+        account?.id || ''
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast({
+        title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
   const schemaConstraintHandler = useMemo(
     () =>
       getSchemaConstraintHandler(
@@ -143,13 +163,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   useEffect(() => {
     const validateJobMappings = async () => {
       try {
-        setIsValidating(true);
+        setIsValidatingMappings(true);
         const res = await validateJobMapping(
           connectFormValues,
           formMappings,
           account?.id || ''
         );
-        setValidationResponse(res);
+        setValidateMappingsResponse(res);
       } catch (error) {
         console.error('Failed to validate job mappings:', error);
         toast({
@@ -157,7 +177,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           variant: 'destructive',
         });
       } finally {
-        setIsValidating(false);
+        setIsValidatingMappings(false);
       }
     };
 
@@ -208,14 +228,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
-            isJobMappingsValidating={isValidating}
+            isJobMappingsValidating={isValidatingMappings}
             selectedTables={selectedTables}
             onSelectedTableToggle={onSelectedTableToggle}
             formErrors={getAllFormErrors(
               form.formState.errors,
               formMappings,
-              validationResponse
+              validateMappingsResponse
             )}
+            onValidate={validateMappings}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
