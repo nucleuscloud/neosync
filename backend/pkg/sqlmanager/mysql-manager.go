@@ -284,11 +284,6 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*Sch
 	return nil, errors.ErrUnsupported
 }
 
-// todo
-func (m *MysqlManager) GetTableIndexStatements(ctx context.Context, tables []*SchemaTable) ([]string, error) {
-	return []string{}, nil
-}
-
 func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
 	result, err := getShowTableCreate(ctx, m.pool, schema, table)
 	if err != nil {

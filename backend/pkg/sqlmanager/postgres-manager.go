@@ -287,6 +287,7 @@ func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, t
 type TableInitStatement struct {
 	CreateTableStatement string
 	AlterTableStatements []*AlterTableStatement
+	IndexStatements      []string
 }
 
 type AlterTableStatement struct {
@@ -351,8 +352,8 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			return err
 		}
 		for _, columnDefinition := range columnDefs {
-			key := fmt.Sprintf("%s.%s", columnDefinition.SchemaName, columnDefinition.TableName)
-			colDefMap[key] = append(colDefMap[key], columnDefinition)
+			key := SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+			colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
 		}
 		return nil
 	})
@@ -364,8 +365,22 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			return err
 		}
 		for _, constraint := range constraints {
-			key := fmt.Sprintf("%s.%s", constraint.SchemaName, constraint.TableName)
-			constraintmap[key] = append(constraintmap[key], constraint)
+			key := SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
+			constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
+		}
+		return nil
+	})
+
+	indexmap := map[string][]string{}
+	errgrp.Go(func() error {
+		idxrecords, err := p.querier.GetIndicesBySchemasAndTables(errctx, p.pool, combined)
+		if err != nil {
+			return err
+		}
+		for _, record := range idxrecords {
+			key := SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+			indexmap[key.String()] = append(indexmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
+
 		}
 		return nil
 	})
@@ -395,6 +410,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		info := &TableInitStatement{
 			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS %q.%q (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
 			AlterTableStatements: []*AlterTableStatement{},
+			IndexStatements:      indexmap[key],
 		}
 		for _, constraint := range constraintmap[key] {
 			stmt, err := buildAlterStatementByConstraint(constraint)
@@ -411,38 +427,6 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			})
 		}
 		output = append(output, info)
-	}
-	return output, nil
-}
-
-func (p *PostgresManager) GetTableIndexStatements(ctx context.Context, tables []*SchemaTable) ([]string, error) {
-	if len(tables) == 0 {
-		return []string{}, nil
-	}
-
-	combined := make([]string, 0, len(tables))
-	for _, table := range tables {
-		combined = append(combined, table.String())
-	}
-
-	records, err := p.querier.GetIndicesBySchemasAndTables(ctx, p.pool, combined)
-	if err != nil {
-		return nil, err
-	}
-
-	recordmap := map[string][]string{}
-	for _, record := range records {
-		key := SchemaTable{Schema: record.SchemaName, Table: record.TableName}
-		recordmap[key.String()] = append(recordmap[key.String()], wrapPgIdempotentIndex(record.SchemaName, record.IndexName, record.IndexDefinition))
-	}
-
-	output := []string{}
-	for _, table := range tables {
-		statements, ok := recordmap[table.String()]
-		if !ok {
-			continue
-		}
-		output = append(output, statements...)
 	}
 	return output, nil
 }

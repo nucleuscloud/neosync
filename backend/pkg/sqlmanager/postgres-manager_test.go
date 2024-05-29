@@ -381,35 +381,6 @@ func Test_GetTableInitStatements(t *testing.T) {
 			nil,
 		)
 
-	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{
-		{Schema: "public", Table: "users"},
-		{Schema: "public2", Table: "users"},
-	})
-
-	require.NoError(t, err)
-	require.Equal(t, 2, len(output))
-	require.ElementsMatch(
-		t,
-		[]*TableInitStatement{
-			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);", AlterTableStatements: []*AlterTableStatement{
-				{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
-			}},
-			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public2\".\"users\" (\"id\" uuid NOT NULL);", AlterTableStatements: []*AlterTableStatement{
-				{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
-			}},
-		},
-		output,
-	)
-}
-
-func Test_GetTableIndexStatements(t *testing.T) {
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mockpool := pg_queries.NewMockDBTX(t)
-	manager := PostgresManager{
-		querier: pgquerier,
-		pool:    mockpool,
-	}
-
 	pgquerier.On("GetIndicesBySchemasAndTables", mock.Anything, mockpool, []string{"public.users", "public2.users"}).
 		Return(
 			[]*pg_queries.GetIndicesBySchemasAndTablesRow{
@@ -429,16 +400,34 @@ func Test_GetTableIndexStatements(t *testing.T) {
 			nil,
 		)
 
-	statements, err := manager.GetTableIndexStatements(context.TODO(), []*SchemaTable{{Schema: "public", Table: "users"}, {Schema: "public2", Table: "users"}})
+	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{
+		{Schema: "public", Table: "users"},
+		{Schema: "public2", Table: "users"},
+	})
+
 	require.NoError(t, err)
-	require.Len(t, statements, 2)
+	require.Equal(t, 2, len(output))
 	require.ElementsMatch(
 		t,
-		[]string{
-			"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id)\n\tEND IF;\nEND $$;",
-			"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public2'\n\t) THEN\n\t\tCREATE INDEX foo ON public2.users USING btree (users_id)\n\tEND IF;\nEND $$;",
+		[]*TableInitStatement{
+			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);",
+				AlterTableStatements: []*AlterTableStatement{
+					{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+				},
+				IndexStatements: []string{
+					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id)\n\tEND IF;\nEND $$;",
+				},
+			},
+			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public2\".\"users\" (\"id\" uuid NOT NULL);",
+				AlterTableStatements: []*AlterTableStatement{
+					{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+				},
+				IndexStatements: []string{
+					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public2'\n\t) THEN\n\t\tCREATE INDEX foo ON public2.users USING btree (users_id)\n\tEND IF;\nEND $$;",
+				},
+			},
 		},
-		statements,
+		output,
 	)
 }
 
