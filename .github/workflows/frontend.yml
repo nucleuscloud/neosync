@@ -33,6 +33,10 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
+        with:
+          node-version: lts
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Cache node modules
         id: cache-npm
@@ -65,6 +69,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Cache node modules
         id: cache-npm
