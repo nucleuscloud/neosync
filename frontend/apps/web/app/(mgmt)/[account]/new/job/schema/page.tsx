@@ -2,6 +2,7 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { FormError } from '@/components/jobs/SchemaTable/FormErrorsCard';
 import {
   SchemaTable,
   extractAllFormErrors,
@@ -11,23 +12,34 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { toast } from '@/components/ui/use-toast';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingFormValues,
+  SCHEMA_FORM_SCHEMA,
+  SchemaFormValues,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
+  JobMapping,
+  JobMappingTransformer,
   PrimaryConstraint,
+  TransformerConfig,
+  ValidateJobMappingsRequest,
+  ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { FieldErrors, useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { ConnectFormValues } from '../schema';
+import { ConnectFormValues, SingleTableSchemaFormValues } from '../schema';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -40,6 +52,12 @@ export interface ColumnMetadata {
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
+
+  const [validationResponse, setValidationResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -101,9 +119,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     () =>
       getSchemaConstraintHandler(
         connectionSchemaDataMap?.schemaMap ?? {},
-        tableConstraints?.primaryKeyConstraints ?? {}, // primaryConstraints?.tableConstraints ?? {},
-        tableConstraints?.foreignKeyConstraints ?? {}, // foreignConstraints?.tableConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {} // uniqueConstraints?.tableConstraints ?? {}
+        tableConstraints?.primaryKeyConstraints ?? {},
+        tableConstraints?.foreignKeyConstraints ?? {},
+        tableConstraints?.uniqueConstraints ?? {}
       ),
     [isSchemaMapValidating, isTableConstraintsValidating]
   );
@@ -121,6 +139,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     remove,
     append
   );
+
+  useEffect(() => {
+    const validateJobMappings = async () => {
+      try {
+        setIsValidating(true);
+        const res = await validateJobMapping(
+          connectFormValues,
+          formMappings,
+          account?.id || ''
+        );
+        setValidationResponse(res);
+      } catch (error) {
+        console.error('Failed to validate job mappings:', error);
+        toast({
+          title: 'Unable to validate job mappings',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateJobMappings();
+  }, [selectedTables]);
+
   useEffect(() => {
     if (
       isSchemaMapLoading ||
@@ -165,11 +208,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            isJobMappingsValidating={isValidating}
             selectedTables={selectedTables}
             onSelectedTableToggle={onSelectedTableToggle}
-            formErrors={extractAllFormErrors(
+            formErrors={getAllFormErrors(
               form.formState.errors,
-              formMappings
+              formMappings,
+              validationResponse
             )}
           />
           <div className="flex flex-row gap-1 justify-between">
@@ -184,6 +229,36 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+function getAllFormErrors(
+  formErrors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
+  values: JobMappingFormValues[],
+  validationErrors: ValidateJobMappingsResponse | undefined
+): FormError[] {
+  let messages: FormError[] = [];
+  const formErr = extractAllFormErrors(formErrors, values);
+  if (!validationErrors) {
+    return formErr;
+  }
+  const colErr = validationErrors.columnErrors.map((e) => {
+    return {
+      path: `${e.schema}.${e.table}.${e.column}`,
+      message: e.errors.join('. '),
+    };
+  });
+  const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
+    return {
+      path: '',
+      message: e,
+    };
+  });
+  messages = messages.concat(colErr, formErr);
+  if (dbErr) {
+    messages = messages.concat(dbErr);
+  }
+
+  return messages;
 }
 
 function getFormValues(
@@ -203,4 +278,51 @@ function getFormValues(
     mappings: [],
     connectionId,
   };
+}
+
+async function validateJobMapping(
+  connectFormValues: ConnectFormValues,
+  formMappings: JobMappingFormValues[],
+  accountId: string
+): Promise<ValidateJobMappingsResponse> {
+  console.log(JSON.stringify(formMappings, undefined, 2));
+  const body = new ValidateJobMappingsRequest({
+    accountId,
+    mappings: formMappings.map((m) => {
+      return new JobMapping({
+        schema: m.schema,
+        table: m.table,
+        column: m.column,
+        transformer:
+          m.transformer.source != 0
+            ? convertJobMappingTransformerFormToJobMappingTransformer(
+                m.transformer
+              )
+            : new JobMappingTransformer({
+                source: 1,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: {},
+                  },
+                }),
+              }),
+      });
+    }),
+    sourceConnectionId: connectFormValues.sourceId,
+  });
+
+  const res = await fetch(`/api/accounts/${accountId}/jobs/validate-mappings`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+
+  return ValidateJobMappingsResponse.fromJson(await res.json());
 }

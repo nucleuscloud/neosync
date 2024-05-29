@@ -1498,13 +1498,8 @@ func (s *Service) ValidateJobMappings(
 	// 	return nil, err
 	// }
 
-	connectionId, err := getJobSourceConnectionId(req.Msg.GetSource())
-	if err != nil {
-		return nil, err
-	}
-
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: *connectionId,
+		Id: req.Msg.SourceConnectionId,
 	}))
 	if err != nil {
 		return nil, err
@@ -1542,6 +1537,8 @@ func (s *Service) ValidateJobMappings(
 	if err != nil {
 		return nil, err
 	}
+	// jsonF, _ := json.MarshalIndent(req.Msg.Mappings, "", " ")
+	// fmt.Printf("\n req.Msg.Mappings: %s \n", string(jsonF))
 
 	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
 	for _, m := range req.Msg.Mappings {
@@ -1552,8 +1549,13 @@ func (s *Service) ValidateJobMappings(
 		tableColMappings[tn][m.Column] = m
 	}
 
+	jsonF, _ := json.MarshalIndent(tableColMappings, "", " ")
+	fmt.Printf("\n tableColMappings: %s \n", string(jsonF))
+
 	colErrorsMap := map[string]map[string][]string{}
-	dbErrorsMap := []string{}
+	dbErrors := &mgmtv1alpha1.DatabaseError{
+		Errors: []string{},
+	}
 
 	// verify if any circular dependencies have a nullable entrypoint
 	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
@@ -1590,6 +1592,7 @@ func (s *Service) ValidateJobMappings(
 	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
 
 	for _, cycle := range cycles {
+		isError := false
 		for _, table := range cycle {
 			fks, ok := tableConstraints.ForeignKeyConstraints[table]
 			if !ok {
@@ -1601,8 +1604,13 @@ func (s *Service) ValidateJobMappings(
 				}
 				if !utils.AllElementsEqual(fk.NotNullable, false) {
 					// add error
-					dbErrorsMap = append(dbErrorsMap, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
+					dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
+					isError = true
+					break
 				}
+			}
+			if isError {
+				break
 			}
 		}
 
@@ -1610,7 +1618,7 @@ func (s *Service) ValidateJobMappings(
 
 	// verify that all non nullable foreign key constraints are not missing from mapping
 	for table, fks := range tableConstraints.ForeignKeyConstraints {
-		colMappings, ok := tableColMappings[table]
+		_, ok := tableColMappings[table]
 		if !ok {
 			// skip. table not in mapping
 			continue
@@ -1618,19 +1626,23 @@ func (s *Service) ValidateJobMappings(
 		for _, fk := range fks {
 			for idx, notNull := range fk.NotNullable {
 				if notNull {
-					// check if foreign key exists
+					fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
 					fkCol := fk.ForeignKey.Columns[idx]
-					_, ok := colMappings[fkCol]
-					if ok {
-						// skip. foreign key exists in mapping
+					if !ok {
+						if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+							colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
+						}
+						colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
 						continue
 					}
-					if _, ok := colErrorsMap[table]; !ok {
-						colErrorsMap[table] = map[string][]string{}
+					_, ok = fkColMappings[fkCol]
+					if !ok {
+						if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+							colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
+						}
+						colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
 					}
-					// add error
-					col := fk.Columns[idx]
-					colErrorsMap[table][col] = append(colErrorsMap[table][col], fmt.Sprintf("Violates foreign key constraint. Missing required foreign key. Foreign Table: %s  Foreign Column: %s", fk.ForeignKey.Table, fkCol))
+
 				}
 			}
 		}
@@ -1658,13 +1670,23 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
-	jsonF, _ := json.MarshalIndent(dbErrorsMap, "", " ")
-	fmt.Printf("\n dbErrorsMap: %s \n", string(jsonF))
+	colErrors := []*mgmtv1alpha1.ColumnError{}
+	for tableName, colMap := range colErrorsMap {
+		for col, errors := range colMap {
+			schema, table := utils.SplitTableKey(tableName)
+			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
+				Schema: schema,
+				Table:  table,
+				Column: col,
+				Errors: errors,
+			})
+		}
+	}
 
-	jsonF, _ = json.MarshalIndent(colErrorsMap, "", " ")
-	fmt.Printf("\n colErrorsMap: %s \n", string(jsonF))
-
-	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
+	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{
+		DatabaseErrors: dbErrors,
+		ColumnErrors:   colErrors,
+	}), nil
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {

@@ -91,3 +91,11 @@ func GetBearerTokenFromHeader(
 	token := pieces[1]
 	return token, nil
 }
+
+func SplitTableKey(key string) (schema, table string) {
+	pieces := strings.Split(key, ".")
+	if len(pieces) == 1 {
+		return "public", pieces[0]
+	}
+	return pieces[0], pieces[1]
+}

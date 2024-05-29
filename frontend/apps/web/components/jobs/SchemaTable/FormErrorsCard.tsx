@@ -1,3 +1,4 @@
+import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -22,10 +23,11 @@ export interface FormError {
 
 interface Props {
   formErrors: FormError[];
+  isValidating: boolean;
 }
 
 export default function FormErrorsCard(props: Props): ReactElement {
-  const { formErrors } = props;
+  const { formErrors, isValidating } = props;
 
   const messages = formErrorsToMessages(formErrors);
   return (
@@ -38,6 +40,7 @@ export default function FormErrorsCard(props: Props): ReactElement {
             <CheckCircledIcon className="w-4 h-4" />
           )}
           <CardTitle>Validations</CardTitle>
+          <div>{isValidating ? <Spinner /> : null}</div>
 
           {messages.length != 0 && (
             <Badge variant="destructive">{messages.length} Errors</Badge>

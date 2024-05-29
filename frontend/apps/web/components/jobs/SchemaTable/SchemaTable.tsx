@@ -30,6 +30,7 @@ interface Props {
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
+  isJobMappingsValidating: boolean;
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
   onSelectedTableToggle(items: Set<string>, action: Action): void;
@@ -46,8 +47,8 @@ export function SchemaTable(props: Props): ReactElement {
     selectedTables,
     onSelectedTableToggle,
     formErrors,
+    isJobMappingsValidating,
   } = props;
-
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
@@ -97,7 +98,10 @@ export function SchemaTable(props: Props): ReactElement {
             />
           </CardContent>
         </Card>
-        <FormErrorsCard formErrors={formErrors} />
+        <FormErrorsCard
+          formErrors={formErrors}
+          isValidating={isJobMappingsValidating}
+        />
       </div>
       <SchemaPageTable
         columns={columns}

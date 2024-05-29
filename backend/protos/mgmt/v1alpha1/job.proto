@@ -587,22 +587,23 @@ message SetJobSyncOptionsResponse {
 message ValidateJobMappingsRequest {
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  repeated JobMapping mappings = 4;
-  JobSource source = 5;
+  repeated JobMapping mappings = 2;
+  string source_connection_id = 3;
 }
 
-/*
+message ColumnError {
+  string schema = 1;
+  string table = 2;
+  string column = 3;
+  repeated string errors = 4;
+}
 
-   {
-     "public.company": {
-       errors: []string{}
-       warnings: []string{}
-     }
-   }
-*/
-message ValidateJobMappingsResponse {
+message DatabaseError {
   repeated string errors = 1;
-  repeated string warnings = 2;
+}
+message ValidateJobMappingsResponse {
+  repeated ColumnError column_errors = 1;
+  DatabaseError database_errors = 2;
 }
 
 service JobService {

@@ -7375,6 +7375,66 @@
           "fields": []
         },
         {
+          "name": "ColumnError",
+          "longName": "ColumnError",
+          "fullName": "mgmt.v1alpha1.ColumnError",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CreateJobDestination",
           "longName": "CreateJobDestination",
           "fullName": "mgmt.v1alpha1.CreateJobDestination",
@@ -7648,6 +7708,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "DatabaseError",
+          "longName": "DatabaseError",
+          "fullName": "mgmt.v1alpha1.DatabaseError",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "DeleteJobDestinationConnectionRequest",
@@ -10608,12 +10692,12 @@
               "defaultValue": ""
             },
             {
-              "name": "source",
+              "name": "source_connection_id",
               "description": "",
               "label": "",
-              "type": "JobSource",
-              "longType": "JobSource",
-              "fullType": "mgmt.v1alpha1.JobSource",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10625,31 +10709,31 @@
           "name": "ValidateJobMappingsResponse",
           "longName": "ValidateJobMappingsResponse",
           "fullName": "mgmt.v1alpha1.ValidateJobMappingsResponse",
-          "description": "{\n\"public.company\": {\nerrors: []string{}\nwarnings: []string{}\n}\n}",
+          "description": "",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
           "extensions": [],
           "fields": [
             {
-              "name": "errors",
+              "name": "column_errors",
               "description": "",
               "label": "repeated",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "ColumnError",
+              "longType": "ColumnError",
+              "fullType": "mgmt.v1alpha1.ColumnError",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "warnings",
+              "name": "database_errors",
               "description": "",
-              "label": "repeated",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "label": "",
+              "type": "DatabaseError",
+              "longType": "DatabaseError",
+              "fullType": "mgmt.v1alpha1.DatabaseError",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
