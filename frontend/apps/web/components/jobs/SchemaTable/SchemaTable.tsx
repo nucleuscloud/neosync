@@ -30,11 +30,12 @@ interface Props {
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
-  isJobMappingsValidating: boolean;
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
   onSelectedTableToggle(items: Set<string>, action: Action): void;
-  onValidate(): void;
+  isJobMappingsValidating?: boolean;
+
+  onValidate?(): void;
 
   formErrors: FormError[];
 }

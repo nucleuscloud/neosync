@@ -15,21 +15,17 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
+import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import {
   JobMappingFormValues,
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
-  convertJobMappingTransformerFormToJobMappingTransformer,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
-  JobMapping,
-  JobMappingTransformer,
   PrimaryConstraint,
-  TransformerConfig,
-  ValidateJobMappingsRequest,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
@@ -119,7 +115,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     try {
       setIsValidatingMappings(true);
       const res = await validateJobMapping(
-        connectFormValues,
+        connectFormValues.sourceId,
         formMappings,
         account?.id || ''
       );
@@ -162,25 +158,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   useEffect(() => {
     const validateJobMappings = async () => {
-      try {
-        setIsValidatingMappings(true);
-        const res = await validateJobMapping(
-          connectFormValues,
-          formMappings,
-          account?.id || ''
-        );
-        setValidateMappingsResponse(res);
-      } catch (error) {
-        console.error('Failed to validate job mappings:', error);
-        toast({
-          title: 'Unable to validate job mappings',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsValidatingMappings(false);
-      }
+      await validateMappings();
     };
-
     validateJobMappings();
   }, [selectedTables]);
 
@@ -299,51 +278,4 @@ function getFormValues(
     mappings: [],
     connectionId,
   };
-}
-
-async function validateJobMapping(
-  connectFormValues: ConnectFormValues,
-  formMappings: JobMappingFormValues[],
-  accountId: string
-): Promise<ValidateJobMappingsResponse> {
-  console.log(JSON.stringify(formMappings, undefined, 2));
-  const body = new ValidateJobMappingsRequest({
-    accountId,
-    mappings: formMappings.map((m) => {
-      return new JobMapping({
-        schema: m.schema,
-        table: m.table,
-        column: m.column,
-        transformer:
-          m.transformer.source != 0
-            ? convertJobMappingTransformerFormToJobMappingTransformer(
-                m.transformer
-              )
-            : new JobMappingTransformer({
-                source: 1,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: {},
-                  },
-                }),
-              }),
-      });
-    }),
-    sourceConnectionId: connectFormValues.sourceId,
-  });
-
-  const res = await fetch(`/api/accounts/${accountId}/jobs/validate-mappings`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-
-  return ValidateJobMappingsResponse.fromJson(await res.json());
 }

@@ -25,8 +25,8 @@ export interface FormError {
 
 interface Props {
   formErrors: FormError[];
-  isValidating: boolean;
-  onValidate(): void;
+  isValidating?: boolean;
+  onValidate?(): void;
 }
 
 export default function FormErrorsCard(props: Props): ReactElement {
@@ -47,12 +47,19 @@ export default function FormErrorsCard(props: Props): ReactElement {
             {isValidating ? (
               <Spinner />
             ) : (
-              <Button variant="ghost" size="icon" key="validate" type="button">
-                <ReloadIcon
-                  className="h-4 w-4"
-                  onClick={async () => await onValidate()}
-                />
-              </Button>
+              onValidate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  key="validate"
+                  type="button"
+                >
+                  <ReloadIcon
+                    className="h-4 w-4"
+                    onClick={() => onValidate()}
+                  />
+                </Button>
+              )
             )}
           </div>
 

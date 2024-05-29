@@ -2,7 +2,6 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -1493,10 +1492,6 @@ func (s *Service) ValidateJobMappings(
 	if err != nil {
 		return nil, err
 	}
-	// userUuid, err := s.getUserUuid(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.SourceConnectionId,
@@ -1537,8 +1532,6 @@ func (s *Service) ValidateJobMappings(
 	if err != nil {
 		return nil, err
 	}
-	// jsonF, _ := json.MarshalIndent(req.Msg.Mappings, "", " ")
-	// fmt.Printf("\n req.Msg.Mappings: %s \n", string(jsonF))
 
 	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
 	for _, m := range req.Msg.Mappings {
@@ -1549,15 +1542,12 @@ func (s *Service) ValidateJobMappings(
 		tableColMappings[tn][m.Column] = m
 	}
 
-	jsonF, _ := json.MarshalIndent(tableColMappings, "", " ")
-	fmt.Printf("\n tableColMappings: %s \n", string(jsonF))
-
 	colErrorsMap := map[string]map[string][]string{}
 	dbErrors := &mgmtv1alpha1.DatabaseError{
 		Errors: []string{},
 	}
 
-	// verify if any circular dependencies have a nullable entrypoint
+	// verify that all circular dependencies have a nullable entrypoint
 	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
 	for table, fks := range tableConstraints.ForeignKeyConstraints {
 		colMappings, ok := tableColMappings[table]
@@ -1590,30 +1580,19 @@ func (s *Service) ValidateJobMappings(
 	}
 
 	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
+	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, tableConstraints.ForeignKeyConstraints)
+	if err != nil {
+		return nil, err
+	}
+
+	containsStart := func(t string) bool {
+		return slices.Contains(startTables, t)
+	}
 
 	for _, cycle := range cycles {
-		isError := false
-		for _, table := range cycle {
-			fks, ok := tableConstraints.ForeignKeyConstraints[table]
-			if !ok {
-				continue
-			}
-			for _, fk := range fks {
-				if !slices.Contains(cycle, fk.ForeignKey.Table) {
-					continue
-				}
-				if !utils.AllElementsEqual(fk.NotNullable, false) {
-					// add error
-					dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
-					isError = true
-					break
-				}
-			}
-			if isError {
-				break
-			}
+		if !slices.ContainsFunc(cycle, containsStart) {
+			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
 		}
-
 	}
 
 	// verify that all non nullable foreign key constraints are not missing from mapping
@@ -1625,24 +1604,25 @@ func (s *Service) ValidateJobMappings(
 		}
 		for _, fk := range fks {
 			for idx, notNull := range fk.NotNullable {
-				if notNull {
-					fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
-					fkCol := fk.ForeignKey.Columns[idx]
-					if !ok {
-						if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
-							colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
-						}
-						colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
-						continue
+				if !notNull {
+					// skip. foreign key is nullable
+					continue
+				}
+				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
+				fkCol := fk.ForeignKey.Columns[idx]
+				if !ok {
+					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
 					}
-					_, ok = fkColMappings[fkCol]
-					if !ok {
-						if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
-							colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
-						}
-						colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+					continue
+				}
+				_, ok = fkColMappings[fkCol]
+				if !ok {
+					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
 					}
-
+					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
 				}
 			}
 		}

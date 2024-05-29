@@ -128,7 +128,7 @@ func processCycles(
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
 	// determine start table
-	startTables, err := determineCycleStarts(cycles, subsets, dependencyMap)
+	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 	return false
 }
 
-func determineCycleStarts(
+func DetermineCycleStarts(
 	cycles [][]string,
 	subsets map[string]string,
 	dependencyMap map[string][]*sql_manager.ForeignConstraint,
