@@ -62,6 +62,7 @@ type SqlDatabase interface {
 	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
 	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
+	GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error

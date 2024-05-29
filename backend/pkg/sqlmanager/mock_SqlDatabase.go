@@ -677,6 +677,65 @@ func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) RunAndReturn(run fun
 	return _c
 }
 
+// GetTableInitStatements provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTableInitStatements")
+	}
+
+	var r0 []*TableInitStatement
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) ([]*TableInitStatement, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) []*TableInitStatement); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*TableInitStatement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetTableInitStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTableInitStatements'
+type MockSqlDatabase_GetTableInitStatements_Call struct {
+	*mock.Call
+}
+
+// GetTableInitStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetTableInitStatements(ctx interface{}, tables interface{}) *MockSqlDatabase_GetTableInitStatements_Call {
+	return &MockSqlDatabase_GetTableInitStatements_Call{Call: _e.mock.On("GetTableInitStatements", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetTableInitStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) Return(_a0 []*TableInitStatement, _a1 error) *MockSqlDatabase_GetTableInitStatements_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) RunAndReturn(run func(context.Context, []*SchemaTable) ([]*TableInitStatement, error)) *MockSqlDatabase_GetTableInitStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUniqueConstraintsMap provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	ret := _m.Called(ctx, schemas)

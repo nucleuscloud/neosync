@@ -313,6 +313,95 @@ func Test_GetCreateTableStatement(t *testing.T) {
 	require.Equal(t, "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" varchar NOT NULL, \"age\" integer NULL, CONSTRAINT users_pkey PRIMARY KEY (id));", actual)
 }
 
+func Test_GetTableInitStatements_Empty(t *testing.T) {
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mockpool := pg_queries.NewMockDBTX(t)
+	manager := PostgresManager{
+		querier: pgquerier,
+		pool:    mockpool,
+	}
+
+	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{})
+	require.NoError(t, err)
+	require.Empty(t, output)
+}
+func Test_GetTableInitStatements(t *testing.T) {
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mockpool := pg_queries.NewMockDBTX(t)
+	manager := PostgresManager{
+		querier: pgquerier,
+		pool:    mockpool,
+	}
+
+	pgquerier.On("GetDatabaseTableSchemasBySchemasAndTables", mock.Anything, mockpool, []string{"public.users", "public2.users"}).
+		Return(
+			[]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
+				{
+					SchemaName:    "public",
+					TableName:     "users",
+					ColumnName:    "id",
+					DataType:      "uuid",
+					ColumnDefault: "",
+					IsNullable:    "NO",
+				},
+				{
+					SchemaName:    "public2",
+					TableName:     "users",
+					ColumnName:    "id",
+					DataType:      "uuid",
+					ColumnDefault: "",
+					IsNullable:    "NO",
+				},
+			},
+			nil,
+		)
+
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockpool, []string{"public", "public2"}).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{
+				{
+					ConstraintName:       "pk_public_users",
+					ConstraintType:       "p",
+					SchemaName:           "public",
+					TableName:            "users",
+					ConstraintColumns:    []string{"id"},
+					Notnullable:          []bool{true},
+					ConstraintDefinition: "PRIMARY KEY(id)",
+				},
+				{
+					ConstraintName:       "pk_public2_users",
+					ConstraintType:       "p",
+					SchemaName:           "public2",
+					TableName:            "users",
+					ConstraintColumns:    []string{"id"},
+					Notnullable:          []bool{true},
+					ConstraintDefinition: "PRIMARY KEY(id)",
+				},
+			},
+			nil,
+		)
+
+	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{
+		{Schema: "public", Table: "users"},
+		{Schema: "public2", Table: "users"},
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, 2, len(output))
+	require.ElementsMatch(
+		t,
+		[]*TableInitStatement{
+			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);", AlterTableStatements: []*AlterTableStatement{
+				{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+			}},
+			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public2\".\"users\" (\"id\" uuid NOT NULL);", AlterTableStatements: []*AlterTableStatement{
+				{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+			}},
+		},
+		output,
+	)
+}
+
 func Test_GenerateCreateTableStatement(t *testing.T) {
 	type testcase struct {
 		schema      string
