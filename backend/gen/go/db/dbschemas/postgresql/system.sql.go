@@ -371,7 +371,6 @@ FROM
     JOIN pg_catalog.pg_index ix ON t.oid = ix.indrelid
     JOIN pg_catalog.pg_class i ON i.oid = ix.indexrelid
     JOIN pg_catalog.pg_namespace ns ON t.relnamespace = ns.oid
-    JOIN pg_catalog.pg_attribute a ON a.attnum = ANY(ix.indkey) AND a.attrelid = t.oid
 LEFT JOIN pg_catalog.pg_constraint con ON con.conindid = ix.indexrelid
 WHERE
     con.conindid IS NULL -- Excludes indexes created as part of constraints
