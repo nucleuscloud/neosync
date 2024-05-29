@@ -37,6 +37,11 @@ func newInitStatementBuilder(
 	}
 }
 
+type initStatementBlock struct {
+	label      string
+	statements []string
+}
+
 func (b *initStatementBuilder) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
@@ -122,6 +127,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				createTables := []string{}
 				nonFkAlterStmts := []string{}
 				fkAlterStmts := []string{}
+				idxStmts := []string{}
 				for _, stmtCfg := range initStatementCfgs {
 					createTables = append(createTables, stmtCfg.CreateTableStatement)
 					for _, alter := range stmtCfg.AlterTableStatements {
@@ -131,32 +137,29 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 							nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
 						}
 					}
+					idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
 				}
 
 				destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
 				if destPgConfig == nil {
 					continue
 				}
-				if len(createTables) > 0 {
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, createTables, &sql_manager.BatchExecOpts{})
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec pg create table statements: %w", err)
-					}
-				}
 
-				if len(nonFkAlterStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, nonFkAlterStmts, &sql_manager.BatchExecOpts{})
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec pg alter table statements: %w", err)
-					}
+				initblocks := []initStatementBlock{
+					{label: "create table", statements: createTables},
+					{label: "non-fk alter table", statements: nonFkAlterStmts},
+					{label: "fk alter table", statements: fkAlterStmts},
+					{label: "table index", statements: idxStmts},
 				}
-				if len(fkAlterStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, fkAlterStmts, &sql_manager.BatchExecOpts{})
+				for _, block := range initblocks {
+					slogger.Info("[%s] found %d statements to execute during schema initialization", block.label, len(block.statements))
+					if len(block.statements) == 0 {
+						continue
+					}
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.statements, &sql_manager.BatchExecOpts{})
 					if err != nil {
 						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec pg fk alter table statements: %w", err)
+						return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.label, err)
 					}
 				}
 			}
