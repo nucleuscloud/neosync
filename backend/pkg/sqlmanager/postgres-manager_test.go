@@ -3,6 +3,7 @@ package sqlmanager
 import (
 	context "context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -10,6 +11,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+func compareSlices(slice1, slice2 []string) bool {
+	for _, ele := range slice1 {
+		if !slices.Contains(slice2, ele) {
+			return false
+		}
+	}
+	return true
+}
 
 func Test_GetDatabaseSchema(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -356,7 +366,7 @@ func Test_GetTableInitStatements(t *testing.T) {
 			nil,
 		)
 
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockpool, []string{"public", "public2"}).
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockpool, mock.MatchedBy(func(query []string) bool { return compareSlices(query, []string{"public", "public2"}) })).
 		Return(
 			[]*pg_queries.GetTableConstraintsBySchemaRow{
 				{
@@ -381,7 +391,7 @@ func Test_GetTableInitStatements(t *testing.T) {
 			nil,
 		)
 
-	pgquerier.On("GetIndicesBySchemasAndTables", mock.Anything, mockpool, []string{"public.users", "public2.users"}).
+	pgquerier.On("GetIndicesBySchemasAndTables", mock.Anything, mockpool, mock.MatchedBy(func(query []string) bool { return compareSlices(query, []string{"public.users", "public2.users"}) })).
 		Return(
 			[]*pg_queries.GetIndicesBySchemasAndTablesRow{
 				{
