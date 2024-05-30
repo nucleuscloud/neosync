@@ -21,9 +21,15 @@ import { Switch } from '@/components/ui/switch';
 import {
   generateEmailTypeStringToEnum,
   getGenerateEmailTypeString,
+  getInvalidEmailActionString,
+  invalidEmailActionStringToEnum,
 } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GenerateEmailType, TransformEmail } from '@neosync/sdk';
+import {
+  GenerateEmailType,
+  InvalidEmailAction,
+  TransformEmail,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
@@ -37,6 +43,9 @@ export default function TransformEmailForm(props: Props): ReactElement {
   const emailType =
     (existingConfig?.toJson() as any)?.emailType ?? // eslint-disable-line @typescript-eslint/no-explicit-any
     'GENERATE_EMAIL_TYPE_UUID_V4';
+  const invalidEmailAction =
+    (existingConfig?.toJson() as any)?.invalidEmailAction ?? // eslint-disable-line @typescript-eslint/no-explicit-any
+    'INVALID_EMAIL_ACTION_REJECT';
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
@@ -45,6 +54,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
       preserveLength: existingConfig?.preserveLength ?? false,
       excludedDomains: existingConfig?.excludedDomains ?? [],
       emailType: emailType,
+      invalidEmailAction: invalidEmailAction,
     },
   });
 
@@ -169,6 +179,56 @@ export default function TransformEmailForm(props: Props): ReactElement {
                         value={emailType.toString()}
                       >
                         {getGenerateEmailTypeString(emailType)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={`invalidEmailAction`}
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
+              <div className="space-y-0.5">
+                <FormLabel>Invalid Email Action</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Configure the invalid email action that will be run in the
+                  event the system encounters an email that does not conform to
+                  RFC 5322.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Select
+                  disabled={isReadonly}
+                  onValueChange={(value) => {
+                    // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
+                    const emailConfig = new TransformEmail({
+                      invalidEmailAction: parseInt(value, 10),
+                    }).toJson();
+                    field.onChange((emailConfig as any).invalidEmailAction); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  }}
+                  value={invalidEmailActionStringToEnum(field.value).toString()}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      InvalidEmailAction.GENERATE,
+                      InvalidEmailAction.NULL,
+                      InvalidEmailAction.PASSTHROUGH,
+                      InvalidEmailAction.REJECT,
+                    ].map((action) => (
+                      <SelectItem
+                        key={action}
+                        className="cursor-pointer"
+                        value={action.toString()}
+                      >
+                        {getInvalidEmailActionString(action)}
                       </SelectItem>
                     ))}
                   </SelectContent>

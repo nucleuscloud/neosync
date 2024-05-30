@@ -261,6 +261,41 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_True_Excluded(t *tes
 	require.NotEqual(t, "gmail.com", domain)
 }
 
+func Test_TransformEmail_InvalidEmailArg(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	invalidemail := "invalid@gmail..com"
+
+	output, err := transformEmail(randomizer, invalidemail, transformeEmailOptions{})
+	require.Error(t, err)
+	require.Nil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Reject,
+	})
+	require.Error(t, err)
+	require.Nil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Passthrough,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+	require.Equal(t, invalidemail, *output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Generate,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Null,
+	})
+	require.NoError(t, err)
+	require.Nil(t, output)
+}
+
 func Test_Bloblang_transform_email_empty_opts(t *testing.T) {
 	mapping := `root = transform_email()`
 	ex, err := bloblang.Parse(mapping)
@@ -349,6 +384,15 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerSliceDomains(t
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[132,412],max_length:%d)`, nilEmail, maxEmailCharLimit)
 	_, err := bloblang.Parse(mapping)
 	require.Error(t, err, "The excluded domains must be strings")
+}
+
+func Test_TransformEmailTransformer_InvalidEmailArg(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,invalid_email_action:"passthrough")`, "nick@neosync.dev")
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	require.NoError(t, err)
 }
 
 func Test_fromAnyToStringSlice(t *testing.T) {

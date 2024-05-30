@@ -4186,6 +4186,39 @@
           ]
         },
         {
+          "name": "InvalidEmailAction",
+          "longName": "InvalidEmailAction",
+          "fullName": "mgmt.v1alpha1.InvalidEmailAction",
+          "description": "Action enumeration that dictates what the transform_email transformer should do in the case that it encounters an email that does not conform to RFC 5322",
+          "values": [
+            {
+              "name": "INVALID_EMAIL_ACTION_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to reject."
+            },
+            {
+              "name": "INVALID_EMAIL_ACTION_REJECT",
+              "number": "1",
+              "description": "If an invalid email is encountered, the transformer will reject the transformation and exit."
+            },
+            {
+              "name": "INVALID_EMAIL_ACTION_NULL",
+              "number": "2",
+              "description": "The result of the email will be null. This should only be specified if the destination column is also nullable."
+            },
+            {
+              "name": "INVALID_EMAIL_ACTION_PASSTHROUGH",
+              "number": "3",
+              "description": "The result of the email will be identical to the original value, unmodified."
+            },
+            {
+              "name": "INVALID_EMAIL_ACTION_GENERATE",
+              "number": "4",
+              "description": "The result of the email will be a brand new generated email. This is the same result as the generate_email transformer."
+            }
+          ]
+        },
+        {
           "name": "SupportedJobType",
           "longName": "SupportedJobType",
           "fullName": "mgmt.v1alpha1.SupportedJobType",
@@ -5637,6 +5670,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_email_type",
+              "defaultValue": ""
+            },
+            {
+              "name": "invalid_email_action",
+              "description": "Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.",
+              "label": "optional",
+              "type": "InvalidEmailAction",
+              "longType": "InvalidEmailAction",
+              "fullType": "mgmt.v1alpha1.InvalidEmailAction",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_invalid_email_action",
               "defaultValue": ""
             }
           ]

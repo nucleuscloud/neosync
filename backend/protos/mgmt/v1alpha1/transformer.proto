@@ -228,6 +228,20 @@ message GenerateEmail {
   optional GenerateEmailType email_type = 1;
 }
 
+// Action enumeration that dictates what the transform_email transformer should do in the case that it encounters an email that does not conform to RFC 5322
+enum InvalidEmailAction {
+  // Unspecified defaults to reject.
+  INVALID_EMAIL_ACTION_UNSPECIFIED = 0;
+  // If an invalid email is encountered, the transformer will reject the transformation and exit.
+  INVALID_EMAIL_ACTION_REJECT = 1;
+  // The result of the email will be null. This should only be specified if the destination column is also nullable.
+  INVALID_EMAIL_ACTION_NULL = 2;
+  // The result of the email will be identical to the original value, unmodified.
+  INVALID_EMAIL_ACTION_PASSTHROUGH = 3;
+  // The result of the email will be a brand new generated email. This is the same result as the generate_email transformer.
+  INVALID_EMAIL_ACTION_GENERATE = 4;
+}
+
 message TransformEmail {
   // Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
   bool preserve_domain = 1;
@@ -237,6 +251,8 @@ message TransformEmail {
   repeated string excluded_domains = 3;
   // Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
   optional GenerateEmailType email_type = 4;
+  // Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.
+  optional InvalidEmailAction invalid_email_action = 5;
 }
 
 message GenerateBool {}

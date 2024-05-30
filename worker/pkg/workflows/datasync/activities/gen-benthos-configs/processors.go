@@ -356,9 +356,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sql_manager.
 			emailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
 		}
 
+		invalidEmailAction := col.GetTransformer().GetConfig().GetTransformEmailConfig().GetInvalidEmailAction()
+		if invalidEmailAction == mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_UNSPECIFIED {
+			invalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
+		}
+
 		return fmt.Sprintf(
-			"transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d,email_type:%q)",
-			col.Column, pd, pl, excludedDomainsStr, maxLen, dtoEmailTypeToBenthosEmailType(emailType),
+			"transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d,email_type:%q,invalid_email_action:%q)",
+			col.Column, pd, pl, excludedDomainsStr, maxLen, dtoEmailTypeToBenthosEmailType(emailType), dtoInvalidEmailActionToBenthosInvalidEmailAction(invalidEmailAction),
 		), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
 		return "generate_bool()", nil
@@ -535,5 +540,18 @@ func dtoEmailTypeToBenthosEmailType(dto mgmtv1alpha1.GenerateEmailType) transfor
 		return transformers.GenerateEmailType_FullName
 	default:
 		return transformers.GenerateEmailType_UuidV4
+	}
+}
+
+func dtoInvalidEmailActionToBenthosInvalidEmailAction(dto mgmtv1alpha1.InvalidEmailAction) transformers.InvalidEmailAction {
+	switch dto {
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE:
+		return transformers.InvalidEmailAction_Generate
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_NULL:
+		return transformers.InvalidEmailAction_Null
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_PASSTHROUGH:
+		return transformers.InvalidEmailAction_Passthrough
+	default:
+		return transformers.InvalidEmailAction_Reject
 	}
 }

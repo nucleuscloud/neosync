@@ -405,6 +405,56 @@ proto3.util.setEnumType(GenerateEmailType, "mgmt.v1alpha1.GenerateEmailType", [
 ]);
 
 /**
+ * Action enumeration that dictates what the transform_email transformer should do in the case that it encounters an email that does not conform to RFC 5322
+ *
+ * @generated from enum mgmt.v1alpha1.InvalidEmailAction
+ */
+export enum InvalidEmailAction {
+  /**
+   * Unspecified defaults to reject.
+   *
+   * @generated from enum value: INVALID_EMAIL_ACTION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * If an invalid email is encountered, the transformer will reject the transformation and exit.
+   *
+   * @generated from enum value: INVALID_EMAIL_ACTION_REJECT = 1;
+   */
+  REJECT = 1,
+
+  /**
+   * The result of the email will be null. This should only be specified if the destination column is also nullable.
+   *
+   * @generated from enum value: INVALID_EMAIL_ACTION_NULL = 2;
+   */
+  NULL = 2,
+
+  /**
+   * The result of the email will be identical to the original value, unmodified.
+   *
+   * @generated from enum value: INVALID_EMAIL_ACTION_PASSTHROUGH = 3;
+   */
+  PASSTHROUGH = 3,
+
+  /**
+   * The result of the email will be a brand new generated email. This is the same result as the generate_email transformer.
+   *
+   * @generated from enum value: INVALID_EMAIL_ACTION_GENERATE = 4;
+   */
+  GENERATE = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(InvalidEmailAction)
+proto3.util.setEnumType(InvalidEmailAction, "mgmt.v1alpha1.InvalidEmailAction", [
+  { no: 0, name: "INVALID_EMAIL_ACTION_UNSPECIFIED" },
+  { no: 1, name: "INVALID_EMAIL_ACTION_REJECT" },
+  { no: 2, name: "INVALID_EMAIL_ACTION_NULL" },
+  { no: 3, name: "INVALID_EMAIL_ACTION_PASSTHROUGH" },
+  { no: 4, name: "INVALID_EMAIL_ACTION_GENERATE" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
 export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
@@ -1607,6 +1657,13 @@ export class TransformEmail extends Message<TransformEmail> {
    */
   emailType?: GenerateEmailType;
 
+  /**
+   * Optionally specify an action in the result of an invalid email. An invalid email is one that does not conform to RFC 5322.
+   *
+   * @generated from field: optional mgmt.v1alpha1.InvalidEmailAction invalid_email_action = 5;
+   */
+  invalidEmailAction?: InvalidEmailAction;
+
   constructor(data?: PartialMessage<TransformEmail>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1619,6 +1676,7 @@ export class TransformEmail extends Message<TransformEmail> {
     { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "excluded_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 4, name: "email_type", kind: "enum", T: proto3.getEnumType(GenerateEmailType), opt: true },
+    { no: 5, name: "invalid_email_action", kind: "enum", T: proto3.getEnumType(InvalidEmailAction), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformEmail {

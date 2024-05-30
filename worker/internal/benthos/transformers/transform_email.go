@@ -13,6 +13,26 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
+type InvalidEmailAction string
+
+const (
+	InvalidEmailAction_Reject      InvalidEmailAction = "reject"
+	InvalidEmailAction_Passthrough InvalidEmailAction = "passthrough"
+	InvalidEmailAction_Null        InvalidEmailAction = "null"
+	InvalidEmailAction_Generate    InvalidEmailAction = "generate"
+)
+
+func (g InvalidEmailAction) String() string {
+	return string(g)
+}
+
+func isValidInvalidEmailAction(action string) bool {
+	return action == string(InvalidEmailAction_Reject) ||
+		action == string(InvalidEmailAction_Passthrough) ||
+		action == string(InvalidEmailAction_Null) ||
+		action == string(InvalidEmailAction_Generate)
+}
+
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("email").Optional()).
@@ -21,7 +41,8 @@ func init() {
 		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{})).
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewInt64Param("seed").Optional()).
-		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()))
+		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String())).
+		Param(bloblang.NewStringParam("invalid_email_action").Default(InvalidEmailAction_Reject.String()))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		emailPtr, err := args.GetOptionalString("email")
@@ -65,6 +86,16 @@ func init() {
 		}
 		emailType := getEmailTypeOrDefault(emailTypeArg)
 
+		invalidEmailActionArg, err := args.GetString("invalid_email_action")
+		if err != nil {
+			return nil, err
+		}
+		if !isValidInvalidEmailAction(invalidEmailActionArg) {
+			return nil, errors.New("not a valid invalid_email_action argument")
+		}
+
+		invalidEmailAction := InvalidEmailAction(invalidEmailActionArg)
+
 		seedArg, err := args.GetOptionalInt64("seed")
 		if err != nil {
 			return nil, err
@@ -83,11 +114,12 @@ func init() {
 		randomizer := rng.New(seed)
 		return func() (any, error) {
 			output, err := transformEmail(randomizer, email, transformeEmailOptions{
-				PreserveLength:  preserveLength,
-				PreserveDomain:  preserveDomain,
-				MaxLength:       maxLength,
-				ExcludedDomains: excludedDomains,
-				EmailType:       emailType,
+				PreserveLength:     preserveLength,
+				PreserveDomain:     preserveDomain,
+				MaxLength:          maxLength,
+				ExcludedDomains:    excludedDomains,
+				EmailType:          emailType,
+				InvalidEmailAction: invalidEmailAction,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_email: %w", err)
@@ -124,11 +156,12 @@ func fromAnyToStringSlice(input any) ([]string, error) {
 }
 
 type transformeEmailOptions struct {
-	PreserveLength  bool
-	PreserveDomain  bool
-	MaxLength       int64
-	ExcludedDomains []string
-	EmailType       GenerateEmailType
+	PreserveLength     bool
+	PreserveDomain     bool
+	MaxLength          int64
+	ExcludedDomains    []string
+	EmailType          GenerateEmailType
+	InvalidEmailAction InvalidEmailAction
 }
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
@@ -150,12 +183,25 @@ func transformEmail(
 
 	parsedInputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, fmt.Errorf("input email was not a valid email address: %w", err)
+		switch opts.InvalidEmailAction {
+		case InvalidEmailAction_Passthrough:
+			return &email, nil
+		case InvalidEmailAction_Null:
+			return nil, nil
+		case InvalidEmailAction_Generate:
+			newEmail, err := generateRandomEmail(randomizer, opts.MaxLength, opts.EmailType, opts.ExcludedDomains)
+			if err != nil {
+				return nil, err
+			}
+			return &newEmail, nil
+		default: // Default or Reject
+			return nil, fmt.Errorf("input email was not a valid email address: %w", err)
+		}
 	}
 
 	_, domain, found := strings.Cut(parsedInputEmail.Address, "@")
 	if !found {
-		return nil, errors.New("did not found @ when parsed email address")
+		return nil, errors.New("did not find @ when parsing email address")
 	}
 
 	excludedDomainsSet := transformer_utils.ToSet(opts.ExcludedDomains)
