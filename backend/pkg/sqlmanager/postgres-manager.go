@@ -535,18 +535,16 @@ type buildTableColRequest struct {
 func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 	if record.ColumnDefault != "" {
-		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
+		if record.GeneratedType == "s" {
+			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS %s STORED", record.ColumnDefault))
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
 		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
 			pieces[1] = "BIGSERIAL"
 		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "smallint" {
 			pieces[1] = "SMALLSERIAL"
 		} else if record.ColumnDefault != "NULL" {
-			if record.GeneratedType == "s" {
-				pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS %s STORED", record.ColumnDefault))
-			} else {
-				pieces = append(pieces, "DEFAULT", record.ColumnDefault)
-			}
+			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
 	}
 	return strings.Join(pieces, " ")
