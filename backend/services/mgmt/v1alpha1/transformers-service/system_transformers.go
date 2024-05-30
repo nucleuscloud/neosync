@@ -13,6 +13,8 @@ import (
 var (
 	defaultGenerateEmailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
 
+	defaultInvalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
+
 	systemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
 
@@ -40,10 +42,11 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain:  false,
-						PreserveLength:  false,
-						ExcludedDomains: []string{},
-						EmailType:       &defaultGenerateEmailType,
+						PreserveDomain:     false,
+						PreserveLength:     false,
+						ExcludedDomains:    []string{},
+						EmailType:          &defaultGenerateEmailType,
+						InvalidEmailAction: &defaultInvalidEmailAction,
 					},
 				},
 			},
