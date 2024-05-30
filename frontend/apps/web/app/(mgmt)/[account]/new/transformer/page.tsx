@@ -41,7 +41,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
@@ -60,7 +60,7 @@ function getTransformerSource(sourceStr: string): TransformerSource {
 export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
-  const { data } = useGetSystemTransformers();
+  const { data, isLoading } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
@@ -118,6 +118,21 @@ export default function NewTransformer(): ReactElement {
   const base =
     transformers.find((t) => t.source === formSource) ??
     new SystemTransformer();
+
+  const configCase = form.watch('config.case');
+
+  useEffect(() => {
+    if (
+      isLoading ||
+      base.source === TransformerSource.UNSPECIFIED ||
+      configCase ||
+      !transformerQueryParam
+    ) {
+      return;
+    }
+
+    form.setValue('config', convertTransformerConfigToForm(base.config));
+  }, [isLoading, base.source, configCase, transformerQueryParam]);
 
   return (
     <OverviewContainer
