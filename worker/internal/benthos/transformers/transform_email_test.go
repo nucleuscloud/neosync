@@ -261,6 +261,41 @@ func Test_TransformEmail_PreserveLength_True_PreserveDomain_True_Excluded(t *tes
 	require.NotEqual(t, "gmail.com", domain)
 }
 
+func Test_TransformEmail_InvalidEmailArg(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	invalidemail := "invalid@gmail..com"
+
+	output, err := transformEmail(randomizer, invalidemail, transformeEmailOptions{})
+	require.Error(t, err)
+	require.Nil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Reject,
+	})
+	require.Error(t, err)
+	require.Nil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Passthrough,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+	require.Equal(t, invalidemail, *output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Generate,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+
+	output, err = transformEmail(randomizer, invalidemail, transformeEmailOptions{
+		InvalidEmailAction: InvalidEmailAction_Null,
+	})
+	require.NoError(t, err)
+	require.Nil(t, output)
+}
+
 func Test_Bloblang_transform_email_empty_opts(t *testing.T) {
 	mapping := `root = transform_email()`
 	ex, err := bloblang.Parse(mapping)
