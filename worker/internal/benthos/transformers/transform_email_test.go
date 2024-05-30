@@ -386,6 +386,15 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerSliceDomains(t
 	require.Error(t, err, "The excluded domains must be strings")
 }
 
+func Test_TransformEmailTransformer_InvalidEmailArg(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,invalid_email_action:"passthrough")`, "nick@neosync.dev")
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	require.NoError(t, err)
+}
+
 func Test_fromAnyToStringSlice(t *testing.T) {
 	var foo any = []any{"123", "456"}
 	output, err := fromAnyToStringSlice(foo)
