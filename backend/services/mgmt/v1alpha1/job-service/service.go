@@ -58,7 +58,6 @@ func New(
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	sqlmanager sql_manager.SqlManagerClient,
 ) *Service {
-
 	return &Service{
 		cfg:                cfg,
 		db:                 db,
