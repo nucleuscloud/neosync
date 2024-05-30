@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -31,7 +32,7 @@ import {
   SetJobSourceSqlConnectionSubsetsRequest,
   SetJobSourceSqlConnectionSubsetsResponse,
 } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
@@ -51,6 +52,28 @@ export default function SubsetCard(props: Props): ReactElement {
   } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
+  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
+    useGetConnectionTableConstraints(
+      account?.id ?? '',
+      sourceConnectionId ?? ''
+    );
+
+  const fkConstraints = tableConstraints?.foreignKeyConstraints;
+
+  const [rootTables, setRootTables] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!isTableConstraintsValidating && fkConstraints) {
+      data?.job?.mappings.forEach((m) => {
+        const tn = `${m.schema}.${m.table}`;
+        if (!fkConstraints[tn]) {
+          rootTables.add(tn);
+          setRootTables(rootTables);
+        }
+      });
+    }
+  }, [fkConstraints, isTableConstraintsValidating]);
+
   const dbType =
     data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
 
@@ -63,6 +86,7 @@ export default function SubsetCard(props: Props): ReactElement {
 
   const tableRowData = buildTableRowData(
     data?.job?.mappings ?? [],
+    rootTables,
     form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();

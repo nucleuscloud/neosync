@@ -7,13 +7,18 @@ interface DbCol {
 }
 export function buildTableRowData(
   dbCols: DbCol[],
+  rootTables: Set<string>,
   existingSubsets: SubsetFormValues['subsets']
 ): Record<string, TableRow> {
   const tableMap: Record<string, TableRow> = {};
 
   dbCols.forEach((mapping) => {
     const key = buildRowKey(mapping.schema, mapping.table);
-    tableMap[key] = { schema: mapping.schema, table: mapping.table };
+    tableMap[key] = {
+      schema: mapping.schema,
+      table: mapping.table,
+      isRootTable: rootTables.has(key),
+    };
   });
   existingSubsets.forEach((subset) => {
     const key = buildRowKey(subset.schema, subset.table);
