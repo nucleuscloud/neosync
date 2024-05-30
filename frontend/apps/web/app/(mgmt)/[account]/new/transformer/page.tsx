@@ -61,17 +61,13 @@ export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
   const { data } = useGetSystemTransformers();
-  const transformers =
-    data?.transformers.sort((a, b) => a.name.localeCompare(b.name)) ?? [];
+  const transformers = data?.transformers ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
   const transformerSource = getTransformerSource(
     transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
   );
-  const [base, setBase] = useState<SystemTransformer>(
-    transformers.find((item) => item.source === transformerSource) ??
-      new SystemTransformer({})
-  );
+
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
@@ -117,6 +113,12 @@ export default function NewTransformer(): ReactElement {
     }
   }
 
+  const formSource = form.watch('source');
+
+  const base =
+    transformers.find((t) => t.source === formSource) ??
+    new SystemTransformer();
+
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a New Transformer" />}
@@ -155,7 +157,6 @@ export default function NewTransformer(): ReactElement {
                                   'config',
                                   convertTransformerConfigToForm(t.config)
                                 );
-                                setBase(t ?? new SystemTransformer({}));
                                 setOpenBaseSelect(false);
                               }}
                               value={t.name}
@@ -180,7 +181,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {form.getValues('source') != 0 && (
+          {formSource != null && formSource !== 0 && (
             <div>
               <Controller
                 control={form.control}
@@ -233,7 +234,7 @@ export default function NewTransformer(): ReactElement {
           )}
           <div>
             <UserDefinedTransformerForm
-              value={form.getValues('source') ?? TransformerSource.UNSPECIFIED}
+              value={formSource ?? TransformerSource.UNSPECIFIED}
             />
           </div>
           <div className="flex flex-row justify-end">
