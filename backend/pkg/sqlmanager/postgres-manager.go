@@ -536,7 +536,7 @@ func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 	if record.ColumnDefault != "" {
 		if record.GeneratedType == "s" {
-			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS %s STORED", record.ColumnDefault))
+			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) STORED", record.ColumnDefault))
 		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
 		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
