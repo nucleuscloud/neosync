@@ -403,6 +403,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				ColumnDefault: td.ColumnDefault,
 				DataType:      td.DataType,
 				IsNullable:    td.IsNullable == "YES",
+				GeneratedType: td.GeneratedType,
 			}))
 		}
 
@@ -509,6 +510,7 @@ func generateCreateTableStatement(
 			ColumnDefault: record.ColumnDefault,
 			DataType:      record.DataType,
 			IsNullable:    record.IsNullable == "YES",
+			GeneratedType: record.GeneratedType,
 		})
 	}
 
@@ -526,13 +528,16 @@ type buildTableColRequest struct {
 	ColumnDefault string
 	DataType      string
 	IsNullable    bool
+	GeneratedType string
 }
 
 // todo: handle generated columns!
 func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 	if record.ColumnDefault != "" {
-		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
+		if record.GeneratedType == "s" {
+			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) STORED", record.ColumnDefault))
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
 		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
 			pieces[1] = "BIGSERIAL"
