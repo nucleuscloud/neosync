@@ -1,5 +1,6 @@
 import {
   GenerateEmailType,
+  InvalidEmailAction,
   SupportedJobType,
   TransformerDataType,
   TransformerSource,
@@ -121,5 +122,30 @@ export function generateEmailTypeStringToEnum(
       return GenerateEmailType.FULLNAME;
     default:
       return GenerateEmailType.UUID_V4;
+  }
+}
+
+export function getInvalidEmailActionString(
+  invalidEmailAction: InvalidEmailAction
+): string {
+  const value = InvalidEmailAction[invalidEmailAction];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+// This expects the fully qualified proto email that looks like this: INVALID_EMAIL_ACTION_REJECT
+// This is because the form deals with the TransformConfig that is jsonified and contains the wired value instead of the int value.
+// There seems to be no easy way to convert between the two
+export function invalidEmailActionStringToEnum(
+  invalidEmailAction: string
+): InvalidEmailAction {
+  switch (invalidEmailAction) {
+    case 'INVALID_EMAIL_ACTION_PASSTHROUGH':
+      return InvalidEmailAction.PASSTHROUGH;
+    case 'INVALID_EMAIL_ACTION_GENERATE':
+      return InvalidEmailAction.GENERATE;
+    case 'INVALID_EMAIL_ACTION_NULL':
+      return InvalidEmailAction.NULL;
+    default:
+      return InvalidEmailAction.REJECT;
   }
 }

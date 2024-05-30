@@ -19,8 +19,14 @@ import { Switch } from '@/components/ui/switch';
 import {
   generateEmailTypeStringToEnum,
   getGenerateEmailTypeString,
+  getInvalidEmailActionString,
+  invalidEmailActionStringToEnum,
 } from '@/util/util';
-import { GenerateEmailType, TransformEmail } from '@neosync/sdk';
+import {
+  GenerateEmailType,
+  InvalidEmailAction,
+  TransformEmail,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
@@ -155,6 +161,58 @@ export default function UserDefinedTransformEmailForm(
                         value={emailType.toString()}
                       >
                         {getGenerateEmailTypeString(emailType)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
+      />
+      <FormField
+        name={`config.value.invalidEmailAction`}
+        control={fc.control}
+        render={({ field }) => {
+          return (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Email Type</FormLabel>
+                <FormDescription>
+                  Configure the invalid email action that will be run in the
+                  event the system encounters an email that does not conform to
+                  RFC 5322.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Select
+                  disabled={isDisabled}
+                  onValueChange={(value) => {
+                    // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
+                    const emailConfig = new TransformEmail({
+                      invalidEmailAction: parseInt(value, 10),
+                    }).toJson();
+                    field.onChange((emailConfig as any).invalidEmailAction); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  }}
+                  value={invalidEmailActionStringToEnum(field.value).toString()}
+                >
+                  <SelectTrigger className="w-[300px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      InvalidEmailAction.GENERATE,
+                      InvalidEmailAction.NULL,
+                      InvalidEmailAction.PASSTHROUGH,
+                      InvalidEmailAction.REJECT,
+                    ].map((action) => (
+                      <SelectItem
+                        key={action}
+                        className="cursor-pointer"
+                        value={action.toString()}
+                      >
+                        {getInvalidEmailActionString(action)}
                       </SelectItem>
                     ))}
                   </SelectContent>

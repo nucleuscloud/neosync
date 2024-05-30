@@ -71,6 +71,7 @@ const transformEmailConfig = Yup.object().shape({
     .optional()
     .default([]),
   emailType: Yup.string().default('GENERATE_EMAIL_TYPE_UUID_V4'),
+  invalidEmailAction: Yup.string().default('INVALID_EMAIL_ACTION_REJECT'),
 });
 
 const generateEmailConfig = Yup.object().shape({
