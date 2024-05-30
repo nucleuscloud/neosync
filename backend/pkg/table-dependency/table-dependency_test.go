@@ -91,7 +91,7 @@ func Test_FindCircularDependencies(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := findCircularDependencies(tt.dependencies)
+			actual := FindCircularDependencies(tt.dependencies)
 
 			for i := range actual {
 				sort.Strings(actual[i])
@@ -192,7 +192,7 @@ func Test_determineCycleStart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cycles := [][]string{tt.cycle}
-			actual, err := determineCycleStarts(cycles, tt.subsets, tt.dependencyMap)
+			actual, err := DetermineCycleStarts(cycles, tt.subsets, tt.dependencyMap)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {
@@ -318,7 +318,7 @@ func Test_determineMultiCycleStart(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := determineCycleStarts(tt.cycles, tt.subsets, tt.dependencyMap)
+			actual, err := DetermineCycleStarts(tt.cycles, tt.subsets, tt.dependencyMap)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {

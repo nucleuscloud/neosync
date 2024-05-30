@@ -4540,3 +4540,189 @@ export class SetJobSyncOptionsResponse extends Message<SetJobSyncOptionsResponse
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.ValidateJobMappingsRequest
+ */
+export class ValidateJobMappingsRequest extends Message<ValidateJobMappingsRequest> {
+  /**
+   * The unique account identifier that this job will be associated with
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 2;
+   */
+  mappings: JobMapping[] = [];
+
+  /**
+   * @generated from field: string connection_id = 3;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<ValidateJobMappingsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateJobMappingsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateJobMappingsRequest {
+    return new ValidateJobMappingsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateJobMappingsRequest {
+    return new ValidateJobMappingsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateJobMappingsRequest {
+    return new ValidateJobMappingsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateJobMappingsRequest | PlainMessage<ValidateJobMappingsRequest> | undefined, b: ValidateJobMappingsRequest | PlainMessage<ValidateJobMappingsRequest> | undefined): boolean {
+    return proto3.util.equals(ValidateJobMappingsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ColumnError
+ */
+export class ColumnError extends Message<ColumnError> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  /**
+   * @generated from field: string column = 3;
+   */
+  column = "";
+
+  /**
+   * @generated from field: repeated string errors = 4;
+   */
+  errors: string[] = [];
+
+  constructor(data?: PartialMessage<ColumnError>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ColumnError";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "errors", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ColumnError {
+    return new ColumnError().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ColumnError {
+    return new ColumnError().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ColumnError {
+    return new ColumnError().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ColumnError | PlainMessage<ColumnError> | undefined, b: ColumnError | PlainMessage<ColumnError> | undefined): boolean {
+    return proto3.util.equals(ColumnError, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.DatabaseError
+ */
+export class DatabaseError extends Message<DatabaseError> {
+  /**
+   * @generated from field: repeated string errors = 1;
+   */
+  errors: string[] = [];
+
+  constructor(data?: PartialMessage<DatabaseError>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DatabaseError";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "errors", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseError {
+    return new DatabaseError().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DatabaseError {
+    return new DatabaseError().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DatabaseError {
+    return new DatabaseError().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DatabaseError | PlainMessage<DatabaseError> | undefined, b: DatabaseError | PlainMessage<DatabaseError> | undefined): boolean {
+    return proto3.util.equals(DatabaseError, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ValidateJobMappingsResponse
+ */
+export class ValidateJobMappingsResponse extends Message<ValidateJobMappingsResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.ColumnError column_errors = 1;
+   */
+  columnErrors: ColumnError[] = [];
+
+  /**
+   * @generated from field: mgmt.v1alpha1.DatabaseError database_errors = 2;
+   */
+  databaseErrors?: DatabaseError;
+
+  constructor(data?: PartialMessage<ValidateJobMappingsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateJobMappingsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "column_errors", kind: "message", T: ColumnError, repeated: true },
+    { no: 2, name: "database_errors", kind: "message", T: DatabaseError },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateJobMappingsResponse {
+    return new ValidateJobMappingsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateJobMappingsResponse {
+    return new ValidateJobMappingsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateJobMappingsResponse {
+    return new ValidateJobMappingsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateJobMappingsResponse | PlainMessage<ValidateJobMappingsResponse> | undefined, b: ValidateJobMappingsResponse | PlainMessage<ValidateJobMappingsResponse> | undefined): boolean {
+    return proto3.util.equals(ValidateJobMappingsResponse, a, b);
+  }
+}
+

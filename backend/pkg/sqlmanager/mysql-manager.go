@@ -54,7 +54,7 @@ func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[s
 	if err != nil {
 		return nil, err
 	}
-	result := getUniqueSchemaColMappings(dbSchemas)
+	result := GetUniqueSchemaColMappings(dbSchemas)
 	return result, nil
 }
 

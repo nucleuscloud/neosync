@@ -2885,7 +2885,7 @@
           "fields": [
             {
               "name": "column",
-              "description": "",
+              "description": "@deprecated - use columns",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -2897,7 +2897,7 @@
             },
             {
               "name": "is_nullable",
-              "description": "",
+              "description": "@deprecated - use not_nullable",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -2914,6 +2914,30 @@
               "type": "ForeignKey",
               "longType": "ForeignKey",
               "fullType": "mgmt.v1alpha1.ForeignKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "not_nullable",
+              "description": "",
+              "label": "repeated",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2969,8 +2993,20 @@
             },
             {
               "name": "column",
-              "description": "",
+              "description": "@deprecated - use columns",
               "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
               "type": "string",
               "longType": "string",
               "fullType": "string",
@@ -3582,6 +3618,186 @@
           ]
         },
         {
+          "name": "GetConnectionTableConstraintsRequest",
+          "longName": "GetConnectionTableConstraintsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionTableConstraintsResponse",
+          "longName": "GetConnectionTableConstraintsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "foreign_key_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and the list of tables that it depends on, also `\u003cschema\u003e.\u003ctable\u003e` format.",
+              "label": "repeated",
+              "type": "ForeignKeyConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "primary_key_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the primary constraint",
+              "label": "repeated",
+              "type": "PrimaryKeyConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "unique_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique constraint",
+              "label": "repeated",
+              "type": "UniqueConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ForeignKeyConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "ForeignConstraintTables",
+              "longType": "ForeignConstraintTables",
+              "fullType": "mgmt.v1alpha1.ForeignConstraintTables",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "PrimaryKeyConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "PrimaryConstraint",
+              "longType": "PrimaryConstraint",
+              "fullType": "mgmt.v1alpha1.PrimaryConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "UniqueConstraints",
+              "longType": "UniqueConstraints",
+              "fullType": "mgmt.v1alpha1.UniqueConstraints",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionUniqueConstraintsRequest",
           "longName": "GetConnectionUniqueConstraintsRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
@@ -3804,6 +4020,30 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "UniqueConstraints",
+          "longName": "UniqueConstraints",
+          "fullName": "mgmt.v1alpha1.UniqueConstraints",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "constraints",
+              "description": "",
+              "label": "repeated",
+              "type": "UniqueConstraint",
+              "longType": "UniqueConstraint",
+              "fullType": "mgmt.v1alpha1.UniqueConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -3835,6 +4075,18 @@
               "responseType": "GetConnectionSchemaResponse",
               "responseLongType": "GetConnectionSchemaResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionTableConstraints",
+              "description": "For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.",
+              "requestType": "GetConnectionTableConstraintsRequest",
+              "requestLongType": "GetConnectionTableConstraintsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionTableConstraintsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionTableConstraintsResponse",
+              "responseLongType": "GetConnectionTableConstraintsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse",
               "responseStreaming": false
             },
             {
@@ -7123,6 +7375,66 @@
           "fields": []
         },
         {
+          "name": "ColumnError",
+          "longName": "ColumnError",
+          "fullName": "mgmt.v1alpha1.ColumnError",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "CreateJobDestination",
           "longName": "CreateJobDestination",
           "fullName": "mgmt.v1alpha1.CreateJobDestination",
@@ -7396,6 +7708,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "DatabaseError",
+          "longName": "DatabaseError",
+          "fullName": "mgmt.v1alpha1.DatabaseError",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "DeleteJobDestinationConnectionRequest",
@@ -10322,6 +10658,90 @@
           ]
         },
         {
+          "name": "ValidateJobMappingsRequest",
+          "longName": "ValidateJobMappingsRequest",
+          "fullName": "mgmt.v1alpha1.ValidateJobMappingsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique account identifier that this job will be associated with",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "mappings",
+              "description": "",
+              "label": "repeated",
+              "type": "JobMapping",
+              "longType": "JobMapping",
+              "fullType": "mgmt.v1alpha1.JobMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateJobMappingsResponse",
+          "longName": "ValidateJobMappingsResponse",
+          "fullName": "mgmt.v1alpha1.ValidateJobMappingsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column_errors",
+              "description": "",
+              "label": "repeated",
+              "type": "ColumnError",
+              "longType": "ColumnError",
+              "fullType": "mgmt.v1alpha1.ColumnError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "database_errors",
+              "description": "",
+              "label": "",
+              "type": "DatabaseError",
+              "longType": "DatabaseError",
+              "fullType": "mgmt.v1alpha1.DatabaseError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "WorkflowOptions",
           "longName": "WorkflowOptions",
           "fullName": "mgmt.v1alpha1.WorkflowOptions",
@@ -10663,6 +11083,18 @@
               "responseType": "SetJobSyncOptionsResponse",
               "responseLongType": "SetJobSyncOptionsResponse",
               "responseFullType": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ValidateJobMappings",
+              "description": "validates that the jobmapping configured can run with table constraints",
+              "requestType": "ValidateJobMappingsRequest",
+              "requestLongType": "ValidateJobMappingsRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateJobMappingsRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateJobMappingsResponse",
+              "responseLongType": "ValidateJobMappingsResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateJobMappingsResponse",
               "responseStreaming": false
             }
           ]

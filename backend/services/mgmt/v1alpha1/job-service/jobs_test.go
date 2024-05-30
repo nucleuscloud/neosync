@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,11 +17,12 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -45,8 +47,8 @@ func Test_GetJobs_UnauthorizedUser(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 func Test_GetJobs(t *testing.T) {
@@ -75,13 +77,13 @@ func Test_GetJobs(t *testing.T) {
 
 	job1Id := nucleusdb.UUIDString(job1.ID)
 	job2Id := nucleusdb.UUIDString(job2.ID)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 2, len(resp.Msg.GetJobs()))
-	assert.NotNil(t, jobActualMap[job1Id])
-	assert.NotNil(t, jobActualMap[job2Id])
-	assert.Equal(t, nucleusdb.UUIDString(destConn1.ID), jobActualMap[job1Id].Destinations[0].ConnectionId)
-	assert.Equal(t, nucleusdb.UUIDString(destConn2.ID), jobActualMap[job2Id].Destinations[0].ConnectionId)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 2, len(resp.Msg.GetJobs()))
+	require.NotNil(t, jobActualMap[job1Id])
+	require.NotNil(t, jobActualMap[job2Id])
+	require.Equal(t, nucleusdb.UUIDString(destConn1.ID), jobActualMap[job1Id].Destinations[0].ConnectionId)
+	require.Equal(t, nucleusdb.UUIDString(destConn2.ID), jobActualMap[job2Id].Destinations[0].ConnectionId)
 }
 
 func Test_GetJobs_MissingDestinations(t *testing.T) {
@@ -98,10 +100,10 @@ func Test_GetJobs_MissingDestinations(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 1, len(resp.Msg.GetJobs()))
-	assert.Empty(t, resp.Msg.Jobs[0].Destinations)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 1, len(resp.Msg.GetJobs()))
+	require.Empty(t, resp.Msg.Jobs[0].Destinations)
 }
 
 // GetJob
@@ -122,9 +124,9 @@ func Test_GetJob(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
 }
 
 func Test_GetJob_Supports_WorkerApiKeys(t *testing.T) {
@@ -147,9 +149,9 @@ func Test_GetJob_Supports_WorkerApiKeys(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
 }
 
 func Test_GetJob_MissingDestinations(t *testing.T) {
@@ -167,9 +169,9 @@ func Test_GetJob_MissingDestinations(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Empty(t, resp.Msg.Job.Destinations)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Empty(t, resp.Msg.Job.Destinations)
 }
 
 func Test_GetJob_UnauthorizedUser(t *testing.T) {
@@ -187,8 +189,8 @@ func Test_GetJob_UnauthorizedUser(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 func Test_GetJob_NotFound(t *testing.T) {
@@ -204,8 +206,8 @@ func Test_GetJob_NotFound(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 // GetJobStatus
@@ -236,9 +238,9 @@ func Test_GetJobStatus_Paused(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, mgmtv1alpha1.JobStatus(3), resp.Msg.Status)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, mgmtv1alpha1.JobStatus(3), resp.Msg.Status)
 }
 
 func Test_GetJobStatus_Enabled(t *testing.T) {
@@ -268,9 +270,9 @@ func Test_GetJobStatus_Enabled(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Status)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Status)
 }
 
 // GetJobStatuses
@@ -301,10 +303,10 @@ func Test_GetJobStatuses(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 1, len(resp.Msg.Statuses))
-	assert.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Statuses[0].Status)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 1, len(resp.Msg.Statuses))
+	require.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Statuses[0].Status)
 }
 
 var (
@@ -471,8 +473,8 @@ func Test_CreateJob(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 // CreateJob
@@ -619,10 +621,10 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.ErrorContains(t, err, "unable to create scheduled job")
-	assert.ErrorContains(t, err, "test: unable to create temporal schedule")
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "unable to create scheduled job")
+	require.ErrorContains(t, err, "test: unable to create temporal schedule")
+	require.Nil(t, resp)
 }
 
 // CreateJob
@@ -769,11 +771,11 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.ErrorContains(t, err, "unable to create scheduled job")
-	assert.ErrorContains(t, err, "test: unable to create temporal schedule")
-	assert.ErrorContains(t, err, "test: unable to remove job")
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "unable to create scheduled job")
+	require.ErrorContains(t, err, "test: unable to create temporal schedule")
+	require.ErrorContains(t, err, "test: unable to remove job")
+	require.Nil(t, resp)
 }
 
 // CreateJobDestinationConnections
@@ -834,9 +836,9 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
 }
 
 func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
@@ -879,8 +881,8 @@ func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 	})
 
 	m.QuerierMock.AssertNotCalled(t, "CreateJobConnectionDestinations", mock.Anything, mock.Anything, mock.Anything)
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 // UpdateJobSchedule
@@ -916,9 +918,9 @@ func Test_UpdateJobSchedule(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
 }
 
 // PauseJob
@@ -943,8 +945,8 @@ func Test_PauseJob_Pause(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func Test_PauseJob_UnPause(t *testing.T) {
@@ -968,8 +970,8 @@ func Test_PauseJob_UnPause(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 // UpdateJobSourceConnection
@@ -1053,8 +1055,8 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
@@ -1134,8 +1136,8 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
@@ -1191,7 +1193,7 @@ func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
 }
@@ -1249,7 +1251,7 @@ func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
 }
@@ -1307,7 +1309,7 @@ func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
 	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
 }
@@ -1342,8 +1344,8 @@ func Test_SetJobSourceSqlConnectionSubsets_Invalid_Connection_No_ConnectionId(t 
 	})
 
 	m.QuerierMock.AssertNotCalled(t, "SetSqlSourceSubsets", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 // UpdateJobDestinationConnection
@@ -1399,9 +1401,9 @@ func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
 	})
 
 	m.QuerierMock.AssertNotCalled(t, "CreateJobConnectionDestination", mock.Anything, mock.Anything, mock.Anything)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, jobId, resp.Msg.Job.Id)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, jobId, resp.Msg.Job.Id)
 }
 
 func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
@@ -1456,9 +1458,9 @@ func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, jobId, resp.Msg.Job.Id)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, jobId, resp.Msg.Job.Id)
 }
 
 func Test_DeleteJobDestinationConnection(t *testing.T) {
@@ -1482,8 +1484,8 @@ func Test_DeleteJobDestinationConnection(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func Test_DeleteJobDestinationConnection_NotFound(t *testing.T) {
@@ -1501,8 +1503,8 @@ func Test_DeleteJobDestinationConnection_NotFound(t *testing.T) {
 	})
 
 	m.QuerierMock.AssertNotCalled(t, "RemoveJobConnectionDestination", mock.Anything, mock.Anything, mock.Anything)
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 // IsJobNameAvailable
@@ -1525,9 +1527,9 @@ func Test_IsJobNameAvailable_Available(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.True(t, resp.Msg.IsAvailable)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.True(t, resp.Msg.IsAvailable)
 }
 
 func Test_IsJobNameAvailable_NotAvailable(t *testing.T) {
@@ -1549,9 +1551,9 @@ func Test_IsJobNameAvailable_NotAvailable(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.False(t, resp.Msg.IsAvailable)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.False(t, resp.Msg.IsAvailable)
 }
 
 type serviceMocks struct {
@@ -1561,6 +1563,8 @@ type serviceMocks struct {
 	UserAccountServiceMock      *mgmtv1alpha1connect.MockUserAccountServiceClient
 	ConnectionServiceClientMock *mgmtv1alpha1connect.MockConnectionServiceClient
 	TemporalWfManagerMock       *clientmanager.MockTemporalClientManagerClient
+	SqlManagerMock              *sql_manager.MockSqlManagerClient
+	SqlDbMock                   *sql_manager.MockSqlDatabase
 }
 
 func createServiceMock(t *testing.T, config *Config) *serviceMocks {
@@ -1569,8 +1573,10 @@ func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTemporalWfManager := clientmanager.NewMockTemporalClientManagerClient(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockTemporalWfManager, mockConnectionService, mockUserAccountService)
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockTemporalWfManager, mockConnectionService, mockUserAccountService, mockSqlManager)
 
 	return &serviceMocks{
 		Service:                     service,
@@ -1579,6 +1585,8 @@ func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 		UserAccountServiceMock:      mockUserAccountService,
 		ConnectionServiceClientMock: mockConnectionService,
 		TemporalWfManagerMock:       mockTemporalWfManager,
+		SqlManagerMock:              mockSqlManager,
+		SqlDbMock:                   mockSqlDb,
 	}
 }
 
@@ -1722,8 +1730,8 @@ func Test_SetJobWorkflowOptions(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 // SetJobSyncOptions
@@ -1764,14 +1772,193 @@ func Test_SetJobSyncOptions(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func Test_getDurationFromInt(t *testing.T) {
-	assert.Equal(t, getDurationFromInt(nil), time.Duration(0))
-	assert.Equal(t, getDurationFromInt(ptr(int64(0))), time.Duration(0))
-	assert.Equal(t, getDurationFromInt(ptr(int64(1))), time.Duration(1))
+	require.Equal(t, getDurationFromInt(nil), time.Duration(0))
+	require.Equal(t, getDurationFromInt(ptr(int64(0))), time.Duration(0))
+	require.Equal(t, getDurationFromInt(ptr(int64(1))), time.Duration(1))
+}
+
+// ValidateJobMappings
+func Test_ValidateJobMappings_NoValidationErrors(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	conn := getConnectionMock(mockAccountId, "test-4")
+	connId := nucleusdb.UUIDString(conn.ID)
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: connId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+
+	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sql_manager.PostgresDriver}, nil)
+	m.SqlDbMock.On("Close").Return(nil)
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
+		"public.users":   {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{IsNullable: true}},
+		"public.orders":  {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{IsNullable: true}},
+		"circle.table_1": {"id": &sql_manager.ColumnInfo{}, "table2_id": &sql_manager.ColumnInfo{IsNullable: true}},
+		"circle.table_2": {"id": &sql_manager.ColumnInfo{}, "table1_id": &sql_manager.ColumnInfo{}},
+	}, nil)
+	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
+			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
+			"public.orders": {"id"}},
+	}, nil)
+
+	resp, err := m.Service.ValidateJobMappings(context.Background(), &connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest]{
+		Msg: &mgmtv1alpha1.ValidateJobMappingsRequest{
+			AccountId:    mockAccountId,
+			ConnectionId: connId,
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "public", Table: "orders", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_1", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_1", Column: "table2_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_2", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_2", Column: "table1_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Empty(t, resp.Msg.DatabaseErrors.Errors)
+	require.Empty(t, resp.Msg.ColumnErrors)
+}
+
+func Test_ValidateJobMappings_ValidationErrors(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	conn := getConnectionMock(mockAccountId, "test-4")
+	connId := nucleusdb.UUIDString(conn.ID)
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: connId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+
+	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sql_manager.PostgresDriver}, nil)
+	m.SqlDbMock.On("Close").Return(nil)
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
+		"public.users":   {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
+		"public.orders":  {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
+		"circle.table_1": {"id": &sql_manager.ColumnInfo{}, "table2_id": &sql_manager.ColumnInfo{}},
+		"circle.table_2": {"id": &sql_manager.ColumnInfo{}, "table1_id": &sql_manager.ColumnInfo{}},
+	}, nil)
+	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sql_manager.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
+			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
+			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
+		},
+		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
+			"public.orders": {"id"}},
+	}, nil)
+
+	resp, err := m.Service.ValidateJobMappings(context.Background(), &connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest]{
+		Msg: &mgmtv1alpha1.ValidateJobMappingsRequest{
+			AccountId:    mockAccountId,
+			ConnectionId: connId,
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "public", Table: "orders", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "account", Table: "accounts", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_1", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_1", Column: "table2_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_2", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "circle", Table: "table_2", Column: "table1_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	expectedTableError := "Table does not exist [account.accounts]"
+	expectedCdError := "Unsupported circular dependency. At least one foreign key in circular dependency must be nullable."
+
+	expectedColErros := []*mgmtv1alpha1.ColumnError{
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "id",
+			Errors: []string{
+				"Missing required foreign key. Table: public.users  Column: id",
+			},
+		},
+		{
+			Schema: "public",
+			Table:  "orders",
+			Column: "buyer_id",
+			Errors: []string{
+				"Violates not-null constraint. Missing required column. Table: public.orders  Column: buyer_id",
+			},
+		},
+	}
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.ElementsMatch(t, expectedColErros, resp.Msg.ColumnErrors)
+	require.Len(t, resp.Msg.DatabaseErrors.Errors, 2)
+	require.Contains(t, resp.Msg.DatabaseErrors.Errors, expectedTableError)
+	for _, actualErr := range resp.Msg.DatabaseErrors.Errors {
+		if strings.Contains(actualErr, "Unsupported circular dependency") {
+			require.Contains(t, actualErr, expectedCdError)
+		}
+	}
 }
 
 func ptr[T any](val T) *T {

@@ -90,7 +90,7 @@ func GetRunConfigs(
 	}
 
 	// create configs for tables in circular dependencies
-	circularDeps := findCircularDependencies(filteredDepsMap)
+	circularDeps := FindCircularDependencies(filteredDepsMap)
 	groupedCycles := groupDependencies(circularDeps)
 	for _, group := range groupedCycles {
 		if len(group) == 0 {
@@ -128,7 +128,7 @@ func processCycles(
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
 	// determine start table
-	startTables, err := determineCycleStarts(cycles, subsets, dependencyMap)
+	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 	return false
 }
 
-func determineCycleStarts(
+func DetermineCycleStarts(
 	cycles [][]string,
 	subsets map[string]string,
 	dependencyMap map[string][]*sql_manager.ForeignConstraint,
@@ -378,7 +378,7 @@ func getTableCirularDependencies(table string, circularDeps [][]string) [][]stri
 	return cycles
 }
 
-func findCircularDependencies(dependencies map[string][]string) [][]string {
+func FindCircularDependencies(dependencies map[string][]string) [][]string {
 	var result [][]string
 
 	for node := range dependencies {
@@ -462,7 +462,7 @@ func cycleOrder(cycle []string) []string {
 }
 
 func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
-	cycles := findCircularDependencies(dependencyMap)
+	cycles := FindCircularDependencies(dependencyMap)
 	multiTableCycles := [][]string{}
 	for _, c := range cycles {
 		if len(c) > 1 {

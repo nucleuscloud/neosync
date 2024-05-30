@@ -7,7 +7,7 @@ import (
 )
 
 func Test_getUniqueSchemaColMappings(t *testing.T) {
-	mappings := getUniqueSchemaColMappings(
+	mappings := GetUniqueSchemaColMappings(
 		[]*DatabaseSchemaRow{
 			{TableSchema: "public", TableName: "users", ColumnName: "id"},
 			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},

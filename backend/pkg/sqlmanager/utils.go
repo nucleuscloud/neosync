@@ -2,7 +2,7 @@ package sqlmanager
 
 import "fmt"
 
-func getUniqueSchemaColMappings(
+func GetUniqueSchemaColMappings(
 	schemas []*DatabaseSchemaRow,
 ) map[string]map[string]*ColumnInfo {
 	groupedSchemas := map[string]map[string]*ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
