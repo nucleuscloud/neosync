@@ -10,7 +10,8 @@
     "typecheck": "turbo run typecheck",
     "docker": "turbo prune @neosync/app --docker",
     "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "knip": "knip"
   },
   "devDependencies": {
     "knip": "^5.16.0",

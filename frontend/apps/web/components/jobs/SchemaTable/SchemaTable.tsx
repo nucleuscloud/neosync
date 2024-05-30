@@ -128,7 +128,7 @@ function getDualListBoxOptions(
   return Array.from(tables).map((table): Option => ({ value: table }));
 }
 
-export function extractAllFormErrors(
+function extractAllFormErrors(
   errors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
   values: JobMappingFormValues[],
   path = ''
