@@ -90,7 +90,9 @@
     "foreignkey",
     "fkref",
     "circref",
-    "subsetimg"
+    "subsetimg",
+    "FERPA",
+    "ferpa"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],

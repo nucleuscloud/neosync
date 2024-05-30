@@ -52,8 +52,8 @@ Companies use Neosync to:
 
 1. **Safely test code against production data** - Anonymize sensitive production data in order to safely use it locally for a better testing and developer experience
 2. **Easily reproduce production bugs locally** - Anonymize and subset production data to get a safe, representative data set that you can use to locally reproduce production bugs quickly and efficiently
-3. **Fix broken staging environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
-4. **Reduce your compliance scope** - Use anonymized and synthetic data to reduce your compliance scope and easily comply with laws like HIPAA, GDPR, and DPDP
+3. **High quality data for lower-level environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
+4. **Solve GDPR, DPDP, FERPA, HIPAA and more** - Use anonymized and synthetic data to reduce your compliance scope and easily comply with laws like HIPAA, GDPR, and DPDP
 5. **Seed development databases** - Easily seed development databases with synthetic data for unit testing, demos and more
 
 ## Features
