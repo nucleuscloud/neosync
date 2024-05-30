@@ -51,6 +51,9 @@ export default function SubsetCard(props: Props): ReactElement {
   } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
+  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
+    useGetConnectionTableConstraints(account?.id ?? '', sourceConnectionId);
+
   const dbType =
     data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
 
