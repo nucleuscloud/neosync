@@ -18,6 +18,7 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
@@ -110,6 +111,26 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
+  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
+    useGetConnectionTableConstraints(
+      account?.id ?? '',
+      schemaFormValues.connectionId ?? ''
+    );
+
+  const fkConstraints = tableConstraints?.foreignKeyConstraints;
+  const [rootTables, setRootTables] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!isTableConstraintsValidating && fkConstraints) {
+      schemaFormValues.mappings.forEach((m) => {
+        const tn = `${m.schema}.${m.table}`;
+        if (!fkConstraints[tn]) {
+          rootTables.add(tn);
+          setRootTables(rootTables);
+        }
+      });
+    }
+  }, [fkConstraints, isTableConstraintsValidating]);
+
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
     defaultValues: subsetFormValues,
@@ -200,6 +221,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const tableRowData = buildTableRowData(
     schemaFormValues.mappings,
+    rootTables,
     form.watch().subsets
   );
 

@@ -1,6 +1,7 @@
 'use client';
 
 import ColumnHeader from '@/components/DualListBox/ColumnHeader';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -17,6 +18,7 @@ export interface TableRow {
   schema: string;
   table: string;
   where?: string;
+  isRootTable?: boolean;
 }
 
 interface GetColumnsProps {
@@ -61,6 +63,19 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       ),
     },
     {
+      accessorKey: 'isRootTable',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Badges" />
+      ),
+      cell: ({ getValue }) => {
+        return (
+          <div className="flex space-x-2">
+            {getValue<boolean>() && <Badge>Root</Badge>}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'where',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Where" />
@@ -68,7 +83,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <span className="truncate font-medium">{getValue<string>()}</span>
+            <span className="truncate font-medium">{getValue<boolean>()}</span>
           </div>
         );
       },
