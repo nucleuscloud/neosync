@@ -220,6 +220,16 @@ const sidebars: SidebarsConfig = {
       label: 'Troubleshooting',
     },
     {
+      type: 'doc',
+      id: 'guides/postgres-bastion-host',
+      label: 'Connect Postgres via Bastion Host',
+    },
+    {
+      type: 'doc',
+      id: 'guides/neosync-data-source-access',
+      label: 'Allow Neosync to Access Data Sources',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

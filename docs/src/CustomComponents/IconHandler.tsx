@@ -148,6 +148,8 @@ export function IconHandler(name: string): ReactElement {
       return <AiOutlineSolution />;
     case 'Core Features':
       return <MdCenterFocusStrong />;
+    case 'Connect Postgres via Bastion Host':
+      return <BiLogoPostgresql />;
     default:
       return <LayersIcon />;
   }
