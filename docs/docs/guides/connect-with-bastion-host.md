@@ -4,6 +4,7 @@ description: Learn how to connect your private postgres database to Neosync via 
 id: postgres-bastion-host
 hide_title: false
 slug: /guides/connect-private-postgres-via-bastion-host
+# cSpell:words Guimove,imds
 ---
 
 ## Introduction
@@ -50,7 +51,7 @@ We'll need both of these at various points throughout the rest of this guide.
 There is a great terraform module available on the public registry [Guimove/bastion/aws](https://registry.terraform.io/modules/Guimove/bastion/aws/latest).
 This module is designed to create a secure SSH bastion on AWS, and it also comes with auditing and logging out of the gate!
 
-Here is an example of a minimal install, and is not dissimmilar from a setup we use internall at Neosync.
+Here is an example of a minimal install, and is not dissimilar from a setup we use internal at Neosync.
 
 The example below already contains the NeosyncCloud IP Addresses that can be used to isolate the Bastion Host to only be accessed via NeosyncCloud servers.
 This is generally very important for security and compliance as you don't want a bastion host accessible over the general internet.

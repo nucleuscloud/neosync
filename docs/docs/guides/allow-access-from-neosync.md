@@ -3,7 +3,7 @@ title: Allow Neosync to Access Data Sources
 description: Learn how to give Neosync Cloud access to your resources
 id: neosync-data-source-access
 hide_title: false
-slug: /guides/ip-allowlist-neosynccloud
+slug: /guides/ip-allowlist-neosync-cloud
 ---
 
 Neosync Cloud needs to access your data sources so that it can help you configure jobs as well as synchronize data.
