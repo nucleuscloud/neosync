@@ -41,7 +41,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
@@ -60,18 +60,14 @@ function getTransformerSource(sourceStr: string): TransformerSource {
 export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
-  const { data } = useGetSystemTransformers();
-  const transformers =
-    data?.transformers.sort((a, b) => a.name.localeCompare(b.name)) ?? [];
+  const { data, isLoading } = useGetSystemTransformers();
+  const transformers = data?.transformers ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
   const transformerSource = getTransformerSource(
     transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
   );
-  const [base, setBase] = useState<SystemTransformer>(
-    transformers.find((item) => item.source === transformerSource) ??
-      new SystemTransformer({})
-  );
+
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
@@ -117,6 +113,27 @@ export default function NewTransformer(): ReactElement {
     }
   }
 
+  const formSource = form.watch('source');
+
+  const base =
+    transformers.find((t) => t.source === formSource) ??
+    new SystemTransformer();
+
+  const configCase = form.watch('config.case');
+
+  useEffect(() => {
+    if (
+      isLoading ||
+      base.source === TransformerSource.UNSPECIFIED ||
+      configCase ||
+      !transformerQueryParam
+    ) {
+      return;
+    }
+
+    form.setValue('config', convertTransformerConfigToForm(base.config));
+  }, [isLoading, base.source, configCase, transformerQueryParam]);
+
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a New Transformer" />}
@@ -155,7 +172,6 @@ export default function NewTransformer(): ReactElement {
                                   'config',
                                   convertTransformerConfigToForm(t.config)
                                 );
-                                setBase(t ?? new SystemTransformer({}));
                                 setOpenBaseSelect(false);
                               }}
                               value={t.name}
@@ -180,7 +196,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {form.getValues('source') != 0 && (
+          {formSource != null && formSource !== 0 && (
             <div>
               <Controller
                 control={form.control}
@@ -233,7 +249,7 @@ export default function NewTransformer(): ReactElement {
           )}
           <div>
             <UserDefinedTransformerForm
-              value={form.getValues('source') ?? TransformerSource.UNSPECIFIED}
+              value={formSource ?? TransformerSource.UNSPECIFIED}
             />
           </div>
           <div className="flex flex-row justify-end">

@@ -50,7 +50,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      - name: Test
+      - name: Vet
         run: |
           go vet ./...
 
