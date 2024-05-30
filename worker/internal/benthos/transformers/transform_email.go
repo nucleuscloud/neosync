@@ -196,7 +196,6 @@ func transformEmail(
 			return &newEmail, nil
 		default: // Default or Reject
 			return nil, fmt.Errorf("input email was not a valid email address: %w", err)
-
 		}
 	}
 
