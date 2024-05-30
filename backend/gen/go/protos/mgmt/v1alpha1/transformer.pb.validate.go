@@ -4286,6 +4286,10 @@ func (m *TransformEmail) validate(all bool) error {
 		// no validation rules for EmailType
 	}
 
+	if m.InvalidEmailAction != nil {
+		// no validation rules for InvalidEmailAction
+	}
+
 	if len(errors) > 0 {
 		return TransformEmailMultiError(errors)
 	}
