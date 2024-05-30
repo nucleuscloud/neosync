@@ -178,7 +178,7 @@ export default function UserDefinedTransformEmailForm(
           return (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Email Type</FormLabel>
+                <FormLabel>Invalid Email Action</FormLabel>
                 <FormDescription>
                   Configure the invalid email action that will be run in the
                   event the system encounters an email that does not conform to
