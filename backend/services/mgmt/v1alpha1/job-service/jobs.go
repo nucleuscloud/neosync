@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
@@ -364,26 +367,9 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
-	var connectionIdToVerify *string
-	switch config := req.Msg.Source.Options.Config.(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		connectionIdToVerify = &config.Mysql.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		connectionIdToVerify = &config.Postgres.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
-		connectionIdToVerify = &config.AwsS3.ConnectionId
-	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		fkConnId := config.Generate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
-	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
-	default:
-		return nil, errors.New("unsupported source option config type")
+	connectionIdToVerify, err := getJobSourceConnectionId(req.Msg.GetSource())
+	if err != nil {
+		return nil, err
 	}
 	if connectionIdToVerify != nil {
 		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
@@ -1492,4 +1478,223 @@ func (s *Service) SetJobSyncOptions(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{Job: updatedJob.Msg.Job}), nil
+}
+
+func (s *Service) ValidateJobMappings(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.ValidateJobMappingsRequest],
+) (*connect.Response[mgmtv1alpha1.ValidateJobMappingsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("accountId", req.Msg.AccountId)
+
+	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil {
+		return nil, errors.New("unsupported connection config type")
+	}
+
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	colInfoMap, err := db.Db.GetSchemaColumnMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	schemasMap := map[string]struct{}{}
+	for tableName := range colInfoMap {
+		schema, _ := utils.SplitTableKey(tableName)
+		schemasMap[schema] = struct{}{}
+	}
+
+	schemas := []string{}
+	for s := range schemasMap {
+		schemas = append(schemas, s)
+	}
+
+	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
+	for _, m := range req.Msg.Mappings {
+		tn := fmt.Sprintf("%s.%s", m.Schema, m.Table)
+		if _, ok := tableColMappings[tn]; !ok {
+			tableColMappings[tn] = map[string]*mgmtv1alpha1.JobMapping{}
+		}
+		tableColMappings[tn][m.Column] = m
+	}
+
+	colErrorsMap := map[string]map[string][]string{}
+	dbErrors := &mgmtv1alpha1.DatabaseError{
+		Errors: []string{},
+	}
+
+	// verify job mapping tables
+	for table := range tableColMappings {
+		if _, ok := colInfoMap[table]; !ok {
+			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Table does not exist [%s]", table))
+		}
+	}
+
+	// verify that all circular dependencies have a nullable entrypoint
+	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
+	for table, fks := range tableConstraints.ForeignKeyConstraints {
+		colMappings, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for _, fk := range fks {
+			for idx, col := range fk.Columns {
+				_, ok := colMappings[col]
+				if !ok {
+					continue
+				}
+				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
+				if !ok {
+					continue
+				}
+				fkCol := fk.ForeignKey.Columns[idx]
+				_, ok = fkColMappings[fkCol]
+				if !ok {
+					continue
+				}
+				filteredDepsMap[table] = append(filteredDepsMap[table], fk.ForeignKey.Table)
+			}
+		}
+	}
+
+	for table, deps := range filteredDepsMap {
+		filteredDepsMap[table] = utils.DedupeSlice(deps)
+	}
+
+	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
+	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, tableConstraints.ForeignKeyConstraints)
+	if err != nil {
+		return nil, err
+	}
+
+	containsStart := func(t string) bool {
+		return slices.Contains(startTables, t)
+	}
+
+	for _, cycle := range cycles {
+		if !slices.ContainsFunc(cycle, containsStart) {
+			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Unsupported circular dependency. At least one foreign key in circular dependency must be nullable. Tables: %+v", cycle))
+		}
+	}
+
+	// verify that all non nullable foreign key constraints are not missing from mapping
+	for table, fks := range tableConstraints.ForeignKeyConstraints {
+		_, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for _, fk := range fks {
+			for idx, notNull := range fk.NotNullable {
+				if !notNull {
+					// skip. foreign key is nullable
+					continue
+				}
+				fkColMappings, ok := tableColMappings[fk.ForeignKey.Table]
+				fkCol := fk.ForeignKey.Columns[idx]
+				if !ok {
+					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
+					}
+					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+					continue
+				}
+				_, ok = fkColMappings[fkCol]
+				if !ok {
+					if _, ok := colErrorsMap[fk.ForeignKey.Table]; !ok {
+						colErrorsMap[fk.ForeignKey.Table] = map[string][]string{}
+					}
+					colErrorsMap[fk.ForeignKey.Table][fkCol] = append(colErrorsMap[fk.ForeignKey.Table][fkCol], fmt.Sprintf("Missing required foreign key. Table: %s  Column: %s", fk.ForeignKey.Table, fkCol))
+				}
+			}
+		}
+	}
+
+	// verify that no non nullable columns are missing for tables in mapping
+	for table, colMap := range colInfoMap {
+		cm, ok := tableColMappings[table]
+		if !ok {
+			// skip. table not in mapping
+			continue
+		}
+		for col, info := range colMap {
+			if info.IsNullable {
+				// skip. column is nullable
+				continue
+			}
+			if _, ok := cm[col]; !ok {
+				if _, ok := colErrorsMap[table]; !ok {
+					colErrorsMap[table] = map[string][]string{}
+				}
+				// add error
+				colErrorsMap[table][col] = append(colErrorsMap[table][col], fmt.Sprintf("Violates not-null constraint. Missing required column. Table: %s  Column: %s", table, col))
+			}
+		}
+	}
+
+	colErrors := []*mgmtv1alpha1.ColumnError{}
+	for tableName, colMap := range colErrorsMap {
+		for col, errors := range colMap {
+			schema, table := utils.SplitTableKey(tableName)
+			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
+				Schema: schema,
+				Table:  table,
+				Column: col,
+				Errors: errors,
+			})
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{
+		DatabaseErrors: dbErrors,
+		ColumnErrors:   colErrors,
+	}), nil
+}
+
+func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
+	var connectionIdToVerify *string
+	switch config := jobSource.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionIdToVerify = &config.Mysql.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionIdToVerify = &config.Postgres.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
+		connectionIdToVerify = &config.AwsS3.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		fkConnId := config.Generate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
+	default:
+		return nil, errors.New("unsupported source option config type")
+	}
+	return connectionIdToVerify, nil
 }

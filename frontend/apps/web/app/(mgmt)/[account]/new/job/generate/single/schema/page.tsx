@@ -5,7 +5,7 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
-  extractAllFormErrors,
+  getAllFormErrors,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -25,11 +25,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
-import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
+import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -50,6 +49,7 @@ import {
   JobSource,
   JobSourceOptions,
   RetryPolicy,
+  ValidateJobMappingsResponse,
   WorkflowOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -76,6 +76,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
+
+  const [validateMappingsResponse, setValidateMappingsResponse] = useState<
+    ValidateJobMappingsResponse | undefined
+  >();
+
+  const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -202,21 +208,30 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       });
     }
   }
+  const formMappings = form.watch('mappings');
 
-  const { data: primaryConstraints, isValidating: isPkValidating } =
-    useGetConnectionPrimaryConstraints(
-      account?.id ?? '',
-      connectFormValues.fkSourceConnectionId
-    );
+  async function validateMappings() {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        connectFormValues.fkSourceConnectionId,
+        formMappings,
+        account?.id || ''
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate job mappings:', error);
+      toast({
+        title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
 
-  const { data: foreignConstraints, isValidating: isFkValidating } =
-    useGetConnectionForeignConstraints(
-      account?.id ?? '',
-      connectFormValues.fkSourceConnectionId
-    );
-
-  const { data: uniqueConstraints, isValidating: isUCValidating } =
-    useGetConnectionUniqueConstraints(
+  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
+    useGetConnectionTableConstraints(
       account?.id ?? '',
       connectFormValues.fkSourceConnectionId
     );
@@ -225,11 +240,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     () =>
       getSchemaConstraintHandler(
         connectionSchemaDataMap?.schemaMap ?? {},
-        primaryConstraints?.tableConstraints ?? {},
-        foreignConstraints?.tableConstraints ?? {},
-        uniqueConstraints?.tableConstraints ?? {}
+        tableConstraints?.primaryKeyConstraints ?? {},
+        tableConstraints?.foreignKeyConstraints ?? {},
+        tableConstraints?.uniqueConstraints ?? {}
       ),
-    [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
+    [isSchemaMapValidating, isTableConstraintsValidating]
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
   const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
@@ -247,6 +262,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     remove,
     append
   );
+
+  useEffect(() => {
+    const validateJobMappings = async () => {
+      await validateMappings();
+    };
+    validateJobMappings();
+  }, [selectedTables]);
+
   useEffect(() => {
     if (isSchemaMapLoading || selectedTables.size > 0) {
       return;
@@ -258,8 +281,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )
     );
   }, [isSchemaMapLoading]);
-
-  const formMappings = form.watch('mappings');
 
   return (
     <div className="flex flex-col gap-5">
@@ -316,10 +337,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               jobType={'generate'}
               selectedTables={selectedTables}
               onSelectedTableToggle={onSelectedTableToggle}
-              formErrors={extractAllFormErrors(
+              formErrors={getAllFormErrors(
                 form.formState.errors,
-                formMappings
+                formMappings,
+                validateMappingsResponse
               )}
+              onValidate={validateMappings}
+              isJobMappingsValidating={isValidatingMappings}
             />
           )}
           {form.formState.errors.root && (

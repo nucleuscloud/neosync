@@ -584,6 +584,28 @@ message SetJobSyncOptionsResponse {
   Job job = 1;
 }
 
+message ValidateJobMappingsRequest {
+  // The unique account identifier that this job will be associated with
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  repeated JobMapping mappings = 2;
+  string connection_id = 3;
+}
+
+message ColumnError {
+  string schema = 1;
+  string table = 2;
+  string column = 3;
+  repeated string errors = 4;
+}
+
+message DatabaseError {
+  repeated string errors = 1;
+}
+message ValidateJobMappingsResponse {
+  repeated ColumnError column_errors = 1;
+  DatabaseError database_errors = 2;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -619,4 +641,6 @@ service JobService {
   rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
   // Set the job sync options. Must provide entire object as it will fully override the previous configuration
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
+  // validates that the jobmapping configured can run with table constraints
+  rpc ValidateJobMappings(ValidateJobMappingsRequest) returns (ValidateJobMappingsResponse) {}
 }

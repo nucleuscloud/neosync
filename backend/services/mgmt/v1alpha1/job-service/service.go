@@ -4,6 +4,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 )
 
 type Service struct {
@@ -11,6 +12,7 @@ type Service struct {
 	db                 *nucleusdb.NucleusDb
 	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
+	sqlmanager         sql_manager.SqlManagerClient
 
 	temporalWfManager clientmanager.TemporalClientManagerClient
 }
@@ -54,6 +56,7 @@ func New(
 	temporalWfManager clientmanager.TemporalClientManagerClient,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
+	sqlmanager sql_manager.SqlManagerClient,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
@@ -61,5 +64,6 @@ func New(
 		temporalWfManager:  temporalWfManager,
 		connectionService:  connectionService,
 		useraccountService: useraccountService,
+		sqlmanager:         sqlmanager,
 	}
 }

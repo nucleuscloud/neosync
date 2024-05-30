@@ -1,4 +1,6 @@
+import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,6 +13,7 @@ import {
   CheckCircledIcon,
   CheckIcon,
   ExclamationTriangleIcon,
+  ReloadIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
@@ -22,10 +25,12 @@ export interface FormError {
 
 interface Props {
   formErrors: FormError[];
+  isValidating?: boolean;
+  onValidate?(): void;
 }
 
 export default function FormErrorsCard(props: Props): ReactElement {
-  const { formErrors } = props;
+  const { formErrors, isValidating, onValidate } = props;
 
   const messages = formErrorsToMessages(formErrors);
   return (
@@ -38,6 +43,25 @@ export default function FormErrorsCard(props: Props): ReactElement {
             <CheckCircledIcon className="w-4 h-4" />
           )}
           <CardTitle>Validations</CardTitle>
+          <div>
+            {isValidating ? (
+              <Spinner />
+            ) : (
+              onValidate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  key="validate"
+                  type="button"
+                >
+                  <ReloadIcon
+                    className="h-4 w-4"
+                    onClick={() => onValidate()}
+                  />
+                </Button>
+              )
+            )}
+          </div>
 
           {messages.length != 0 && (
             <Badge variant="destructive">{messages.length} Errors</Badge>

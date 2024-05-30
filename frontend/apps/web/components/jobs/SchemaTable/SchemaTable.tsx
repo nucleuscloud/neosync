@@ -17,6 +17,7 @@ import {
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
+import { ValidateJobMappingsResponse } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
@@ -33,6 +34,9 @@ interface Props {
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
   onSelectedTableToggle(items: Set<string>, action: Action): void;
+  isJobMappingsValidating?: boolean;
+
+  onValidate?(): void;
 
   formErrors: FormError[];
 }
@@ -46,8 +50,9 @@ export function SchemaTable(props: Props): ReactElement {
     selectedTables,
     onSelectedTableToggle,
     formErrors,
+    isJobMappingsValidating,
+    onValidate,
   } = props;
-
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
@@ -97,7 +102,11 @@ export function SchemaTable(props: Props): ReactElement {
             />
           </CardContent>
         </Card>
-        <FormErrorsCard formErrors={formErrors} />
+        <FormErrorsCard
+          formErrors={formErrors}
+          isValidating={isJobMappingsValidating}
+          onValidate={onValidate}
+        />
       </div>
       <SchemaPageTable
         columns={columns}
@@ -119,7 +128,7 @@ function getDualListBoxOptions(
   return Array.from(tables).map((table): Option => ({ value: table }));
 }
 
-export function extractAllFormErrors(
+function extractAllFormErrors(
   errors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
   values: JobMappingFormValues[],
   path = ''
@@ -152,5 +161,35 @@ export function extractAllFormErrors(
       messages = messages.concat(extractAllFormErrors(error, values, newPath));
     }
   }
+  return messages;
+}
+
+export function getAllFormErrors(
+  formErrors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
+  values: JobMappingFormValues[],
+  validationErrors: ValidateJobMappingsResponse | undefined
+): FormError[] {
+  let messages: FormError[] = [];
+  const formErr = extractAllFormErrors(formErrors, values);
+  if (!validationErrors) {
+    return formErr;
+  }
+  const colErr = validationErrors.columnErrors.map((e) => {
+    return {
+      path: `${e.schema}.${e.table}.${e.column}`,
+      message: e.errors.join('. '),
+    };
+  });
+  const dbErr = validationErrors.databaseErrors?.errors.map((e) => {
+    return {
+      path: '',
+      message: e,
+    };
+  });
+  messages = messages.concat(colErr, formErr);
+  if (dbErr) {
+    messages = messages.concat(dbErr);
+  }
+
   return messages;
 }

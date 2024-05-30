@@ -6,7 +6,7 @@ import {
   ForeignKey,
   PrimaryConstraint,
   TransformerDataType,
-  UniqueConstraint,
+  UniqueConstraints,
 } from '@neosync/sdk';
 
 export type JobType = 'sync' | 'generate';
@@ -43,7 +43,7 @@ export function getSchemaConstraintHandler(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
-  uniqueConstraints: Record<string, UniqueConstraint>
+  uniqueConstraints: Record<string, UniqueConstraints>
 ): SchemaConstraintHandler {
   const colmap = buildColDetailsMap(
     schema,
@@ -190,7 +190,7 @@ function buildColDetailsMap(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
-  uniqueConstraints: Record<string, UniqueConstraint>
+  uniqueConstraints: Record<string, UniqueConstraints>
 ): Record<string, ColDetails> {
   const colmap: Record<string, ColDetails> = {};
   //<schema.table: dbCols>
@@ -200,13 +200,27 @@ function buildColDetailsMap(
     const foreignFkeys =
       foreignConstraints[key] ?? new ForeignConstraintTables();
     const tableUniqueConstraints =
-      uniqueConstraints[key] ?? new UniqueConstraint({});
-    const uniqueConstraintCols = new Set(tableUniqueConstraints.columns);
+      uniqueConstraints[key] ?? new UniqueConstraints({});
+    const uniqueConstraintCols = tableUniqueConstraints.constraints.reduce(
+      (prev, curr) => {
+        curr.columns.forEach((c) => prev.add(c));
+        return prev;
+      },
+      new Set()
+    );
     const fkConstraints = foreignFkeys.constraints;
     const fkconstraintsMap: Record<string, ForeignKey> = {};
     fkConstraints.forEach((constraint) => {
-      fkconstraintsMap[constraint.column] =
-        constraint.foreignKey ?? new ForeignKey();
+      constraint.columns.forEach((col, idx) => {
+        if (constraint.foreignKey) {
+          fkconstraintsMap[col] = new ForeignKey({
+            table: constraint.foreignKey?.table,
+            column: constraint.foreignKey?.columns[idx],
+          });
+        } else {
+          fkconstraintsMap[col] = new ForeignKey();
+        }
+      });
     });
 
     dbcols.forEach((dbcol) => {
