@@ -196,7 +196,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       });
     }
   }
-
+  const formMappings = form.watch('mappings');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -238,7 +238,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
-  const formMappings = form.watch('mappings');
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>

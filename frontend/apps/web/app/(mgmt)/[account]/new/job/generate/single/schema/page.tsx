@@ -208,6 +208,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       });
     }
   }
+  const formMappings = form.watch('mappings');
 
   async function validateMappings() {
     try {
@@ -280,8 +281,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )
     );
   }, [isSchemaMapLoading]);
-
-  const formMappings = form.watch('mappings');
 
   return (
     <div className="flex flex-col gap-5">

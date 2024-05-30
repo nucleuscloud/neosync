@@ -106,6 +106,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
+  const formMappings = form.watch('mappings');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -174,7 +175,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading, connectFormValues.sourceId]);
 
-  const formMappings = form.watch('mappings');
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
