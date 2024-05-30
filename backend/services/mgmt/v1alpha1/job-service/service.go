@@ -1,14 +1,9 @@
 package v1alpha1_jobservice
 
 import (
-	"sync"
-
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 )
 
@@ -61,14 +56,9 @@ func New(
 	temporalWfManager clientmanager.TemporalClientManagerClient,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
-	sqlConnector sqlconnect.SqlConnector,
-	pgquerier pg_queries.Querier,
-	mysqlquerier mysql_queries.Querier,
+	sqlmanager sql_manager.SqlManagerClient,
 ) *Service {
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
 
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
 	return &Service{
 		cfg:                cfg,
 		db:                 db,

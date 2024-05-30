@@ -10692,7 +10692,7 @@
               "defaultValue": ""
             },
             {
-              "name": "source_connection_id",
+              "name": "connection_id",
               "description": "",
               "label": "",
               "type": "string",

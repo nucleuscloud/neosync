@@ -12870,7 +12870,7 @@ func (m *ValidateJobMappingsRequest) validate(all bool) error {
 
 	}
 
-	// no validation rules for SourceConnectionId
+	// no validation rules for ConnectionId
 
 	if len(errors) > 0 {
 		return ValidateJobMappingsRequestMultiError(errors)

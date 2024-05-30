@@ -38,7 +38,7 @@ export async function validateJobMapping(
               }),
       });
     }),
-    sourceConnectionId: connectionId,
+    connectionId: connectionId,
   });
 
   const res = await fetch(`/api/accounts/${accountId}/jobs/validate-mappings`, {

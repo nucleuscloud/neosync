@@ -17,7 +17,6 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -1494,7 +1493,7 @@ func (s *Service) ValidateJobMappings(
 	}
 
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.SourceConnectionId,
+		Id: req.Msg.ConnectionId,
 	}))
 	if err != nil {
 		return nil, err
@@ -1511,22 +1510,21 @@ func (s *Service) ValidateJobMappings(
 	}
 	defer db.Db.Close()
 
-	dbschema, err := db.Db.GetDatabaseSchema(ctx)
+	colInfoMap, err := db.Db.GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	schemasMap := map[string]struct{}{}
-	for _, row := range dbschema {
-		schemasMap[row.TableSchema] = struct{}{}
+	for tableName := range colInfoMap {
+		schema, _ := utils.SplitTableKey(tableName)
+		schemasMap[schema] = struct{}{}
 	}
 
 	schemas := []string{}
 	for s := range schemasMap {
 		schemas = append(schemas, s)
 	}
-
-	colInfoMap := sql_manager.GetUniqueSchemaColMappings(dbschema)
 
 	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
@@ -1545,6 +1543,13 @@ func (s *Service) ValidateJobMappings(
 	colErrorsMap := map[string]map[string][]string{}
 	dbErrors := &mgmtv1alpha1.DatabaseError{
 		Errors: []string{},
+	}
+
+	// verify job mapping tables
+	for table := range tableColMappings {
+		if _, ok := colInfoMap[table]; !ok {
+			dbErrors.Errors = append(dbErrors.Errors, fmt.Sprintf("Table does not exist [%s]", table))
+		}
 	}
 
 	// verify that all circular dependencies have a nullable entrypoint

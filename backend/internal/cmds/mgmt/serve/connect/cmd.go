@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -38,6 +39,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
@@ -303,6 +305,10 @@ func serve(ctx context.Context) error {
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	pgpoolmap := &sync.Map{}
+	mysqlpoolmap := &sync.Map{}
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
 		mysqlquerier)
 	api.Handle(
@@ -329,9 +335,7 @@ func serve(ctx context.Context) error {
 		tfwfmgr,
 		connectionService,
 		useraccountService,
-		sqlConnector,
-		pgquerier,
-		mysqlquerier,
+		sqlmanager,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(

@@ -588,7 +588,7 @@ message ValidateJobMappingsRequest {
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   repeated JobMapping mappings = 2;
-  string source_connection_id = 3;
+  string connection_id = 3;
 }
 
 message ColumnError {

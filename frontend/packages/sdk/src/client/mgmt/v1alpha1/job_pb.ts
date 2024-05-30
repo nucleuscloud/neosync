@@ -4557,9 +4557,9 @@ export class ValidateJobMappingsRequest extends Message<ValidateJobMappingsReque
   mappings: JobMapping[] = [];
 
   /**
-   * @generated from field: string source_connection_id = 3;
+   * @generated from field: string connection_id = 3;
    */
-  sourceConnectionId = "";
+  connectionId = "";
 
   constructor(data?: PartialMessage<ValidateJobMappingsRequest>) {
     super();
@@ -4571,7 +4571,7 @@ export class ValidateJobMappingsRequest extends Message<ValidateJobMappingsReque
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "mappings", kind: "message", T: JobMapping, repeated: true },
-    { no: 3, name: "source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateJobMappingsRequest {
