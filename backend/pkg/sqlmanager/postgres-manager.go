@@ -531,7 +531,6 @@ type buildTableColRequest struct {
 	GeneratedType string
 }
 
-// todo: handle generated columns!
 func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 	if record.ColumnDefault != "" {
