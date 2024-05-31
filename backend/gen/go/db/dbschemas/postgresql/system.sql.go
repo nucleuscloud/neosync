@@ -7,6 +7,8 @@ package pg_queries
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
@@ -15,7 +17,7 @@ WITH relevant_schemas_tables AS (
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = $1
-    AND c.relname IN ($2::TEXT[])
+    AND c.relname = ANY($2::TEXT[])
 ),
 trigger_functions AS (
     SELECT DISTINCT
@@ -76,7 +78,7 @@ WITH relevant_schemas_tables AS (
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = $1
-    AND c.relname IN ($2::TEXT[])
+    AND c.relname = ANY($2::TEXT[])
 ),
 all_sequences AS (
     SELECT
@@ -237,7 +239,7 @@ WITH custom_types AS (
     JOIN
         pg_catalog.pg_namespace n ON n.oid = t.typnamespace
     WHERE
-        n.nspname = 'public'
+        n.nspname = $1
         AND t.typtype IN ('d', 'e', 'c')
 ),
 table_columns AS (
@@ -252,7 +254,7 @@ table_columns AS (
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
     WHERE
         n.nspname = $1
-        AND c.relname IN ($2::TEXT[])
+        AND c.relname = ANY($2::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -390,76 +392,109 @@ func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, ar
 }
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
-SELECT
-    n.nspname AS table_schema,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
-    CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
-FROM
-    pg_catalog.pg_attribute a
+WITH all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid,
+        ad.adrelid,
+        ad.adnum
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+column_defaults AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+        COALESCE(pg_catalog.pg_get_expr(d.adbin, d.adrelid), '')::text AS column_default,
+        CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
+        CASE
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            ELSE
+                -1
+        END AS character_maximum_length,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                (a.atttypmod - 4) >> 16
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                16
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                32
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                64
+            ELSE
+                -1
+        END AS numeric_precision,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                CASE
+                    WHEN (a.atttypmod) = -1 THEN -1
+                    ELSE (a.atttypmod - 4) & 65535
+                END
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                0
+            ELSE
+                -1
+        END AS numeric_scale,
+        a.attnum AS ordinal_position,
+        a.attgenerated::text as generated_type,
+        c.oid AS table_oid
+    FROM
+        pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
     INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+        AND c.relkind = 'r'
+)
+SELECT
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    CASE
+        WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
+        WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        ELSE ''
+    END AS sequence_type
+FROM
+    column_defaults cd
+LEFT JOIN linked_to_serial ls
+    ON cd.table_oid = ls.adrelid
+    AND cd.ordinal_position = ls.adnum
 ORDER BY
-    a.attnum
+    cd.ordinal_position
 `
 
 type GetDatabaseSchemaRow struct {
-	TableSchema            string
+	SchemaName             string
 	TableName              string
 	ColumnName             string
 	DataType               string
@@ -470,6 +505,8 @@ type GetDatabaseSchemaRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	TableOid               pgtype.Uint32
+	SequenceType           string
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -482,127 +519,6 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 	for rows.Next() {
 		var i GetDatabaseSchemaRow
 		if err := rows.Scan(
-			&i.TableSchema,
-			&i.TableName,
-			&i.ColumnName,
-			&i.DataType,
-			&i.ColumnDefault,
-			&i.IsNullable,
-			&i.CharacterMaximumLength,
-			&i.NumericPrecision,
-			&i.NumericScale,
-			&i.OrdinalPosition,
-			&i.GeneratedType,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getDatabaseTableSchema = `-- name: GetDatabaseTableSchema :many
-SELECT
-    n.nspname AS schema_name,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
-    CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
-FROM
-    pg_catalog.pg_attribute a
-    INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
-    INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
-    LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    c.relname = $1
-    AND n.nspname = $2
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
-ORDER BY
-    a.attnum
-`
-
-type GetDatabaseTableSchemaParams struct {
-	Table  string
-	Schema string
-}
-
-type GetDatabaseTableSchemaRow struct {
-	SchemaName             string
-	TableName              string
-	ColumnName             string
-	DataType               string
-	ColumnDefault          string
-	IsNullable             string
-	CharacterMaximumLength int32
-	NumericPrecision       int32
-	NumericScale           int32
-	OrdinalPosition        int16
-	GeneratedType          string
-}
-
-func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error) {
-	rows, err := db.Query(ctx, getDatabaseTableSchema, arg.Table, arg.Schema)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetDatabaseTableSchemaRow
-	for rows.Next() {
-		var i GetDatabaseTableSchemaRow
-		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
 			&i.ColumnName,
@@ -614,6 +530,8 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.TableOid,
+			&i.SequenceType,
 		); err != nil {
 			return nil, err
 		}
@@ -626,72 +544,105 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 }
 
 const getDatabaseTableSchemasBySchemasAndTables = `-- name: GetDatabaseTableSchemasBySchemasAndTables :many
-SELECT
-    n.nspname AS schema_name,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
-    CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
-FROM
-    pg_catalog.pg_attribute a
+WITH all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid,
+        ad.adrelid,
+        ad.adnum
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+column_defaults AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+        COALESCE(pg_catalog.pg_get_expr(d.adbin, d.adrelid), '')::text AS column_default,
+        CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
+        CASE
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            ELSE
+                -1
+        END AS character_maximum_length,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                (a.atttypmod - 4) >> 16
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                16
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                32
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                64
+            ELSE
+                -1
+        END AS numeric_precision,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                CASE
+                    WHEN (a.atttypmod) = -1 THEN -1
+                    ELSE (a.atttypmod - 4) & 65535
+                END
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                0
+            ELSE
+                -1
+        END AS numeric_scale,
+        a.attnum AS ordinal_position,
+        a.attgenerated::text as generated_type,
+        c.oid AS table_oid
+    FROM
+        pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
     INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+        AND c.relkind = 'r'
+)
+SELECT
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    CASE
+        WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
+        WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        ELSE ''
+    END AS sequence_type
+FROM
+    column_defaults cd
+LEFT JOIN linked_to_serial ls
+    ON cd.table_oid = ls.adrelid
+    AND cd.ordinal_position = ls.adnum
 ORDER BY
-    a.attnum
+    cd.ordinal_position
 `
 
 type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
@@ -706,6 +657,8 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	TableOid               pgtype.Uint32
+	SequenceType           string
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -729,6 +682,8 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.TableOid,
+			&i.SequenceType,
 		); err != nil {
 			return nil, err
 		}

@@ -123,14 +123,13 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				datatypeCfg, err := sourcedb.Db.GetSchemaTableDataTypes(ctx, tables)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
 				}
-
 				dataTypeStmts := datatypeCfg.GetStatements()
 
 				tableTriggers, err := sourcedb.Db.GetSchemaTableTriggers(ctx, tables)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
 				}
 
 				tableTriggerStmts := make([]string, 0, len(tableTriggers))
@@ -140,7 +139,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
 				}
 				createTables := []string{}
 				nonFkAlterStmts := []string{}

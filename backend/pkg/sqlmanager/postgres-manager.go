@@ -33,7 +33,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 			generatedType = &row.GeneratedType
 		}
 		result = append(result, &DatabaseSchemaRow{
-			TableSchema:            row.TableSchema,
+			TableSchema:            row.SchemaName,
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
@@ -249,12 +249,11 @@ func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string
 func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
+	schematable := SchemaTable{Schema: schema, Table: table}
+
+	var tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow
 	errgrp.Go(func() error {
-		result, err := p.querier.GetDatabaseTableSchema(errctx, p.pool, &pg_queries.GetDatabaseTableSchemaParams{
-			Schema: schema,
-			Table:  table,
-		})
+		result, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.pool, []string{schematable.String()})
 		if err != nil {
 			return fmt.Errorf("unable to generate database table schema: %w", err)
 		}
@@ -433,7 +432,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 		errgrp.Go(func() error {
 			seqs, err := p.getSequencesByTables(errctx, schema, tables)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to get postgres custom sequences by tables: %w", err)
 			}
 			mu.Lock()
 			output.Sequences = append(output.Sequences, seqs...)
@@ -443,7 +442,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 		errgrp.Go(func() error {
 			funcs, err := p.getFunctionsByTables(errctx, schema, tables)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to get postgres custom functions by tables: %w", err)
 			}
 			mu.Lock()
 			output.Functions = append(output.Functions, funcs...)
@@ -453,7 +452,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 		errgrp.Go(func() error {
 			datatypes, err := p.getDataTypesByTables(errctx, schema, tables)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to get postgres custom data types by tables: %w", err)
 			}
 			mu.Lock()
 			output.Composites = append(output.Composites, datatypes.Composites...)
@@ -628,6 +627,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				DataType:      td.DataType,
 				IsNullable:    td.IsNullable == "YES",
 				GeneratedType: td.GeneratedType,
+				IsSerial:      td.SequenceType == "SERIAL",
 			}))
 		}
 
@@ -723,7 +723,7 @@ func buildAlterStatementByConstraint(
 func generateCreateTableStatement(
 	schema string,
 	table string,
-	tableSchemas []*pg_queries.GetDatabaseTableSchemaRow,
+	tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow,
 	tableConstraints []*pg_queries.GetTableConstraintsRow,
 ) string {
 	columns := make([]string, len(tableSchemas))
@@ -735,6 +735,7 @@ func generateCreateTableStatement(
 			DataType:      record.DataType,
 			IsNullable:    record.IsNullable == "YES",
 			GeneratedType: record.GeneratedType,
+			IsSerial:      record.SequenceType == "SERIAL",
 		})
 	}
 
@@ -753,19 +754,23 @@ type buildTableColRequest struct {
 	DataType      string
 	IsNullable    bool
 	GeneratedType string
+	IsSerial      bool
 }
 
 func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
-	if record.ColumnDefault != "" {
+
+	if record.IsSerial {
+		if record.DataType == "smallint" {
+			pieces[1] = "SMALLSERIAL"
+		} else if record.DataType == "bigint" {
+			pieces[1] = "BIGSERIAL"
+		} else {
+			pieces[1] = "SERIAL"
+		}
+	} else if record.ColumnDefault != "" {
 		if record.GeneratedType == "s" {
 			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) STORED", record.ColumnDefault))
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
-			pieces[1] = "SERIAL"
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
-			pieces[1] = "BIGSERIAL"
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "smallint" {
-			pieces[1] = "SMALLSERIAL"
 		} else if record.ColumnDefault != "NULL" {
 			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
