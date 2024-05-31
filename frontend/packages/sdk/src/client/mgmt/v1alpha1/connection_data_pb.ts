@@ -1488,3 +1488,95 @@ export class GetConnectionTableConstraintsResponse extends Message<GetConnection
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetTableRowCountRequest
+ */
+export class GetTableRowCountRequest extends Message<GetTableRowCountRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: string schema = 2;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 3;
+   */
+  table = "";
+
+  /**
+   * @generated from field: optional string where_clause = 4;
+   */
+  whereClause?: string;
+
+  constructor(data?: PartialMessage<GetTableRowCountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTableRowCountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTableRowCountRequest {
+    return new GetTableRowCountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTableRowCountRequest {
+    return new GetTableRowCountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTableRowCountRequest {
+    return new GetTableRowCountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTableRowCountRequest | PlainMessage<GetTableRowCountRequest> | undefined, b: GetTableRowCountRequest | PlainMessage<GetTableRowCountRequest> | undefined): boolean {
+    return proto3.util.equals(GetTableRowCountRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetTableRowCountResponse
+ */
+export class GetTableRowCountResponse extends Message<GetTableRowCountResponse> {
+  /**
+   * @generated from field: int64 count = 1;
+   */
+  count = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GetTableRowCountResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTableRowCountResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTableRowCountResponse {
+    return new GetTableRowCountResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTableRowCountResponse {
+    return new GetTableRowCountResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTableRowCountResponse {
+    return new GetTableRowCountResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTableRowCountResponse | PlainMessage<GetTableRowCountResponse> | undefined, b: GetTableRowCountResponse | PlainMessage<GetTableRowCountResponse> | undefined): boolean {
+    return proto3.util.equals(GetTableRowCountResponse, a, b);
+  }
+}
+

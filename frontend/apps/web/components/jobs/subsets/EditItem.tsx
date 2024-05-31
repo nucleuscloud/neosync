@@ -9,8 +9,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { CheckSqlQueryResponse } from '@neosync/sdk';
+import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
@@ -28,6 +29,9 @@ export default function EditItem(props: Props): ReactElement {
   const { item, onItem, onSave, onCancel, connectionId, dbType } = props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
+  >();
+  const [tableRowCountResp, setTableRowCountResp] = useState<
+    GetTableRowCountResponse | undefined
   >();
   const { account } = useAccount();
 
@@ -56,6 +60,28 @@ export default function EditItem(props: Props): ReactElement {
           erorrMessage: getErrorMessage(err),
         })
       );
+    }
+  }
+
+  async function onGetRowCount(): Promise<void> {
+    try {
+      const resp = await getTableRowCount(
+        account?.id ?? '',
+        connectionId,
+        item?.schema ?? '',
+        item?.table ?? '',
+        item?.where
+      );
+      console.log(resp);
+
+      setTableRowCountResp(resp);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to get table row count.',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
     }
   }
 
@@ -93,8 +119,37 @@ export default function EditItem(props: Props): ReactElement {
           <div className="flex flex-row items-center">
             <ValidateQueryBadge resp={validateResp} />
           </div>
+          {/* <div className="flex flex-row items-center">
+            <TableRowCountBadge resp={tableRowCountResp} />
+          </div> */}
         </div>
         <div className="flex flex-row gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!item}
+                  onClick={() => onGetRowCount()}
+                >
+                  <ButtonText
+                    text={
+                      tableRowCountResp?.count
+                        ? `Row Count: ${tableRowCountResp.count}`
+                        : 'Row Count'
+                    }
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Attempts to run a SQL COUNT(*) statement against the source
+                  connection for the table with the included WHERE clause
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -195,4 +250,34 @@ function buildSelectQuery(whereClause?: string): string {
     return '';
   }
   return `WHERE ${whereClause};`;
+}
+
+async function getTableRowCount(
+  accountId: string,
+  connectionId: string,
+  schema: string,
+  table: string,
+  where?: string
+): Promise<GetTableRowCountResponse> {
+  const queryParams = new URLSearchParams({
+    schema,
+    table,
+  });
+  if (where) {
+    queryParams.set('where', where);
+  }
+  console.log(
+    `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`
+  );
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`,
+    {
+      method: 'GET',
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return GetTableRowCountResponse.fromJson(await res.json());
 }

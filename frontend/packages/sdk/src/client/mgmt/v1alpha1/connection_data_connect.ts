@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
+import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse, GetTableRowCountRequest, GetTableRowCountResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -105,6 +105,17 @@ export const ConnectionDataService = {
       name: "GetAiGeneratedData",
       I: GetAiGeneratedDataRequest,
       O: GetAiGeneratedDataResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Query table with subset to get row count
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetTableRowCount
+     */
+    getTableRowCount: {
+      name: "GetTableRowCount",
+      I: GetTableRowCountRequest,
+      O: GetTableRowCountResponse,
       kind: MethodKind.Unary,
     },
   }
