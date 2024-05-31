@@ -586,6 +586,31 @@ func (p *PostgresManager) Close() {
 	}
 }
 
+func (p *PostgresManager) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
+	tableName := BuildTable(schema, table)
+	builder := goqu.Dialect(PostgresDriver)
+	sqltable := goqu.I(tableName)
+
+	query := builder.From(sqltable).Select(goqu.COUNT("*"))
+	if whereClause != nil && *whereClause != "" {
+		query = query.Where(goqu.L(*whereClause))
+	}
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return 0, err
+	}
+	var count int64
+	err = p.pool.QueryRow(ctx, sql).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, err
+}
+
 func BuildPgTruncateStatement(
 	tables []string,
 ) string {

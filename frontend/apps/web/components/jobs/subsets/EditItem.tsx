@@ -1,4 +1,5 @@
 import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
 import { TableRow } from './subset-table/column';
@@ -33,6 +34,7 @@ export default function EditItem(props: Props): ReactElement {
   const [tableRowCountResp, setTableRowCountResp] = useState<
     GetTableRowCountResponse | undefined
   >();
+  const [calculatingRowCount, setCalculatingRowCount] = useState(false);
   const { account } = useAccount();
 
   function onWhereChange(value: string): void {
@@ -41,6 +43,11 @@ export default function EditItem(props: Props): ReactElement {
     }
     onItem({ ...item, where: value });
   }
+
+  useEffect(() => {
+    setTableRowCountResp(undefined);
+    setValidateResp(undefined);
+  }, [item]);
 
   async function onValidate(): Promise<void> {
     const pgSting = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
@@ -65,6 +72,8 @@ export default function EditItem(props: Props): ReactElement {
 
   async function onGetRowCount(): Promise<void> {
     try {
+      setTableRowCountResp(undefined);
+      setCalculatingRowCount(true);
       const resp = await getTableRowCount(
         account?.id ?? '',
         connectionId,
@@ -72,25 +81,28 @@ export default function EditItem(props: Props): ReactElement {
         item?.table ?? '',
         item?.where
       );
-      console.log(resp);
-
       setTableRowCountResp(resp);
     } catch (err) {
+      setCalculatingRowCount(false);
       console.error(err);
       toast({
         title: 'Unable to get table row count.',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
+    } finally {
+      setCalculatingRowCount(false);
     }
   }
 
   function onCancelClick(): void {
     setValidateResp(undefined);
+    setTableRowCountResp(undefined);
     onCancel();
   }
   function onSaveClick(): void {
     setValidateResp(undefined);
+    setTableRowCountResp(undefined);
     onSave();
   }
 
@@ -119,9 +131,6 @@ export default function EditItem(props: Props): ReactElement {
           <div className="flex flex-row items-center">
             <ValidateQueryBadge resp={validateResp} />
           </div>
-          {/* <div className="flex flex-row items-center">
-            <TableRowCountBadge resp={tableRowCountResp} />
-          </div> */}
         </div>
         <div className="flex flex-row gap-4">
           <TooltipProvider>
@@ -133,13 +142,11 @@ export default function EditItem(props: Props): ReactElement {
                   disabled={!item}
                   onClick={() => onGetRowCount()}
                 >
-                  <ButtonText
-                    text={
-                      tableRowCountResp?.count
-                        ? `Row Count: ${tableRowCountResp.count}`
-                        : 'Row Count'
-                    }
-                  />
+                  {calculatingRowCount ? (
+                    <Spinner className="text-black dark:text-white" />
+                  ) : (
+                    <ButtonText text={'Row Count'} />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -150,6 +157,11 @@ export default function EditItem(props: Props): ReactElement {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          {tableRowCountResp && tableRowCountResp.count >= 0 ? (
+            <Badge variant="darkOutline">
+              {tableRowCountResp.count.toString()}
+            </Badge>
+          ) : null}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -1116,3 +1116,37 @@ func (s *Service) GetConnectionTableConstraints(
 		UniqueConstraints:     uniqueConstraintsMap,
 	}), nil
 }
+
+func (s *Service) GetTableRowCount(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetTableRowCountRequest],
+) (*connect.Response[mgmtv1alpha1.GetTableRowCountResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	count, err := db.Db.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetTableRowCountResponse{
+		Count: count,
+	}), nil
+}

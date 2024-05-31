@@ -57,6 +57,9 @@ const (
 	// ConnectionDataServiceGetAiGeneratedDataProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetAiGeneratedData RPC.
 	ConnectionDataServiceGetAiGeneratedDataProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData"
+	// ConnectionDataServiceGetTableRowCountProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetTableRowCount RPC.
+	ConnectionDataServiceGetTableRowCountProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetTableRowCount"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -70,6 +73,7 @@ var (
 	connectionDataServiceGetConnectionInitStatementsMethodDescriptor     = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
 	connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor  = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionUniqueConstraints")
 	connectionDataServiceGetAiGeneratedDataMethodDescriptor              = connectionDataServiceServiceDescriptor.Methods().ByName("GetAiGeneratedData")
+	connectionDataServiceGetTableRowCountMethodDescriptor                = connectionDataServiceServiceDescriptor.Methods().ByName("GetTableRowCount")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -94,6 +98,8 @@ type ConnectionDataServiceClient interface {
 	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 	// Query an AI connection by providing the necessary values. Typically used for generating preview data
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
+	// Query table with subset to get row count
+	GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error)
 }
 
 // NewConnectionDataServiceClient constructs a client for the mgmt.v1alpha1.ConnectionDataService
@@ -154,6 +160,12 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithSchema(connectionDataServiceGetAiGeneratedDataMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getTableRowCount: connect.NewClient[v1alpha1.GetTableRowCountRequest, v1alpha1.GetTableRowCountResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetTableRowCountProcedure,
+			connect.WithSchema(connectionDataServiceGetTableRowCountMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -167,6 +179,7 @@ type connectionDataServiceClient struct {
 	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 	getConnectionUniqueConstraints  *connect.Client[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse]
 	getAiGeneratedData              *connect.Client[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse]
+	getTableRowCount                *connect.Client[v1alpha1.GetTableRowCountRequest, v1alpha1.GetTableRowCountResponse]
 }
 
 // GetConnectionDataStream calls mgmt.v1alpha1.ConnectionDataService.GetConnectionDataStream.
@@ -214,6 +227,11 @@ func (c *connectionDataServiceClient) GetAiGeneratedData(ctx context.Context, re
 	return c.getAiGeneratedData.CallUnary(ctx, req)
 }
 
+// GetTableRowCount calls mgmt.v1alpha1.ConnectionDataService.GetTableRowCount.
+func (c *connectionDataServiceClient) GetTableRowCount(ctx context.Context, req *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error) {
+	return c.getTableRowCount.CallUnary(ctx, req)
+}
+
 // ConnectionDataServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionDataService
 // service.
 type ConnectionDataServiceHandler interface {
@@ -237,6 +255,8 @@ type ConnectionDataServiceHandler interface {
 	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 	// Query an AI connection by providing the necessary values. Typically used for generating preview data
 	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
+	// Query table with subset to get row count
+	GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error)
 }
 
 // NewConnectionDataServiceHandler builds an HTTP handler from the service implementation. It
@@ -293,6 +313,12 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		connect.WithSchema(connectionDataServiceGetAiGeneratedDataMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionDataServiceGetTableRowCountHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetTableRowCountProcedure,
+		svc.GetTableRowCount,
+		connect.WithSchema(connectionDataServiceGetTableRowCountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionDataServiceGetConnectionDataStreamProcedure:
@@ -311,6 +337,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionUniqueConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetAiGeneratedDataProcedure:
 			connectionDataServiceGetAiGeneratedDataHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetTableRowCountProcedure:
+			connectionDataServiceGetTableRowCountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -350,4 +378,8 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionUniqueConstraints(
 
 func (UnimplementedConnectionDataServiceHandler) GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetTableRowCount(context.Context, *connect.Request[v1alpha1.GetTableRowCountRequest]) (*connect.Response[v1alpha1.GetTableRowCountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetTableRowCount is not implemented"))
 }
