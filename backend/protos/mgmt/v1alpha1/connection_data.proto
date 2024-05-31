@@ -199,6 +199,17 @@ message GetConnectionTableConstraintsResponse {
   map<string, UniqueConstraints> unique_constraints = 3;
 }
 
+message GetTableRowCountRequest {
+  string connection_id = 1;
+  string schema = 2;
+  string table = 3;
+  optional string where_clause = 4;
+}
+
+message GetTableRowCountResponse {
+  int64 count = 1;
+}
+
 // Service for managing connection data.
 // This is used in handle data from a connection
 service ConnectionDataService {
@@ -222,4 +233,6 @@ service ConnectionDataService {
   rpc GetConnectionUniqueConstraints(GetConnectionUniqueConstraintsRequest) returns (GetConnectionUniqueConstraintsResponse) {}
   // Query an AI connection by providing the necessary values. Typically used for generating preview data
   rpc GetAiGeneratedData(GetAiGeneratedDataRequest) returns (GetAiGeneratedDataResponse) {}
+  // Query table with subset to get row count
+  rpc GetTableRowCount(GetTableRowCountRequest) returns (GetTableRowCountResponse) {}
 }

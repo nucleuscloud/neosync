@@ -342,6 +342,31 @@ func (m *MysqlManager) BatchExec(ctx context.Context, batchSize int, statements 
 	return nil
 }
 
+func (m *MysqlManager) GetTableRowCount(
+	ctx context.Context,
+	schema, table string,
+	whereClause *string,
+) (int64, error) {
+	tableName := BuildTable(schema, table)
+	builder := goqu.Dialect(MysqlDriver)
+	sqltable := goqu.I(tableName)
+
+	query := builder.From(sqltable).Select(goqu.COUNT("*"))
+	if whereClause != nil && *whereClause != "" {
+		query = query.Where(goqu.L(*whereClause))
+	}
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return 0, err
+	}
+	var count int64
+	err = m.pool.QueryRowContext(ctx, sql).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, err
+}
+
 func (m *MysqlManager) Exec(ctx context.Context, statement string) error {
 	_, err := m.pool.ExecContext(ctx, statement)
 	if err != nil {

@@ -3882,6 +3882,90 @@
           ]
         },
         {
+          "name": "GetTableRowCountRequest",
+          "longName": "GetTableRowCountRequest",
+          "fullName": "mgmt.v1alpha1.GetTableRowCountRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "where_clause",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_where_clause",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetTableRowCountResponse",
+          "longName": "GetTableRowCountResponse",
+          "fullName": "mgmt.v1alpha1.GetTableRowCountResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "count",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "InitStatementOptions",
           "longName": "InitStatementOptions",
           "fullName": "mgmt.v1alpha1.InitStatementOptions",
@@ -4147,6 +4231,18 @@
               "responseType": "GetAiGeneratedDataResponse",
               "responseLongType": "GetAiGeneratedDataResponse",
               "responseFullType": "mgmt.v1alpha1.GetAiGeneratedDataResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetTableRowCount",
+              "description": "Query table with subset to get row count",
+              "requestType": "GetTableRowCountRequest",
+              "requestLongType": "GetTableRowCountRequest",
+              "requestFullType": "mgmt.v1alpha1.GetTableRowCountRequest",
+              "requestStreaming": false,
+              "responseType": "GetTableRowCountResponse",
+              "responseLongType": "GetTableRowCountResponse",
+              "responseFullType": "mgmt.v1alpha1.GetTableRowCountResponse",
               "responseStreaming": false
             }
           ]

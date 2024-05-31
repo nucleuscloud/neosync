@@ -736,6 +736,65 @@ func (_c *MockSqlDatabase_GetTableInitStatements_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetTableRowCount provides a mock function with given fields: ctx, schema, table, whereClause
+func (_m *MockSqlDatabase) GetTableRowCount(ctx context.Context, schema string, table string, whereClause *string) (int64, error) {
+	ret := _m.Called(ctx, schema, table, whereClause)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTableRowCount")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *string) (int64, error)); ok {
+		return rf(ctx, schema, table, whereClause)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *string) int64); ok {
+		r0 = rf(ctx, schema, table, whereClause)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, *string) error); ok {
+		r1 = rf(ctx, schema, table, whereClause)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetTableRowCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTableRowCount'
+type MockSqlDatabase_GetTableRowCount_Call struct {
+	*mock.Call
+}
+
+// GetTableRowCount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schema string
+//   - table string
+//   - whereClause *string
+func (_e *MockSqlDatabase_Expecter) GetTableRowCount(ctx interface{}, schema interface{}, table interface{}, whereClause interface{}) *MockSqlDatabase_GetTableRowCount_Call {
+	return &MockSqlDatabase_GetTableRowCount_Call{Call: _e.mock.On("GetTableRowCount", ctx, schema, table, whereClause)}
+}
+
+func (_c *MockSqlDatabase_GetTableRowCount_Call) Run(run func(ctx context.Context, schema string, table string, whereClause *string)) *MockSqlDatabase_GetTableRowCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableRowCount_Call) Return(_a0 int64, _a1 error) *MockSqlDatabase_GetTableRowCount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetTableRowCount_Call) RunAndReturn(run func(context.Context, string, string, *string) (int64, error)) *MockSqlDatabase_GetTableRowCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUniqueConstraintsMap provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	ret := _m.Called(ctx, schemas)

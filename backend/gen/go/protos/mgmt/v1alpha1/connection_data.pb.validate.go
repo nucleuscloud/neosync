@@ -4372,3 +4372,219 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetConnectionTableConstraintsResponseValidationError{}
+
+// Validate checks the field values on GetTableRowCountRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetTableRowCountRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetTableRowCountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetTableRowCountRequestMultiError, or nil if none found.
+func (m *GetTableRowCountRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetTableRowCountRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if m.WhereClause != nil {
+		// no validation rules for WhereClause
+	}
+
+	if len(errors) > 0 {
+		return GetTableRowCountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetTableRowCountRequestMultiError is an error wrapping multiple validation
+// errors returned by GetTableRowCountRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetTableRowCountRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetTableRowCountRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetTableRowCountRequestMultiError) AllErrors() []error { return m }
+
+// GetTableRowCountRequestValidationError is the validation error returned by
+// GetTableRowCountRequest.Validate if the designated constraints aren't met.
+type GetTableRowCountRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetTableRowCountRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetTableRowCountRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetTableRowCountRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetTableRowCountRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetTableRowCountRequestValidationError) ErrorName() string {
+	return "GetTableRowCountRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetTableRowCountRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetTableRowCountRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetTableRowCountRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetTableRowCountRequestValidationError{}
+
+// Validate checks the field values on GetTableRowCountResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetTableRowCountResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetTableRowCountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetTableRowCountResponseMultiError, or nil if none found.
+func (m *GetTableRowCountResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetTableRowCountResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return GetTableRowCountResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetTableRowCountResponseMultiError is an error wrapping multiple validation
+// errors returned by GetTableRowCountResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetTableRowCountResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetTableRowCountResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetTableRowCountResponseMultiError) AllErrors() []error { return m }
+
+// GetTableRowCountResponseValidationError is the validation error returned by
+// GetTableRowCountResponse.Validate if the designated constraints aren't met.
+type GetTableRowCountResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetTableRowCountResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetTableRowCountResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetTableRowCountResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetTableRowCountResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetTableRowCountResponseValidationError) ErrorName() string {
+	return "GetTableRowCountResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetTableRowCountResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetTableRowCountResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetTableRowCountResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetTableRowCountResponseValidationError{}

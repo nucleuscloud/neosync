@@ -1,4 +1,5 @@
 import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { CheckSqlQueryResponse } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
+import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
+import { ReactElement, useEffect, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
 import { TableRow } from './subset-table/column';
@@ -29,6 +31,10 @@ export default function EditItem(props: Props): ReactElement {
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
+  const [tableRowCountResp, setTableRowCountResp] = useState<
+    GetTableRowCountResponse | undefined
+  >();
+  const [calculatingRowCount, setCalculatingRowCount] = useState(false);
   const { account } = useAccount();
 
   function onWhereChange(value: string): void {
@@ -37,6 +43,11 @@ export default function EditItem(props: Props): ReactElement {
     }
     onItem({ ...item, where: value });
   }
+
+  useEffect(() => {
+    setTableRowCountResp(undefined);
+    setValidateResp(undefined);
+  }, [item]);
 
   async function onValidate(): Promise<void> {
     const pgSting = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
@@ -59,12 +70,39 @@ export default function EditItem(props: Props): ReactElement {
     }
   }
 
+  async function onGetRowCount(): Promise<void> {
+    try {
+      setTableRowCountResp(undefined);
+      setCalculatingRowCount(true);
+      const resp = await getTableRowCount(
+        account?.id ?? '',
+        connectionId,
+        item?.schema ?? '',
+        item?.table ?? '',
+        item?.where
+      );
+      setTableRowCountResp(resp);
+    } catch (err) {
+      setCalculatingRowCount(false);
+      console.error(err);
+      toast({
+        title: 'Unable to get table row count.',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setCalculatingRowCount(false);
+    }
+  }
+
   function onCancelClick(): void {
     setValidateResp(undefined);
+    setTableRowCountResp(undefined);
     onCancel();
   }
   function onSaveClick(): void {
     setValidateResp(undefined);
+    setTableRowCountResp(undefined);
     onSave();
   }
 
@@ -95,6 +133,35 @@ export default function EditItem(props: Props): ReactElement {
           </div>
         </div>
         <div className="flex flex-row gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!item}
+                  onClick={() => onGetRowCount()}
+                >
+                  {calculatingRowCount ? (
+                    <Spinner className="text-black dark:text-white" />
+                  ) : (
+                    <ButtonText text={'Row Count'} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Attempts to run a SQL COUNT(*) statement against the source
+                  connection for the table with the included WHERE clause
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {tableRowCountResp && tableRowCountResp.count >= 0 ? (
+            <Badge variant="darkOutline">
+              {tableRowCountResp.count.toString()}
+            </Badge>
+          ) : null}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -195,4 +262,31 @@ function buildSelectQuery(whereClause?: string): string {
     return '';
   }
   return `WHERE ${whereClause};`;
+}
+
+async function getTableRowCount(
+  accountId: string,
+  connectionId: string,
+  schema: string,
+  table: string,
+  where?: string
+): Promise<GetTableRowCountResponse> {
+  const queryParams = new URLSearchParams({
+    schema,
+    table,
+  });
+  if (where) {
+    queryParams.set('where', where);
+  }
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`,
+    {
+      method: 'GET',
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return GetTableRowCountResponse.fromJson(await res.json());
 }
