@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error)
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error)
 	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)

@@ -21,6 +21,65 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 	return &MockQuerier_Expecter{mock: &_m.Mock}
 }
 
+// GetDataTypesBySchemaAndTables provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDataTypesBySchemaAndTables")
+	}
+
+	var r0 []*GetDataTypesBySchemaAndTablesRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetDataTypesBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetDataTypesBySchemaAndTablesRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetDataTypesBySchemaAndTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDataTypesBySchemaAndTables'
+type MockQuerier_GetDataTypesBySchemaAndTables_Call struct {
+	*mock.Call
+}
+
+// GetDataTypesBySchemaAndTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) GetDataTypesBySchemaAndTables(ctx interface{}, db interface{}) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+	return &MockQuerier_GetDataTypesBySchemaAndTables_Call{Call: _e.mock.On("GetDataTypesBySchemaAndTables", ctx, db)}
+}
+
+func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) Return(_a0 []*GetDataTypesBySchemaAndTablesRow, _a1 error) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDatabaseSchema provides a mock function with given fields: ctx, db
 func (_m *MockQuerier) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
 	ret := _m.Called(ctx, db)

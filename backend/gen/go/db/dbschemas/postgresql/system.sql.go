@@ -9,6 +9,169 @@ import (
 	"context"
 )
 
+const getDataTypesBySchemaAndTables = `-- name: GetDataTypesBySchemaAndTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid,
+        CASE
+            WHEN t.typtype = 'd' THEN 'domain'
+            WHEN t.typtype = 'e' THEN 'enum'
+            WHEN t.typtype = 'c' THEN 'composite'
+        END AS type
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname = 'public'
+        AND t.typtype IN ('d', 'e', 'c')
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+        a.atttypid AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    WHERE
+        n.nspname = 'public'
+        AND c.relname IN ('example_table') -- replace with your table names
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid,
+        ct.type
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+),
+domain_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE DOMAIN ' || rct.schema_name || '.' || rct.type_name || ' AS ' ||
+        pg_catalog.format_type(t.typbasetype, t.typtypmod) ||
+        CASE
+            WHEN t.typnotnull THEN ' NOT NULL' ELSE ''
+        END || ' ' ||
+        COALESCE('CONSTRAINT ' || conname || ' ' || pg_catalog.pg_get_constraintdef(c.oid), '') || ';' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    LEFT JOIN
+        pg_catalog.pg_constraint c ON t.oid = c.contypid
+    WHERE
+        rct.type = 'domain'
+),
+enum_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS ENUM (' ||
+        string_agg('''' || e.enumlabel || '''', ', ') || ');' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_enum e ON t.oid = e.enumtypid
+    WHERE
+        rct.type = 'enum'
+    GROUP BY
+        rct.schema_name, rct.type_name, rct.type
+),
+composite_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS (' ||
+        string_agg(a.attname || ' ' || pg_catalog.format_type(a.atttypid, a.atttypmod), ', ') || ');' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_class c ON c.oid = t.typrelid
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    WHERE
+        rct.type = 'composite'
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+    GROUP BY
+        rct.schema_name, rct.type_name, rct.type
+)
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    domain_defs
+UNION ALL
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    enum_defs
+UNION ALL
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    composite_defs
+`
+
+type GetDataTypesBySchemaAndTablesRow struct {
+	SchemaName string
+	TypeName   string
+	Type       string
+	Definition string
+}
+
+func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getDataTypesBySchemaAndTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetDataTypesBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetDataTypesBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TypeName,
+			&i.Type,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
 SELECT
     n.nspname AS table_schema,
