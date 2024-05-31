@@ -487,3 +487,55 @@ SELECT
     "definition"::text
 FROM
     composite_defs;
+
+-- name: GetCustomFunctionsBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'  -- replace with your schema name
+    AND c.relname IN ('new_table')  -- replace with your table names
+),
+trigger_functions AS (
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        p.proname AS function_name,
+        pg_catalog.pg_get_functiondef(p.oid) AS definition
+    FROM pg_catalog.pg_trigger t
+    JOIN pg_catalog.pg_proc p ON t.tgfoid = p.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE t.tgrelid IN (SELECT oid FROM relevant_schemas_tables)
+    AND NOT t.tgisinternal
+)
+SELECT
+    schema_name,
+    function_name,
+    definition
+FROM
+    trigger_functions
+ORDER BY
+    schema_name,
+    function_name;
+
+-- name: GetCustomTriggersBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'  -- replace with your schema name
+    AND c.relname IN ('new_table')  -- replace with your table names
+)
+SELECT
+    n.nspname AS schema_name,
+    c.relname AS table_name,
+    t.tgname AS trigger_name,
+    pg_catalog.pg_get_triggerdef(t.oid, true) AS definition
+FROM pg_catalog.pg_trigger t
+JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
+JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.oid IN (SELECT oid FROM relevant_schemas_tables)
+AND NOT t.tgisinternal
+ORDER BY
+    schema_name,
+    table_name,
+    trigger_name;

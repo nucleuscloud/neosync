@@ -9,6 +9,118 @@ import (
 	"context"
 )
 
+const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'  -- replace with your schema name
+    AND c.relname IN ('new_table')  -- replace with your table names
+),
+trigger_functions AS (
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        p.proname AS function_name,
+        pg_catalog.pg_get_functiondef(p.oid) AS definition
+    FROM pg_catalog.pg_trigger t
+    JOIN pg_catalog.pg_proc p ON t.tgfoid = p.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE t.tgrelid IN (SELECT oid FROM relevant_schemas_tables)
+    AND NOT t.tgisinternal
+)
+SELECT
+    schema_name,
+    function_name,
+    definition
+FROM
+    trigger_functions
+ORDER BY
+    schema_name,
+    function_name
+`
+
+type GetCustomFunctionsBySchemaAndTablesRow struct {
+	SchemaName   string
+	FunctionName string
+	Definition   string
+}
+
+func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomFunctionsBySchemaAndTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomFunctionsBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetCustomFunctionsBySchemaAndTablesRow
+		if err := rows.Scan(&i.SchemaName, &i.FunctionName, &i.Definition); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomTriggersBySchemaAndTables = `-- name: GetCustomTriggersBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'  -- replace with your schema name
+    AND c.relname IN ('new_table')  -- replace with your table names
+)
+SELECT
+    n.nspname AS schema_name,
+    c.relname AS table_name,
+    t.tgname AS trigger_name,
+    pg_catalog.pg_get_triggerdef(t.oid, true) AS definition
+FROM pg_catalog.pg_trigger t
+JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
+JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.oid IN (SELECT oid FROM relevant_schemas_tables)
+AND NOT t.tgisinternal
+ORDER BY
+    schema_name,
+    table_name,
+    trigger_name
+`
+
+type GetCustomTriggersBySchemaAndTablesRow struct {
+	SchemaName  string
+	TableName   string
+	TriggerName string
+	Definition  string
+}
+
+func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomTriggersBySchemaAndTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomTriggersBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetCustomTriggersBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.TriggerName,
+			&i.Definition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDataTypesBySchemaAndTables = `-- name: GetDataTypesBySchemaAndTables :many
 WITH custom_types AS (
     SELECT
