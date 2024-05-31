@@ -44,22 +44,17 @@ export default function FormErrorsCard(props: Props): ReactElement {
           )}
           <CardTitle>Validations</CardTitle>
           <div>
-            {isValidating ? (
-              <Spinner />
-            ) : (
-              onValidate && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  key="validate"
-                  type="button"
-                >
+            {onValidate && (
+              <Button variant="ghost" size="icon" key="validate" type="button">
+                {isValidating ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
                   <ReloadIcon
                     className="h-4 w-4"
                     onClick={() => onValidate()}
                   />
-                </Button>
-              )
+                )}
+              </Button>
             )}
           </div>
 
