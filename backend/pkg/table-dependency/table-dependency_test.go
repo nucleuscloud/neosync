@@ -794,13 +794,93 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	}
 }
 
-func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {
-	for _, c := range configs {
-		if c.Table == table && c.RunType == runtype {
-			return c
-		}
+func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
+	emptyWhere := ""
+	tests := []struct {
+		name          string
+		dependencies  dbschemas.TableDependency
+		tables        []string
+		subsets       map[string]string
+		tableColsMap  map[string][]string
+		primaryKeyMap map[string][]string
+		expect        []*RunConfig
+	}{
+		{
+			name: "Straight dependencies",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{},
+				},
+			},
+			tables: []string{"public.a", "public.b", "public.c"},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id"},
+				"public.b": {"id", "c_id", "other_id"},
+				"public.c": {"id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+				"public.c": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Sub Tree",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{},
+				},
+			},
+			tables: []string{"public.a", "public.b"},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id"},
+				"public.b": {"id", "c_id", "other_id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
 	}
-	return nil
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			require.NoError(t, err)
+			require.ElementsMatch(t, tt.expect, actual)
+		})
+	}
 }
 
 func Test_GetRunConfigs_CompositeKey(t *testing.T) {
@@ -1069,4 +1149,13 @@ func Test_isValidRunOrder(t *testing.T) {
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {
+	for _, c := range configs {
+		if c.Table == table && c.RunType == runtype {
+			return c
+		}
+	}
+	return nil
 }
