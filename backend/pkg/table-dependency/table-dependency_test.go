@@ -798,8 +798,7 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
-		dependencies  dbschemas.TableDependency
-		tables        []string
+		dependencies  map[string][]*sql_manager.ForeignConstraint
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -807,22 +806,15 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	}{
 		{
 			name: "Straight dependencies",
-			dependencies: dbschemas.TableDependency{
-				"public.a": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{
-						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-					},
+			dependencies: map[string][]*sql_manager.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
-				"public.b": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{
-						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-					},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
-				"public.c": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{},
-				},
+				"public.c": {},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "other_id"},
@@ -835,29 +827,22 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "other_id"}, InsertColumns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 			},
 		},
 		{
 			name: "Sub Tree",
-			dependencies: dbschemas.TableDependency{
-				"public.a": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{
-						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-					},
+			dependencies: map[string][]*sql_manager.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
-				"public.b": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{
-						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-					},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
-				"public.c": &dbschemas.TableConstraints{
-					Constraints: []*dbschemas.ForeignConstraint{},
-				},
+				"public.c": {},
 			},
-			tables: []string{"public.a", "public.b"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "other_id"},
@@ -868,15 +853,15 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "other_id"}, InsertColumns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
 			require.ElementsMatch(t, tt.expect, actual)
 		})
