@@ -137,6 +137,16 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).
+		Return(&sql_manager.SchemaTableDataTypeResponse{
+			Sequences:  []*sql_manager.DataType{},
+			Functions:  []*sql_manager.DataType{},
+			Composites: []*sql_manager.DataType{},
+			Enums:      []*sql_manager.DataType{},
+			Domains:    []*sql_manager.DataType{},
+		}, nil)
+	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).
+		Return([]*sql_manager.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
 	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sql_manager.TableInitStatement{
 		{
 			CreateTableStatement: "test-create-statement",
@@ -154,6 +164,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		},
 	}, nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
@@ -657,6 +668,16 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, mock.Anything).
+		Return(&sql_manager.SchemaTableDataTypeResponse{
+			Sequences:  []*sql_manager.DataType{},
+			Functions:  []*sql_manager.DataType{},
+			Composites: []*sql_manager.DataType{},
+			Enums:      []*sql_manager.DataType{},
+			Domains:    []*sql_manager.DataType{},
+		}, nil)
+	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, mock.Anything).
+		Return([]*sql_manager.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
 	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sql_manager.TableInitStatement{
 		{
 			CreateTableStatement: "test-create-statement",
@@ -675,6 +696,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}, nil)
 
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
