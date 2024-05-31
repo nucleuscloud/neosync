@@ -506,6 +506,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 					OrdinalPosition: 1,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 				{
 					ColumnName:      "id2",
@@ -513,6 +514,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 					OrdinalPosition: 2,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id2_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 				{
 					ColumnName:      "id3",
@@ -520,6 +522,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 					OrdinalPosition: 3,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id3_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 			},
 			constraints: []*pg_queries.GetTableConstraintsRow{},
