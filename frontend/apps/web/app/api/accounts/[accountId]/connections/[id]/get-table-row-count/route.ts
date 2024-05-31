@@ -8,7 +8,6 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    console.log(req.nextUrl.searchParams.get('where'));
     return ctx.client.connectiondata.getTableRowCount(
       new GetTableRowCountRequest({
         connectionId: params.id,

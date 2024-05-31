@@ -278,9 +278,6 @@ async function getTableRowCount(
   if (where) {
     queryParams.set('where', where);
   }
-  console.log(
-    `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`
-  );
   const res = await fetch(
     `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`,
     {
