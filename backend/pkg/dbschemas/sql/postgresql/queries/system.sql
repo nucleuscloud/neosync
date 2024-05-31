@@ -539,3 +539,73 @@ ORDER BY
     schema_name,
     table_name,
     trigger_name;
+
+-- name: GetCustomSequencesBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'  -- replace with your schema name
+    AND c.relname IN ('test_table')  -- replace with your table names
+),
+all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+custom_sequences AS (
+    SELECT
+        seq.sequence_name,
+        seq.schema_name,
+        seq.sequence_oid
+    FROM
+        all_sequences seq
+    LEFT JOIN
+        linked_to_serial serial ON seq.sequence_oid = serial.sequence_oid
+    WHERE
+        serial.sequence_oid IS NULL
+)
+SELECT DISTINCT
+    cs.schema_name,
+    cs.sequence_name,
+    (
+        'CREATE SEQUENCE ' || cs.schema_name || '.' || cs.sequence_name ||
+        ' START WITH ' || seqs.start_value ||
+        ' INCREMENT BY ' || seqs.increment_by ||
+        ' MINVALUE ' || seqs.min_value ||
+        ' MAXVALUE ' || seqs.max_value ||
+        ' CACHE ' || seqs.cache_size ||
+        CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
+    )::text AS "definition"
+FROM
+    custom_sequences cs
+JOIN
+    relevant_schemas_tables rst ON cs.schema_name = rst.schema_name
+JOIN
+    pg_catalog.pg_sequences seqs ON seqs.schemaname = cs.schema_name AND seqs.sequencename = cs.sequence_name
+ORDER BY
+    cs.schema_name,
+    cs.sequence_name;
