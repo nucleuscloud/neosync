@@ -14,8 +14,8 @@ WITH relevant_schemas_tables AS (
     SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('new_table')  -- replace with your table names
+    WHERE n.nspname = $1
+    AND c.relname IN ($2::TEXT[])
 ),
 trigger_functions AS (
     SELECT DISTINCT
@@ -39,14 +39,19 @@ ORDER BY
     function_name
 `
 
+type GetCustomFunctionsBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
 type GetCustomFunctionsBySchemaAndTablesRow struct {
 	SchemaName   string
 	FunctionName string
 	Definition   string
 }
 
-func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomFunctionsBySchemaAndTables)
+func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomFunctionsBySchemaAndTables, arg.Schema, arg.Tables)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +75,8 @@ WITH relevant_schemas_tables AS (
     SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('test_table')  -- replace with your table names
+    WHERE n.nspname = $1
+    AND c.relname IN ($2::TEXT[])
 ),
 all_sequences AS (
     SELECT
@@ -136,14 +141,19 @@ ORDER BY
     cs.sequence_name
 `
 
+type GetCustomSequencesBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
 type GetCustomSequencesBySchemaAndTablesRow struct {
 	SchemaName   string
 	SequenceName string
 	Definition   string
 }
 
-func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables)
+func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, arg.Schema, arg.Tables)
 	if err != nil {
 		return nil, err
 	}
@@ -163,13 +173,6 @@ func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DB
 }
 
 const getCustomTriggersBySchemaAndTables = `-- name: GetCustomTriggersBySchemaAndTables :many
-WITH relevant_schemas_tables AS (
-    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
-    FROM pg_catalog.pg_class c
-    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('new_table')  -- replace with your table names
-)
 SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
@@ -178,7 +181,7 @@ SELECT
 FROM pg_catalog.pg_trigger t
 JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
 JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.oid IN (SELECT oid FROM relevant_schemas_tables)
+WHERE  (n.nspname || '.' || c.relname) = ANY($1::TEXT[])
 AND NOT t.tgisinternal
 ORDER BY
     schema_name,
@@ -193,8 +196,8 @@ type GetCustomTriggersBySchemaAndTablesRow struct {
 	Definition  string
 }
 
-func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomTriggersBySchemaAndTables)
+func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomTriggersBySchemaAndTables, schematables)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +251,8 @@ table_columns AS (
     JOIN
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
     WHERE
-        n.nspname = 'public'
-        AND c.relname IN ('example_table') -- replace with your table names
+        n.nspname = $1
+        AND c.relname IN ($2::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -349,6 +352,11 @@ FROM
     composite_defs
 `
 
+type GetDataTypesBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
 type GetDataTypesBySchemaAndTablesRow struct {
 	SchemaName string
 	TypeName   string
@@ -356,8 +364,8 @@ type GetDataTypesBySchemaAndTablesRow struct {
 	Definition string
 }
 
-func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getDataTypesBySchemaAndTables)
+func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getDataTypesBySchemaAndTables, arg.Schema, arg.Tables)
 	if err != nil {
 		return nil, err
 	}

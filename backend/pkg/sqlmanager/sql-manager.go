@@ -65,6 +65,8 @@ type SqlDatabase interface {
 	GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
+	GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error)
+	GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()

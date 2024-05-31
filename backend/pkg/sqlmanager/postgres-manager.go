@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/doug-martin/goqu/v9"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -325,6 +326,204 @@ type SchemaTable struct {
 
 func (s SchemaTable) String() string {
 	return BuildTable(s.Schema, s.Table)
+}
+
+type TableTrigger struct {
+	Schema      string
+	Table       string
+	TriggerName string
+	Definition  string
+}
+
+func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+	if len(tables) == 0 {
+		return []*TableTrigger{}, nil
+	}
+
+	combined := make([]string, 0, len(tables))
+	for _, t := range tables {
+		combined = append(combined, t.String())
+	}
+
+	rows, err := p.querier.GetCustomTriggersBySchemaAndTables(ctx, p.pool, combined)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*TableTrigger{}, nil
+	}
+
+	output := make([]*TableTrigger, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &TableTrigger{
+			Schema:      row.SchemaName,
+			Table:       row.TableName,
+			TriggerName: row.TriggerName,
+			Definition:  row.Definition,
+		})
+	}
+	return output, nil
+}
+
+type DataType struct {
+	Schema     string
+	Name       string
+	Definition string
+}
+
+// These are all items that live at the schema level, but are used by tables
+type SchemaTableDataTypeResponse struct {
+	// Custom Sequences not tied to the SERIAL data type
+	Sequences []*DataType
+
+	// SQL Functions
+	Functions []*DataType
+
+	// actual Data Types
+	Composites []*DataType
+	Enums      []*DataType
+	Domains    []*DataType
+}
+
+// Returns ansilary dependencies like sequences, datatypes, functions, etc that are used by tables, but live at the schema level
+func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+	if len(tables) == 0 {
+		return &SchemaTableDataTypeResponse{}, nil
+	}
+
+	schemaTablesMap := map[string][]string{}
+	for _, t := range tables {
+		schemaTablesMap[t.Schema] = append(schemaTablesMap[t.Schema], t.Table)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3) // Limit this to effectively one set per schema
+
+	output := &SchemaTableDataTypeResponse{}
+	// Could use a mutex per property, but this is fine for now
+	mu := sync.Mutex{}
+	for schema, tables := range schemaTablesMap {
+		schema := schema
+		tables := tables
+
+		errgrp.Go(func() error {
+			seqs, err := p.getSequencesByTables(errctx, schema, tables)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			output.Sequences = append(output.Sequences, seqs...)
+			mu.Unlock()
+			return nil
+		})
+		errgrp.Go(func() error {
+			funcs, err := p.getFunctionsByTables(errctx, schema, tables)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			output.Functions = append(output.Functions, funcs...)
+			mu.Unlock()
+			return nil
+		})
+		errgrp.Go(func() error {
+			datatypes, err := p.getDataTypesByTables(errctx, schema, tables)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			output.Composites = append(output.Composites, datatypes.Composites...)
+			output.Enums = append(output.Enums, datatypes.Enums...)
+			output.Domains = append(output.Domains, datatypes.Domains...)
+			mu.Unlock()
+			return nil
+		})
+	}
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*DataType, error) {
+	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*DataType{}, nil
+	}
+
+	output := make([]*DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.SequenceName,
+			Definition: row.Definition,
+		})
+	}
+	return output, nil
+}
+
+func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*DataType, error) {
+	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*DataType{}, nil
+	}
+
+	output := make([]*DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.FunctionName,
+			Definition: row.Definition,
+		})
+	}
+	return output, nil
+}
+
+type datatypes struct {
+	Composites []*DataType
+	Enums      []*DataType
+	Domains    []*DataType
+}
+
+func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema string, tables []string) (*datatypes, error) {
+	rows, err := p.querier.GetDataTypesBySchemaAndTables(ctx, p.pool, &pg_queries.GetDataTypesBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return &datatypes{}, nil
+	}
+
+	output := &datatypes{}
+
+	for _, row := range rows {
+		dt := &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.TypeName,
+			Definition: row.Definition,
+		}
+		switch row.Type {
+		case "composite":
+			output.Composites = append(output.Composites, dt)
+		case "domain":
+			output.Domains = append(output.Domains, dt)
+		case "enum":
+			output.Enums = append(output.Enums, dt)
+		}
+	}
+	return output, nil
 }
 
 func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {

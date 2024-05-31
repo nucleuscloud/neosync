@@ -21,9 +21,9 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 	return &MockQuerier_Expecter{mock: &_m.Mock}
 }
 
-// GetCustomFunctionsBySchemaAndTables provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
-	ret := _m.Called(ctx, db)
+// GetCustomFunctionsBySchemaAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCustomFunctionsBySchemaAndTables")
@@ -31,19 +31,19 @@ func (_m *MockQuerier) GetCustomFunctionsBySchemaAndTables(ctx context.Context, 
 
 	var r0 []*GetCustomFunctionsBySchemaAndTablesRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)); ok {
-		return rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetCustomFunctionsBySchemaAndTablesRow); ok {
-		r0 = rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetCustomFunctionsBySchemaAndTablesParams) []*GetCustomFunctionsBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetCustomFunctionsBySchemaAndTablesRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetCustomFunctionsBySchemaAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,13 +59,14 @@ type MockQuerier_GetCustomFunctionsBySchemaAndTables_Call struct {
 // GetCustomFunctionsBySchemaAndTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-func (_e *MockQuerier_Expecter) GetCustomFunctionsBySchemaAndTables(ctx interface{}, db interface{}) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
-	return &MockQuerier_GetCustomFunctionsBySchemaAndTables_Call{Call: _e.mock.On("GetCustomFunctionsBySchemaAndTables", ctx, db)}
+//   - arg *GetCustomFunctionsBySchemaAndTablesParams
+func (_e *MockQuerier_Expecter) GetCustomFunctionsBySchemaAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
+	return &MockQuerier_GetCustomFunctionsBySchemaAndTables_Call{Call: _e.mock.On("GetCustomFunctionsBySchemaAndTables", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams)) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetCustomFunctionsBySchemaAndTablesParams))
 	})
 	return _c
 }
@@ -75,14 +76,14 @@ func (_c *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call) Return(_a0 []*Ge
 	return _c
 }
 
-func (_c *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)) *MockQuerier_GetCustomFunctionsBySchemaAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetCustomSequencesBySchemaAndTables provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
-	ret := _m.Called(ctx, db)
+// GetCustomSequencesBySchemaAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCustomSequencesBySchemaAndTables")
@@ -90,19 +91,19 @@ func (_m *MockQuerier) GetCustomSequencesBySchemaAndTables(ctx context.Context, 
 
 	var r0 []*GetCustomSequencesBySchemaAndTablesRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetCustomSequencesBySchemaAndTablesRow, error)); ok {
-		return rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetCustomSequencesBySchemaAndTablesRow); ok {
-		r0 = rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetCustomSequencesBySchemaAndTablesParams) []*GetCustomSequencesBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetCustomSequencesBySchemaAndTablesRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetCustomSequencesBySchemaAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -118,13 +119,14 @@ type MockQuerier_GetCustomSequencesBySchemaAndTables_Call struct {
 // GetCustomSequencesBySchemaAndTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-func (_e *MockQuerier_Expecter) GetCustomSequencesBySchemaAndTables(ctx interface{}, db interface{}) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
-	return &MockQuerier_GetCustomSequencesBySchemaAndTables_Call{Call: _e.mock.On("GetCustomSequencesBySchemaAndTables", ctx, db)}
+//   - arg *GetCustomSequencesBySchemaAndTablesParams
+func (_e *MockQuerier_Expecter) GetCustomSequencesBySchemaAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
+	return &MockQuerier_GetCustomSequencesBySchemaAndTables_Call{Call: _e.mock.On("GetCustomSequencesBySchemaAndTables", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_GetCustomSequencesBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomSequencesBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams)) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetCustomSequencesBySchemaAndTablesParams))
 	})
 	return _c
 }
@@ -134,14 +136,14 @@ func (_c *MockQuerier_GetCustomSequencesBySchemaAndTables_Call) Return(_a0 []*Ge
 	return _c
 }
 
-func (_c *MockQuerier_GetCustomSequencesBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetCustomSequencesBySchemaAndTablesRow, error)) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomSequencesBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error)) *MockQuerier_GetCustomSequencesBySchemaAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetCustomTriggersBySchemaAndTables provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
-	ret := _m.Called(ctx, db)
+// GetCustomTriggersBySchemaAndTables provides a mock function with given fields: ctx, db, schematables
+func (_m *MockQuerier) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db, schematables)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCustomTriggersBySchemaAndTables")
@@ -149,19 +151,19 @@ func (_m *MockQuerier) GetCustomTriggersBySchemaAndTables(ctx context.Context, d
 
 	var r0 []*GetCustomTriggersBySchemaAndTablesRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error)); ok {
-		return rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db, schematables)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetCustomTriggersBySchemaAndTablesRow); ok {
-		r0 = rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetCustomTriggersBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db, schematables)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetCustomTriggersBySchemaAndTablesRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schematables)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -177,13 +179,14 @@ type MockQuerier_GetCustomTriggersBySchemaAndTables_Call struct {
 // GetCustomTriggersBySchemaAndTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-func (_e *MockQuerier_Expecter) GetCustomTriggersBySchemaAndTables(ctx interface{}, db interface{}) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
-	return &MockQuerier_GetCustomTriggersBySchemaAndTables_Call{Call: _e.mock.On("GetCustomTriggersBySchemaAndTables", ctx, db)}
+//   - schematables []string
+func (_e *MockQuerier_Expecter) GetCustomTriggersBySchemaAndTables(ctx interface{}, db interface{}, schematables interface{}) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
+	return &MockQuerier_GetCustomTriggersBySchemaAndTables_Call{Call: _e.mock.On("GetCustomTriggersBySchemaAndTables", ctx, db, schematables)}
 }
 
-func (_c *MockQuerier_GetCustomTriggersBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomTriggersBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX, schematables []string)) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
 	})
 	return _c
 }
@@ -193,14 +196,14 @@ func (_c *MockQuerier_GetCustomTriggersBySchemaAndTables_Call) Return(_a0 []*Get
 	return _c
 }
 
-func (_c *MockQuerier_GetCustomTriggersBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error)) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
+func (_c *MockQuerier_GetCustomTriggersBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetCustomTriggersBySchemaAndTablesRow, error)) *MockQuerier_GetCustomTriggersBySchemaAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetDataTypesBySchemaAndTables provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error) {
-	ret := _m.Called(ctx, db)
+// GetDataTypesBySchemaAndTables provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error) {
+	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDataTypesBySchemaAndTables")
@@ -208,19 +211,19 @@ func (_m *MockQuerier) GetDataTypesBySchemaAndTables(ctx context.Context, db DBT
 
 	var r0 []*GetDataTypesBySchemaAndTablesRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error)); ok {
-		return rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error)); ok {
+		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetDataTypesBySchemaAndTablesRow); ok {
-		r0 = rf(ctx, db)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, *GetDataTypesBySchemaAndTablesParams) []*GetDataTypesBySchemaAndTablesRow); ok {
+		r0 = rf(ctx, db, arg)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetDataTypesBySchemaAndTablesRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, *GetDataTypesBySchemaAndTablesParams) error); ok {
+		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -236,13 +239,14 @@ type MockQuerier_GetDataTypesBySchemaAndTables_Call struct {
 // GetDataTypesBySchemaAndTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-func (_e *MockQuerier_Expecter) GetDataTypesBySchemaAndTables(ctx interface{}, db interface{}) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
-	return &MockQuerier_GetDataTypesBySchemaAndTables_Call{Call: _e.mock.On("GetDataTypesBySchemaAndTables", ctx, db)}
+//   - arg *GetDataTypesBySchemaAndTablesParams
+func (_e *MockQuerier_Expecter) GetDataTypesBySchemaAndTables(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+	return &MockQuerier_GetDataTypesBySchemaAndTables_Call{Call: _e.mock.On("GetDataTypesBySchemaAndTables", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) Run(run func(ctx context.Context, db DBTX, arg *GetDataTypesBySchemaAndTablesParams)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(*GetDataTypesBySchemaAndTablesParams))
 	})
 	return _c
 }
@@ -252,7 +256,7 @@ func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) Return(_a0 []*GetDataT
 	return _c
 }
 
-func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetDataTypesBySchemaAndTablesRow, error)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
+func (_c *MockQuerier_GetDataTypesBySchemaAndTables_Call) RunAndReturn(run func(context.Context, DBTX, *GetDataTypesBySchemaAndTablesParams) ([]*GetDataTypesBySchemaAndTablesRow, error)) *MockQuerier_GetDataTypesBySchemaAndTables_Call {
 	_c.Call.Return(run)
 	return _c
 }

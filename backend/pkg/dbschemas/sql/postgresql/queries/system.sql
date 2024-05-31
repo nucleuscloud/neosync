@@ -388,8 +388,8 @@ table_columns AS (
     JOIN
         pg_catalog.pg_attribute a ON a.attrelid = c.oid
     WHERE
-        n.nspname = 'public'
-        AND c.relname IN ('example_table') -- replace with your table names
+        n.nspname = sqlc.arg('schema')
+        AND c.relname IN (sqlc.arg('tables')::TEXT[])
         AND a.attnum > 0
         AND NOT a.attisdropped
 ),
@@ -493,8 +493,8 @@ WITH relevant_schemas_tables AS (
     SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('new_table')  -- replace with your table names
+    WHERE n.nspname = sqlc.arg('schema')
+    AND c.relname IN (sqlc.arg('tables')::TEXT[])
 ),
 trigger_functions AS (
     SELECT DISTINCT
@@ -518,13 +518,6 @@ ORDER BY
     function_name;
 
 -- name: GetCustomTriggersBySchemaAndTables :many
-WITH relevant_schemas_tables AS (
-    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
-    FROM pg_catalog.pg_class c
-    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('new_table')  -- replace with your table names
-)
 SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
@@ -533,7 +526,7 @@ SELECT
 FROM pg_catalog.pg_trigger t
 JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
 JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.oid IN (SELECT oid FROM relevant_schemas_tables)
+WHERE  (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
 AND NOT t.tgisinternal
 ORDER BY
     schema_name,
@@ -545,8 +538,8 @@ WITH relevant_schemas_tables AS (
     SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'  -- replace with your schema name
-    AND c.relname IN ('test_table')  -- replace with your table names
+    WHERE n.nspname = sqlc.arg('schema')
+    AND c.relname IN (sqlc.arg('tables')::TEXT[])
 ),
 all_sequences AS (
     SELECT
