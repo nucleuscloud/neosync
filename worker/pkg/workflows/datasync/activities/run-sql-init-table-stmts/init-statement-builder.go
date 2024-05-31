@@ -13,6 +13,7 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -114,6 +115,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		switch destinationConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
+			if destPgConfig == nil {
+				continue
+			}
+
 			if sqlopts.InitSchema {
 				tables := []*sql_manager.SchemaTable{}
 				for tableKey := range uniqueTables {
@@ -121,45 +127,55 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tables = append(tables, &sql_manager.SchemaTable{Schema: schema, Table: table})
 				}
 
-				datatypeCfg, err := sourcedb.Db.GetSchemaTableDataTypes(ctx, tables)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
-				}
-				dataTypeStmts := datatypeCfg.GetStatements()
+				errgrp, errctx := errgroup.WithContext(ctx)
 
-				tableTriggers, err := sourcedb.Db.GetSchemaTableTriggers(ctx, tables)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
-				}
+				dataTypeStmts := []string{}
+				errgrp.Go(func() error {
+					datatypeCfg, err := sourcedb.Db.GetSchemaTableDataTypes(errctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+					}
+					dataTypeStmts = datatypeCfg.GetStatements()
+					return nil
+				})
 
-				tableTriggerStmts := make([]string, 0, len(tableTriggers))
-				for _, ttrig := range tableTriggers {
-					tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
-				}
+				tableTriggerStmts := []string{}
+				errgrp.Go(func() error {
+					tableTriggers, err := sourcedb.Db.GetSchemaTableTriggers(ctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+					}
+					for _, ttrig := range tableTriggers {
+						tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+					}
+					return nil
+				})
 
-				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
-				}
 				createTables := []string{}
 				nonFkAlterStmts := []string{}
 				fkAlterStmts := []string{}
 				idxStmts := []string{}
-				for _, stmtCfg := range initStatementCfgs {
-					createTables = append(createTables, stmtCfg.CreateTableStatement)
-					for _, alter := range stmtCfg.AlterTableStatements {
-						if alter.ConstraintType == sql_manager.ForeignConstraintType {
-							fkAlterStmts = append(fkAlterStmts, alter.Statement)
-						} else {
-							nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
-						}
+				errgrp.Go(func() error {
+					initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
 					}
-					idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
-				}
-
-				destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
-				if destPgConfig == nil {
-					continue
+					for _, stmtCfg := range initStatementCfgs {
+						createTables = append(createTables, stmtCfg.CreateTableStatement)
+						for _, alter := range stmtCfg.AlterTableStatements {
+							if alter.ConstraintType == sql_manager.ForeignConstraintType {
+								fkAlterStmts = append(fkAlterStmts, alter.Statement)
+							} else {
+								nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+							}
+						}
+						idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+					}
+					return nil
+				})
+				err = errgrp.Wait()
+				if err != nil {
+					return nil, err
 				}
 
 				initblocks := []initStatementBlock{
