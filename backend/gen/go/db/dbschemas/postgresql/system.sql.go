@@ -23,7 +23,8 @@ trigger_functions AS (
     SELECT DISTINCT
         n.nspname AS schema_name,
         p.proname AS function_name,
-        pg_catalog.pg_get_functiondef(p.oid) AS definition
+        pg_catalog.pg_get_functiondef(p.oid) AS definition,
+        pg_catalog.pg_get_function_identity_arguments(p.oid) AS function_signature
     FROM pg_catalog.pg_trigger t
     JOIN pg_catalog.pg_proc p ON t.tgfoid = p.oid
     JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
@@ -33,6 +34,7 @@ trigger_functions AS (
 SELECT
     schema_name,
     function_name,
+    function_signature,
     definition
 FROM
     trigger_functions
@@ -47,9 +49,10 @@ type GetCustomFunctionsBySchemaAndTablesParams struct {
 }
 
 type GetCustomFunctionsBySchemaAndTablesRow struct {
-	SchemaName   string
-	FunctionName string
-	Definition   string
+	SchemaName        string
+	FunctionName      string
+	FunctionSignature string
+	Definition        string
 }
 
 func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomFunctionsBySchemaAndTablesParams) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
@@ -61,7 +64,12 @@ func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DB
 	var items []*GetCustomFunctionsBySchemaAndTablesRow
 	for rows.Next() {
 		var i GetCustomFunctionsBySchemaAndTablesRow
-		if err := rows.Scan(&i.SchemaName, &i.FunctionName, &i.Definition); err != nil {
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.FunctionName,
+			&i.FunctionSignature,
+			&i.Definition,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

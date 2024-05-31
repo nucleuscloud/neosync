@@ -497,7 +497,8 @@ trigger_functions AS (
     SELECT DISTINCT
         n.nspname AS schema_name,
         p.proname AS function_name,
-        pg_catalog.pg_get_functiondef(p.oid) AS definition
+        pg_catalog.pg_get_functiondef(p.oid) AS definition,
+        pg_catalog.pg_get_function_identity_arguments(p.oid) AS function_signature
     FROM pg_catalog.pg_trigger t
     JOIN pg_catalog.pg_proc p ON t.tgfoid = p.oid
     JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
@@ -507,6 +508,7 @@ trigger_functions AS (
 SELECT
     schema_name,
     function_name,
+    function_signature,
     definition
 FROM
     trigger_functions

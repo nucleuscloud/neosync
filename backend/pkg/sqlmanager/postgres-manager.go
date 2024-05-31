@@ -357,7 +357,7 @@ func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*
 			Schema:      row.SchemaName,
 			Table:       row.TableName,
 			TriggerName: row.TriggerName,
-			Definition:  row.Definition,
+			Definition:  wrapPgIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.Definition),
 		})
 	}
 	return output, nil
@@ -485,7 +485,7 @@ func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema strin
 		output = append(output, &DataType{
 			Schema:     row.SchemaName,
 			Name:       row.SequenceName,
-			Definition: row.Definition,
+			Definition: wrapPgIdempotentSequence(row.SchemaName, row.SequenceName, row.Definition),
 		})
 	}
 	return output, nil
@@ -507,7 +507,7 @@ func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema strin
 		output = append(output, &DataType{
 			Schema:     row.SchemaName,
 			Name:       row.FunctionName,
-			Definition: row.Definition,
+			Definition: wrapPgIdempotentFunction(row.SchemaName, row.FunctionName, row.FunctionSignature, row.Definition),
 		})
 	}
 	return output, nil
@@ -536,7 +536,7 @@ func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema strin
 		dt := &DataType{
 			Schema:     row.SchemaName,
 			Name:       row.TypeName,
-			Definition: row.Definition,
+			Definition: wrapPgIdempotentDataType(row.SchemaName, row.TypeName, row.Definition),
 		}
 		switch row.Type {
 		case "composite":
@@ -697,6 +697,100 @@ BEGIN
 	END IF;
 END $$;
 	`, constraintName, schema, table, addSuffixIfNotExist(alterStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentSequence(
+	schema,
+	sequenceName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE c.relkind = 'S'
+        AND c.relname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, sequenceName, schema, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentTrigger(
+	schema,
+	tableName,
+	triggerName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger t
+        JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE t.tgname = '%s'
+        AND c.relname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, triggerName, tableName, schema, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentFunction(
+	schema,
+	functionName,
+	functionSignature,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE p.proname = '%s'
+        AND n.nspname = '%s'
+        AND pg_catalog.pg_get_function_identity_arguments(p.oid) = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, functionName, schema, functionSignature, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentDataType(
+	schema,
+	dataTypeName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, dataTypeName, schema, addSuffixIfNotExist(createStatement, ";"))
 	return strings.TrimSpace(stmt)
 }
 
