@@ -794,6 +794,7 @@ END $$;
 	return strings.TrimSpace(stmt)
 }
 
+//nolint:unparam
 func addSuffixIfNotExist(input, suffix string) string {
 	if !strings.HasSuffix(input, suffix) {
 		return fmt.Sprintf("%s%s", input, suffix)
