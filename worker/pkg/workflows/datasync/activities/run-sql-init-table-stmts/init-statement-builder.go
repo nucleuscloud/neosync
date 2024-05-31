@@ -120,6 +120,24 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					schema, table := shared.SplitTableKey(tableKey)
 					tables = append(tables, &sql_manager.SchemaTable{Schema: schema, Table: table})
 				}
+
+				datatypeCfg, err := sourcedb.Db.GetSchemaTableDataTypes(ctx, tables)
+				if err != nil {
+					return nil, err
+				}
+
+				dataTypeStmts := datatypeCfg.GetStatements()
+
+				tableTriggers, err := sourcedb.Db.GetSchemaTableTriggers(ctx, tables)
+				if err != nil {
+					return nil, err
+				}
+
+				tableTriggerStmts := make([]string, 0, len(tableTriggers))
+				for _, ttrig := range tableTriggers {
+					tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+				}
+
 				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
 				if err != nil {
 					return nil, err
@@ -146,10 +164,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				initblocks := []initStatementBlock{
+					{label: "data types", statements: dataTypeStmts},
 					{label: "create table", statements: createTables},
 					{label: "non-fk alter table", statements: nonFkAlterStmts},
 					{label: "fk alter table", statements: fkAlterStmts},
 					{label: "table index", statements: idxStmts},
+					{label: "table triggers", statements: tableTriggerStmts},
 				}
 				for _, block := range initblocks {
 					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.label, len(block.statements)))

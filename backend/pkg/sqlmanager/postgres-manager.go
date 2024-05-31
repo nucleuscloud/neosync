@@ -384,6 +384,31 @@ type SchemaTableDataTypeResponse struct {
 	Domains    []*DataType
 }
 
+func (s *SchemaTableDataTypeResponse) GetStatements() []string {
+	output := []string{}
+
+	if s == nil {
+		return output
+	}
+
+	for _, seq := range s.Sequences {
+		output = append(output, seq.Definition)
+	}
+	for _, fn := range s.Functions {
+		output = append(output, fn.Definition)
+	}
+	for _, comp := range s.Composites {
+		output = append(output, comp.Definition)
+	}
+	for _, enumeration := range s.Enums {
+		output = append(output, enumeration.Definition)
+	}
+	for _, domain := range s.Domains {
+		output = append(output, domain.Definition)
+	}
+	return output
+}
+
 // Returns ansilary dependencies like sequences, datatypes, functions, etc that are used by tables, but live at the schema level
 func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
 	if len(tables) == 0 {
