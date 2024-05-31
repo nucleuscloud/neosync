@@ -158,7 +158,10 @@ export default function EditItem(props: Props): ReactElement {
             </Tooltip>
           </TooltipProvider>
           {tableRowCountResp && tableRowCountResp.count >= 0 ? (
-            <Badge variant="darkOutline">
+            <Badge
+              variant="darkOutline"
+              className="dark:bg-gray-800 dark:border-gray-800"
+            >
               {tableRowCountResp.count.toString()}
             </Badge>
           ) : null}
