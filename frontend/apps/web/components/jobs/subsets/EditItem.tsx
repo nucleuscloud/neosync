@@ -113,8 +113,6 @@ export default function EditItem(props: Props): ReactElement {
     onSave();
   }
 
-  console.log('item.wher', item?.where);
-
   // options for the sql editor
   const editorOptions = {
     minimap: { enabled: false },
@@ -249,7 +247,7 @@ export default function EditItem(props: Props): ReactElement {
         </div>
       </div>
       <div>
-        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm relative">
+        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
           {!item?.where ? (
             <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
               Click the edit button on the table that you want to subset and add
