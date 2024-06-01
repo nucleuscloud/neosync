@@ -118,7 +118,7 @@ export default function JobRunStatus(props: Props): ReactElement {
     default:
       return (
         <TooltipProvider>
-          <Tooltip delayDuration={500}>
+          <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <div>
                 <Badge

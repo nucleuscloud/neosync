@@ -29,7 +29,7 @@ export default function ColumnHeader<TData, TValue>({
             value={(column.getFilterValue() ?? '') as string}
             onChange={(e) => column.setFilterValue(e.target.value)}
             placeholder={placeholder ? placeholder : 'Search ...'}
-            className="border border-gray-300 dark:border-gray-700 rounded bg-transparent text-xs h-8"
+            className="border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-transparent text-xs h-8"
           />
         </div>
       )}

@@ -58,19 +58,34 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
         <ColumnHeader
           column={column}
           title={'Table'}
-          placeholder={'Search Tables ..'}
+          placeholder={'Search Tables ...'}
         />
       ),
     },
     {
       accessorKey: 'isRootTable',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Badges" />
+        <DataTableColumnHeader column={column} title="Root Table" />
       ),
       cell: ({ getValue }) => {
         return (
-          <div className="flex space-x-2">
-            {getValue<boolean>() && <Badge>Root</Badge>}
+          <div className="flex justify-center pr-4">
+            {getValue<boolean>() && (
+              <TooltipProvider>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Badge variant="outline">Root</Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs px-2 text-center mx-auto">
+                    This is a Root table that only has has foreign key
+                    references to children tables. Subsetting this table will
+                    subset all of it&apos;s children tables.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },
@@ -78,16 +93,21 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
     {
       accessorKey: 'where',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Where" />
+        <DataTableColumnHeader column={column} title="Subset Filters" />
       ),
       cell: ({ getValue }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="truncate font-medium">{getValue<boolean>()}</span>
+          <div className="flex justify-center">
+            <span className="truncate font-medium max-w-[200px] inline-block">
+              <pre className="bg-gray-100 rounded border border-gray-300 text-xs px-2 dark:bg-transparent dark:border dark:border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100%]">
+                {getValue<boolean>()}
+              </pre>
+            </span>
           </div>
         );
       },
     },
+
     {
       accessorKey: 'edit',
       header: ({ column }) => (
