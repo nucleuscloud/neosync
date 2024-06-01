@@ -77,7 +77,7 @@ export default function SchemaPageTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex flex-row items-center gap-2 pt-4">
+      <div className="flex flex-row items-center gap-2 pt-4 ">
         <div className="flex">
           <GoWorkflow className="h-4 w-4" />
         </div>
@@ -95,7 +95,7 @@ export default function SchemaPageTable<TData, TValue>({
         />
       </div>
       <div
-        className="rounded-md border max-h-[500px] relative overflow-auto"
+        className="rounded-md border max-h-[500px] relative overflow-auto border-gray-700"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
