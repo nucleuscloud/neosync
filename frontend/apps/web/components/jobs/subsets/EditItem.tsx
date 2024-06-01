@@ -13,8 +13,9 @@ import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { Editor } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
+import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
 import { TableRow } from './subset-table/column';
@@ -39,6 +40,7 @@ export default function EditItem(props: Props): ReactElement {
   const [clickedApply, setClickedApply] = useState<boolean>(false);
   const { account } = useAccount();
   const { resolvedTheme } = useTheme();
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -101,6 +103,7 @@ export default function EditItem(props: Props): ReactElement {
   function onCancelClick(): void {
     setValidateResp(undefined);
     setTableRowCountResp(undefined);
+    setClickedApply(true);
     onCancel();
   }
   function onSaveClick(): void {
@@ -110,6 +113,8 @@ export default function EditItem(props: Props): ReactElement {
     onSave();
   }
 
+  console.log('item.wher', item?.where);
+
   // options for the sql editor
   const editorOptions = {
     minimap: { enabled: false },
@@ -117,13 +122,17 @@ export default function EditItem(props: Props): ReactElement {
     scrollBeyondLastLine: false,
     readOnly: !item || (clickedApply && item.where == ''),
     renderLineHighlight: 'none' as const,
+    overviewRulerBorder: false,
+    overviewRulerLanes: 0,
+    lineNumbers:
+      !item || (clickedApply && item.where == '')
+        ? ('off' as const)
+        : ('on' as const),
   };
 
   const constructWhere = (value: string) => {
     if (item?.where && !value.startsWith('WHERE ')) {
       return `WHERE ${value}`;
-    } else if (!item?.where) {
-      return '';
     }
   };
 
@@ -241,7 +250,7 @@ export default function EditItem(props: Props): ReactElement {
       <div>
         <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm relative">
           <Editor
-            height="100px"
+            height="60px"
             width="100%"
             language="sql"
             value={constructWhere(item?.where ?? '')}
@@ -251,7 +260,8 @@ export default function EditItem(props: Props): ReactElement {
           />
           {!item?.where && (
             <div className=" absolute text-gray-400 dark:text-gray-600 text-sm ">
-              Add a table filter here. For example, country = 'US'
+              Click the edit button the table that you want to subset and add a
+              table filter here. For example, country = 'US'
             </div>
           )}
         </div>
