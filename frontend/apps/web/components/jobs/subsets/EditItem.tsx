@@ -118,7 +118,7 @@ export default function EditItem(props: Props): ReactElement {
     minimap: { enabled: false },
     roundedSelection: false,
     scrollBeyondLastLine: false,
-    readOnly: !item || (clickedApply && item.where == ''),
+    readOnly: !item?.where || clickedApply,
     renderLineHighlight: 'none' as const,
     overviewRulerBorder: false,
     overviewRulerLanes: 0,
@@ -131,8 +131,12 @@ export default function EditItem(props: Props): ReactElement {
   const constructWhere = (value: string) => {
     if (item?.where && !value.startsWith('WHERE ')) {
       return `WHERE ${value}`;
+    } else if (!item?.where) {
+      return '';
     }
   };
+
+  // TODO: fix the readOnly settings of the editor its disbaling when it shouldn't be, somethign with the clickAPply state
 
   return (
     <div className="flex flex-col gap-4">
@@ -199,7 +203,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item?.where || (clickedApply && item.where == '')}
+                  disabled={!item?.where || clickedApply}
                   onClick={() => onValidate()}
                 >
                   <ButtonText text="Validate" />
@@ -216,7 +220,7 @@ export default function EditItem(props: Props): ReactElement {
           <Button
             type="button"
             variant="secondary"
-            disabled={!item?.where || (clickedApply && item.where == '')}
+            disabled={!item?.where || clickedApply}
             onClick={() => onCancelClick()}
           >
             <ButtonText text="Cancel" />
@@ -226,7 +230,7 @@ export default function EditItem(props: Props): ReactElement {
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  disabled={!item?.where || (clickedApply && item.where == '')}
+                  disabled={!item?.where || clickedApply}
                   onClick={() => {
                     const editor = editorRef.current;
                     editor?.setValue('');
@@ -248,7 +252,7 @@ export default function EditItem(props: Props): ReactElement {
       </div>
       <div>
         <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-          {!item?.where ? (
+          {item?.where == undefined ? (
             <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
               Click the edit button on the table that you want to subset and add
               a table filter here. For example, country = 'US'
@@ -258,7 +262,7 @@ export default function EditItem(props: Props): ReactElement {
               height="60px"
               width="100%"
               language="sql"
-              value={item?.where && constructWhere(item?.where ?? '')}
+              value={constructWhere(item?.where ?? '')}
               theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
               onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
               options={editorOptions}
