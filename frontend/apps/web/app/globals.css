@@ -82,3 +82,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.monaco-editor .monaco-editor-overlaymessage {
+  color: black; /* White text color */
+}
+
+.monaco-editor .monaco-editor-overlaymessage .anchor {
+  color: red; /* White text color */
+  background-color: transparent;
+}

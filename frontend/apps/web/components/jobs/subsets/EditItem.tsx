@@ -230,6 +230,8 @@ export default function EditItem(props: Props): ReactElement {
                   type="button"
                   disabled={!item?.where || (clickedApply && item.where == '')}
                   onClick={() => {
+                    const editor = editorRef.current;
+                    editor?.setValue('');
                     onSaveClick();
                   }}
                 >
@@ -246,27 +248,26 @@ export default function EditItem(props: Props): ReactElement {
           </TooltipProvider>
         </div>
       </div>
-
       <div>
         <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm relative">
-          <Editor
-            height="60px"
-            width="100%"
-            language="sql"
-            value={constructWhere(item?.where ?? '')}
-            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
-            onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
-            options={editorOptions}
-          />
-          {!item?.where && (
-            <div className=" absolute text-gray-400 dark:text-gray-600 text-sm ">
-              Click the edit button the table that you want to subset and add a
-              table filter here. For example, country = 'US'
+          {!item?.where ? (
+            <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
+              Click the edit button on the table that you want to subset and add
+              a table filter here. For example, country = 'US'
             </div>
+          ) : (
+            <Editor
+              height="60px"
+              width="100%"
+              language="sql"
+              value={item?.where && constructWhere(item?.where ?? '')}
+              theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+              onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
+              options={editorOptions}
+            />
           )}
         </div>
       </div>
-      <div></div>
       <ValidateQueryErrorAlert resp={validateResp} />
     </div>
   );
