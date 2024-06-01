@@ -3,7 +3,6 @@ import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
   TooltipContent,
@@ -12,7 +11,9 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { Editor } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
+import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
@@ -35,7 +36,9 @@ export default function EditItem(props: Props): ReactElement {
     GetTableRowCountResponse | undefined
   >();
   const [calculatingRowCount, setCalculatingRowCount] = useState(false);
+  const [clickedApply, setClickedApply] = useState<boolean>(false);
   const { account } = useAccount();
+  const { resolvedTheme } = useTheme();
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -103,8 +106,26 @@ export default function EditItem(props: Props): ReactElement {
   function onSaveClick(): void {
     setValidateResp(undefined);
     setTableRowCountResp(undefined);
+    setClickedApply(true);
     onSave();
   }
+
+  // options for the sql editor
+  const editorOptions = {
+    minimap: { enabled: false },
+    roundedSelection: false,
+    scrollBeyondLastLine: false,
+    readOnly: !item || (clickedApply && item.where == ''),
+    renderLineHighlight: 'none' as const,
+  };
+
+  const constructWhere = (value: string) => {
+    if (item?.where && !value.startsWith('WHERE ')) {
+      return `WHERE ${value}`;
+    } else if (!item?.where) {
+      return '';
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -134,7 +155,7 @@ export default function EditItem(props: Props): ReactElement {
         </div>
         <div className="flex flex-row gap-4">
           <TooltipProvider>
-            <Tooltip>
+            <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
@@ -171,7 +192,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item || !item.where}
+                  disabled={!item?.where || (clickedApply && item.where == '')}
                   onClick={() => onValidate()}
                 >
                   <ButtonText text="Validate" />
@@ -188,18 +209,20 @@ export default function EditItem(props: Props): ReactElement {
           <Button
             type="button"
             variant="secondary"
-            disabled={!item}
+            disabled={!item?.where || (clickedApply && item.where == '')}
             onClick={() => onCancelClick()}
           >
             <ButtonText text="Cancel" />
           </Button>
           <TooltipProvider>
-            <Tooltip>
+            <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  disabled={!item}
-                  onClick={() => onSaveClick()}
+                  disabled={!item?.where || (clickedApply && item.where == '')}
+                  onClick={() => {
+                    onSaveClick();
+                  }}
                 >
                   <ButtonText text="Apply" />
                 </Button>
@@ -216,24 +239,24 @@ export default function EditItem(props: Props): ReactElement {
       </div>
 
       <div>
-        <Textarea
-          disabled={!item}
-          placeholder={
-            !!item
-              ? 'Add a table filter here'
-              : 'Click edit on a row above to change the where clause'
-          }
-          value={item?.where ?? ''}
-          onChange={(e) => onWhereChange(e.currentTarget.value)}
-        />
+        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm relative">
+          <Editor
+            height="100px"
+            width="100%"
+            language="sql"
+            value={constructWhere(item?.where ?? '')}
+            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
+            onChange={(e) => onWhereChange(e?.replace('WHERE ', '') ?? '')}
+            options={editorOptions}
+          />
+          {!item?.where && (
+            <div className=" absolute text-gray-400 dark:text-gray-600 text-sm ">
+              Add a table filter here. For example, country = 'US'
+            </div>
+          )}
+        </div>
       </div>
-      <div>
-        <Textarea
-          placeholder="Where clause preview"
-          disabled={true}
-          value={buildSelectQuery(item?.where)}
-        />
-      </div>
+      <div></div>
       <ValidateQueryErrorAlert resp={validateResp} />
     </div>
   );

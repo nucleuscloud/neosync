@@ -51,7 +51,6 @@ export default function UserDefinedTransformJavascriptForm(
   const [userCode, setUserCode] = useState<string>(
     fc.getValues('config.value.code')
   );
-
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
 

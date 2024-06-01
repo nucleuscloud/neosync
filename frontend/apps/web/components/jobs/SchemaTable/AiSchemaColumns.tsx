@@ -111,8 +111,8 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
               </div>
               <div>
                 {isForeignKey && (
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={200}>
                       <TooltipTrigger>
                         <Badge
                           variant="outline"
@@ -185,7 +185,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
         const datatype = constraintHandler.getDataType(key);
         return (
           <TooltipProvider>
-            <Tooltip>
+            <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>
                 <div>
                   <Badge variant="outline" className="max-w-[100px]">
