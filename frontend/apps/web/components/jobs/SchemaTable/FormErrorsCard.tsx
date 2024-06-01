@@ -43,9 +43,15 @@ export default function FormErrorsCard(props: Props): ReactElement {
             <CheckCircledIcon className="w-4 h-4" />
           )}
           <CardTitle>Validations</CardTitle>
-          <div>
+          <div className="flex">
             {onValidate && (
-              <Button variant="ghost" size="icon" key="validate" type="button">
+              <Button
+                variant="ghost"
+                className="h-4 w-4"
+                size="icon"
+                key="validate"
+                type="button"
+              >
                 {isValidating ? (
                   <Spinner className="h-4 w-4" />
                 ) : (
