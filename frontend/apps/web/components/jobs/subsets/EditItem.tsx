@@ -247,7 +247,7 @@ export default function EditItem(props: Props): ReactElement {
           {item?.where == undefined ? (
             <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
               Click the edit button on the table that you want to subset and add
-              a table filter here. For example, country = 'US'
+              a table filter here. For example, country = &apos;US&apos;
             </div>
           ) : (
             <Editor
@@ -286,13 +286,6 @@ async function validateSql(
     throw new Error(body.message);
   }
   return CheckSqlQueryResponse.fromJson(await res.json());
-}
-
-function buildSelectQuery(whereClause?: string): string {
-  if (!whereClause) {
-    return '';
-  }
-  return `WHERE ${whereClause};`;
 }
 
 async function getTableRowCount(

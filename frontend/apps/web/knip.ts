@@ -26,18 +26,18 @@ const config = {
     'postcss',
     //'eslint-config-next',
     // 'memoize-one',
-    'monaco-editor',
-    'tailwindcss-animate',
+    // 'monaco-editor',
+    // 'tailwindcss-animate',
     'use-resize-observer',
     'react-dom',
     'eslint',
     'prettier',
     '@types/react-dom',
-    '@typescript-eslint/eslint-plugin',
+    // '@typescript-eslint/eslint-plugin',
     '@types/react-window',
     '@neosync/sdk',
   ],
-  ignoreBinaries: ['tail', 'next'],
+  ignoreBinaries: ['tail', 'next', 'knip', 'tsc'],
 };
 
 export default config;
