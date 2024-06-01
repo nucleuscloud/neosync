@@ -1,207 +1,204 @@
 -- name: GetDatabaseSchema :many
-SELECT
-    n.nspname AS table_schema,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
-    CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
-FROM
-    pg_catalog.pg_attribute a
+WITH all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid,
+        ad.adrelid,
+        ad.adnum
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+column_defaults AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+        COALESCE(pg_catalog.pg_get_expr(d.adbin, d.adrelid), '')::text AS column_default,
+        CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
+        CASE
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            ELSE
+                -1
+        END AS character_maximum_length,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                (a.atttypmod - 4) >> 16
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                16
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                32
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                64
+            ELSE
+                -1
+        END AS numeric_precision,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                CASE
+                    WHEN (a.atttypmod) = -1 THEN -1
+                    ELSE (a.atttypmod - 4) & 65535
+                END
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                0
+            ELSE
+                -1
+        END AS numeric_scale,
+        a.attnum AS ordinal_position,
+        a.attgenerated::text as generated_type,
+        c.oid AS table_oid
+    FROM
+        pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
     INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
-ORDER BY
-    a.attnum;
-
--- name: GetDatabaseTableSchema :many
+    WHERE
+        n.nspname NOT IN('pg_catalog', 'pg_toast', 'information_schema')
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+        AND c.relkind = 'r'
+)
 SELECT
-    n.nspname AS schema_name,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
+    cd.*,
     CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
+        WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
+        WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        ELSE ''
+    END AS sequence_type
 FROM
-    pg_catalog.pg_attribute a
-    INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
-    INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
-    LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    c.relname = sqlc.arg('table')
-    AND n.nspname = sqlc.arg('schema')
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
+    column_defaults cd
+LEFT JOIN linked_to_serial ls
+    ON cd.table_oid = ls.adrelid
+    AND cd.ordinal_position = ls.adnum
 ORDER BY
-    a.attnum;
+    cd.ordinal_position;
 
 -- name: GetDatabaseTableSchemasBySchemasAndTables :many
-SELECT
-    n.nspname AS schema_name,
-    c.relname AS table_name,
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
- COALESCE(
-        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
-        ''
-    )::text AS column_default,
-    CASE
-        WHEN a.attnotnull THEN 'NO'
-        ELSE 'YES'
-    END AS is_nullable,
-    CASE
-        WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
-        ELSE
-            -1
-    END AS character_maximum_length,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) >> 16
-        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the precision column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            16
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            32
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            64
-        ELSE
-            -1
-    END AS numeric_precision,
-    CASE
-        WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            CASE
-                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
-                WHEN (a.atttypmod) = -1 THEN -1
-                ELSE (a.atttypmod - 4) & 65535
-            END
-        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
-        -- This operates similar to the scake column in the information_schema.columns table
-        WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
-            0
-        WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
-            0
-        ELSE
-            -1
-    END AS numeric_scale,
-    a.attnum AS ordinal_position,
-    a.attgenerated::text as generated_type
-FROM
-    pg_catalog.pg_attribute a
+WITH all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid,
+        ad.adrelid,
+        ad.adnum
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+column_defaults AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+        COALESCE(pg_catalog.pg_get_expr(d.adbin, d.adrelid), '')::text AS column_default,
+        CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END AS is_nullable,
+        CASE
+            WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
+                a.atttypmod - 4
+            ELSE
+                -1
+        END AS character_maximum_length,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                (a.atttypmod - 4) >> 16
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                16
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                32
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                64
+            ELSE
+                -1
+        END AS numeric_precision,
+        CASE
+            WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
+                CASE
+                    WHEN (a.atttypmod) = -1 THEN -1
+                    ELSE (a.atttypmod - 4) & 65535
+                END
+            WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
+                0
+            WHEN a.atttypid = pg_catalog.regtype 'bigint'::regtype THEN
+                0
+            ELSE
+                -1
+        END AS numeric_scale,
+        a.attnum AS ordinal_position,
+        a.attgenerated::text as generated_type,
+        c.oid AS table_oid
+    FROM
+        pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
     INNER JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
-    INNER JOIN pg_catalog.pg_type pgt ON pgt.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
-WHERE
-    (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-    AND c.relkind = 'r' -- ensures only tables are present
+    WHERE
+        (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+        AND c.relkind = 'r'
+)
+SELECT
+    cd.*,
+    CASE
+        WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
+        WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        ELSE ''
+    END AS sequence_type
+FROM
+    column_defaults cd
+LEFT JOIN linked_to_serial ls
+    ON cd.table_oid = ls.adrelid
+    AND cd.ordinal_position = ls.adnum
 ORDER BY
-    a.attnum;
+    cd.ordinal_position;
 
 -- name: GetTableConstraints :many
 SELECT
@@ -357,3 +354,250 @@ ORDER BY
     schema_name,
     table_name,
     index_name;
+
+-- name: GetDataTypesBySchemaAndTables :many
+WITH custom_types AS (
+    SELECT
+        n.nspname AS schema_name,
+        t.typname AS type_name,
+        t.oid AS type_oid,
+        CASE
+            WHEN t.typtype = 'd' THEN 'domain'
+            WHEN t.typtype = 'e' THEN 'enum'
+            WHEN t.typtype = 'c' THEN 'composite'
+        END AS type
+    FROM
+        pg_catalog.pg_type t
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE
+        n.nspname = sqlc.arg('schema')
+        AND t.typtype IN ('d', 'e', 'c')
+),
+table_columns AS (
+    SELECT
+        c.oid AS table_oid,
+        a.atttypid AS type_oid
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    WHERE
+        n.nspname = sqlc.arg('schema')
+        AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+),
+relevant_custom_types AS (
+    SELECT DISTINCT
+        ct.schema_name,
+        ct.type_name,
+        ct.type_oid,
+        ct.type
+    FROM
+        custom_types ct
+    JOIN
+        table_columns tc ON ct.type_oid = tc.type_oid
+),
+domain_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE DOMAIN ' || rct.schema_name || '.' || rct.type_name || ' AS ' ||
+        pg_catalog.format_type(t.typbasetype, t.typtypmod) ||
+        CASE
+            WHEN t.typnotnull THEN ' NOT NULL' ELSE ''
+        END || ' ' ||
+        COALESCE('CONSTRAINT ' || conname || ' ' || pg_catalog.pg_get_constraintdef(c.oid), '') || ';' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    LEFT JOIN
+        pg_catalog.pg_constraint c ON t.oid = c.contypid
+    WHERE
+        rct.type = 'domain'
+),
+enum_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS ENUM (' ||
+        string_agg('''' || e.enumlabel || '''', ', ') || ');' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_enum e ON t.oid = e.enumtypid
+    WHERE
+        rct.type = 'enum'
+    GROUP BY
+        rct.schema_name, rct.type_name, rct.type
+),
+composite_defs AS (
+    SELECT
+        rct.schema_name,
+        rct.type_name,
+        rct.type,
+        'CREATE TYPE ' || rct.schema_name || '.' || rct.type_name || ' AS (' ||
+        string_agg(a.attname || ' ' || pg_catalog.format_type(a.atttypid, a.atttypmod), ', ') || ');' AS definition
+    FROM
+        relevant_custom_types rct
+    JOIN
+        pg_catalog.pg_type t ON rct.type_oid = t.oid
+    JOIN
+        pg_catalog.pg_class c ON c.oid = t.typrelid
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    WHERE
+        rct.type = 'composite'
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+    GROUP BY
+        rct.schema_name, rct.type_name, rct.type
+)
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    domain_defs
+UNION ALL
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    enum_defs
+UNION ALL
+SELECT
+    schema_name,
+    type_name,
+    "type"::text,
+    "definition"::text
+FROM
+    composite_defs;
+
+-- name: GetCustomFunctionsBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = sqlc.arg('schema')
+    AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+),
+trigger_functions AS (
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        p.proname AS function_name,
+        pg_catalog.pg_get_functiondef(p.oid) AS definition,
+        pg_catalog.pg_get_function_identity_arguments(p.oid) AS function_signature
+    FROM pg_catalog.pg_trigger t
+    JOIN pg_catalog.pg_proc p ON t.tgfoid = p.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE t.tgrelid IN (SELECT oid FROM relevant_schemas_tables)
+    AND NOT t.tgisinternal
+)
+SELECT
+    schema_name,
+    function_name,
+    function_signature,
+    definition
+FROM
+    trigger_functions
+ORDER BY
+    schema_name,
+    function_name;
+
+-- name: GetCustomTriggersBySchemaAndTables :many
+SELECT
+    n.nspname AS schema_name,
+    c.relname AS table_name,
+    t.tgname AS trigger_name,
+    pg_catalog.pg_get_triggerdef(t.oid, true) AS definition
+FROM pg_catalog.pg_trigger t
+JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
+JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE  (n.nspname || '.' || c.relname) = ANY(sqlc.arg('schematables')::TEXT[])
+AND NOT t.tgisinternal
+ORDER BY
+    schema_name,
+    table_name,
+    trigger_name;
+
+-- name: GetCustomSequencesBySchemaAndTables :many
+WITH relevant_schemas_tables AS (
+    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = sqlc.arg('schema')
+    AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
+),
+all_sequences AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    WHERE
+        seq.relkind = 'S'
+),
+linked_to_serial AS (
+    SELECT
+        seq.relname AS sequence_name,
+        nsp.nspname AS schema_name,
+        seq.oid AS sequence_oid
+    FROM
+        pg_catalog.pg_class seq
+    JOIN
+        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+    JOIN
+        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+    JOIN
+        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+    WHERE
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
+),
+custom_sequences AS (
+    SELECT
+        seq.sequence_name,
+        seq.schema_name,
+        seq.sequence_oid
+    FROM
+        all_sequences seq
+    LEFT JOIN
+        linked_to_serial serial ON seq.sequence_oid = serial.sequence_oid
+    WHERE
+        serial.sequence_oid IS NULL
+)
+SELECT DISTINCT
+    cs.schema_name,
+    cs.sequence_name,
+    (
+        'CREATE SEQUENCE ' || cs.schema_name || '.' || cs.sequence_name ||
+        ' START WITH ' || seqs.start_value ||
+        ' INCREMENT BY ' || seqs.increment_by ||
+        ' MINVALUE ' || seqs.min_value ||
+        ' MAXVALUE ' || seqs.max_value ||
+        ' CACHE ' || seqs.cache_size ||
+        CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
+    )::text AS "definition"
+FROM
+    custom_sequences cs
+JOIN
+    relevant_schemas_tables rst ON cs.schema_name = rst.schema_name
+JOIN
+    pg_catalog.pg_sequences seqs ON seqs.schemaname = cs.schema_name AND seqs.sequencename = cs.sequence_name
+ORDER BY
+    cs.schema_name,
+    cs.sequence_name;

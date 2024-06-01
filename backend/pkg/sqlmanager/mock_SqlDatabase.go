@@ -618,6 +618,124 @@ func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetSchemaTableDataTypes provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemaTableDataTypes")
+	}
+
+	var r0 *SchemaTableDataTypeResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) (*SchemaTableDataTypeResponse, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) *SchemaTableDataTypeResponse); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*SchemaTableDataTypeResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetSchemaTableDataTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSchemaTableDataTypes'
+type MockSqlDatabase_GetSchemaTableDataTypes_Call struct {
+	*mock.Call
+}
+
+// GetSchemaTableDataTypes is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetSchemaTableDataTypes(ctx interface{}, tables interface{}) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+	return &MockSqlDatabase_GetSchemaTableDataTypes_Call{Call: _e.mock.On("GetSchemaTableDataTypes", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Return(_a0 *SchemaTableDataTypeResponse, _a1 error) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) RunAndReturn(run func(context.Context, []*SchemaTable) (*SchemaTableDataTypeResponse, error)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSchemaTableTriggers provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemaTableTriggers")
+	}
+
+	var r0 []*TableTrigger
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) ([]*TableTrigger, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) []*TableTrigger); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*TableTrigger)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetSchemaTableTriggers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSchemaTableTriggers'
+type MockSqlDatabase_GetSchemaTableTriggers_Call struct {
+	*mock.Call
+}
+
+// GetSchemaTableTriggers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetSchemaTableTriggers(ctx interface{}, tables interface{}) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+	return &MockSqlDatabase_GetSchemaTableTriggers_Call{Call: _e.mock.On("GetSchemaTableTriggers", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Return(_a0 []*TableTrigger, _a1 error) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) RunAndReturn(run func(context.Context, []*SchemaTable) ([]*TableTrigger, error)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTableConstraintsBySchema provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
 	ret := _m.Called(ctx, schemas)

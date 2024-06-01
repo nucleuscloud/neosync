@@ -17,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -758,7 +757,8 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 		if err != nil {
 			return nil, err
 		}
-		dbschema, err := s.pgquerier.GetDatabaseTableSchema(ctx, db, &pg_queries.GetDatabaseTableSchemaParams{Schema: schema, Table: table})
+		schematable := sql_manager.SchemaTable{Schema: schema, Table: table}
+		dbschema, err := s.pgquerier.GetDatabaseTableSchemasBySchemasAndTables(ctx, db, []string{schematable.String()})
 		if err != nil {
 			return nil, err
 		}

@@ -13,6 +13,7 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -114,42 +115,76 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		switch destinationConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
+			if destPgConfig == nil {
+				continue
+			}
+
 			if sqlopts.InitSchema {
 				tables := []*sql_manager.SchemaTable{}
 				for tableKey := range uniqueTables {
 					schema, table := shared.SplitTableKey(tableKey)
 					tables = append(tables, &sql_manager.SchemaTable{Schema: schema, Table: table})
 				}
-				initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
-				if err != nil {
-					return nil, err
-				}
+
+				errgrp, errctx := errgroup.WithContext(ctx)
+
+				dataTypeStmts := []string{}
+				errgrp.Go(func() error {
+					datatypeCfg, err := sourcedb.Db.GetSchemaTableDataTypes(errctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+					}
+					dataTypeStmts = datatypeCfg.GetStatements()
+					return nil
+				})
+
+				tableTriggerStmts := []string{}
+				errgrp.Go(func() error {
+					tableTriggers, err := sourcedb.Db.GetSchemaTableTriggers(ctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+					}
+					for _, ttrig := range tableTriggers {
+						tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+					}
+					return nil
+				})
+
 				createTables := []string{}
 				nonFkAlterStmts := []string{}
 				fkAlterStmts := []string{}
 				idxStmts := []string{}
-				for _, stmtCfg := range initStatementCfgs {
-					createTables = append(createTables, stmtCfg.CreateTableStatement)
-					for _, alter := range stmtCfg.AlterTableStatements {
-						if alter.ConstraintType == sql_manager.ForeignConstraintType {
-							fkAlterStmts = append(fkAlterStmts, alter.Statement)
-						} else {
-							nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
-						}
+				errgrp.Go(func() error {
+					initStatementCfgs, err := sourcedb.Db.GetTableInitStatements(ctx, tables)
+					if err != nil {
+						return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
 					}
-					idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
-				}
-
-				destPgConfig := destinationConnection.ConnectionConfig.GetPgConfig()
-				if destPgConfig == nil {
-					continue
+					for _, stmtCfg := range initStatementCfgs {
+						createTables = append(createTables, stmtCfg.CreateTableStatement)
+						for _, alter := range stmtCfg.AlterTableStatements {
+							if alter.ConstraintType == sql_manager.ForeignConstraintType {
+								fkAlterStmts = append(fkAlterStmts, alter.Statement)
+							} else {
+								nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+							}
+						}
+						idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+					}
+					return nil
+				})
+				err = errgrp.Wait()
+				if err != nil {
+					return nil, err
 				}
 
 				initblocks := []initStatementBlock{
+					{label: "data types", statements: dataTypeStmts},
 					{label: "create table", statements: createTables},
 					{label: "non-fk alter table", statements: nonFkAlterStmts},
 					{label: "fk alter table", statements: fkAlterStmts},
 					{label: "table index", statements: idxStmts},
+					{label: "table triggers", statements: tableTriggerStmts},
 				}
 				for _, block := range initblocks {
 					slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.label, len(block.statements)))

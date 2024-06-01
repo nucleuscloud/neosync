@@ -117,16 +117,16 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 
 	mockColumns := []*pg_queries.GetDatabaseSchemaRow{
 		{
-			TableSchema: "public",
-			TableName:   "users",
-			ColumnName:  "id",
-			DataType:    "integer",
+			SchemaName: "public",
+			TableName:  "users",
+			ColumnName: "id",
+			DataType:   "integer",
 		},
 		{
-			TableSchema: "public",
-			TableName:   "users",
-			ColumnName:  "name",
-			DataType:    "character varying",
+			SchemaName: "public",
+			TableName:  "users",
+			ColumnName: "name",
+			DataType:   "character varying",
 		}}
 
 	pool, _ := pgxpool.New(context.Background(), "")
@@ -151,7 +151,7 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 	expected := []*mgmtv1alpha1.DatabaseColumn{}
 	for _, col := range mockColumns {
 		expected = append(expected, &mgmtv1alpha1.DatabaseColumn{
-			Schema:   col.TableSchema,
+			Schema:   col.SchemaName,
 			Table:    col.TableName,
 			Column:   col.ColumnName,
 			DataType: col.DataType,
@@ -340,14 +340,14 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "id",
 			},
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "name",
 			},
 		}, nil)
 	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
@@ -448,14 +448,14 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "id",
 			},
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "name",
 			},
 		}, nil)
 	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
@@ -587,20 +587,17 @@ func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "id",
 			},
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "name",
 			},
 		}, nil)
-	m.PgQueierMock.On("GetDatabaseTableSchema", mock.Anything, mock.Anything, &pg_queries.GetDatabaseTableSchemaParams{
-		Schema: "public",
-		Table:  "users",
-	}).Return([]*pg_queries.GetDatabaseTableSchemaRow{
+	m.PgQueierMock.On("GetDatabaseTableSchemasBySchemasAndTables", mock.Anything, mock.Anything, []string{"public.users"}).Return([]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
 		{
 			ColumnName:      "id",
 			DataType:        "uuid",
@@ -661,14 +658,14 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "id",
 			},
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "name",
 			},
 		}, nil)
 
@@ -995,14 +992,14 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "id",
 			},
 			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
+				SchemaName: "public",
+				TableName:  "users",
+				ColumnName: "name",
 			},
 		}, nil)
 	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).

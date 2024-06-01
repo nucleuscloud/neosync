@@ -284,6 +284,16 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*Sch
 	return nil, errors.ErrUnsupported
 }
 
+// todo
+func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+	return nil, errors.ErrUnsupported
+}
+
+// todo
+func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
 	result, err := getShowTableCreate(ctx, m.pool, schema, table)
 	if err != nil {

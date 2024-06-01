@@ -32,7 +32,7 @@ func Test_GetDatabaseSchema(t *testing.T) {
 	pgquerier.On("GetDatabaseSchema", mock.Anything, mockPool).Return(
 		[]*pg_queries.GetDatabaseSchemaRow{
 			{
-				TableSchema:            "public",
+				SchemaName:             "public",
 				TableName:              "users",
 				ColumnName:             "id",
 				DataType:               "varchar",
@@ -44,7 +44,7 @@ func Test_GetDatabaseSchema(t *testing.T) {
 				OrdinalPosition:        4,
 			},
 			{
-				TableSchema:            "public",
+				SchemaName:             "public",
 				TableName:              "orders",
 				ColumnName:             "buyer_id",
 				DataType:               "integer",
@@ -273,11 +273,8 @@ func Test_GetCreateTableStatement(t *testing.T) {
 		pool:    mockPool,
 	}
 
-	pgquerier.On("GetDatabaseTableSchema", mock.Anything, mockPool, &pg_queries.GetDatabaseTableSchemaParams{
-		Schema: "public",
-		Table:  "users",
-	}).Return(
-		[]*pg_queries.GetDatabaseTableSchemaRow{
+	pgquerier.On("GetDatabaseTableSchemasBySchemasAndTables", mock.Anything, mockPool, []string{"public.users"}).Return(
+		[]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
 			{
 				SchemaName:             "public",
 				TableName:              "users",
@@ -289,6 +286,7 @@ func Test_GetCreateTableStatement(t *testing.T) {
 				NumericPrecision:       -1,
 				NumericScale:           -1,
 				OrdinalPosition:        4,
+				SequenceType:           "",
 			},
 			{
 				SchemaName:             "public",
@@ -301,6 +299,7 @@ func Test_GetCreateTableStatement(t *testing.T) {
 				NumericPrecision:       32,
 				NumericScale:           0,
 				OrdinalPosition:        5,
+				SequenceType:           "",
 			},
 		}, nil,
 	)
@@ -445,7 +444,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 	type testcase struct {
 		schema      string
 		table       string
-		rows        []*pg_queries.GetDatabaseTableSchemaRow
+		rows        []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow
 		constraints []*pg_queries.GetTableConstraintsRow
 		expected    string
 	}
@@ -453,7 +452,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 		{
 			schema: "public",
 			table:  "users",
-			rows: []*pg_queries.GetDatabaseTableSchemaRow{
+			rows: []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
 				{
 					ColumnName:      "id",
 					DataType:        "uuid",
@@ -500,13 +499,14 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 		{
 			schema: "public",
 			table:  "users",
-			rows: []*pg_queries.GetDatabaseTableSchemaRow{
+			rows: []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
 				{
 					ColumnName:      "id",
 					DataType:        "integer",
 					OrdinalPosition: 1,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 				{
 					ColumnName:      "id2",
@@ -514,6 +514,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 					OrdinalPosition: 2,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id2_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 				{
 					ColumnName:      "id3",
@@ -521,6 +522,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 					OrdinalPosition: 3,
 					IsNullable:      "NO",
 					ColumnDefault:   "nextval('users_id3_seq'::regclass)",
+					SequenceType:    "SERIAL",
 				},
 			},
 			constraints: []*pg_queries.GetTableConstraintsRow{},

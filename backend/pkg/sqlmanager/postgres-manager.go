@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/doug-martin/goqu/v9"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -32,7 +33,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 			generatedType = &row.GeneratedType
 		}
 		result = append(result, &DatabaseSchemaRow{
-			TableSchema:            row.TableSchema,
+			TableSchema:            row.SchemaName,
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
@@ -248,12 +249,11 @@ func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string
 func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
 	errgrp, errctx := errgroup.WithContext(ctx)
 
-	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
+	schematable := SchemaTable{Schema: schema, Table: table}
+
+	var tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow
 	errgrp.Go(func() error {
-		result, err := p.querier.GetDatabaseTableSchema(errctx, p.pool, &pg_queries.GetDatabaseTableSchemaParams{
-			Schema: schema,
-			Table:  table,
-		})
+		result, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.pool, []string{schematable.String()})
 		if err != nil {
 			return fmt.Errorf("unable to generate database table schema: %w", err)
 		}
@@ -325,6 +325,229 @@ type SchemaTable struct {
 
 func (s SchemaTable) String() string {
 	return BuildTable(s.Schema, s.Table)
+}
+
+type TableTrigger struct {
+	Schema      string
+	Table       string
+	TriggerName string
+	Definition  string
+}
+
+func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+	if len(tables) == 0 {
+		return []*TableTrigger{}, nil
+	}
+
+	combined := make([]string, 0, len(tables))
+	for _, t := range tables {
+		combined = append(combined, t.String())
+	}
+
+	rows, err := p.querier.GetCustomTriggersBySchemaAndTables(ctx, p.pool, combined)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*TableTrigger{}, nil
+	}
+
+	output := make([]*TableTrigger, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &TableTrigger{
+			Schema:      row.SchemaName,
+			Table:       row.TableName,
+			TriggerName: row.TriggerName,
+			Definition:  wrapPgIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.Definition),
+		})
+	}
+	return output, nil
+}
+
+type DataType struct {
+	Schema     string
+	Name       string
+	Definition string
+}
+
+// These are all items that live at the schema level, but are used by tables
+type SchemaTableDataTypeResponse struct {
+	// Custom Sequences not tied to the SERIAL data type
+	Sequences []*DataType
+
+	// SQL Functions
+	Functions []*DataType
+
+	// actual Data Types
+	Composites []*DataType
+	Enums      []*DataType
+	Domains    []*DataType
+}
+
+func (s *SchemaTableDataTypeResponse) GetStatements() []string {
+	output := []string{}
+
+	if s == nil {
+		return output
+	}
+
+	for _, seq := range s.Sequences {
+		output = append(output, seq.Definition)
+	}
+	for _, fn := range s.Functions {
+		output = append(output, fn.Definition)
+	}
+	for _, comp := range s.Composites {
+		output = append(output, comp.Definition)
+	}
+	for _, enumeration := range s.Enums {
+		output = append(output, enumeration.Definition)
+	}
+	for _, domain := range s.Domains {
+		output = append(output, domain.Definition)
+	}
+	return output
+}
+
+// Returns ansilary dependencies like sequences, datatypes, functions, etc that are used by tables, but live at the schema level
+func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+	if len(tables) == 0 {
+		return &SchemaTableDataTypeResponse{}, nil
+	}
+
+	schemaTablesMap := map[string][]string{}
+	for _, t := range tables {
+		schemaTablesMap[t.Schema] = append(schemaTablesMap[t.Schema], t.Table)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3) // Limit this to effectively one set per schema
+
+	output := &SchemaTableDataTypeResponse{}
+	// Could use a mutex per property, but this is fine for now
+	mu := sync.Mutex{}
+	for schema, tables := range schemaTablesMap {
+		schema := schema
+		tables := tables
+
+		errgrp.Go(func() error {
+			seqs, err := p.getSequencesByTables(errctx, schema, tables)
+			if err != nil {
+				return fmt.Errorf("unable to get postgres custom sequences by tables: %w", err)
+			}
+			mu.Lock()
+			output.Sequences = append(output.Sequences, seqs...)
+			mu.Unlock()
+			return nil
+		})
+		errgrp.Go(func() error {
+			funcs, err := p.getFunctionsByTables(errctx, schema, tables)
+			if err != nil {
+				return fmt.Errorf("unable to get postgres custom functions by tables: %w", err)
+			}
+			mu.Lock()
+			output.Functions = append(output.Functions, funcs...)
+			mu.Unlock()
+			return nil
+		})
+		errgrp.Go(func() error {
+			datatypes, err := p.getDataTypesByTables(errctx, schema, tables)
+			if err != nil {
+				return fmt.Errorf("unable to get postgres custom data types by tables: %w", err)
+			}
+			mu.Lock()
+			output.Composites = append(output.Composites, datatypes.Composites...)
+			output.Enums = append(output.Enums, datatypes.Enums...)
+			output.Domains = append(output.Domains, datatypes.Domains...)
+			mu.Unlock()
+			return nil
+		})
+	}
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*DataType, error) {
+	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*DataType{}, nil
+	}
+
+	output := make([]*DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.SequenceName,
+			Definition: wrapPgIdempotentSequence(row.SchemaName, row.SequenceName, row.Definition),
+		})
+	}
+	return output, nil
+}
+
+func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*DataType, error) {
+	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*DataType{}, nil
+	}
+
+	output := make([]*DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.FunctionName,
+			Definition: wrapPgIdempotentFunction(row.SchemaName, row.FunctionName, row.FunctionSignature, row.Definition),
+		})
+	}
+	return output, nil
+}
+
+type datatypes struct {
+	Composites []*DataType
+	Enums      []*DataType
+	Domains    []*DataType
+}
+
+func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema string, tables []string) (*datatypes, error) {
+	rows, err := p.querier.GetDataTypesBySchemaAndTables(ctx, p.pool, &pg_queries.GetDataTypesBySchemaAndTablesParams{
+		Schema: schema,
+		Tables: tables,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return &datatypes{}, nil
+	}
+
+	output := &datatypes{}
+
+	for _, row := range rows {
+		dt := &DataType{
+			Schema:     row.SchemaName,
+			Name:       row.TypeName,
+			Definition: wrapPgIdempotentDataType(row.SchemaName, row.TypeName, row.Definition),
+		}
+		switch row.Type {
+		case "composite":
+			output.Composites = append(output.Composites, dt)
+		case "domain":
+			output.Domains = append(output.Domains, dt)
+		case "enum":
+			output.Enums = append(output.Enums, dt)
+		}
+	}
+	return output, nil
 }
 
 func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
@@ -404,6 +627,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				DataType:      td.DataType,
 				IsNullable:    td.IsNullable == "YES",
 				GeneratedType: td.GeneratedType,
+				IsSerial:      td.SequenceType == "SERIAL", //nolint:goconst
 			}))
 		}
 
@@ -476,6 +700,101 @@ END $$;
 	return strings.TrimSpace(stmt)
 }
 
+func wrapPgIdempotentSequence(
+	schema,
+	sequenceName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE c.relkind = 'S'
+        AND c.relname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, sequenceName, schema, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentTrigger(
+	schema,
+	tableName,
+	triggerName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger t
+        JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE t.tgname = '%s'
+        AND c.relname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, triggerName, tableName, schema, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentFunction(
+	schema,
+	functionName,
+	functionSignature,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE p.proname = '%s'
+        AND n.nspname = '%s'
+        AND pg_catalog.pg_get_function_identity_arguments(p.oid) = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, functionName, schema, functionSignature, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+func wrapPgIdempotentDataType(
+	schema,
+	dataTypeName,
+	createStatement string,
+) string {
+	stmt := fmt.Sprintf(`
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        WHERE t.typname = '%s'
+        AND n.nspname = '%s'
+    ) THEN
+        %s
+    END IF;
+END $$;
+`, dataTypeName, schema, addSuffixIfNotExist(createStatement, ";"))
+	return strings.TrimSpace(stmt)
+}
+
+//nolint:unparam
 func addSuffixIfNotExist(input, suffix string) string {
 	if !strings.HasSuffix(input, suffix) {
 		return fmt.Sprintf("%s%s", input, suffix)
@@ -499,7 +818,7 @@ func buildAlterStatementByConstraint(
 func generateCreateTableStatement(
 	schema string,
 	table string,
-	tableSchemas []*pg_queries.GetDatabaseTableSchemaRow,
+	tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow,
 	tableConstraints []*pg_queries.GetTableConstraintsRow,
 ) string {
 	columns := make([]string, len(tableSchemas))
@@ -511,6 +830,7 @@ func generateCreateTableStatement(
 			DataType:      record.DataType,
 			IsNullable:    record.IsNullable == "YES",
 			GeneratedType: record.GeneratedType,
+			IsSerial:      record.SequenceType == "SERIAL",
 		})
 	}
 
@@ -529,19 +849,23 @@ type buildTableColRequest struct {
 	DataType      string
 	IsNullable    bool
 	GeneratedType string
+	IsSerial      bool
 }
 
 func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapePgColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
-	if record.ColumnDefault != "" {
+
+	if record.IsSerial {
+		if record.DataType == "smallint" {
+			pieces[1] = "SMALLSERIAL"
+		} else if record.DataType == "bigint" {
+			pieces[1] = "BIGSERIAL"
+		} else {
+			pieces[1] = "SERIAL"
+		}
+	} else if record.ColumnDefault != "" {
 		if record.GeneratedType == "s" {
 			pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) STORED", record.ColumnDefault))
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
-			pieces[1] = "SERIAL"
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
-			pieces[1] = "BIGSERIAL"
-		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "smallint" {
-			pieces[1] = "SMALLSERIAL"
 		} else if record.ColumnDefault != "NULL" {
 			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
