@@ -37,7 +37,6 @@ export default function EditItem(props: Props): ReactElement {
     GetTableRowCountResponse | undefined
   >();
   const [calculatingRowCount, setCalculatingRowCount] = useState(false);
-  const [clickedApply, setClickedApply] = useState<boolean>(false);
   const { account } = useAccount();
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -103,13 +102,11 @@ export default function EditItem(props: Props): ReactElement {
   function onCancelClick(): void {
     setValidateResp(undefined);
     setTableRowCountResp(undefined);
-    setClickedApply(true);
     onCancel();
   }
   function onSaveClick(): void {
     setValidateResp(undefined);
     setTableRowCountResp(undefined);
-    setClickedApply(true);
     onSave();
   }
 
@@ -118,14 +115,11 @@ export default function EditItem(props: Props): ReactElement {
     minimap: { enabled: false },
     roundedSelection: false,
     scrollBeyondLastLine: false,
-    readOnly: !item?.where || clickedApply,
+    readOnly: !item?.where,
     renderLineHighlight: 'none' as const,
     overviewRulerBorder: false,
     overviewRulerLanes: 0,
-    lineNumbers:
-      !item || (clickedApply && item.where == '')
-        ? ('off' as const)
-        : ('on' as const),
+    lineNumbers: !item || item.where == '' ? ('off' as const) : ('on' as const),
   };
 
   const constructWhere = (value: string) => {
@@ -135,8 +129,6 @@ export default function EditItem(props: Props): ReactElement {
       return '';
     }
   };
-
-  // TODO: fix the readOnly settings of the editor its disbaling when it shouldn't be, somethign with the clickAPply state
 
   return (
     <div className="flex flex-col gap-4">
@@ -203,7 +195,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item?.where || clickedApply}
+                  disabled={!item?.where}
                   onClick={() => onValidate()}
                 >
                   <ButtonText text="Validate" />
@@ -220,7 +212,7 @@ export default function EditItem(props: Props): ReactElement {
           <Button
             type="button"
             variant="secondary"
-            disabled={!item?.where || clickedApply}
+            disabled={!item?.where}
             onClick={() => onCancelClick()}
           >
             <ButtonText text="Cancel" />
@@ -230,7 +222,7 @@ export default function EditItem(props: Props): ReactElement {
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  disabled={!item?.where || clickedApply}
+                  disabled={!item?.where}
                   onClick={() => {
                     const editor = editorRef.current;
                     editor?.setValue('');
