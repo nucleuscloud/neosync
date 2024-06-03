@@ -38,6 +38,7 @@ import { CalendarIcon } from '@radix-ui/react-icons';
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
@@ -84,6 +85,7 @@ export default function NewApiKeyForm(): ReactElement {
       expiresAt: startOfDay(addDays(new Date(), 7)),
     },
   });
+  const posthog = usePostHog();
 
   async function onSubmit(values: FormValues): Promise<void> {
     if (!account) {
@@ -111,6 +113,7 @@ export default function NewApiKeyForm(): ReactElement {
       } else {
         router.push(`/${account?.name}/settings/api-keys`);
       }
+      posthog.capture('New API Key Created');
       toast({
         title: 'Successfully created API key!',
         variant: 'success',
