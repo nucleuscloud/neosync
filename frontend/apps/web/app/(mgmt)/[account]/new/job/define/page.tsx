@@ -87,7 +87,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     if (!isScheduleEnabled) {
       form.setValue('cronSchedule', '');
     }
-    posthog.capture('New Job Flow Define Complete', { newJobType });
+    posthog.capture('New Job Flow Define Complete', { jobType: newJobType });
     if (newJobType === 'generate-table') {
       router.push(
         `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}`
