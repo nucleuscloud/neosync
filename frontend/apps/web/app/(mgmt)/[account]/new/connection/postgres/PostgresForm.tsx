@@ -64,6 +64,7 @@ import {
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -122,6 +123,7 @@ export default function PostgresForm() {
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
+  const posthog = usePostHog();
 
   async function onSubmit(values: PostgresFormValues) {
     if (!account) {
@@ -153,7 +155,7 @@ export default function PostgresForm() {
           values.clientTls
         );
       }
-
+      posthog.capture('New Connection Created', { type: 'postgres' });
       toast({
         title: 'Successfully created connection!',
         variant: 'success',
