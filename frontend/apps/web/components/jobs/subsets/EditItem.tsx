@@ -9,15 +9,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { Editor } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
+import ValidateQueryErrorAlert from './SubsetErrorAlert';
 import ValidateQueryBadge from './ValidateQueryBadge';
-import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';
 import { TableRow } from './subset-table/column';
 
 interface Props {
@@ -40,6 +39,7 @@ export default function EditItem(props: Props): ReactElement {
   const { account } = useAccount();
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const [rowCountError, setRowCountError] = useState<string>();
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -86,14 +86,11 @@ export default function EditItem(props: Props): ReactElement {
         item?.where
       );
       setTableRowCountResp(resp);
+      setRowCountError('');
     } catch (err) {
       setCalculatingRowCount(false);
       console.error(err);
-      toast({
-        title: 'Unable to get table row count.',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
+      setRowCountError(getErrorMessage(err));
     } finally {
       setCalculatingRowCount(false);
     }
@@ -115,7 +112,7 @@ export default function EditItem(props: Props): ReactElement {
     minimap: { enabled: false },
     roundedSelection: false,
     scrollBeyondLastLine: false,
-    readOnly: !item?.where,
+    readOnly: !item,
     renderLineHighlight: 'none' as const,
     overviewRulerBorder: false,
     overviewRulerLanes: 0,
@@ -163,7 +160,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item}
+                  disabled={!item?.where}
                   onClick={() => onGetRowCount()}
                 >
                   {calculatingRowCount ? (
@@ -195,7 +192,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item?.where}
+                  disabled={!item}
                   onClick={() => onValidate()}
                 >
                   <ButtonText text="Validate" />
@@ -212,7 +209,7 @@ export default function EditItem(props: Props): ReactElement {
           <Button
             type="button"
             variant="secondary"
-            disabled={!item?.where}
+            disabled={!item}
             onClick={() => onCancelClick()}
           >
             <ButtonText text="Cancel" />
@@ -222,7 +219,7 @@ export default function EditItem(props: Props): ReactElement {
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  disabled={!item?.where}
+                  disabled={!item}
                   onClick={() => {
                     const editor = editorRef.current;
                     editor?.setValue('');
@@ -244,7 +241,7 @@ export default function EditItem(props: Props): ReactElement {
       </div>
       <div>
         <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-          {item?.where == undefined ? (
+          {!item ? (
             <div className="h-[60px] w-full text-gray-400 dark:text-gray-600 text-sm justify-center flex">
               Click the edit button on the table that you want to subset and add
               a table filter here. For example, country = &apos;US&apos;
@@ -262,7 +259,10 @@ export default function EditItem(props: Props): ReactElement {
           )}
         </div>
       </div>
-      <ValidateQueryErrorAlert resp={validateResp} />
+      <ValidateQueryErrorAlert
+        validateResp={validateResp}
+        rowCountError={rowCountError}
+      />
     </div>
   );
 }
