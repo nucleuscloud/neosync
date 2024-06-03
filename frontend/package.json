@@ -14,8 +14,8 @@
     "knip": "knip"
   },
   "devDependencies": {
-    "knip": "^5.17.3",
-    "prettier": "^3.2.5",
+    "knip": "^5.17.4",
+    "prettier": "^3.3.0",
     "turbo": "^1.13.3"
   },
   "workspaces": [
