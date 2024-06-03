@@ -48,7 +48,7 @@ export default function EditItem(props: Props): ReactElement {
   useEffect(() => {
     if (monaco) {
       // Register a completion item provider for the SQL language
-      monaco.languages.registerCompletionItemProvider('sql', {
+      const provider = monaco.languages.registerCompletionItemProvider('sql', {
         triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
 
         provideCompletionItems: (model, position) => {
@@ -70,9 +70,6 @@ export default function EditItem(props: Props): ReactElement {
 
           const word = model.getWordUntilPosition(position);
 
-          // TODO: range is undefined, but we're getting closer
-          // TODO: fix the list so that it only renders unique column names
-
           const range = {
             startLineNumber: position.lineNumber,
             startColumn: word.startColumn,
@@ -92,6 +89,10 @@ export default function EditItem(props: Props): ReactElement {
           return { suggestions: suggestions };
         },
       });
+      // disposes of the instance if the component re-renders
+      return () => {
+        provider.dispose();
+      };
     }
   }, [monaco, columns]);
 
