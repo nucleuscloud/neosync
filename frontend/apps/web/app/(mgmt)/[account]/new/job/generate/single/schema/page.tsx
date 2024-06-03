@@ -54,6 +54,7 @@ import {
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -73,6 +74,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
   const { toast } = useToast();
+  const posthog = usePostHog();
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
@@ -161,6 +163,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id,
         connections
       );
+      posthog.capture('New Job Created', {
+        jobType: 'generate',
+      });
+
       toast({
         title: 'Successfully created job!',
         variant: 'success',

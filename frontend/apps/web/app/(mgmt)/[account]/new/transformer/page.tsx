@@ -41,6 +41,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
@@ -69,6 +70,7 @@ export default function NewTransformer(): ReactElement {
   );
 
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
+  const posthog = usePostHog();
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
     resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
@@ -92,6 +94,10 @@ export default function NewTransformer(): ReactElement {
     }
     try {
       const transformer = await createNewTransformer(account.id, values);
+      posthog.capture('New Transformer Created', {
+        source: values.source,
+        sourceName: transformers.find((t) => t.source === values.source)?.name,
+      });
       toast({
         title: 'Successfully created transformer!',
         variant: 'success',

@@ -27,6 +27,7 @@ import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -47,6 +48,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
+  const posthog = usePostHog();
 
   const sessionPrefix = searchParams?.sessionId ?? '';
   const formKey = `${sessionPrefix}-new-job-single-table-ai-connect`;
@@ -82,6 +84,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(
       `/${account?.name}/new/job/aigenerate/single/schema?sessionId=${sessionPrefix}`
     );
+    posthog.capture('New Job Flow Connect Complete', {
+      jobType: 'ai-generate',
+    });
   }
 
   const { mysql, postgres, openai } = splitConnections(connections);

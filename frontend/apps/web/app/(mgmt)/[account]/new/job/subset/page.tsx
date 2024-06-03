@@ -45,6 +45,7 @@ import {
   WorkflowOptions,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -61,6 +62,7 @@ import {
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
+  const posthog = usePostHog();
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
@@ -170,6 +172,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id,
         connections
       );
+      posthog.capture('New Job Flow Complete', {
+        jobType: 'data-sync',
+      });
       toast({
         title: 'Successfully created the job!',
         variant: 'success',

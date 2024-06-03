@@ -55,6 +55,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSessionStorage } from 'usehooks-ts';
@@ -78,6 +79,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
+  const posthog = usePostHog();
   const [aioutput, setaioutput] = useState<SampleRecord[]>([]);
 
   useEffect(() => {
@@ -157,6 +159,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id,
         connections
       );
+      posthog.capture('New Job Created', { jobType: 'ai-generate' });
       toast({
         title: 'Successfully created job!',
         variant: 'success',

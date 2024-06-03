@@ -32,6 +32,7 @@ import {
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
@@ -46,6 +47,7 @@ export default function OpenAiForm(props: Props): ReactElement {
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const posthog = usePostHog();
 
   const form = useForm<OpenAiFormValues>({
     resolver: yupResolver(OpenAiFormValues),
@@ -81,6 +83,7 @@ export default function OpenAiForm(props: Props): ReactElement {
           connection: connectionResp.connection,
         })
       );
+      posthog.capture('New Connection Created', { type: 'openai' });
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
         router.push(returnTo);
