@@ -61,7 +61,7 @@ export default function EditItem(props: Props): ReactElement {
 
           console.log('columns', columns);
 
-          const seen = new Set<string>(columns);
+          const columnSet = new Set<string>(columns);
 
           // Check if the last character or word indicates a context where columns might be needed
           if (!shouldTriggerAutocomplete(textUntilPosition)) {
@@ -71,6 +71,8 @@ export default function EditItem(props: Props): ReactElement {
           const word = model.getWordUntilPosition(position);
 
           // TODO: range is undefined, but we're getting closer
+          // TODO: fix the list so that it only renders unique column names
+
           const range = {
             startLineNumber: position.lineNumber,
             startColumn: word.startColumn,
@@ -78,7 +80,7 @@ export default function EditItem(props: Props): ReactElement {
             endColumn: word.endColumn,
           };
 
-          const suggestions = columns.map((name) => ({
+          const suggestions = Array.from(columnSet).map((name) => ({
             label: name, // would be nice if we could add the type here as well
             kind: monaco.languages.CompletionItemKind.Field,
             insertText: name,
