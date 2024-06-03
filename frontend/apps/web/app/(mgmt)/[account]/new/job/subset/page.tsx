@@ -9,6 +9,7 @@ import { TableRow } from '@/components/jobs/subsets/subset-table/column';
 import {
   buildRowKey,
   buildTableRowData,
+  GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
@@ -22,8 +23,8 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
-  SchemaFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
+  SchemaFormValues,
   toJobDestinationOptions,
   toMysqlSourceSchemaOptions,
   toPostgresSourceSchemaOptions,
@@ -310,6 +311,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   item={itemToEdit}
                   onItem={setItemToEdit}
                   onCancel={() => setItemToEdit(undefined)}
+                  columns={GetColumnsForSqlAutocomplete(
+                    schemaFormValues?.mappings.map((row) => {
+                      return new JobMapping({
+                        schema: row.schema,
+                        table: row.table,
+                        column: row.column,
+                      });
+                    }),
+                    itemToEdit
+                  )}
                   onSave={() => {
                     if (!itemToEdit) {
                       return;

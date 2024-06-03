@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getErrorMessage } from '@/util/util';
-import { Editor } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
@@ -26,9 +26,11 @@ interface Props {
   onCancel(): void;
   connectionId: string;
   dbType: string;
+  columns: string[];
 }
 export default function EditItem(props: Props): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId, dbType } = props;
+  const { item, onItem, onSave, onCancel, connectionId, dbType, columns } =
+    props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
@@ -40,6 +42,56 @@ export default function EditItem(props: Props): ReactElement {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [rowCountError, setRowCountError] = useState<string>();
+
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (monaco) {
+      // Register a completion item provider for the SQL language
+      monaco.languages.registerCompletionItemProvider('sql', {
+        triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
+
+        provideCompletionItems: (model, position) => {
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          });
+
+          console.log('columns', columns);
+
+          const seen = new Set<string>(columns);
+
+          // Check if the last character or word indicates a context where columns might be needed
+          if (!shouldTriggerAutocomplete(textUntilPosition)) {
+            return { suggestions: [] };
+          }
+
+          const word = model.getWordUntilPosition(position);
+
+          // TODO: range is undefined, but we're getting closer
+          const range = {
+            startLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: word.endColumn,
+          };
+
+          const suggestions = columns.map((name) => ({
+            label: name, // would be nice if we could add the type here as well
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: name,
+            range: range,
+          }));
+
+          console.log('suggestions', suggestions);
+
+          return { suggestions: suggestions };
+        },
+      });
+    }
+  }, [monaco, columns]);
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -313,4 +365,15 @@ async function getTableRowCount(
     throw new Error(body.message);
   }
   return GetTableRowCountResponse.fromJson(await res.json());
+}
+
+function shouldTriggerAutocomplete(text: string): boolean {
+  const lastSignificantWord = text
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .pop()
+    ?.toUpperCase();
+  const triggerKeywords = ['SELECT', 'WHERE', 'AND', 'OR', 'FROM'];
+  return triggerKeywords.includes(lastSignificantWord || '');
 }
