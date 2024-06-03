@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.24.0",
-    "@bufbuild/protobuf": "^1.9.0",
+    "@bufbuild/protobuf": "^1.10.0",
     "@connectrpc/connect": "^1.4.0",
     "@connectrpc/connect-node": "^1.4.0",
     "@hookform/resolvers": "^3.3.4",
