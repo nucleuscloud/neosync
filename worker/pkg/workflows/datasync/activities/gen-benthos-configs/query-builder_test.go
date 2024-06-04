@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ func Test_buildSelectQuery(t *testing.T) {
 	}{
 		{
 			name:     "postgres select",
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "",
@@ -28,7 +28,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		},
 		{
 			name:     "postgres select with where",
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    `"id" = 'some-id'`,
@@ -36,7 +36,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		},
 		{
 			name:     "postgres select with where prepared",
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    `"id" = $1`,
@@ -44,7 +44,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		},
 		{
 			name:     "mysql select",
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "",
@@ -52,7 +52,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		},
 		{
 			name:     "mysql select with where",
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "`id` = 'some-id'",
@@ -82,7 +82,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 	}{
 		{
 			name:    "simple",
-			driver:  sql_manager.PostgresDriver,
+			driver:  sqlmanager_shared.PostgresDriver,
 			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
@@ -100,7 +100,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		},
 		{
 			name:    "multiple joins",
-			driver:  sql_manager.PostgresDriver,
+			driver:  sqlmanager_shared.PostgresDriver,
 			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
@@ -126,7 +126,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		},
 		{
 			name:    "composite foreign key",
-			driver:  sql_manager.PostgresDriver,
+			driver:  sqlmanager_shared.PostgresDriver,
 			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
@@ -160,7 +160,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		driver        string
 		table         string
 		columns       []string
-		columnInfoMap map[string]*sql_manager.ColumnInfo
+		columnInfoMap map[string]*sqlmanager_shared.ColumnInfo
 		joins         []*sqlJoin
 		whereClauses  []string
 		dependencies  []*selfReferencingCircularDependency
@@ -169,10 +169,10 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 	}{
 		{
 			name:          "one foreign key no joins",
-			driver:        sql_manager.PostgresDriver,
+			driver:        sqlmanager_shared.PostgresDriver,
 			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id"},
-			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
+			columnInfoMap: map[string]*sqlmanager_shared.ColumnInfo{},
 			joins:         []*sqlJoin{},
 			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
 			dependencies: []*selfReferencingCircularDependency{
@@ -182,10 +182,10 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		},
 		{
 			name:          "json field",
-			driver:        sql_manager.PostgresDriver,
+			driver:        sqlmanager_shared.PostgresDriver,
 			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
-			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
+			columnInfoMap: map[string]*sqlmanager_shared.ColumnInfo{"additional_info": {DataType: "json"}},
 			joins:         []*sqlJoin{},
 			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
 			dependencies: []*selfReferencingCircularDependency{
@@ -195,10 +195,10 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		},
 		{
 			name:          "json field mysql",
-			driver:        sql_manager.MysqlDriver,
+			driver:        sqlmanager_shared.MysqlDriver,
 			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
-			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
+			columnInfoMap: map[string]*sqlmanager_shared.ColumnInfo{"additional_info": {DataType: "json"}},
 			joins:         []*sqlJoin{},
 			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
 			dependencies: []*selfReferencingCircularDependency{
@@ -208,10 +208,10 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		},
 		{
 			name:          "multiple foreign keys and joins",
-			driver:        sql_manager.PostgresDriver,
+			driver:        sqlmanager_shared.PostgresDriver,
 			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
-			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
+			columnInfoMap: map[string]*sqlmanager_shared.ColumnInfo{},
 			joins: []*sqlJoin{
 				{
 					JoinType:  innerJoin,
@@ -230,10 +230,10 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		},
 		{
 			name:          "composite foreign keys",
-			driver:        sql_manager.PostgresDriver,
+			driver:        sqlmanager_shared.PostgresDriver,
 			table:         "public.employees",
 			columns:       []string{"employee_id", "department_id", "name", "manager_id", "building_id", "division_id"},
-			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
+			columnInfoMap: map[string]*sqlmanager_shared.ColumnInfo{},
 			joins: []*sqlJoin{
 				{
 					JoinType:  innerJoin,
@@ -268,15 +268,15 @@ func Test_buildSelectQueryMap(t *testing.T) {
 		name                          string
 		driver                        string
 		subsetByForeignKeyConstraints bool
-		tableDependencies             map[string][]*sql_manager.ForeignConstraint
+		tableDependencies             map[string][]*sqlmanager_shared.ForeignConstraint
 		dependencyConfigs             []*tabledependency.RunConfig
 		expected                      map[string]map[tabledependency.RunType]string
 	}{
 		{
 			name:                          "select no subset",
-			driver:                        sql_manager.PostgresDriver,
+			driver:                        sqlmanager_shared.PostgresDriver,
 			subsetByForeignKeyConstraints: true,
-			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
+			tableDependencies:             map[string][]*sqlmanager_shared.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
 				{Table: "public.accounts", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
@@ -288,9 +288,9 @@ func Test_buildSelectQueryMap(t *testing.T) {
 		},
 		{
 			name:                          "select subset no foreign keys",
-			driver:                        sql_manager.PostgresDriver,
+			driver:                        sqlmanager_shared.PostgresDriver,
 			subsetByForeignKeyConstraints: true,
-			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
+			tableDependencies:             map[string][]*sqlmanager_shared.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId, RunType: tabledependency.RunTypeInsert},
 				{Table: "public.accounts", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
@@ -304,7 +304,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			sql, err := buildSelectQueryMap(tt.driver, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints, map[string]map[string]*sql_manager.ColumnInfo{})
+			sql, err := buildSelectQueryMap(tt.driver, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, sql)
 		})
@@ -314,15 +314,15 @@ func Test_buildSelectQueryMap(t *testing.T) {
 func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 	bWhere := "name = 'bob'"
 	cWhere := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -340,16 +340,16 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.c.id = 1 AND public.b.name = 'bob');`},
 		}
 
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 	aWhere := "name = 'bob'"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_name", "a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"name", "id"}}},
+			{Columns: []string{"a_name", "a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"name", "id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -362,7 +362,7 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON (("public"."a"."id" = "public"."b"."a_id") AND ("public"."a"."name" = "public"."b"."a_name")) WHERE public.a.name = 'bob';`},
 		}
 
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -370,15 +370,15 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 	bWhere := "name = 'bob'"
 	cWhere := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -394,22 +394,22 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 			"public.c": {tabledependency.RunTypeInsert: `SELECT "id", "b_id" FROM "public"."c" WHERE id = 1;`},
 			"public.d": {tabledependency.RunTypeInsert: `SELECT "id", "c_id" FROM "public"."d";`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, false, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, false, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 	whereName := "name = 'neo'"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.a": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -427,25 +427,25 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 			},
 			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.b.name = 'neo';`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) {
 	whereName := "name = 'neo'"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.addresses": {
-			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.orders", Columns: []string{"id"}}},
+			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.orders", Columns: []string{"id"}}},
 		},
 		"public.customers": {
-			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.addresses", Columns: []string{"id"}}},
+			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.addresses", Columns: []string{"id"}}},
 		},
 		"public.orders": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
 		},
 		"public.payments": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -465,7 +465,7 @@ func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 			},
 			"public.payments": {tabledependency.RunTypeInsert: `SELECT "public"."payments"."id", "public"."payments"."customer_id" FROM "public"."payments" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."payments"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -473,18 +473,18 @@ func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	whereId := "id = 1"
 	whereName := "name = 'neo'"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 		"public.f": {
-			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
+			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -505,23 +505,23 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			"public.e": {tabledependency.RunTypeInsert: `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`},
 			"public.f": {tabledependency.RunTypeInsert: `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -540,7 +540,7 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`},
 			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -548,19 +548,19 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 	whereId := "id = 1"
 	whereId2 := "id = 2"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.a": {
-			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
+			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -581,20 +581,20 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
 			"public.x": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."x" WHERE public.x.id = 2;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -611,20 +611,20 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 			},
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
+			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
 		},
 		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -639,24 +639,24 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 			"public.department":     {tabledependency.RunTypeInsert: `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
 			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1);`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
+			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
 		},
 		"public.transaction": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
+			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -673,20 +673,20 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") INNER JOIN "public"."transaction" ON ("public"."transaction"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1 AND public.company.id = 1);`},
 			"public.transaction":    {tabledependency.RunTypeInsert: `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -703,18 +703,18 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			},
 			"public.b": {tabledependency.RunTypeInsert: "SELECT `public`.`b`.`id`, `public`.`b`.`a_id` FROM `public`.`b` INNER JOIN `public`.`a` ON (`public`.`a`.`id` = `public`.`b`.`a_id`) WHERE public.a.id = 1;"},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.MysqlDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.MysqlDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 	whereId := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -731,23 +731,23 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			},
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "id", "a_id" FROM "public"."b" WHERE public.b.id = 1;`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 	aWhere := "id = 1"
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -766,7 +766,7 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 			"public.d": {tabledependency.RunTypeInsert: `SELECT "id", "c_id" FROM "public"."d";`},
 			"public.e": {tabledependency.RunTypeInsert: `SELECT "id", "d_id" FROM "public"."e";`},
 		}
-	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
@@ -797,19 +797,19 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 		},
 	}
 
-	constraints := map[string][]*sql_manager.ForeignConstraint{
+	constraints := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"circle.addresses": {
 			{
 				Columns:     []string{"order_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.orders", Columns: []string{"id"}},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "circle.orders", Columns: []string{"id"}},
 			},
 		},
 		"circle.customers": {
 			{
 				Columns:     []string{"address_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
 			},
 		},
 	}
@@ -818,13 +818,13 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 		"circle.addresses": "id = '36f594af-6d53-4a48-a9b7-b889e2df349e'",
 	}
 
-	expected := map[string][]*sql_manager.ForeignConstraint{
+	expected := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"circle.addresses": {},
 		"circle.customers": {
 			{
 				Columns:     []string{"address_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
 			},
 		},
 	}
@@ -874,7 +874,7 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := qualifyWhereColumnNames(sql_manager.MysqlDriver, tt.where, tt.table)
+			response, err := qualifyWhereColumnNames(sqlmanager_shared.MysqlDriver, tt.where, tt.table)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -922,7 +922,7 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := qualifyWhereColumnNames(sql_manager.PostgresDriver, tt.where, tt.table)
+			response, err := qualifyWhereColumnNames(sqlmanager_shared.PostgresDriver, tt.where, tt.table)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -938,56 +938,56 @@ func Test_qualifyWhereWithTableAlias(t *testing.T) {
 		expected string
 	}{
 		{
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			name:     "simple",
 			where:    "name = 'alisha'",
 			alias:    "alias",
 			expected: `alias.name = 'alisha'`,
 		},
 		{
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			name:     "hash alias",
 			where:    "composite_keys.department.department_id = '1'",
 			alias:    "50d89c0f3af602",
 			expected: `"50d89c0f3af602".department_id = '1'`,
 		},
 		{
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			name:     "simple",
 			where:    "public.a.name = 'alisha'",
 			alias:    "alias",
 			expected: `alias.name = 'alisha'`,
 		},
 		{
-			driver:   sql_manager.PostgresDriver,
+			driver:   sqlmanager_shared.PostgresDriver,
 			name:     "multiple",
 			where:    "name = 'alisha' and id = 1  or age = 2",
 			alias:    "alias",
 			expected: `(alias.name = 'alisha' AND alias.id = 1) OR alias.age = 2`,
 		},
 		{
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			name:     "simple",
 			where:    "name = 'alisha'",
 			alias:    "alias",
 			expected: `alias.name = 'alisha'`,
 		},
 		{
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			name:     "simple",
 			where:    "public.a.name = 'alisha'",
 			alias:    "alias",
 			expected: `alias.name = 'alisha'`,
 		},
 		{
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			name:     "multiple",
 			where:    "name = 'alisha' and id = 1  or age = 2",
 			alias:    "alias",
 			expected: `alias.name = 'alisha' and alias.id = 1 or alias.age = 2`,
 		},
 		{
-			driver:   sql_manager.MysqlDriver,
+			driver:   sqlmanager_shared.MysqlDriver,
 			name:     "hash alias",
 			where:    "composite_keys.department.department_id = '1'",
 			alias:    "50d89c0f3af602",

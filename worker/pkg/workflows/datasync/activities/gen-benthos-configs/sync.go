@@ -10,7 +10,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -107,8 +107,8 @@ func buildBenthosSqlSourceConfigResponses(
 	dsnConnectionId string,
 	driver string,
 	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
-	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
-	tableDependencies map[string][]*sql_manager.ForeignConstraint,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
@@ -218,7 +218,7 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*refer
 }
 
 func getTransformedFksMap(
-	tabledependencies map[string][]*sql_manager.ForeignConstraint,
+	tabledependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) map[string]map[string][]*referenceKey {
 	foreignKeyToSourceMap := buildForeignKeySourceMap(tabledependencies)
@@ -250,7 +250,7 @@ func buildProcessorConfigsByRunType(
 	redisConfig *shared.RedisConfig,
 	colTransformers map[string]*mgmtv1alpha1.JobMappingTransformer,
 	mappings []*mgmtv1alpha1.JobMapping,
-	columnInfoMap map[string]*sql_manager.ColumnInfo,
+	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	if config.RunType == tabledependency.RunTypeUpdate {
 		// sql update processor configs
@@ -443,7 +443,7 @@ func getTableColMapFromMappings(mappings []*tableMapping) map[string][]string {
 		for _, c := range m.Mappings {
 			cols = append(cols, c.Column)
 		}
-		tn := sql_manager.BuildTable(m.Schema, m.Table)
+		tn := sqlmanager_shared.BuildTable(m.Schema, m.Table)
 		tableColMap[tn] = cols
 	}
 	return tableColMap
@@ -455,7 +455,7 @@ type referenceKey struct {
 }
 
 // map of table primary key cols to foreign key cols
-func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string][]*referenceKey {
+func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string][]*referenceKey {
 	tc := map[string]map[string][]*referenceKey{} // schema.table -> column -> ForeignKey
 	for table, constraints := range tableDependencies {
 		for _, c := range constraints {
@@ -474,7 +474,7 @@ func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sql_manager.Fore
 	return tc
 }
 
-func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sql_manager.ForeignConstraint) *referenceKey {
+func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint) *referenceKey {
 	// Add the foreign key dependencies of the current table
 	if foreignKeys, ok := tableDependencies[tableName]; ok {
 		for _, fk := range foreignKeys {
@@ -494,7 +494,7 @@ func findTopForeignKeySource(tableName, col string, tableDependencies map[string
 
 // builds schema.table -> FK column ->  PK schema table column
 // find top level primary key column if foreign keys are nested
-func buildForeignKeySourceMap(tableDeps map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*referenceKey {
+func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignConstraint) map[string]map[string]*referenceKey {
 	outputMap := map[string]map[string]*referenceKey{}
 	for tableName, constraints := range tableDeps {
 		if _, ok := outputMap[tableName]; !ok {
@@ -637,7 +637,7 @@ func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosyn
 }
 
 func areMappingsSubsetOfSchemas(
-	groupedSchemas map[string]map[string]*sql_manager.ColumnInfo,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -690,7 +690,7 @@ func getUniqueColMappingsMap(
 }
 
 func shouldHaltOnSchemaAddition(
-	groupedSchemas map[string]map[string]*sql_manager.ColumnInfo,
+	groupedSchemas map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
