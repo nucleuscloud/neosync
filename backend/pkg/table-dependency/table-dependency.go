@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
 type RunType string
@@ -44,7 +44,7 @@ type ConstraintColumns struct {
 }
 
 func GetRunConfigs(
-	dependencyMap map[string][]*sql_manager.ForeignConstraint,
+	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 	subsets map[string]string,
 	primaryKeyMap map[string][]string,
 	tableColumnsMap map[string][]string,
@@ -123,7 +123,7 @@ func processCycles(
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
 	subsets map[string]string,
-	dependencyMap map[string][]*sql_manager.ForeignConstraint,
+	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
@@ -247,7 +247,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 func DetermineCycleStarts(
 	cycles [][]string,
 	subsets map[string]string,
-	dependencyMap map[string][]*sql_manager.ForeignConstraint,
+	dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 ) ([]string, error) {
 	tableRankMap := map[string]int{}
 	possibleStarts := [][]string{}
@@ -319,7 +319,7 @@ func checkTableHasCols(tables []string, tablesColMap map[string][]string) bool {
 	return true
 }
 
-func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle []string) bool {
+func areAllFkColsNullable(dependencies []*sqlmanager_shared.ForeignConstraint, cycle []string) bool {
 	for _, dep := range dependencies {
 		if !slices.Contains(cycle, dep.ForeignKey.Table) {
 			continue

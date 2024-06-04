@@ -18,6 +18,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -1801,19 +1802,19 @@ func Test_ValidateJobMappings_NoValidationErrors(t *testing.T) {
 		},
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sql_manager.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	m.SqlDbMock.On("Close").Return(nil)
-	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":   {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{IsNullable: true}},
-		"public.orders":  {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{IsNullable: true}},
-		"circle.table_1": {"id": &sql_manager.ColumnInfo{}, "table2_id": &sql_manager.ColumnInfo{IsNullable: true}},
-		"circle.table_2": {"id": &sql_manager.ColumnInfo{}, "table1_id": &sql_manager.ColumnInfo{}},
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":   {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
+		"public.orders":  {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
+		"circle.table_1": {"id": &sqlmanager_shared.ColumnInfo{}, "table2_id": &sqlmanager_shared.ColumnInfo{IsNullable: true}},
+		"circle.table_2": {"id": &sqlmanager_shared.ColumnInfo{}, "table1_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
-			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
+	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
+			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
 			"public.orders": {"id"}},
@@ -1876,19 +1877,19 @@ func Test_ValidateJobMappings_ValidationErrors(t *testing.T) {
 		},
 	}), nil)
 
-	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sql_manager.PostgresDriver}, nil)
+	m.SqlManagerMock.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: m.SqlDbMock, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	m.SqlDbMock.On("Close").Return(nil)
-	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":   {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.orders":  {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
-		"circle.table_1": {"id": &sql_manager.ColumnInfo{}, "table2_id": &sql_manager.ColumnInfo{}},
-		"circle.table_2": {"id": &sql_manager.ColumnInfo{}, "table1_id": &sql_manager.ColumnInfo{}},
+	m.SqlDbMock.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":   {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.orders":  {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{}},
+		"circle.table_1": {"id": &sqlmanager_shared.ColumnInfo{}, "table2_id": &sqlmanager_shared.ColumnInfo{}},
+		"circle.table_2": {"id": &sqlmanager_shared.ColumnInfo{}, "table1_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
-			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
+	m.SqlDbMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.orders":  {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"circle.table_1": {{Columns: []string{"table2_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "circle.table_2", Columns: []string{"id"}}}},
+			"circle.table_2": {{Columns: []string{"table1_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "circle.table_1", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
 			"public.orders": {"id"}},
