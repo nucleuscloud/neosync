@@ -309,7 +309,7 @@ func sync(
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanager := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
 
 	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
@@ -382,7 +382,7 @@ func sync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanager, connection, cmd, s3Config)
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config)
 		if err != nil {
 			return err
 		}
@@ -457,7 +457,7 @@ func sync(
 	}
 
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
-	err = runDestinationInitStatements(ctx, sqlmanager, cmd, syncConfigs, schemaConfig)
+	err = runDestinationInitStatements(ctx, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
 	if err != nil {
 		return err
 	}
@@ -559,9 +559,9 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func runDestinationInitStatements(ctx context.Context, sqlmanager sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
+func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
-	db, err := sqlmanager.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
 		return err
 	}
@@ -1115,7 +1115,7 @@ func getConnectionSchemaConfig(
 func getDestinationSchemaConfig(
 	ctx context.Context,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanager sqlmanager.SqlManagerClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
@@ -1144,13 +1144,13 @@ func getDestinationSchemaConfig(
 	}
 
 	fmt.Println(printlog.Render("Building foreign table constraints...")) //nolint:forbidigo
-	tableConstraints, err := getDestinationForeignConstraints(ctx, sqlmanager, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tableConstraints, err := getDestinationForeignConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println(printlog.Render("Building primary key table constraints...")) //nolint:forbidigo
-	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanager, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
