@@ -22,5 +22,5 @@
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@10.2.5"
+  "packageManager": "^npm@10.2.5"
 }
