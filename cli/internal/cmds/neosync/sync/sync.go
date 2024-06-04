@@ -1176,10 +1176,10 @@ func getDestinationSchemaConfig(
 	}, nil
 }
 
-func getDestinationForeignConstraints(ctx context.Context, sqlmanager sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string][]*sql_manager.ForeignConstraint, error) {
+func getDestinationForeignConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string][]*sql_manager.ForeignConstraint, error) {
 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := sqlmanager.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -1193,10 +1193,10 @@ func getDestinationForeignConstraints(ctx context.Context, sqlmanager sqlmanager
 	return constraints, nil
 }
 
-func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanager sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
+func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := sqlmanager.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
 	if err != nil {
 		return nil, err
 	}
