@@ -11,7 +11,6 @@ import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import {
   CheckIcon,
   ClockIcon,
-  Cross2Icon,
   ExclamationTriangleIcon,
   QuestionMarkCircledIcon,
 } from '@radix-ui/react-icons';
@@ -46,7 +45,7 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge variant="destructive" className={cn(className, 'min-w-[95px]')}>
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <p>Failed</p>
+            <ExclamationTriangleIcon className="w-3 h-3" /> <p>Failed</p>
           </div>
         </Badge>
       );
@@ -85,7 +84,7 @@ export default function JobRunStatus(props: Props): ReactElement {
           )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <p>Terminated</p>
+            <ExclamationTriangleIcon className="w-3 h-3" /> <p>Terminated</p>
           </div>
         </Badge>
       );
@@ -98,7 +97,7 @@ export default function JobRunStatus(props: Props): ReactElement {
           )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <p>Canceled</p>
+            <ExclamationTriangleIcon className="w-3 h-3" /> <p>Canceled</p>
           </div>
         </Badge>
       );
