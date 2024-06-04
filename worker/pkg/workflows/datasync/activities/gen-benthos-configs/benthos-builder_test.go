@@ -13,7 +13,8 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -46,7 +47,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -236,7 +237,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -428,7 +429,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -604,8 +605,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
@@ -714,14 +715,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":  {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.orders": {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":  {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.orders": {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
 		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
 			"public.orders": {"id"}},
 	}, nil)
@@ -887,8 +888,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -985,14 +986,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":  {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.orders": {"id": &sql_manager.ColumnInfo{}, "buyer_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":  {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.orders": {"id": &sqlmanager_shared.ColumnInfo{}, "buyer_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{"public.orders": {{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":  {"id"},
 			"public.orders": {"id"}},
@@ -1131,8 +1132,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
@@ -1226,13 +1227,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.jobs": {"id": &sql_manager.ColumnInfo{}, "parent_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.jobs": {"id": &sqlmanager_shared.ColumnInfo{}, "parent_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.jobs": {{Columns: []string{"parent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"id"}}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{"public.jobs": {{Columns: []string{"parent_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"id"}}}}},
 		PrimaryKeyConstraints: map[string][]string{"public.jobs": {"id"}},
 	}, nil)
 
@@ -1407,8 +1408,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1506,14 +1507,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":                     {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.user_account_associations": {"id": &sqlmanager_shared.ColumnInfo{}, "user_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}}},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":                     {"id"},
 			"public.user_account_associations": {"id"},
@@ -1565,8 +1566,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1671,16 +1672,16 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":                     {"id": &sqlmanager_shared.ColumnInfo{}, "user_assoc_id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.user_account_associations": {"id": &sqlmanager_shared.ColumnInfo{}, "user_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":                     {"id"},
@@ -1879,8 +1880,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2015,16 +2016,16 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.PostgresDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":                     {"id": &sqlmanager_shared.ColumnInfo{}, "user_assoc_id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.user_account_associations": {"id": &sqlmanager_shared.ColumnInfo{}, "user_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":                     {"id"},
@@ -2277,8 +2278,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2375,15 +2376,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.MysqlDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":                     {"id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.user_account_associations": {"id": &sqlmanager_shared.ColumnInfo{}, "user_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":                     {"id"},
@@ -2528,8 +2529,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2635,16 +2636,16 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb, Driver: sqlmanager_shared.MysqlDriver}, nil)
 	mockSqlDb.On("Close").Return(nil)
-	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sql_manager.ColumnInfo{
-		"public.users":                     {"id": &sql_manager.ColumnInfo{}, "user_assoc_id": &sql_manager.ColumnInfo{}, "name": &sql_manager.ColumnInfo{}},
-		"public.user_account_associations": {"id": &sql_manager.ColumnInfo{}, "user_id": &sql_manager.ColumnInfo{}},
+	mockSqlDb.On("GetSchemaColumnMap", mock.Anything).Return(map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"public.users":                     {"id": &sqlmanager_shared.ColumnInfo{}, "user_assoc_id": &sqlmanager_shared.ColumnInfo{}, "name": &sqlmanager_shared.ColumnInfo{}},
+		"public.user_account_associations": {"id": &sqlmanager_shared.ColumnInfo{}, "user_id": &sqlmanager_shared.ColumnInfo{}},
 	}, nil)
-	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sql_manager.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sql_manager.ForeignConstraint{
-			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
-			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.user_account_associations": {{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}}},
+			"public.users":                     {{Columns: []string{"user_assoc_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.user_account_associations", Columns: []string{"id"}}}},
 		},
 		PrimaryKeyConstraints: map[string][]string{
 			"public.users":                     {"id"},
@@ -2743,9 +2744,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
 		"public.users": {
-			"id": &sql_manager.ColumnInfo{
+			"id": &sqlmanager_shared.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
@@ -2772,7 +2773,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string][]*sql_manager.ForeignConstraint{},
+		map[string][]*sqlmanager_shared.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -2815,9 +2816,9 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
 		"public.users": {
-			"id": &sql_manager.ColumnInfo{
+			"id": &sqlmanager_shared.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
@@ -2846,7 +2847,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string][]*sql_manager.ForeignConstraint{},
+		map[string][]*sqlmanager_shared.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -2893,9 +2894,9 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
 		"public.users": {
-			"id": &sql_manager.ColumnInfo{
+			"id": &sqlmanager_shared.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
 				IsNullable:             false,
@@ -2923,7 +2924,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string][]*sql_manager.ForeignConstraint{},
+		map[string][]*sqlmanager_shared.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3000,9 +3001,9 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 	var email int32 = int32(40)
 
-	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
 		"public.users": {
-			"email": &sql_manager.ColumnInfo{
+			"email": &sqlmanager_shared.ColumnInfo{
 				OrdinalPosition:        2,
 				ColumnDefault:          "",
 				IsNullable:             true,
@@ -3030,7 +3031,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string][]*sql_manager.ForeignConstraint{},
+		map[string][]*sqlmanager_shared.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3069,14 +3070,14 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id":         &sql_manager.ColumnInfo{},
-				"created_by": &sql_manager.ColumnInfo{},
-				"updated_by": &sql_manager.ColumnInfo{},
+				"id":         &sqlmanager_shared.ColumnInfo{},
+				"created_by": &sqlmanager_shared.ColumnInfo{},
+				"updated_by": &sqlmanager_shared.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": &sql_manager.ColumnInfo{},
+				"id": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3087,9 +3088,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id": &sql_manager.ColumnInfo{},
+				"id": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3099,9 +3100,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id": &sql_manager.ColumnInfo{},
+				"id": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3114,10 +3115,10 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id":         &sql_manager.ColumnInfo{},
-				"created_by": &sql_manager.ColumnInfo{},
+				"id":         &sqlmanager_shared.ColumnInfo{},
+				"created_by": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3128,13 +3129,13 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id":         &sql_manager.ColumnInfo{},
-				"created_by": &sql_manager.ColumnInfo{},
+				"id":         &sqlmanager_shared.ColumnInfo{},
+				"created_by": &sqlmanager_shared.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": &sql_manager.ColumnInfo{},
+				"id": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3145,10 +3146,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id":         &sql_manager.ColumnInfo{},
-				"created_by": &sql_manager.ColumnInfo{},
+				"id":         &sqlmanager_shared.ColumnInfo{},
+				"created_by": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3158,10 +3159,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*sql_manager.ColumnInfo{
+		map[string]map[string]*sqlmanager_shared.ColumnInfo{
 			"public.users": {
-				"id":         &sql_manager.ColumnInfo{},
-				"created_by": &sql_manager.ColumnInfo{},
+				"id":         &sqlmanager_shared.ColumnInfo{},
+				"created_by": &sqlmanager_shared.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3177,29 +3178,29 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
-	}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -3214,7 +3215,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
 
@@ -3238,7 +3239,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	var email int32 = int32(40)
 
-	groupedSchemas := map[string]*sql_manager.ColumnInfo{
+	groupedSchemas := map[string]*sqlmanager_shared.ColumnInfo{
 
 		"email": {
 			OrdinalPosition:        2,
@@ -3281,7 +3282,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3321,7 +3322,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3367,7 +3368,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3425,7 +3426,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3487,7 +3488,7 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3647,7 +3648,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Empty(t, resp)
@@ -3811,7 +3812,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 			},
-		}, &sql_manager.ColumnInfo{})
+		}, &sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -4180,7 +4181,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 		},
 	}
 
-	emailColInfo := &sql_manager.ColumnInfo{
+	emailColInfo := &sqlmanager_shared.ColumnInfo{
 		OrdinalPosition:        2,
 		ColumnDefault:          "",
 		IsNullable:             true,
@@ -4212,7 +4213,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	type testcase struct {
 		jm       *mgmtv1alpha1.JobMapping
-		ci       *sql_manager.ColumnInfo
+		ci       *sqlmanager_shared.ColumnInfo
 		expected string
 	}
 	jm := &mgmtv1alpha1.JobMapping{
@@ -4231,47 +4232,47 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	testcases := []testcase{
 		{
 			jm:       jm,
-			ci:       &sql_manager.ColumnInfo{},
+			ci:       &sqlmanager_shared.ColumnInfo{},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: nil,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(-1)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(0)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(10)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(3)),
 			},
 			expected: "generate_string(min:2,max:3)",
 		},
 		{
 			jm: jm,
-			ci: &sql_manager.ColumnInfo{
+			ci: &sqlmanager_shared.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(1)),
 			},
 			expected: "generate_string(min:1,max:1)",
@@ -4416,12 +4417,12 @@ func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
 }
 
 func Test_getPrimaryKeyDependencyMap(t *testing.T) {
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"hr.countries": {
 			{
 				Columns:     []string{"region_id"},
 				NotNullable: []bool{true},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.regions",
 					Columns: []string{"region_id"},
 				},
@@ -4431,7 +4432,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"location_id"},
 				NotNullable: []bool{false},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.locations",
 					Columns: []string{"location_id"},
 				},
@@ -4441,7 +4442,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"employee_id"},
 				NotNullable: []bool{true},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.employees",
 					Columns: []string{"employee_id"},
 				},
@@ -4451,7 +4452,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"job_id"},
 				NotNullable: []bool{true},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.jobs",
 					Columns: []string{"job_id"},
 				},
@@ -4459,7 +4460,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"department_id"},
 				NotNullable: []bool{false},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.departments",
 					Columns: []string{"department_id"},
 				},
@@ -4467,7 +4468,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"manager_id"},
 				NotNullable: []bool{false},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.employees",
 					Columns: []string{"employee_id"},
 				},
@@ -4477,7 +4478,7 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 			{
 				Columns:     []string{"country_id"},
 				NotNullable: []bool{true},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "hr.countries",
 					Columns: []string{"country_id"},
 				},
@@ -4552,12 +4553,12 @@ func Test_getPrimaryKeyDependencyMap(t *testing.T) {
 }
 
 func Test_getPrimaryKeyDependencyMap_compositekeys(t *testing.T) {
-	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"employees": {
 			{
 				Columns:     []string{"department_id"},
 				NotNullable: []bool{false},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "department",
 					Columns: []string{"department_id"},
 				},
@@ -4567,7 +4568,7 @@ func Test_getPrimaryKeyDependencyMap_compositekeys(t *testing.T) {
 			{
 				Columns:     []string{"responsible_employee_id", "responsible_department_id"},
 				NotNullable: []bool{true},
-				ForeignKey: &sql_manager.ForeignKey{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
 					Table:   "employees",
 					Columns: []string{"employee_id", "department_id"},
 				},

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
 )
@@ -250,7 +250,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			name: "Empty Schema",
 			config: &schemaConfig{
 				Schemas:                []*mgmtv1alpha1.DatabaseColumn{},
-				TableConstraints:       map[string][]*sql_manager.ForeignConstraint{},
+				TableConstraints:       map[string][]*sqlmanager_shared.ForeignConstraint{},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
 				InitTableStatementsMap: map[string]string{},
 			},
@@ -264,7 +264,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "users", Column: "name", DataType: ""},
 					{Schema: "public", Table: "users", Column: "email", DataType: ""},
 				},
-				TableConstraints:       map[string][]*sql_manager.ForeignConstraint{},
+				TableConstraints:       map[string][]*sqlmanager_shared.ForeignConstraint{},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
 				InitTableStatementsMap: map[string]string{},
 			},
@@ -291,9 +291,9 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
 					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+				TableConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
 					"public.accounts": {
-						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
@@ -334,12 +334,12 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
 					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+				TableConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
 					"public.accounts": {
-						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 					"public.users": {
-						{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}}},
+						{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
@@ -393,9 +393,9 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "users", Column: "name", DataType: ""},
 					{Schema: "public", Table: "users", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+				TableConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
 					"public.users": {
-						{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{

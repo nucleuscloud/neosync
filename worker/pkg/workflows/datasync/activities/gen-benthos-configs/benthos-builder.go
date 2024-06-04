@@ -10,7 +10,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -26,7 +27,7 @@ const (
 )
 
 type benthosBuilder struct {
-	sqlmanager sql_manager.SqlManagerClient
+	sqlmanager sqlmanager.SqlManagerClient
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -41,7 +42,7 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	sqlmanager sql_manager.SqlManagerClient,
+	sqlmanager sqlmanager.SqlManagerClient,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
@@ -219,9 +220,9 @@ func groupGenerateSourceOptionsByTable(
 func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 	switch conn.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return sql_manager.PostgresDriver, nil
+		return sqlmanager_shared.PostgresDriver, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return sql_manager.MysqlDriver, nil
+		return sqlmanager_shared.MysqlDriver, nil
 	default:
 		return "", fmt.Errorf("unsupported sql connection config")
 	}

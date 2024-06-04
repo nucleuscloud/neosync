@@ -9,7 +9,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -64,7 +64,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		for _, table := range schema.GetTables() {
 			columns := []*aiGenerateColumn{}
 
-			tableColsMap, ok := groupedSchemas[sql_manager.BuildTable(schema.GetSchema(), table.GetTable())]
+			tableColsMap, ok := groupedSchemas[sqlmanager_shared.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
 				return nil, nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
 			}
