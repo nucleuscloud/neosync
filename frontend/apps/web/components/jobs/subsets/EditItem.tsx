@@ -47,7 +47,6 @@ export default function EditItem(props: Props): ReactElement {
 
   useEffect(() => {
     if (monaco) {
-      // Register a completion item provider for the SQL language
       const provider = monaco.languages.registerCompletionItemProvider('sql', {
         triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
 
@@ -59,11 +58,9 @@ export default function EditItem(props: Props): ReactElement {
             endColumn: position.column,
           });
 
-          console.log('columns', columns);
-
           const columnSet = new Set<string>(columns);
 
-          // Check if the last character or word indicates a context where columns might be needed
+          // Check if the last character or word should trigger the auto-complete
           if (!shouldTriggerAutocomplete(textUntilPosition)) {
             return { suggestions: [] };
           }
@@ -78,18 +75,17 @@ export default function EditItem(props: Props): ReactElement {
           };
 
           const suggestions = Array.from(columnSet).map((name) => ({
-            label: name, // would be nice if we could add the type here as well
+            label: name, // would be nice if we could add the type here as well?
             kind: monaco.languages.CompletionItemKind.Field,
             insertText: name,
             range: range,
           }));
 
-          console.log('suggestions', suggestions);
-
           return { suggestions: suggestions };
         },
       });
-      // disposes of the instance if the component re-renders
+      /* disposes of the instance if the component re-renders, otherwise the auto-compelte list just keeps appending the column names to the auto-complete, so you get liek 20 'address' entries for ex. then it re-renders and then it goes to 30 'address' entries
+       */
       return () => {
         provider.dispose();
       };
@@ -371,12 +367,20 @@ async function getTableRowCount(
 }
 
 function shouldTriggerAutocomplete(text: string): boolean {
-  const lastSignificantWord = text
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .pop()
-    ?.toUpperCase();
+  const trimmedText = text.trim();
+  const textSplit = trimmedText.split(/\s+/);
+  const lastSignificantWord = trimmedText.split(/\s+/).pop()?.toUpperCase();
   const triggerKeywords = ['SELECT', 'WHERE', 'AND', 'OR', 'FROM'];
-  return triggerKeywords.includes(lastSignificantWord || '');
+
+  if (textSplit.length == 2 && textSplit[0].toUpperCase() == 'WHERE') {
+    /* since we pre-pend the 'WHERE', we want the autocomplete to show up for the first letter typed
+     which would come through as 'WHERE a' if the user just typed the letter 'a'
+     so the when we split that text, we check if the length is 2 (as a way of checking if the user has only typed one letter or is still on the first word) and if it is and the first word is 'WHERE' which it should be since we pre-pend it, then show the auto-complete */
+    return true;
+  } else {
+    return (
+      triggerKeywords.includes(lastSignificantWord || '') ||
+      triggerKeywords.some((keyword) => trimmedText.endsWith(keyword + ' '))
+    );
+  }
 }
