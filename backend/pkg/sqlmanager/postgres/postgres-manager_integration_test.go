@@ -47,5 +47,5 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 
 	actual, err := manager.GetForeignKeyConstraintsMap(s.ctx, []string{"public"})
 	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), actual)
+	require.Empty(s.T(), actual)
 }

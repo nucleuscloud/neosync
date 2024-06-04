@@ -51,13 +51,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		dburl = connstr
 	}
 
-	setupSql, err := os.ReadFile("../../scripts/integration/setup.sql")
+	setupSql, err := os.ReadFile("./testdata/setup.sql")
 	if err != nil {
 		panic(err)
 	}
 	s.setupSql = string(setupSql)
 
-	teardownSql, err := os.ReadFile("../../scripts/integration/teardown.sql")
+	teardownSql, err := os.ReadFile("./testdata/teardown.sql")
 	if err != nil {
 		panic(err)
 	}
