@@ -5,6 +5,7 @@ package sqlmanager
 import (
 	context "context"
 
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -22,7 +23,7 @@ func (_m *MockSqlDatabase) EXPECT() *MockSqlDatabase_Expecter {
 }
 
 // BatchExec provides a mock function with given fields: ctx, batchSize, statements, opts
-func (_m *MockSqlDatabase) BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error {
+func (_m *MockSqlDatabase) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
 	ret := _m.Called(ctx, batchSize, statements, opts)
 
 	if len(ret) == 0 {
@@ -30,7 +31,7 @@ func (_m *MockSqlDatabase) BatchExec(ctx context.Context, batchSize int, stateme
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, []string, *BatchExecOpts) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, []string, *sqlmanager_shared.BatchExecOpts) error); ok {
 		r0 = rf(ctx, batchSize, statements, opts)
 	} else {
 		r0 = ret.Error(0)
@@ -48,14 +49,14 @@ type MockSqlDatabase_BatchExec_Call struct {
 //   - ctx context.Context
 //   - batchSize int
 //   - statements []string
-//   - opts *BatchExecOpts
+//   - opts *sqlmanager_shared.BatchExecOpts
 func (_e *MockSqlDatabase_Expecter) BatchExec(ctx interface{}, batchSize interface{}, statements interface{}, opts interface{}) *MockSqlDatabase_BatchExec_Call {
 	return &MockSqlDatabase_BatchExec_Call{Call: _e.mock.On("BatchExec", ctx, batchSize, statements, opts)}
 }
 
-func (_c *MockSqlDatabase_BatchExec_Call) Run(run func(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts)) *MockSqlDatabase_BatchExec_Call {
+func (_c *MockSqlDatabase_BatchExec_Call) Run(run func(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts)) *MockSqlDatabase_BatchExec_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int), args[2].([]string), args[3].(*BatchExecOpts))
+		run(args[0].(context.Context), args[1].(int), args[2].([]string), args[3].(*sqlmanager_shared.BatchExecOpts))
 	})
 	return _c
 }
@@ -65,7 +66,7 @@ func (_c *MockSqlDatabase_BatchExec_Call) Return(_a0 error) *MockSqlDatabase_Bat
 	return _c
 }
 
-func (_c *MockSqlDatabase_BatchExec_Call) RunAndReturn(run func(context.Context, int, []string, *BatchExecOpts) error) *MockSqlDatabase_BatchExec_Call {
+func (_c *MockSqlDatabase_BatchExec_Call) RunAndReturn(run func(context.Context, int, []string, *sqlmanager_shared.BatchExecOpts) error) *MockSqlDatabase_BatchExec_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -208,23 +209,23 @@ func (_c *MockSqlDatabase_GetCreateTableStatement_Call) RunAndReturn(run func(co
 }
 
 // GetDatabaseSchema provides a mock function with given fields: ctx
-func (_m *MockSqlDatabase) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
+func (_m *MockSqlDatabase) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDatabaseSchema")
 	}
 
-	var r0 []*DatabaseSchemaRow
+	var r0 []*sqlmanager_shared.DatabaseSchemaRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]*DatabaseSchemaRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []*DatabaseSchemaRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []*sqlmanager_shared.DatabaseSchemaRow); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*DatabaseSchemaRow)
+			r0 = ret.Get(0).([]*sqlmanager_shared.DatabaseSchemaRow)
 		}
 	}
 
@@ -255,34 +256,34 @@ func (_c *MockSqlDatabase_GetDatabaseSchema_Call) Run(run func(ctx context.Conte
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetDatabaseSchema_Call) Return(_a0 []*DatabaseSchemaRow, _a1 error) *MockSqlDatabase_GetDatabaseSchema_Call {
+func (_c *MockSqlDatabase_GetDatabaseSchema_Call) Return(_a0 []*sqlmanager_shared.DatabaseSchemaRow, _a1 error) *MockSqlDatabase_GetDatabaseSchema_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetDatabaseSchema_Call) RunAndReturn(run func(context.Context) ([]*DatabaseSchemaRow, error)) *MockSqlDatabase_GetDatabaseSchema_Call {
+func (_c *MockSqlDatabase_GetDatabaseSchema_Call) RunAndReturn(run func(context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)) *MockSqlDatabase_GetDatabaseSchema_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetForeignKeyConstraints provides a mock function with given fields: ctx, schemas
-func (_m *MockSqlDatabase) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
+func (_m *MockSqlDatabase) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
 	ret := _m.Called(ctx, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForeignKeyConstraints")
 	}
 
-	var r0 []*ForeignKeyConstraintsRow
+	var r0 []*sqlmanager_shared.ForeignKeyConstraintsRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*ForeignKeyConstraintsRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error)); ok {
 		return rf(ctx, schemas)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []*ForeignKeyConstraintsRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*sqlmanager_shared.ForeignKeyConstraintsRow); ok {
 		r0 = rf(ctx, schemas)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*ForeignKeyConstraintsRow)
+			r0 = ret.Get(0).([]*sqlmanager_shared.ForeignKeyConstraintsRow)
 		}
 	}
 
@@ -314,34 +315,34 @@ func (_c *MockSqlDatabase_GetForeignKeyConstraints_Call) Run(run func(ctx contex
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetForeignKeyConstraints_Call) Return(_a0 []*ForeignKeyConstraintsRow, _a1 error) *MockSqlDatabase_GetForeignKeyConstraints_Call {
+func (_c *MockSqlDatabase_GetForeignKeyConstraints_Call) Return(_a0 []*sqlmanager_shared.ForeignKeyConstraintsRow, _a1 error) *MockSqlDatabase_GetForeignKeyConstraints_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetForeignKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*ForeignKeyConstraintsRow, error)) *MockSqlDatabase_GetForeignKeyConstraints_Call {
+func (_c *MockSqlDatabase_GetForeignKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error)) *MockSqlDatabase_GetForeignKeyConstraints_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetForeignKeyConstraintsMap provides a mock function with given fields: ctx, schemas
-func (_m *MockSqlDatabase) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error) {
+func (_m *MockSqlDatabase) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
 	ret := _m.Called(ctx, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForeignKeyConstraintsMap")
 	}
 
-	var r0 map[string][]*ForeignConstraint
+	var r0 map[string][]*sqlmanager_shared.ForeignConstraint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) (map[string][]*ForeignConstraint, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error)); ok {
 		return rf(ctx, schemas)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) map[string][]*ForeignConstraint); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) map[string][]*sqlmanager_shared.ForeignConstraint); ok {
 		r0 = rf(ctx, schemas)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]*ForeignConstraint)
+			r0 = ret.Get(0).(map[string][]*sqlmanager_shared.ForeignConstraint)
 		}
 	}
 
@@ -373,34 +374,34 @@ func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) Run(run func(ctx con
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) Return(_a0 map[string][]*ForeignConstraint, _a1 error) *MockSqlDatabase_GetForeignKeyConstraintsMap_Call {
+func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) Return(_a0 map[string][]*sqlmanager_shared.ForeignConstraint, _a1 error) *MockSqlDatabase_GetForeignKeyConstraintsMap_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) RunAndReturn(run func(context.Context, []string) (map[string][]*ForeignConstraint, error)) *MockSqlDatabase_GetForeignKeyConstraintsMap_Call {
+func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) RunAndReturn(run func(context.Context, []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error)) *MockSqlDatabase_GetForeignKeyConstraintsMap_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetPrimaryKeyConstraints provides a mock function with given fields: ctx, schemas
-func (_m *MockSqlDatabase) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
+func (_m *MockSqlDatabase) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {
 	ret := _m.Called(ctx, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPrimaryKeyConstraints")
 	}
 
-	var r0 []*PrimaryKey
+	var r0 []*sqlmanager_shared.PrimaryKey
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*PrimaryKey, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*sqlmanager_shared.PrimaryKey, error)); ok {
 		return rf(ctx, schemas)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []*PrimaryKey); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*sqlmanager_shared.PrimaryKey); ok {
 		r0 = rf(ctx, schemas)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*PrimaryKey)
+			r0 = ret.Get(0).([]*sqlmanager_shared.PrimaryKey)
 		}
 	}
 
@@ -432,12 +433,12 @@ func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) Run(run func(ctx contex
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) Return(_a0 []*PrimaryKey, _a1 error) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) Return(_a0 []*sqlmanager_shared.PrimaryKey, _a1 error) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*PrimaryKey, error)) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*sqlmanager_shared.PrimaryKey, error)) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -561,23 +562,23 @@ func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) RunAndReturn(run func(cont
 }
 
 // GetSchemaColumnMap provides a mock function with given fields: ctx
-func (_m *MockSqlDatabase) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) {
+func (_m *MockSqlDatabase) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSchemaColumnMap")
 	}
 
-	var r0 map[string]map[string]*ColumnInfo
+	var r0 map[string]map[string]*sqlmanager_shared.ColumnInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (map[string]map[string]*ColumnInfo, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string]*ColumnInfo); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string]*sqlmanager_shared.ColumnInfo); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]map[string]*ColumnInfo)
+			r0 = ret.Get(0).(map[string]map[string]*sqlmanager_shared.ColumnInfo)
 		}
 	}
 
@@ -608,38 +609,38 @@ func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Return(_a0 map[string]map[string]*ColumnInfo, _a1 error) *MockSqlDatabase_GetSchemaColumnMap_Call {
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Return(_a0 map[string]map[string]*sqlmanager_shared.ColumnInfo, _a1 error) *MockSqlDatabase_GetSchemaColumnMap_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context.Context) (map[string]map[string]*ColumnInfo, error)) *MockSqlDatabase_GetSchemaColumnMap_Call {
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error)) *MockSqlDatabase_GetSchemaColumnMap_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSchemaTableDataTypes provides a mock function with given fields: ctx, tables
-func (_m *MockSqlDatabase) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+func (_m *MockSqlDatabase) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	ret := _m.Called(ctx, tables)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSchemaTableDataTypes")
 	}
 
-	var r0 *SchemaTableDataTypeResponse
+	var r0 *sqlmanager_shared.SchemaTableDataTypeResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) (*SchemaTableDataTypeResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)); ok {
 		return rf(ctx, tables)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) *SchemaTableDataTypeResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) *sqlmanager_shared.SchemaTableDataTypeResponse); ok {
 		r0 = rf(ctx, tables)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*SchemaTableDataTypeResponse)
+			r0 = ret.Get(0).(*sqlmanager_shared.SchemaTableDataTypeResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
 		r1 = rf(ctx, tables)
 	} else {
 		r1 = ret.Error(1)
@@ -655,50 +656,50 @@ type MockSqlDatabase_GetSchemaTableDataTypes_Call struct {
 
 // GetSchemaTableDataTypes is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tables []*SchemaTable
+//   - tables []*sqlmanager_shared.SchemaTable
 func (_e *MockSqlDatabase_Expecter) GetSchemaTableDataTypes(ctx interface{}, tables interface{}) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
 	return &MockSqlDatabase_GetSchemaTableDataTypes_Call{Call: _e.mock.On("GetSchemaTableDataTypes", ctx, tables)}
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]*SchemaTable))
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
 	})
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Return(_a0 *SchemaTableDataTypeResponse, _a1 error) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) Return(_a0 *sqlmanager_shared.SchemaTableDataTypeResponse, _a1 error) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) RunAndReturn(run func(context.Context, []*SchemaTable) (*SchemaTableDataTypeResponse, error)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
+func (_c *MockSqlDatabase_GetSchemaTableDataTypes_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)) *MockSqlDatabase_GetSchemaTableDataTypes_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSchemaTableTriggers provides a mock function with given fields: ctx, tables
-func (_m *MockSqlDatabase) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+func (_m *MockSqlDatabase) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
 	ret := _m.Called(ctx, tables)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSchemaTableTriggers")
 	}
 
-	var r0 []*TableTrigger
+	var r0 []*sqlmanager_shared.TableTrigger
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) ([]*TableTrigger, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)); ok {
 		return rf(ctx, tables)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) []*TableTrigger); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) []*sqlmanager_shared.TableTrigger); ok {
 		r0 = rf(ctx, tables)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*TableTrigger)
+			r0 = ret.Get(0).([]*sqlmanager_shared.TableTrigger)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
 		r1 = rf(ctx, tables)
 	} else {
 		r1 = ret.Error(1)
@@ -714,46 +715,46 @@ type MockSqlDatabase_GetSchemaTableTriggers_Call struct {
 
 // GetSchemaTableTriggers is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tables []*SchemaTable
+//   - tables []*sqlmanager_shared.SchemaTable
 func (_e *MockSqlDatabase_Expecter) GetSchemaTableTriggers(ctx interface{}, tables interface{}) *MockSqlDatabase_GetSchemaTableTriggers_Call {
 	return &MockSqlDatabase_GetSchemaTableTriggers_Call{Call: _e.mock.On("GetSchemaTableTriggers", ctx, tables)}
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]*SchemaTable))
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
 	})
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Return(_a0 []*TableTrigger, _a1 error) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) Return(_a0 []*sqlmanager_shared.TableTrigger, _a1 error) *MockSqlDatabase_GetSchemaTableTriggers_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) RunAndReturn(run func(context.Context, []*SchemaTable) ([]*TableTrigger, error)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
+func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)) *MockSqlDatabase_GetSchemaTableTriggers_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetTableConstraintsBySchema provides a mock function with given fields: ctx, schemas
-func (_m *MockSqlDatabase) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
+func (_m *MockSqlDatabase) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
 	ret := _m.Called(ctx, schemas)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTableConstraintsBySchema")
 	}
 
-	var r0 *TableConstraints
+	var r0 *sqlmanager_shared.TableConstraints
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) (*TableConstraints, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) (*sqlmanager_shared.TableConstraints, error)); ok {
 		return rf(ctx, schemas)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) *TableConstraints); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string) *sqlmanager_shared.TableConstraints); ok {
 		r0 = rf(ctx, schemas)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*TableConstraints)
+			r0 = ret.Get(0).(*sqlmanager_shared.TableConstraints)
 		}
 	}
 
@@ -785,38 +786,38 @@ func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) Run(run func(ctx con
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) Return(_a0 *TableConstraints, _a1 error) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) Return(_a0 *sqlmanager_shared.TableConstraints, _a1 error) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, []string) (*TableConstraints, error)) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
+func (_c *MockSqlDatabase_GetTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, []string) (*sqlmanager_shared.TableConstraints, error)) *MockSqlDatabase_GetTableConstraintsBySchema_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetTableInitStatements provides a mock function with given fields: ctx, tables
-func (_m *MockSqlDatabase) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
+func (_m *MockSqlDatabase) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
 	ret := _m.Called(ctx, tables)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTableInitStatements")
 	}
 
-	var r0 []*TableInitStatement
+	var r0 []*sqlmanager_shared.TableInitStatement
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) ([]*TableInitStatement, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)); ok {
 		return rf(ctx, tables)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []*SchemaTable) []*TableInitStatement); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) []*sqlmanager_shared.TableInitStatement); ok {
 		r0 = rf(ctx, tables)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*TableInitStatement)
+			r0 = ret.Get(0).([]*sqlmanager_shared.TableInitStatement)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []*SchemaTable) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
 		r1 = rf(ctx, tables)
 	} else {
 		r1 = ret.Error(1)
@@ -832,24 +833,24 @@ type MockSqlDatabase_GetTableInitStatements_Call struct {
 
 // GetTableInitStatements is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tables []*SchemaTable
+//   - tables []*sqlmanager_shared.SchemaTable
 func (_e *MockSqlDatabase_Expecter) GetTableInitStatements(ctx interface{}, tables interface{}) *MockSqlDatabase_GetTableInitStatements_Call {
 	return &MockSqlDatabase_GetTableInitStatements_Call{Call: _e.mock.On("GetTableInitStatements", ctx, tables)}
 }
 
-func (_c *MockSqlDatabase_GetTableInitStatements_Call) Run(run func(ctx context.Context, tables []*SchemaTable)) *MockSqlDatabase_GetTableInitStatements_Call {
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetTableInitStatements_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]*SchemaTable))
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
 	})
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetTableInitStatements_Call) Return(_a0 []*TableInitStatement, _a1 error) *MockSqlDatabase_GetTableInitStatements_Call {
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) Return(_a0 []*sqlmanager_shared.TableInitStatement, _a1 error) *MockSqlDatabase_GetTableInitStatements_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetTableInitStatements_Call) RunAndReturn(run func(context.Context, []*SchemaTable) ([]*TableInitStatement, error)) *MockSqlDatabase_GetTableInitStatements_Call {
+func (_c *MockSqlDatabase_GetTableInitStatements_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)) *MockSqlDatabase_GetTableInitStatements_Call {
 	_c.Call.Return(run)
 	return _c
 }

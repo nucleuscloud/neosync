@@ -1,10 +1,12 @@
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { JobMapping } from '@neosync/sdk';
 import { TableRow } from './subset-table/column';
 
 interface DbCol {
   schema: string;
   table: string;
 }
+
 export function buildTableRowData(
   dbCols: DbCol[],
   rootTables: Set<string>,
@@ -32,4 +34,18 @@ export function buildTableRowData(
 
 export function buildRowKey(schema: string, table: string): string {
   return `${schema}.${table}`;
+}
+
+export function GetColumnsForSqlAutocomplete(
+  mappings: JobMapping[],
+  itemToEdit: TableRow | undefined
+): string[] {
+  let cols: string[] = [];
+  mappings.map((row) => {
+    if (row.schema == itemToEdit?.schema && row.table == itemToEdit.table) {
+      cols.push(row.column);
+    }
+  });
+
+  return cols;
 }

@@ -9,6 +9,7 @@ import { TableRow } from '@/components/jobs/subsets/subset-table/column';
 import {
   buildRowKey,
   buildTableRowData,
+  GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
@@ -22,8 +23,8 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
-  SchemaFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
+  SchemaFormValues,
   toJobDestinationOptions,
   toMysqlSourceSchemaOptions,
   toPostgresSourceSchemaOptions,
@@ -45,6 +46,7 @@ import {
   WorkflowOptions,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -61,6 +63,7 @@ import {
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
+  const posthog = usePostHog();
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
@@ -170,6 +173,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id,
         connections
       );
+      posthog.capture('New Job Flow Complete', {
+        jobType: 'data-sync',
+      });
       toast({
         title: 'Successfully created the job!',
         variant: 'success',
@@ -310,6 +316,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   item={itemToEdit}
                   onItem={setItemToEdit}
                   onCancel={() => setItemToEdit(undefined)}
+                  columns={GetColumnsForSqlAutocomplete(
+                    schemaFormValues?.mappings.map((row) => {
+                      return new JobMapping({
+                        schema: row.schema,
+                        table: row.table,
+                        column: row.column,
+                      });
+                    }),
+                    itemToEdit
+                  )}
                   onSave={() => {
                     if (!itemToEdit) {
                       return;

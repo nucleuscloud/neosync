@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getErrorMessage } from '@/util/util';
-import { Editor } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
@@ -26,9 +26,11 @@ interface Props {
   onCancel(): void;
   connectionId: string;
   dbType: string;
+  columns: string[];
 }
 export default function EditItem(props: Props): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId, dbType } = props;
+  const { item, onItem, onSave, onCancel, connectionId, dbType, columns } =
+    props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
@@ -40,6 +42,55 @@ export default function EditItem(props: Props): ReactElement {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [rowCountError, setRowCountError] = useState<string>();
+
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (monaco) {
+      const provider = monaco.languages.registerCompletionItemProvider('sql', {
+        triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
+
+        provideCompletionItems: (model, position) => {
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          });
+
+          const columnSet = new Set<string>(columns);
+
+          // Check if the last character or word should trigger the auto-complete
+          if (!shouldTriggerAutocomplete(textUntilPosition)) {
+            return { suggestions: [] };
+          }
+
+          const word = model.getWordUntilPosition(position);
+
+          const range = {
+            startLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: word.endColumn,
+          };
+
+          const suggestions = Array.from(columnSet).map((name) => ({
+            label: name, // would be nice if we could add the type here as well?
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: name,
+            range: range,
+          }));
+
+          return { suggestions: suggestions };
+        },
+      });
+      /* disposes of the instance if the component re-renders, otherwise the auto-compelte list just keeps appending the column names to the auto-complete, so you get liek 20 'address' entries for ex. then it re-renders and then it goes to 30 'address' entries
+       */
+      return () => {
+        provider.dispose();
+      };
+    }
+  }, [monaco, columns]);
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -313,4 +364,23 @@ async function getTableRowCount(
     throw new Error(body.message);
   }
   return GetTableRowCountResponse.fromJson(await res.json());
+}
+
+function shouldTriggerAutocomplete(text: string): boolean {
+  const trimmedText = text.trim();
+  const textSplit = trimmedText.split(/\s+/);
+  const lastSignificantWord = trimmedText.split(/\s+/).pop()?.toUpperCase();
+  const triggerKeywords = ['SELECT', 'WHERE', 'AND', 'OR', 'FROM'];
+
+  if (textSplit.length == 2 && textSplit[0].toUpperCase() == 'WHERE') {
+    /* since we pre-pend the 'WHERE', we want the autocomplete to show up for the first letter typed
+     which would come through as 'WHERE a' if the user just typed the letter 'a'
+     so the when we split that text, we check if the length is 2 (as a way of checking if the user has only typed one letter or is still on the first word) and if it is and the first word is 'WHERE' which it should be since we pre-pend it, then show the auto-complete */
+    return true;
+  } else {
+    return (
+      triggerKeywords.includes(lastSignificantWord || '') ||
+      triggerKeywords.some((keyword) => trimmedText.endsWith(keyword + ' '))
+    );
+  }
 }

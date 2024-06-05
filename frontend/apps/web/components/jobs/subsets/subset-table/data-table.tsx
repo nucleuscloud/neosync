@@ -79,7 +79,7 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <div
-        className="rounded-md max-h-[500px] relative overflow-auto border border-gray-700"
+        className="rounded-md  min-h-[150px] max-h-[500px] relative overflow-auto border dark:border-gray-700 border-gray-300"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>

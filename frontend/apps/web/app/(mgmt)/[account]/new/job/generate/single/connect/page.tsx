@@ -26,6 +26,7 @@ import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -44,6 +45,7 @@ const NEW_CONNECTION_VALUE = 'new-connection';
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
+  const posthog = usePostHog();
   useEffect(() => {
     if (!searchParams?.sessionId) {
       router.push(`/${account?.name}/new/job`);
@@ -84,6 +86,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(
       `/${account?.name}/new/job/generate/single/schema?sessionId=${sessionPrefix}`
     );
+    posthog.capture('New Job Flow Connect Complete', { jobType: 'generate' });
   }
 
   const errors = form.formState.errors;

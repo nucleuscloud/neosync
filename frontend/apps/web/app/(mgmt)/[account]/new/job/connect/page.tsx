@@ -26,6 +26,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -82,8 +83,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
+  const posthog = usePostHog();
 
   async function onSubmit(_values: ConnectFormValues) {
+    posthog.capture('New Job Flow Connect Complete', { jobType: 'data-sync' });
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 

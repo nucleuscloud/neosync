@@ -24,6 +24,7 @@ import {
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
@@ -43,7 +44,7 @@ export interface ColumnMetadata {
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
-
+  const posthog = usePostHog();
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
     ValidateJobMappingsResponse | undefined
   >();
@@ -103,6 +104,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     if (!account) {
       return;
     }
+    posthog.capture('New Job Flow Schema Complete', { jobType: 'data-sync' });
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
@@ -193,7 +195,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       >
         <div />
       </OverviewContainer>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable

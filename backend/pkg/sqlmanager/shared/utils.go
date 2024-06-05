@@ -1,6 +1,8 @@
-package sqlmanager
+package sqlmanager_shared
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func GetUniqueSchemaColMappings(
 	schemas []*DatabaseSchemaRow,
@@ -23,7 +25,7 @@ func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
 	return &ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
 		ColumnDefault:          row.ColumnDefault,
-		IsNullable:             convertNullableTextToBool(row.IsNullable),
+		IsNullable:             ConvertNullableTextToBool(row.IsNullable),
 		DataType:               row.DataType,
 		CharacterMaximumLength: Ptr(row.CharacterMaximumLength),
 		NumericPrecision:       Ptr(row.NumericPrecision),
@@ -31,7 +33,7 @@ func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
 	}
 }
 
-func convertNullableTextToBool(isNullableStr string) bool {
+func ConvertNullableTextToBool(isNullableStr string) bool {
 	return isNullableStr != "NO"
 }
 
@@ -46,7 +48,7 @@ func BuildTable(schema, table string) string {
 	return table
 }
 
-func dedupeSlice(input []string) []string {
+func DedupeSlice(input []string) []string {
 	set := map[string]any{}
 	for _, i := range input {
 		set[i] = struct{}{}

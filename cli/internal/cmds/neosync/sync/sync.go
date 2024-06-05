@@ -20,7 +20,10 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
@@ -306,7 +309,7 @@ func sync(
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
 
 	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
@@ -379,7 +382,7 @@ func sync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanager, connection, cmd, s3Config)
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config)
 		if err != nil {
 			return err
 		}
@@ -454,7 +457,7 @@ func sync(
 	}
 
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
-	err = runDestinationInitStatements(ctx, sqlmanager, cmd, syncConfigs, schemaConfig)
+	err = runDestinationInitStatements(ctx, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
 	if err != nil {
 		return err
 	}
@@ -556,9 +559,9 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func runDestinationInitStatements(ctx context.Context, sqlmanager sql_manager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
+func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
-	db, err := sqlmanager.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
 		return err
 	}
@@ -601,7 +604,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanager sql_manager.Sq
 				return err
 			}
 
-			orderedTruncateStatement := sql_manager.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
+			orderedTruncateStatement := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
 				fmt.Println("Error truncating tables:", err) //nolint:forbidigo
@@ -1112,7 +1115,7 @@ func getConnectionSchemaConfig(
 func getDestinationSchemaConfig(
 	ctx context.Context,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanager sql_manager.SqlManagerClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
@@ -1141,13 +1144,13 @@ func getDestinationSchemaConfig(
 	}
 
 	fmt.Println(printlog.Render("Building foreign table constraints...")) //nolint:forbidigo
-	tableConstraints, err := getDestinationForeignConstraints(ctx, sqlmanager, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tableConstraints, err := getDestinationForeignConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println(printlog.Render("Building primary key table constraints...")) //nolint:forbidigo
-	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanager, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1173,10 +1176,10 @@ func getDestinationSchemaConfig(
 	}, nil
 }
 
-func getDestinationForeignConstraints(ctx context.Context, sqlmanager sql_manager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string][]*sql_manager.ForeignConstraint, error) {
+func getDestinationForeignConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string][]*sql_manager.ForeignConstraint, error) {
 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := sqlmanager.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -1190,10 +1193,10 @@ func getDestinationForeignConstraints(ctx context.Context, sqlmanager sql_manage
 	return constraints, nil
 }
 
-func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanager sql_manager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
+func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := sqlmanager.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -1304,13 +1307,13 @@ func buildPostgresUpdateQuery(schema, table string, columns, primaryKeys []strin
 	var where string
 	paramCount := 1
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = $%d", sql_manager.EscapePgColumn(col), paramCount)
+		values[i] = fmt.Sprintf("%s = $%d", sqlmanager_postgres.EscapePgColumn(col), paramCount)
 		paramCount++
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", sql_manager.EscapePgColumn(col), paramCount))
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", sqlmanager_postgres.EscapePgColumn(col), paramCount))
 			paramCount++
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
@@ -1325,7 +1328,7 @@ func buildPostgresInsertQuery(schema, table string, columns []string) string {
 		values[i] = fmt.Sprintf("$%d", paramCount)
 		paramCount++
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("%q.%q", schema, table), strings.Join(sql_manager.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("%q.%q", schema, table), strings.Join(sqlmanager_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlInsertQuery(schema, table string, columns []string) string {
@@ -1333,19 +1336,19 @@ func buildMysqlInsertQuery(schema, table string, columns []string) string {
 	for i := range columns {
 		values[i] = "?"
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(sql_manager.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(sqlmanager_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlUpdateQuery(schema, table string, columns, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = ?", sql_manager.EscapeMysqlColumn(col))
+		values[i] = fmt.Sprintf("%s = ?", sqlmanager_mysql.EscapeMysqlColumn(col))
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", sql_manager.EscapeMysqlColumn(col)))
+			clauses = append(clauses, fmt.Sprintf("%s = ?", sqlmanager_mysql.EscapeMysqlColumn(col)))
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}

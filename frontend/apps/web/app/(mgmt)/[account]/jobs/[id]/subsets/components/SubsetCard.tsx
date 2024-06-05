@@ -9,6 +9,7 @@ import { TableRow } from '@/components/jobs/subsets/subset-table/column';
 import {
   buildRowKey,
   buildTableRowData,
+  GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -193,6 +194,10 @@ export default function SubsetCard(props: Props): ReactElement {
                 item={itemToEdit}
                 onItem={setItemToEdit}
                 onCancel={() => setItemToEdit(undefined)}
+                columns={GetColumnsForSqlAutocomplete(
+                  data?.job?.mappings ?? [],
+                  itemToEdit
+                )}
                 onSave={() => {
                   if (!itemToEdit) {
                     return;

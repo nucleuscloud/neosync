@@ -11,6 +11,9 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"golang.org/x/sync/errgroup"
@@ -121,10 +124,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if sqlopts.InitSchema {
-				tables := []*sql_manager.SchemaTable{}
+				tables := []*sqlmanager_shared.SchemaTable{}
 				for tableKey := range uniqueTables {
 					schema, table := shared.SplitTableKey(tableKey)
-					tables = append(tables, &sql_manager.SchemaTable{Schema: schema, Table: table})
+					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 
 				errgrp, errctx := errgroup.WithContext(ctx)
@@ -163,7 +166,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					for _, stmtCfg := range initStatementCfgs {
 						createTables = append(createTables, stmtCfg.CreateTableStatement)
 						for _, alter := range stmtCfg.AlterTableStatements {
-							if alter.ConstraintType == sql_manager.ForeignConstraintType {
+							if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
 								fkAlterStmts = append(fkAlterStmts, alter.Statement)
 							} else {
 								nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
@@ -191,7 +194,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					if len(block.statements) == 0 {
 						continue
 					}
-					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.statements, &sql_manager.BatchExecOpts{})
+					err = destdb.Db.BatchExec(ctx, batchSizeConst, block.statements, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
 						destdb.Db.Close()
 						return nil, fmt.Errorf("unable to exec pg %s statements: %w", block.label, err)
@@ -203,7 +206,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tableTruncateStmts := []string{}
 				for table := range uniqueTables {
 					split := strings.Split(table, ".")
-					stmt, err := sql_manager.BuildPgTruncateCascadeStatement(split[0], split[1])
+					stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(split[0], split[1])
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err
@@ -211,7 +214,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableTruncateStmts = append(tableTruncateStmts, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate cascade tables", len(tableTruncateStmts)))
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncateStmts, &sql_manager.BatchExecOpts{})
+				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncateStmts, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
@@ -235,7 +238,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-				truncateStmt := sql_manager.BuildPgTruncateStatement(orderedTableTruncate)
+				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
 					destdb.Db.Close()
@@ -277,7 +280,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableCreateStmts = append(tableCreateStmts, initStmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
+				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
@@ -288,7 +291,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tableTruncate := []string{}
 				for table := range uniqueTables {
 					split := strings.Split(table, ".")
-					stmt, err := sql_manager.BuildMysqlTruncateStatement(split[0], split[1])
+					stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(split[0], split[1])
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err
@@ -296,8 +299,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableTruncate = append(tableTruncate, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
-				disableFkChecks := sql_manager.DisableForeignKeyChecks
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncate, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
+				disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
+				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncate, &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks})
 				if err != nil {
 					destdb.Db.Close()
 					return nil, err
@@ -328,7 +331,7 @@ func (b *initStatementBuilder) getJobById(
 }
 
 // filtered by tables found in job mappings
-func getFilteredForeignToPrimaryTableMap(td map[string][]*sql_manager.ForeignConstraint, uniqueTables map[string]struct{}) map[string][]string {
+func getFilteredForeignToPrimaryTableMap(td map[string][]*sqlmanager_shared.ForeignConstraint, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table := range uniqueTables {
 		_, dpOk := dpMap[table]

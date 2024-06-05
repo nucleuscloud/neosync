@@ -33,6 +33,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { getSingleOrUndefined } from '@/libs/utils';
+import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -80,11 +81,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
+  const posthog = usePostHog();
 
   async function onSubmit(_values: DefineFormValues) {
     if (!isScheduleEnabled) {
       form.setValue('cronSchedule', '');
     }
+    posthog.capture('New Job Flow Define Complete', { jobType: newJobType });
     if (newJobType === 'generate-table') {
       router.push(
         `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}`

@@ -16,6 +16,7 @@ import { cn } from '@/libs/utils';
 import { MagicWandIcon, SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
 import { NewJobType } from './schema';
@@ -88,6 +89,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
   };
 
   const router = useRouter();
+  const posthog = usePostHog();
 
   return (
     <div
@@ -148,12 +150,15 @@ export default function NewJob({ params }: PageProps): ReactElement {
         <Button
           type="submit"
           disabled={!selectedJobType}
-          onClick={() =>
+          onClick={() => {
             router.push(
               href ??
                 `/${account?.name}/new/job/define?${dataSyncParams.toString()}`
-            )
-          }
+            );
+            posthog.capture('New Job Flow Started', {
+              jobType: selectedJobType,
+            });
+          }}
         >
           Next
         </Button>

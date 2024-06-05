@@ -17,6 +17,10 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ./docs/package-lock.json
 
       - run: npm ci
       - run: npm run knip:production
@@ -33,20 +37,10 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
-
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v4
         with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-docs-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-docs-
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ./docs/package-lock.json
 
       - run: npm ci
       - run: npm run prettier:check
@@ -63,20 +57,10 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
-
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v4
         with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-docs-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-docs-
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ./docs/package-lock.json
 
       - run: npm ci
       - name: Build
