@@ -48,7 +48,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	if err != nil {
 		return nil, nil, err
 	}
-	db, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, constraintConnection)
+	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, constraintConnection)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}

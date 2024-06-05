@@ -27,7 +27,7 @@ const (
 )
 
 type benthosBuilder struct {
-	sqlmanager sqlmanager.SqlManagerClient
+	sqlmanagerclient sqlmanager.SqlManagerClient
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -42,7 +42,7 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	sqlmanager sqlmanager.SqlManagerClient,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
@@ -55,7 +55,7 @@ func newBenthosBuilder(
 	metricsEnabled bool,
 ) *benthosBuilder {
 	return &benthosBuilder{
-		sqlmanager:        sqlmanager,
+		sqlmanagerclient:  sqlmanagerclient,
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,

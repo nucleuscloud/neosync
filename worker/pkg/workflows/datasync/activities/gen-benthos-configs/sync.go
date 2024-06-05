@@ -41,7 +41,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
-	db, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
+	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}

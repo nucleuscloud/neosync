@@ -106,7 +106,7 @@ func (s *SqlManager) NewPooledSqlDb(
 	var driver string
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		var close func()
+		var closer func()
 		if _, ok := s.pgpool.Load(connection.Id); !ok {
 			pgconfig := connection.ConnectionConfig.GetPgConfig()
 			if pgconfig == nil {
@@ -121,7 +121,7 @@ func (s *SqlManager) NewPooledSqlDb(
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			s.pgpool.Store(connection.Id, pool)
-			close = func() {
+			closer = func() {
 				if pgconn != nil {
 					pgconn.Close()
 					s.pgpool.Delete(connection.Id)
@@ -133,10 +133,10 @@ func (s *SqlManager) NewPooledSqlDb(
 		if !ok {
 			return nil, fmt.Errorf("pool found, but type assertion to pg_queries.DBTX failed")
 		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, close)
+		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, closer)
 		driver = sqlmanager_shared.PostgresDriver
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		var close func()
+		var closer func()
 		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
 			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
@@ -147,7 +147,7 @@ func (s *SqlManager) NewPooledSqlDb(
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			s.mysqlpool.Store(connection.Id, pool)
-			close = func() {
+			closer = func() {
 				if conn != nil {
 					err := conn.Close()
 					if err != nil {
@@ -163,7 +163,7 @@ func (s *SqlManager) NewPooledSqlDb(
 			return nil, fmt.Errorf("pool found, but type assertion to mysql_queries.DBTX failed")
 		}
 
-		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, close)
+		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, closer)
 		driver = sqlmanager_shared.MysqlDriver
 	default:
 		return nil, errors.New("unsupported sql database connection: %s")
