@@ -9,15 +9,19 @@ import (
 
 func ToConnectionDto(
 	input *db_queries.NeosyncApiConnection,
-) *mgmtv1alpha1.Connection {
+) (*mgmtv1alpha1.Connection, error) {
+	ccDto, err := input.ConnectionConfig.ToDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.Connection{
 		Id:               nucleusdb.UUIDString(input.ID),
 		Name:             input.Name,
-		ConnectionConfig: input.ConnectionConfig.ToDto(),
+		ConnectionConfig: ccDto,
 		CreatedAt:        timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:        timestamppb.New(input.UpdatedAt.Time),
 		CreatedByUserId:  nucleusdb.UUIDString(input.CreatedByID),
 		UpdatedByUserId:  nucleusdb.UUIDString(input.UpdatedByID),
 		AccountId:        nucleusdb.UUIDString(input.AccountID),
-	}
+	}, nil
 }

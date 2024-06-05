@@ -158,7 +158,11 @@ func (s *Service) GetConnections(
 	dtoConns := []*mgmtv1alpha1.Connection{}
 	for idx := range connections {
 		connection := connections[idx]
-		dtoConns = append(dtoConns, dtomaps.ToConnectionDto(&connection))
+		dto, err := dtomaps.ToConnectionDto(&connection)
+		if err != nil {
+			return nil, err
+		}
+		dtoConns = append(dtoConns, dto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
@@ -186,9 +190,12 @@ func (s *Service) GetConnection(
 	if err != nil {
 		return nil, err
 	}
-
+	dto, err := dtomaps.ToConnectionDto(&connection)
+	if err != nil {
+		return nil, err
+	}
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		Connection: dto,
 	}), nil
 }
 
@@ -221,9 +228,12 @@ func (s *Service) CreateConnection(
 	if err != nil {
 		return nil, err
 	}
-
+	dto, err := dtomaps.ToConnectionDto(&connection)
+	if err != nil {
+		return nil, err
+	}
 	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		Connection: dto,
 	}), nil
 }
 
@@ -266,9 +276,12 @@ func (s *Service) UpdateConnection(
 	if err != nil {
 		return nil, err
 	}
-
+	dto, err := dtomaps.ToConnectionDto(&connection)
+	if err != nil {
+		return nil, err
+	}
 	return connect.NewResponse(&mgmtv1alpha1.UpdateConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		Connection: dto,
 	}), nil
 }
 

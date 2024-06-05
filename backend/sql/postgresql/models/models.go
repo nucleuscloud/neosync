@@ -1,6 +1,7 @@
 package pg_models
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,9 +14,10 @@ type ConnectionConfig struct {
 	MysqlConfig          *MysqlConnectionConfig          `json:"mysqlConfig,omitempty"`
 	LocalDirectoryConfig *LocalDirectoryConnectionConfig `json:"localDirConfig,omitempty"`
 	OpenAiConfig         *OpenAiConnectionConfig         `json:"openaiConfig,omitempty"`
+	MongoConfig          *MongoConnectionConfig          `json:"mongoConfig,omitempty"`
 }
 
-func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
+func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 	if c.PgConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.PgConfig.SSHTunnel != nil {
@@ -48,7 +50,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ClientTls:         clientTls,
 					},
 				},
-			}
+			}, nil
 		} else if c.PgConfig.Url != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -61,7 +63,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ClientTls:         clientTls,
 					},
 				},
-			}
+			}, nil
 		}
 	} else if c.MysqlConfig != nil {
 		var tunnel *mgmtv1alpha1.SSHTunnel
@@ -90,7 +92,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ConnectionOptions: connectionOptions,
 					},
 				},
-			}
+			}, nil
 		} else if c.MysqlConfig.Url != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
@@ -101,28 +103,38 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						Tunnel: tunnel,
 					},
 				},
-			}
+			}, nil
 		}
 	} else if c.AwsS3Config != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
 				AwsS3Config: c.AwsS3Config.ToDto(),
 			},
-		}
+		}, nil
 	} else if c.LocalDirectoryConfig != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_LocalDirConfig{
 				LocalDirConfig: c.LocalDirectoryConfig.ToDto(),
 			},
-		}
+		}, nil
 	} else if c.OpenAiConfig != nil {
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_OpenaiConfig{
 				OpenaiConfig: c.OpenAiConfig.ToDto(),
 			},
+		}, nil
+	} else if c.MongoConfig != nil {
+		mdto, err := c.MongoConfig.ToDto()
+		if err != nil {
+			return nil, err
 		}
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+				MongoConfig: mdto,
+			},
+		}, nil
 	}
-	return nil
+	return nil, errors.ErrUnsupported
 }
 
 func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
@@ -196,8 +208,60 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
 		c.OpenAiConfig = &OpenAiConnectionConfig{}
 		c.OpenAiConfig.FromDto(config.OpenaiConfig)
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		c.MongoConfig = &MongoConnectionConfig{}
+		err := c.MongoConfig.FromDto(config.MongoConfig)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unable to convert to ConnectionConfig from DTO ConnectionConfig, type not supported: %T", config)
+	}
+	return nil
+}
+
+type MongoConnectionConfig struct {
+	Url       *string    `json:"url,omitempty"`
+	SSHTunnel *SSHTunnel `json:"sshTunnel,omitempty"`
+	ClientTls *ClientTls `json:"clientTls,omitempty"`
+}
+
+func (m *MongoConnectionConfig) ToDto() (*mgmtv1alpha1.MongoConnectionConfig, error) {
+	if m.Url == nil {
+		return nil, errors.New("mongo connection does not contain url")
+	}
+	var tunnel *mgmtv1alpha1.SSHTunnel
+	if m.SSHTunnel != nil {
+		tunnel = m.SSHTunnel.ToDto()
+	}
+	var clienttls *mgmtv1alpha1.ClientTlsConfig
+	if m.ClientTls != nil {
+		clienttls = m.ClientTls.ToDto()
+	}
+	return &mgmtv1alpha1.MongoConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+			Url: *m.Url,
+		},
+		Tunnel:    tunnel,
+		ClientTls: clienttls,
+	}, nil
+}
+func (m *MongoConnectionConfig) FromDto(dto *mgmtv1alpha1.MongoConnectionConfig) error {
+	if dto == nil {
+		return errors.New("mongo connection config dto was nil")
+	}
+	if dto.GetUrl() == "" {
+		return errors.New("mongo connection config dto url was empty")
+	}
+	murl := dto.GetUrl()
+	m.Url = &murl
+	if dto.GetClientTls() != nil {
+		m.ClientTls = &ClientTls{}
+		m.ClientTls.FromDto(dto.GetClientTls())
+	}
+	if dto.GetTunnel() != nil {
+		m.SSHTunnel = &SSHTunnel{}
+		m.SSHTunnel.FromDto(dto.GetTunnel())
 	}
 	return nil
 }
