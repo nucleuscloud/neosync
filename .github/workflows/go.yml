@@ -37,8 +37,8 @@ jobs:
           version: latest
           args: --timeout=10m
 
-  test:
-    name: test
+  vet:
+    name: vet
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,12 +51,37 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Vet
-        run: |
-          go vet ./...
+        run: go vet ./...
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
       - name: Test
         run: |
           go test -race -coverprofile=coverage.out -covermode=atomic ./...
+        env:
+          INTEGRATION_TESTS_ENABLED: 1
+          TEST_DB_URL: postgres://postgres:postgres@localhost:5432/postgres
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
