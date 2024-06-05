@@ -1,4 +1,4 @@
-package genbenthosconfigs_activity
+package genbenthosconfigs_querybuilder
 
 import (
 	"crypto/sha256"
@@ -222,7 +222,7 @@ func buildSelectRecursiveQuery(
 }
 
 // returns map of schema.table -> select query
-func buildSelectQueryMap(
+func BuildSelectQueryMap(
 	driver string,
 	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
