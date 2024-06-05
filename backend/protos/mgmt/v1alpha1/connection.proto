@@ -93,7 +93,23 @@ message ConnectionConfig {
     LocalDirectoryConnectionConfig local_dir_config = 4;
     // Connection config for an OpenAI (or compatible) Connection
     OpenAiConnectionConfig openai_config = 5;
+    // Configures a MongoDB Connection
+    MongoConnectionConfig mongo_config = 6;
   }
+}
+
+message MongoConnectionConfig {
+  // May provide either a raw string url, or a structured version
+  oneof connection_config {
+    option (buf.validate.oneof).required = true;
+    // The full mongo connection url
+    string url = 1;
+  }
+
+  // Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
+  SSHTunnel tunnel = 2;
+  // Provide client-side TLS Certificates
+  ClientTlsConfig client_tls = 3;
 }
 
 // Configures a connection to OpenAI or OpenAI compatible API.
