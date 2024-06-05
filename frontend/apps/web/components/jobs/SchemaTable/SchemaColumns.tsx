@@ -363,7 +363,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             {fieldState.error ? (
                               <div>
                                 <div>{fieldState.error.message}</div>
-                                <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                                <ExclamationTriangleIcon className="h-4 w-4 text-destructive dark:text-red-400 text-red-600" />
                               </div>
                             ) : (
                               <div className="w-4"></div>

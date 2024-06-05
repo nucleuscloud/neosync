@@ -36,13 +36,18 @@ export default function FormErrorsCard(props: Props): ReactElement {
   return (
     <Card className="w-full flex flex-col">
       <CardHeader className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          {messages.length != 0 ? (
-            <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
-          ) : (
-            <CheckCircledIcon className="w-4 h-4" />
-          )}
-          <CardTitle>Validations</CardTitle>
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center gap-2">
+            {messages.length != 0 ? (
+              <ExclamationTriangleIcon className="h-4 w-4 text-destructive dark:text-red-400 text-red-600" />
+            ) : (
+              <CheckCircledIcon className="w-4 h-4" />
+            )}
+            <CardTitle>Validations</CardTitle>
+            {messages.length != 0 && (
+              <Badge variant="destructive">{messages.length} Errors</Badge>
+            )}
+          </div>
           <div className="flex">
             {onValidate && (
               <Button
@@ -63,10 +68,6 @@ export default function FormErrorsCard(props: Props): ReactElement {
               </Button>
             )}
           </div>
-
-          {messages.length != 0 && (
-            <Badge variant="destructive">{messages.length} Errors</Badge>
-          )}
         </div>
         <CardDescription>
           A list of schema validation errors to resolve before moving forward.
