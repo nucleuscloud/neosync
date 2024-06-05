@@ -311,40 +311,6 @@ func Test_BuildSelectQueryMap(t *testing.T) {
 	}
 }
 
-func Test_BuildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
-	bWhere := "name = 'bob'"
-	cWhere := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-		},
-		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-		},
-		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a";`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'bob';`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.c.id = 1 AND public.b.name = 'bob');`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.c.id = 1 AND public.b.name = 'bob');`},
-		}
-
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
 func Test_BuildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 	aWhere := "name = 'bob'"
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -363,38 +329,6 @@ func Test_BuildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 		}
 
 	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
-func Test_BuildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
-	bWhere := "name = 'bob'"
-	cWhere := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-		},
-		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-		},
-		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	}
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a";`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "id", "name", "a_id" FROM "public"."b" WHERE name = 'bob';`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "id", "b_id" FROM "public"."c" WHERE id = 1;`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "id", "c_id" FROM "public"."d";`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, false, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -470,122 +404,6 @@ func Test_BuildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 	require.Equal(t, expected, sql)
 }
 
-func Test_BuildSelectQueryMap_MultiplSubsets(t *testing.T) {
-	whereId := "id = 1"
-	whereName := "name = 'neo'"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-		},
-		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-		},
-		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
-		},
-		"public.f": {
-			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}, WhereClause: &whereId},
-		{Table: "public.f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "e_id"}, InsertColumns: []string{"id", "e_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.b.name = 'neo' AND public.a.id = 1);`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.b.name = 'neo' AND public.a.id = 1);`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."d";`},
-			"public.e": {tabledependency.RunTypeInsert: `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`},
-			"public.f": {tabledependency.RunTypeInsert: `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
-func Test_BuildSelectQueryMap_MultipleRootss(t *testing.T) {
-	whereId := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-		},
-		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "b_id"}, InsertColumns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a";`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`},
-			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
-func Test_BuildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
-	whereId := "id = 1"
-	whereId2 := "id = 2"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-		},
-		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-		"public.a": {
-			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId2},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "b_id"}, InsertColumns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "public"."a"."id", "public"."a"."x_id" FROM "public"."a" INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") WHERE public.x.id = 2;`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
-			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
-			"public.x": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."x" WHERE public.x.id = 2;`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
 func Test_BuildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 	whereId := "id = 1"
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -610,68 +428,6 @@ func Test_BuildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 				tabledependency.RunTypeUpdate: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "aa_id" FROM "related";`,
 			},
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
-func Test_BuildSelectQueryMap_DoubleReference(t *testing.T) {
-	whereId := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
-		},
-		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.company", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.department", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "department_source_id", "department_destination_id"}, InsertColumns: []string{"id", "department_source_id", "department_destination_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id", "department_destination_id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.company":        {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`},
-			"public.department":     {tabledependency.RunTypeInsert: `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
-			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1);`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
-func Test_BuildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
-	whereId := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
-		},
-		"public.transaction": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-		},
-		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.department", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-		{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_id"}, InsertColumns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
-		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, InsertColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.company":        {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`},
-			"public.department":     {tabledependency.RunTypeInsert: `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
-			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") INNER JOIN "public"."transaction" ON ("public"."transaction"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1 AND public.company.id = 1);`},
-			"public.transaction":    {tabledependency.RunTypeInsert: `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
 		}
 	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(t, err)

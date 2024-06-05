@@ -1,10 +1,9 @@
 CREATE SCHEMA IF NOT EXISTS genbenthosconfigs_querybuilder;
 
 SET search_path TO genbenthosconfigs_querybuilder;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-
- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
--- company
+-- Test_BuildQueryMap_DoubleReference
 CREATE TABLE
 	IF NOT EXISTS company (
 		"id" BIGSERIAL NOT NULL,
@@ -27,7 +26,6 @@ CREATE TABLE
 		CONSTRAINT department_uuid_key UNIQUE (uuid),
 		CONSTRAINT department_company_id_fkey FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
 	);
--- market
 CREATE TABLE IF NOT EXISTS transaction (
     id bigint NOT NULL,
     amount double precision NOT NULL,
@@ -70,14 +68,12 @@ CREATE TABLE IF NOT EXISTS expense_report (
 );
 
 
--- COMPANY DATA
 INSERT INTO company (name, url, employee_count, uuid)
 VALUES
   ('Acme Corporation', 'www.acme.com', 500, uuid_generate_v4()),
   ('Global Enterprises', 'globalenterprises.net', 1200, uuid_generate_v4()),
   ('Tech Innovations', 'www.techinnovations.io', 250, uuid_generate_v4());
 
--- DEPARTMENT DATA 
 INSERT INTO department (name, url, company_id, uuid)
 VALUES
   ('Marketing', 'marketing.acme.com', 1, uuid_generate_v4()),  -- Acme Corporation
@@ -85,19 +81,259 @@ VALUES
   ('Finance', null, 2, uuid_generate_v4()), -- Global Enterprises
   ('R&D', 'rnd.techinnovations.io', 3, uuid_generate_v4()); -- Tech Innovations
 
--- TRANSACTION DATA
 INSERT INTO transaction (id, amount, created, updated, department_id, date, currency, description, uuid)
 VALUES
   (1, 250.50, now() - interval '2 weeks', now(), 1, '2024-05-01', 'USD', 'Office Supplies', uuid_generate_v4()),
   (2, 1250.00, now() - interval '5 days', now(), 2, '2024-05-06', 'GBP', 'Travel Expenses', uuid_generate_v4()),
   (3, 87.25, now() - interval '1 month', now(), 3, '2024-04-20', 'EUR', 'Lunch Meeting', uuid_generate_v4());
 
--- EXPENSE REPORT DATA
-INSERT INTO expense_report (id, invoice_id, date, amount, department_source_id, department_destination_id, created, updated, currency, transaction_type, paid, adjustment_amount)
+INSERT INTO expense_report (id, invoice_id, date, amount, department_source_id, department_destination_id, created, updated, currency, transaction_type, paid, adjustment_amount, transaction_id)
 VALUES
-  (1, 'INV-1234', '2024-05-03', 500.00, 1, 2, now() - interval '15 days', now(), 'USD', 1, true, null),
-  (2,'INV-5678', '2024-04-28', 128.75, 3, 1, now() - interval '20 days', now() - interval '1 day', 'CAD', 2, false, 12.50);
+  (1, 'INV-1234', '2024-05-03', 500.00, 1, 2, now() - interval '15 days', now(), 'USD', 1, true, null, 1),
+  (2,'INV-5678', '2024-04-28', 128.75, 3, 1, now() - interval '20 days', now() - interval '1 day', 'CAD', 2, false, 12.50, 3);
 
 
- update expense_report set transaction_id = 1 where id = 1;
-  update expense_report set transaction_id = 3 where id = 2;
+-- Test_BuildQueryMap_DoubleRootSubset
+CREATE TABLE test_2_x (
+  id BIGINT NOT NULL PRIMARY KEY,
+  name text,
+  created timestamp without time zone
+);
+
+CREATE TABLE test_2_b (
+  id BIGINT NOT NULL PRIMARY KEY,
+  name text,
+  created timestamp without time zone
+);
+
+CREATE TABLE test_2_a (
+  id BIGINT NOT NULL PRIMARY KEY,
+  x_id BIGINT NOT NULL,
+  CONSTRAINT test2_x FOREIGN KEY (x_id) REFERENCES test_2_x (id) ON DELETE CASCADE
+);
+
+CREATE TABLE test_2_c (
+  id BIGINT NOT NULL PRIMARY KEY,
+  name text,
+  created timestamp without time zone,
+  a_id BIGINT NOT NULL,
+  b_id BIGINT NOT NULL,
+  CONSTRAINT test2_a FOREIGN KEY (a_id) REFERENCES test_2_a (id) ON DELETE CASCADE,
+  CONSTRAINT test2_b FOREIGN KEY (b_id) REFERENCES test_2_b (id) ON DELETE CASCADE
+);
+
+CREATE TABLE test_2_d (
+  id BIGINT NOT NULL PRIMARY KEY,
+  c_id BIGINT NOT NULL,
+  CONSTRAINT test2_x FOREIGN KEY (c_id) REFERENCES test_2_c (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE test_2_e (
+  id BIGINT NOT NULL PRIMARY KEY,
+  c_id BIGINT NOT NULL,
+  CONSTRAINT test2_x FOREIGN KEY (c_id) REFERENCES test_2_c (id) ON DELETE CASCADE
+);
+
+INSERT INTO test_2_x (id, name, created) VALUES 
+(1, 'Xander', '2023-06-01 10:00:00'),
+(2, 'Xena', '2023-06-02 11:00:00'),
+(3, 'Xavier', '2023-06-03 12:00:00'),
+(4, 'Xiomara', '2023-06-04 13:00:00'),
+(5, 'Xaviera', '2023-06-05 14:00:00');
+
+INSERT INTO test_2_b (id, name, created) VALUES 
+(1, 'Beta1', '2023-06-01 15:00:00'),
+(2, 'Beta2', '2023-06-02 16:00:00'),
+(3, 'Beta3', '2023-06-03 17:00:00'),
+(4, 'Beta4', '2023-06-04 18:00:00'),
+(5, 'Beta5', '2023-06-05 19:00:00');
+
+INSERT INTO test_2_a (id, x_id) VALUES 
+(1, 5),
+(2, 4),
+(3, 3),
+(4, 3),
+(5, 1);
+
+INSERT INTO test_2_c (id, name, created, a_id, b_id) VALUES 
+(1, 'Gamma1', '2023-06-01 20:00:00', 1, 1),
+(2, 'Gamma2', '2023-06-02 21:00:00', 2, 2),
+(3, 'Gamma3', '2023-06-03 22:00:00', 3, 3),
+(4, 'Gamma4', '2023-06-04 23:00:00', 4, 4),
+(5, 'Gamma5', '2023-06-05 00:00:00', 5, 5);
+
+INSERT INTO test_2_d (id, c_id) VALUES 
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+INSERT INTO test_2_e (id, c_id) VALUES 
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+-- Test_BuildQueryMap_MultipleRoots, Test_BuildQueryMap_MultipleSubset, Test_BuildQueryMap_MultipleSubsets_SubsetsByForeignKeysOff
+CREATE TABLE test_3_a (
+  id BIGINT NOT NULL PRIMARY KEY
+);
+CREATE TABLE test_3_b (
+  id BIGINT NOT NULL PRIMARY KEY,
+  a_id BIGINT NOT NULL,
+  CONSTRAINT test3_a FOREIGN KEY (a_id) REFERENCES test_3_a (id) ON DELETE CASCADE
+);
+ CREATE TABLE test_3_c (
+  id BIGINT NOT NULL PRIMARY KEY,
+  b_id BIGINT NOT NULL,
+  CONSTRAINT test3_b FOREIGN KEY (b_id) REFERENCES test_3_b (id) ON DELETE CASCADE
+);
+ CREATE TABLE test_3_d (
+  id BIGINT NOT NULL PRIMARY KEY,
+  c_id BIGINT NOT NULL,
+  CONSTRAINT test3_c FOREIGN KEY (c_id) REFERENCES test_3_c (id) ON DELETE CASCADE
+);
+ CREATE TABLE test_3_e (
+  id BIGINT NOT NULL PRIMARY KEY,
+  d_id BIGINT NOT NULL,
+  CONSTRAINT test3_d FOREIGN KEY (d_id) REFERENCES test_3_d (id) ON DELETE CASCADE
+);
+CREATE TABLE test_3_f (
+  id BIGINT NOT NULL PRIMARY KEY
+);
+CREATE TABLE test_3_g (
+  id BIGINT NOT NULL PRIMARY KEY,
+  f_id BIGINT NOT NULL,
+  CONSTRAINT test3_f FOREIGN KEY (f_id) REFERENCES test_3_f (id) ON DELETE CASCADE
+);
+ CREATE TABLE test_3_h (
+  id BIGINT NOT NULL PRIMARY KEY,
+  g_id BIGINT NOT NULL,
+  CONSTRAINT test3_g FOREIGN KEY (g_id) REFERENCES test_3_g (id) ON DELETE CASCADE
+);
+CREATE TABLE test_3_i (
+  id BIGINT NOT NULL PRIMARY KEY,
+  h_id BIGINT NOT NULL,
+  CONSTRAINT test3_h FOREIGN KEY (h_id) REFERENCES test_3_h (id) ON DELETE CASCADE
+);
+
+INSERT INTO test_3_a (id) VALUES 
+(1), 
+(2), 
+(3), 
+(4), 
+(5);
+INSERT INTO test_3_b (id, a_id) VALUES 
+(1, 3), 
+(2, 5), 
+(3, 1), 
+(4, 4), 
+(5, 2);
+INSERT INTO test_3_c (id, b_id) VALUES 
+(1, 2), 
+(2, 4), 
+(3, 1), 
+(4, 3), 
+(5, 5);
+INSERT INTO test_3_d (id, c_id) VALUES 
+(1, 5), 
+(2, 1), 
+(3, 4), 
+(4, 2), 
+(5, 3);
+INSERT INTO test_3_e (id, d_id) VALUES 
+(1, 2), 
+(2, 4), 
+(3, 1), 
+(4, 5), 
+(5, 3);
+INSERT INTO test_3_f (id) VALUES 
+(1), 
+(2), 
+(3), 
+(4), 
+(5);
+INSERT INTO test_3_g (id, f_id) VALUES 
+(1, 5), 
+(2, 1), 
+(3, 4), 
+(4, 2), 
+(5, 3);
+INSERT INTO test_3_h (id, g_id) VALUES 
+(1, 4), 
+(2, 2), 
+(3, 5), 
+(4, 1), 
+(5, 3);
+INSERT INTO test_3_i (id,h_id) VALUES 
+(1, 4), 
+(8, 2), 
+(3, 3), 
+(9, 1), 
+(5, 3);
+
+-- circular dependency tests
+CREATE TABLE addresses (
+    id BIGINT NOT NULL PRIMARY KEY,
+    order_id BIGINT NULL  
+);
+
+CREATE TABLE customers (
+    id BIGINT NOT NULL PRIMARY KEY,
+    address_id BIGINT,
+    CONSTRAINT fk_address
+        FOREIGN KEY (address_id) 
+        REFERENCES addresses (id)
+);
+
+CREATE TABLE orders (
+  id BIGINT NOT NULL PRIMARY KEY,
+    customer_id BIGINT,
+    CONSTRAINT fk_customer
+        FOREIGN KEY (customer_id) 
+        REFERENCES customers (id)
+);
+
+CREATE TABLE payments (
+  id BIGINT NOT NULL PRIMARY KEY,
+    customer_id BIGINT,
+    CONSTRAINT fk_customer
+        FOREIGN KEY (customer_id) 
+        REFERENCES customers (id)
+);
+
+INSERT INTO addresses (id, order_id) VALUES 
+(1, 1), 
+(2, 2), 
+(3, 3), 
+(4, 4), 
+(5, 5);
+
+INSERT INTO customers (id, address_id) VALUES 
+(1, 3), 
+(2, 5), 
+(3, 1), 
+(4, 4), 
+(5, 2);
+
+INSERT INTO orders (id, customer_id) VALUES 
+(1, 5), 
+(2, 3), 
+(3, 1), 
+(4, 4), 
+(5, 2);
+
+INSERT INTO payments (id, customer_id) VALUES 
+(1, 4), 
+(2, 2), 
+(3, 1);
+
+
+-- Adding the foreign key constraint to create the circular dependency
+ALTER TABLE addresses
+ADD CONSTRAINT fk_order
+FOREIGN KEY (order_id) 
+REFERENCES orders (id);
