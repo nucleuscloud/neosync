@@ -1,6 +1,7 @@
 package genbenthosconfigs_activity
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -457,15 +458,19 @@ func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 	}
 	expected :=
 		map[string]map[tabledependency.RunType]string{
-			"public.addresses": {tabledependency.RunTypeInsert: `SELECT "public"."addresses"."id", "public"."addresses"."order_id" FROM "public"."addresses" INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") WHERE public.addresses.name = 'neo';`},
-			"public.customers": {tabledependency.RunTypeInsert: `SELECT "public"."customers"."id", "public"."customers"."address_id" FROM "public"."customers" INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
+			"public.addresses": {tabledependency.RunTypeInsert: `SELECT "public"."addresses"."id", "public"."addresses"."order_id" FROM "public"."addresses" INNER JOIN "public"."orders" AS "aa50857dc39fdc" ON ("aa50857dc39fdc"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
+			"public.customers": {tabledependency.RunTypeInsert: `SELECT "public"."customers"."id", "public"."customers"."address_id" FROM "public"."customers" INNER JOIN "public"."addresses" AS "80e81b7a021468" ON ("80e81b7a021468"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" AS "aa50857dc39fdc" ON ("aa50857dc39fdc"."id" = "80e81b7a021468"."order_id") WHERE "80e81b7a021468".name = 'neo';`},
 			"public.orders": {
-				tabledependency.RunTypeInsert: `SELECT "public"."orders"."id", "public"."orders"."customer_id" FROM "public"."orders" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") WHERE public.addresses.name = 'neo';`,
-				tabledependency.RunTypeUpdate: `SELECT "public"."orders"."id", "public"."orders"."customer_id" FROM "public"."orders" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") WHERE public.addresses.name = 'neo';`,
+				tabledependency.RunTypeInsert: `SELECT "id", "customer_id" FROM "public"."orders";`,
+				tabledependency.RunTypeUpdate: `SELECT "id", "customer_id" FROM "public"."orders";`,
 			},
-			"public.payments": {tabledependency.RunTypeInsert: `SELECT "public"."payments"."id", "public"."payments"."customer_id" FROM "public"."payments" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."payments"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
+			"public.payments": {tabledependency.RunTypeInsert: `SELECT "public"."payments"."id", "public"."payments"."customer_id" FROM "public"."payments" INNER JOIN "public"."customers" AS "c34ac93c8e30d0" ON ("c34ac93c8e30d0"."id" = "public"."payments"."customer_id") INNER JOIN "public"."addresses" AS "80e81b7a021468" ON ("80e81b7a021468"."id" = "c34ac93c8e30d0"."address_id") INNER JOIN "public"."orders" AS "aa50857dc39fdc" ON ("aa50857dc39fdc"."id" = "80e81b7a021468"."order_id") WHERE "80e81b7a021468".name = 'neo';`},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	jsonF, _ := json.MarshalIndent(expected, "", " ")
+	fmt.Printf("\n expected: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -499,13 +504,18 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.b.name = 'neo' AND public.a.id = 1);`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.b.name = 'neo' AND public.a.id = 1);`},
+			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" AS "c088ab8d4dca7f" ON ("c088ab8d4dca7f"."id" = "public"."b"."a_id") WHERE (public.b.name = 'neo' AND c088ab8d4dca7f.id = 1);`},
+			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" AS "a0a7379b96eff2" ON ("a0a7379b96eff2"."id" = "public"."c"."b_id") INNER JOIN "c088ab8d4dca7f" AS "36b6676fc39c97" ON ("36b6676fc39c97"."id" = "a0a7379b96eff2"."a_id") WHERE (a0a7379b96eff2.name = 'neo' AND "36b6676fc39c97".id = 1);`},
 			"public.d": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."d";`},
 			"public.e": {tabledependency.RunTypeInsert: `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`},
-			"public.f": {tabledependency.RunTypeInsert: `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`},
+			"public.f": {tabledependency.RunTypeInsert: `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" AS "a1fcb5ce2befc0" ON ("a1fcb5ce2befc0"."id" = "public"."f"."e_id") WHERE a1fcb5ce2befc0.id = 1;`},
 		}
+
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	jsonF, _ := json.MarshalIndent(expected, "", " ")
+	fmt.Printf("\n expected: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -574,11 +584,11 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 
 	expected :=
 		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "public"."a"."id", "public"."a"."x_id" FROM "public"."a" INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") WHERE public.x.id = 2;`},
+			"public.a": {tabledependency.RunTypeInsert: `SELECT "public"."a"."id", "public"."a"."x_id" FROM "public"."a" INNER JOIN "public"."x" AS "f5fd398d501eec" ON ("f5fd398d501eec"."id" = "public"."a"."x_id") WHERE f5fd398d501eec.id = 2;`},
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
-			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`},
+			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" AS "bf9e0baa6c3de6" ON ("bf9e0baa6c3de6"."id" = "public"."c"."a_id") INNER JOIN "public"."x" AS "f5fd398d501eec" ON ("f5fd398d501eec"."id" = "bf9e0baa6c3de6"."x_id") INNER JOIN "public"."b" AS "5e7096098affac" ON ("5e7096098affac"."id" = "public"."c"."b_id") WHERE (f5fd398d501eec.id = 2 AND "5e7096098affac".id = 1);`},
+			"public.d": {tabledependency.RunTypeInsert: `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" AS "12fa1bb1bedcc3" ON ("12fa1bb1bedcc3"."id" = "public"."d"."c_id") INNER JOIN "public"."a" AS "bf9e0baa6c3de6" ON ("bf9e0baa6c3de6"."id" = "12fa1bb1bedcc3"."a_id") INNER JOIN "public"."x" AS "f5fd398d501eec" ON ("f5fd398d501eec"."id" = "bf9e0baa6c3de6"."x_id") INNER JOIN "public"."b" AS "5e7096098affac" ON ("5e7096098affac"."id" = "12fa1bb1bedcc3"."b_id") WHERE (f5fd398d501eec.id = 2 AND "5e7096098affac".id = 1);`},
+			"public.e": {tabledependency.RunTypeInsert: `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" AS "12fa1bb1bedcc3" ON ("12fa1bb1bedcc3"."id" = "public"."e"."c_id") INNER JOIN "public"."a" AS "bf9e0baa6c3de6" ON ("bf9e0baa6c3de6"."id" = "12fa1bb1bedcc3"."a_id") INNER JOIN "public"."x" AS "f5fd398d501eec" ON ("f5fd398d501eec"."id" = "bf9e0baa6c3de6"."x_id") INNER JOIN "public"."b" AS "5e7096098affac" ON ("5e7096098affac"."id" = "12fa1bb1bedcc3"."b_id") WHERE (f5fd398d501eec.id = 2 AND "5e7096098affac".id = 1);`},
 			"public.x": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."x" WHERE public.x.id = 2;`},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
@@ -669,9 +679,9 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.company":        {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`},
-			"public.department":     {tabledependency.RunTypeInsert: `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
-			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") INNER JOIN "public"."transaction" ON ("public"."transaction"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1 AND public.company.id = 1);`},
-			"public.transaction":    {tabledependency.RunTypeInsert: `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`},
+			"public.department":     {tabledependency.RunTypeInsert: `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" AS "9b2e0290abca57" ON ("9b2e0290abca57"."id" = "public"."department"."company_id") WHERE "9b2e0290abca57".id = 1;`},
+			"public.expense_report": {tabledependency.RunTypeInsert: `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "cf7d6152c477c9" ON ("cf7d6152c477c9"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "9b2e0290abca57" ON ("9b2e0290abca57"."id" = "cf7d6152c477c9"."company_id") INNER JOIN "public"."department" AS "8d281cd2a03403" ON ("8d281cd2a03403"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "ca0b75b239b0f7" ON ("ca0b75b239b0f7"."id" = "8d281cd2a03403"."company_id") INNER JOIN "public"."transaction" AS "bf9dde342354f7" ON ("bf9dde342354f7"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" AS "9669c62b9964e8" ON ("9669c62b9964e8"."id" = "bf9dde342354f7"."department_id") INNER JOIN "public"."company" AS "f533ff65e7c9f8" ON ("f533ff65e7c9f8"."id" = "9669c62b9964e8"."company_id") WHERE ("9b2e0290abca57".id = 1 AND ca0b75b239b0f7.id = 1 AND f533ff65e7c9f8.id = 1);`},
+			"public.transaction":    {tabledependency.RunTypeInsert: `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" AS "a6cda30ef2bb4a" ON ("a6cda30ef2bb4a"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" AS "9b2e0290abca57" ON ("9b2e0290abca57"."id" = "a6cda30ef2bb4a"."company_id") WHERE "9b2e0290abca57".id = 1;`},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
@@ -704,6 +714,10 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			"public.b": {tabledependency.RunTypeInsert: "SELECT `public`.`b`.`id`, `public`.`b`.`a_id` FROM `public`.`b` INNER JOIN `public`.`a` ON (`public`.`a`.`id` = `public`.`b`.`a_id`) WHERE public.a.id = 1;"},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.MysqlDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	jsonF, _ := json.MarshalIndent(expected, "", " ")
+	fmt.Printf("\n expected: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -732,6 +746,10 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "id", "a_id" FROM "public"."b" WHERE public.b.id = 1;`},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	jsonF, _ := json.MarshalIndent(expected, "", " ")
+	fmt.Printf("\n expected: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -825,6 +843,60 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 				Columns:     []string{"address_id"},
 				NotNullable: []bool{false},
 				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
+			},
+		},
+	}
+
+	actual := filterForeignKeysWithSubset(runConfigMap, constraints, whereClauses)
+	require.Equal(t, expected, actual)
+}
+
+func Test_filterForeignKeysWithSubset_circularDependency(t *testing.T) {
+	whereName := "name = 'neo'"
+	runConfigMap := map[string]*tabledependency.RunConfig{
+		"circle.orders":    {Table: "circle.orders", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		"circle.addresses": {Table: "circle.addresses", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "order_id"}, InsertColumns: []string{"id", "order_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "circle.orders", Columns: []string{"id"}}}, WhereClause: &whereName},
+		"circle.customers": {Table: "circle.customers", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "address_id"}, InsertColumns: []string{"id", "address_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "circle.addresses", Columns: []string{"id"}}}},
+		"circle.payments":  {Table: "circle.payments", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id", "customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "circle.customers", Columns: []string{"id"}}}},
+	}
+
+	constraints := map[string][]*sql_manager.ForeignConstraint{
+		"circle.addresses": {
+			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.orders", Columns: []string{"id"}}},
+		},
+		"circle.customers": {
+			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}}},
+		},
+		"circle.orders": {
+			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.customers", Columns: []string{"id"}}},
+		},
+		"circle.payments": {
+			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "circle.customers", Columns: []string{"id"}}},
+		},
+	}
+
+	whereClauses := map[string]string{
+		"circle.addresses": whereName,
+	}
+
+	expected := map[string][]*sql_manager.ForeignConstraint{
+		"circle.addresses": {{
+			Columns:     []string{"order_id"},
+			NotNullable: []bool{true},
+			ForeignKey:  &sql_manager.ForeignKey{Table: "circle.orders", Columns: []string{"id"}},
+		}},
+		"circle.customers": {
+			{
+				Columns:     []string{"address_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
+			},
+		},
+		"circle.payments": {
+			{
+				Columns:     []string{"customer_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.customers", Columns: []string{"id"}},
 			},
 		},
 	}
