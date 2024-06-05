@@ -16,6 +16,10 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func (s *Service) CheckConnectionConfig(
@@ -64,10 +68,32 @@ func (s *Service) CheckConnectionConfig(
 		}), nil
 
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		mongoserverApi := options.ServerAPI(options.ServerAPIVersion1)
+		opts := options.Client().ApplyURI("").SetServerAPIOptions(mongoserverApi)
+
+		client, err := mongo.Connect(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := client.Disconnect(ctx); err != nil {
+				logger.Warn(err.Error())
+			}
+		}()
+
+		err = client.Ping(ctx, &readpref.ReadPref{})
+		if err != nil {
+			errmsg := err.Error()
+			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+				IsConnected:     false,
+				ConnectionError: &errmsg,
+				Privileges:      []*mgmtv1alpha1.ConnectionRolePrivilege{},
+			}), nil
+		}
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     false,
+			IsConnected:     true,
 			ConnectionError: nil,
-			Privileges:      []*mgmtv1alpha1.ConnectionRolePrivilege{},
+			Privileges:      []*mgmtv1alpha1.ConnectionRolePrivilege{}, // todo
 		}), nil
 	default:
 		return nil, fmt.Errorf("this method does not support this connection type %T: %w", req.Msg.GetConnectionConfig().GetConfig(), errors.ErrUnsupported)
