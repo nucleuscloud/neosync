@@ -17,9 +17,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func (s *Service) CheckConnectionConfig(
@@ -28,7 +28,7 @@ func (s *Service) CheckConnectionConfig(
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
+	switch cconfig := req.Msg.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig())
 		if err != nil {
@@ -68,8 +68,12 @@ func (s *Service) CheckConnectionConfig(
 		}), nil
 
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		mongoUrl := cconfig.MongoConfig.GetUrl()
+		if mongoUrl == "" {
+			return nil, errors.New("must provide mongodb url")
+		}
 		mongoserverApi := options.ServerAPI(options.ServerAPIVersion1)
-		opts := options.Client().ApplyURI("").SetServerAPIOptions(mongoserverApi)
+		opts := options.Client().ApplyURI(cconfig.MongoConfig.GetUrl()).SetServerAPIOptions(mongoserverApi)
 
 		client, err := mongo.Connect(ctx, opts)
 		if err != nil {
@@ -81,7 +85,7 @@ func (s *Service) CheckConnectionConfig(
 			}
 		}()
 
-		err = client.Ping(ctx, &readpref.ReadPref{})
+		_, err = client.ListDatabaseNames(ctx, bson.D{})
 		if err != nil {
 			errmsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
