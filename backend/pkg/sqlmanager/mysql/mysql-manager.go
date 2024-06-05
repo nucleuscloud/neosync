@@ -1,4 +1,4 @@
-package sqlmanager
+package sqlmanager_mysql
 
 import (
 	"context"
@@ -9,11 +9,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"golang.org/x/sync/errgroup"
-)
-
-const (
-	DisableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS = 0;"
 )
 
 type MysqlManager struct {
@@ -22,20 +19,24 @@ type MysqlManager struct {
 	close   func()
 }
 
-func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
+func NewManager(querier mysql_queries.Querier, pool mysql_queries.DBTX, closer func()) *MysqlManager {
+	return &MysqlManager{querier: querier, pool: pool, close: closer}
+}
+
+func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.pool)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return []*DatabaseSchemaRow{}, nil
+		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
-	result := []*DatabaseSchemaRow{}
+	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
 		var generatedType *string
 		if row.Extra.Valid && row.Extra.String == "GENERATED" {
 			generatedType = &row.Extra.String
 		}
-		result = append(result, &DatabaseSchemaRow{
+		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:   row.TableSchema,
 			TableName:     row.TableName,
 			ColumnName:    row.ColumnName,
@@ -49,18 +50,18 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchema
 }
 
 // returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) {
+func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
 	dbSchemas, err := m.GetDatabaseSchema(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := GetUniqueSchemaColMappings(dbSchemas)
+	result := sqlmanager_shared.GetUniqueSchemaColMappings(dbSchemas)
 	return result, nil
 }
 
-func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
+func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
 	if len(schemas) == 0 {
-		return &TableConstraints{}, nil
+		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
 	foreignKeyMap, err := m.GetForeignKeyConstraintsMap(ctx, schemas)
@@ -78,14 +79,14 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		return nil, err
 	}
 
-	return &TableConstraints{
+	return &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: foreignKeyMap,
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
 }
 
-func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
+func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
 	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range schemas {
@@ -109,13 +110,13 @@ func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []s
 	for _, schemas := range holder {
 		output = append(output, schemas...)
 	}
-	result := []*ForeignKeyConstraintsRow{}
+	result := []*sqlmanager_shared.ForeignKeyConstraintsRow{}
 	for _, row := range output {
-		result = append(result, &ForeignKeyConstraintsRow{
+		result = append(result, &sqlmanager_shared.ForeignKeyConstraintsRow{
 			SchemaName:        row.SchemaName,
 			TableName:         row.TableName,
 			ColumnName:        row.ColumnName,
-			IsNullable:        convertNullableTextToBool(row.IsNullable),
+			IsNullable:        sqlmanager_shared.ConvertNullableTextToBool(row.IsNullable),
 			ConstraintName:    row.ConstraintName,
 			ForeignSchemaName: row.ForeignSchemaName,
 			ForeignTableName:  row.ForeignTableName,
@@ -126,16 +127,16 @@ func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []s
 }
 
 // Key is schema.table value is list of tables that key depends on
-func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error) {
+func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
 	fkConstraints, err := m.GetForeignKeyConstraints(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
-	groupedFks := map[string][]*ForeignKeyConstraintsRow{} //  grouped by constraint name
+	groupedFks := map[string][]*sqlmanager_shared.ForeignKeyConstraintsRow{} //  grouped by constraint name
 	for _, row := range fkConstraints {
 		groupedFks[row.ConstraintName] = append(groupedFks[row.ConstraintName], row)
 	}
-	constraints := map[string][]*ForeignConstraint{}
+	constraints := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	for _, fks := range groupedFks {
 		cols := []string{}
 		notNullable := []bool{}
@@ -146,12 +147,12 @@ func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas 
 			fkCols = append(fkCols, fk.ForeignColumnName)
 		}
 		row := fks[0]
-		tableName := BuildTable(row.SchemaName, row.TableName)
-		constraints[tableName] = append(constraints[tableName], &ForeignConstraint{
+		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
+		constraints[tableName] = append(constraints[tableName], &sqlmanager_shared.ForeignConstraint{
 			Columns:     cols,
 			NotNullable: notNullable,
-			ForeignKey: &ForeignKey{
-				Table:   BuildTable(row.ForeignSchemaName, row.ForeignTableName),
+			ForeignKey: &sqlmanager_shared.ForeignKey{
+				Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
 				Columns: fkCols,
 			},
 		})
@@ -160,7 +161,7 @@ func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas 
 	return constraints, err
 }
 
-func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
+func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {
 	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range schemas {
@@ -184,9 +185,9 @@ func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []s
 	for _, schemas := range holder {
 		output = append(output, schemas...)
 	}
-	result := []*PrimaryKey{}
+	result := []*sqlmanager_shared.PrimaryKey{}
 	for _, row := range output {
-		result = append(result, &PrimaryKey{
+		result = append(result, &sqlmanager_shared.PrimaryKey{
 			Schema:  row.SchemaName,
 			Table:   row.TableName,
 			Columns: []string{row.ColumnName},
@@ -202,7 +203,7 @@ func (m *MysqlManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas 
 	}
 	result := map[string][]string{}
 	for _, row := range primaryKeys {
-		tableName := BuildTable(row.Schema, row.Table)
+		tableName := sqlmanager_shared.BuildTable(row.Schema, row.Table)
 		if _, exists := result[tableName]; !exists {
 			result[tableName] = []string{}
 		}
@@ -250,7 +251,7 @@ func (m *MysqlManager) GetUniqueConstraintsMap(ctx context.Context, schemas []st
 		uc := []string{}
 		var key string
 		for _, c := range constraints {
-			key = BuildTable(c.SchemaName, c.TableName)
+			key = sqlmanager_shared.BuildTable(c.SchemaName, c.TableName)
 			_, ok := output[key]
 			if !ok {
 				output[key] = [][]string{}
@@ -273,24 +274,24 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context, role string) (
 
 	schemaTablePrivsMap := map[string][]string{}
 	for _, permission := range rows {
-		key := BuildTable(permission.TableSchema, permission.TableName)
+		key := sqlmanager_shared.BuildTable(permission.TableSchema, permission.TableName)
 		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err
 }
 
 // todo
-func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error) {
+func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
 	return nil, errors.ErrUnsupported
 }
 
 // todo
-func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error) {
+func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	return nil, errors.ErrUnsupported
 }
 
 // todo
-func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error) {
+func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
 	return nil, errors.ErrUnsupported
 }
 
@@ -333,7 +334,7 @@ func getShowTableCreate(
 	return &output, nil
 }
 
-func (m *MysqlManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error {
+func (m *MysqlManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
 	for i := 0; i < len(statements); i += batchSize {
 		end := i + batchSize
 		if end > len(statements) {
@@ -357,8 +358,8 @@ func (m *MysqlManager) GetTableRowCount(
 	schema, table string,
 	whereClause *string,
 ) (int64, error) {
-	tableName := BuildTable(schema, table)
-	builder := goqu.Dialect(MysqlDriver)
+	tableName := sqlmanager_shared.BuildTable(schema, table)
+	builder := goqu.Dialect(sqlmanager_shared.MysqlDriver)
 	sqltable := goqu.I(tableName)
 
 	query := builder.From(sqltable).Select(goqu.COUNT("*"))

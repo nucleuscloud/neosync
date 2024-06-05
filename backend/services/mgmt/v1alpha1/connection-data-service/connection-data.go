@@ -21,7 +21,9 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -89,7 +91,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
+		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table))
 		r, err := db.QueryContext(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -100,7 +102,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table))
 		rows, err := db.QueryContext(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -143,7 +145,7 @@ func (s *Service) GetConnectionDataStream(
 		defer conn.Close()
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
+		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table))
 		r, err := db.Query(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -155,7 +157,7 @@ func (s *Service) GetConnectionDataStream(
 			columnNames = append(columnNames, col.Name)
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table))
 		rows, err := db.Query(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -236,7 +238,7 @@ func (s *Service) GetConnectionDataStream(
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
 
-		tableName := sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table)
+		tableName := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		path := fmt.Sprintf("workflows/%s/activities/%s/data", jobRunId, tableName)
 		var pageToken *string
 		for {
@@ -430,7 +432,7 @@ func (s *Service) GetConnectionSchema(
 				tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
 				schemaTableList := strings.Split(tableFolder, ".")
 
-				filePath := fmt.Sprintf("%s%s/data", path, sql_manager.BuildTable(schemaTableList[0], schemaTableList[1]))
+				filePath := fmt.Sprintf("%s%s/data", path, sqlmanager_shared.BuildTable(schemaTableList[0], schemaTableList[1]))
 				out, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
 					Bucket:  aws.String(awsS3Config.Bucket),
 					Prefix:  aws.String(filePath),
@@ -642,7 +644,7 @@ func (s *Service) GetConnectionInitStatements(
 
 	schemaTableMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
 	for _, s := range schemaResp {
-		schemaTableMap[sql_manager.BuildTable(s.Schema, s.Table)] = s
+		schemaTableMap[sqlmanager_shared.BuildTable(s.Schema, s.Table)] = s
 	}
 
 	connectionTimeout := 5
@@ -668,7 +670,7 @@ func (s *Service) GetConnectionInitStatements(
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
-				stmt, err := sql_manager.BuildMysqlTruncateStatement(v.Schema, v.Table)
+				stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
@@ -679,7 +681,7 @@ func (s *Service) GetConnectionInitStatements(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
-				stmt, err := sql_manager.BuildPgTruncateCascadeStatement(v.Schema, v.Table)
+				stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
@@ -757,7 +759,7 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 		if err != nil {
 			return nil, err
 		}
-		schematable := sql_manager.SchemaTable{Schema: schema, Table: table}
+		schematable := sqlmanager_shared.SchemaTable{Schema: schema, Table: table}
 		dbschema, err := s.pgquerier.GetDatabaseTableSchemasBySchemasAndTables(ctx, db, []string{schematable.String()})
 		if err != nil {
 			return nil, err

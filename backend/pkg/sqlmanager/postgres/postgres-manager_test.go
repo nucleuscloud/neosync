@@ -1,4 +1,4 @@
-package sqlmanager
+package sqlmanager_postgres
 
 import (
 	context "context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -58,7 +59,7 @@ func Test_GetDatabaseSchema(t *testing.T) {
 		}, nil,
 	)
 
-	expected := []*DatabaseSchemaRow{
+	expected := []*sqlmanager_shared.DatabaseSchemaRow{
 		{
 			TableSchema:            "public",
 			TableName:              "users",
@@ -104,27 +105,27 @@ func Test_GetForeignKeyConstraintsMap(t *testing.T) {
 		mockTableConstraintsRows(), nil,
 	)
 
-	expected := map[string][]*ForeignConstraint{
+	expected := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.orders": {
-			{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{
+			{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{
 				Table:   "public.users",
 				Columns: []string{"id"},
 			},
 			},
-			{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{
+			{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{
 				Table:   "public.accounts",
 				Columns: []string{"id"},
 			}},
 		},
 		"public.users": {
-			{Columns: []string{"composite_id", "other_composite_id"}, NotNullable: []bool{true, true}, ForeignKey: &ForeignKey{
+			{Columns: []string{"composite_id", "other_composite_id"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{
 				Table:   "public.composite",
 				Columns: []string{"id", "other_id"},
 			},
 			},
 		},
 		"public.accounts": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{
 				Table:   "public.users",
 				Columns: []string{"id"},
 			},
@@ -161,19 +162,19 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases(t *testing.T) {
 
 	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), schemas)
 	require.NoError(t, err)
-	require.Equal(t, actual, map[string][]*ForeignConstraint{
+	require.Equal(t, actual, map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.t1": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id"}}},
-			{Columns: []string{"c"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"user_id"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id"}}},
+			{Columns: []string{"c"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"user_id"}}},
 		},
 		"neosync_api.t2": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
 		},
 		"neosync_api.t3": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
 		},
 		"neosync_api.t4": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
 		},
 	}, "Testing composite foreign keys, table self-referencing, and table cycles")
 }
@@ -330,7 +331,7 @@ func Test_GetTableInitStatements_Empty(t *testing.T) {
 		pool:    mockpool,
 	}
 
-	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{})
+	output, err := manager.GetTableInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{})
 	require.NoError(t, err)
 	require.Empty(t, output)
 }
@@ -409,7 +410,7 @@ func Test_GetTableInitStatements(t *testing.T) {
 			nil,
 		)
 
-	output, err := manager.GetTableInitStatements(context.Background(), []*SchemaTable{
+	output, err := manager.GetTableInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{
 		{Schema: "public", Table: "users"},
 		{Schema: "public2", Table: "users"},
 	})
@@ -418,18 +419,18 @@ func Test_GetTableInitStatements(t *testing.T) {
 	require.Equal(t, 2, len(output))
 	require.ElementsMatch(
 		t,
-		[]*TableInitStatement{
+		[]*sqlmanager_shared.TableInitStatement{
 			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);",
-				AlterTableStatements: []*AlterTableStatement{
-					{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+				AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
+					{ConstraintType: sqlmanager_shared.PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
 				},
 				IndexStatements: []string{
 					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id);\n\tEND IF;\nEND $$;",
 				},
 			},
 			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public2\".\"users\" (\"id\" uuid NOT NULL);",
-				AlterTableStatements: []*AlterTableStatement{
-					{ConstraintType: PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
+				AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
+					{ConstraintType: sqlmanager_shared.PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
 				},
 				IndexStatements: []string{
 					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public2'\n\t) THEN\n\t\tCREATE INDEX foo ON public2.users USING btree (users_id);\n\tEND IF;\nEND $$;",
@@ -539,12 +540,12 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 }
 
 func Test_BatchExec(t *testing.T) {
-	prefix := DisableForeignKeyChecks
+	prefix := sqlmanager_shared.DisableForeignKeyChecks
 	tests := []struct {
 		name          string
 		batchSize     int
 		statements    []string
-		opts          *BatchExecOpts
+		opts          *sqlmanager_shared.BatchExecOpts
 		expectedCalls []string
 	}{
 		{
@@ -564,7 +565,7 @@ func Test_BatchExec(t *testing.T) {
 			batchSize:     2,
 			statements:    []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
 			expectedCalls: []string{fmt.Sprintf("%s %s", prefix, "CREATE TABLE users;\nCREATE TABLE accounts;"), fmt.Sprintf("%s %s", prefix, "CREATE TABLE departments;")},
-			opts:          &BatchExecOpts{Prefix: &prefix},
+			opts:          &sqlmanager_shared.BatchExecOpts{Prefix: &prefix},
 		},
 	}
 

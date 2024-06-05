@@ -10,7 +10,7 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
@@ -95,7 +95,7 @@ func GetUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]struct{} {
 		uniqueTables := map[string]struct{}{}
 		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
 			for _, table := range schema.Tables {
-				uniqueTables[sql_manager.BuildTable(schema.Schema, table.Table)] = struct{}{}
+				uniqueTables[sqlmanager_shared.BuildTable(schema.Schema, table.Table)] = struct{}{}
 			}
 		}
 		return uniqueTables
@@ -108,7 +108,7 @@ func GetUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]struct{} {
 func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
 	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range mappings {
-		tableName := sql_manager.BuildTable(mapping.Schema, mapping.Table)
+		tableName := sqlmanager_shared.BuildTable(mapping.Schema, mapping.Table)
 		_, ok := groupedMappings[tableName]
 		if ok {
 			groupedMappings[tableName] = append(groupedMappings[tableName], mapping)

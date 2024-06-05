@@ -9,7 +9,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,8 +18,8 @@ import (
 func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 	fkconnectionId := "789"
 
@@ -136,39 +137,39 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).
-		Return(&sql_manager.SchemaTableDataTypeResponse{
-			Sequences:  []*sql_manager.DataType{},
-			Functions:  []*sql_manager.DataType{},
-			Composites: []*sql_manager.DataType{},
-			Enums:      []*sql_manager.DataType{},
-			Domains:    []*sql_manager.DataType{},
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).
+		Return(&sqlmanager_shared.SchemaTableDataTypeResponse{
+			Sequences:  []*sqlmanager_shared.DataType{},
+			Functions:  []*sqlmanager_shared.DataType{},
+			Composites: []*sqlmanager_shared.DataType{},
+			Enums:      []*sqlmanager_shared.DataType{},
+			Domains:    []*sqlmanager_shared.DataType{},
 		}, nil)
-	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).
-		Return([]*sql_manager.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
-	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sql_manager.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sql_manager.TableInitStatement{
+	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).
+		Return([]*sqlmanager_shared.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
+	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.TableInitStatement{
 		{
 			CreateTableStatement: "test-create-statement",
-			AlterTableStatements: []*sql_manager.AlterTableStatement{
+			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
 				{
 					Statement:      "test-pk-statement",
-					ConstraintType: sql_manager.PrimaryConstraintType,
+					ConstraintType: sqlmanager_shared.PrimaryConstraintType,
 				},
 				{
 					Statement:      "test-fk-statement",
-					ConstraintType: sql_manager.ForeignConstraintType,
+					ConstraintType: sqlmanager_shared.ForeignConstraintType,
 				},
 			},
 			IndexStatements: []string{"test-idx-statement"},
 		},
 	}, nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -183,8 +184,8 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -269,7 +270,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -284,8 +285,8 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -398,9 +399,9 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	stmts := []string{"TRUNCATE \"public\".\"users\" CASCADE;", "TRUNCATE \"public\".\"accounts\" CASCADE;"}
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -415,8 +416,8 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -529,12 +530,12 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.users": {{
 			Columns:     []string{"account_id"},
 			NotNullable: []bool{true},
-			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
 		}},
 	}, nil)
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
@@ -552,8 +553,8 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -667,39 +668,39 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, mock.Anything).
-		Return(&sql_manager.SchemaTableDataTypeResponse{
-			Sequences:  []*sql_manager.DataType{},
-			Functions:  []*sql_manager.DataType{},
-			Composites: []*sql_manager.DataType{},
-			Enums:      []*sql_manager.DataType{},
-			Domains:    []*sql_manager.DataType{},
+		Return(&sqlmanager_shared.SchemaTableDataTypeResponse{
+			Sequences:  []*sqlmanager_shared.DataType{},
+			Functions:  []*sqlmanager_shared.DataType{},
+			Composites: []*sqlmanager_shared.DataType{},
+			Enums:      []*sqlmanager_shared.DataType{},
+			Domains:    []*sqlmanager_shared.DataType{},
 		}, nil)
 	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, mock.Anything).
-		Return([]*sql_manager.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
-	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sql_manager.TableInitStatement{
+		Return([]*sqlmanager_shared.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
+	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sqlmanager_shared.TableInitStatement{
 		{
 			CreateTableStatement: "test-create-statement",
-			AlterTableStatements: []*sql_manager.AlterTableStatement{
+			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
 				{
 					Statement:      "test-pk-statement",
-					ConstraintType: sql_manager.PrimaryConstraintType,
+					ConstraintType: sqlmanager_shared.PrimaryConstraintType,
 				},
 				{
 					Statement:      "test-fk-statement",
-					ConstraintType: sql_manager.ForeignConstraintType,
+					ConstraintType: sqlmanager_shared.ForeignConstraintType,
 				},
 			},
 			IndexStatements: []string{"test-idx-statement"},
 		},
 	}, nil)
 
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-pk-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-fk-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-idx-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -714,8 +715,8 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -810,7 +811,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -825,8 +826,8 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
-	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
+	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
+	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
 
 	connectionId := "456"
 
@@ -945,12 +946,12 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 		},
 	}), nil)
 
-	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.users": {{
 			Columns:     []string{"account_id"},
 			NotNullable: []bool{true},
-			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
 		}},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
@@ -959,10 +960,10 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "users").Return(usersCreateStmt, nil)
 
 	createStmts := []string{accountCreateStmt, usersCreateStmt}
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, createStmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
-	disableFkChecks := sql_manager.DisableForeignKeyChecks
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, createStmts) }), &sqlmanager_shared.BatchExecOpts{}).Return(nil)
+	disableFkChecks := sqlmanager_shared.DisableForeignKeyChecks
 	truncateStmts := []string{"TRUNCATE \"public\".\"users\";", "TRUNCATE \"public\".\"accounts\";"}
-	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, truncateStmts) }), &sql_manager.BatchExecOpts{Prefix: &disableFkChecks}).Return(nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, truncateStmts) }), &sqlmanager_shared.BatchExecOpts{Prefix: &disableFkChecks}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -984,23 +985,23 @@ func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
 		"public.departments": {},
 		"public.employees":   {},
 	}
-	dependencies := map[string][]*sql_manager.ForeignConstraint{
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.countries": {
-			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
 		},
 		"public.departments": {
-			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
 		},
 		"public.dependents": {
-			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
+			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
 		},
 		"public.locations": {
-			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
 		},
 		"public.employees": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
-			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
 		},
 	}
 
@@ -1025,23 +1026,23 @@ func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
 	tables := map[string]struct{}{
 		"public.countries": {},
 	}
-	dependencies := map[string][]*sql_manager.ForeignConstraint{
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.countries": {
-			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}}},
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}}},
 
 		"public.departments": {
-			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
 		},
 		"public.dependents": {
-			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
+			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
 		},
 		"public.locations": {
-			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
 		},
 		"public.employees": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
-			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
-			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
 		},
 	}
 

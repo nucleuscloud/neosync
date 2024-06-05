@@ -7,7 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
@@ -25,7 +25,7 @@ func (b *benthosBuilder) getGenerateBenthosConfigResponses(
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	sourceTableOpts := groupGenerateSourceOptionsByTable(sourceOptions.Schemas)
 	// TODO this needs to be updated to get db schema
-	sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*sql_manager.ColumnInfo{})
+	sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*sqlmanager_shared.ColumnInfo{})
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 	}
@@ -42,7 +42,7 @@ func buildBenthosGenerateSourceConfigResponses(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	mappings []*tableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
-	columnInfo map[string]*sql_manager.ColumnInfo,
+	columnInfo map[string]*sqlmanager_shared.ColumnInfo,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 

@@ -1,4 +1,4 @@
-package sqlmanager
+package sqlmanager_shared
 
 import (
 	"testing"
