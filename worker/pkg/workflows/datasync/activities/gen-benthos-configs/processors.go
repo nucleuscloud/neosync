@@ -10,7 +10,7 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -71,7 +71,7 @@ func buildProcessorConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*sql_manager.ColumnInfo,
+	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
 	transformedFktoPkMap map[string][]*referenceKey,
 	fkSourceCols []string,
 	jobId, runId string,
@@ -163,7 +163,7 @@ func buildMutationConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*sql_manager.ColumnInfo,
+	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
 ) (string, error) {
 	mutations := []string{}
 
@@ -326,7 +326,7 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
-func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sql_manager.ColumnInfo) (string, error) {
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_shared.ColumnInfo) (string, error) {
 	var maxLen int64 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil && *colInfo.CharacterMaximumLength > 0 {
 		maxLen = int64(*colInfo.CharacterMaximumLength)

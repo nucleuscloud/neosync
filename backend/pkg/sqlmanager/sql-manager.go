@@ -13,61 +13,29 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-const (
-	PostgresDriver = "postgres"
-	MysqlDriver    = "mysql"
-)
-
-type BatchExecOpts struct {
-	Prefix *string // this string will be added to the start of each statement
-}
-
-type ForeignKey struct {
-	Table   string
-	Columns []string
-}
-type ForeignConstraint struct {
-	Columns     []string
-	NotNullable []bool
-	ForeignKey  *ForeignKey
-}
-
-type TableConstraints struct {
-	ForeignKeyConstraints map[string][]*ForeignConstraint
-	PrimaryKeyConstraints map[string][]string
-	UniqueConstraints     map[string][][]string
-}
-
-type ColumnInfo struct {
-	OrdinalPosition        int32  // Specifies the sequence or order in which each column is defined within the table. Starts at 1 for the first column.
-	ColumnDefault          string // Specifies the default value for a column, if any is set.
-	IsNullable             bool   // Specifies if the column is nullable or not.
-	DataType               string // Specifies the data type of the column, i.e., bool, varchar, int, etc.
-	CharacterMaximumLength *int32 // Specifies the maximum allowable length of the column for character-based data types. For datatypes such as integers, boolean, dates etc. this is NULL.
-	NumericPrecision       *int32 // Specifies the precision for numeric data types. It represents the TOTAL count of significant digits in the whole number, that is, the number of digits to BOTH sides of the decimal point. Null for non-numeric data types.
-	NumericScale           *int32 // Specifies the scale of the column for numeric data types, specifically non-integers. It represents the number of digits to the RIGHT of the decimal point. Null for non-numeric data types and integers.
-}
-
 type SqlDatabase interface {
-	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
-	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error)
-	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
-	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error)
-	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error)
+	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
+	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
+	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error)
+	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error)
+	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error)
 	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
 	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
-	GetTableInitStatements(ctx context.Context, tables []*SchemaTable) ([]*TableInitStatement, error)
+	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
-	GetSchemaTableDataTypes(ctx context.Context, tables []*SchemaTable) (*SchemaTableDataTypeResponse, error)
-	GetSchemaTableTriggers(ctx context.Context, tables []*SchemaTable) ([]*TableTrigger, error)
-	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
+	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
+	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
+	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
 }
@@ -129,37 +97,6 @@ type SqlConnection struct {
 	Driver string
 }
 
-type DatabaseSchemaRow struct {
-	TableSchema            string
-	TableName              string
-	ColumnName             string
-	DataType               string
-	ColumnDefault          string
-	IsNullable             string
-	CharacterMaximumLength int32
-	NumericPrecision       int32
-	NumericScale           int32
-	OrdinalPosition        int16
-	GeneratedType          *string
-}
-
-type ForeignKeyConstraintsRow struct {
-	ConstraintName    string
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        bool
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
-}
-
-type PrimaryKey struct {
-	Schema  string
-	Table   string
-	Columns []string
-}
-
 func (s *SqlManager) NewPooledSqlDb(
 	ctx context.Context,
 	slogger *slog.Logger,
@@ -169,15 +106,13 @@ func (s *SqlManager) NewPooledSqlDb(
 	var driver string
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		adapter := &PostgresManager{
-			querier: s.pgquerier,
-		}
+		var closer func()
 		if _, ok := s.pgpool.Load(connection.Id); !ok {
 			pgconfig := connection.ConnectionConfig.GetPgConfig()
 			if pgconfig == nil {
 				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
 			}
-			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, Ptr(uint32(5)), slogger)
+			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
@@ -186,7 +121,7 @@ func (s *SqlManager) NewPooledSqlDb(
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			s.pgpool.Store(connection.Id, pool)
-			adapter.close = func() {
+			closer = func() {
 				if pgconn != nil {
 					pgconn.Close()
 					s.pgpool.Delete(connection.Id)
@@ -198,15 +133,12 @@ func (s *SqlManager) NewPooledSqlDb(
 		if !ok {
 			return nil, fmt.Errorf("pool found, but type assertion to pg_queries.DBTX failed")
 		}
-		adapter.pool = pool
-		db = adapter
-		driver = PostgresDriver
+		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, closer)
+		driver = sqlmanager_shared.PostgresDriver
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		adapter := &MysqlManager{
-			querier: s.mysqlquerier,
-		}
+		var closer func()
 		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
-			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, Ptr(uint32(5)), slogger)
+			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 			}
@@ -215,7 +147,7 @@ func (s *SqlManager) NewPooledSqlDb(
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			s.mysqlpool.Store(connection.Id, pool)
-			adapter.close = func() {
+			closer = func() {
 				if conn != nil {
 					err := conn.Close()
 					if err != nil {
@@ -230,9 +162,9 @@ func (s *SqlManager) NewPooledSqlDb(
 		if !ok {
 			return nil, fmt.Errorf("pool found, but type assertion to mysql_queries.DBTX failed")
 		}
-		adapter.pool = pool
-		db = adapter
-		driver = MysqlDriver
+
+		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, closer)
+		driver = sqlmanager_shared.MysqlDriver
 	default:
 		return nil, errors.New("unsupported sql database connection: %s")
 	}
@@ -258,7 +190,7 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 	connectionConfig *mgmtv1alpha1.ConnectionConfig,
 	connectionTimeout *int,
 ) (*SqlConnection, error) {
-	connTimeout := Ptr(uint32(5))
+	connTimeout := sqlmanager_shared.Ptr(uint32(5))
 	if connectionTimeout != nil {
 		timeout := uint32(*connectionTimeout)
 		connTimeout = &timeout
@@ -268,9 +200,6 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 	var driver string
 	switch connectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		adapter := &PostgresManager{
-			querier: s.pgquerier,
-		}
 		pgconfig := connectionConfig.GetPgConfig()
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection is not a postgres config")
@@ -283,18 +212,13 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if err != nil {
 			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 		}
-		adapter.close = func() {
+		db = sqlmanager_postgres.NewManager(s.pgquerier, pool, func() {
 			if pgconn != nil {
 				pgconn.Close()
 			}
-		}
-		adapter.pool = pool
-		db = adapter
-		driver = PostgresDriver
+		})
+		driver = sqlmanager_shared.PostgresDriver
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		adapter := &MysqlManager{
-			querier: s.mysqlquerier,
-		}
 		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
@@ -303,17 +227,15 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if err != nil {
 			return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 		}
-		adapter.close = func() {
+		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, func() {
 			if conn != nil {
 				err := conn.Close()
 				if err != nil {
 					slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 				}
 			}
-		}
-		adapter.pool = pool
-		db = adapter
-		driver = MysqlDriver
+		})
+		driver = sqlmanager_shared.MysqlDriver
 	default:
 		return nil, errors.New("unsupported sql database connection: %s")
 	}
@@ -330,38 +252,28 @@ func (s *SqlManager) NewSqlDbFromUrl(
 ) (*SqlConnection, error) {
 	var db SqlDatabase
 	switch driver {
-	case PostgresDriver:
-		adapter := &PostgresManager{
-			querier: s.pgquerier,
-		}
+	case sqlmanager_shared.PostgresDriver:
 		pgconn, err := pgxpool.New(ctx, connectionUrl)
 		if err != nil {
 			return nil, err
 		}
-		adapter.close = func() {
+		db = sqlmanager_postgres.NewManager(s.pgquerier, pgconn, func() {
 			if pgconn != nil {
 				pgconn.Close()
 			}
-		}
-		adapter.pool = pgconn
-		db = adapter
-		driver = PostgresDriver
-	case MysqlDriver:
-		adapter := &MysqlManager{
-			querier: s.mysqlquerier,
-		}
-		conn, err := sql.Open(MysqlDriver, connectionUrl)
+		})
+		driver = sqlmanager_shared.PostgresDriver
+	case sqlmanager_shared.MysqlDriver:
+		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)
 		if err != nil {
 			return nil, err
 		}
-		adapter.close = func() {
+		db = sqlmanager_mysql.NewManager(s.mysqlquerier, conn, func() {
 			if conn != nil {
 				conn.Close()
 			}
-		}
-		adapter.pool = conn
-		db = adapter
-		driver = MysqlDriver
+		})
+		driver = sqlmanager_shared.MysqlDriver
 	default:
 		return nil, errors.New("unsupported sql database connection: %s")
 	}

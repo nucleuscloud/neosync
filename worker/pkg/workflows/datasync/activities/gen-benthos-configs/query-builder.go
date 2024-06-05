@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
@@ -129,14 +129,14 @@ func buildSelectJoinQuery(
 func buildSelectRecursiveQuery(
 	driver, table string,
 	columns []string,
-	columnInfoMap map[string]*sql_manager.ColumnInfo,
+	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 	dependencies []*selfReferencingCircularDependency,
 	joins []*sqlJoin,
 	whereClauses []string,
 ) (string, error) {
 	recursiveCteAlias := "related"
 	var builder goqu.DialectWrapper
-	if driver == sql_manager.MysqlDriver {
+	if driver == sqlmanager_shared.MysqlDriver {
 		opts := goqu.DefaultDialectOptions()
 		opts.QuoteRune = '`'
 		opts.SupportsWithCTERecursive = true
@@ -153,7 +153,7 @@ func buildSelectRecursiveQuery(
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
 		colInfo := columnInfoMap[col]
-		if driver == sql_manager.PostgresDriver && colInfo != nil && colInfo.DataType == "json" {
+		if driver == sqlmanager_shared.PostgresDriver && colInfo != nil && colInfo.DataType == "json" {
 			selectColumns[i] = goqu.L("to_jsonb(?)", goqu.I(buildSqlIdentifier(table, col))).As(col)
 		} else {
 			selectColumns[i] = buildSqlIdentifier(table, col)
@@ -224,10 +224,10 @@ func buildSelectRecursiveQuery(
 // returns map of schema.table -> select query
 func buildSelectQueryMap(
 	driver string,
-	tableDependencies map[string][]*sql_manager.ForeignConstraint,
+	tableDependencies map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
-	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 ) (map[string]map[tabledependency.RunType]string, error) {
 	insertRunConfigMap := map[string]*tabledependency.RunConfig{}
 	for _, cfg := range runConfigs {
@@ -282,7 +282,7 @@ func buildTableQuery(
 	driver, table string,
 	columns []string,
 	config *subsetQueryConfig,
-	columnInfoMap map[string]*sql_manager.ColumnInfo,
+	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 ) (string, error) {
 	if len(config.SelfReferencingCircularDependency) != 0 {
 		sql, err := buildSelectRecursiveQuery(
@@ -346,7 +346,7 @@ type tableAlias struct {
 func buildSubsetJoins(
 	driver, table string,
 	// data map[string][]*SubsetColumnConstraint,
-	foreignKeyMap map[string][]*sql_manager.ForeignConstraint,
+	foreignKeyMap map[string][]*sqlmanager_shared.ForeignConstraint,
 	whereClauses map[string]string,
 	visited map[string]bool,
 	aliasReference map[string]*tableAlias,
@@ -474,7 +474,7 @@ type subsetQueryConfig struct {
 	SelfReferencingCircularDependency []*selfReferencingCircularDependency
 }
 
-func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
+func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
 	configs := map[string]*subsetQueryConfig{}
 
 	filteredConstraints := filterForeignKeysWithSubset(runConfigMap, tableConstraints, whereClauses)
@@ -513,7 +513,7 @@ func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*
 }
 
 // check if table or any parent table has a where clause
-func shouldSubsetTable(table string, data map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, visited map[string]bool) bool {
+func shouldSubsetTable(table string, data map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string, visited map[string]bool) bool {
 	if _, exists := whereClauses[table]; exists {
 		return true
 	}
@@ -535,50 +535,21 @@ func shouldSubsetTable(table string, data map[string][]*sql_manager.ForeignConst
 }
 
 // filters out any foreign keys that are not involved in the subset (where clauses) and tables not in the map
-// handles circular dependencies
-// func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) map[string][]*sql_manager.ForeignConstraint {
-// 	tableSubsetMap := map[string]bool{} // map of which tables to subset
-// 	for table := range runConfigMap {
-// 		visited := map[string]bool{}
-// 		tableSubsetMap[table] = shouldSubsetTable(table, constraints, whereClauses, visited)
-// 	}
-
-// 	filteredConstraints := map[string][]*sql_manager.ForeignConstraint{}
-// 	for table, cfg := range runConfigMap {
-// 		if len(cfg.DependsOn) == 0 {
-// 			// filter out dependencies that aren't in run configs
-// 			// this handles circular dependencies
-// 			continue
-// 		}
-// 		filteredConstraints[table] = []*sql_manager.ForeignConstraint{}
-// 		if tableConstraints, ok := constraints[table]; ok {
-// 			for _, colDef := range tableConstraints {
-// 				if exists := tableSubsetMap[colDef.ForeignKey.Table]; exists {
-// 					filteredConstraints[table] = append(filteredConstraints[table], colDef)
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return filteredConstraints
-// }
-
-// filters out any foreign keys that are not involved in the subset (where clauses) and tables not in the map
-// handles circular dependencies
-func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) map[string][]*sql_manager.ForeignConstraint {
+func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunConfig, constraints map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string) map[string][]*sqlmanager_shared.ForeignConstraint {
 	tableSubsetMap := map[string]bool{} // map of which tables to subset
 	for table := range runConfigMap {
 		visited := map[string]bool{}
 		tableSubsetMap[table] = shouldSubsetTable(table, constraints, whereClauses, visited)
 	}
 
-	filteredConstraints := map[string][]*sql_manager.ForeignConstraint{}
+	filteredConstraints := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	for table, cfg := range runConfigMap {
 		if len(cfg.DependsOn) == 0 {
 			// filter out dependencies that aren't in run configs
 			// this handles circular dependencies
 			continue
 		}
-		filteredConstraints[table] = []*sql_manager.ForeignConstraint{}
+		filteredConstraints[table] = []*sqlmanager_shared.ForeignConstraint{}
 		if tableConstraints, ok := constraints[table]; ok {
 			// for _, colDef := range tableConstraints {
 			// 	if exists := tableSubsetMap[colDef.ForeignKey.Table]; exists {
@@ -599,7 +570,7 @@ func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunCon
 	return filteredConstraints
 }
 
-func getForeignKeyConstraint(fks []*sql_manager.ForeignConstraint, dependsOn *tabledependency.DependsOn) *sql_manager.ForeignConstraint {
+func getForeignKeyConstraint(fks []*sqlmanager_shared.ForeignConstraint, dependsOn *tabledependency.DependsOn) *sqlmanager_shared.ForeignConstraint {
 	for _, fk := range fks {
 		if fk.ForeignKey.Table != dependsOn.Table {
 			continue
@@ -629,13 +600,13 @@ func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
 	}
 	var updatedSql string
 	switch driver {
-	case sql_manager.MysqlDriver:
+	case sqlmanager_shared.MysqlDriver:
 		sql, err := qualifyMysqlWhereColumnNames(sql, nil, alias)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
-	case sql_manager.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver:
 		sql, err := qualifyPostgresWhereColumnNames(sql, nil, alias)
 		if err != nil {
 			return "", err
@@ -661,13 +632,13 @@ func qualifyWhereColumnNames(driver, where, table string) (string, error) {
 	schema, tableName := shared.SplitTableKey(table)
 	var updatedSql string
 	switch driver {
-	case sql_manager.MysqlDriver:
+	case sqlmanager_shared.MysqlDriver:
 		sql, err := qualifyMysqlWhereColumnNames(sql, &schema, tableName)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
-	case sql_manager.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver:
 		sql, err := qualifyPostgresWhereColumnNames(sql, &schema, tableName)
 		if err != nil {
 			return "", err
@@ -715,7 +686,7 @@ type selfReferencingCircularDependency struct {
 	ForeignKeyColumns [][]string
 }
 
-func getSelfReferencingColumns(table string, constraints []*sql_manager.ForeignConstraint) []*selfReferencingCircularDependency {
+func getSelfReferencingColumns(table string, constraints []*sqlmanager_shared.ForeignConstraint) []*selfReferencingCircularDependency {
 	result := []*selfReferencingCircularDependency{}
 	resultMap := map[string]*selfReferencingCircularDependency{}
 

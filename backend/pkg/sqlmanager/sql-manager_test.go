@@ -13,6 +13,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -52,7 +53,7 @@ func Test_NewPooledSqlDb_NewPostgresConnection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, PostgresDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.PostgresDriver, result.Driver)
 	mockPool.AssertCalled(t, "Close")
 }
 
@@ -88,7 +89,7 @@ func Test_NewPooledSqlDb_ExistingPostgresConnection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, PostgresDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.PostgresDriver, result.Driver)
 	require.Equal(t, syncMapLength(pgcache), 1)
 }
 
@@ -134,7 +135,7 @@ func Test_NewPooledSqlDb_NewMysqlConnection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, MysqlDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.MysqlDriver, result.Driver)
 }
 
 func Test_NewPooledSqlDb_ExistingMysqlConnection(t *testing.T) {
@@ -169,7 +170,7 @@ func Test_NewPooledSqlDb_ExistingMysqlConnection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, MysqlDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.MysqlDriver, result.Driver)
 }
 
 func Test_NewSqlDbFromConnectionConfig_PostgresConnection(t *testing.T) {
@@ -199,12 +200,12 @@ func Test_NewSqlDbFromConnectionConfig_PostgresConnection(t *testing.T) {
 	}
 	mockPool.On("Close").Return(nil)
 
-	result, err := mockSqlmanager.NewSqlDbFromConnectionConfig(context.Background(), slogger, connection.GetConnectionConfig(), Ptr(5))
+	result, err := mockSqlmanager.NewSqlDbFromConnectionConfig(context.Background(), slogger, connection.GetConnectionConfig(), sqlmanager_shared.Ptr(5))
 	result.Db.Close()
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, PostgresDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.PostgresDriver, result.Driver)
 	mockPool.AssertCalled(t, "Close")
 	require.Equal(t, syncMapLength(pgcache), 0)
 }
@@ -241,14 +242,14 @@ func Test_NewSqlDbFromConnectionConfig_MysqlConnection(t *testing.T) {
 		},
 	}
 
-	result, err := mockSqlmanager.NewSqlDbFromConnectionConfig(context.Background(), slogger, connection.GetConnectionConfig(), Ptr(5))
+	result, err := mockSqlmanager.NewSqlDbFromConnectionConfig(context.Background(), slogger, connection.GetConnectionConfig(), sqlmanager_shared.Ptr(5))
 	result.Db.Close()
 
 	mockPool.AssertCalled(t, "Close")
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.NotNil(t, result.Db)
-	require.Equal(t, MysqlDriver, result.Driver)
+	require.Equal(t, sqlmanager_shared.MysqlDriver, result.Driver)
 	require.Equal(t, syncMapLength(mysqlcache), 0)
 }
 
@@ -285,18 +286,18 @@ func Test_NewSqlDbFromUrl(t *testing.T) {
 	mockPgPool := pg_queries.NewMockDBTX(t) // Assuming pgxpool.Pool is an interface or you have a mockable implementation
 	mockPgPoolConnector.On("New", mock.Anything, mock.Anything).Return(mockPgPool, nil)
 
-	sqlConnection, err := mockSqlmanager.NewSqlDbFromUrl(context.Background(), PostgresDriver, postgresURL)
+	sqlConnection, err := mockSqlmanager.NewSqlDbFromUrl(context.Background(), sqlmanager_shared.PostgresDriver, postgresURL)
 	require.NoError(t, err)
 	require.NotNil(t, sqlConnection)
-	require.Equal(t, PostgresDriver, sqlConnection.Driver)
+	require.Equal(t, sqlmanager_shared.PostgresDriver, sqlConnection.Driver)
 
 	// Test for MySQL
 	mysqlURL := "user:password@/dbname"
 
-	sqlConnection, err = mockSqlmanager.NewSqlDbFromUrl(context.Background(), MysqlDriver, mysqlURL)
+	sqlConnection, err = mockSqlmanager.NewSqlDbFromUrl(context.Background(), sqlmanager_shared.MysqlDriver, mysqlURL)
 	require.NoError(t, err)
 	require.NotNil(t, sqlConnection)
-	require.Equal(t, MysqlDriver, sqlConnection.Driver)
+	require.Equal(t, sqlmanager_shared.MysqlDriver, sqlConnection.Driver)
 
 	// Test for unsupported driver
 	unsupportedURL := "unsupported://user:password@localhost/db"

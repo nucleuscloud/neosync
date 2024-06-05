@@ -10,7 +10,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
+import { ArrowUpIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 import SupportDrawer from '../SupportDrawer';
 import AccountSwitcher from './AccountSwitcher';
@@ -27,6 +28,7 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
+          {!systemAppConfig?.isNeosyncCloud && <UpgradeButton />}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost">
@@ -54,5 +56,20 @@ export default function SiteHeader(): ReactElement {
         </div>
       </div>
     </header>
+  );
+}
+
+function UpgradeButton(): ReactElement {
+  return (
+    <div>
+      <Button variant="outline" size="sm">
+        <div className="flex flex-row gap-2 items-center">
+          <Link href="https://calendly.com/evis1/30min" target="_blank">
+            <div>Upgrade</div>
+          </Link>
+          <ArrowUpIcon />{' '}
+        </div>
+      </Button>
+    </div>
   );
 }

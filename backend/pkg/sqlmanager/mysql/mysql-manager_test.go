@@ -1,4 +1,4 @@
-package sqlmanager
+package sqlmanager_mysql
 
 import (
 	context "context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +47,7 @@ func Test_GetDatabaseSchema_Mysql(t *testing.T) {
 		}, nil,
 	)
 
-	expected := []*DatabaseSchemaRow{
+	expected := []*sqlmanager_shared.DatabaseSchemaRow{
 		{
 			TableSchema:   "public",
 			TableName:     "users",
@@ -94,28 +95,28 @@ func Test_GetForeignKeyConstraintsMap_Mysql(t *testing.T) {
 	}
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
 
-	expected := map[string][]*ForeignConstraint{
+	expected := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.account_user_associations": {
-			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
-			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.connections": {
-			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
-			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
-			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.job_destination_connection_associations": {
-			{Columns: []string{"connection_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
-			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.jobs", Columns: []string{"id"}}},
+			{Columns: []string{"connection_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.jobs", Columns: []string{"id"}}},
 		},
 		"neosync_api.jobs": {
-			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
-			{Columns: []string{"connection_source_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
-			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
-			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"connection_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
+			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.user_identity_provider_associations": {
-			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 	}
 
@@ -142,18 +143,18 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases_Mysql(t *testing.T) {
 		{ConstraintName: "t3_b_fkey", SchemaName: "neosync_api", TableName: "t3", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t4", ForeignColumnName: "a", IsNullable: "NO"},
 		{ConstraintName: "t4_b_fkey", SchemaName: "neosync_api", TableName: "t4", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t3", ForeignColumnName: "a", IsNullable: "NO"},
 	}
-	expected := map[string][]*ForeignConstraint{
+	expected := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.t1": {
-			{Columns: []string{"b", "c"}, NotNullable: []bool{true, true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id", "user_id"}}},
+			{Columns: []string{"b", "c"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id", "user_id"}}},
 		},
 		"neosync_api.t2": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
 		},
 		"neosync_api.t3": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
 		},
 		"neosync_api.t4": {
-			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
 		},
 	}
 
@@ -313,12 +314,12 @@ func Test_GetRolePermissionsMap_Mysql(t *testing.T) {
 }
 
 func Test_BatchExec_Mysql(t *testing.T) {
-	prefix := DisableForeignKeyChecks
+	prefix := sqlmanager_shared.DisableForeignKeyChecks
 	tests := []struct {
 		name          string
 		batchSize     int
 		statements    []string
-		opts          *BatchExecOpts
+		opts          *sqlmanager_shared.BatchExecOpts
 		expectedCalls []string
 	}{
 		{
@@ -338,7 +339,7 @@ func Test_BatchExec_Mysql(t *testing.T) {
 			batchSize:     2,
 			statements:    []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
 			expectedCalls: []string{fmt.Sprintf("%s %s", prefix, "CREATE TABLE users; CREATE TABLE accounts;"), fmt.Sprintf("%s %s", prefix, "CREATE TABLE departments;")},
-			opts:          &BatchExecOpts{Prefix: &prefix},
+			opts:          &sqlmanager_shared.BatchExecOpts{Prefix: &prefix},
 		},
 	}
 

@@ -95,7 +95,7 @@ export default function SchemaPageTable<TData, TValue>({
         />
       </div>
       <div
-        className="rounded-md border max-h-[500px] relative overflow-auto border-gray-700"
+        className="rounded-md border  min-h-[150px] max-h-[500px] relative overflow-auto border-gray-300 dark:border-gray-700"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>

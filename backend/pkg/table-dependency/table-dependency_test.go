@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
 
@@ -111,7 +111,7 @@ func Test_determineCycleStart(t *testing.T) {
 		name          string
 		cycle         []string
 		subsets       map[string]string
-		dependencyMap map[string][]*sql_manager.ForeignConstraint
+		dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint
 		expected      string
 		expectError   bool
 	}{
@@ -119,12 +119,12 @@ func Test_determineCycleStart(t *testing.T) {
 			name:    "basic cycle with no subsets and nullable foreign keys",
 			cycle:   []string{"a", "b"},
 			subsets: map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    "b",
@@ -136,12 +136,12 @@ func Test_determineCycleStart(t *testing.T) {
 			subsets: map[string]string{
 				"b": "where",
 			},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    "b",
@@ -153,12 +153,12 @@ func Test_determineCycleStart(t *testing.T) {
 			subsets: map[string]string{
 				"b": "where",
 			},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    "a",
@@ -168,7 +168,7 @@ func Test_determineCycleStart(t *testing.T) {
 			name:          "cycle with missing dependencies",
 			cycle:         []string{"a"},
 			subsets:       map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{},
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{},
 			expected:      "",
 			expectError:   true,
 		},
@@ -176,12 +176,12 @@ func Test_determineCycleStart(t *testing.T) {
 			name:    "cycle with non-nullable foreign keys",
 			cycle:   []string{"a", "b"},
 			subsets: map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"table1": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 				"table2": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    "",
@@ -208,7 +208,7 @@ func Test_determineMultiCycleStart(t *testing.T) {
 		name          string
 		cycles        [][]string
 		subsets       map[string]string
-		dependencyMap map[string][]*sql_manager.ForeignConstraint
+		dependencyMap map[string][]*sqlmanager_shared.ForeignConstraint
 		expected      []string
 		expectError   bool
 	}{
@@ -216,22 +216,22 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			name:    "multi cycle one starting point no subsets",
 			cycles:  [][]string{{"a", "b", "c"}, {"d", "e", "b"}},
 			subsets: map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "e"}, NotNullable: []bool{false}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    []string{"b"},
@@ -241,22 +241,22 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			name:    "multi cycle two starting points no subsets",
 			cycles:  [][]string{{"a", "b", "c"}, {"d", "e", "b"}},
 			subsets: map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "d"}, NotNullable: []bool{true}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    []string{"a", "e"},
@@ -266,22 +266,22 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			name:    "multi cycle two starting points no subsets 2",
 			cycles:  [][]string{{"a", "e", "c"}, {"d", "e", "b"}},
 			subsets: map[string]string{},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "c"}, NotNullable: []bool{false}},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "c"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    []string{"b", "e"},
@@ -293,22 +293,22 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			subsets: map[string]string{
 				"a": "where",
 			},
-			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
+			dependencyMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
+					{ForeignKey: &sqlmanager_shared.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    []string{"a", "b"},
@@ -333,7 +333,7 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	where := ""
 	tests := []struct {
 		name          string
-		dependencies  map[string][]*sql_manager.ForeignConstraint
+		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -341,15 +341,15 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	}{
 		{
 			name: "Single Cycle",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -372,16 +372,16 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Single Cycle Non Cycle Start",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -407,9 +407,9 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Self Referencing Cycle",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -426,10 +426,10 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Double Self Referencing Cycle",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-					{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -446,16 +446,16 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Single Cycle Composite Foreign Keys",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"cc_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"cc_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -478,16 +478,16 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Single Cycle Composite Foreign Keys Nullable",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"cc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"cc_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -524,7 +524,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
-		dependencies  map[string][]*sql_manager.ForeignConstraint
+		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -532,15 +532,15 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 	}{
 		{
 			name: "Single Cycle",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -565,16 +565,16 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 		},
 		{
 			name: "Single Cycle Non Cycle Start",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
-					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -615,7 +615,7 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
-		dependencies  map[string][]*sql_manager.ForeignConstraint
+		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -623,22 +623,22 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	}{
 		{
 			name: "Multi Table Dependencies",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 				"public.d": {
-					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
+					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 				},
 				"public.e": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -667,22 +667,22 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 		},
 		{
 			name: "Multi Table Dependencies Complex Foreign Keys",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 				"public.d": {
-					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
+					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 				},
 				"public.e": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -712,16 +712,16 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 		},
 		{
 			name: "Multi Table Dependencies Self Referencing Circular Dependency Complex",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -745,16 +745,16 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 		},
 		{
 			name: "Multi Table Dependencies Self Referencing Circular Dependency Simple",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tableColsMap: map[string][]string{
@@ -798,7 +798,7 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	emptyWhere := ""
 	tests := []struct {
 		name          string
-		dependencies  map[string][]*sql_manager.ForeignConstraint
+		dependencies  map[string][]*sqlmanager_shared.ForeignConstraint
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -806,12 +806,12 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 	}{
 		{
 			name: "Straight dependencies",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {},
 			},
@@ -834,12 +834,12 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 		},
 		{
 			name: "Sub Tree",
-			dependencies: map[string][]*sql_manager.ForeignConstraint{
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
-					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {},
 			},
@@ -870,12 +870,12 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 
 func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	emptyWhere := ""
-	dependencies := map[string][]*sql_manager.ForeignConstraint{
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.employees": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"department_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.department", Columns: []string{"department_id"}}},
 		},
 		"public.projects": {
-			{Columns: []string{"responsible_employee_id", "responsible_department_id"}, NotNullable: []bool{false, false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}},
+			{Columns: []string{"responsible_employee_id", "responsible_department_id"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}},
 		},
 	}
 	primaryKeyMap := map[string][]string{
@@ -944,12 +944,12 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 }
 
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
-	dependencies := map[string][]*sql_manager.ForeignConstraint{
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}})
