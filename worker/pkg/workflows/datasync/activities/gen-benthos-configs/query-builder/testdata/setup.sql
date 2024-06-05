@@ -67,6 +67,19 @@ CREATE TABLE IF NOT EXISTS expense_report (
   	CONSTRAINT expense_report_transaction_fkey FOREIGN KEY (transaction_id) REFERENCES transaction (ID) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS expense (
+    id bigint NOT NULL PRIMARY KEY,
+    report_id bigint,
+  	CONSTRAINT expense_report_d_fkey FOREIGN KEY (report_id) REFERENCES expense_report (ID) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS item (
+    id bigint NOT NULL PRIMARY KEY,
+    expense_id bigint,
+  	CONSTRAINT expense_id_fkey FOREIGN KEY (expense_id) REFERENCES expense (ID) ON DELETE CASCADE
+);
+
 
 INSERT INTO company (name, url, employee_count, uuid)
 VALUES
@@ -90,7 +103,20 @@ VALUES
 INSERT INTO expense_report (id, invoice_id, date, amount, department_source_id, department_destination_id, created, updated, currency, transaction_type, paid, adjustment_amount, transaction_id)
 VALUES
   (1, 'INV-1234', '2024-05-03', 500.00, 1, 2, now() - interval '15 days', now(), 'USD', 1, true, null, 1),
-  (2,'INV-5678', '2024-04-28', 128.75, 3, 1, now() - interval '20 days', now() - interval '1 day', 'CAD', 2, false, 12.50, 3);
+  (2,'INV-5678', '2024-04-28', 128.75, 3, 1, now() - interval '20 days', now() - interval '1 day', 'CAD', 2, false, 12.50, 3),
+  (3,'INV-5678', '2024-04-28', 128.75, 2, 1, now() - interval '20 days', now() - interval '1 day', 'CAD', 2, false, 12.50, 2);
+
+
+INSERT INTO expense (id, report_id) VALUES 
+(1, 2), 
+(2, 3), 
+(3, 1);
+
+-- Insert statements for item
+INSERT INTO item (id, expense_id) VALUES 
+(1, 3), 
+(2, 1), 
+(3, 2);
 
 
 -- Test_BuildQueryMap_DoubleRootSubset
