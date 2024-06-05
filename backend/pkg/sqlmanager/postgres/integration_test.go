@@ -2,6 +2,8 @@ package sqlmanager_postgres
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -26,10 +28,13 @@ type IntegrationTestSuite struct {
 	ctx context.Context
 
 	pgcontainer *testpg.PostgresContainer
+
+	schema string
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
+	s.schema = "sqlmanagerpostgres"
 
 	dburl := os.Getenv("TEST_DB_URL")
 	if dburl == "" {
@@ -99,9 +104,11 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	// shouldRun := os.Getenv("NEO_INTEGRATION_TESTS")
-	// if shouldRun != "1" {
-	// 	return
-	// }
+	evkey := "INTEGRATION_TESTS_ENABLED"
+	shouldRun := os.Getenv(evkey)
+	if shouldRun != "1" {
+		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+		return
+	}
 	suite.Run(t, new(IntegrationTestSuite))
 }
