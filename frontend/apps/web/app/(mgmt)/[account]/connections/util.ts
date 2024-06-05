@@ -1,6 +1,11 @@
 import { ConnectionConfig } from '@neosync/sdk';
 
-export type ConnectionType = 'postgres' | 'mysql' | 'aws-s3' | 'openai';
+export type ConnectionType =
+  | 'postgres'
+  | 'mysql'
+  | 'aws-s3'
+  | 'openai'
+  | 'mongodb';
 
 export const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionType>([
   'aws-s3',
@@ -18,6 +23,8 @@ export function getConnectionType(
       return 'aws-s3';
     case 'openaiConfig':
       return 'openai';
+    case 'mongoConfig':
+      return 'mongodb';
     default:
       return null;
   }

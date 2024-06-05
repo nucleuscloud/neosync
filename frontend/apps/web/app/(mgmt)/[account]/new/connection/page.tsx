@@ -48,6 +48,13 @@ const CONNECTIONS: ConnectionMeta[] = [
       'OpenAI (or equivalent interface) Chat API for generating synthetic data and inserting it directly into a destination datasource.',
     connectionType: 'openai',
   },
+  {
+    urlSlug: 'mongodb',
+    name: 'MongoDB',
+    description:
+      'MongoDB is a source-available, cross-platform, document-oriented database program.',
+    connectionType: 'mongodb',
+  },
 ];
 
 export default function NewConnectionPage(): ReactElement {
