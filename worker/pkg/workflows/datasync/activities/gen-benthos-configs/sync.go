@@ -13,6 +13,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs/query-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -82,7 +83,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	tableRunTypeQueryMap, err := buildSelectQueryMap(db.Driver, tableConstraints.ForeignKeyConstraints, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, tableConstraints.ForeignKeyConstraints, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
