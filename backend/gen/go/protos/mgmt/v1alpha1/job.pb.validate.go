@@ -627,6 +627,47 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobSourceOptions_Mongodb:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMongodb()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Mongodb",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Mongodb",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMongodb()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "Mongodb",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1753,6 +1794,111 @@ var _ interface {
 	ErrorName() string
 } = GenerateSourceTableOptionValidationError{}
 
+// Validate checks the field values on MongoDBSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MongoDBSourceConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MongoDBSourceConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// MongoDBSourceConnectionOptionsMultiError, or nil if none found.
+func (m *MongoDBSourceConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MongoDBSourceConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if len(errors) > 0 {
+		return MongoDBSourceConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MongoDBSourceConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by MongoDBSourceConnectionOptions.ValidateAll()
+// if the designated constraints aren't met.
+type MongoDBSourceConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MongoDBSourceConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MongoDBSourceConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// MongoDBSourceConnectionOptionsValidationError is the validation error
+// returned by MongoDBSourceConnectionOptions.Validate if the designated
+// constraints aren't met.
+type MongoDBSourceConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MongoDBSourceConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MongoDBSourceConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MongoDBSourceConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MongoDBSourceConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MongoDBSourceConnectionOptionsValidationError) ErrorName() string {
+	return "MongoDBSourceConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MongoDBSourceConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMongoDBSourceConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MongoDBSourceConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MongoDBSourceConnectionOptionsValidationError{}
+
 // Validate checks the field values on PostgresSourceConnectionOptions with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2782,6 +2928,47 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobDestinationOptions_MongodbOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMongodbOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "MongodbOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "MongodbOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMongodbOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "MongodbOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2865,6 +3052,111 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobDestinationOptionsValidationError{}
+
+// Validate checks the field values on MongoDBDestinationConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *MongoDBDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MongoDBDestinationConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// MongoDBDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *MongoDBDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MongoDBDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return MongoDBDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MongoDBDestinationConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// MongoDBDestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type MongoDBDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MongoDBDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MongoDBDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// MongoDBDestinationConnectionOptionsValidationError is the validation error
+// returned by MongoDBDestinationConnectionOptions.Validate if the designated
+// constraints aren't met.
+type MongoDBDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MongoDBDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MongoDBDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MongoDBDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MongoDBDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MongoDBDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "MongoDBDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MongoDBDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMongoDBDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MongoDBDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MongoDBDestinationConnectionOptionsValidationError{}
 
 // Validate checks the field values on PostgresDestinationConnectionOptions
 // with the rules defined in the proto definition for this message. If any

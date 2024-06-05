@@ -9080,6 +9080,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongodb_options",
+              "description": "",
+              "label": "",
+              "type": "MongoDBDestinationConnectionOptions",
+              "longType": "MongoDBDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -9668,6 +9680,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongodb",
+              "description": "",
+              "label": "",
+              "type": "MongoDBSourceConnectionOptions",
+              "longType": "MongoDBSourceConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MongoDBSourceConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -9736,6 +9760,41 @@
               "type": "JobStatus",
               "longType": "JobStatus",
               "fullType": "mgmt.v1alpha1.JobStatus",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MongoDBDestinationConnectionOptions",
+          "longName": "MongoDBDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MongoDBSourceConnectionOptions",
+          "longName": "MongoDBSourceConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MongoDBSourceConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
