@@ -14,6 +14,8 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
+// todo: kill this file.
+
 type defaultSqlProvider struct{}
 
 func (d *defaultSqlProvider) GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error) {

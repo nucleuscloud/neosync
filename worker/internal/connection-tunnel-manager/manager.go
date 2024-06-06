@@ -1,0 +1,231 @@
+package connectiontunnelmanager
+
+import (
+	"fmt"
+	"log/slog"
+	"sync"
+	"time"
+
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+)
+
+type ConnectionProvider[T any] interface {
+	GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error)
+	GetConnectionClient(driver string, connectionString string, opts any) (T, error)
+}
+
+type ConnectionTunnelManager[T any] struct {
+	connectionProvider ConnectionProvider[T]
+
+	connDetailsMap map[string]*ConnectionDetails
+	connDetailsMu  sync.RWMutex
+
+	sessionMap map[string]map[string]struct{}
+	sessionMu  sync.RWMutex
+
+	connMap map[string]Closer
+	connMu  sync.RWMutex
+
+	shutdown chan any
+}
+
+type ConnectionDetails struct {
+	GeneralDbConnectConfig sqlconnect.GeneralDbConnectConfig
+
+	Tunnel *sshtunnel.Sshtunnel
+}
+
+type Closer interface {
+	Close()
+}
+
+type Interface[T any] interface {
+	GetConnectionString(session string, connection *mgmtv1alpha1.Connection, logger *slog.Logger) (string, error)
+	GetConnection(session string, connection *mgmtv1alpha1.Connection, logger *slog.Logger) (T, error)
+
+	ReleaseSession(session string) bool
+	Shutdown()
+	Reaper()
+}
+
+var _ Interface[any] = &ConnectionTunnelManager[any]{} // enforces ConnectionTunnelManager always conforms to the interface
+
+func NewConnectionTunnelManager[T any]() *ConnectionTunnelManager[T] {
+	return &ConnectionTunnelManager[T]{}
+}
+
+func (c *ConnectionTunnelManager[T]) GetConnectionString(
+	session string,
+	connection *mgmtv1alpha1.Connection,
+	logger *slog.Logger,
+) (string, error) {
+	c.connDetailsMu.RLock()
+	loadedDetails, ok := c.connDetailsMap[connection.Id]
+
+	if ok {
+		c.bindSession(session, connection.Id)
+		c.connDetailsMu.RUnlock()
+		return loadedDetails.GeneralDbConnectConfig.String(), nil
+	}
+	c.connDetailsMu.RUnlock()
+	c.connDetailsMu.Lock()
+	defer c.connDetailsMu.Unlock()
+
+	loadedDetails, ok = c.connDetailsMap[connection.Id]
+	if ok {
+		c.bindSession(session, connection.Id)
+		return loadedDetails.GeneralDbConnectConfig.String(), nil
+	}
+
+	details, err := c.connectionProvider.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), logger)
+	if err != nil {
+		return "", err
+	}
+	if details.Tunnel == nil {
+		c.bindSession(session, connection.Id)
+		c.connDetailsMap[connection.Id] = details
+		return details.GeneralDbConnectConfig.String(), nil
+	}
+	ready, err := details.Tunnel.Start(logger)
+	if err != nil {
+		return "", fmt.Errorf("unable to start ssh tunnel: %w", err)
+	}
+	<-ready // this isn't great as it will block all other requests until this tunnel is ready
+	localhost, localport := details.Tunnel.GetLocalHostPort()
+	details.GeneralDbConnectConfig.Host = localhost
+	details.GeneralDbConnectConfig.Port = int32(localport)
+	logger.Debug(
+		"ssh tunnel is ready, updated configuration host and port",
+		"host", localhost,
+		"port", localport,
+	)
+	c.connDetailsMap[connection.Id] = details
+	c.bindSession(session, connection.Id)
+	return details.GeneralDbConnectConfig.String(), nil
+}
+
+func (c *ConnectionTunnelManager[T]) GetConnection(
+	session string,
+	connection *mgmtv1alpha1.Connection,
+	logger *slog.Logger,
+) (T, error) {
+	var result T
+	return result, nil
+}
+
+func (c *ConnectionTunnelManager[T]) ReleaseSession(session string) bool {
+	c.sessionMu.RLock()
+	connMap, ok := c.sessionMap[session]
+	if !ok || len(connMap) == 0 {
+		c.sessionMu.RUnlock()
+		return false
+	}
+	c.sessionMu.RUnlock()
+	c.sessionMu.Lock()
+	defer c.sessionMu.Unlock()
+	connMap, ok = c.sessionMap[session]
+	if !ok || len(connMap) == 0 {
+		return false
+	}
+	delete(c.sessionMap, session)
+	return true
+}
+
+func (c *ConnectionTunnelManager[T]) bindSession(session, connectionId string) {
+	c.sessionMu.RLock()
+	connmap, ok := c.sessionMap[session]
+	if ok {
+		if _, ok := connmap[connectionId]; ok {
+			c.sessionMu.RUnlock()
+			return
+		}
+	}
+	c.sessionMu.RUnlock()
+	c.sessionMu.Lock()
+	defer c.sessionMu.Unlock()
+	if _, ok := c.sessionMap[session]; !ok {
+		c.sessionMap[session] = map[string]struct{}{}
+	}
+	c.sessionMap[session][connectionId] = struct{}{}
+}
+
+func (c *ConnectionTunnelManager[T]) Shutdown() {
+	c.shutdown <- struct{}{}
+}
+
+func (c *ConnectionTunnelManager[T]) Reaper() {
+	for {
+		select {
+		case <-c.shutdown:
+			c.hardClose()
+			return
+		case <-time.After(1 * time.Minute):
+			c.close()
+		}
+	}
+}
+
+func (c *ConnectionTunnelManager[T]) hardClose() {
+	c.connMu.Lock()
+	c.connDetailsMu.Lock()
+	c.sessionMu.Lock()
+	for connId, dbConn := range c.connMap {
+		dbConn.Close()
+		delete(c.connMap, connId)
+	}
+
+	for connId, details := range c.connDetailsMap {
+		if details.Tunnel != nil {
+			details.Tunnel.Close()
+		}
+		delete(c.connDetailsMap, connId)
+	}
+
+	for sessionId := range c.sessionMap {
+		delete(c.sessionMap, sessionId)
+	}
+	c.connMu.Unlock()
+	c.connDetailsMu.Unlock()
+	c.sessionMu.Unlock()
+}
+
+func (c *ConnectionTunnelManager[T]) close() {
+	c.connMu.Lock()
+	c.sessionMu.Lock()
+	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
+	for connId, dbConn := range c.connMap {
+		if _, ok := sessionConnections[connId]; !ok {
+			dbConn.Close()
+			delete(c.connMap, connId)
+		}
+	}
+	c.sessionMu.Unlock()
+	c.connMu.Unlock()
+
+	c.connDetailsMu.Lock()
+	c.sessionMu.Lock()
+	sessionConnections = getUniqueConnectionIdsFromSessions(c.sessionMap)
+	for connId, details := range c.connDetailsMap {
+		if _, ok := sessionConnections[connId]; !ok {
+			if details.Tunnel != nil {
+				details.Tunnel.Close()
+			}
+			delete(c.connDetailsMap, connId)
+		}
+	}
+	c.sessionMu.Unlock()
+	c.connDetailsMu.Unlock()
+}
+
+func getUniqueConnectionIdsFromSessions(sessionMap map[string]map[string]struct{}) map[string]struct{} {
+	connSet := map[string]struct{}{}
+	for _, sessConnSet := range sessionMap {
+		for key := range sessConnSet {
+			connSet[key] = struct{}{}
+		}
+	}
+	return connSet
+}
