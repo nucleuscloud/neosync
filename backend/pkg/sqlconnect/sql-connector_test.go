@@ -9,18 +9,6 @@ import (
 	"github.com/zeebo/assert"
 )
 
-const (
-	testPrivateKey = `-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABDcxXuNyz
-EyQ3fS7uiTcfvDAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIHRde4TANOm21rV4
-hyHkZjPHFJazaxZHd9M/TzchhVKhAAAAoGQ2S553lBIdQHDHwsC+ySbc8PShkW2tmF9X2h
-LHW/Zvmd4uy2/jg7kWMnWPfkUkIytjD0Llo+o6yTq3wfaGfOkn8M57NcwGvdvHoCIswbv/
-COyG2jmUCxomIKi0qDxzDnp22ELGKpdEDTjit1d8aNwjWZU73AfyPwulhTa9H/uxao1Qat
-LqqnUvkQBvhk/q8M2CpbmDwBXJ8x3IVXOx/dQ=
------END OPENSSH PRIVATE KEY-----`
-	testPrivateKeyPass = "foobar"
-)
-
 var (
 	pgconnection = &mgmtv1alpha1.PostgresConnection{
 		Host:    "localhost",
@@ -276,48 +264,6 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 			assert.Equal(t, tc.input.String(), tc.expected)
 		})
 	}
-}
-
-func Test_getTunnelAuthMethodFromSshConfig(t *testing.T) {
-	out, err := getTunnelAuthMethodFromSshConfig(nil)
-	assert.NoError(t, err)
-	assert.Nil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{})
-	assert.NoError(t, err)
-	assert.Nil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
-			Passphrase: &mgmtv1alpha1.SSHPassphrase{
-				Value: "foo",
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
-			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-				Value:      testPrivateKey,
-				Passphrase: ptr(testPrivateKeyPass),
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
-			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-				Value:      testPrivateKey,
-				Passphrase: ptr("badpass"),
-			},
-		},
-	})
-	assert.Error(t, err)
-	assert.Nil(t, out)
 }
 
 func Test_getConnectionDetails_Pg_NoTunnel(t *testing.T) {

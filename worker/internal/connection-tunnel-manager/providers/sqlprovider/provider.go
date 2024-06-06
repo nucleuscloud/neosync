@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
@@ -23,7 +24,7 @@ func (p *Provider) GetConnectionDetails(
 	connectionTimeout *uint32,
 	logger *slog.Logger,
 ) (*connectiontunnelmanager.ConnectionDetails, error) {
-	details, err := sqlconnect.GetConnectionDetails(cc, connectionTimeout, sqlconnect.UpsertCLientTlsFiles, logger)
+	details, err := sqlconnect.GetConnectionDetails(cc, connectionTimeout, clienttls.UpsertCLientTlsFiles, logger)
 	if err != nil {
 		return nil, err
 	}
