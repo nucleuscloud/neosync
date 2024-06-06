@@ -53,7 +53,12 @@ type Interface[T any] interface {
 var _ Interface[any] = &ConnectionTunnelManager[any, any]{} // enforces ConnectionTunnelManager always conforms to the interface
 
 func NewConnectionTunnelManager[T any, TConfig any](connectionProvider ConnectionProvider[T, TConfig]) *ConnectionTunnelManager[T, TConfig] {
-	return &ConnectionTunnelManager[T, TConfig]{connectionProvider: connectionProvider}
+	return &ConnectionTunnelManager[T, TConfig]{
+		connectionProvider: connectionProvider,
+		sessionMap:         map[string]map[string]struct{}{},
+		connDetailsMap:     map[string]*ConnectionDetails{},
+		connMap:            map[string]T{},
+	}
 }
 
 func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
@@ -146,6 +151,10 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnection(
 	}
 
 	connectionClient, err := c.connectionProvider.GetConnectionClient(driver, connectionString, connClientConfig)
+	if err != nil {
+		var result T
+		return result, err
+	}
 
 	c.connMap[connection.Id] = connectionClient
 	c.bindSession(session, connection.Id)
@@ -209,7 +218,10 @@ func (c *ConnectionTunnelManager[T, TConfig]) hardClose() {
 	c.connDetailsMu.Lock()
 	c.sessionMu.Lock()
 	for connId, dbConn := range c.connMap {
-		c.connectionProvider.CloseClientConnection(dbConn)
+		err := c.connectionProvider.CloseClientConnection(dbConn)
+		if err != nil {
+			slog.Error(fmt.Sprintf("unable to fully close client connection during hard close: %s", err.Error()))
+		}
 		delete(c.connMap, connId)
 	}
 
@@ -234,7 +246,10 @@ func (c *ConnectionTunnelManager[T, TConfig]) close() {
 	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
 	for connId, dbConn := range c.connMap {
 		if _, ok := sessionConnections[connId]; !ok {
-			c.connectionProvider.CloseClientConnection(dbConn)
+			err := c.connectionProvider.CloseClientConnection(dbConn)
+			if err != nil {
+				slog.Error(fmt.Sprintf("unable to fully close client connection during close: %w", err.Error()))
+			}
 			delete(c.connMap, connId)
 		}
 	}

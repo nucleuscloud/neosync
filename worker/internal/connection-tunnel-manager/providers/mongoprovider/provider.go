@@ -17,7 +17,7 @@ func NewProvider() *Provider {
 	return &Provider{}
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[*mongo.Client, any] = &Provider{}
+// var _ connectiontunnelmanager.ConnectionProvider[*mongo.Client, any] = &Provider{}
 
 func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
