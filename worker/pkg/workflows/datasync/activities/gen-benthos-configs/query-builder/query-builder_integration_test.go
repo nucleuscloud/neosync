@@ -61,6 +61,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -156,6 +157,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference_Complex() {
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -245,8 +247,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -360,8 +362,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -446,8 +448,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -531,8 +533,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, false, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
@@ -588,44 +590,41 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		{Table: "genbenthosconfigs_querybuilder.orders", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}}},
 	}
 
-	// expectedValues := map[string]map[string][]int64{
-	// 	"genbenthosconfigs_querybuilder.orders": {
-	// 		"id": {4, 5},
-	// 	},
-	// 	"genbenthosconfigs_querybuilder.addresses": {
-	// 		"a_id": {4},
-	// 	},
-	// 	"genbenthosconfigs_querybuilder.customers": {
-	// 		"b_id": {1, 2, 3, 4, 5},
-	// 	},
-	// 	"genbenthosconfigs_querybuilder.payments": {
-	// 		"c_id": {1, 2, 3, 4, 5},
-	// 	},
-	// }
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.orders": {
+			"customer_id": {2, 3},
+		},
+		"genbenthosconfigs_querybuilder.addresses": {
+			"order_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.customers": {
+			"address_id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.payments": {
+			"customer_id": {2},
+		},
+	}
 
-	// expectedCount := map[string]int{
-	// 	"genbenthosconfigs_querybuilder.orders":    2,
-	// 	"genbenthosconfigs_querybuilder.addresses": 1,
-	// 	"genbenthosconfigs_querybuilder.customers": 5,
-	// 	"genbenthosconfigs_querybuilder.payments":  5,
-	// }
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.orders":    2,
+		"genbenthosconfigs_querybuilder.addresses": 2,
+		"genbenthosconfigs_querybuilder.customers": 2,
+		"genbenthosconfigs_querybuilder.payments":  1,
+	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
-		fmt.Printf("\n---------- %s \n", table)
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
 		require.NotEmpty(s.T(), sql)
-		fmt.Println(sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
 		require.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
-
-		// tableExpectedValues, ok := expectedValues[table]
-		// require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+		tableExpectedValues, ok := expectedValues[table]
+		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 		rowCount := 0
 		for rows.Next() {
@@ -633,21 +632,260 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			values, err := rows.Values()
 			require.NoError(s.T(), err)
 
-			fmt.Print("(")
 			for i, col := range values {
 				colName := columnDescriptions[i].Name
-				fmt.Printf(" %s: %d ", colName, col.(int64))
-				// allowedValues, ok := tableExpectedValues[colName]
-				// if ok {
-				// 	value := col.(int64)
-				// 	require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
-				// }
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int64)
+					require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
 			}
-			fmt.Print(") ")
 		}
-		fmt.Println()
-		fmt.Println()
 		rows.Close()
-		// require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
+	whereId := "id in (1,5)"
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "genbenthosconfigs_querybuilder.test_2_x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "genbenthosconfigs_querybuilder.test_2_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.company": {
+			"id": {1, 2, 3},
+		},
+		"genbenthosconfigs_querybuilder.test_2_x": {
+			"id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_2_b": {
+			"id": {1, 5},
+		},
+		"genbenthosconfigs_querybuilder.test_3_a": {
+			"customer_id": {1, 2, 3, 4, 5},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.company":  3,
+		"genbenthosconfigs_querybuilder.test_2_x": 2,
+		"genbenthosconfigs_querybuilder.test_2_b": 2,
+		"genbenthosconfigs_querybuilder.test_3_a": 5,
+	}
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		require.NotEmpty(s.T(), sql)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		require.NoError(s.T(), err)
+
+		columnDescriptions := rows.FieldDescriptions()
+		tableExpectedValues, ok := expectedValues[table]
+		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			require.NoError(s.T(), err)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int64)
+					require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
+			}
+		}
+		rows.Close()
+		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "genbenthosconfigs_querybuilder.test_2_x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "genbenthosconfigs_querybuilder.test_2_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.company":  3,
+		"genbenthosconfigs_querybuilder.test_2_x": 5,
+		"genbenthosconfigs_querybuilder.test_2_b": 5,
+		"genbenthosconfigs_querybuilder.test_3_a": 5,
+	}
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedCount), len(sqlMap))
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		require.NotEmpty(s.T(), sql)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		require.NoError(s.T(), err)
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+		}
+		rows.Close()
+
+		tableExpectedCount, ok := expectedCount[table]
+		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected row counts", table))
+		require.Equalf(s.T(), rowCount, tableExpectedCount, fmt.Sprintf("table: %s ", table))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
+	whereId := "id in (3,5)"
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"genbenthosconfigs_querybuilder.employees": {
+			{Columns: []string{"division_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}}},
+		},
+		"genbenthosconfigs_querybuilder.projects": {
+			{Columns: []string{"responsible_employee_id", "responsible_division_id"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}}},
+		},
+	}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.division", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "genbenthosconfigs_querybuilder.employees", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id", "division_id"}, SelectColumns: []string{"id", "division_id"}, InsertColumns: []string{"id", "division_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}}}},
+		{Table: "genbenthosconfigs_querybuilder.projects", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "responsible_employee_id", "responsible_division_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}}}},
+	}
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.division": {
+			"id": {3, 5},
+		},
+		"genbenthosconfigs_querybuilder.employees": {
+			"division_id": {3, 5},
+			"id":          {8, 10},
+		},
+		"genbenthosconfigs_querybuilder.projects": {
+			"responsible_division_id": {3, 5},
+			"responsible_employee_id": {8, 10},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.division":  2,
+		"genbenthosconfigs_querybuilder.employees": 2,
+		"genbenthosconfigs_querybuilder.projects":  2,
+	}
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		require.NotEmpty(s.T(), sql)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		require.NoError(s.T(), err)
+
+		columnDescriptions := rows.FieldDescriptions()
+		tableExpectedValues, ok := expectedValues[table]
+		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			require.NoError(s.T(), err)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int64)
+					require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
+			}
+		}
+		rows.Close()
+		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
+	whereId := "id in (3,5)"
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"genbenthosconfigs_querybuilder.bosses": {
+			{Columns: []string{"manager_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"id"}}},
+			{Columns: []string{"big_boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"manager_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.minions": {
+			{Columns: []string{"boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"big_boss_id"}}},
+		},
+	}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.bosses", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "manager_id", "big_boss_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "genbenthosconfigs_querybuilder.minions", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "boss_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"manager_id"}}}},
+	}
+
+	expectedValues := map[string]map[string][]int64{
+		"genbenthosconfigs_querybuilder.bosses": {
+			"id":         {1, 2, 3, 4, 5},
+			"manager_id": {1, 2, 3, 4},
+			"boss_id":    {1, 2, 3},
+		},
+		"genbenthosconfigs_querybuilder.minions": {
+			"boss_id": {1, 3},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.bosses":  5,
+		"genbenthosconfigs_querybuilder.minions": 2,
+	}
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		require.NotEmpty(s.T(), sql)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		require.NoError(s.T(), err)
+
+		columnDescriptions := rows.FieldDescriptions()
+		tableExpectedValues, ok := expectedValues[table]
+		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			require.NoError(s.T(), err)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				if (colName == "manager_id" || colName == "big_boss_id") && col == nil {
+					continue
+				}
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int64)
+					require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
+			}
+		}
+		rows.Close()
+		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 	}
 }

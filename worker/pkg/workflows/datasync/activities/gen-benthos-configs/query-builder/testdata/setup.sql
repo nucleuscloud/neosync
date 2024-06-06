@@ -363,3 +363,88 @@ ALTER TABLE addresses
 ADD CONSTRAINT fk_order
 FOREIGN KEY (order_id) 
 REFERENCES orders (id);
+
+
+-- composite keys
+CREATE TABLE division (
+    id BIGINT PRIMARY KEY,
+    division_name VARCHAR(100),
+    location VARCHAR(100)
+);
+CREATE TABLE employees (
+    id BIGINT,
+    division_id BIGINT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100),
+    PRIMARY KEY (id, division_id),
+    FOREIGN KEY (division_id) REFERENCES division (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE projects (
+    id BIGINT PRIMARY KEY,
+    project_name VARCHAR(100),
+    start_date DATE,
+    end_date DATE,
+    responsible_employee_id BIGINT,
+    responsible_division_id BIGINT,
+    CONSTRAINT FK_Projects_Employees FOREIGN KEY (responsible_employee_id, responsible_division_id)
+    REFERENCES employees (id, division_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+
+INSERT INTO division (id, division_name, location) VALUES
+(1, 'Marketing', 'New York'),
+(2, 'Finance', 'London'),
+(3, 'Human Resources', 'San Francisco'),
+(4, 'IT', 'Berlin'),
+(5, 'Customer Service', 'Tokyo');
+
+
+INSERT INTO employees (id, division_id, first_name, last_name, email) VALUES
+(6, 1, 'Alice', 'Johnson', 'alice.johnson@example.com'),
+(7, 2, 'Bob', 'Smith', 'bob.smith@example.com'),
+(8, 3, 'Carol', 'Martinez', 'carol.martinez@example.com'),
+(9, 4, 'David', 'Lee', 'david.lee@example.com'),
+(10, 5, 'Eva', 'Kim', 'eva.kim@example.com');
+
+
+INSERT INTO projects (id, project_name, start_date, end_date, responsible_employee_id, responsible_division_id) VALUES
+(11, 'Website Redesign', '2023-05-01', '2023-10-01', 6, 1),
+(12, 'Financial Audit', '2023-06-15', '2023-07-15', 7, 2),
+(13, 'Hiring Initiative', '2023-09-01', '2024-01-31', 8, 3),
+(14, 'Software Development', '2023-05-20', '2023-12-20', 9, 4),
+(15, 'Customer Feedback Analysis', '2023-07-01', '2023-11-30', 10, 5);
+
+
+-- self referencing 
+CREATE TABLE bosses (
+	id BIGINT PRIMARY KEY,
+	manager_id BIGINT,
+	big_boss_id BIGINT,
+	FOREIGN KEY (manager_id) REFERENCES bosses (id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (big_boss_id) REFERENCES bosses (id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE minions (
+	id BIGINT PRIMARY KEY,
+	boss_id BIGINT,
+	FOREIGN KEY (boss_id) REFERENCES bosses (id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+INSERT INTO bosses (id, manager_id, big_boss_id) VALUES 
+(1, NULL, NULL), 
+(2, 1, NULL), 
+(3, 2, 1), 
+(4, 3, 2), 
+(5, 4, 3),
+(6,NULL,NULL);
+
+INSERT INTO minions (id, boss_id) VALUES 
+(1, 4), 
+(2, 3), 
+(3, 1), 
+(4, 5), 
+(5, 2);

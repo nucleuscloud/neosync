@@ -8,15 +8,36 @@ slug: /guides/troubleshooting
 
 ## Introduction
 
-Databases are _complex_. Neosync does its best to handle any and all edge cases you throw at it.
+Databases are _complex_. Neosync does its best to handle any and all edge cases you throw at it. This document is a collection of common issues you may face when running Neosync and how to resolve them.
 
-This document is a collection of common issues you may face when running Neosync and how to resolve them.
+It's worth reviewing the Neosync [Platform](/platform) overview to understand Neosync's architecture and where possible issues can come up. Generally speaking, issues can come from three different places:
+
+1. **Front-end\*** - Typically client-side react issues that are fairly rare.
+2. **Back-end** - API and Database issues that result from some sort of control plane error such as not being able to find jobs or connect to a source/destination. More common than front-end errors but still not the most common of errors.
+3. **Worker** - Issues that come up when trying to sync and transform data. This is where the overwhelming majority of issues occur.
+
+Since most issues occur in the worker, let's dive a little deeper there. Let's take a look at the types of worker-related issues:
+
+1. **Orchestration** - Neosync leverages Temporal under the surface as a durable job execution engine. In some situations, Temporal times out if a sync is taking too long because of a large table or something going wrong. In the Job Settings, there are advanced settings to control the number of retries, timeout period and more. Generally, any timeout or errors related to maximum attempts are issues related to the sync taking too long.
+2. **Data Syncing and Transformation** - Most of the worker errors fall into this category. This comprises insert/update errors, constraint errors, duplicate key errors and more. These usually come from a combination of data and schema errors.
+
+## Common errors
 
 ### `Sync: could not successfully complete sync activity: read tcp 0.0.0.0:42454->0.0.0.0:5432: i/o timeout`
 
 This is likely due to an overabundance of connections against the database.
 
 You can resolve this by reducing the number of open connections in the "Connections" tab of Neosync. The default is at 80, the easiest way to debug is to start with something small like 10 and increase it until you hit the error again.
+
+### `Maximum attempts reached`
+
+This usually occurs when a job is trying to run and failing and due to the retry policy eventually gets canceled because it's already retried too many times. This is usually indicative of a data issue that is happening in the worker that is causing the job to fail, retry, fail, retry, etc.
+
+## Activity start to close timeout
+
+An activity timeout defines the maximum time allowed for a single activity. In Neosync, an activity is responsible for syncing one table. If that table is very big and takes longer than the activity timeout, then you may see this error.
+
+One way to remedy this error is to increase the **Table Sync Timeout** in the job's advanced settings. The default value is 10 minutes but depending on your database, it may need to be longer.
 
 ### `could not successfully complete sync activity: pq: insert or update on table \"table_name\" violates foreign key constraint \"table_name_id_foreign_key\"`
 
