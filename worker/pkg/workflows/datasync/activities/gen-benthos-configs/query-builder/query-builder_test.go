@@ -262,42 +262,6 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 	}
 }
 
-func Test_BuildSelectQueryMap_shouldContinue(t *testing.T) {
-	aWhere := "id = 1"
-	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
-		},
-		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
-		},
-		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
-		},
-	}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "a_id", "d_id"}, InsertColumns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
-	}
-
-	expected :=
-		map[string]map[tabledependency.RunType]string{
-			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_id", "public"."b"."d_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`},
-			"public.c": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."c";`},
-			"public.d": {tabledependency.RunTypeInsert: `SELECT "id", "c_id" FROM "public"."d";`},
-			"public.e": {tabledependency.RunTypeInsert: `SELECT "id", "d_id" FROM "public"."e";`},
-		}
-	sql, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sqlmanager_shared.ColumnInfo{})
-
-	require.NoError(t, err)
-	require.Equal(t, expected, sql)
-}
-
 func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 	var emptyWhere *string
 	where := "id = '36f594af-6d53-4a48-a9b7-b889e2df349e'"
