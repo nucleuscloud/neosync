@@ -57,6 +57,7 @@ export default function MongoDBForm(): ReactElement {
 
   const router = useRouter();
   const [isValidating, setIsValidating] = useState<boolean>();
+  // todo
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -187,9 +188,9 @@ export default function MongoDBForm(): ReactElement {
                 <RequiredLabel />
                 Connection URL
               </FormLabel>
-              <FormDescription>Your connection URL</FormDescription>
+              <FormDescription>The url fo the MongoDB server</FormDescription>
               <FormControl>
-                <Input placeholder="" {...field} />
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
