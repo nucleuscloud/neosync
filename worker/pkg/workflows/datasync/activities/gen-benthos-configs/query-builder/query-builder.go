@@ -2,10 +2,8 @@ package genbenthosconfigs_querybuilder
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -337,116 +335,59 @@ type tableSubset struct {
 	WhereClauses []string
 }
 
-type tableAlias struct {
-	Alias string
-	Count int
-}
-
 // recusively builds join for subset table
-func buildSubsetJoins(
-	driver, table string,
-	// data map[string][]*SubsetColumnConstraint,
-	foreignKeyMap map[string][]*sqlmanager_shared.ForeignConstraint,
-	whereClauses map[string]string,
-	visited map[string]bool,
-	aliasReference map[string]*tableAlias,
-) (*tableSubset, error) {
-
-	fmt.Printf("table: %s \n", table)
+func buildSubsetJoins(table string, data map[string][]*SubsetColumnConstraint, whereClauses map[string]string, visited map[string]bool) *tableSubset {
 	joins := []*sqlJoin{}
 	wheres := []string{}
 
-	// if seen := visited[table]; seen {
-	// 	return &tableSubset{
-	// 		Joins:        joins,
-	// 		WhereClauses: wheres,
-	// 	}, nil
-	// }
-
-	condition, whereExists := whereClauses[table]
-	if whereExists && len(visited) == 0 {
-		fmt.Printf("adding where: %s \n", condition)
-		wheres = append(wheres, condition)
-	}
-
-	// visited[table] = true
-
-	fks, exists := foreignKeyMap[table]
-	if !exists {
+	if seen := visited[table]; seen {
 		return &tableSubset{
 			Joins:        joins,
 			WhereClauses: wheres,
-		}, nil
+		}
 	}
-	for _, fk := range fks {
-		if fk.ForeignKey.Table == "" && fk.ForeignKey.Columns == nil {
-			continue
-		}
-		// if !visited[fk.ForeignKey.Table] {
-		// handle aliased table
-		var alias *string
-		joinTable := fk.ForeignKey.Table
-		aliasRef, okAliasRef := aliasReference[fk.ForeignKey.Table]
+	visited[table] = true
 
-		if okAliasRef {
-			newTable := fmt.Sprintf("%s_%s_%d", strings.ReplaceAll(fk.ForeignKey.Table, ".", "_"), strings.Join(fk.Columns, "_"), aliasRef.Count)
-			aliasTable := aliasHash(newTable)
-			aliasReference[fk.ForeignKey.Table] = &tableAlias{
-				Alias: aliasTable,
-				Count: aliasRef.Count + 1,
+	if condition, exists := whereClauses[table]; exists {
+		wheres = append(wheres, condition)
+	}
+
+	if columns, exists := data[table]; exists {
+		for _, col := range columns {
+			if col.ForeignKey.Table == "" && col.ForeignKey.Columns == nil {
+				continue
 			}
-			visited[aliasTable] = true
-			alias = &aliasTable
-		} else {
-			newTable := fmt.Sprintf("%s_%s_%d", strings.ReplaceAll(fk.ForeignKey.Table, ".", "_"), strings.Join(fk.Columns, "_"), 0)
-			aliasTable := aliasHash(newTable)
-			fmt.Printf("table: %s  alias: %s \n", newTable, aliasTable)
-			aliasReference[fk.ForeignKey.Table] = &tableAlias{
-				Alias: aliasTable,
-				Count: 1,
+			if !visited[col.ForeignKey.Table] {
+				// handle aliased table
+				var alias *string
+				joinTable := col.ForeignKey.Table
+				if col.ForeignKey.OriginalTable != nil && *col.ForeignKey.OriginalTable != "" {
+					alias = &col.ForeignKey.Table
+					joinTable = *col.ForeignKey.OriginalTable
+				}
+
+				joinColMap := map[string]string{}
+				for idx, c := range col.ForeignKey.Columns {
+					joinColMap[c] = col.Columns[idx]
+				}
+				joins = append(joins, &sqlJoin{
+					JoinType:       innerJoin,
+					JoinTable:      joinTable,
+					BaseTable:      table,
+					Alias:          alias,
+					JoinColumnsMap: joinColMap,
+				})
+
+				sub := buildSubsetJoins(col.ForeignKey.Table, data, whereClauses, visited)
+				joins = append(joins, sub.Joins...)
+				wheres = append(wheres, sub.WhereClauses...)
 			}
-			visited[aliasTable] = true
-			alias = &aliasTable
 		}
-
-		if condition, whereOk := whereClauses[joinTable]; whereOk {
-			aliasedWhere, err := qualifyWhereWithTableAlias(driver, condition, *alias)
-			if err != nil {
-				return nil, err
-			}
-
-			wheres = append(wheres, aliasedWhere)
-		}
-
-		baseTable := table
-		if a, ok := aliasReference[baseTable]; ok {
-			baseTable = a.Alias
-		}
-
-		joinColMap := map[string]string{}
-		for idx, c := range fk.ForeignKey.Columns {
-			joinColMap[c] = fk.Columns[idx]
-		}
-		joins = append(joins, &sqlJoin{
-			JoinType:       innerJoin,
-			JoinTable:      joinTable,
-			BaseTable:      baseTable,
-			Alias:          alias,
-			JoinColumnsMap: joinColMap,
-		})
-
-		sub, err := buildSubsetJoins(driver, fk.ForeignKey.Table, foreignKeyMap, whereClauses, visited, aliasReference)
-		if err != nil {
-			return nil, err
-		}
-		joins = append(joins, sub.Joins...)
-		wheres = append(wheres, sub.WhereClauses...)
-		// }
 	}
 	return &tableSubset{
 		Joins:        joins,
 		WhereClauses: wheres,
-	}, nil
+	}
 }
 
 type subsetQueryConfig struct {
@@ -459,31 +400,16 @@ func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*
 	configs := map[string]*subsetQueryConfig{}
 
 	filteredConstraints := filterForeignKeysWithSubset(runConfigMap, tableConstraints, whereClauses)
-	jsonF, _ := json.MarshalIndent(whereClauses, "", " ")
-	fmt.Printf("\n whereClauses: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(tableConstraints, "", " ")
-	fmt.Printf("\n constraints: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(runConfigMap, "", " ")
-	fmt.Printf("\n runConfigMap: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(filteredConstraints, "", " ")
-	fmt.Printf("\n filteredConstraints: %s \n", string(jsonF))
-	for table, cfg := range runConfigMap {
-		if cfg.RunType == tabledependency.RunTypeUpdate {
-			continue
-		}
+	subset, err := buildAliasReferences(driver, filteredConstraints, whereClauses)
+	if err != nil {
+		return nil, err
+	}
 
-		fmt.Println()
-		fmt.Printf("------ begin build joins:  %s \n", table)
+	for table := range subset.ColumnConstraints {
 		visited := map[string]bool{}
-		tableSubset, err := buildSubsetJoins(driver, table, filteredConstraints, whereClauses, visited, map[string]*tableAlias{})
-		if err != nil {
-			return nil, err
-		}
-
+		tableSubset := buildSubsetJoins(table, subset.ColumnConstraints, subset.WhereClauses, visited)
 		constraints := tableConstraints[table]
 		selfRefCd := getSelfReferencingColumns(table, constraints)
-		jsonF, _ = json.MarshalIndent(selfRefCd, "", " ")
-		fmt.Printf("\n selfRefCd: %s \n", string(jsonF))
 		configs[table] = &subsetQueryConfig{
 			Joins:                             tableSubset.Joins,
 			WhereClauses:                      tableSubset.WhereClauses,
@@ -491,6 +417,138 @@ func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*
 		}
 	}
 	return configs, nil
+}
+
+type subsetConstraints struct {
+	ColumnConstraints map[string][]*SubsetColumnConstraint
+	WhereClauses      map[string]string
+}
+
+func buildAliasReferences(driver string, constraints map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string) (*subsetConstraints, error) {
+	updatedConstraints := map[string][]*SubsetColumnConstraint{}
+	aliasReference := map[string]string{} // alias name to table name
+	updatedWheres := map[string]string{}
+
+	for table, where := range whereClauses {
+		updatedWheres[table] = where
+	}
+
+	for table, colDefs := range constraints {
+		if len(colDefs) == 0 {
+			updatedConstraints[table] = []*SubsetColumnConstraint{}
+		} else {
+			updatedConstraints[table] = processAliasConstraints(table, colDefs, updatedConstraints, aliasReference)
+		}
+	}
+
+	if err := updateAliasReferences(driver, updatedConstraints, aliasReference, updatedWheres); err != nil {
+		return nil, err
+	}
+
+	return &subsetConstraints{
+		ColumnConstraints: updatedConstraints,
+		WhereClauses:      updatedWheres,
+	}, nil
+}
+
+// creates alias table reference if there is a double reference
+func processAliasConstraints(
+	table string,
+	colDefs []*sqlmanager_shared.ForeignConstraint,
+	updatedConstraints map[string][]*SubsetColumnConstraint,
+	aliasReference map[string]string,
+	// seenTables map[string]struct{},
+) []*SubsetColumnConstraint {
+	if _, exists := updatedConstraints[table]; exists {
+		return updatedConstraints[table]
+	}
+
+	tableCount := map[string]int{}
+	for _, colDef := range colDefs {
+		if colDef.ForeignKey != nil {
+			tableCount[colDef.ForeignKey.Table]++
+		}
+	}
+
+	newColDefs := []*SubsetColumnConstraint{}
+	for _, colDef := range colDefs {
+		if colDef.ForeignKey.Table == table {
+			continue // self reference skip
+		}
+
+		if count := tableCount[colDef.ForeignKey.Table]; count > 1 {
+			// create aliased table
+			newTable := fmt.Sprintf("%s_%s", strings.ReplaceAll(colDef.ForeignKey.Table, ".", "_"), strings.Join(colDef.Columns, "_"))
+			alias := aliasHash(newTable)
+			aliasReference[alias] = colDef.ForeignKey.Table
+			newColDefs = append(newColDefs, &SubsetColumnConstraint{
+				Columns: colDef.Columns,
+				ForeignKey: &SubsetReferenceKey{
+					Table:         alias,
+					OriginalTable: &colDef.ForeignKey.Table,
+					Columns:       colDef.ForeignKey.Columns,
+				},
+			})
+		} else {
+			newColDefs = append(newColDefs, &SubsetColumnConstraint{
+				Columns: colDef.Columns,
+				ForeignKey: &SubsetReferenceKey{
+					Table:   colDef.ForeignKey.Table,
+					Columns: colDef.ForeignKey.Columns,
+				},
+			})
+		}
+	}
+
+	updatedConstraints[table] = newColDefs
+	return newColDefs
+}
+
+// follows constraints and updates references to alias tables that were created
+func updateAliasReferences(
+	driver string,
+	updatedConstraints map[string][]*SubsetColumnConstraint,
+	aliasReference map[string]string,
+	updatedWheres map[string]string,
+) error {
+	for alias, table := range aliasReference {
+		if _, exists := updatedConstraints[alias]; exists {
+			continue
+		}
+
+		colDefs := updatedConstraints[table]
+		newColDefs := []*SubsetColumnConstraint{}
+
+		for _, c := range colDefs {
+			newAlias := aliasHash(fmt.Sprintf("%s_%s", alias, strings.ReplaceAll(c.ForeignKey.Table, ".", "_")))
+			aliasReference[newAlias] = c.ForeignKey.Table
+			newColDefs = append(newColDefs, &SubsetColumnConstraint{
+				Columns: c.Columns,
+				ForeignKey: &SubsetReferenceKey{
+					Columns:       c.ForeignKey.Columns,
+					OriginalTable: &c.ForeignKey.Table,
+					Table:         newAlias,
+				},
+			})
+		}
+
+		updatedConstraints[alias] = newColDefs
+
+		where := updatedWheres[table]
+		if where != "" {
+			aliasedWhere, err := qualifyWhereWithTableAlias(driver, where, alias)
+			if err != nil {
+				return err
+			}
+			updatedWheres[alias] = aliasedWhere
+		}
+
+		delete(aliasReference, alias)
+		if err := updateAliasReferences(driver, updatedConstraints, aliasReference, updatedWheres); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // check if table or any parent table has a where clause
@@ -525,11 +583,6 @@ func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunCon
 
 	filteredConstraints := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	for table := range runConfigMap {
-		// if len(cfg.DependsOn) == 0 {
-		// 	// filter out dependencies that aren't in run configs
-		// 	// this handles circular dependencies
-		// 	continue
-		// }
 		filteredConstraints[table] = []*sqlmanager_shared.ForeignConstraint{}
 		if tableConstraints, ok := constraints[table]; ok {
 			for _, colDef := range tableConstraints {
@@ -537,30 +590,9 @@ func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunCon
 					filteredConstraints[table] = append(filteredConstraints[table], colDef)
 				}
 			}
-			// for _, d := range cfg.DependsOn {
-			// 	fk := getForeignKeyConstraint(tableConstraints, d)
-			// 	if fk != nil {
-			// 		if exists := tableSubsetMap[fk.ForeignKey.Table]; exists {
-			// 			filteredConstraints[table] = append(filteredConstraints[table], fk)
-			// 		}
-			// 	}
-
-			// }
 		}
 	}
 	return filteredConstraints
-}
-
-func getForeignKeyConstraint(fks []*sqlmanager_shared.ForeignConstraint, dependsOn *tabledependency.DependsOn) *sqlmanager_shared.ForeignConstraint {
-	for _, fk := range fks {
-		if fk.ForeignKey.Table != dependsOn.Table {
-			continue
-		}
-		if slices.Equal(fk.ForeignKey.Columns, dependsOn.Columns) {
-			return fk
-		}
-	}
-	return nil
 }
 
 func aliasHash(input string) string {
