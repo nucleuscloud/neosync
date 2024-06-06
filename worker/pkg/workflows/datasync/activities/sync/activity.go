@@ -23,6 +23,9 @@ import (
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
+	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
+	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	"go.opentelemetry.io/otel/metric"
 
@@ -68,7 +71,11 @@ type Activity struct {
 }
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any]())
+	connectionProvider := providers.NewProvider(
+		mongoprovider.NewProvider(),
+		sqlprovider.NewProvider(),
+	)
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any, any](connectionProvider))
 	manager, ok := val.(connectiontunnelmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)

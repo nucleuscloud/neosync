@@ -12,7 +12,11 @@ import (
 
 type Provider struct{}
 
-var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
+func NewProvider() *Provider {
+	return &Provider{}
+}
+
+var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx, *ConnectionClientConfig] = &Provider{}
 
 func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
@@ -29,13 +33,46 @@ func (p *Provider) GetConnectionDetails(
 	}, nil
 }
 
-func (p *Provider) GetConnectionClient(driver, connectionString string, opts any) (neosync_benthos_sql.SqlDbtx, error) {
+type ConnectionClientConfig struct {
+	MaxConnectionLimit *int32
+}
+
+func (p *Provider) GetConnectionClient(driver, connectionString string, opts *ConnectionClientConfig) (neosync_benthos_sql.SqlDbtx, error) {
 	db, err := sql.Open(driver, connectionString)
 	if err != nil {
 		return nil, err
 	}
-	if opts != nil {
-		db.SetMaxOpenConns(1) // todo
+	if opts != nil && opts.MaxConnectionLimit != nil {
+		db.SetMaxOpenConns(int(*opts.MaxConnectionLimit))
 	}
 	return db, nil
+}
+
+func (p *Provider) CloseClientConnection(client neosync_benthos_sql.SqlDbtx) error {
+	return client.Close()
+}
+
+func (p *Provider) GetConnectionClientConfig(cc *mgmtv1alpha1.ConnectionConfig) (*ConnectionClientConfig, error) {
+	return &ConnectionClientConfig{
+		MaxConnectionLimit: getMaxConnectionLimitFromConnection(cc),
+	}, nil
+}
+
+func getMaxConnectionLimitFromConnection(cc *mgmtv1alpha1.ConnectionConfig) *int32 {
+	if cc == nil {
+		return nil
+	}
+	switch config := cc.GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if config.MysqlConfig != nil && config.MysqlConfig.ConnectionOptions != nil {
+			return config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
+		}
+		return nil
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if config.PgConfig != nil && config.PgConfig.ConnectionOptions != nil {
+			return config.PgConfig.ConnectionOptions.MaxConnectionLimit
+		}
+		return nil
+	}
+	return nil
 }

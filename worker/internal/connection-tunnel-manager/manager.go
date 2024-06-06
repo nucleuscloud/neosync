@@ -1,6 +1,7 @@
 package connectiontunnelmanager
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -12,13 +13,15 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-type ConnectionProvider[T any] interface {
+type ConnectionProvider[T any, TConfig any] interface {
 	GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error)
-	GetConnectionClient(driver string, connectionString string, opts any) (T, error)
+	GetConnectionClient(driver string, connectionString string, opts TConfig) (T, error)
+	GetConnectionClientConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig) (TConfig, error)
+	CloseClientConnection(client T) error
 }
 
-type ConnectionTunnelManager[T any] struct {
-	connectionProvider ConnectionProvider[T]
+type ConnectionTunnelManager[T any, TConfig any] struct {
+	connectionProvider ConnectionProvider[T, TConfig]
 
 	connDetailsMap map[string]*ConnectionDetails
 	connDetailsMu  sync.RWMutex
@@ -26,7 +29,7 @@ type ConnectionTunnelManager[T any] struct {
 	sessionMap map[string]map[string]struct{}
 	sessionMu  sync.RWMutex
 
-	connMap map[string]Closer
+	connMap map[string]T
 	connMu  sync.RWMutex
 
 	shutdown chan any
@@ -38,10 +41,6 @@ type ConnectionDetails struct {
 	Tunnel *sshtunnel.Sshtunnel
 }
 
-type Closer interface {
-	Close()
-}
-
 type Interface[T any] interface {
 	GetConnectionString(session string, connection *mgmtv1alpha1.Connection, logger *slog.Logger) (string, error)
 	GetConnection(session string, connection *mgmtv1alpha1.Connection, logger *slog.Logger) (T, error)
@@ -51,13 +50,13 @@ type Interface[T any] interface {
 	Reaper()
 }
 
-var _ Interface[any] = &ConnectionTunnelManager[any]{} // enforces ConnectionTunnelManager always conforms to the interface
+var _ Interface[any] = &ConnectionTunnelManager[any, any]{} // enforces ConnectionTunnelManager always conforms to the interface
 
-func NewConnectionTunnelManager[T any]() *ConnectionTunnelManager[T] {
-	return &ConnectionTunnelManager[T]{}
+func NewConnectionTunnelManager[T any, TConfig any](connectionProvider ConnectionProvider[T, TConfig]) *ConnectionTunnelManager[T, TConfig] {
+	return &ConnectionTunnelManager[T, TConfig]{connectionProvider: connectionProvider}
 }
 
-func (c *ConnectionTunnelManager[T]) GetConnectionString(
+func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 	session string,
 	connection *mgmtv1alpha1.Connection,
 	logger *slog.Logger,
@@ -107,16 +106,53 @@ func (c *ConnectionTunnelManager[T]) GetConnectionString(
 	return details.GeneralDbConnectConfig.String(), nil
 }
 
-func (c *ConnectionTunnelManager[T]) GetConnection(
+func (c *ConnectionTunnelManager[T, TConfig]) GetConnection(
 	session string,
 	connection *mgmtv1alpha1.Connection,
 	logger *slog.Logger,
 ) (T, error) {
-	var result T
-	return result, nil
+	c.connMu.RLock()
+	existingDb, ok := c.connMap[connection.Id]
+	if ok {
+		c.bindSession(session, connection.Id)
+		c.connMu.RUnlock()
+		return existingDb, nil
+	}
+	c.connMu.RUnlock()
+	c.connMu.Lock()
+	defer c.connMu.Unlock()
+
+	existingDb, ok = c.connMap[connection.Id]
+	if ok {
+		c.bindSession(session, connection.Id)
+		return existingDb, nil
+	}
+
+	connectionString, err := c.GetConnectionString(session, connection, logger)
+	if err != nil {
+		var result T
+		return result, err
+	}
+	driver, err := getDriverFromConnection(connection)
+	if err != nil {
+		var result T
+		return result, err
+	}
+
+	connClientConfig, err := c.connectionProvider.GetConnectionClientConfig(connection.GetConnectionConfig())
+	if err != nil {
+		var result T
+		return result, err
+	}
+
+	connectionClient, err := c.connectionProvider.GetConnectionClient(driver, connectionString, connClientConfig)
+
+	c.connMap[connection.Id] = connectionClient
+	c.bindSession(session, connection.Id)
+	return connectionClient, nil
 }
 
-func (c *ConnectionTunnelManager[T]) ReleaseSession(session string) bool {
+func (c *ConnectionTunnelManager[T, TConfig]) ReleaseSession(session string) bool {
 	c.sessionMu.RLock()
 	connMap, ok := c.sessionMap[session]
 	if !ok || len(connMap) == 0 {
@@ -134,7 +170,7 @@ func (c *ConnectionTunnelManager[T]) ReleaseSession(session string) bool {
 	return true
 }
 
-func (c *ConnectionTunnelManager[T]) bindSession(session, connectionId string) {
+func (c *ConnectionTunnelManager[T, TConfig]) bindSession(session, connectionId string) {
 	c.sessionMu.RLock()
 	connmap, ok := c.sessionMap[session]
 	if ok {
@@ -152,11 +188,11 @@ func (c *ConnectionTunnelManager[T]) bindSession(session, connectionId string) {
 	c.sessionMap[session][connectionId] = struct{}{}
 }
 
-func (c *ConnectionTunnelManager[T]) Shutdown() {
+func (c *ConnectionTunnelManager[T, TConfig]) Shutdown() {
 	c.shutdown <- struct{}{}
 }
 
-func (c *ConnectionTunnelManager[T]) Reaper() {
+func (c *ConnectionTunnelManager[T, TConfig]) Reaper() {
 	for {
 		select {
 		case <-c.shutdown:
@@ -168,12 +204,12 @@ func (c *ConnectionTunnelManager[T]) Reaper() {
 	}
 }
 
-func (c *ConnectionTunnelManager[T]) hardClose() {
+func (c *ConnectionTunnelManager[T, TConfig]) hardClose() {
 	c.connMu.Lock()
 	c.connDetailsMu.Lock()
 	c.sessionMu.Lock()
 	for connId, dbConn := range c.connMap {
-		dbConn.Close()
+		c.connectionProvider.CloseClientConnection(dbConn)
 		delete(c.connMap, connId)
 	}
 
@@ -192,13 +228,13 @@ func (c *ConnectionTunnelManager[T]) hardClose() {
 	c.sessionMu.Unlock()
 }
 
-func (c *ConnectionTunnelManager[T]) close() {
+func (c *ConnectionTunnelManager[T, TConfig]) close() {
 	c.connMu.Lock()
 	c.sessionMu.Lock()
 	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
 	for connId, dbConn := range c.connMap {
 		if _, ok := sessionConnections[connId]; !ok {
-			dbConn.Close()
+			c.connectionProvider.CloseClientConnection(dbConn)
 			delete(c.connMap, connId)
 		}
 	}
@@ -228,4 +264,19 @@ func getUniqueConnectionIdsFromSessions(sessionMap map[string]map[string]struct{
 		}
 	}
 	return connSet
+}
+
+func getDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error) {
+	if connection == nil {
+		return "", errors.New("connection was nil")
+	}
+	switch connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return "mysql", nil
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return "postgres", nil
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return "mongodb", nil
+	}
+	return "", errors.New("unsupported connection type when computing driver")
 }
