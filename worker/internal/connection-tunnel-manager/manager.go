@@ -248,7 +248,7 @@ func (c *ConnectionTunnelManager[T, TConfig]) close() {
 		if _, ok := sessionConnections[connId]; !ok {
 			err := c.connectionProvider.CloseClientConnection(dbConn)
 			if err != nil {
-				slog.Error(fmt.Sprintf("unable to fully close client connection during close: %w", err.Error()))
+				slog.Error(fmt.Sprintf("unable to fully close client connection during close: %s", err.Error()))
 			}
 			delete(c.connMap, connId)
 		}
