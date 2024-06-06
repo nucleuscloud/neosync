@@ -40,6 +40,8 @@ type WrappedMongoClient struct {
 	// logger *slog.Logger
 }
 
+var _ DbContainer = &WrappedMongoClient{}
+
 func newWrappedMongoClient(details *connstring.ConnString) *WrappedMongoClient {
 	return &WrappedMongoClient{details: details}
 }

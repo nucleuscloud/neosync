@@ -24,6 +24,7 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"go.mongodb.org/mongo-driver/bson"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -383,6 +384,33 @@ func (s *Service) GetConnectionSchema(
 			Schemas: schemas,
 		}), nil
 
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		db, err := s.mongoconnector.NewFromConnectionConfig(connection.GetConnectionConfig(), logger)
+		if err != nil {
+			return nil, err
+		}
+		mongoclient, err := db.Open(ctx)
+		defer db.Close(ctx)
+		dbnames, err := mongoclient.ListDatabaseNames(ctx, bson.D{})
+		if err != nil {
+			return nil, err
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, dbname := range dbnames {
+			collNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
+			if err != nil {
+				return nil, err
+			}
+			for _, collName := range collNames {
+				schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+					Schema: dbname,
+					Table:  collName,
+				})
+			}
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		awsCfg := req.Msg.SchemaConfig.GetAwsS3Config()
 		if awsCfg == nil {
@@ -495,7 +523,6 @@ func (s *Service) GetConnectionSchema(
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
 		}), nil
-
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}

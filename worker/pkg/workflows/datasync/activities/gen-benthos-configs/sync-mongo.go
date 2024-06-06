@@ -38,7 +38,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 							Url:        "${SOURCE_CONNECTION_DSN}",
 							Database:   tableMapping.Schema,
 							Collection: tableMapping.Table,
-							Query:      "", // todo
+							Query:      "root = this",
 						},
 					},
 				},
