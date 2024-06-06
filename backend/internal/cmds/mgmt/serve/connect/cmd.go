@@ -38,6 +38,7 @@ import (
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
@@ -308,7 +309,7 @@ func serve(ctx context.Context) error {
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
 	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
-
+	mongoconnector := mongoconnect.NewConnector()
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
 		mysqlquerier)
 	api.Handle(
@@ -366,6 +367,7 @@ func serve(ctx context.Context) error {
 		sqlConnector,
 		pgquerier,
 		mysqlquerier,
+		mongoconnector,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
