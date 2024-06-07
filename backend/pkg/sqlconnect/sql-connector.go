@@ -457,6 +457,10 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 				return nil, err
 			}
 
+			// #nosec G109
+			// this throws a linter error due to strconv.Atoi conversion above from string -> int32
+			// mysql ports are unsigned 16-bit numbers so they should never overflow in an in32
+			// https://stackoverflow.com/questions/20379491/what-is-the-optimal-way-to-store-port-numbers-in-a-mysql-database#:~:text=Port%20number%20is%20an%20unsinged,highest%20value%20can%20be%2065535.
 			port = int32(portInt)
 		}
 
