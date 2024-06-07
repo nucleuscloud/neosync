@@ -427,7 +427,48 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			QueryParams: query,
 		}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		return nil, nucleuserrors.NewNotImplemented("not currently implemented")
+		// follows the format [scheme://][user[:password]@]<host[:port]|socket>[/schema][?option=value&option=value...]
+		// from the format - https://dev.mysql.com/doc/dev/mysqlsh-api-javascript/8.0/classmysqlsh_1_1_shell.html#a639614cf6b980f0d5267cc7057b81012
+
+		u, err := url.Parse(cc.Url)
+		if err != nil {
+			return nil, err
+		}
+
+		if u.Scheme != "mysql" && u.Scheme != "mysqlx" {
+			return nil, fmt.Errorf("scheme is not mysql ,unsupported scheme: %s", u.Scheme)
+		}
+
+		var user string
+		var pass string
+
+		if u.User != nil {
+			user = u.User.Username()
+			pass, _ = u.User.Password()
+		}
+
+		port := int32(3306)
+		if p := u.Port(); p != "" {
+			portInt, err := strconv.Atoi(p)
+			if err != nil {
+				return nil, err
+			}
+
+			port = int32(portInt)
+		}
+
+		database := strings.TrimPrefix(u.Path, "/")
+
+		return &GeneralDbConnectConfig{
+			Driver:      u.Scheme,
+			Host:        u.Hostname(),
+			Port:        port,
+			Database:    database,
+			User:        user,
+			Pass:        pass,
+			Protocol:    nil,
+			QueryParams: u.Query(),
+		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
