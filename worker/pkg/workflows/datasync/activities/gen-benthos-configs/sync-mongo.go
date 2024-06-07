@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -21,12 +22,15 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
 ) (*mongoSyncResp, error) {
+	_ = slogger
 	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
 	}
 
 	groupedMappings := groupMappingsByTable(job.GetMappings())
+	groupedTableMapping := getTableMappingsMap(groupedMappings)
+	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
 
 	benthosConfigs := []*BenthosConfigResponse{}
 	for _, tableMapping := range groupedMappings {
@@ -56,6 +60,27 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 		for _, jm := range tableMapping.Mappings {
 			columns = append(columns, jm.Column)
 		}
+		colTransformers := colTransformerMap[fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table)]
+
+		processorConfigs, err := buildProcessorConfigsByRunType(
+			ctx,
+			b.transformerclient,
+			&tabledependency.RunConfig{RunType: tabledependency.RunTypeInsert},
+			map[string][]*referenceKey{},
+			map[string][]*referenceKey{},
+			job.GetId(),
+			"", // todo: runid
+			&shared.RedisConfig{},
+			colTransformers,
+			tableMapping.Mappings,
+			map[string]*sqlmanager_shared.ColumnInfo{},
+		)
+		if err != nil {
+			return nil, err
+		}
+		for _, pc := range processorConfigs {
+			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+		}
 
 		benthosConfigs = append(benthosConfigs, &BenthosConfigResponse{
 			Config:      bc,
@@ -77,16 +102,5 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 
 	return &mongoSyncResp{
 		BenthosConfigs: benthosConfigs,
-	}, nil
-}
-
-func (b *benthosBuilder) getMongoDbSyncBenthosOutput(
-	destination *mgmtv1alpha1.JobDestination,
-	benthosConfig *BenthosConfigResponse,
-	dsn string,
-) (*neosync_benthos.Outputs, error) {
-
-	return &neosync_benthos.Outputs{
-		MongoDB: &neosync_benthos.OutputMongoDb{},
 	}, nil
 }
