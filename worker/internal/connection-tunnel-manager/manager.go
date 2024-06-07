@@ -34,12 +34,6 @@ type ConnectionTunnelManager[T any, TConfig any] struct {
 	shutdown chan any
 }
 
-// type ConnectionDetails struct {
-// 	GeneralDbConnectConfig sqlconnect.GeneralDbConnectConfig
-
-// 	Tunnel *sshtunnel.Sshtunnel
-// }
-
 type ConnectionDetails interface {
 	String() string
 	GetTunnel() *sshtunnel.Sshtunnel
@@ -77,7 +71,6 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 		c.bindSession(session, connection.Id)
 		c.connDetailsMu.RUnlock()
 		return loadedDetails.String(), nil
-		// return loadedDetails.GeneralDbConnectConfig.String(), nil
 	}
 	c.connDetailsMu.RUnlock()
 	c.connDetailsMu.Lock()
@@ -87,7 +80,6 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 	if ok {
 		c.bindSession(session, connection.Id)
 		return loadedDetails.String(), nil
-		// return loadedDetails.GeneralDbConnectConfig.String(), nil
 	}
 
 	details, err := c.connectionProvider.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), logger)
@@ -105,14 +97,6 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 		return "", fmt.Errorf("unable to start ssh tunnel: %w", err)
 	}
 	<-ready // this isn't great as it will block all other requests until this tunnel is ready
-	// localhost, localport := tunnel.GetLocalHostPort()
-	// details.GeneralDbConnectConfig.Host = localhost
-	// details.GeneralDbConnectConfig.Port = int32(localport)
-	// logger.Debug(
-	// 	"ssh tunnel is ready, updated configuration host and port",
-	// 	"host", localhost,
-	// 	"port", localport,
-	// )
 	c.connDetailsMap[connection.Id] = details
 	c.bindSession(session, connection.Id)
 	return details.String(), nil
