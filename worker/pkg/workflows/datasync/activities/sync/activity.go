@@ -367,7 +367,6 @@ func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) 
 			return "", false
 		}
 		output, ok := input[key]
-		fmt.Println("SETTING ENV VAR", key, output)
 		return output, ok
 	}
 }
