@@ -3,6 +3,7 @@ import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   Connection,
+  MysqlConnection,
   PostgresConnection,
   SSHAuthentication,
   UpdateConnectionResponse,
@@ -150,8 +151,37 @@ export function getConnectionComponentDetails(
 
     case 'mysqlConfig':
       const mysqlValue = connection.connectionConfig.config.value;
+
+      let mysqlConfig: MysqlConnection | string | undefined;
+
+      let mysqldbConfig = {
+        host: '',
+        name: '',
+        user: '',
+        pass: '',
+        port: 5432,
+        protocol: '',
+      };
+
       switch (mysqlValue.connectionConfig.case) {
         case 'connection':
+          mysqlConfig = mysqlValue.connectionConfig.value;
+          mysqldbConfig = {
+            host: mysqlConfig.host,
+            name: mysqlConfig.name,
+            user: mysqlConfig.user,
+            pass: mysqlConfig.pass,
+            port: mysqlConfig.port,
+            protocol: mysqlConfig.protocol,
+          };
+
+        case 'url':
+          mysqlConfig = mysqlValue.connectionConfig.value;
+
+        default:
+          mysqlConfig = mysqlValue.connectionConfig.value;
+          mysqldbConfig = mysqldbConfig;
+
           return {
             name: connection.name,
             summary: (
@@ -172,14 +202,8 @@ export function getConnectionComponentDetails(
                 connectionId={connection.id}
                 defaultValues={{
                   connectionName: connection.name,
-                  db: {
-                    host: mysqlValue.connectionConfig.value.host,
-                    port: mysqlValue.connectionConfig.value.port,
-                    name: mysqlValue.connectionConfig.value.name,
-                    user: mysqlValue.connectionConfig.value.user,
-                    pass: mysqlValue.connectionConfig.value.pass,
-                    protocol: mysqlValue.connectionConfig.value.protocol,
-                  },
+                  db: mysqldbConfig,
+                  url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
                   options: {
                     maxConnectionLimit:
                       mysqlValue.connectionOptions?.maxConnectionLimit,
@@ -210,21 +234,6 @@ export function getConnectionComponentDetails(
             ),
           };
       }
-      return {
-        name: connection.name,
-        summary: (
-          <div>
-            <p>No summary found.</p>
-          </div>
-        ),
-        header: <PageHeader header="Unknown Connection" />,
-        body: (
-          <div>
-            No connection component found for: (
-            {connection?.name ?? 'unknown name'})
-          </div>
-        ),
-      };
     case 'awsS3Config':
       return {
         name: connection.name,

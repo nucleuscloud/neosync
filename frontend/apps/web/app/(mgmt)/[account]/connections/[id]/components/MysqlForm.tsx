@@ -486,7 +486,6 @@ export default function MysqlForm(props: Props) {
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
-            disabled={!form.formState.isValid}
             onClick={async () => {
               setIsValidating(true);
               try {

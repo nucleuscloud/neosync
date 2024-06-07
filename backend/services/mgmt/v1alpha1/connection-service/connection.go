@@ -44,8 +44,6 @@ func (s *Service) CheckConnectionConfig(
 		return nil, fmt.Errorf("unsupported connection config: %T", cconfig)
 	}
 
-	// switch beteween postgres and mysql here
-
 	connectionTimeout := 5
 	db, err := s.sqlmanager.NewSqlDbFromConnectionConfig(ctx, logger, req.Msg.ConnectionConfig, &connectionTimeout)
 	if err != nil {
