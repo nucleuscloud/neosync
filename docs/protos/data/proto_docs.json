@@ -2750,6 +2750,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongo_config",
+              "description": "",
+              "label": "",
+              "type": "MongoSchemaConfig",
+              "longType": "MongoSchemaConfig",
+              "fullType": "mgmt.v1alpha1.MongoSchemaConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -4072,6 +4084,17 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "MongoSchemaConfig",
+          "longName": "MongoSchemaConfig",
+          "fullName": "mgmt.v1alpha1.MongoSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "MysqlSchemaConfig",

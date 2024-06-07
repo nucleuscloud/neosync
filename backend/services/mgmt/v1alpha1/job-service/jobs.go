@@ -1499,8 +1499,8 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil {
-		return nil, errors.New("unsupported connection config type")
+	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil || connection.Msg.GetConnection().GetConnectionConfig().GetMongoConfig() != nil {
+		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
 	connectionTimeout := 5
@@ -1677,6 +1677,8 @@ func (s *Service) ValidateJobMappings(
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
 	var connectionIdToVerify *string
 	switch config := jobSource.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connectionIdToVerify = &config.Mongodb.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionIdToVerify = &config.Mysql.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
