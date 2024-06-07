@@ -435,6 +435,9 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			return nil, err
 		}
 
+		// mysqlx is a newer connection protocol meant for more flexible schemas and supports mysqls nosql db capabilities
+		// more information here - https://dev.mysql.com/doc/refman/8.4/en/connecting-using-uri-or-key-value-pairs.html
+
 		if u.Scheme != "mysql" && u.Scheme != "mysqlx" {
 			return nil, fmt.Errorf("scheme is not mysql ,unsupported scheme: %s", u.Scheme)
 		}
