@@ -3903,6 +3903,40 @@ func (m *CreateJobRequest) validate(all bool) error {
 		}
 	}
 
+	for idx, item := range m.GetVirtualForeignKeys() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateJobRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateJobRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateJobRequestValidationError{
+					field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
@@ -5514,6 +5548,40 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return UpdateJobSourceConnectionRequestValidationError{
 					field:  fmt.Sprintf("Mappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetVirtualForeignKeys() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateJobSourceConnectionRequestValidationError{
+					field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -8810,6 +8878,40 @@ func (m *Job) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	for idx, item := range m.GetVirtualForeignKeys() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobValidationError{
+					field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if m.CronSchedule != nil {
@@ -12872,6 +12974,40 @@ func (m *ValidateJobMappingsRequest) validate(all bool) error {
 
 	// no validation rules for ConnectionId
 
+	for idx, item := range m.GetVirtualForeignKeys() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ValidateJobMappingsRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ValidateJobMappingsRequestValidationError{
+						field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ValidateJobMappingsRequestValidationError{
+					field:  fmt.Sprintf("VirtualForeignKeys[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return ValidateJobMappingsRequestMultiError(errors)
 	}
@@ -13322,3 +13458,244 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ValidateJobMappingsResponseValidationError{}
+
+// Validate checks the field values on VirtualForeignKey with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *VirtualForeignKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on VirtualForeignKey with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// VirtualForeignKeyMultiError, or nil if none found.
+func (m *VirtualForeignKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *VirtualForeignKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return VirtualForeignKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// VirtualForeignKeyMultiError is an error wrapping multiple validation errors
+// returned by VirtualForeignKey.ValidateAll() if the designated constraints
+// aren't met.
+type VirtualForeignKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m VirtualForeignKeyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m VirtualForeignKeyMultiError) AllErrors() []error { return m }
+
+// VirtualForeignKeyValidationError is the validation error returned by
+// VirtualForeignKey.Validate if the designated constraints aren't met.
+type VirtualForeignKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e VirtualForeignKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e VirtualForeignKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e VirtualForeignKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e VirtualForeignKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e VirtualForeignKeyValidationError) ErrorName() string {
+	return "VirtualForeignKeyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e VirtualForeignKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sVirtualForeignKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = VirtualForeignKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = VirtualForeignKeyValidationError{}
+
+// Validate checks the field values on VirtualForeignConstraint with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *VirtualForeignConstraint) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on VirtualForeignConstraint with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// VirtualForeignConstraintMultiError, or nil if none found.
+func (m *VirtualForeignConstraint) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *VirtualForeignConstraint) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if all {
+		switch v := interface{}(m.GetForeignKey()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, VirtualForeignConstraintValidationError{
+					field:  "ForeignKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, VirtualForeignConstraintValidationError{
+					field:  "ForeignKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetForeignKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return VirtualForeignConstraintValidationError{
+				field:  "ForeignKey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return VirtualForeignConstraintMultiError(errors)
+	}
+
+	return nil
+}
+
+// VirtualForeignConstraintMultiError is an error wrapping multiple validation
+// errors returned by VirtualForeignConstraint.ValidateAll() if the designated
+// constraints aren't met.
+type VirtualForeignConstraintMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m VirtualForeignConstraintMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m VirtualForeignConstraintMultiError) AllErrors() []error { return m }
+
+// VirtualForeignConstraintValidationError is the validation error returned by
+// VirtualForeignConstraint.Validate if the designated constraints aren't met.
+type VirtualForeignConstraintValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e VirtualForeignConstraintValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e VirtualForeignConstraintValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e VirtualForeignConstraintValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e VirtualForeignConstraintValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e VirtualForeignConstraintValidationError) ErrorName() string {
+	return "VirtualForeignConstraintValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e VirtualForeignConstraintValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sVirtualForeignConstraint.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = VirtualForeignConstraintValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = VirtualForeignConstraintValidationError{}

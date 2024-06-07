@@ -4300,6 +4300,64 @@ func (_c *MockQuerier_UpdateJobSource_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// UpdateJobVirtualForeignKeys provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateJobVirtualForeignKeys(ctx context.Context, db DBTX, arg UpdateJobVirtualForeignKeysParams) (NeosyncApiJob, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobVirtualForeignKeys")
+	}
+
+	var r0 NeosyncApiJob
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobVirtualForeignKeysParams) (NeosyncApiJob, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobVirtualForeignKeysParams) NeosyncApiJob); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJob)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateJobVirtualForeignKeysParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateJobVirtualForeignKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateJobVirtualForeignKeys'
+type MockQuerier_UpdateJobVirtualForeignKeys_Call struct {
+	*mock.Call
+}
+
+// UpdateJobVirtualForeignKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateJobVirtualForeignKeysParams
+func (_e *MockQuerier_Expecter) UpdateJobVirtualForeignKeys(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateJobVirtualForeignKeys_Call {
+	return &MockQuerier_UpdateJobVirtualForeignKeys_Call{Call: _e.mock.On("UpdateJobVirtualForeignKeys", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateJobVirtualForeignKeys_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateJobVirtualForeignKeysParams)) *MockQuerier_UpdateJobVirtualForeignKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateJobVirtualForeignKeysParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobVirtualForeignKeys_Call) Return(_a0 NeosyncApiJob, _a1 error) *MockQuerier_UpdateJobVirtualForeignKeys_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateJobVirtualForeignKeys_Call) RunAndReturn(run func(context.Context, DBTX, UpdateJobVirtualForeignKeysParams) (NeosyncApiJob, error)) *MockQuerier_UpdateJobVirtualForeignKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateTemporalConfigByAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, arg)

@@ -7788,6 +7788,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "virtual_foreign_keys",
+              "description": "",
+              "label": "repeated",
+              "type": "VirtualForeignConstraint",
+              "longType": "VirtualForeignConstraint",
+              "fullType": "mgmt.v1alpha1.VirtualForeignConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -8920,6 +8932,18 @@
               "type": "WorkflowOptions",
               "longType": "WorkflowOptions",
               "fullType": "mgmt.v1alpha1.WorkflowOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "virtual_foreign_keys",
+              "description": "",
+              "label": "repeated",
+              "type": "VirtualForeignConstraint",
+              "longType": "VirtualForeignConstraint",
+              "fullType": "mgmt.v1alpha1.VirtualForeignConstraint",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10771,6 +10795,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "virtual_foreign_keys",
+              "description": "",
+              "label": "repeated",
+              "type": "VirtualForeignConstraint",
+              "longType": "VirtualForeignConstraint",
+              "fullType": "mgmt.v1alpha1.VirtualForeignConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -10843,6 +10879,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "virtual_foreign_keys",
+              "description": "",
+              "label": "repeated",
+              "type": "VirtualForeignConstraint",
+              "longType": "VirtualForeignConstraint",
+              "fullType": "mgmt.v1alpha1.VirtualForeignConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -10875,6 +10923,114 @@
               "type": "DatabaseError",
               "longType": "DatabaseError",
               "fullType": "mgmt.v1alpha1.DatabaseError",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "VirtualForeignConstraint",
+          "longName": "VirtualForeignConstraint",
+          "fullName": "mgmt.v1alpha1.VirtualForeignConstraint",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "foreign_key",
+              "description": "",
+              "label": "",
+              "type": "VirtualForeignKey",
+              "longType": "VirtualForeignKey",
+              "fullType": "mgmt.v1alpha1.VirtualForeignKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "VirtualForeignKey",
+          "longName": "VirtualForeignKey",
+          "fullName": "mgmt.v1alpha1.VirtualForeignKey",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

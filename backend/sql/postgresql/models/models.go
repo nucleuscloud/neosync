@@ -484,6 +484,55 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	return nil
 }
 
+type VirtualForeignKey struct {
+	Schema  string   `json:"schema"`
+	Table   string   `json:"table"`
+	Columns []string `json:"columns"`
+}
+
+func (v *VirtualForeignKey) ToDto() *mgmtv1alpha1.VirtualForeignKey {
+	return &mgmtv1alpha1.VirtualForeignKey{
+		Schema:  v.Schema,
+		Table:   v.Table,
+		Columns: v.Columns,
+	}
+}
+
+func (v *VirtualForeignKey) FromDto(dto *mgmtv1alpha1.VirtualForeignKey) error {
+	v.Schema = dto.Schema
+	v.Table = dto.Table
+	v.Columns = dto.Columns
+	return nil
+}
+
+type VirtualForeignConstraint struct {
+	Schema     string             `json:"schema"`
+	Table      string             `json:"table"`
+	Columns    []string           `json:"columns"`
+	ForeignKey *VirtualForeignKey `json:"ForeignKeyModel,omitempty"`
+}
+
+func (v *VirtualForeignConstraint) ToDto() *mgmtv1alpha1.VirtualForeignConstraint {
+	return &mgmtv1alpha1.VirtualForeignConstraint{
+		Schema:     v.Schema,
+		Table:      v.Table,
+		Columns:    v.Columns,
+		ForeignKey: v.ForeignKey.ToDto(),
+	}
+}
+
+func (v *VirtualForeignConstraint) FromDto(dto *mgmtv1alpha1.VirtualForeignConstraint) error {
+	fk := &VirtualForeignKey{}
+	if err := fk.FromDto(dto.ForeignKey); err != nil {
+		return err
+	}
+	v.Schema = dto.Schema
+	v.Table = dto.Table
+	v.Columns = dto.Columns
+	v.ForeignKey = fk
+	return nil
+}
+
 type JobSourceOptions struct {
 	PostgresOptions   *PostgresSourceOptions   `json:"postgresOptions,omitempty"`
 	MysqlOptions      *MysqlSourceOptions      `json:"mysqlOptions,omitempty"`

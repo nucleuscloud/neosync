@@ -17,6 +17,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -410,6 +411,16 @@ func (s *Service) CreateJob(
 		mappings = append(mappings, jm)
 	}
 
+	virtualForeignKeys := []*pg_models.VirtualForeignConstraint{}
+	for _, fk := range req.Msg.GetVirtualForeignKeys() {
+		vfk := &pg_models.VirtualForeignConstraint{}
+		err = vfk.FromDto(fk)
+		if err != nil {
+			return nil, err
+		}
+		virtualForeignKeys = append(virtualForeignKeys, vfk)
+	}
+
 	connectionOptions := &pg_models.JobSourceOptions{}
 	err = connectionOptions.FromDto(req.Msg.Source.Options)
 	if err != nil {
@@ -458,16 +469,17 @@ func (s *Service) CreateJob(
 	logger.Info("successfully retrieved temporal account config")
 
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
-		Name:              req.Msg.JobName,
-		AccountID:         *accountUuid,
-		Status:            int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-		CronSchedule:      cronText,
-		ConnectionOptions: connectionOptions,
-		Mappings:          mappings,
-		CreatedByID:       *userUuid,
-		UpdatedByID:       *userUuid,
-		WorkflowOptions:   workflowOptions,
-		SyncOptions:       activitySyncOptions,
+		Name:               req.Msg.JobName,
+		AccountID:          *accountUuid,
+		Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule:       cronText,
+		ConnectionOptions:  connectionOptions,
+		Mappings:           mappings,
+		VirtualForeignKeys: virtualForeignKeys,
+		CreatedByID:        *userUuid,
+		UpdatedByID:        *userUuid,
+		WorkflowOptions:    workflowOptions,
+		SyncOptions:        activitySyncOptions,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
@@ -936,6 +948,16 @@ func (s *Service) UpdateJobSourceConnection(
 		mappings = append(mappings, jm)
 	}
 
+	virtualForeignKeys := []*pg_models.VirtualForeignConstraint{}
+	for _, fk := range req.Msg.GetVirtualForeignKeys() {
+		vfk := &pg_models.VirtualForeignConstraint{}
+		err = vfk.FromDto(fk)
+		if err != nil {
+			return nil, err
+		}
+		virtualForeignKeys = append(virtualForeignKeys, vfk)
+	}
+
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
 		_, err = s.db.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
 			ID:                job.ID,
@@ -954,6 +976,16 @@ func (s *Service) UpdateJobSourceConnection(
 		})
 		if err != nil {
 			return fmt.Errorf("unable to update job mappings: %w", err)
+		}
+
+		args := db_queries.UpdateJobVirtualForeignKeysParams{
+			VirtualForeignKeys: virtualForeignKeys,
+			UpdatedByID:        *userUuid,
+			ID:                 job.ID,
+		}
+		_, err = s.db.Q.UpdateJobVirtualForeignKeys(ctx, s.db.Db, args)
+		if err != nil {
+			return fmt.Errorf("unable to update virtual foreign key: %w", err)
 		}
 
 		return nil
@@ -1552,6 +1584,18 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	_, vfkErrsMap, vfkDbErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
+
+	for _, e := range vfkDbErrs {
+		dbErrors.Errors = append(dbErrors.Errors, e)
+	}
+
+	for t, colErrMap := range vfkErrsMap {
+		for c, e := range colErrMap {
+			colErrorsMap[t][c] = append(colErrorsMap[t][c], e...)
+		}
+	}
+
 	// verify that all circular dependencies have a nullable entrypoint
 	filteredDepsMap := map[string][]string{} // only include tables that are in tables arg list
 	for table, fks := range tableConstraints.ForeignKeyConstraints {
@@ -1578,6 +1622,10 @@ func (s *Service) ValidateJobMappings(
 				filteredDepsMap[table] = append(filteredDepsMap[table], fk.ForeignKey.Table)
 			}
 		}
+	}
+
+	for _, vfk := range req.Msg.GetVirtualForeignKeys() {
+		filteredDepsMap[vfk.Table] = append(filteredDepsMap[vfk.Table], vfk.ForeignKey.Table)
 	}
 
 	for table, deps := range filteredDepsMap {
@@ -1672,6 +1720,106 @@ func (s *Service) ValidateJobMappings(
 		DatabaseErrors: dbErrors,
 		ColumnErrors:   colErrors,
 	}), nil
+}
+
+func validateVirtualForeignKeys(
+	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
+	jobColMappings map[string]map[string]*mgmtv1alpha1.JobMapping,
+	tc *sqlmanager_shared.TableConstraints,
+	colMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+) (bool, map[string]map[string][]string, []string) {
+	dbErrors := []string{}
+	colErrorsMap := map[string]map[string][]string{}
+	isValid := true
+
+	for _, vfk := range virtualForeignKeys {
+		sourceTable := fmt.Sprintf("%s.%s", vfk.Schema, vfk.Table)
+		targetTable := fmt.Sprintf("%s.%s", vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
+
+		// check that source and target tables exist in job mappings
+		sourceColMappings, ok := jobColMappings[sourceTable]
+		if !ok {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable))
+		}
+		targetColMappings, ok := jobColMappings[targetTable]
+		if !ok {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable))
+		}
+
+		// check that source table and columns exist in source
+		sourceCols, ok := colMap[sourceTable]
+		if !ok {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable))
+		}
+		for _, c := range vfk.Columns {
+			_, ok := sourceCols[c]
+			if !ok {
+				isValid = false
+				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", sourceTable, c))
+			}
+			_, ok = sourceColMappings[c]
+			if !ok {
+				isValid = false
+				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in job mappings. Table: %s Column: %s", sourceTable, c))
+			}
+		}
+
+		// check that all sources of virtual foreign keys are either a primary key or have a unique constraint
+		pks := tc.PrimaryKeyConstraints[sourceTable]
+		uniqueConstraints := tc.UniqueConstraints[sourceTable]
+		isValid = isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
+		if !isValid {
+			for _, c := range vfk.Columns {
+				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", sourceTable, vfk.Columns))
+			}
+		}
+
+		// check that all self referencing virtual foreign keys are on nullable columns
+		if sourceTable == targetTable {
+			targetCols, ok := colMap[targetTable]
+			if !ok {
+				isValid = false
+				dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
+			}
+			for _, c := range vfk.ForeignKey.Columns {
+				colInfo, ok := targetCols[c]
+				if !ok {
+					isValid = false
+					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c))
+				}
+				if !colInfo.IsNullable {
+					isValid = false
+					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Columns: %s", targetTable, c))
+				}
+				_, ok = targetColMappings[c]
+				if !ok {
+					isValid = false
+					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c))
+				}
+			}
+		}
+	}
+
+	return isValid, colErrorsMap, dbErrors
+}
+
+func isVirtualForeignKeySourceUnique(
+	virtualForeignKey *mgmtv1alpha1.VirtualForeignConstraint,
+	primaryKeys []string,
+	uniqueConstraints [][]string,
+) bool {
+	if utils.CompareSlices(virtualForeignKey.GetColumns(), primaryKeys) {
+		return true
+	}
+	for _, uc := range uniqueConstraints {
+		if utils.CompareSlices(virtualForeignKey.GetColumns(), uc) {
+			return true
+		}
+	}
+	return false
 }
 
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {

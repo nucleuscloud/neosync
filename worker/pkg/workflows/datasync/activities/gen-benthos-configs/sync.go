@@ -66,6 +66,11 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to retrieve database table constraints: %w", err)
 	}
 
+	foreignKeysMap, err := mergeVirtualForeignKeys(tableConstraints.ForeignKeyConstraints, job.GetVirtualForeignKeys(), groupedSchemas)
+	if err != nil {
+		return nil, err
+	}
+
 	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableConstraints.ForeignKeyConstraints)))
 	slogger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(tableConstraints.PrimaryKeyConstraints)))
 
@@ -75,20 +80,20 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(tableConstraints.ForeignKeyConstraints, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(foreignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
 	if err != nil {
 		return nil, err
 	}
-	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(tableConstraints.ForeignKeyConstraints)
+	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(foreignKeysMap)
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, tableConstraints.ForeignKeyConstraints, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, foreignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, tableConstraints.ForeignKeyConstraints, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, foreignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -98,6 +103,45 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		primaryKeyToForeignKeysMap: primaryKeyToForeignKeysMap,
 		ColumnTransformerMap:       colTransformerMap,
 	}, nil
+}
+
+func mergeVirtualForeignKeys(
+	dbForeignKeys map[string][]*sqlmanager_shared.ForeignConstraint,
+	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
+	colInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
+	fks := map[string][]*sqlmanager_shared.ForeignConstraint{}
+
+	for table, fk := range dbForeignKeys {
+		fks[table] = fk
+	}
+
+	for _, fk := range virtualForeignKeys {
+		tn := sqlmanager_shared.BuildTable(fk.Schema, fk.Table)
+		fkTable := sqlmanager_shared.BuildTable(fk.GetForeignKey().Schema, fk.GetForeignKey().Table)
+		notNullable := []bool{}
+		for _, c := range fk.GetColumns() {
+			colMap, ok := colInfoMap[tn]
+			if !ok {
+				return nil, fmt.Errorf("virtual foreign key source table not found: %s", tn)
+			}
+			colInfo, ok := colMap[c]
+			if !ok {
+				return nil, fmt.Errorf("virtual foreign key source column not found: %s.%s", tn, c)
+			}
+			notNullable = append(notNullable, !colInfo.IsNullable)
+		}
+		fks[tn] = append(fks[tn], &sqlmanager_shared.ForeignConstraint{
+			Columns:     fk.GetColumns(),
+			NotNullable: notNullable,
+			ForeignKey: &sqlmanager_shared.ForeignKey{
+				Table:   fkTable,
+				Columns: fk.GetForeignKey().GetColumns(),
+			},
+		})
+	}
+
+	return fks
 }
 
 func buildBenthosSqlSourceConfigResponses(

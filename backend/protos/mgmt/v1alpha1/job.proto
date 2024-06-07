@@ -168,6 +168,7 @@ message CreateJobRequest {
   // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 9;
+  repeated VirtualForeignConstraint virtual_foreign_keys = 10;
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow
@@ -252,6 +253,7 @@ message UpdateJobSourceConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
   JobSource source = 2;
   repeated JobMapping mappings = 3;
+  repeated VirtualForeignConstraint virtual_foreign_keys = 4;
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;
@@ -375,6 +377,7 @@ message Job {
 
   // Specify timeouts and other workflow options for the underlying temporal workflow
   WorkflowOptions workflow_options = 13;
+  repeated VirtualForeignConstraint virtual_foreign_keys = 14;
 }
 
 message JobRecentRun {
@@ -589,6 +592,7 @@ message ValidateJobMappingsRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   repeated JobMapping mappings = 2;
   string connection_id = 3;
+  repeated VirtualForeignConstraint virtual_foreign_keys = 4;
 }
 
 message ColumnError {
@@ -604,6 +608,19 @@ message DatabaseError {
 message ValidateJobMappingsResponse {
   repeated ColumnError column_errors = 1;
   DatabaseError database_errors = 2;
+}
+
+message VirtualForeignKey {
+  string schema = 1;
+  string table = 2;
+  repeated string columns = 3;
+}
+
+message VirtualForeignConstraint {
+  string schema = 1;
+  string table = 2;
+  repeated string columns = 3;
+  VirtualForeignKey foreign_key = 4;
 }
 
 service JobService {
