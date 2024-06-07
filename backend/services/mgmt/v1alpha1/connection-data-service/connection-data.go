@@ -360,12 +360,12 @@ func (s *Service) GetConnectionSchema(
 		if err != nil {
 			return nil, err
 		}
-
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
+				columnDefaultCopy := col.ColumnDefault
+				defaultColumn = &columnDefaultCopy
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
