@@ -5,7 +5,8 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -23,11 +24,8 @@ func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
 	connectionTimeout *uint32,
 	logger *slog.Logger,
-) (*connectiontunnelmanager.ConnectionDetails, error) {
-	return &connectiontunnelmanager.ConnectionDetails{
-		GeneralDbConnectConfig: sqlconnect.GeneralDbConnectConfig{}, // todo
-		Tunnel:                 nil,                                 // todo
-	}, nil
+) (connectiontunnelmanager.ConnectionDetails, error) {
+	return mongoconnect.GetConnectionDetails(cc, clienttls.UpsertCLientTlsFiles, logger)
 }
 
 // this is currently untested as it isn't really used anywhere

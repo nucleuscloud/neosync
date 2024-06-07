@@ -537,8 +537,11 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
+	if dto == nil {
+		dto = &mgmtv1alpha1.JobMapping{}
+	}
 	t := &JobMappingTransformerModel{}
-	if err := t.FromTransformerDto(dto.Transformer); err != nil {
+	if err := t.FromTransformerDto(dto.GetTransformer()); err != nil {
 		return err
 	}
 	jm.Schema = dto.Schema
@@ -553,6 +556,11 @@ type JobSourceOptions struct {
 	MysqlOptions      *MysqlSourceOptions      `json:"mysqlOptions,omitempty"`
 	GenerateOptions   *GenerateSourceOptions   `json:"generateOptions,omitempty"`
 	AiGenerateOptions *AiGenerateSourceOptions `json:"aiGenerateOptions,omitempty"`
+	MongoDbOptions    *MongoDbSourceOptions    `json:"mongoOptions,omitempty"`
+}
+
+type MongoDbSourceOptions struct {
+	ConnectionId string `json:"connectionId"`
 }
 
 type MysqlSourceOptions struct {
@@ -754,6 +762,19 @@ func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchem
 	return output
 }
 
+func (s *MongoDbSourceOptions) ToDto() *mgmtv1alpha1.MongoDBSourceConnectionOptions {
+	return &mgmtv1alpha1.MongoDBSourceConnectionOptions{
+		ConnectionId: s.ConnectionId,
+	}
+}
+
+func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MongoDBSourceConnectionOptions{}
+	}
+	s.ConnectionId = dto.GetConnectionId()
+}
+
 func (s *AiGenerateSourceOptions) ToDto() *mgmtv1alpha1.AiGenerateSourceOptions {
 	dto := &mgmtv1alpha1.AiGenerateSourceOptions{
 		FkSourceConnectionId: s.FkSourceConnectionId,
@@ -855,6 +876,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 			},
 		}
 	}
+	if j.MongoDbOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
+				Mongodb: j.MongoDbOptions.ToDto(),
+			},
+		}
+	}
 	return nil
 }
 
@@ -876,6 +904,10 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		genOpts := &AiGenerateSourceOptions{}
 		genOpts.FromDto(config.AiGenerate)
 		j.AiGenerateOptions = genOpts
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		opts := &MongoDbSourceOptions{}
+		opts.FromDto(dto.GetMongodb())
+		j.MongoDbOptions = opts
 	default:
 		return fmt.Errorf("invalid job source options config, received type: %T", config)
 	}
@@ -886,7 +918,11 @@ type JobDestinationOptions struct {
 	PostgresOptions *PostgresDestinationOptions `json:"postgresOptions,omitempty"`
 	AwsS3Options    *AwsS3DestinationOptions    `json:"awsS3Options,omitempty"`
 	MysqlOptions    *MysqlDestinationOptions    `json:"mysqlOptions,omitempty"`
+	MongoOptions    *MongoDestinationOptions    `json:"mongoOptions,omitempty"`
 }
+
+type MongoDestinationOptions struct{}
+
 type AwsS3DestinationOptions struct{}
 type PostgresDestinationOptions struct {
 	TruncateTableConfig *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
@@ -1001,11 +1037,21 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 			},
 		}
 	}
+	if j.MongoOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_MongodbOptions{
+				MongodbOptions: &mgmtv1alpha1.MongoDBDestinationConnectionOptions{},
+			},
+		}
+	}
 
 	return nil
 }
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
+	if dto == nil {
+		dto = &mgmtv1alpha1.JobDestinationOptions{}
+	}
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		truncateCfg := &PostgresTruncateTableConfig{}
@@ -1033,6 +1079,8 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
+	case *mgmtv1alpha1.JobDestinationOptions_MongodbOptions:
+		j.MongoOptions = &MongoDestinationOptions{}
 	default:
 		return fmt.Errorf("invalid job destination options config")
 	}

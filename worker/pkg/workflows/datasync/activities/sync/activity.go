@@ -11,6 +11,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
+	_ "github.com/benthosdev/benthos/v4/public/components/mongodb"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
@@ -366,6 +367,7 @@ func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) 
 			return "", false
 		}
 		output, ok := input[key]
+		fmt.Println("SETTING ENV VAR", key, output)
 		return output, ok
 	}
 }

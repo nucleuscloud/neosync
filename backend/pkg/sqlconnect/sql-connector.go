@@ -68,6 +68,20 @@ type ConnectionDetails struct {
 	Tunnel *sshtunnel.Sshtunnel
 }
 
+func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
+	return c.Tunnel
+}
+
+func (c *ConnectionDetails) String() string {
+	if c.Tunnel != nil {
+		// todo: would be great to check if tunnel has been started...
+		localhost, port := c.Tunnel.GetLocalHostPort()
+		c.GeneralDbConnectConfig.Host = localhost
+		c.GeneralDbConnectConfig.Port = int32(port)
+	}
+	return c.GeneralDbConnectConfig.String()
+}
+
 type ClientCertConfig struct {
 	RootCert *string
 

@@ -8,13 +8,12 @@ import (
 	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 type ConnectionProvider[T any, TConfig any] interface {
-	GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error)
+	GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (ConnectionDetails, error)
 	GetConnectionClient(driver string, connectionString string, opts TConfig) (T, error)
 	GetConnectionClientConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig) (TConfig, error)
 	CloseClientConnection(client T) error
@@ -23,7 +22,7 @@ type ConnectionProvider[T any, TConfig any] interface {
 type ConnectionTunnelManager[T any, TConfig any] struct {
 	connectionProvider ConnectionProvider[T, TConfig]
 
-	connDetailsMap map[string]*ConnectionDetails
+	connDetailsMap map[string]ConnectionDetails
 	connDetailsMu  sync.RWMutex
 
 	sessionMap map[string]map[string]struct{}
@@ -35,10 +34,15 @@ type ConnectionTunnelManager[T any, TConfig any] struct {
 	shutdown chan any
 }
 
-type ConnectionDetails struct {
-	GeneralDbConnectConfig sqlconnect.GeneralDbConnectConfig
+// type ConnectionDetails struct {
+// 	GeneralDbConnectConfig sqlconnect.GeneralDbConnectConfig
 
-	Tunnel *sshtunnel.Sshtunnel
+// 	Tunnel *sshtunnel.Sshtunnel
+// }
+
+type ConnectionDetails interface {
+	String() string
+	GetTunnel() *sshtunnel.Sshtunnel
 }
 
 type Interface[T any] interface {
@@ -56,7 +60,7 @@ func NewConnectionTunnelManager[T any, TConfig any](connectionProvider Connectio
 	return &ConnectionTunnelManager[T, TConfig]{
 		connectionProvider: connectionProvider,
 		sessionMap:         map[string]map[string]struct{}{},
-		connDetailsMap:     map[string]*ConnectionDetails{},
+		connDetailsMap:     map[string]ConnectionDetails{},
 		connMap:            map[string]T{},
 	}
 }
@@ -72,7 +76,8 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 	if ok {
 		c.bindSession(session, connection.Id)
 		c.connDetailsMu.RUnlock()
-		return loadedDetails.GeneralDbConnectConfig.String(), nil
+		return loadedDetails.String(), nil
+		// return loadedDetails.GeneralDbConnectConfig.String(), nil
 	}
 	c.connDetailsMu.RUnlock()
 	c.connDetailsMu.Lock()
@@ -81,34 +86,36 @@ func (c *ConnectionTunnelManager[T, TConfig]) GetConnectionString(
 	loadedDetails, ok = c.connDetailsMap[connection.Id]
 	if ok {
 		c.bindSession(session, connection.Id)
-		return loadedDetails.GeneralDbConnectConfig.String(), nil
+		return loadedDetails.String(), nil
+		// return loadedDetails.GeneralDbConnectConfig.String(), nil
 	}
 
 	details, err := c.connectionProvider.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), logger)
 	if err != nil {
 		return "", err
 	}
-	if details.Tunnel == nil {
+	tunnel := details.GetTunnel()
+	if tunnel == nil {
 		c.bindSession(session, connection.Id)
 		c.connDetailsMap[connection.Id] = details
-		return details.GeneralDbConnectConfig.String(), nil
+		return details.String(), nil
 	}
-	ready, err := details.Tunnel.Start(logger)
+	ready, err := tunnel.Start(logger)
 	if err != nil {
 		return "", fmt.Errorf("unable to start ssh tunnel: %w", err)
 	}
 	<-ready // this isn't great as it will block all other requests until this tunnel is ready
-	localhost, localport := details.Tunnel.GetLocalHostPort()
-	details.GeneralDbConnectConfig.Host = localhost
-	details.GeneralDbConnectConfig.Port = int32(localport)
-	logger.Debug(
-		"ssh tunnel is ready, updated configuration host and port",
-		"host", localhost,
-		"port", localport,
-	)
+	// localhost, localport := tunnel.GetLocalHostPort()
+	// details.GeneralDbConnectConfig.Host = localhost
+	// details.GeneralDbConnectConfig.Port = int32(localport)
+	// logger.Debug(
+	// 	"ssh tunnel is ready, updated configuration host and port",
+	// 	"host", localhost,
+	// 	"port", localport,
+	// )
 	c.connDetailsMap[connection.Id] = details
 	c.bindSession(session, connection.Id)
-	return details.GeneralDbConnectConfig.String(), nil
+	return details.String(), nil
 }
 
 func (c *ConnectionTunnelManager[T, TConfig]) GetConnection(
@@ -226,8 +233,9 @@ func (c *ConnectionTunnelManager[T, TConfig]) hardClose() {
 	}
 
 	for connId, details := range c.connDetailsMap {
-		if details.Tunnel != nil {
-			details.Tunnel.Close()
+		tunnel := details.GetTunnel()
+		if tunnel != nil {
+			tunnel.Close()
 		}
 		delete(c.connDetailsMap, connId)
 	}
@@ -261,8 +269,9 @@ func (c *ConnectionTunnelManager[T, TConfig]) close() {
 	sessionConnections = getUniqueConnectionIdsFromSessions(c.sessionMap)
 	for connId, details := range c.connDetailsMap {
 		if _, ok := sessionConnections[connId]; !ok {
-			if details.Tunnel != nil {
-				details.Tunnel.Close()
+			tunnel := details.GetTunnel()
+			if tunnel != nil {
+				tunnel.Close()
 			}
 			delete(c.connDetailsMap, connId)
 		}

@@ -203,6 +203,8 @@ func GetJobSourceConnection(
 		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
 		connectionId = jobSourceConfig.AiGenerate.GetAiConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connectionId = jobSourceConfig.Mongodb.GetConnectionId()
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}

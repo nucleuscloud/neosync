@@ -329,7 +329,7 @@ func (s *Service) CreateJob(
 			return nil, err
 		}
 		options := &pg_models.JobDestinationOptions{}
-		err = options.FromDto(dest.Options)
+		err = options.FromDto(dest.GetOptions())
 		if err != nil {
 			return nil, err
 		}
@@ -359,6 +359,8 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connectionIds = append(connectionIds, config.Mongodb.GetConnectionId())
 	default:
 	}
 
@@ -401,7 +403,7 @@ func (s *Service) CreateJob(
 	}
 
 	mappings := []*pg_models.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
+	for _, mapping := range req.Msg.GetMappings() {
 		jm := &pg_models.JobMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {

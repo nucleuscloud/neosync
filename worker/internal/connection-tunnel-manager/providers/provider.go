@@ -32,7 +32,10 @@ func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
 	connectionTimeout *uint32,
 	logger *slog.Logger,
-) (*connectiontunnelmanager.ConnectionDetails, error) {
+) (connectiontunnelmanager.ConnectionDetails, error) {
+	if cc == nil {
+		cc = &mgmtv1alpha1.ConnectionConfig{}
+	}
 	switch cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		return p.mp.GetConnectionDetails(cc, connectionTimeout, logger)

@@ -28,7 +28,7 @@ func Test_ConnectionTunnelManager_GetConnectionString(t *testing.T) {
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	connstr, err := mgr.GetConnectionString("111", conn, slog.Default())
@@ -70,14 +70,14 @@ func Test_ConnectionTunnelManager_GetConnectionString_Unique_Conns(t *testing.T)
 	}
 
 	provider.On("GetConnectionDetails", conn1.ConnectionConfig, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 
 	conn2Pg := getPgGenDbConfig(t)
 	conn2Pg.User = "foo2"
 	provider.On("GetConnectionDetails", conn2.ConnectionConfig, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: conn2Pg,
 		}, nil)
 
@@ -101,7 +101,7 @@ func Test_ConnectionTunnelManager_GetConnectionString_Parallel_Sessions_Same_Con
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 
@@ -136,7 +136,7 @@ func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
@@ -159,7 +159,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
@@ -198,7 +198,7 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	_, err := mgr.GetConnectionString("111", conn, slog.Default())
@@ -221,7 +221,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
@@ -257,7 +257,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	}
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&ConnectionDetails{
+		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)

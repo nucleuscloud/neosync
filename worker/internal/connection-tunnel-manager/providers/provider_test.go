@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
@@ -26,7 +28,7 @@ func Test_Provider_GetConnectionDetails_Mongo(t *testing.T) {
 	provider := NewProvider(mockMp, mockSp)
 
 	mockMp.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&connectiontunnelmanager.ConnectionDetails{}, nil)
+		Return(&mongoconnect.ConnectionDetails{}, nil)
 
 	result, err := provider.GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{},
@@ -42,7 +44,7 @@ func Test_Provider_GetConnectionDetails_Postgres(t *testing.T) {
 	provider := NewProvider(mockMp, mockSp)
 
 	mockSp.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&connectiontunnelmanager.ConnectionDetails{}, nil)
+		Return(&sqlconnect.ConnectionDetails{}, nil)
 
 	result, err := provider.GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
@@ -58,7 +60,7 @@ func Test_Provider_GetConnectionDetails_Mysql(t *testing.T) {
 	provider := NewProvider(mockMp, mockSp)
 
 	mockSp.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
-		Return(&connectiontunnelmanager.ConnectionDetails{}, nil)
+		Return(&sqlconnect.ConnectionDetails{}, nil)
 
 	result, err := provider.GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},

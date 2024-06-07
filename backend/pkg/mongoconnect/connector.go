@@ -103,6 +103,14 @@ type ConnectionDetails struct {
 	Details *connstring.ConnString
 }
 
+func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
+	return c.Tunnel
+}
+func (c *ConnectionDetails) String() string {
+	// todo: add tunnel support
+	return c.Details.String()
+}
+
 func GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
 	handleClientTlsConfig clienttls.ClientTlsFileHandler,

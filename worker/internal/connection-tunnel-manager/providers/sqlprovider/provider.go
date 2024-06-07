@@ -23,15 +23,8 @@ func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
 	connectionTimeout *uint32,
 	logger *slog.Logger,
-) (*connectiontunnelmanager.ConnectionDetails, error) {
-	details, err := sqlconnect.GetConnectionDetails(cc, connectionTimeout, clienttls.UpsertCLientTlsFiles, logger)
-	if err != nil {
-		return nil, err
-	}
-	return &connectiontunnelmanager.ConnectionDetails{
-		GeneralDbConnectConfig: details.GeneralDbConnectConfig,
-		Tunnel:                 details.Tunnel,
-	}, nil
+) (connectiontunnelmanager.ConnectionDetails, error) {
+	return sqlconnect.GetConnectionDetails(cc, connectionTimeout, clienttls.UpsertCLientTlsFiles, logger)
 }
 
 type ConnectionClientConfig struct {

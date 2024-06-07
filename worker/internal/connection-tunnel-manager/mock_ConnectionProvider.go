@@ -183,23 +183,23 @@ func (_c *MockConnectionProvider_GetConnectionClientConfig_Call[T, TConfig]) Run
 }
 
 // GetConnectionDetails provides a mock function with given fields: connectionConfig, connectionTimeout, logger
-func (_m *MockConnectionProvider[T, TConfig]) GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error) {
+func (_m *MockConnectionProvider[T, TConfig]) GetConnectionDetails(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (ConnectionDetails, error) {
 	ret := _m.Called(connectionConfig, connectionTimeout, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetConnectionDetails")
 	}
 
-	var r0 *ConnectionDetails
+	var r0 ConnectionDetails
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (*ConnectionDetails, error)); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (ConnectionDetails, error)); ok {
 		return rf(connectionConfig, connectionTimeout, logger)
 	}
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) *ConnectionDetails); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) ConnectionDetails); ok {
 		r0 = rf(connectionConfig, connectionTimeout, logger)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ConnectionDetails)
+			r0 = ret.Get(0).(ConnectionDetails)
 		}
 	}
 
@@ -232,12 +232,12 @@ func (_c *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig]) Run(run 
 	return _c
 }
 
-func (_c *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig]) Return(_a0 *ConnectionDetails, _a1 error) *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig] {
+func (_c *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig]) Return(_a0 ConnectionDetails, _a1 error) *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig]) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (*ConnectionDetails, error)) *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig] {
+func (_c *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig]) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (ConnectionDetails, error)) *MockConnectionProvider_GetConnectionDetails_Call[T, TConfig] {
 	_c.Call.Return(run)
 	return _c
 }

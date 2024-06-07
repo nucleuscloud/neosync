@@ -204,7 +204,7 @@ func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMapp
 
 	config := &TransformerConfigs{}
 
-	if err := config.FromTransformerConfigDto(tr.Config); err != nil {
+	if err := config.FromTransformerConfigDto(tr.GetConfig()); err != nil {
 		return err
 	}
 
@@ -214,6 +214,9 @@ func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMapp
 }
 
 func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
+	if tr == nil {
+		tr = &mgmtv1alpha1.TransformerConfig{}
+	}
 	switch tr.Config.(type) {
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
 		t.GenerateEmail = &GenerateEmailConfig{
