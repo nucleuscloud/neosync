@@ -150,6 +150,87 @@ func Test_getGeneralDbConnectionConfigFromMysql_Connection(t *testing.T) {
 	})
 }
 
+func Test_getGeneralDbConnectionConfigFromMysql_Url_mysql(t *testing.T) {
+	out, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysql://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.Equal(t, out, &GeneralDbConnectConfig{
+		Driver:      "mysql",
+		Host:        "localhost",
+		Port:        3306,
+		Database:    "mydatabase",
+		User:        "myuser",
+		Pass:        "mypassword",
+		Protocol:    nil,
+		QueryParams: url.Values{"ssl": []string{"true"}},
+	})
+}
+func Test_getGeneralDbConnectionConfigFromMysql_Url_mysqlx(t *testing.T) {
+	out, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.Equal(t, out, &GeneralDbConnectConfig{
+		Driver:      "mysqlx",
+		Host:        "localhost",
+		Port:        3306,
+		Database:    "mydatabase",
+		User:        "myuser",
+		Pass:        "mypassword",
+		Protocol:    nil,
+		QueryParams: url.Values{"ssl": []string{"true"}},
+	})
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_Error(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysql://myuser:mypassword/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_NoScheme(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlxxx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_NoPort(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlxxx://myuser:mypassword@localhost/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
 func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 	type testcase struct {
 		name     string
