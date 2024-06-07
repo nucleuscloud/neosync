@@ -14,25 +14,39 @@ update_docs() {
 BUF_VERSION=$(cat BUF_VERSION)
 SQLC_VERSION=$(cat SQLC_VERSION)
 
+# Get the current user ID and group ID
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
+
+BUF_CACHE_DIRECTORY="${HOME}/.cache/buf"
+mkdir -p ${BUF_CACHE_DIRECTORY}
+
 # `buf format -w` writes to each file, so causes tilt to loop. instead we instruct buf
 # to just output the changes in diff format and apply those.
 docker run --rm -i \
-  --volume "./protos:/workspace/protos" \
-  --workdir "/workspace" \
-  "bufbuild/buf:${BUF_VERSION}" format -d | patch --quiet
+  --user "${USER_ID}:${GROUP_ID}" \
+  --env BUF_CACHE_DIR=/workspace/.cache \
+  --volume "./protos:/protos" \
+  --volume "${BUF_CACHE_DIRECTORY}:/workspace/.cache" \
+  --workdir "/protos" \
+  "bufbuild/buf:${BUF_VERSION}" format -d | patch -d ./protos -p0 --quiet
 
 # buf generate
 docker run --rm -i \
+  --user "${USER_ID}:${GROUP_ID}" \
+  --env BUF_CACHE_DIR=/workspace/.cache \
   --volume "./gen:/workspace/gen" \
   --volume "./buf.yaml:/workspace/buf.yaml" \
   --volume "./buf.lock:/workspace/buf.lock" \
   --volume "./buf.gen.yaml:/workspace/buf.gen.yaml" \
   --volume "./protos:/workspace/protos" \
+  --volume "${BUF_CACHE_DIRECTORY}:/workspace/.cache" \
   --workdir "/workspace" \
   "bufbuild/buf:${BUF_VERSION}" generate &
 
 # sqlc
 docker run --rm -i \
+  --user "${USER_ID}:${GROUP_ID}" \
   --volume "./gen:/workspace/gen" \
   --volume "./sql:/workspace/sql" \
   --volume "./pkg/dbschemas/sql:/workspace/pkg/dbschemas/sql" \
