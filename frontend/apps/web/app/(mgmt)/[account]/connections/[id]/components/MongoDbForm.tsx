@@ -17,13 +17,15 @@ import { Input } from '@/components/ui/input';
 import { MongoDbFormValues } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  CheckConnectionConfigResponse,
   ConnectionConfig,
   MongoConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { checkMongoConnection } from '../../../new/connection/mongodb/MongoDBForm';
 
 interface Props {
   connectionId: string;
@@ -45,6 +47,34 @@ export default function MongoDbForm(props: Props): ReactElement {
       accountId: account?.id ?? '',
     },
   });
+  const [isValidating, setIsValidating] = useState<boolean>();
+  // todo
+  const [validationResponse, setValidationResponse] = useState<
+    CheckConnectionConfigResponse | undefined
+  >();
+
+  async function onValidationClick(): Promise<void> {
+    if (isValidating) {
+      return;
+    }
+    setIsValidating(true);
+    try {
+      const res = await checkMongoConnection(
+        form.getValues(),
+        account?.id ?? ''
+      );
+      setValidationResponse(res);
+    } catch (err) {
+      setValidationResponse(
+        new CheckConnectionConfigResponse({
+          isConnected: false,
+          connectionError: err instanceof Error ? err.message : 'unknown error',
+        })
+      );
+    } finally {
+      setIsValidating(false);
+    }
+  }
 
   async function onSubmit(values: MongoDbFormValues): Promise<void> {
     if (!account) {
@@ -105,7 +135,15 @@ export default function MongoDbForm(props: Props): ReactElement {
           )}
         />
 
-        <div className="flex flex-row justify-end">
+        <div className="flex flex-row gap-2 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onValidationClick()}
+          >
+            <ButtonText leftIcon={<div></div>} text="Test Connection" />
+          </Button>
+
           <Button type="submit">
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : null}
