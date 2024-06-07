@@ -35,7 +35,7 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
           connections.length > 0 && (
             <SelectGroup key={label}>
               <SelectLabel>{label}</SelectLabel>
-              {postgres.map((connection) => (
+              {connections.map((connection) => (
                 <SelectItem
                   className="cursor-pointer ml-2"
                   key={connection.id}

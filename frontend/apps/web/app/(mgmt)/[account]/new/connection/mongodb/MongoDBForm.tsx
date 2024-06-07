@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import { MongoDbFormValues } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -33,7 +34,7 @@ import {
 } from '@neosync/sdk';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
 
@@ -64,6 +65,43 @@ export default function MongoDBForm(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!sourceConnId || !account?.id) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const connData = await getConnection(account.id, sourceConnId);
+        if (
+          connData.connection?.connectionConfig?.config.case !== 'mongoConfig'
+        ) {
+          return;
+        }
+
+        const config = connData.connection?.connectionConfig?.config.value;
+        const mongoConnConfigValue = config.connectionConfig.value;
+
+        form.reset({
+          ...form.getValues(),
+          connectionName: connData.connection?.name + '-copy',
+          url: mongoConnConfigValue ?? '',
+        });
+      } catch (error) {
+        console.error('Failed to fetch connection data:', error);
+        toast({
+          title: 'Unable to retrieve connection data for clone!',
+          description: getErrorMessage(error),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [account?.id]);
 
   async function onSubmit(values: MongoDbFormValues): Promise<void> {
     if (!account || isSubmitting) {
