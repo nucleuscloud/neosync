@@ -18,7 +18,12 @@ SQLC_VERSION=$(cat SQLC_VERSION)
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-BUF_CACHE_DIRECTORY="${HOME}/.cache/buf"
+# Determine cache directory based on XDG_CACHE_HOME if set, otherwise use $HOME/.cache/buf
+if [ -z "${XDG_CACHE_HOME}" ]; then
+  BUF_CACHE_DIRECTORY="${HOME}/.cache/buf"
+else
+  BUF_CACHE_DIRECTORY="${XDG_CACHE_HOME}/buf"
+fi
 mkdir -p ${BUF_CACHE_DIRECTORY}
 
 # `buf format -w` writes to each file, so causes tilt to loop. instead we instruct buf
