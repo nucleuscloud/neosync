@@ -32,10 +32,12 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
+
 	for _, row := range dbSchemas {
 		var generatedType *string
 		if row.GeneratedType != "" {
-			generatedType = &row.GeneratedType
+			generatedTypeCopy := row.GeneratedType
+			generatedType = &generatedTypeCopy
 		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.SchemaName,

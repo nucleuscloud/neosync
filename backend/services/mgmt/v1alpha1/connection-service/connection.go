@@ -43,6 +43,7 @@ func (s *Service) CheckConnectionConfig(
 	default:
 		return nil, fmt.Errorf("unsupported connection config: %T", cconfig)
 	}
+
 	connectionTimeout := 5
 	db, err := s.sqlmanager.NewSqlDbFromConnectionConfig(ctx, logger, req.Msg.ConnectionConfig, &connectionTimeout)
 	if err != nil {

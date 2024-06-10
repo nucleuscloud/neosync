@@ -24,6 +24,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -68,12 +70,19 @@ interface Props {
 export default function MysqlForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
+
+  // used to know which tab - host or url that the user is on when we submit the form
+  const [activeTab, setActiveTab] = useState<string>(
+    defaultValues.url ? 'url' : 'host'
+  );
+
   const form = useForm<MysqlFormValues>({
     resolver: yupResolver(MYSQL_FORM_SCHEMA),
     values: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
+      activeTab: activeTab,
     },
   });
   const [validationResponse, setValidationResponse] = useState<
@@ -84,15 +93,31 @@ export default function MysqlForm(props: Props) {
 
   async function onSubmit(values: MysqlFormValues) {
     try {
-      const connectionResp = await updateMysqlConnection(
-        connectionId,
-        values.connectionName,
-        values.db,
-        values.tunnel,
-        account?.id ?? '',
-        values.options
+      let connection: UpdateConnectionResponse = new UpdateConnectionResponse(
+        {}
       );
-      onSaved(connectionResp);
+      if (activeTab === 'host') {
+        connection = await updateMysqlConnection(
+          connectionId,
+          values.connectionName,
+          account?.id ?? '',
+          values.db,
+          values.tunnel,
+          undefined,
+          values.options
+        );
+      } else if (activeTab === 'url') {
+        connection = await updateMysqlConnection(
+          connectionId,
+          values.connectionName,
+          account?.id ?? '',
+          undefined,
+          undefined,
+          values.url,
+          values.options
+        );
+      }
+      onSaved(connection);
     } catch (err) {
       console.error(err);
       onSaveFailed(err);
@@ -134,128 +159,175 @@ export default function MysqlForm(props: Props) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="db.host"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Host Name
-              </FormLabel>
-              <FormDescription>The host name</FormDescription>
-              <FormControl>
-                <Input placeholder="Host" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <RadioGroup
+          defaultValue="url"
+          onValueChange={(e) => setActiveTab(e)}
+          value={activeTab}
+        >
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="text-sm">Connect by:</div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url" id="r2" />
+              <Label htmlFor="r2">URL</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="host" id="r1" />
+              <Label htmlFor="r1">Host</Label>
+            </div>
+          </div>
+        </RadioGroup>
 
-        <FormField
-          control={form.control}
-          name="db.port"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Database Port
-              </FormLabel>
-              <FormDescription>The database port</FormDescription>
-              <FormControl>
-                <Input placeholder="3306" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {activeTab == 'url' && (
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Connection URL
+                </FormLabel>
+                <FormDescription>Your connection URL</FormDescription>
+                <FormControl>
+                  <Input
+                    placeholder="mysql://username:password@hostname:port/database"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        {activeTab == 'host' && (
+          <>
+            <FormField
+              control={form.control}
+              name="db.host"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <RequiredLabel />
+                    Host Name
+                  </FormLabel>
+                  <FormDescription>The host name</FormDescription>
+                  <FormControl>
+                    <Input placeholder="Host" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="db.name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Database Name
-              </FormLabel>
-              <FormDescription>The database name</FormDescription>
-              <FormControl>
-                <Input placeholder="mysql" {...field} />
-              </FormControl>
-              <FormDescription>The name of the database</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="db.port"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <RequiredLabel />
+                    Database Port
+                  </FormLabel>
+                  <FormDescription>The database port</FormDescription>
+                  <FormControl>
+                    <Input placeholder="3306" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="db.user"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Database Username</FormLabel>
-              <FormDescription>The username of the database</FormDescription>
-              <FormControl>
-                <Input placeholder="mysql" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="db.name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <RequiredLabel />
+                    Database Name
+                  </FormLabel>
+                  <FormDescription>The database name</FormDescription>
+                  <FormControl>
+                    <Input placeholder="mysql" {...field} />
+                  </FormControl>
+                  <FormDescription>The name of the database</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="db.pass"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Database Password
-              </FormLabel>
-              <FormDescription>The database password</FormDescription>
-              <FormControl>
-                <PasswordInput placeholder="mysql" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="db.user"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Database Username</FormLabel>
+                  <FormDescription>
+                    The username of the database
+                  </FormDescription>
+                  <FormControl>
+                    <Input placeholder="mysql" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="db.protocol"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Connection Protocol
-              </FormLabel>
-              <FormDescription>
-                The protocol that you want to use to connect to your database
-              </FormDescription>
-              <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MYSQL_CONNECTION_PROTOCOLS.map((mode) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={mode}
-                        value={mode}
-                      >
-                        {mode}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="db.pass"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <RequiredLabel />
+                    Database Password
+                  </FormLabel>
+                  <FormDescription>The database password</FormDescription>
+                  <FormControl>
+                    <PasswordInput placeholder="mysql" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="db.protocol"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <RequiredLabel />
+                    Connection Protocol
+                  </FormLabel>
+                  <FormDescription>
+                    The protocol that you want to use to connect to your
+                    database
+                  </FormDescription>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MYSQL_CONNECTION_PROTOCOLS.map((mode) => (
+                          <SelectItem
+                            className="cursor-pointer"
+                            key={mode}
+                            value={mode}
+                          >
+                            {mode}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <FormField
           control={form.control}
           name="options.maxConnectionLimit"
@@ -414,19 +486,29 @@ export default function MysqlForm(props: Props) {
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
-            disabled={!form.formState.isValid}
             onClick={async () => {
               setIsValidating(true);
               try {
-                const res = await checkMysqlConnection(
-                  form.getValues('db'),
-                  form.getValues('tunnel'),
-                  account?.id ?? ''
-                );
+                let res: CheckConnectionConfigResponse =
+                  new CheckConnectionConfigResponse({});
+                if (activeTab === 'host') {
+                  res = await checkMysqlConnection(
+                    account?.id ?? '',
+                    form.getValues().db,
+                    undefined,
+                    form.getValues().tunnel
+                  );
+                } else {
+                  res = await checkMysqlConnection(
+                    account?.id ?? '',
+                    undefined,
+                    form.getValues().url,
+                    form.getValues().tunnel
+                  );
+                }
                 setIsValidating(false);
                 setValidationResponse(res);
               } catch (err) {
-                setIsValidating(false);
                 setValidationResponse(
                   new CheckConnectionConfigResponse({
                     isConnected: false,
@@ -434,6 +516,8 @@ export default function MysqlForm(props: Props) {
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
+              } finally {
+                setIsValidating(false);
               }
             }}
             type="button"
@@ -510,21 +594,22 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 async function updateMysqlConnection(
   connectionId: string,
   connectionName: string,
-  db: MysqlFormValues['db'],
-  tunnel: MysqlFormValues['tunnel'],
   accountId: string,
-  options: MysqlFormValues['options']
+  db?: MysqlFormValues['db'],
+  tunnel?: MysqlFormValues['tunnel'],
+  url?: string,
+  options?: MysqlFormValues['options']
 ): Promise<UpdateConnectionResponse> {
   const myconfig = new MysqlConnectionConfig({
     connectionConfig: {
       case: 'connection',
       value: new MysqlConnection({
-        host: db.host,
-        name: db.name,
-        user: db.user,
-        pass: db.pass,
-        port: db.port,
-        protocol: db.protocol,
+        host: db?.host,
+        name: db?.name,
+        user: db?.user,
+        pass: db?.pass,
+        port: db?.port,
+        protocol: db?.protocol,
       }),
     },
   });

@@ -125,6 +125,10 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
     port: Yup.number().integer().positive().required(),
     protocol: Yup.string().required(),
   }).required(),
+  url: Yup.string().when('$activeTab', {
+    is: 'url', // Only require if activeTab is 'url'
+    then: (schema) => schema.required('The connection url is required'),
+  }),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
   options: SQL_OPTIONS_FORM_SCHEMA,
 });
