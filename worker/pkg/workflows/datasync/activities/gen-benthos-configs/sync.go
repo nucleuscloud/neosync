@@ -141,7 +141,7 @@ func mergeVirtualForeignKeys(
 		})
 	}
 
-	return fks
+	return fks, nil
 }
 
 func buildBenthosSqlSourceConfigResponses(

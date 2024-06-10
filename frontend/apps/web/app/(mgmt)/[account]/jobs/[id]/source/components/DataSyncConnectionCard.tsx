@@ -39,6 +39,7 @@ import { getErrorMessage } from '@/util/util';
 import {
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
+  VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -143,6 +144,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     name: 'mappings',
   });
 
+  const { append: appendVfk, remove: removeVfk } =
+    useFieldArray<SourceFormValues>({
+      control: form.control,
+      name: 'virtualForeignKeys',
+    });
+
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
       return;
@@ -197,6 +204,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
   const formMappings = form.watch('mappings');
+  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -232,6 +240,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     };
     validateJobMappings();
   }, [selectedTables]);
+
+  function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
+    appendVfk(vfk);
+  }
+
+  function removeVirtualForeignKey(index: number) {
+    removeVfk(index);
+  }
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
@@ -298,6 +314,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
           <SchemaTable
             data={formMappings}
+            virtualForeignKeys={formVirtualForeignKeys}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -311,6 +328,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             )}
             isJobMappingsValidating={isValidatingMappings}
             onValidate={validateMappings}
+            addVirtualForeignKey={addVirtualForeignKey}
+            removeVirtualForeignKey={removeVirtualForeignKey}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>
@@ -431,6 +450,7 @@ function getJobSource(
       },
       destinationIds: [],
       mappings: [],
+      virtualForeignKeys: [],
       connectionId: '',
     };
   }
@@ -451,6 +471,17 @@ function getJobSource(
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
         : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+    };
+  });
+
+  const virtualForeignKeys = (job.virtualForeignKeys ?? []).map((vfk) => {
+    return {
+      ...vfk,
+      foreignKey: {
+        schema: vfk.foreignKey?.schema || '',
+        table: vfk.foreignKey?.table || '',
+        columns: vfk.foreignKey?.columns || [],
+      },
     };
   });
 
@@ -478,6 +509,7 @@ function getJobSource(
     sourceOptions: {},
     destinationIds: destinationIds,
     mappings: mappings || [],
+    virtualForeignKeys: virtualForeignKeys || [],
   };
 
   const yupValidationValues = {
