@@ -279,10 +279,12 @@ func GetConnectionDetails(
 				1,
 				publickey,
 			)
+
 			connDetails, err := getGeneralDbConnectionConfigFromMysql(config, connectionTimeout)
 			if err != nil {
 				return nil, err
 			}
+
 			portValue := int32(randomPort)
 			connDetails.Host = localhost
 			connDetails.Port = portValue

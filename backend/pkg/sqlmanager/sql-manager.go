@@ -138,6 +138,7 @@ func (s *SqlManager) NewPooledSqlDb(
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		var closer func()
 		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
+			fmt.Println("connection*********", connection.ConnectionConfig)
 			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
