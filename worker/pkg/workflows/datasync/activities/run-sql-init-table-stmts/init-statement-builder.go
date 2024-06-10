@@ -67,8 +67,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
-	fmt.Println("source", sourceConnection)
-
 	sourcedb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
