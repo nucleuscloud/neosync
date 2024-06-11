@@ -86,8 +86,8 @@ export default function MongoDbForm(props: Props): ReactElement {
     try {
       const connectionResp = await updateMongoConnection(
         values,
-        connectionId,
-        account.id
+        account.id,
+        connectionId
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -148,7 +148,7 @@ export default function MongoDbForm(props: Props): ReactElement {
           connectionType="mongodb"
         />
 
-        <div className="flex flex-row gap-2 justify-end">
+        <div className="flex flex-row gap-2 justify-between">
           <Button
             type="button"
             variant="outline"
