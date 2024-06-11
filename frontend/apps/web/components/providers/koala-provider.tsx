@@ -18,11 +18,11 @@ export default function KoalaIdentifier(): ReactElement {
       !isSystemAppConfigLoading &&
       systemAppConfig?.koala?.enabled
     ) {
-      ko.init('pk_4fa92236b6fe5d23fb878c88c14d209fd48e');
+      ko.init(process.env.KOALA_KEY);
     }
   }, [
-    systemAppConfig?.posthog?.enabled,
-    systemAppConfig?.posthog?.key,
+    systemAppConfig?.koala?.enabled,
+    systemAppConfig?.koala?.key,
     isSystemAppConfigLoading,
   ]);
 

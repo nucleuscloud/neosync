@@ -17,4 +17,5 @@ interface PosthogConfig {
 
 interface KoalaConfig {
   enabled: boolean;
+  key?: string;
 }
