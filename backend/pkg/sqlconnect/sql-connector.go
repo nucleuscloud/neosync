@@ -405,7 +405,6 @@ func (g *GeneralDbConnectConfig) String() string {
 			query := g.QueryParams.Encode()
 			dsn += "?" + query
 		}
-		fmt.Printf("Connection String: %s \n", dsn)
 		return dsn
 	}
 	return ""

@@ -2,7 +2,6 @@ package sync_cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -647,16 +646,11 @@ func buildSyncConfigs(
 		primaryKeysMap[table] = constraints.GetColumns()
 	}
 
-	jsonF, _ := json.MarshalIndent(schemaConfig.TableConstraints, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 	dependencyMap, err := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap, primaryKeysMap)
 	if err != nil {
 		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
 		return nil
 	}
-
-	jsonF, _ = json.MarshalIndent(dependencyMap, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	for table, dc := range dependencyMap {
 		split := strings.Split(table, ".")
@@ -1152,18 +1146,6 @@ func getDestinationSchemaConfig(
 		schemas = append(schemas, s)
 	}
 
-	// fmt.Println(printlog.Render("Building foreign table constraints...")) //nolint:forbidigo
-	// tableConstraints, err := getDestinationForeignConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// fmt.Println(printlog.Render("Building primary key table constraints...")) //nolint:forbidigo
-	// tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	fmt.Println(printlog.Render("Building table constraints...")) //nolint:forbidigo
 	tableConstraints, err := getDestinationTableConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
@@ -1214,46 +1196,6 @@ func getDestinationTableConstraints(ctx context.Context, sqlmanagerclient sqlman
 
 	return constraints, nil
 }
-
-// func getDestinationForeignConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string][]*sql_manager.ForeignConstraint, error) {
-// 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-// 	defer cancel()
-// 	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer db.Db.Close()
-
-// 	constraints, err := db.Db.GetForeignKeyConstraintsMap(cctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return constraints, nil
-// }
-
-// func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
-// 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-// 	defer cancel()
-// 	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer db.Db.Close()
-
-// 	primaryKeysMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-// 	for tableName, cols := range primaryKeysMap {
-// 		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
-// 			Columns: cols,
-// 		}
-// 	}
-// 	return tableConstraints, nil
-// }
 
 func getDependencyConfigs(
 	tc map[string][]*sql_manager.ForeignConstraint,
