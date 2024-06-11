@@ -103,7 +103,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             header="Connect"
             progressSteps={
               <JobsProgressSteps
-                steps={getJobProgressSteps('data-sync')}
+                steps={getJobProgressSteps('data-sync', false)}
                 stepName={'connect'}
               />
             }
