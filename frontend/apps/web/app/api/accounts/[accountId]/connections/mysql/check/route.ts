@@ -1,7 +1,7 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import {
   POSTGRES_CONNECTION,
-  SSH_TUNNEL_FORM_SCHEMA,
+  SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import {
   CheckConnectionConfigRequest,
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
     const tunnel = body.tunnel
-      ? await SSH_TUNNEL_FORM_SCHEMA.validate(body.tunnel)
+      ? await SshTunnelFormValues.validate(body.tunnel)
       : null;
 
     if (tunnel && tunnel.host && tunnel.port && tunnel.user) {

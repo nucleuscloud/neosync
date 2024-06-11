@@ -57,6 +57,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { checkPostgresConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -571,25 +572,10 @@ export default function PostgresForm(props: Props): ReactElement {
             onClick={async () => {
               setIsValidating(true);
               try {
-                let res: CheckConnectionConfigResponse =
-                  new CheckConnectionConfigResponse({});
-                if (activeTab === 'host') {
-                  res = await checkPostgresConnection(
-                    account?.id ?? '',
-                    form.getValues().db,
-                    form.getValues().tunnel,
-                    undefined,
-                    form.getValues().clientTls
-                  );
-                } else if (activeTab === 'url') {
-                  res = await checkPostgresConnection(
-                    account?.id ?? '',
-                    undefined,
-                    form.getValues().tunnel,
-                    form.getValues().url ?? '',
-                    form.getValues().clientTls
-                  );
-                }
+                const res = await checkPostgresConnection(
+                  form.getValues(),
+                  account?.id ?? ''
+                );
                 setValidationResponse(res);
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
@@ -736,36 +722,6 @@ async function updatePostgresConnection(
     throw new Error(body.message);
   }
   return UpdateConnectionResponse.fromJson(await res.json());
-}
-
-async function checkPostgresConnection(
-  accountId: string,
-  db?: PostgresFormValues['db'],
-  tunnel?: PostgresFormValues['tunnel'],
-  url?: string,
-  clientTls?: PostgresFormValues['clientTls']
-): Promise<CheckConnectionConfigResponse> {
-  let requestBody;
-  if (url) {
-    requestBody = { url, tunnel, clientTls };
-  } else {
-    requestBody = { db, tunnel, clientTls };
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/postgres/check`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
 }
 
 interface ErrorAlertProps {

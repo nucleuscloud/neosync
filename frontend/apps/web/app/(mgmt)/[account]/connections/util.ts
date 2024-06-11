@@ -1,9 +1,22 @@
-import { MongoDbFormValues } from '@/yup-validations/connections';
+import {
+  ClientTlsFormValues,
+  MongoDbFormValues,
+  PostgresFormValues,
+  SshTunnelFormValues,
+} from '@/yup-validations/connections';
 import {
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
+  ClientTlsConfig,
   ConnectionConfig,
   MongoConnectionConfig,
+  PostgresConnection,
+  PostgresConnectionConfig,
+  SSHAuthentication,
+  SSHPassphrase,
+  SSHPrivateKey,
+  SSHTunnel,
+  SqlConnectionOptions,
 } from '@neosync/sdk';
 
 export type ConnectionType =
@@ -34,6 +47,102 @@ export function getConnectionType(
     default:
       return null;
   }
+}
+
+export async function checkPostgresConnection(
+  values: PostgresFormValues,
+  accountId: string
+): Promise<CheckConnectionConfigResponse> {
+  const pgconfig = new PostgresConnectionConfig({
+    clientTls: getClientTlsConfig(values.clientTls),
+    tunnel: getTunnelConfig(values.tunnel),
+    connectionOptions: new SqlConnectionOptions({
+      ...values.options,
+    }),
+  });
+
+  if (values.url) {
+    pgconfig.connectionConfig = {
+      case: 'url',
+      value: values.url,
+    };
+  } else {
+    pgconfig.connectionConfig = {
+      case: 'connection',
+      value: new PostgresConnection({
+        host: values.db.host,
+        port: values.db.port,
+        name: values.db.name,
+        pass: values.db.pass,
+        sslMode: values.db.sslMode,
+        user: values.db.user,
+      }),
+    };
+  }
+
+  return checkConnection(
+    new CheckConnectionConfigRequest({
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'pgConfig',
+          value: pgconfig,
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+function getClientTlsConfig(
+  values?: ClientTlsFormValues
+): ClientTlsConfig | undefined {
+  if (
+    !values ||
+    (!values.rootCert && !values.clientKey && !values.clientCert)
+  ) {
+    return undefined;
+  }
+  return new ClientTlsConfig({
+    rootCert: values.rootCert ? values.rootCert : undefined,
+    clientKey: values.clientKey ? values.clientKey : undefined,
+    clientCert: values.clientCert ? values.clientCert : undefined,
+  });
+}
+
+function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
+  if (!values || (!values.host && !values.port && !values.user)) {
+    return undefined;
+  }
+  const tunnel = new SSHTunnel({
+    host: values.host,
+    port: values.port,
+    user: values.user,
+    knownHostPublicKey: values.knownHostPublicKey
+      ? values.knownHostPublicKey
+      : undefined,
+  });
+
+  if (values.privateKey) {
+    tunnel.authentication = new SSHAuthentication({
+      authConfig: {
+        case: 'privateKey',
+        value: new SSHPrivateKey({
+          value: values.privateKey,
+          passphrase: values.passphrase,
+        }),
+      },
+    });
+  } else if (values.passphrase) {
+    tunnel.authentication = new SSHAuthentication({
+      authConfig: {
+        case: 'passphrase',
+        value: new SSHPassphrase({
+          value: values.passphrase,
+        }),
+      },
+    });
+  }
+  return tunnel;
 }
 
 export async function checkMongoConnection(
