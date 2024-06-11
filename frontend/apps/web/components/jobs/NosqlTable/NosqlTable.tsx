@@ -140,13 +140,6 @@ export default function NosqlTable(props: Props): ReactElement {
         jobType="sync"
         constraintHandler={constraintHandler}
       />
-      {/* <SchemaPageTable
-        columns={columns}
-        data={data}
-        transformerHandler={handler}
-        constraintHandler={constraintHandler}
-        jobType={jobType}
-      /> */}
     </div>
   );
 }
