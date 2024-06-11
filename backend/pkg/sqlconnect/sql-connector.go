@@ -405,6 +405,7 @@ func (g *GeneralDbConnectConfig) String() string {
 			query := g.QueryParams.Encode()
 			dsn += "?" + query
 		}
+		fmt.Printf("Connection String: %s \n", dsn)
 		return dsn
 	}
 	return ""
@@ -469,6 +470,12 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 
 		database := strings.TrimPrefix(u.Path, "/")
 
+		query := u.Query()
+		if connectionTimeout != nil {
+			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
+		}
+		query.Add("multiStatements", "true")
+
 		return &GeneralDbConnectConfig{
 			Driver:      u.Scheme,
 			Host:        u.Hostname(),
@@ -477,7 +484,7 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			User:        user,
 			Pass:        pass,
 			Protocol:    nil,
-			QueryParams: u.Query(),
+			QueryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")

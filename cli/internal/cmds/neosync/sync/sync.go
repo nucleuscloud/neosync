@@ -2,6 +2,7 @@ package sync_cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -565,6 +566,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 	if err != nil {
 		return err
 	}
+	fmt.Println("HERE")
 	defer db.Db.Close()
 	if cmd.Destination.InitSchema {
 		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
@@ -576,8 +578,9 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 		}
 		orderedInitStatements := []string{}
 		for _, t := range orderedTablesResp.OrderedTables {
-			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+			orderedInitStatements = append(orderedInitStatements, strings.ReplaceAll(schemaConfig.InitTableStatementsMap[t], "\n", ""))
 		}
+
 		err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
 		if err != nil {
 			fmt.Println("Error creating tables:", err) //nolint:forbidigo
@@ -1103,6 +1106,11 @@ func getConnectionSchemaConfig(
 		}
 		tc[table] = fkConstraints
 	}
+	jsonF, _ := json.MarshalIndent(initTableStatementsMap, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
+
+	jsonF, _ = json.MarshalIndent(truncateTableStatementsMap, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 	return &schemaConfig{
 		Schemas:                    schemas,
 		TableConstraints:           tc,
