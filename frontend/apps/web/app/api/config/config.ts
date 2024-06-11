@@ -17,6 +17,11 @@ export function getSystemAppConfig(): SystemAppConfig {
       host: process.env.POSTHOG_HOST ?? 'https://app.posthog.com',
       key: process.env.POSTHOG_KEY,
     },
+    koala: {
+      enabled: process.env.NEOSYNC_ANALYTICS_ENABLED
+        ? process.env.NEOSYNC_ANALYTICS_ENABLED === 'true'
+        : true,
+    },
     isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
     enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',
     signInProviderId: process.env.AUTH_PROVIDER_ID,

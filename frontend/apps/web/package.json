@@ -18,6 +18,7 @@
     "@bufbuild/protobuf": "^1.10.0",
     "@connectrpc/connect": "^1.4.0",
     "@connectrpc/connect-node": "^1.4.0",
+    "@getkoala/react": "^2.1.1",
     "@hookform/resolvers": "^3.3.4",
     "@monaco-editor/react": "^4.6.0",
     "@neosync/sdk": "file:../../packages/sdk",
