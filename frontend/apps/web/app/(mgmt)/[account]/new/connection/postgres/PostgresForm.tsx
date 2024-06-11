@@ -48,25 +48,17 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ClientTlsConfig,
-  ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
-  IsConnectionNameAvailableResponse,
-  PostgresConnection,
-  PostgresConnectionConfig,
-  SSHAuthentication,
-  SSHPassphrase,
-  SSHPrivateKey,
-  SSHTunnel,
-  SqlConnectionOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import {
+  checkPostgresConnection,
+  createPostgresConnection,
+} from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -131,30 +123,14 @@ export default function PostgresForm() {
     }
 
     try {
-      let connection: CreateConnectionResponse = new CreateConnectionResponse(
-        {}
+      const connection = await createPostgresConnection(
+        {
+          ...values,
+          url: activeTab === 'url' ? values.url : undefined,
+          db: values.db,
+        },
+        account.id
       );
-      if (activeTab === 'host') {
-        connection = await createPostgresConnection(
-          values.connectionName,
-          account.id,
-          values.db,
-          undefined, // don't pass in the url since user is submitting the db values
-          values.tunnel,
-          values.options,
-          values.clientTls
-        );
-      } else if (activeTab === 'url') {
-        connection = await createPostgresConnection(
-          values.connectionName,
-          account.id,
-          undefined, // don't pass in the db values since user is submitting the url
-          values.url ?? '',
-          values.tunnel,
-          values.options,
-          values.clientTls
-        );
-      }
       posthog.capture('New Connection Created', { type: 'postgres' });
       toast({
         title: 'Successfully created connection!',
@@ -763,25 +739,15 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             onClick={async () => {
               setIsValidating(true);
               try {
-                let res: CheckConnectionConfigResponse =
-                  new CheckConnectionConfigResponse({});
-                if (activeTab === 'host') {
-                  res = await checkPostgresConnection(
-                    account?.id ?? '',
-                    form.getValues().db,
-                    form.getValues().tunnel,
-                    undefined,
-                    form.getValues().clientTls
-                  );
-                } else if (activeTab === 'url') {
-                  res = await checkPostgresConnection(
-                    account?.id ?? '',
-                    undefined,
-                    form.getValues().tunnel,
-                    form.getValues().url ?? '',
-                    form.getValues().clientTls
-                  );
-                }
+                const values = form.getValues();
+                const res = await checkPostgresConnection(
+                  {
+                    ...values,
+                    url: activeTab === 'url' ? values.url : undefined,
+                    db: values.db,
+                  },
+                  account?.id ?? ''
+                );
                 setValidationResponse(res);
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
@@ -843,152 +809,4 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
-}
-async function createPostgresConnection(
-  name: string,
-  accountId: string,
-  db?: PostgresFormValues['db'],
-  url?: string,
-  tunnel?: PostgresFormValues['tunnel'],
-  options?: PostgresFormValues['options'],
-  clientTls?: PostgresFormValues['clientTls']
-): Promise<CreateConnectionResponse> {
-  const pgconfig = new PostgresConnectionConfig({});
-
-  if (url) {
-    pgconfig.connectionConfig = {
-      case: 'url',
-      value: url,
-    };
-  } else {
-    pgconfig.connectionConfig = {
-      case: 'connection',
-      value: new PostgresConnection({
-        host: db?.host,
-        name: db?.name,
-        user: db?.user,
-        pass: db?.pass,
-        port: db?.port,
-        sslMode: db?.sslMode,
-      }),
-    };
-  }
-
-  if (options && options.maxConnectionLimit != 0) {
-    pgconfig.connectionOptions = new SqlConnectionOptions({
-      maxConnectionLimit: options.maxConnectionLimit,
-    });
-  }
-
-  if (clientTls?.rootCert || clientTls?.clientCert || clientTls?.clientKey) {
-    pgconfig.clientTls = new ClientTlsConfig({
-      rootCert: clientTls.rootCert ? clientTls.rootCert : undefined,
-      clientCert: clientTls.clientCert ? clientTls.clientCert : undefined,
-      clientKey: clientTls.clientKey ? clientTls.clientKey : undefined,
-    });
-  }
-
-  if (tunnel && tunnel.host) {
-    pgconfig.tunnel = new SSHTunnel({
-      host: tunnel.host,
-      port: tunnel.port,
-      user: tunnel.user,
-      knownHostPublicKey: tunnel.knownHostPublicKey
-        ? tunnel.knownHostPublicKey
-        : undefined,
-    });
-    if (tunnel.privateKey) {
-      pgconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'privateKey',
-          value: new SSHPrivateKey({
-            value: tunnel.privateKey,
-            passphrase: tunnel.passphrase,
-          }),
-        },
-      });
-    } else if (tunnel.passphrase) {
-      pgconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'passphrase',
-          value: new SSHPassphrase({
-            value: tunnel.passphrase,
-          }),
-        },
-      });
-    }
-  }
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateConnectionRequest({
-        accountId,
-        name: name,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'pgConfig',
-            value: pgconfig,
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
-}
-
-async function checkPostgresConnection(
-  accountId: string,
-  db?: PostgresFormValues['db'],
-  tunnel?: PostgresFormValues['tunnel'],
-  url?: string,
-  clientTls?: PostgresFormValues['clientTls']
-): Promise<CheckConnectionConfigResponse> {
-  let requestBody;
-  if (url) {
-    requestBody = { url, tunnel, clientTls };
-  } else {
-    requestBody = { db, tunnel, clientTls };
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/postgres/check`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
-}
-
-export async function isConnectionNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsConnectionNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/is-connection-name-available?connectionName=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
