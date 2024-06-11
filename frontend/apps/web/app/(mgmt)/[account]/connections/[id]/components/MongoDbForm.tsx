@@ -2,7 +2,9 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,6 +25,7 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { checkMongoConnection } from '../../../new/connection/mongodb/MongoDBForm';
@@ -47,11 +50,12 @@ export default function MongoDbForm(props: Props): ReactElement {
       accountId: account?.id ?? '',
     },
   });
-  const [isValidating, setIsValidating] = useState<boolean>();
-  // todo
+  const [isValidating, setIsValidating] = useState<boolean>(false);
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
 
   async function onValidationClick(): Promise<void> {
     if (isValidating) {
@@ -64,6 +68,7 @@ export default function MongoDbForm(props: Props): ReactElement {
         account?.id ?? ''
       );
       setValidationResponse(res);
+      setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
         new CheckConnectionConfigResponse({
@@ -135,13 +140,32 @@ export default function MongoDbForm(props: Props): ReactElement {
           )}
         />
 
+        <PermissionsDialog
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          connectionName={form.getValues('connectionName')}
+        />
+
         <div className="flex flex-row gap-2 justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={() => onValidationClick()}
           >
-            <ButtonText leftIcon={<div></div>} text="Test Connection" />
+            <ButtonText
+              leftIcon={
+                isValidating ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div />
+                )
+              }
+              text="Test Connection"
+            />
           </Button>
 
           <Button type="submit">
@@ -151,8 +175,31 @@ export default function MongoDbForm(props: Props): ReactElement {
             />
           </Button>
         </div>
+        {validationResponse && !validationResponse.isConnected && (
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        )}
       </form>
     </Form>
+  );
+}
+
+interface ErrorAlertProps {
+  title: string;
+  description: string;
+}
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { title, description } = props;
+  return (
+    <Alert variant="destructive">
+      <ExclamationTriangleIcon className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
   );
 }
 

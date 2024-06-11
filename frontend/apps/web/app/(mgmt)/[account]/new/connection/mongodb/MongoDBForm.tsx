@@ -3,8 +3,10 @@ import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -32,6 +34,7 @@ import {
   GetConnectionResponse,
   MongoConnectionConfig,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -57,11 +60,13 @@ export default function MongoDBForm(): ReactElement {
   });
 
   const router = useRouter();
-  const [isValidating, setIsValidating] = useState<boolean>();
+  const [isValidating, setIsValidating] = useState<boolean>(false);
   // todo
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
   const { toast } = useToast();
@@ -178,6 +183,7 @@ export default function MongoDBForm(): ReactElement {
         account?.id ?? ''
       );
       setValidationResponse(res);
+      setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
       setValidationResponse(
         new CheckConnectionConfigResponse({
@@ -235,13 +241,32 @@ export default function MongoDBForm(): ReactElement {
           )}
         />
 
+        <PermissionsDialog
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          connectionName={form.getValues('connectionName')}
+        />
+
         <div className="flex flex-row gap-3 justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={() => onValidationClick()}
           >
-            <ButtonText leftIcon={<div></div>} text="Test Connection" />
+            <ButtonText
+              leftIcon={
+                isValidating ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div />
+                )
+              }
+              text="Test Connection"
+            />
           </Button>
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
@@ -250,8 +275,31 @@ export default function MongoDBForm(): ReactElement {
             />
           </Button>
         </div>
+        {validationResponse && !validationResponse.isConnected && (
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        )}
       </form>
     </Form>
+  );
+}
+
+interface ErrorAlertProps {
+  title: string;
+  description: string;
+}
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { title, description } = props;
+  return (
+    <Alert variant="destructive">
+      <ExclamationTriangleIcon className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
   );
 }
 
