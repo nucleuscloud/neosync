@@ -584,7 +584,7 @@ export default function PostgresForm(props: Props): ReactElement {
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="Submit"
+              text="Update"
             />
           </Button>
         </div>
