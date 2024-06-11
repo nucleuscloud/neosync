@@ -390,6 +390,9 @@ func (s *Service) GetConnectionSchema(
 			return nil, err
 		}
 		mongoclient, err := db.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
 		defer db.Close(ctx)
 		dbnames, err := mongoclient.ListDatabaseNames(ctx, bson.D{})
 		if err != nil {
