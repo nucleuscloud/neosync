@@ -20,15 +20,12 @@ import { MongoDbFormValues } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ConnectionConfig,
-  MongoConnectionConfig,
-  UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { checkMongoConnection } from '../../util';
+import { checkMongoConnection, updateMongoConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -87,7 +84,7 @@ export default function MongoDbForm(props: Props): ReactElement {
     }
 
     try {
-      const connectionResp = await updateConnection(
+      const connectionResp = await updateMongoConnection(
         values,
         connectionId,
         account.id
@@ -202,44 +199,4 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
-}
-
-async function updateConnection(
-  values: MongoDbFormValues,
-  connectionId: string,
-  accountId: string
-): Promise<UpdateConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateConnectionRequest({
-          id: connectionId,
-          name: values.connectionName,
-          connectionConfig: new ConnectionConfig({
-            config: {
-              case: 'mongoConfig',
-              value: new MongoConnectionConfig({
-                connectionConfig: {
-                  case: 'url',
-                  value: values.url,
-                },
-                clientTls: undefined,
-                tunnel: undefined,
-              }),
-            },
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
 }

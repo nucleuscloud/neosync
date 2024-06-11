@@ -40,15 +40,6 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ConnectionConfig,
-  MysqlConnection,
-  MysqlConnectionConfig,
-  SSHAuthentication,
-  SSHPassphrase,
-  SSHPrivateKey,
-  SSHTunnel,
-  SqlConnectionOptions,
-  UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import {
@@ -57,7 +48,7 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { checkMysqlConnection } from '../../util';
+import { checkMysqlConnection, updateMysqlConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -92,30 +83,11 @@ export default function MysqlForm(props: Props) {
 
   async function onSubmit(values: MysqlFormValues) {
     try {
-      let connection: UpdateConnectionResponse = new UpdateConnectionResponse(
-        {}
+      const connection = await updateMysqlConnection(
+        values,
+        account?.id ?? '',
+        connectionId
       );
-      if (activeTab === 'host') {
-        connection = await updateMysqlConnection(
-          connectionId,
-          values.connectionName,
-          account?.id ?? '',
-          values.db,
-          values.tunnel,
-          undefined,
-          values.options
-        );
-      } else if (activeTab === 'url') {
-        connection = await updateMysqlConnection(
-          connectionId,
-          values.connectionName,
-          account?.id ?? '',
-          undefined,
-          undefined,
-          values.url,
-          values.options
-        );
-      }
       onSaved(connection);
     } catch (err) {
       console.error(err);
@@ -576,89 +548,4 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
-}
-
-async function updateMysqlConnection(
-  connectionId: string,
-  connectionName: string,
-  accountId: string,
-  db?: MysqlFormValues['db'],
-  tunnel?: MysqlFormValues['tunnel'],
-  url?: string,
-  options?: MysqlFormValues['options']
-): Promise<UpdateConnectionResponse> {
-  const myconfig = new MysqlConnectionConfig({
-    connectionConfig: {
-      case: 'connection',
-      value: new MysqlConnection({
-        host: db?.host,
-        name: db?.name,
-        user: db?.user,
-        pass: db?.pass,
-        port: db?.port,
-        protocol: db?.protocol,
-      }),
-    },
-  });
-  if (options && options.maxConnectionLimit != 0) {
-    myconfig.connectionOptions = new SqlConnectionOptions({
-      maxConnectionLimit: options.maxConnectionLimit,
-    });
-  }
-  if (tunnel && tunnel.host) {
-    myconfig.tunnel = new SSHTunnel({
-      host: tunnel.host,
-      port: tunnel.port,
-      user: tunnel.user,
-      knownHostPublicKey: tunnel.knownHostPublicKey
-        ? tunnel.knownHostPublicKey
-        : undefined,
-    });
-    if (tunnel.privateKey) {
-      myconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'privateKey',
-          value: new SSHPrivateKey({
-            value: tunnel.privateKey,
-            passphrase: tunnel.passphrase,
-          }),
-        },
-      });
-    } else if (tunnel.passphrase) {
-      myconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'passphrase',
-          value: new SSHPassphrase({
-            value: tunnel.passphrase,
-          }),
-        },
-      });
-    }
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateConnectionRequest({
-          id: connectionId,
-          name: connectionName,
-          connectionConfig: new ConnectionConfig({
-            config: {
-              case: 'mysqlConfig',
-              value: myconfig,
-            },
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
 }

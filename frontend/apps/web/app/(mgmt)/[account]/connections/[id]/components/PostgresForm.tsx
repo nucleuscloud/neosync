@@ -42,22 +42,12 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ClientTlsConfig,
-  ConnectionConfig,
-  PostgresConnection,
-  PostgresConnectionConfig,
-  SSHAuthentication,
-  SSHPassphrase,
-  SSHPrivateKey,
-  SSHTunnel,
-  SqlConnectionOptions,
-  UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { checkPostgresConnection } from '../../util';
+import { checkPostgresConnection, updatePostgresConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -93,32 +83,11 @@ export default function PostgresForm(props: Props): ReactElement {
 
   async function onSubmit(values: PostgresFormValues) {
     try {
-      let connection: UpdateConnectionResponse = new UpdateConnectionResponse(
-        {}
+      const connection = await updatePostgresConnection(
+        values,
+        account?.id ?? '',
+        connectionId
       );
-      if (activeTab === 'host') {
-        connection = await updatePostgresConnection(
-          connectionId,
-          values.connectionName,
-          account?.id ?? '',
-          values.db,
-          values.tunnel,
-          undefined,
-          values.options,
-          values.clientTls
-        );
-      } else if (activeTab === 'url') {
-        connection = await updatePostgresConnection(
-          connectionId,
-          values.connectionName,
-          account?.id ?? '',
-          undefined,
-          undefined,
-          values.url,
-          values.options,
-          values.clientTls
-        );
-      }
       onSaved(connection);
     } catch (err) {
       console.error(err);
@@ -621,107 +590,6 @@ export default function PostgresForm(props: Props): ReactElement {
       </form>
     </Form>
   );
-}
-
-async function updatePostgresConnection(
-  connectionId: string,
-  connectionName: string,
-  accountId: string,
-  db?: PostgresFormValues['db'],
-  tunnel?: PostgresFormValues['tunnel'],
-  url?: string,
-  options?: PostgresFormValues['options'],
-  clientTls?: PostgresFormValues['clientTls']
-): Promise<UpdateConnectionResponse> {
-  const pgconfig = new PostgresConnectionConfig({});
-  if (url) {
-    pgconfig.connectionConfig = {
-      case: 'url',
-      value: url,
-    };
-  } else {
-    pgconfig.connectionConfig = {
-      case: 'connection',
-      value: new PostgresConnection({
-        host: db?.host,
-        name: db?.name,
-        user: db?.user,
-        pass: db?.pass,
-        port: db?.port,
-        sslMode: db?.sslMode,
-      }),
-    };
-  }
-  if (options && options.maxConnectionLimit != 0) {
-    pgconfig.connectionOptions = new SqlConnectionOptions({
-      maxConnectionLimit: options.maxConnectionLimit,
-    });
-  }
-  if (tunnel && tunnel.host) {
-    pgconfig.tunnel = new SSHTunnel({
-      host: tunnel.host,
-      port: tunnel.port,
-      user: tunnel.user,
-      knownHostPublicKey: tunnel.knownHostPublicKey
-        ? tunnel.knownHostPublicKey
-        : undefined,
-    });
-    if (tunnel.privateKey) {
-      pgconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'privateKey',
-          value: new SSHPrivateKey({
-            value: tunnel.privateKey,
-            passphrase: tunnel.passphrase,
-          }),
-        },
-      });
-    } else if (tunnel.passphrase) {
-      pgconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'passphrase',
-          value: new SSHPassphrase({
-            value: tunnel.passphrase,
-          }),
-        },
-      });
-    }
-  }
-
-  if (clientTls?.rootCert || clientTls?.clientCert || clientTls?.clientKey) {
-    pgconfig.clientTls = new ClientTlsConfig({
-      rootCert: clientTls.rootCert ? clientTls.rootCert : undefined,
-      clientCert: clientTls.clientCert ? clientTls.clientCert : undefined,
-      clientKey: clientTls.clientKey ? clientTls.clientKey : undefined,
-    });
-  }
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateConnectionRequest({
-          id: connectionId,
-          name: connectionName,
-          connectionConfig: new ConnectionConfig({
-            config: {
-              case: 'pgConfig',
-              value: pgconfig,
-            },
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
 }
 
 interface ErrorAlertProps {

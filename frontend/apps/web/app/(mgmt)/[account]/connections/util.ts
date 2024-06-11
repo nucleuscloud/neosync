@@ -23,6 +23,8 @@ import {
   SSHPrivateKey,
   SSHTunnel,
   SqlConnectionOptions,
+  UpdateConnectionRequest,
+  UpdateConnectionResponse,
 } from '@neosync/sdk';
 
 export type ConnectionType =
@@ -94,6 +96,26 @@ export async function createMysqlConnection(
   );
 }
 
+export async function updateMysqlConnection(
+  values: MysqlFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateConnectionResponse> {
+  return updateConnection(
+    new UpdateConnectionRequest({
+      id: resourceId,
+      name: values.connectionName,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mysqlConfig',
+          value: buildMysqlConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
 export async function checkMysqlConnection(
   values: MysqlFormValues,
   accountId: string
@@ -150,6 +172,26 @@ export async function createPostgresConnection(
     new CreateConnectionRequest({
       name: values.connectionName,
       accountId: accountId,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'pgConfig',
+          value: buildPostgresConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+export async function updatePostgresConnection(
+  values: PostgresFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateConnectionResponse> {
+  return updateConnection(
+    new UpdateConnectionRequest({
+      id: resourceId,
+      name: values.connectionName,
       connectionConfig: new ConnectionConfig({
         config: {
           case: 'pgConfig',
@@ -281,6 +323,26 @@ export async function createMongoConnection(
   );
 }
 
+export async function updateMongoConnection(
+  values: MongoDbFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateConnectionResponse> {
+  return updateConnection(
+    new UpdateConnectionRequest({
+      id: resourceId,
+      name: values.connectionName,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mongoConfig',
+          value: buildMongoConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
 export async function checkMongoConnection(
   values: MongoDbFormValues,
   accountId: string
@@ -345,4 +407,22 @@ async function createConnection(
     throw new Error(body.message);
   }
   return CreateConnectionResponse.fromJson(await res.json());
+}
+
+async function updateConnection(
+  input: UpdateConnectionRequest,
+  accountId: string
+): Promise<UpdateConnectionResponse> {
+  const res = await fetch(`/api/accounts/${accountId}/connections`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateConnectionResponse.fromJson(await res.json());
 }
