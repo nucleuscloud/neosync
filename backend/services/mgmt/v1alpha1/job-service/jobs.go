@@ -329,7 +329,7 @@ func (s *Service) CreateJob(
 			return nil, err
 		}
 		options := &pg_models.JobDestinationOptions{}
-		err = options.FromDto(dest.Options)
+		err = options.FromDto(dest.GetOptions())
 		if err != nil {
 			return nil, err
 		}
@@ -359,6 +359,8 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connectionIds = append(connectionIds, config.Mongodb.GetConnectionId())
 	default:
 	}
 
@@ -401,7 +403,7 @@ func (s *Service) CreateJob(
 	}
 
 	mappings := []*pg_models.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
+	for _, mapping := range req.Msg.GetMappings() {
 		jm := &pg_models.JobMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
@@ -882,6 +884,9 @@ func (s *Service) UpdateJobSourceConnection(
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connId := config.Mongodb.GetConnectionId()
+		connectionIdToVerify = &connId
 	}
 
 	// verifies that the account has access to that connection id
@@ -915,6 +920,13 @@ func (s *Service) UpdateJobSourceConnection(
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
 			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		dbConf := req.Msg.GetSource().GetOptions().GetMongodb()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
 		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("connection config is not currently supported: %T", cconfig))
@@ -1327,12 +1339,16 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 		if d.ConnectionConfig.AwsS3Config != nil {
 			continue
 		}
-		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.MysqlConfig != nil {
+		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.PgConfig == nil {
 			// invalid Postgres source cannot have Mysql destination
 			return false, nil
 		}
-		if sourceConnection.ConnectionConfig.MysqlConfig != nil && d.ConnectionConfig.PgConfig != nil {
-			// invalid Mysql source cannot habe Postgres destination
+		if sourceConnection.ConnectionConfig.MysqlConfig != nil && d.ConnectionConfig.MysqlConfig == nil {
+			// invalid Mysql source cannot have non-Mysql or non-AWS connection
+			return false, nil
+		}
+		if sourceConnection.ConnectionConfig.MongoConfig != nil && d.ConnectionConfig.MongoConfig == nil {
+			// invalid Mongo soure cannot have
 			return false, nil
 		}
 	}
@@ -1499,8 +1515,8 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil {
-		return nil, errors.New("unsupported connection config type")
+	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil || connection.Msg.GetConnection().GetConnectionConfig().GetMongoConfig() != nil {
+		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
 	connectionTimeout := 5
@@ -1677,6 +1693,8 @@ func (s *Service) ValidateJobMappings(
 func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error) {
 	var connectionIdToVerify *string
 	switch config := jobSource.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connectionIdToVerify = &config.Mongodb.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionIdToVerify = &config.Mysql.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:

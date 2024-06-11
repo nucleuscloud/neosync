@@ -10,6 +10,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
+import MongoDbForm from './MongoDbForm';
 import MysqlForm from './MysqlForm';
 import OpenAiForm from './OpenAiForm';
 import PostgresForm from './PostgresForm';
@@ -312,6 +313,54 @@ export function getConnectionComponentDetails(
                 url: connection.connectionConfig.config.value.apiUrl,
                 apiKey: connection.connectionConfig.config.value.apiKey,
               },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    case 'mongoConfig':
+      if (
+        connection.connectionConfig.config.value.connectionConfig.case !== 'url'
+      ) {
+        return {
+          name: 'Invalid Connection',
+          summary: (
+            <div>
+              <p>No summary found.</p>
+            </div>
+          ),
+          header: <PageHeader header="Unknown Connection" />,
+          body: (
+            <div>
+              No connection component found for: (
+              {connection?.name ?? 'unknown name'})
+            </div>
+          ),
+        };
+      }
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="MongoDB"
+            leftIcon={<ConnectionIcon name="mongodb" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <MongoDbForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              url: connection.connectionConfig.config.value.connectionConfig
+                .value,
             }}
             onSaved={(resp) => onSaved(resp)}
             onSaveFailed={onSaveFailed}

@@ -90,7 +90,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const { postgres, mysql, s3 } = splitConnections(connections);
+  const { postgres, mysql, s3, mongodb } = splitConnections(connections);
 
   return (
     <div
@@ -103,7 +103,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             header="Connect"
             progressSteps={
               <JobsProgressSteps
-                steps={getJobProgressSteps('data-sync')}
+                steps={getJobProgressSteps('data-sync', false)}
                 stepName={'connect'}
               />
             }
@@ -183,6 +183,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               ) {
                                 urlParams.append('connectionType', 'postgres');
                                 urlParams.append('connectionType', 'mysql');
+                                urlParams.append('connectionType', 'mongodb');
                               }
 
                               router.push(
@@ -207,6 +208,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <ConnectionSelectContent
                               postgres={postgres}
                               mysql={mysql}
+                              mongodb={mongodb}
                               s3={[]}
                               openai={[]}
                               newConnectionValue={NEW_CONNECTION_VALUE}
@@ -302,6 +304,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             'connectionType',
                                             'aws-s3'
                                           );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'mongodb'
+                                          );
                                         }
 
                                         router.push(
@@ -334,7 +340,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         postgres={postgres}
                                         mysql={mysql}
                                         s3={s3}
-                                        openai={[]}
+                                        mongodb={mongodb}
                                         newConnectionValue={
                                           NEW_CONNECTION_VALUE
                                         }

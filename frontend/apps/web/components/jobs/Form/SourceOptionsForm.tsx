@@ -76,6 +76,8 @@ export default function SourceOptionsForm(
       return <></>;
     case 'openaiConfig':
       return <></>;
+    case 'mongoConfig':
+      return <></>;
     default:
       return (
         <div>

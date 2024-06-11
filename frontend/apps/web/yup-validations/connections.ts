@@ -209,3 +209,11 @@ export const OpenAiFormValues = Yup.object({
 });
 
 export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
+
+export const MongoDbFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+
+  url: Yup.string().required(),
+}).required();
+
+export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

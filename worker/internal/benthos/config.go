@@ -58,6 +58,44 @@ type Inputs struct {
 	PooledSqlRaw   *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
 	Generate       *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
 	OpenAiGenerate *OpenAiGenerate    `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
+	MongoDB        *InputMongoDb      `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
+}
+
+type InputMongoDb struct {
+	Url             string         `json:"url" yaml:"url"`
+	Database        string         `json:"database" yaml:"database"`
+	Username        string         `json:"username" yaml:"username"`
+	Password        string         `json:"password" yaml:"password"`
+	Operation       *string        `json:"operation,omitempty" yaml:"operation,omitempty"`
+	Collection      string         `json:"collection" yaml:"collection"`
+	JsonMarshalMode *string        `json:"json_marshal_mode,omitempty" yaml:"json_marshal_mode,omitempty"`
+	Query           string         `json:"query" yaml:"query"`
+	AutoReplayNacks *bool          `json:"auto_replay_nacks,omitempty" yaml:"auto_replay_nacks,omitempty"`
+	BatchSize       *int32         `json:"batch_size,omitempty" yaml:"batch_size,omitempty"`
+	Sort            map[string]int `json:"sort,omitempty" yaml:"sort,omitempty"`
+	Limit           *int32         `json:"limit,omitempty" yaml:"limit,omitempty"`
+}
+
+type OutputMongoDb struct {
+	Url          string             `json:"url" yaml:"url"`
+	Database     string             `json:"database" yaml:"database"`
+	Username     string             `json:"username" yaml:"username"`
+	Password     string             `json:"password" yaml:"password"`
+	Operation    string             `json:"operation" yaml:"operation"`
+	Collection   string             `json:"collection" yaml:"collection"`
+	DocumentMap  string             `json:"document_map" yaml:"document_map"`
+	FilterMap    string             `json:"filter_map" yaml:"filter_map"`
+	HintMap      string             `json:"hint_map" yaml:"hint_map"`
+	Upsert       bool               `json:"upsert" yaml:"upsert"`
+	MaxInFlight  *int               `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	Batching     *Batching          `json:"batching,omitempty" yaml:"batching,omitempty"`
+	WriteConcern *MongoWriteConcern `json:"write_concern,omitempty" yaml:"write_concern,omitempty"`
+}
+
+type MongoWriteConcern struct {
+	W        string `json:"w,omitempty" yaml:"w,omitempty"`
+	J        string `json:"j,omitempty" yaml:"j,omitempty"`
+	WTimeout string `json:"w_timeout,omitempty" yaml:"w_timeout,omitempty"`
 }
 
 type OpenAiGenerate struct {
@@ -184,6 +222,7 @@ type Outputs struct {
 	RedisHashOutput *RedisHashOutputConfig `json:"redis_hash_output,omitempty" yaml:"redis_hash_output,omitempty"`
 	Error           *ErrorOutputConfig     `json:"error,omitempty" yaml:"error,omitempty"`
 	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
+	MongoDB         *OutputMongoDb         `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
 }
 
 type SwitchOutputConfig struct {

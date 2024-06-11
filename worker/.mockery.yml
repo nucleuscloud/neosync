@@ -9,9 +9,11 @@ inpackage: True
 packages:
   github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
     interfaces:
-      sqlProvider:
       BenthosStreamClient:
       BenthosStreamManagerClient:
   github.com/nucleuscloud/neosync/worker/internal/benthos/sql:
     interfaces:
       SqlDbtx:
+  github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager:
+    interfaces:
+      ConnectionProvider:

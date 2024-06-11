@@ -5,6 +5,7 @@ import {
   Connection,
   JobDestinationOptions,
   JobMappingTransformer,
+  MongoDBDestinationConnectionOptions,
   MysqlDestinationConnectionOptions,
   MysqlOnConflictConfig,
   MysqlSourceSchemaOption,
@@ -19,7 +20,7 @@ import {
 import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
-const JobMappingTransformerForm = Yup.object({
+export const JobMappingTransformerForm = Yup.object({
   source: Yup.number().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });
@@ -174,6 +175,14 @@ export function toJobDestinationOptions(
         config: {
           case: 'awsS3Options',
           value: new AwsS3DestinationConnectionOptions({}),
+        },
+      });
+    }
+    case 'mongoConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mongodbOptions',
+          value: new MongoDBDestinationConnectionOptions({}),
         },
       });
     }

@@ -4,7 +4,7 @@ import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/Sup
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
-import { DiMysql, DiPostgresql } from 'react-icons/di';
+import { DiMongodb, DiMysql, DiPostgresql } from 'react-icons/di';
 import { FaAws } from 'react-icons/fa';
 
 interface Props {
@@ -61,6 +61,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <OpenAiLogo bg={resolvedTheme === 'dark' ? 'white' : '#272F30'} />
+        </IconContext.Provider>
+      );
+    }
+    case 'mongodb': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <DiMongodb />
         </IconContext.Provider>
       );
     }

@@ -563,6 +563,7 @@ export default function PostgresForm(props: Props): ReactElement {
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
           connectionName={form.getValues('connectionName')}
+          connectionType="postgres"
         />
         <div className="flex flex-row gap-3 justify-between">
           <Button
