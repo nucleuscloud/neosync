@@ -21,6 +21,7 @@ export function getSystemAppConfig(): SystemAppConfig {
       enabled: process.env.NEOSYNC_ANALYTICS_ENABLED
         ? process.env.NEOSYNC_ANALYTICS_ENABLED === 'true'
         : true,
+      key: process.env.KOALA_KEY,
     },
     isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
     enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',

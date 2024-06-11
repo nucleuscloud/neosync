@@ -16,9 +16,10 @@ export default function KoalaIdentifier(): ReactElement {
     if (
       typeof window !== 'undefined' &&
       !isSystemAppConfigLoading &&
-      systemAppConfig?.koala?.enabled
+      systemAppConfig?.koala?.enabled &&
+      systemAppConfig?.koala?.key
     ) {
-      ko.init(process.env.KOALA_KEY);
+      ko.init(systemAppConfig?.koala?.key);
     }
   }, [
     systemAppConfig?.koala?.enabled,
