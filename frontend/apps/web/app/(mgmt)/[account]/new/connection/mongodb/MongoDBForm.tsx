@@ -25,7 +25,6 @@ import { getErrorMessage } from '@/util/util';
 import { MongoDbFormValues } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
   ConnectionConfig,
   CreateConnectionRequest,
@@ -40,6 +39,7 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
+import { checkMongoConnection } from '../../../connections/util';
 
 export default function MongoDBForm(): ReactElement {
   const searchParams = useSearchParams();
@@ -339,69 +339,4 @@ async function createMongoConnection(
     throw new Error(body.message);
   }
   return CreateConnectionResponse.fromJson(await res.json());
-}
-
-export async function checkMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  // let tunnel: SSHTunnel | undefined = undefined;
-  // if (tunnelForm && tunnelForm.host && tunnelForm.port && tunnelForm.user) {
-  //   tunnel = new SSHTunnel({
-  //     host: tunnelForm.host,
-  //     port: tunnelForm.port,
-  //     user: tunnelForm.user,
-  //     knownHostPublicKey: tunnelForm.knownHostPublicKey
-  //       ? tunnelForm.knownHostPublicKey
-  //       : undefined,
-  //   });
-  //   if (tunnelForm.privateKey) {
-  //     tunnel.authentication = new SSHAuthentication({
-  //       authConfig: {
-  //         case: 'privateKey',
-  //         value: new SSHPrivateKey({
-  //           value: tunnelForm.privateKey,
-  //           passphrase: tunnelForm.passphrase,
-  //         }),
-  //       },
-  //     });
-  //   } else if (tunnelForm.passphrase) {
-  //     tunnel.authentication = new SSHAuthentication({
-  //       authConfig: {
-  //         case: 'passphrase',
-  //         value: new SSHPassphrase({
-  //           value: tunnelForm.passphrase,
-  //         }),
-  //       },
-  //     });
-  //   }
-  // }
-
-  const res = await fetch(`/api/accounts/${accountId}/connections/check`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CheckConnectionConfigRequest({
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'mongoConfig',
-            value: new MongoConnectionConfig({
-              connectionConfig: {
-                case: 'url',
-                value: values.url,
-              },
-              tunnel: undefined,
-            }),
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
 }

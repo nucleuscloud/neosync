@@ -28,7 +28,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { checkMongoConnection } from '../../../new/connection/mongodb/MongoDBForm';
+import { checkMongoConnection } from '../../util';
 
 interface Props {
   connectionId: string;
