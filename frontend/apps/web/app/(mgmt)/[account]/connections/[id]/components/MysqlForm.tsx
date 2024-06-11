@@ -1,5 +1,4 @@
 'use client';
-import { checkMysqlConnection } from '@/app/(mgmt)/[account]/new/connection/mysql/MysqlForm';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
@@ -59,6 +58,7 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { checkMysqlConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -489,23 +489,11 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsValidating(true);
               try {
-                let res: CheckConnectionConfigResponse =
-                  new CheckConnectionConfigResponse({});
-                if (activeTab === 'host') {
-                  res = await checkMysqlConnection(
-                    account?.id ?? '',
-                    form.getValues().db,
-                    undefined,
-                    form.getValues().tunnel
-                  );
-                } else {
-                  res = await checkMysqlConnection(
-                    account?.id ?? '',
-                    undefined,
-                    form.getValues().url,
-                    form.getValues().tunnel
-                  );
-                }
+                const res = await checkMysqlConnection(
+                  form.getValues(),
+                  account?.id ?? ''
+                );
+
                 setIsValidating(false);
                 setValidationResponse(res);
               } catch (err) {

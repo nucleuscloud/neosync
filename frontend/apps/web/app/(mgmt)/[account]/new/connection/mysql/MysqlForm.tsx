@@ -67,6 +67,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { checkMysqlConnection } from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -677,23 +678,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             onClick={async () => {
               setIsValidating(true);
               try {
-                let res: CheckConnectionConfigResponse =
-                  new CheckConnectionConfigResponse({});
-                if (activeTab === 'host') {
-                  res = await checkMysqlConnection(
-                    account?.id ?? '',
-                    form.getValues().db,
-                    undefined,
-                    form.getValues().tunnel
-                  );
-                } else {
-                  res = await checkMysqlConnection(
-                    account?.id ?? '',
-                    undefined,
-                    form.getValues().url,
-                    form.getValues().tunnel
-                  );
-                }
+                const res = await checkMysqlConnection(
+                  form.getValues(),
+                  account?.id ?? ''
+                );
                 setIsValidating(false);
                 setValidationResponse(res);
               } catch (err) {
@@ -865,34 +853,4 @@ async function createMysqlConnection(
     throw new Error(body.message);
   }
   return CreateConnectionResponse.fromJson(await res.json());
-}
-
-export async function checkMysqlConnection(
-  accountId: string,
-  db?: MysqlFormValues['db'],
-  url?: string,
-  tunnel?: MysqlFormValues['tunnel']
-): Promise<CheckConnectionConfigResponse> {
-  let requestBody;
-  if (url) {
-    requestBody = { url, tunnel };
-  } else {
-    requestBody = { db, tunnel };
-  }
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/mysql/check`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
 }

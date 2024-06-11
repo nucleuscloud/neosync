@@ -1,6 +1,7 @@
 import {
   ClientTlsFormValues,
   MongoDbFormValues,
+  MysqlFormValues,
   PostgresFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
@@ -10,6 +11,8 @@ import {
   ClientTlsConfig,
   ConnectionConfig,
   MongoConnectionConfig,
+  MysqlConnection,
+  MysqlConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
   SSHAuthentication,
@@ -47,6 +50,49 @@ export function getConnectionType(
     default:
       return null;
   }
+}
+
+export async function checkMysqlConnection(
+  values: MysqlFormValues,
+  accountId: string
+): Promise<CheckConnectionConfigResponse> {
+  const mysqlconfig = new MysqlConnectionConfig({
+    connectionOptions: new SqlConnectionOptions({
+      ...values.options,
+    }),
+    tunnel: getTunnelConfig(values.tunnel),
+  });
+
+  if (values.url) {
+    mysqlconfig.connectionConfig = {
+      case: 'url',
+      value: values.url,
+    };
+  } else {
+    mysqlconfig.connectionConfig = {
+      case: 'connection',
+      value: new MysqlConnection({
+        host: values.db.host,
+        name: values.db.name,
+        pass: values.db.pass,
+        port: values.db.port,
+        protocol: values.db.protocol,
+        user: values.db.user,
+      }),
+    };
+  }
+
+  return checkConnection(
+    new CheckConnectionConfigRequest({
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mysqlConfig',
+          value: mysqlconfig,
+        },
+      }),
+    }),
+    accountId
+  );
 }
 
 export async function checkPostgresConnection(
