@@ -7,11 +7,12 @@ import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
 import {
+  GetColumnsForSqlAutocomplete,
   buildRowKey,
   buildTableRowData,
-  GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
@@ -33,6 +34,7 @@ import {
   SetJobSourceSqlConnectionSubsetsRequest,
   SetJobSourceSqlConnectionSubsetsResponse,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getConnectionIdFromSource } from '../../source/components/util';
@@ -75,8 +77,7 @@ export default function SubsetCard(props: Props): ReactElement {
     }
   }, [fkConstraints, isTableConstraintsValidating]);
 
-  const dbType =
-    data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
+  const dbType = getDbtype(data?.job?.source?.options);
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
@@ -101,6 +102,19 @@ export default function SubsetCard(props: Props): ReactElement {
       <div className="space-y-10">
         <SubsetSkeleton />
       </div>
+    );
+  }
+
+  if (dbType === 'invalid') {
+    return (
+      <Alert variant="warning">
+        <ExclamationTriangleIcon className="h-4 w-4" />
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>
+          The source connection configured does not currently support
+          subsettings
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -328,4 +342,17 @@ async function setJobSubsets(
     throw new Error(body.message);
   }
   return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
+}
+
+function getDbtype(
+  options?: JobSourceOptions
+): 'mysql' | 'postgres' | 'invalid' {
+  switch (options?.config.case) {
+    case 'postgres':
+      return 'postgres';
+    case 'mysql':
+      return 'mysql';
+    default:
+      return 'invalid';
+  }
 }
