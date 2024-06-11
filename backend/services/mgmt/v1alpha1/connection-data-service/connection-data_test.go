@@ -26,6 +26,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -702,6 +703,7 @@ type serviceMocks struct {
 	MysqlQueierMock        *mysql_queries.MockQuerier
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
 	AwsManagerMock         *awsmanager.MockNeosyncAwsManagerClient
+	MongoConnectorMock     *mongoconnect.MockInterface
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -714,13 +716,14 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	mockAwsManager := awsmanager.NewMockNeosyncAwsManagerClient(t)
+	mockMongoConnector := mongoconnect.NewMockInterface(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier, nil) // todo
+	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector)
 
 	return &serviceMocks{
 		Service:                service,
@@ -737,6 +740,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		MysqlQueierMock:        mockMysqlquerier,
 		SqlConnectorMock:       mockSqlConnector,
 		AwsManagerMock:         mockAwsManager,
+		MongoConnectorMock:     mockMongoConnector,
 	}
 }
 

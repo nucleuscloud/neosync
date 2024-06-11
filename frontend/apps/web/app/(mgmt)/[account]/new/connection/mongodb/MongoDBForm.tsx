@@ -61,7 +61,6 @@ export default function MongoDBForm(): ReactElement {
 
   const router = useRouter();
   const [isValidating, setIsValidating] = useState<boolean>(false);
-  // todo
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();

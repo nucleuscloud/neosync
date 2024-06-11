@@ -68,8 +68,8 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			&tabledependency.RunConfig{RunType: tabledependency.RunTypeInsert},
 			map[string][]*referenceKey{},
 			map[string][]*referenceKey{},
-			job.GetId(),
-			"", // todo: runid
+			b.jobId,
+			b.runId,
 			&shared.RedisConfig{},
 			colTransformers,
 			tableMapping.Mappings,
