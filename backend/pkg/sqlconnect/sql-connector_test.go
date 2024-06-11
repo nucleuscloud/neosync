@@ -169,7 +169,7 @@ func Test_getGeneralDbConnectionConfigFromMysql_Url_mysql(t *testing.T) {
 		User:        "myuser",
 		Pass:        "mypassword",
 		Protocol:    nil,
-		QueryParams: url.Values{"ssl": []string{"true"}},
+		QueryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})
 }
 func Test_getGeneralDbConnectionConfigFromMysql_Url_mysqlx(t *testing.T) {
@@ -191,7 +191,7 @@ func Test_getGeneralDbConnectionConfigFromMysql_Url_mysqlx(t *testing.T) {
 		User:        "myuser",
 		Pass:        "mypassword",
 		Protocol:    nil,
-		QueryParams: url.Values{"ssl": []string{"true"}},
+		QueryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})
 }
 
