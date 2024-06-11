@@ -25,4 +25,10 @@ This guide will help you to configure your MongoDB database connection properly.
 
 ## Permissions
 
+### Source Connections
+
 When configuring your MongoDB user, please ensure that you grant it read permissions to relevant Database Collections that you want Neosync to have access to.
+
+### Destination Connections
+
+When configuring your MongoDB user, please ensure that you grant it necessary write permissiosn to the relevant Database and Collections that Neosync will need access to.
