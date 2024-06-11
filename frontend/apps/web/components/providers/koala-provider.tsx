@@ -1,8 +1,8 @@
 'use client';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import ko from '@getkoala/react';
+import ko, { KoalaProvider } from '@getkoala/react';
 import { useSession } from 'next-auth/react';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, ReactNode, useEffect } from 'react';
 import { useAccount } from './account-provider';
 
 export default function KoalaIdentifier(): ReactElement {
@@ -14,21 +14,11 @@ export default function KoalaIdentifier(): ReactElement {
 
   useEffect(() => {
     if (
-      typeof window !== 'undefined' &&
-      !isSystemAppConfigLoading &&
-      systemAppConfig?.koala?.enabled &&
-      systemAppConfig?.koala?.key
+      isAccountLoading ||
+      (!isSystemAppConfigLoading &&
+        systemAppConfig?.koala.enabled &&
+        systemAppConfig?.koala?.key)
     ) {
-      ko.init(systemAppConfig?.koala?.key);
-    }
-  }, [
-    systemAppConfig?.koala?.enabled,
-    systemAppConfig?.koala?.key,
-    isSystemAppConfigLoading,
-  ]);
-
-  useEffect(() => {
-    if (isAccountLoading || isSystemAppConfigLoading) {
       return;
     }
 
@@ -40,4 +30,27 @@ export default function KoalaIdentifier(): ReactElement {
   }, [user?.name, systemAppConfig?.isNeosyncCloud]);
 
   return <></>;
+}
+
+interface KProps {
+  children: ReactNode;
+}
+
+export function KProvider({ children }: KProps) {
+  const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
+    useGetSystemAppConfig();
+
+  if (
+    !isSystemAppConfigLoading &&
+    systemAppConfig?.koala?.enabled &&
+    systemAppConfig?.koala?.key
+  ) {
+    return children;
+  }
+
+  return (
+    <KoalaProvider publicApiKey={systemAppConfig?.koala.key}>
+      {children}
+    </KoalaProvider>
+  );
 }

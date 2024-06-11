@@ -1,4 +1,5 @@
 import '@/app/globals.css';
+import { KProvider } from '@/components/providers/koala-provider';
 import {
   PHProvider,
   PostHogPageview,
@@ -34,7 +35,9 @@ export default async function RootLayout({
               <PostHogPageview />
             </Suspense>
             <PHProvider>
-              <BaseLayout>{children}</BaseLayout>
+              <KProvider>
+                <BaseLayout>{children}</BaseLayout>
+              </KProvider>
             </PHProvider>
           </>
         </ThemeProvider>
