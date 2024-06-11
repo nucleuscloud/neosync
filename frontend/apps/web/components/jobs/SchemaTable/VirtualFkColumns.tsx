@@ -7,7 +7,7 @@ import { VirtualForeignKeysColumnHeader } from './VirtualFkColumnHeaders';
 import { Row as RowData } from './VirtualFkPageTable';
 
 interface Props {
-  removeVirtualForeignKey: (index: number) => void;
+  removeVirtualForeignKey?: (index: number) => void;
 }
 
 export function getVirtualForeignKeysColumns(
@@ -23,13 +23,10 @@ export function getVirtualForeignKeysColumns(
         <VirtualForeignKeysColumnHeader column={column} title="Source Table" />
       ),
       cell: ({ getValue }) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
         return (
-          <div className="flex flex-row gap-2 items-center">
-            <span className="max-w-[500px] truncate font-medium">
-              {getValue<string>()}
-            </span>
-          </div>
+          <span className="max-w-[500px] truncate font-medium">
+            {getValue<string>()}
+          </span>
         );
       },
       maxSize: 500,
@@ -61,13 +58,10 @@ export function getVirtualForeignKeysColumns(
         <VirtualForeignKeysColumnHeader column={column} title="Target Table" />
       ),
       cell: ({ getValue }) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
         return (
-          <div className="flex flex-row gap-2 items-center">
-            <span className="max-w-[500px] truncate font-medium">
-              {getValue<string>()}
-            </span>
-          </div>
+          <span className="max-w-[500px] truncate font-medium">
+            {getValue<string>()}
+          </span>
         );
       },
       maxSize: 500,
@@ -100,17 +94,21 @@ export function getVirtualForeignKeysColumns(
       ),
       cell: ({ row }) => {
         return (
-          <Button
-            variant="destructive"
-            size="sm"
-            type="button"
-            key="remove-vfk"
-            onClick={() => {
-              removeVirtualForeignKey(row.index);
-            }}
-          >
-            <TrashIcon />
-          </Button>
+          <div>
+            {removeVirtualForeignKey && (
+              <Button
+                variant="destructive"
+                size="sm"
+                type="button"
+                key="remove-vfk"
+                onClick={() => {
+                  removeVirtualForeignKey(row.index);
+                }}
+              >
+                <TrashIcon />
+              </Button>
+            )}
+          </div>
         );
       },
       maxSize: 500,

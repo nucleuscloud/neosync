@@ -857,6 +857,7 @@ func (s *Service) UpdateJobSourceConnection(
 	logger = logger.With("jobId", req.Msg.Id)
 	logger.Info("updating job source connection and mappings")
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+
 	if err != nil {
 		return nil, err
 	}
@@ -983,7 +984,7 @@ func (s *Service) UpdateJobSourceConnection(
 			UpdatedByID:        *userUuid,
 			ID:                 job.ID,
 		}
-		_, err = s.db.Q.UpdateJobVirtualForeignKeys(ctx, s.db.Db, args)
+		_, err = s.db.Q.UpdateJobVirtualForeignKeys(ctx, dbtx, args)
 		if err != nil {
 			return fmt.Errorf("unable to update virtual foreign key: %w", err)
 		}

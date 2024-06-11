@@ -38,9 +38,7 @@ export default function VirtualFkPageTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    initialState: {
-      sorting: [{ id: 'schemaTable', desc: false }],
-    },
+    initialState: {},
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

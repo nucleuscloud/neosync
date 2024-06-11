@@ -56,6 +56,8 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
 } from '@neosync/sdk';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -367,6 +369,19 @@ async function updateJobConnection(
                 ),
             });
           }),
+          virtualForeignKeys:
+            values.virtualForeignKeys?.map((v) => {
+              return new VirtualForeignConstraint({
+                schema: v.schema,
+                table: v.table,
+                columns: v.columns,
+                foreignKey: new VirtualForeignKey({
+                  schema: v.foreignKey.schema,
+                  table: v.foreignKey.table,
+                  columns: v.foreignKey.columns,
+                }),
+              });
+            }) || [],
           source: new JobSource({
             options: toJobSourceOptions(
               values,

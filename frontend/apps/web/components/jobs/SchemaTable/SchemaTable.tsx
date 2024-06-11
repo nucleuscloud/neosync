@@ -38,7 +38,7 @@ interface Props {
   data: JobMappingFormValues[];
   virtualForeignKeys?: VirtualForeignConstraintFormValues[];
   addVirtualForeignKey?: (vfk: VirtualForeignConstraintFormValues) => void;
-  removeVirtualForeignKey: (index: number) => void;
+  removeVirtualForeignKey?: (index: number) => void;
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
