@@ -41,7 +41,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
-import { createNewJob } from '../subset/page';
+import { createNewJob } from '../subset/util';
 
 const isBrowser = () => typeof window !== 'undefined';
 
