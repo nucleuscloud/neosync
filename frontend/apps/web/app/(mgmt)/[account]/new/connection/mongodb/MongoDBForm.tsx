@@ -249,6 +249,7 @@ export default function MongoDBForm(): ReactElement {
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
           connectionName={form.getValues('connectionName')}
+          connectionType="mongodb"
         />
 
         <div className="flex flex-row gap-3 justify-between">

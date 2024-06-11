@@ -755,6 +755,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
           connectionName={form.getValues('connectionName')}
+          connectionType="postgres"
         />
         <div className="flex flex-row gap-3 justify-between">
           <Button
