@@ -464,12 +464,12 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsValidating(true);
               try {
-                const formValues = form.getValues();
+                const values = form.getValues();
                 const res = await checkMysqlConnection(
                   {
-                    ...formValues,
-                    url: activeTab === 'url' ? formValues.url : undefined,
-                    db: formValues.db,
+                    ...values,
+                    url: activeTab === 'url' ? values.url : undefined,
+                    db: values.db,
                   },
                   account?.id ?? ''
                 );
