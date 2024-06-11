@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -264,6 +265,12 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		})
 		driver = sqlmanager_shared.PostgresDriver
 	case sqlmanager_shared.MysqlDriver:
+		if strings.Contains(connectionUrl, "?") {
+			connectionUrl = fmt.Sprintf("%s&multiStatements=true", connectionUrl)
+		} else {
+			connectionUrl = fmt.Sprintf("%s?multiStatements=true", connectionUrl)
+		}
+
 		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)
 		if err != nil {
 			return nil, err
