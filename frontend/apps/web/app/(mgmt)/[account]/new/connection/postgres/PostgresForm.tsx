@@ -123,7 +123,14 @@ export default function PostgresForm() {
     }
 
     try {
-      const connection = await createPostgresConnection(values, account.id);
+      const connection = await createPostgresConnection(
+        {
+          ...values,
+          url: activeTab === 'url' ? values.url : undefined,
+          db: values.db,
+        },
+        account.id
+      );
       posthog.capture('New Connection Created', { type: 'postgres' });
       toast({
         title: 'Successfully created connection!',
@@ -732,8 +739,13 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             onClick={async () => {
               setIsValidating(true);
               try {
+                const values = form.getValues();
                 const res = await checkPostgresConnection(
-                  form.getValues(),
+                  {
+                    ...values,
+                    url: activeTab === 'url' ? values.url : undefined,
+                    db: values.db,
+                  },
                   account?.id ?? ''
                 );
                 setValidationResponse(res);

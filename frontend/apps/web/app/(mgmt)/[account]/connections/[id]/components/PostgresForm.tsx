@@ -84,7 +84,11 @@ export default function PostgresForm(props: Props): ReactElement {
   async function onSubmit(values: PostgresFormValues) {
     try {
       const connection = await updatePostgresConnection(
-        values,
+        {
+          ...values,
+          url: activeTab === 'url' ? values.url : undefined,
+          db: values.db,
+        },
         account?.id ?? '',
         connectionId
       );
@@ -541,8 +545,13 @@ export default function PostgresForm(props: Props): ReactElement {
             onClick={async () => {
               setIsValidating(true);
               try {
+                const values = form.getValues();
                 const res = await checkPostgresConnection(
-                  form.getValues(),
+                  {
+                    ...values,
+                    url: activeTab === 'url' ? values.url : undefined,
+                    db: values.db,
+                  },
                   account?.id ?? ''
                 );
                 setValidationResponse(res);

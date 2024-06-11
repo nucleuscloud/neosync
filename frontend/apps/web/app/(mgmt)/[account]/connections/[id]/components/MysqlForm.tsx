@@ -84,7 +84,11 @@ export default function MysqlForm(props: Props) {
   async function onSubmit(values: MysqlFormValues) {
     try {
       const connection = await updateMysqlConnection(
-        values,
+        {
+          ...values,
+          url: activeTab === 'url' ? values.url : undefined,
+          db: values.db,
+        },
         account?.id ?? '',
         connectionId
       );
@@ -460,8 +464,13 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsValidating(true);
               try {
+                const formValues = form.getValues();
                 const res = await checkMysqlConnection(
-                  form.getValues(),
+                  {
+                    ...formValues,
+                    url: activeTab === 'url' ? formValues.url : undefined,
+                    db: formValues.db,
+                  },
                   account?.id ?? ''
                 );
 

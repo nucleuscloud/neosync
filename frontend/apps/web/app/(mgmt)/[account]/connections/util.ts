@@ -413,13 +413,16 @@ async function updateConnection(
   input: UpdateConnectionRequest,
   accountId: string
 ): Promise<UpdateConnectionResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${input.id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

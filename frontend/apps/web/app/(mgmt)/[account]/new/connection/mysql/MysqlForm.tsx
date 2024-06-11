@@ -115,7 +115,14 @@ export default function MysqlForm() {
       return;
     }
     try {
-      const connection = await createMysqlConnection(values, account.id);
+      const connection = await createMysqlConnection(
+        {
+          ...values,
+          url: activeTab === 'url' ? values.url : undefined,
+          db: values.db,
+        },
+        account.id
+      );
       posthog.capture('New Connection Created', { type: 'mysql' });
       toast({
         title: 'Successfully created connection!',
