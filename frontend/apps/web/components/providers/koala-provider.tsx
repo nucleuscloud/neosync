@@ -16,6 +16,7 @@ export default function KoalaIdentifier(): ReactElement {
     if (
       isAccountLoading ||
       (!isSystemAppConfigLoading &&
+        typeof window !== 'undefined' &&
         systemAppConfig?.koala.enabled &&
         systemAppConfig?.koala?.key)
     ) {
@@ -41,6 +42,7 @@ export function KProvider({ children }: KProps) {
     useGetSystemAppConfig();
 
   if (
+    typeof window !== 'undefined' &&
     !isSystemAppConfigLoading &&
     systemAppConfig?.koala?.enabled &&
     systemAppConfig?.koala?.key
