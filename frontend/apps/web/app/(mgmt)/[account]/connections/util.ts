@@ -269,7 +269,7 @@ function getClientTlsConfig(
 }
 
 function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
-  if (!values || (!values.host && !values.port && !values.user)) {
+  if (!values || !values.host) {
     return undefined;
   }
   const tunnel = new SSHTunnel({
