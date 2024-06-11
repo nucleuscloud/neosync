@@ -26,12 +26,8 @@ import { MongoDbFormValues } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
-  MongoConnectionConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -39,7 +35,10 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
-import { checkMongoConnection } from '../../../connections/util';
+import {
+  checkMongoConnection,
+  createMongoConnection,
+} from '../../../connections/util';
 
 export default function MongoDBForm(): ReactElement {
   const searchParams = useSearchParams();
@@ -301,42 +300,4 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
-}
-
-async function createMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  const mongoconfig = new MongoConnectionConfig({
-    connectionConfig: {
-      case: 'url',
-      value: values.url,
-    },
-    clientTls: undefined,
-    tunnel: undefined,
-  });
-
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateConnectionRequest({
-        accountId,
-        name: values.connectionName,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'mongoConfig',
-            value: mongoconfig,
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
 }

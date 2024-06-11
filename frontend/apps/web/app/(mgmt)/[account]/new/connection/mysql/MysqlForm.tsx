@@ -41,23 +41,12 @@ import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
-  MYSQL_FORM_SCHEMA,
   MysqlFormValues,
 } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
-  MysqlConnection,
-  MysqlConnectionConfig,
-  SSHAuthentication,
-  SSHPassphrase,
-  SSHPrivateKey,
-  SSHTunnel,
-  SqlConnectionOptions,
 } from '@neosync/sdk';
 import {
   CheckCircledIcon,
@@ -67,7 +56,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { checkMysqlConnection } from '../../../connections/util';
+import {
+  checkMysqlConnection,
+  createMysqlConnection,
+} from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -84,7 +76,7 @@ export default function MysqlForm() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
 
   const form = useForm<MysqlFormValues>({
-    resolver: yupResolver(MYSQL_FORM_SCHEMA),
+    resolver: yupResolver(MysqlFormValues),
     defaultValues: {
       connectionName: '',
       db: {
@@ -123,28 +115,7 @@ export default function MysqlForm() {
       return;
     }
     try {
-      let connection: CreateConnectionResponse = new CreateConnectionResponse(
-        {}
-      );
-      if (activeTab === 'host') {
-        connection = await createMysqlConnection(
-          values.connectionName,
-          account.id,
-          values.db,
-          undefined, // don't pass in the url since user is submitting the db values
-          values.tunnel,
-          values.options
-        );
-      } else if (activeTab === 'url') {
-        connection = await createMysqlConnection(
-          values.connectionName,
-          account.id,
-          undefined, // don't pass in the db values since user is submitting the url
-          values.url,
-          values.tunnel,
-          values.options
-        );
-      }
+      const connection = await createMysqlConnection(values, account.id);
       posthog.capture('New Connection Created', { type: 'mysql' });
       toast({
         title: 'Successfully created connection!',
@@ -765,92 +736,4 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
-}
-async function createMysqlConnection(
-  name: string,
-  accountId: string,
-  db?: MysqlFormValues['db'],
-  url?: string,
-  tunnel?: MysqlFormValues['tunnel'],
-  options?: MysqlFormValues['options']
-): Promise<CreateConnectionResponse> {
-  const mysqlconfig = new MysqlConnectionConfig({});
-
-  if (url) {
-    mysqlconfig.connectionConfig = {
-      case: 'url',
-      value: url,
-    };
-  } else {
-    mysqlconfig.connectionConfig = {
-      case: 'connection',
-      value: new MysqlConnection({
-        host: db?.host,
-        name: db?.name,
-        user: db?.user,
-        pass: db?.pass,
-        port: db?.port,
-        protocol: db?.protocol,
-      }),
-    };
-  }
-
-  if (options && options.maxConnectionLimit != 0) {
-    mysqlconfig.connectionOptions = new SqlConnectionOptions({
-      maxConnectionLimit: options.maxConnectionLimit,
-    });
-  }
-  if (tunnel && tunnel.host) {
-    mysqlconfig.tunnel = new SSHTunnel({
-      host: tunnel.host,
-      port: tunnel.port,
-      user: tunnel.user,
-      knownHostPublicKey: tunnel.knownHostPublicKey
-        ? tunnel.knownHostPublicKey
-        : undefined,
-    });
-    if (tunnel.privateKey) {
-      mysqlconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'privateKey',
-          value: new SSHPrivateKey({
-            value: tunnel.privateKey,
-            passphrase: tunnel.passphrase,
-          }),
-        },
-      });
-    } else if (tunnel.passphrase) {
-      mysqlconfig.tunnel.authentication = new SSHAuthentication({
-        authConfig: {
-          case: 'passphrase',
-          value: new SSHPassphrase({
-            value: tunnel.passphrase,
-          }),
-        },
-      });
-    }
-  }
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateConnectionRequest({
-        accountId,
-        name,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'mysqlConfig',
-            value: mysqlconfig,
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
 }

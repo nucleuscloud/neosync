@@ -10,6 +10,9 @@ import {
   CheckConnectionConfigResponse,
   ClientTlsConfig,
   ConnectionConfig,
+  CreateConnectionRequest,
+  CreateConnectionResponse,
+  IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
@@ -52,10 +55,65 @@ export function getConnectionType(
   }
 }
 
+export async function isConnectionNameAvailable(
+  name: string,
+  accountId: string
+): Promise<IsConnectionNameAvailableResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/is-connection-name-available?connectionName=${name}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return IsConnectionNameAvailableResponse.fromJson(await res.json());
+}
+
+export async function createMysqlConnection(
+  values: MysqlFormValues,
+  accountId: string
+): Promise<CreateConnectionResponse> {
+  return createConnection(
+    new CreateConnectionRequest({
+      name: values.connectionName,
+      accountId: accountId,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mysqlConfig',
+          value: buildMysqlConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
 export async function checkMysqlConnection(
   values: MysqlFormValues,
   accountId: string
 ): Promise<CheckConnectionConfigResponse> {
+  return checkConnection(
+    new CheckConnectionConfigRequest({
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mysqlConfig',
+          value: buildMysqlConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+function buildMysqlConnectionConfig(
+  values: MysqlFormValues
+): MysqlConnectionConfig {
   const mysqlconfig = new MysqlConnectionConfig({
     connectionOptions: new SqlConnectionOptions({
       ...values.options,
@@ -81,13 +139,21 @@ export async function checkMysqlConnection(
       }),
     };
   }
+  return mysqlconfig;
+}
 
-  return checkConnection(
-    new CheckConnectionConfigRequest({
+export async function createPostgresConnection(
+  values: PostgresFormValues,
+  accountId: string
+): Promise<CreateConnectionResponse> {
+  return createConnection(
+    new CreateConnectionRequest({
+      name: values.connectionName,
+      accountId: accountId,
       connectionConfig: new ConnectionConfig({
         config: {
-          case: 'mysqlConfig',
-          value: mysqlconfig,
+          case: 'pgConfig',
+          value: buildPostgresConnectionConfig(values),
         },
       }),
     }),
@@ -99,6 +165,22 @@ export async function checkPostgresConnection(
   values: PostgresFormValues,
   accountId: string
 ): Promise<CheckConnectionConfigResponse> {
+  return checkConnection(
+    new CheckConnectionConfigRequest({
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'pgConfig',
+          value: buildPostgresConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+function buildPostgresConnectionConfig(
+  values: PostgresFormValues
+): PostgresConnectionConfig {
   const pgconfig = new PostgresConnectionConfig({
     clientTls: getClientTlsConfig(values.clientTls),
     tunnel: getTunnelConfig(values.tunnel),
@@ -125,18 +207,7 @@ export async function checkPostgresConnection(
       }),
     };
   }
-
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: pgconfig,
-        },
-      }),
-    }),
-    accountId
-  );
+  return pgconfig;
 }
 
 function getClientTlsConfig(
@@ -191,58 +262,53 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
   return tunnel;
 }
 
-export async function checkMongoConnection(
+export async function createMongoConnection(
   values: MongoDbFormValues,
   accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  // let tunnel: SSHTunnel | undefined = undefined;
-  // if (tunnelForm && tunnelForm.host && tunnelForm.port && tunnelForm.user) {
-  //   tunnel = new SSHTunnel({
-  //     host: tunnelForm.host,
-  //     port: tunnelForm.port,
-  //     user: tunnelForm.user,
-  //     knownHostPublicKey: tunnelForm.knownHostPublicKey
-  //       ? tunnelForm.knownHostPublicKey
-  //       : undefined,
-  //   });
-  //   if (tunnelForm.privateKey) {
-  //     tunnel.authentication = new SSHAuthentication({
-  //       authConfig: {
-  //         case: 'privateKey',
-  //         value: new SSHPrivateKey({
-  //           value: tunnelForm.privateKey,
-  //           passphrase: tunnelForm.passphrase,
-  //         }),
-  //       },
-  //     });
-  //   } else if (tunnelForm.passphrase) {
-  //     tunnel.authentication = new SSHAuthentication({
-  //       authConfig: {
-  //         case: 'passphrase',
-  //         value: new SSHPassphrase({
-  //           value: tunnelForm.passphrase,
-  //         }),
-  //       },
-  //     });
-  //   }
-  // }
-  return checkConnection(
-    new CheckConnectionConfigRequest({
+): Promise<CreateConnectionResponse> {
+  return createConnection(
+    new CreateConnectionRequest({
+      name: values.connectionName,
+      accountId: accountId,
       connectionConfig: new ConnectionConfig({
         config: {
           case: 'mongoConfig',
-          value: new MongoConnectionConfig({
-            connectionConfig: {
-              case: 'url',
-              value: values.url,
-            },
-            tunnel: undefined,
-          }),
+          value: buildMongoConnectionConfig(values),
         },
       }),
     }),
     accountId
   );
+}
+
+export async function checkMongoConnection(
+  values: MongoDbFormValues,
+  accountId: string
+): Promise<CheckConnectionConfigResponse> {
+  return checkConnection(
+    new CheckConnectionConfigRequest({
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'mongoConfig',
+          value: buildMongoConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+function buildMongoConnectionConfig(
+  values: MongoDbFormValues
+): MongoConnectionConfig {
+  const mongoconfig = new MongoConnectionConfig({
+    connectionConfig: {
+      case: 'url',
+      value: values.url,
+    },
+  });
+
+  return mongoconfig;
 }
 
 async function checkConnection(
@@ -261,4 +327,22 @@ async function checkConnection(
     throw new Error(body.message);
   }
   return CheckConnectionConfigResponse.fromJson(await res.json());
+}
+
+async function createConnection(
+  input: CreateConnectionRequest,
+  accountId: string
+): Promise<CreateConnectionResponse> {
+  const res = await fetch(`/api/accounts/${accountId}/connections`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateConnectionResponse.fromJson(await res.json());
 }

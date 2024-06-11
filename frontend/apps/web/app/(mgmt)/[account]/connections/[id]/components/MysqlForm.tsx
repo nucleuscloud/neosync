@@ -35,7 +35,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
-  MYSQL_FORM_SCHEMA,
   MysqlFormValues,
 } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -77,7 +76,7 @@ export default function MysqlForm(props: Props) {
   );
 
   const form = useForm<MysqlFormValues>({
-    resolver: yupResolver(MYSQL_FORM_SCHEMA),
+    resolver: yupResolver(MysqlFormValues),
     values: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,

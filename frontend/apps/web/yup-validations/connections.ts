@@ -1,4 +1,4 @@
-import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/new/connection/postgres/PostgresForm';
+import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/connections/util';
 import { getErrorMessage } from '@/util/util';
 import * as Yup from 'yup';
 
@@ -117,7 +117,7 @@ export const SSL_MODES = [
 
 export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 
-export const MYSQL_FORM_SCHEMA = Yup.object({
+export const MysqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().required(),
@@ -135,7 +135,7 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
   options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
-export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
+export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
 
 export const POSTGRES_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
