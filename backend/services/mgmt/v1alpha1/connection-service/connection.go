@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -16,10 +17,9 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	"golang.org/x/sync/errgroup"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Service) CheckConnectionConfig(
@@ -28,7 +28,7 @@ func (s *Service) CheckConnectionConfig(
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	switch cconfig := req.Msg.GetConnectionConfig().GetConfig().(type) {
+	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig())
 		if err != nil {
@@ -68,24 +68,22 @@ func (s *Service) CheckConnectionConfig(
 		}), nil
 
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
-		mongoUrl := cconfig.MongoConfig.GetUrl()
-		if mongoUrl == "" {
-			return nil, errors.New("must provide mongodb url")
+		db, err := s.mongoconnector.NewFromConnectionConfig(req.Msg.GetConnectionConfig(), logger)
+		if err != nil {
+			return nil, err
 		}
-		mongoserverApi := options.ServerAPI(options.ServerAPIVersion1)
-		opts := options.Client().ApplyURI(cconfig.MongoConfig.GetUrl()).SetServerAPIOptions(mongoserverApi)
-
-		client, err := mongo.Connect(ctx, opts)
+		client, err := db.Open(ctx)
 		if err != nil {
 			return nil, err
 		}
 		defer func() {
-			if err := client.Disconnect(ctx); err != nil {
-				logger.Warn(err.Error())
+			err := db.Close(ctx)
+			if err != nil {
+				logger.Warn(fmt.Sprintf("unable to close all mongodb connections: %s", err.Error()))
 			}
 		}()
 
-		_, err = client.ListDatabaseNames(ctx, bson.D{})
+		dbnames, err := client.ListDatabaseNames(ctx, bson.D{})
 		if err != nil {
 			errmsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -94,10 +92,45 @@ func (s *Service) CheckConnectionConfig(
 				Privileges:      []*mgmtv1alpha1.ConnectionRolePrivilege{},
 			}), nil
 		}
+
+		collectionsMap := map[string][]string{}
+		collectionMu := sync.Mutex{}
+
+		errgrp, errctx := errgroup.WithContext(ctx)
+		for _, dbname := range dbnames {
+			dbname := dbname
+			errgrp.Go(func() error {
+				collnames, err := client.Database(dbname).ListCollectionNames(errctx, bson.D{})
+				if err != nil {
+					return fmt.Errorf("unable to retrieve collection names for database %q: %w", dbname, err)
+				}
+				collectionMu.Lock()
+				defer collectionMu.Unlock()
+				collectionsMap[dbname] = append(collectionsMap[dbname], collnames...)
+				return nil
+			})
+		}
+		err = errgrp.Wait()
+		if err != nil {
+			return nil, err
+		}
+
+		privs := []*mgmtv1alpha1.ConnectionRolePrivilege{}
+		for dbname, collections := range collectionsMap {
+			for _, collection := range collections {
+				privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivilege{
+					Schema:        dbname,
+					Table:         collection,
+					Grantee:       "",
+					PrivilegeType: []string{},
+				})
+			}
+		}
+
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 			IsConnected:     true,
 			ConnectionError: nil,
-			Privileges:      []*mgmtv1alpha1.ConnectionRolePrivilege{}, // todo
+			Privileges:      privs,
 		}), nil
 	default:
 		return nil, fmt.Errorf("this method does not support this connection type %T: %w", req.Msg.GetConnectionConfig().GetConfig(), errors.ErrUnsupported)

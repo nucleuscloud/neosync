@@ -81,3 +81,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/loki:
     interfaces:
       LokiHttpClient:
+  github.com/nucleuscloud/neosync/backend/pkg/mongoconnect:
+    interfaces:
+      Interface:
+      DbContainer:
