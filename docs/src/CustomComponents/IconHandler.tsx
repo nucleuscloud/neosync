@@ -26,6 +26,7 @@ import {
 } from 'react-icons/bi';
 import { BsFunnel } from 'react-icons/bs';
 import { CiMicrochip } from 'react-icons/ci';
+import { DiMongodb } from 'react-icons/di';
 import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
 
@@ -61,6 +62,9 @@ export function IconHandler(name: string): ReactElement {
       return <GrMysql />;
     case 'S3':
       return <FaAws />;
+    case 'Mongo':
+    case 'MongoDB':
+      return <DiMongodb />;
     case 'Email':
       return <AiOutlineMail />;
     case 'Phone (integer)':

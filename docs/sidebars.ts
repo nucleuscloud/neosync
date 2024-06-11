@@ -250,6 +250,11 @@ const sidebars: SidebarsConfig = {
       label: 'S3',
     },
     {
+      type: 'doc',
+      id: 'connections/mongodb',
+      label: 'MongoDB',
+    },
+    {
       type: 'html',
       value: '<div>Transformers</div>',
       className: 'sidebarcategory',
