@@ -884,6 +884,9 @@ func (s *Service) UpdateJobSourceConnection(
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		connId := config.Mongodb.GetConnectionId()
+		connectionIdToVerify = &connId
 	}
 
 	// verifies that the account has access to that connection id
@@ -917,6 +920,13 @@ func (s *Service) UpdateJobSourceConnection(
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
 			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		dbConf := req.Msg.GetSource().GetOptions().GetMongodb()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
 		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("connection config is not currently supported: %T", cconfig))
@@ -1329,12 +1339,16 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 		if d.ConnectionConfig.AwsS3Config != nil {
 			continue
 		}
-		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.MysqlConfig != nil {
+		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.PgConfig == nil {
 			// invalid Postgres source cannot have Mysql destination
 			return false, nil
 		}
-		if sourceConnection.ConnectionConfig.MysqlConfig != nil && d.ConnectionConfig.PgConfig != nil {
-			// invalid Mysql source cannot habe Postgres destination
+		if sourceConnection.ConnectionConfig.MysqlConfig != nil && d.ConnectionConfig.MysqlConfig == nil {
+			// invalid Mysql source cannot have non-Mysql or non-AWS connection
+			return false, nil
+		}
+		if sourceConnection.ConnectionConfig.MongoConfig != nil && d.ConnectionConfig.MongoConfig == nil {
+			// invalid Mongo soure cannot have
 			return false, nil
 		}
 	}
