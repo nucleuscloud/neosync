@@ -4,8 +4,8 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
-import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
+import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import {
   buildRowKey,
   buildTableRowData,
@@ -19,8 +19,8 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -40,6 +40,7 @@ import {
   JobMapping,
   JobSource,
   JobSourceOptions,
+  MongoDBSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
   RetryPolicy,
@@ -486,6 +487,15 @@ async function createNewJob(
               schemas:
                 values.subset?.subsets &&
                 toMysqlSourceSchemaOptions(values.subset?.subsets),
+            }),
+          },
+        });
+      case 'mongoConfig':
+        return new JobSourceOptions({
+          config: {
+            case: 'mongodb',
+            value: new MongoDBSourceConnectionOptions({
+              connectionId: formData.connect.sourceId,
             }),
           },
         });

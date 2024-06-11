@@ -5,6 +5,7 @@ import {
   Connection,
   JobDestinationOptions,
   JobMappingTransformer,
+  MongoDBDestinationConnectionOptions,
   MysqlDestinationConnectionOptions,
   MysqlOnConflictConfig,
   MysqlSourceSchemaOption,
@@ -174,6 +175,14 @@ export function toJobDestinationOptions(
         config: {
           case: 'awsS3Options',
           value: new AwsS3DestinationConnectionOptions({}),
+        },
+      });
+    }
+    case 'mongoConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mongodbOptions',
+          value: new MongoDBDestinationConnectionOptions({}),
         },
       });
     }
