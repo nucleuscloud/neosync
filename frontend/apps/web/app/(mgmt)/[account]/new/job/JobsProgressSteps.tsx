@@ -56,6 +56,7 @@ export function getJobProgressSteps(
 export function getJobProgressSteps(
   jobtype: 'ai-generate-table' | 'generate-table'
 ): JobProgressStep[];
+export function getJobProgressSteps(jobtype: NewJobType): JobProgressStep[];
 export function getJobProgressSteps(
   jobtype: NewJobType,
   includeSubsetting?: boolean
