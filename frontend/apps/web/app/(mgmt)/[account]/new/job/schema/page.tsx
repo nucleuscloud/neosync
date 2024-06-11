@@ -2,10 +2,8 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  SchemaTable,
-  getAllFormErrors,
-} from '@/components/jobs/SchemaTable/SchemaTable';
+import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
+import { getAllFormErrors } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -29,7 +27,6 @@ import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
@@ -141,18 +138,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
-  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+  const { append, remove, fields, update } = useFieldArray<SchemaFormValues>({
     control: form.control,
     name: 'mappings',
   });
-  const onSelectedTableToggle = getOnSelectedTableToggle(
-    connectionSchemaDataMap?.schemaMap ?? {},
-    selectedTables,
-    setSelectedTables,
-    fields,
-    remove,
-    append
-  );
+  // const onSelectedTableToggle = getOnSelectedTableToggle(
+  //   connectionSchemaDataMap?.schemaMap ?? {},
+  //   selectedTables,
+  //   setSelectedTables,
+  //   fields,
+  //   remove,
+  //   append
+  // );
 
   useEffect(() => {
     const validateJobMappings = async () => {
@@ -176,7 +173,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )
     );
   }, [isSchemaMapLoading, connectFormValues.sourceId]);
-
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -197,7 +193,69 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable
+          <NosqlTable
+            data={formMappings}
+            schema={connectionSchemaDataMap?.schemaMap ?? {}}
+            isSchemaDataReloading={isSchemaMapValidating}
+            isJobMappingsValidating={isValidatingMappings}
+            formErrors={getAllFormErrors(
+              form.formState.errors,
+              formMappings,
+              validateMappingsResponse
+            )}
+            onValidate={validateMappings}
+            constraintHandler={schemaConstraintHandler}
+            onRemoveMappings={(values) => {
+              const valueSet = new Set(
+                values.map((v) => `${v.schema}.${v.table}.${v.column}`)
+              );
+              const toRemove: number[] = [];
+              formMappings.forEach((mapping, idx) => {
+                if (
+                  valueSet.has(
+                    `${mapping.schema}.${mapping.table}.${mapping.column}`
+                  )
+                ) {
+                  toRemove.push(idx);
+                }
+              });
+              if (toRemove.length > 0) {
+                remove(toRemove);
+              }
+            }}
+            onEditMappings={(values) => {
+              const valuesMap = new Map(
+                values.map((v) => [
+                  `${v.schema}.${v.table}.${v.column}`,
+                  v.transformer,
+                ])
+              );
+              formMappings.forEach((fm, idx) => {
+                const fmKey = `${fm.schema}.${fm.table}.${fm.column}`;
+                const fmTrans = valuesMap.get(fmKey);
+                if (fmTrans) {
+                  update(idx, {
+                    ...fm,
+                    transformer: fmTrans,
+                  });
+                }
+              });
+            }}
+            onAddMappings={(values) => {
+              append(
+                values.map((v) => {
+                  const [schema, table] = v.collection.split('.');
+                  return {
+                    schema,
+                    table,
+                    column: v.key,
+                    transformer: v.transformer,
+                  };
+                })
+              );
+            }}
+          />
+          {/* <SchemaTable
             data={formMappings}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
@@ -212,7 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               validateMappingsResponse
             )}
             onValidate={validateMappings}
-          />
+          /> */}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back

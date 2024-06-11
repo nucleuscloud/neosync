@@ -19,7 +19,7 @@ import {
 import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
-const JobMappingTransformerForm = Yup.object({
+export const JobMappingTransformerForm = Yup.object({
   source: Yup.number().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });

@@ -27,6 +27,16 @@ export class TransformerHandler {
     );
   }
 
+  public getTransformers(): {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  } {
+    return {
+      system: this.systemTransformers,
+      userDefined: this.userDefinedTransformers,
+    };
+  }
+
   public getFilteredTransformers(filters: TransformerFilters): {
     system: SystemTransformer[];
     userDefined: UserDefinedTransformer[];
