@@ -1,6 +1,7 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import { useAccount } from '@/components/providers/account-provider';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardDescription,
@@ -16,6 +17,7 @@ export interface ConnectionMeta {
   description: string;
   urlSlug: string;
   connectionType: ConnectionType;
+  isExperimental?: boolean;
 }
 
 interface Props {
@@ -43,6 +45,7 @@ export default function ConnectionCard(props: Props): ReactElement {
           <div className="flex flex-row items-center space-x-2">
             <ConnectionIcon name={connection.name} />
             <p>{connection.name}</p>
+            {connection.isExperimental ? <Badge>Experimental</Badge> : null}
           </div>
         </CardTitle>
         <CardDescription>{connection.description}</CardDescription>

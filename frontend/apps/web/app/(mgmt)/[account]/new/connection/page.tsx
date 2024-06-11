@@ -54,6 +54,7 @@ const CONNECTIONS: ConnectionMeta[] = [
     description:
       'MongoDB is a source-available, cross-platform, document-oriented database program.',
     connectionType: 'mongodb',
+    isExperimental: true,
   },
 ];
 
