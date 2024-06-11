@@ -14,6 +14,7 @@ import {
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
@@ -33,6 +34,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ActivityOptions,
   Connection,
+  ConnectionConfig,
   CreateJobRequest,
   CreateJobResponse,
   GetAccountOnboardingConfigResponse,
@@ -46,6 +48,7 @@ import {
   RetryPolicy,
   WorkflowOptions,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -153,10 +156,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     (item) => item.id == connectFormValues.sourceId
   );
 
-  const dbType =
-    connectionType?.connectionConfig?.config.case == 'mysqlConfig'
-      ? 'mysql'
-      : 'postgres';
+  const dbType = getDbtype();
+  connectionType?.connectionConfig?.config.case == 'mysqlConfig'
+    ? 'mysql'
+    : 'postgres';
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
@@ -272,7 +275,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             header="Subset"
             progressSteps={
               <JobsProgressSteps
-                steps={getJobProgressSteps('data-sync')}
+                steps={getJobProgressSteps('data-sync', true)}
                 stepName={'subset'}
               />
             }
@@ -282,106 +285,124 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       >
         <div />
       </OverviewContainer>
-      <div className="flex flex-col gap-4">
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-8"
-          >
-            <div>
-              <SubsetOptionsForm maxColNum={2} />
-            </div>
-            <div className="flex flex-col gap-2">
+      {dbType === 'invalid' && (
+        <Alert variant="warning">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>Heads up!</AlertTitle>
+          <AlertDescription>
+            Subsetting is not currently enabled for NoSQL jobs. You may proceed
+            with the creation of this job while we continue to work on NoSQL
+            subsetting.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {dbType !== 'invalid' && (
+        <div className="flex flex-col gap-4">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-8"
+            >
               <div>
-                <SubsetTable
-                  data={Object.values(tableRowData)}
-                  onEdit={(schema, table) => {
-                    const key = buildRowKey(schema, table);
-                    if (tableRowData[key]) {
-                      // make copy so as to not edit in place
-                      setItemToEdit({
-                        ...tableRowData[key],
-                      });
-                    }
-                  }}
-                  hasLocalChange={hasLocalChange}
-                  onReset={onLocalRowReset}
-                />
+                <SubsetOptionsForm maxColNum={2} />
               </div>
-              <div className="my-4">
-                <Separator />
-              </div>
-              <div>
-                <EditItem
-                  connectionId={connectFormValues.sourceId}
-                  item={itemToEdit}
-                  onItem={setItemToEdit}
-                  onCancel={() => setItemToEdit(undefined)}
-                  columns={GetColumnsForSqlAutocomplete(
-                    schemaFormValues?.mappings.map((row) => {
-                      return new JobMapping({
-                        schema: row.schema,
-                        table: row.table,
-                        column: row.column,
-                      });
-                    }),
-                    itemToEdit
-                  )}
-                  onSave={() => {
-                    if (!itemToEdit) {
-                      return;
-                    }
-                    const key = buildRowKey(
-                      itemToEdit.schema,
-                      itemToEdit.table
-                    );
-                    const idx = form
-                      .getValues()
-                      .subsets.findIndex(
-                        (item) => buildRowKey(item.schema, item.table) === key
+              <div className="flex flex-col gap-2">
+                <div>
+                  <SubsetTable
+                    data={Object.values(tableRowData)}
+                    onEdit={(schema, table) => {
+                      const key = buildRowKey(schema, table);
+                      if (tableRowData[key]) {
+                        // make copy so as to not edit in place
+                        setItemToEdit({
+                          ...tableRowData[key],
+                        });
+                      }
+                    }}
+                    hasLocalChange={hasLocalChange}
+                    onReset={onLocalRowReset}
+                  />
+                </div>
+                <div className="my-4">
+                  <Separator />
+                </div>
+                <div>
+                  <EditItem
+                    connectionId={connectFormValues.sourceId}
+                    item={itemToEdit}
+                    onItem={setItemToEdit}
+                    onCancel={() => setItemToEdit(undefined)}
+                    columns={GetColumnsForSqlAutocomplete(
+                      schemaFormValues?.mappings.map((row) => {
+                        return new JobMapping({
+                          schema: row.schema,
+                          table: row.table,
+                          column: row.column,
+                        });
+                      }),
+                      itemToEdit
+                    )}
+                    onSave={() => {
+                      if (!itemToEdit) {
+                        return;
+                      }
+                      const key = buildRowKey(
+                        itemToEdit.schema,
+                        itemToEdit.table
                       );
-                    if (idx >= 0) {
-                      form.setValue(`subsets.${idx}`, {
-                        schema: itemToEdit.schema,
-                        table: itemToEdit.table,
-                        whereClause: itemToEdit.where,
-                      });
-                    } else {
-                      form.setValue(
-                        `subsets`,
-                        form.getValues().subsets.concat({
+                      const idx = form
+                        .getValues()
+                        .subsets.findIndex(
+                          (item) => buildRowKey(item.schema, item.table) === key
+                        );
+                      if (idx >= 0) {
+                        form.setValue(`subsets.${idx}`, {
                           schema: itemToEdit.schema,
                           table: itemToEdit.table,
                           whereClause: itemToEdit.where,
-                        })
-                      );
-                    }
-                    setItemToEdit(undefined);
-                  }}
-                  dbType={dbType}
-                />
-              </div>
+                        });
+                      } else {
+                        form.setValue(
+                          `subsets`,
+                          form.getValues().subsets.concat({
+                            schema: itemToEdit.schema,
+                            table: itemToEdit.table,
+                            whereClause: itemToEdit.where,
+                          })
+                        );
+                      }
+                      setItemToEdit(undefined);
+                    }}
+                    dbType={dbType}
+                  />
+                </div>
 
-              <div className="my-6">
-                <Separator />
+                <div className="my-6">
+                  <Separator />
+                </div>
+                <div className="flex flex-row gap-1 justify-between">
+                  <Button
+                    key="back"
+                    type="button"
+                    onClick={() => router.back()}
+                  >
+                    Back
+                  </Button>
+                  <Button key="submit" type="submit">
+                    Save
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-row gap-1 justify-between">
-                <Button key="back" type="button" onClick={() => router.back()}>
-                  Back
-                </Button>
-                <Button key="submit" type="submit">
-                  Save
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Form>
-      </div>
+            </form>
+          </Form>
+        </div>
+      )}
     </div>
   );
 }
 
-async function createNewJob(
+export async function createNewJob(
   formData: FormValues,
   accountId: string,
   connections: Connection[]
@@ -517,4 +538,17 @@ async function createNewJob(
   }
 
   return CreateJobResponse.fromJson(await res.json());
+}
+
+function getDbtype(
+  options?: ConnectionConfig
+): 'mysql' | 'postgres' | 'invalid' {
+  switch (options?.config.case) {
+    case 'pgConfig':
+      return 'postgres';
+    case 'mysqlConfig':
+      return 'mysql';
+    default:
+      return 'invalid';
+  }
 }
