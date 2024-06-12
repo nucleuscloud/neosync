@@ -1,0 +1,323 @@
+import { convertMinutesToNanoseconds } from '@/util/util';
+import {
+  DestinationFormValues,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+} from '@/yup-validations/jobs';
+import {
+  ActivityOptions,
+  AwsS3DestinationConnectionOptions,
+  Connection,
+  CreateJobRequest,
+  CreateJobResponse,
+  JobDestination,
+  JobDestinationOptions,
+  JobMapping,
+  JobSource,
+  JobSourceOptions,
+  MongoDBDestinationConnectionOptions,
+  MongoDBSourceConnectionOptions,
+  MysqlDestinationConnectionOptions,
+  MysqlOnConflictConfig,
+  MysqlSourceConnectionOptions,
+  MysqlSourceSchemaOption,
+  MysqlSourceTableOption,
+  MysqlTruncateTableConfig,
+  PostgresDestinationConnectionOptions,
+  PostgresOnConflictConfig,
+  PostgresSourceConnectionOptions,
+  PostgresSourceSchemaOption,
+  PostgresSourceTableOption,
+  PostgresTruncateTableConfig,
+  RetryPolicy,
+  WorkflowOptions,
+} from '@neosync/sdk';
+import { CreateJobFormValues, SubsetFormValues } from '../new/job/schema';
+
+export async function createNewSyncJob(
+  values: CreateJobFormValues,
+  accountId: string,
+  getConnectionById: (id: string) => Connection | undefined
+): Promise<CreateJobResponse> {
+  return createJob(
+    new CreateJobRequest({
+      accountId,
+      jobName: values.define.jobName,
+      cronSchedule: values.define.cronSchedule,
+      initiateJobRun: values.define.initiateJobRun,
+      mappings: toJobMappings(values),
+      source: toJobSource(values, getConnectionById),
+      destinations: toJobDestinations(values, getConnectionById),
+      workflowOptions: toWorkflowOptions(values),
+      syncOptions: toSyncOptions(values),
+    }),
+    accountId
+  );
+}
+
+function toWorkflowOptions(
+  values: Pick<CreateJobFormValues, 'define'>
+): WorkflowOptions | undefined {
+  if (values.define.workflowSettings?.runTimeout) {
+    return new WorkflowOptions({
+      runTimeout: convertMinutesToNanoseconds(
+        values.define.workflowSettings.runTimeout
+      ),
+    });
+  }
+  return undefined;
+}
+
+function toSyncOptions(
+  values: Pick<CreateJobFormValues, 'define'>
+): ActivityOptions | undefined {
+  if (values.define.syncActivityOptions) {
+    const formSyncOpts = values.define.syncActivityOptions;
+    return new ActivityOptions({
+      scheduleToCloseTimeout:
+        formSyncOpts.scheduleToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
+          : undefined,
+      startToCloseTimeout:
+        formSyncOpts.startToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
+          : undefined,
+      retryPolicy: new RetryPolicy({
+        maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
+      }),
+    });
+  }
+  return undefined;
+}
+
+function toJobDestinations(
+  values: Pick<CreateJobFormValues, 'connect'>,
+  getConnectionById: (id: string) => Connection | undefined
+): JobDestination[] {
+  return values.connect.destinations.map((d) => {
+    return new JobDestination({
+      connectionId: d.connectionId,
+      options: toJobDestinationOptions(d, getConnectionById(d.connectionId)),
+    });
+  });
+}
+
+export function toJobDestinationOptions(
+  values: DestinationFormValues,
+  connection?: Connection
+): JobDestinationOptions {
+  if (!connection) {
+    return new JobDestinationOptions();
+  }
+  switch (connection.connectionConfig?.config.case) {
+    case 'pgConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'postgresOptions',
+          value: new PostgresDestinationConnectionOptions({
+            truncateTable: new PostgresTruncateTableConfig({
+              truncateBeforeInsert:
+                values.destinationOptions.truncateBeforeInsert ?? false,
+              cascade: values.destinationOptions.truncateCascade ?? false,
+            }),
+            onConflict: new PostgresOnConflictConfig({
+              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
+            }),
+            initTableSchema: values.destinationOptions.initTableSchema,
+          }),
+        },
+      });
+    }
+    case 'mysqlConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mysqlOptions',
+          value: new MysqlDestinationConnectionOptions({
+            truncateTable: new MysqlTruncateTableConfig({
+              truncateBeforeInsert:
+                values.destinationOptions.truncateBeforeInsert ?? false,
+            }),
+            onConflict: new MysqlOnConflictConfig({
+              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
+            }),
+            initTableSchema: values.destinationOptions.initTableSchema,
+          }),
+        },
+      });
+    }
+    case 'awsS3Config': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'awsS3Options',
+          value: new AwsS3DestinationConnectionOptions({}),
+        },
+      });
+    }
+    case 'mongoConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mongodbOptions',
+          value: new MongoDBDestinationConnectionOptions({}),
+        },
+      });
+    }
+    default: {
+      return new JobDestinationOptions();
+    }
+  }
+}
+
+function toJobMappings(
+  values: Pick<CreateJobFormValues, 'schema'>
+): JobMapping[] {
+  return values.schema.mappings.map((m) => {
+    return new JobMapping({
+      schema: m.schema,
+      table: m.table,
+      column: m.column,
+      transformer: convertJobMappingTransformerFormToJobMappingTransformer(
+        m.transformer
+      ),
+    });
+  });
+}
+
+function toJobSource(
+  values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
+  getConnectionById: (id: string) => Connection | undefined
+): JobSource {
+  return new JobSource({
+    options: toJobSourceOptions(values, getConnectionById),
+  });
+}
+
+function toJobSourceOptions(
+  values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
+  getConnectionById: (id: string) => Connection | undefined
+): JobSourceOptions {
+  const sourceConnection = getConnectionById(values.connect.sourceId);
+  if (!sourceConnection) {
+    return new JobSourceOptions();
+  }
+  switch (sourceConnection.connectionConfig?.config.case) {
+    case 'pgConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'postgres',
+          value: new PostgresSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+            haltOnNewColumnAddition:
+              values.connect.sourceOptions.haltOnNewColumnAddition,
+            subsetByForeignKeyConstraints:
+              values.subset?.subsetOptions.subsetByForeignKeyConstraints,
+            schemas:
+              values.subset?.subsets &&
+              toPostgresSourceSchemaOptions(values.subset.subsets),
+          }),
+        },
+      });
+    case 'mysqlConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'mysql',
+          value: new MysqlSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+            haltOnNewColumnAddition:
+              values.connect.sourceOptions.haltOnNewColumnAddition,
+            subsetByForeignKeyConstraints:
+              values.subset?.subsetOptions.subsetByForeignKeyConstraints,
+            schemas:
+              values.subset?.subsets &&
+              toMysqlSourceSchemaOptions(values.subset?.subsets),
+          }),
+        },
+      });
+    case 'mongoConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'mongodb',
+          value: new MongoDBSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+          }),
+        },
+      });
+    default:
+      throw new Error('unsupported connection type');
+  }
+}
+
+export function toPostgresSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): PostgresSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new PostgresSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new PostgresSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, PostgresSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
+}
+
+export function toMysqlSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): MysqlSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new MysqlSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new MysqlSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, MysqlSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
+}
+
+async function createJob(
+  input: CreateJobRequest,
+  accountId: string
+): Promise<CreateJobResponse> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateJobResponse.fromJson(await res.json());
+}
+
+async function removeJob(accountId: string, jobId: string): Promise<void> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
+}

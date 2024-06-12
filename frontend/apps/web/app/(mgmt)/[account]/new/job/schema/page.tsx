@@ -39,9 +39,9 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
+import { createNewSyncJob } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
-import { createNewJob } from '../subset/util';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -130,7 +130,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     if (isNosqlSource(connectionData.connection)) {
       try {
-        const job = await createNewJob(
+        const connMap = new Map(connections.map((c) => [c.id, c]));
+        const job = await createNewSyncJob(
           {
             define: defineFormValues,
             connect: connectFormValues,
@@ -138,7 +139,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             // subset: {},
           },
           account.id,
-          connections
+          (id) => connMap.get(id)
         );
         posthog.capture('New Job Flow Complete', {
           jobType: 'data-sync',

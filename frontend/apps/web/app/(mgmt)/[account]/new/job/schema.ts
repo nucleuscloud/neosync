@@ -1,6 +1,6 @@
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
-  DESTINATION_FORM_SCHEMA,
+  DestinationFormValues,
   JOB_MAPPING_SCHEMA,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
@@ -106,7 +106,7 @@ export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
 
 export const CONNECT_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   Yup.object({
-    destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
+    destinations: Yup.array(DestinationFormValues).required(),
   })
 ).test(
   'unique-connections',
@@ -240,7 +240,7 @@ const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
 
 export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
-  destination: DESTINATION_FORM_SCHEMA,
+  destination: DestinationFormValues,
 });
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
@@ -249,7 +249,7 @@ export type SingleTableConnectFormValues = Yup.InferType<
 export const SingleTableAiConnectFormValues = Yup.object({
   sourceId: Yup.string().required('Connection is required').uuid(),
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
-  destination: DESTINATION_FORM_SCHEMA,
+  destination: DestinationFormValues,
 });
 
 export type SingleTableAiConnectFormValues = Yup.InferType<
@@ -324,23 +324,23 @@ export type SingleTableEditSourceFormValues = Yup.InferType<
   typeof SingleTableEditSourceFormValues
 >;
 
-export const SUBSET_FORM_SCHEMA = Yup.object({
+export const SubsetFormValues = Yup.object({
   subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
   subsetOptions: Yup.object({
     subsetByForeignKeyConstraints: Yup.boolean().default(true),
   }),
 });
 
-export type SubsetFormValues = Yup.InferType<typeof SUBSET_FORM_SCHEMA>;
+export type SubsetFormValues = Yup.InferType<typeof SubsetFormValues>;
 
-const FORM_SCHEMA = Yup.object({
+const CreateJobFormValues = Yup.object({
   define: DEFINE_FORM_SCHEMA,
   connect: CONNECT_FORM_SCHEMA,
   schema: SCHEMA_FORM_SCHEMA,
-  subset: SUBSET_FORM_SCHEMA.optional(),
+  subset: SubsetFormValues.optional(),
 });
 
-export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+export type CreateJobFormValues = Yup.InferType<typeof CreateJobFormValues>;
 
 async function isJobNameAvailable(
   name: string,

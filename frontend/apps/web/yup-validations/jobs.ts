@@ -100,7 +100,7 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
   }),
 });
 
-export const DESTINATION_FORM_SCHEMA = Yup.object({
+export const DestinationFormValues = Yup.object({
   connectionId: Yup.string()
     .required('Connection is required')
     .uuid()
@@ -125,7 +125,7 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
     onConflictDoNothing: Yup.boolean().optional(),
   }),
 }).required();
-type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;
+export type DestinationFormValues = Yup.InferType<typeof DestinationFormValues>;
 
 export function toJobDestinationOptions(
   values: DestinationFormValues,

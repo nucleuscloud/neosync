@@ -37,14 +37,13 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import { createNewSyncJob } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
   ConnectFormValues,
   DefineFormValues,
-  SUBSET_FORM_SCHEMA,
   SubsetFormValues,
 } from '../schema';
-import { createNewJob } from './util';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -121,7 +120,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [fkConstraints, isTableConstraintsValidating]);
 
   const form = useForm({
-    resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
+    resolver: yupResolver<SubsetFormValues>(SubsetFormValues),
     defaultValues: subsetFormValues,
   });
 
@@ -149,7 +148,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
 
     try {
-      const job = await createNewJob(
+      const connMap = new Map(connections.map((c) => [c.id, c]));
+      const job = await createNewSyncJob(
         {
           define: defineFormValues,
           connect: connectFormValues,
@@ -157,7 +157,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           subset: values,
         },
         account.id,
-        connections
+        (id) => connMap.get(id)
       );
       posthog.capture('New Job Flow Complete', {
         jobType: 'data-sync',

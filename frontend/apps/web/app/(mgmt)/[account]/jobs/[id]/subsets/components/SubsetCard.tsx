@@ -1,7 +1,4 @@
-import {
-  SUBSET_FORM_SCHEMA,
-  SubsetFormValues,
-} from '@/app/(mgmt)/[account]/new/job/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
@@ -81,7 +78,7 @@ export default function SubsetCard(props: Props): ReactElement {
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
-    resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
+    resolver: yupResolver<SubsetFormValues>(SubsetFormValues),
     defaultValues: { subsets: [] },
     values: formValues,
   });

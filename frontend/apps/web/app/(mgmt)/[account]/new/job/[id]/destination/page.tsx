@@ -26,7 +26,7 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
-  DESTINATION_FORM_SCHEMA,
+  DestinationFormValues,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -44,7 +44,7 @@ import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
   jobId: Yup.string().required(),
-  destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
+  destinations: Yup.array(DestinationFormValues).required(),
 });
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
