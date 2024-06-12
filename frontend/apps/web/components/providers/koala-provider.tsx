@@ -54,6 +54,7 @@ export function KoalaIdentifier(): ReactElement {
     const userId = systemAppConfig?.isAuthEnabled
       ? userData?.userId
       : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).ko?.identify(user?.email, {
       accountName: account?.name,
       accountId: account?.id,
