@@ -3,9 +3,11 @@ package pgxslog
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/tracelog"
+	"github.com/spf13/viper"
 )
 
 // Pulled from: https://github.com/mcosta74/pgx-slog
@@ -43,4 +45,23 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 		attrs = append(attrs, slog.Any("INVALID_PGX_LOG_LEVEL", level))
 	}
 	l.l.LogAttrs(ctx, lvl, msg, attrs...)
+}
+
+// Returns a tracelog.LogLevel as configured by the environment
+func GetDatabaseLogLevel() tracelog.LogLevel {
+	input := viper.GetString("DB_LOG_LEVEL")
+	switch strings.ToUpper(input) {
+	case "TRACE":
+		return tracelog.LogLevelTrace
+	case "DEBUG":
+		return tracelog.LogLevelDebug
+	case "INFO":
+		return tracelog.LogLevelInfo
+	case "WARN":
+		return tracelog.LogLevelWarn
+	case "ERROR":
+		return tracelog.LogLevelError
+	default:
+		return tracelog.LogLevelDebug
+	}
 }

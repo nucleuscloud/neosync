@@ -63,7 +63,7 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 	}
 	pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger:   pgxslog.NewLogger(slog.Default()),
-		LogLevel: tracelog.LogLevelDebug,
+		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
 	pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
