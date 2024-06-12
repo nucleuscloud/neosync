@@ -502,7 +502,10 @@ async function createJob(
   return CreateJobResponse.fromJson(await res.json());
 }
 
-async function removeJob(accountId: string, jobId: string): Promise<void> {
+export async function removeJob(
+  accountId: string,
+  jobId: string
+): Promise<void> {
   const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
     method: 'DELETE',
   });
@@ -531,4 +534,22 @@ export async function isJobNameAvailable(
     throw new Error(body.message);
   }
   return IsJobNameAvailableResponse.fromJson(await res.json());
+}
+
+export async function triggerJobRun(
+  accountId: string,
+  jobId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/create-run`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ jobId }),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
 }
