@@ -1,4 +1,5 @@
 import '@/app/globals.css';
+import { KoalaScriptProvider } from '@/components/providers/koala-provider';
 import {
   PHProvider,
   PostHogPageview,
@@ -30,6 +31,9 @@ export default async function InviteLayout({
           disableTransitionOnChange
         >
           <>
+            <Suspense>
+              <KoalaScriptProvider />
+            </Suspense>
             <Suspense>
               <PostHogPageview />
             </Suspense>
