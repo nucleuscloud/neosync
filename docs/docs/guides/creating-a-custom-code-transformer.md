@@ -9,12 +9,12 @@ slug: /guides/custom-code-transformers
 
 ## Introduction
 
-Neosync supports the ability to write your own custom logic using javascript.
+Neosync supports the ability to write your own custom logic using JavaScript.
 
 There exist two different transformers that enable this. One of them is input-free, while the other is input-full, and allows you to transform incoming values.
 
 - `transform_javascript` takes in and allows you to modify input. This transformer may be used in Sync jobs.
-- `generate_javascript` takes in 0 input and only expects an output. This transformer may be used in both Sync and Generate jobs.
+- `generate_javascript` takes in no input and only expects an output. This transformer may be used in both Sync and Generate jobs.
 
 ## Creating a Custom Code Transformer
 
