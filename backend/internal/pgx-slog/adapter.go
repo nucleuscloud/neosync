@@ -21,13 +21,13 @@ func NewLogger(l *slog.Logger) *Logger {
 }
 
 func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]any) {
+	if level == tracelog.LogLevelNone {
+		return
+	}
+
 	attrs := make([]slog.Attr, 0, len(data))
 	for k, v := range data {
 		attrs = append(attrs, slog.Any(k, v))
-	}
-
-	if level == tracelog.LogLevelNone {
-		return
 	}
 
 	var lvl slog.Level
