@@ -89,6 +89,10 @@ stringData:
     POSTHOG_HOST: {{ .Values.posthog.host }}
     {{- end }}
 
+    {{ if and .Values.koala .Values.koala.key }}
+    KOALA_KEY: {{ .Values.koala.key }}
+    {{- end }}
+
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
 
     ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}
