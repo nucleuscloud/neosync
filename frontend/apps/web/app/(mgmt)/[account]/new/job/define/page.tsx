@@ -22,7 +22,7 @@ import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { DEFINE_FORM_SCHEMA, DefineFormValues, NewJobType } from '../schema';
+import { DefineFormValues, NewJobType } from '../schema';
 
 import {
   Accordion,
@@ -67,7 +67,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm<DefineFormValues>({
     mode: 'onChange',
-    resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
+    resolver: yupResolver<DefineFormValues>(DefineFormValues),
     defaultValues,
     context: {
       accountId: account?.id ?? '',

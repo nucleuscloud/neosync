@@ -1,7 +1,4 @@
-import {
-  SUBSET_FORM_SCHEMA,
-  SubsetFormValues,
-} from '@/app/(mgmt)/[account]/new/job/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
@@ -20,10 +17,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import {
-  toMysqlSourceSchemaOptions,
-  toPostgresSourceSchemaOptions,
-} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetJobResponse,
@@ -37,6 +30,10 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import {
+  toMysqlSourceSchemaOptions,
+  toPostgresSourceSchemaOptions,
+} from '../../../util';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
 
@@ -81,7 +78,7 @@ export default function SubsetCard(props: Props): ReactElement {
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
-    resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
+    resolver: yupResolver<SubsetFormValues>(SubsetFormValues),
     defaultValues: { subsets: [] },
     values: formValues,
   });

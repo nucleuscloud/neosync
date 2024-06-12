@@ -1,5 +1,6 @@
 'use client';
 import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
+import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -25,10 +26,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import {
-  DESTINATION_FORM_SCHEMA,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
+import { DestinationFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -44,7 +42,7 @@ import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
   jobId: Yup.string().required(),
-  destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
+  destinations: Yup.array(DestinationFormValues).required(),
 });
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 

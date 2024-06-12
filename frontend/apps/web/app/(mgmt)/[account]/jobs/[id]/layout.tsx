@@ -24,6 +24,7 @@ import {
 } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { removeJob, triggerJobRun } from '../util';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobPauseButton from './components/JobPauseButton';
 import { isAiDataGenJob, isDataGenJob } from './util';
@@ -271,30 +272,4 @@ function shouldEnableSubsettingNav(job?: Job): boolean {
     default:
       return false;
   }
-}
-
-async function removeJob(accountId: string, jobId: string): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-async function triggerJobRun(accountId: string, jobId: string): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/create-run`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ jobId }),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

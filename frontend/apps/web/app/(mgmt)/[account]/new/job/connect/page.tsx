@@ -37,7 +37,7 @@ import {
   getConnectionType,
 } from '../../../connections/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
+import { ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
@@ -68,7 +68,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm<ConnectFormValues>({
     mode: 'onChange',
-    resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
+    resolver: yupResolver<ConnectFormValues>(ConnectFormValues),
     values: defaultValues,
     context: { connections },
   });

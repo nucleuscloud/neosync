@@ -22,7 +22,7 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
-import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
+import { SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -39,9 +39,9 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
+import { createNewSyncJob } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
-import { createNewJob } from '../subset/util';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -113,7 +113,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
 
   const form = useForm<SchemaFormValues>({
-    resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
+    resolver: yupResolver<SchemaFormValues>(SchemaFormValues),
     values: getFormValues(connectFormValues.sourceId, schemaFormData),
     context: { accountId: account?.id },
   });
@@ -130,7 +130,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     if (isNosqlSource(connectionData.connection)) {
       try {
-        const job = await createNewJob(
+        const connMap = new Map(connections.map((c) => [c.id, c]));
+        const job = await createNewSyncJob(
           {
             define: defineFormValues,
             connect: connectFormValues,
@@ -138,7 +139,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             // subset: {},
           },
           account.id,
-          connections
+          (id) => connMap.get(id)
         );
         posthog.capture('New Job Flow Complete', {
           jobType: 'data-sync',
