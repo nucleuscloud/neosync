@@ -9,7 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
