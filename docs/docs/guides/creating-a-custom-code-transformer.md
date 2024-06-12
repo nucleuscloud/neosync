@@ -4,13 +4,26 @@ description: Learn how to create a custom code transformer that you can use to i
 id: custom-code-transformers
 hide_title: false
 slug: /guides/custom-code-transformers
+# cSpell:words goja Goja
 ---
 
 ## Introduction
 
-Neosync supports the ability to write your own custom logic in javascript for a transformer. We call this the `transform_javascript` transformer. Custom code transformers take in an input value at the `value` keyword and execute your custom code against that value. Custom code transformers are also only available for sync jobs since they require an input value.
+Neosync supports the ability to write your own custom logic using JavaScript.
+
+There exist two different transformers that enable this. One of them is input-free, while the other is input-full, and allows you to transform incoming values.
+
+- `transform_javascript` takes in and allows you to modify input. This transformer may be used in Sync jobs.
+- `generate_javascript` takes in no input and only expects an output. This transformer may be used in both Sync and Generate jobs.
 
 ## Creating a Custom Code Transformer
+
+There exists two ways to configure a javascript transformer:
+
+1. Creating a custom transformer and saving it to then later be used when configuring the job's column mappings.
+2. Selecting Generate/Transformer Javascript and putting the code directly in line for that specific job's column mapping(s).
+
+This guide will walk you through the first option.
 
 In order to create a custom code transformer:
 
@@ -20,21 +33,22 @@ In order to create a custom code transformer:
 ![tj](https://assets.nucleuscloud.com/neosync/docs/customcodetransformer.png)
 
 3. Give your transformer a **Name** and a **Description**.
-4. Then move onto to the **Custom Code** section. Here you can write in custom javascript code to transform your input value. Note that the value that you will be transforming is available at the `value` keyword and is of `any` type. For example, if the input value was `john` of type string then the following code:
+4. Then move onto to the **Custom Code** section. Here you can write in custom javascript code to transform your input value.
+   Note that the value that you will be transforming is available at the `value` keyword and is coerced into the relevant javascript type.
+
+For example, if the input value was `john` with a database type `TEXT` then the following code: `return value + 'test';` would return `johntest`.
+
+The code editor comes with autocomplete for most standard methods and syntax highlighting.
+
+**The JavaScript transformers do not currently support 3rd party modules. If necessary, you must bundle them directly into the code.**
+
+**Important**: make sure you include a return statement or the custom function will not return a value.
+
+An example of a more complicated transformation:
 
 ```javascript
-return value + 'test';
-```
-
-You can also do more complicated transformations such as:
-
-```javascript
-function manipulateString(str) {
-  let result = reverseString(str);
-
-  result = capitalizeString(result);
-
-  return result;
+function manipulateString(s) {
+  return capitalizeString(reverseString(s));
 }
 // capitalize the string
 function capitalizeString(s) {
@@ -44,17 +58,12 @@ function capitalizeString(s) {
 function reverseString(s) {
   return s.split('').reverse().join('');
 }
-
-const input = manipulateString(value);
-
-return input;
+return manipulateString(value);
 ```
 
-This would return `johntest`. The code editor comes with autocomplete for most standard methods and syntax highlighting. Lastly, we do not currently support module imports in this section. **Important**: make sure you include a return statement or the custom function will not return a value.
-
-5. Once you are satisfied with your custom code, click on the **Validate** button to ensure that your javascript compiles and is valid. If it does not compile, we will return an **invalid** error.
-   ![valid](https://assets.nucleuscloud.com/neosync/docs/validcode.png)
-6. Once your code has compiled, click on **Submit** to save your custom code transformer. You can now use your custom code transformer in sync jobs.
+5. Once you are satisfied with your custom code, click on the **Validate** button to ensure that your javascript compiles and is valid. If it does not compile, we will return an **invalid** error. Please be aware that just because the program compiles _does not mean_ that it will run. It simply validates that you are not using any invalid JS keywords. You may still very well run into a runtime error!
+   ![valid](/img/valid-javascript.png)
+6. Once your code has compiled, click on **Submit** to save your custom code transformer. You can now use your custom code transformer in sync jobs. The custom transformer will appear under the user defined/custom section of the Transformer drop down in the job mapping table.
 
 ## Creating Column Dependencies
 
@@ -64,13 +73,8 @@ Let's say that we have a table with three fields: `id, age, shouldDouble` and wi
 
 ```javascript
 function doubleAge(age, shouldDouble) {
-  if (shouldDouble) {
-    return age * 2;
-  } else {
-    return age;
-  }
+  return shouldDouble ? age * 2 : age;
 }
-
 return doubleAge(value, input.shouldDouble);
 ```
 
@@ -105,3 +109,9 @@ return hello + five.toString();
 ```
 
 Calling the `toString()` method on the integer in order to return it correctly. We're working on this and will update it once we have a fix.
+
+## JavaScript Runtime
+
+Since Neosync is written in Go, we have to use a JavaScript-compatible runtime to invoke JS transformations. Today, we rely on [goja](https://github.com/dop251/goja). This works well and is written in native Golang. However, it does have limitations such as no 3rd party modules, and does not have full ES6 support (yet).
+
+If running into anything strange with JS, it's worthwhile to check what Goja supports to see if you've hit any incompatibility errors.

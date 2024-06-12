@@ -18,7 +18,7 @@ help:
 PROD_COMPOSE_FILE = compose.yml
 PROD_AUTH_COMPOSE_FILE = compose.auth.yml
 DEV_COMPOSE_FILE = compose.dev.yml
-DEV_AUTH_COMPOSE_FILE = compose.auth.dev.yml
+DEV_AUTH_COMPOSE_FILE = compose.auth.yml
 
 # Cluster Management
 cluster/create: ## Creates a local K8s Cluster
