@@ -99,3 +99,5 @@ Valid options for `DB_LOG_LEVEL` are (not case sensitive):
 - none
 
 Note, Neosync uses `slog/logger` for all of it's logging and does not natively support `trace`. The adapter will set it to debug level - 1.
+
+**Note** - When turning on database logging, the statements **include arguments**. So if planning to run this in any production environment, you may leak, PII or other sensitive information.
