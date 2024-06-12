@@ -8,6 +8,9 @@ import (
 	"github.com/jackc/pgx/v5/tracelog"
 )
 
+// Pulled from: https://github.com/mcosta74/pgx-slog
+// Copied to avoid adding another go mod dependency which also allows us to ensure this is always compatible with our version of pgx
+
 type Logger struct {
 	l *slog.Logger
 }
@@ -16,7 +19,7 @@ func NewLogger(l *slog.Logger) *Logger {
 	return &Logger{l: l}
 }
 
-func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]interface{}) {
+func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]any) {
 	attrs := make([]slog.Attr, 0, len(data))
 	for k, v := range data {
 		attrs = append(attrs, slog.Any(k, v))
