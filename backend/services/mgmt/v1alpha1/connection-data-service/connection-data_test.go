@@ -307,6 +307,10 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 				ForeignColumnName: "id",
 			},
 		}, nil)
+	m.MysqlQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
+	m.MysqlQueierMock.On("GetUniqueConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
 
 	resp, err := m.Service.GetConnectionForeignConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionForeignConstraintsRequest{
@@ -417,6 +421,10 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 				ColumnName:     "id",
 			},
 		}, nil)
+	m.MysqlQueierMock.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
+	m.MysqlQueierMock.On("GetUniqueConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
 
 	resp, err := m.Service.GetConnectionPrimaryConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest{
@@ -961,6 +969,10 @@ func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
 				ColumnName:     "id",
 			},
 		}, nil)
+	m.MysqlQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
+	m.MysqlQueierMock.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil)
 
 	resp, err := m.Service.GetConnectionUniqueConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionUniqueConstraintsRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionUniqueConstraintsRequest{

@@ -132,10 +132,10 @@ func Test_GetForeignKeyConstraintsMap(t *testing.T) {
 			},
 		}}
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
 	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
+		require.ElementsMatch(t, expect, actual.ForeignKeyConstraints[table])
 	}
 }
 
@@ -160,9 +160,9 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases(t *testing.T) {
 		constraints, nil,
 	)
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
-	require.Equal(t, actual, map[string][]*sqlmanager_shared.ForeignConstraint{
+	require.Equal(t, actual.ForeignKeyConstraints, map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.t1": {
 			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id"}}},
 			{Columns: []string{"c"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"user_id"}}},
@@ -200,10 +200,10 @@ func Test_GetPrimaryKeyConstraintsMap(t *testing.T) {
 		"public.composite": {"id", "other_id"},
 	}
 
-	actual, err := manager.GetPrimaryKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
 	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
+		require.ElementsMatch(t, expect, actual.PrimaryKeyConstraints[table])
 	}
 }
 
@@ -226,14 +226,14 @@ func Test_GetUniqueConstraintsMap(t *testing.T) {
 		"public.region": {{"code"}, {"name"}},
 	}
 
-	actual, err := manager.GetUniqueConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 
 	require.NoError(t, err)
-	require.Len(t, actual["public.person"], 1)
-	require.Len(t, actual["public.region"], 2)
-	require.ElementsMatch(t, expected["public.person"][0], actual["public.person"][0])
-	require.ElementsMatch(t, expected["public.region"][0], actual["public.region"][0])
-	require.ElementsMatch(t, expected["public.region"][1], actual["public.region"][1])
+	require.Len(t, actual.UniqueConstraints["public.person"], 1)
+	require.Len(t, actual.UniqueConstraints["public.region"], 2)
+	require.ElementsMatch(t, expected["public.person"][0], actual.UniqueConstraints["public.person"][0])
+	require.ElementsMatch(t, expected["public.region"][0], actual.UniqueConstraints["public.region"][0])
+	require.ElementsMatch(t, expected["public.region"][1], actual.UniqueConstraints["public.region"][1])
 }
 
 func Test_GetRolePermissionsMap(t *testing.T) {

@@ -221,12 +221,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 				}
 			} else if sqlopts.TruncateBeforeInsert {
-				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
 					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 				}
-				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
-				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies.ForeignKeyConstraints)))
+				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 				if err != nil {
 					destdb.Db.Close()
@@ -249,12 +249,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if sqlopts.InitSchema {
-				tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
+				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
 				if err != nil {
 					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 				}
-				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
-				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies.ForeignKeyConstraints)))
+				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 				if err != nil {
 					destdb.Db.Close()

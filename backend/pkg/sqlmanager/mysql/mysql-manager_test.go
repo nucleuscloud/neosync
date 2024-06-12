@@ -120,10 +120,10 @@ func Test_GetForeignKeyConstraintsMap_Mysql(t *testing.T) {
 		},
 	}
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), []string{"neosync_api"})
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"neosync_api"})
 	require.NoError(t, err)
 	for table, fks := range expected {
-		acutalFks := actual[table]
+		acutalFks := actual.ForeignKeyConstraints[table]
 		require.ElementsMatch(t, fks, acutalFks)
 	}
 }
@@ -160,10 +160,10 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases_Mysql(t *testing.T) {
 
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), []string{"neosync_api"})
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"neosync_api"})
 	require.NoError(t, err)
 	for table, fks := range expected {
-		acutalFks := actual[table]
+		acutalFks := actual.ForeignKeyConstraints[table]
 		require.ElementsMatch(t, fks, acutalFks)
 	}
 }
@@ -220,10 +220,10 @@ func Test_GetPrimaryKeyConstraintsMap_Mysql(t *testing.T) {
 		"public.composite": {"id", "other_id"},
 	}
 
-	actual, err := manager.GetPrimaryKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
 	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
+		require.ElementsMatch(t, expect, actual.PrimaryKeyConstraints[table])
 	}
 }
 
@@ -271,11 +271,11 @@ func Test_GetUniqueConstraintsMap_Mysql(t *testing.T) {
 		"public.region": {{"code"}, {"name"}},
 	}
 
-	actual, err := manager.GetUniqueConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 
 	require.NoError(t, err)
 	for table, cols := range expected {
-		actualCols := actual[table]
+		actualCols := actual.UniqueConstraints[table]
 		require.Len(t, actualCols, len(cols))
 		for _, col := range cols {
 			require.Contains(t, actualCols, col)

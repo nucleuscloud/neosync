@@ -531,12 +531,15 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.users": {{
-			Columns:     []string{"account_id"},
-			NotNullable: []bool{true},
-			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
-		}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.users": {{
+				Columns:     []string{"account_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			}},
+		},
+		PrimaryKeyConstraints: map[string][]string{},
 	}, nil)
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -947,12 +950,15 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.users": {{
-			Columns:     []string{"account_id"},
-			NotNullable: []bool{true},
-			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
-		}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.users": {{
+				Columns:     []string{"account_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			}},
+		},
+		PrimaryKeyConstraints: map[string][]string{},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
 	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"

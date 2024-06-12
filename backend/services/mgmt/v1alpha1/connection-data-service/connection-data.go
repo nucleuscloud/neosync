@@ -538,13 +538,13 @@ func (s *Service) GetConnectionForeignConstraints(
 		return nil, err
 	}
 	defer db.Db.Close()
-	foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
+	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for tableName, d := range foreignKeyMap {
+	for tableName, d := range constraints.ForeignKeyConstraints {
 		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
 			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
 		}
@@ -603,13 +603,13 @@ func (s *Service) GetConnectionPrimaryConstraints(
 	}
 	defer db.Db.Close()
 
-	primaryKeysMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for tableName, cols := range primaryKeysMap {
+	for tableName, cols := range constraints.PrimaryKeyConstraints {
 		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
 			Columns: cols,
 		}
@@ -914,13 +914,13 @@ func (s *Service) GetConnectionUniqueConstraints(
 	}
 	defer db.Db.Close()
 
-	ucMap, err := db.Db.GetUniqueConstraintsMap(ctx, schemas)
+	constraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.UniqueConstraint{}
-	for tableName, uc := range ucMap {
+	for tableName, uc := range constraints.UniqueConstraints {
 		columns := []string{}
 		for _, c := range uc {
 			columns = append(columns, c...)
