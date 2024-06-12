@@ -133,14 +133,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
-  const connectionType = connections.find(
+  const connection = connections.find(
     (item) => item.id == connectFormValues.sourceId
   );
 
-  const dbType = getDbtype();
-  connectionType?.connectionConfig?.config.case == 'mysqlConfig'
-    ? 'mysql'
-    : 'postgres';
+  const dbType = getDbtype(connection?.connectionConfig);
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
