@@ -17,10 +17,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import {
-  toMysqlSourceSchemaOptions,
-  toPostgresSourceSchemaOptions,
-} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetJobResponse,
@@ -34,6 +30,10 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import {
+  toMysqlSourceSchemaOptions,
+  toPostgresSourceSchemaOptions,
+} from '../../../util';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
 
