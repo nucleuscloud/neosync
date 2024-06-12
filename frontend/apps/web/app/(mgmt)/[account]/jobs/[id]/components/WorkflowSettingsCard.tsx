@@ -13,21 +13,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  convertMinutesToNanoseconds,
-  convertNanosecondsToMinutes,
-  getErrorMessage,
-} from '@/util/util';
+import { convertNanosecondsToMinutes, getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Job,
-  SetJobWorkflowOptionsRequest,
-  SetJobWorkflowOptionsResponse,
-  WorkflowOptions,
-} from '@neosync/sdk';
+import { Job } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { WorkflowSettingsSchema } from '../../../new/job/schema';
+import { updateJobWorkflowOptions } from '../../util';
 
 interface Props {
   job: Job;
@@ -115,36 +107,4 @@ export default function WorkflowSettingsCard({
       </Form>
     </Card>
   );
-}
-
-async function updateJobWorkflowOptions(
-  accountId: string,
-  jobId: string,
-  values: WorkflowSettingsSchema
-): Promise<SetJobWorkflowOptionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/workflowoptions`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobWorkflowOptionsRequest({
-          id: jobId,
-          worfklowOptions: new WorkflowOptions({
-            runTimeout:
-              values.runTimeout !== undefined && values.runTimeout > 0
-                ? convertMinutesToNanoseconds(values.runTimeout)
-                : undefined,
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
 }
