@@ -10,6 +10,8 @@ import {
   AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
   Connection,
+  CreateJobDestinationConnectionsRequest,
+  CreateJobDestinationConnectionsResponse,
   CreateJobRequest,
   CreateJobResponse,
   DatabaseTable,
@@ -23,29 +25,45 @@ import {
   JobMapping,
   JobSource,
   JobSourceOptions,
+  JobSourceSqlSubetSchemas,
   MongoDBDestinationConnectionOptions,
   MongoDBSourceConnectionOptions,
   MysqlDestinationConnectionOptions,
   MysqlOnConflictConfig,
   MysqlSourceConnectionOptions,
   MysqlSourceSchemaOption,
+  MysqlSourceSchemaSubset,
   MysqlSourceTableOption,
   MysqlTruncateTableConfig,
+  PauseJobRequest,
+  PauseJobResponse,
   PostgresDestinationConnectionOptions,
   PostgresOnConflictConfig,
   PostgresSourceConnectionOptions,
   PostgresSourceSchemaOption,
+  PostgresSourceSchemaSubset,
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
   RetryPolicy,
+  SetJobSourceSqlConnectionSubsetsRequest,
+  SetJobSourceSqlConnectionSubsetsResponse,
+  SetJobSyncOptionsRequest,
+  SetJobWorkflowOptionsRequest,
+  SetJobWorkflowOptionsResponse,
+  UpdateJobDestinationConnectionRequest,
+  UpdateJobDestinationConnectionResponse,
+  UpdateJobScheduleRequest,
+  UpdateJobScheduleResponse,
   WorkflowOptions,
 } from '@neosync/sdk';
 import { SampleRecord } from '../new/job/aigenerate/single/schema/types';
 import {
+  ActivityOptionsSchema,
   CreateJobFormValues,
   CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
   SubsetFormValues,
+  WorkflowSettingsSchema,
 } from '../new/job/schema';
 
 type GetConnectionById = (id: string) => Connection | undefined;
@@ -67,7 +85,7 @@ export async function createNewSingleTableAiGenerateJob(
         values,
         getConnectionById
       ),
-      workflowOptions: toWorkflowOptions(values),
+      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
       syncOptions: toSyncOptions(values),
     }),
     accountId
@@ -124,7 +142,7 @@ export async function createNewSingleTableGenerateJob(
         values,
         getConnectionById
       ),
-      workflowOptions: toWorkflowOptions(values),
+      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
       syncOptions: toSyncOptions(values),
     }),
     accountId
@@ -208,7 +226,7 @@ export async function createNewSyncJob(
       mappings: toSyncJobMappings(values),
       source: toJobSource(values, getConnectionById),
       destinations: toSyncJobDestinations(values, getConnectionById),
-      workflowOptions: toWorkflowOptions(values),
+      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
       syncOptions: toSyncOptions(values),
     }),
     accountId
@@ -216,13 +234,11 @@ export async function createNewSyncJob(
 }
 
 function toWorkflowOptions(
-  values: Pick<CreateJobFormValues, 'define'>
+  values?: WorkflowSettingsSchema
 ): WorkflowOptions | undefined {
-  if (values.define.workflowSettings?.runTimeout) {
+  if (values?.runTimeout) {
     return new WorkflowOptions({
-      runTimeout: convertMinutesToNanoseconds(
-        values.define.workflowSettings.runTimeout
-      ),
+      runTimeout: convertMinutesToNanoseconds(values.runTimeout),
     });
   }
   return undefined;
@@ -277,7 +293,7 @@ function toSyncJobDestinations(
   });
 }
 
-export function toJobDestinationOptions(
+function toJobDestinationOptions(
   values: DestinationFormValues,
   connection?: Connection
 ): JobDestinationOptions {
@@ -436,7 +452,7 @@ function toJobSourceOptions(
   }
 }
 
-export function toPostgresSourceSchemaOptions(
+function toPostgresSourceSchemaOptions(
   subsets: SubsetFormValues['subsets']
 ): PostgresSourceSchemaOption[] {
   const schemaMap = subsets.reduce(
@@ -460,7 +476,7 @@ export function toPostgresSourceSchemaOptions(
   return Object.values(schemaMap);
 }
 
-export function toMysqlSourceSchemaOptions(
+function toMysqlSourceSchemaOptions(
   subsets: SubsetFormValues['subsets']
 ): MysqlSourceSchemaOption[] {
   const schemaMap = subsets.reduce(
@@ -552,4 +568,255 @@ export async function triggerJobRun(
     throw new Error(body.message);
   }
   await res.json();
+}
+
+export async function createJobConnections(
+  jobId: string,
+  values: DestinationFormValues[],
+  connections: Connection[],
+  accountId: string
+): Promise<CreateJobDestinationConnectionsResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connections`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new CreateJobDestinationConnectionsRequest({
+          jobId: jobId,
+          destinations: values.map((d) => {
+            return new JobDestination({
+              connectionId: d.connectionId,
+              options: toJobDestinationOptions(
+                d,
+                connections.find((c) => c.id === d.connectionId)
+              ),
+            });
+          }),
+        })
+      ),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateJobDestinationConnectionsResponse.fromJson(await res.json());
+}
+
+export async function updateJobSyncActivityOptions(
+  accountId: string,
+  jobId: string,
+  values: ActivityOptionsSchema
+): Promise<SetJobWorkflowOptionsResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/syncoptions`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new SetJobSyncOptionsRequest({
+          id: jobId,
+          syncOptions: new ActivityOptions({
+            startToCloseTimeout:
+              values.startToCloseTimeout !== undefined &&
+              values.startToCloseTimeout > 0
+                ? convertMinutesToNanoseconds(values.startToCloseTimeout)
+                : undefined,
+            scheduleToCloseTimeout:
+              values.scheduleToCloseTimeout !== undefined &&
+              values.scheduleToCloseTimeout > 0
+                ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
+                : undefined,
+            retryPolicy: new RetryPolicy({
+              maximumAttempts: values.retryPolicy?.maximumAttempts,
+            }),
+          }),
+        })
+      ),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
+}
+
+export async function pauseJob(
+  accountId: string,
+  jobId: string,
+  isPaused: boolean
+): Promise<PauseJobResponse> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/pause`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(
+      new PauseJobRequest({
+        id: jobId,
+        pause: isPaused,
+      })
+    ),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return PauseJobResponse.fromJson(await res.json());
+}
+
+export async function updateJobSchedule(
+  accountId: string,
+  jobId: string,
+  cronSchedule?: string
+): Promise<UpdateJobScheduleResponse> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/schedule`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(
+      new UpdateJobScheduleRequest({
+        id: jobId,
+        cronSchedule: cronSchedule,
+      })
+    ),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateJobScheduleResponse.fromJson(await res.json());
+}
+
+export async function updateJobWorkflowOptions(
+  accountId: string,
+  jobId: string,
+  values: WorkflowSettingsSchema
+): Promise<SetJobWorkflowOptionsResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/workflowoptions`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new SetJobWorkflowOptionsRequest({
+          id: jobId,
+          worfklowOptions: toWorkflowOptions(values),
+        })
+      ),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
+}
+
+export async function deleteJobConnection(
+  accountId: string,
+  jobId: string,
+  destinationId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection/${destinationId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
+}
+
+export async function setJobConnection(
+  accountId: string,
+  jobId: string,
+  values: DestinationFormValues,
+  destinationId: string,
+  connection?: Connection
+): Promise<UpdateJobDestinationConnectionResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateJobDestinationConnectionRequest({
+          jobId: jobId,
+          connectionId: values.connectionId,
+          destinationId: destinationId,
+          options: new JobDestinationOptions(
+            toJobDestinationOptions(values, connection)
+          ),
+        })
+      ),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
+}
+
+export async function setJobSubsets(
+  accountId: string,
+  jobId: string,
+  values: SubsetFormValues,
+  dbType: string
+): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
+  const schemas =
+    dbType == 'mysql'
+      ? new JobSourceSqlSubetSchemas({
+          schemas: {
+            case: 'mysqlSubset',
+            value: new MysqlSourceSchemaSubset({
+              mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
+            }),
+          },
+        })
+      : new JobSourceSqlSubetSchemas({
+          schemas: {
+            case: 'postgresSubset',
+            value: new PostgresSourceSchemaSubset({
+              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
+            }),
+          },
+        });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new SetJobSourceSqlConnectionSubsetsRequest({
+          id: jobId,
+          subsetByForeignKeyConstraints:
+            values.subsetOptions.subsetByForeignKeyConstraints,
+          schemas,
+        })
+      ),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
 }

@@ -18,22 +18,11 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  GetJobResponse,
-  JobSourceOptions,
-  JobSourceSqlSubetSchemas,
-  MysqlSourceSchemaSubset,
-  PostgresSourceSchemaSubset,
-  SetJobSourceSqlConnectionSubsetsRequest,
-  SetJobSourceSqlConnectionSubsetsResponse,
-} from '@neosync/sdk';
+import { GetJobResponse, JobSourceOptions } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  toMysqlSourceSchemaOptions,
-  toPostgresSourceSchemaOptions,
-} from '../../../util';
+import { setJobSubsets } from '../../../util';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
 
@@ -291,54 +280,6 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
         sourceOpts.config.value.subsetByForeignKeyConstraints,
     },
   };
-}
-
-async function setJobSubsets(
-  accountId: string,
-  jobId: string,
-  values: SubsetFormValues,
-  dbType: string
-): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
-  const schemas =
-    dbType == 'mysql'
-      ? new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'mysqlSubset',
-            value: new MysqlSourceSchemaSubset({
-              mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
-            }),
-          },
-        })
-      : new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'postgresSubset',
-            value: new PostgresSourceSchemaSubset({
-              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
-            }),
-          },
-        });
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobSourceSqlConnectionSubsetsRequest({
-          id: jobId,
-          subsetByForeignKeyConstraints:
-            values.subsetOptions.subsetByForeignKeyConstraints,
-          schemas,
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
 }
 
 function getDbtype(

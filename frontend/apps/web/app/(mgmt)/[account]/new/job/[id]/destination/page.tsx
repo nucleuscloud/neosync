@@ -1,6 +1,6 @@
 'use client';
 import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
-import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
+import { createJobConnections } from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -28,12 +28,7 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { DestinationFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Connection,
-  CreateJobDestinationConnectionsRequest,
-  CreateJobDestinationConnectionsResponse,
-  JobDestination,
-} from '@neosync/sdk';
+import { Connection } from '@neosync/sdk';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
@@ -85,7 +80,7 @@ export default function Page({ params }: PageProps): ReactElement {
     try {
       const job = await createJobConnections(
         id,
-        values,
+        values.destinations,
         connections,
         account?.id ?? ''
       );
@@ -249,40 +244,4 @@ export default function Page({ params }: PageProps): ReactElement {
       )}
     </div>
   );
-}
-
-async function createJobConnections(
-  jobId: string,
-  values: FormValues,
-  connections: Connection[],
-  accountId: string
-): Promise<CreateJobDestinationConnectionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connections`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new CreateJobDestinationConnectionsRequest({
-          jobId: jobId,
-          destinations: values.destinations.map((d) => {
-            return new JobDestination({
-              connectionId: d.connectionId,
-              options: toJobDestinationOptions(
-                d,
-                connections.find((c) => c.id === d.connectionId)
-              ),
-            });
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobDestinationConnectionsResponse.fromJson(await res.json());
 }
