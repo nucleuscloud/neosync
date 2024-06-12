@@ -1,5 +1,6 @@
 'use client';
 import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
+import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -25,10 +26,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import {
-  DestinationFormValues,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
+import { DestinationFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
