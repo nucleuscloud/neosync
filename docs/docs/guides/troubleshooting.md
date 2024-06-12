@@ -84,5 +84,5 @@ This topic is further discussed [here](https://www.civo.com/learn/fixing-network
 Neosync currently supports debugging database queries for Postgres connections.
 
 Database queries are logged by default at the log level `DEBUG`.
-The default loglevel for the api and worker are `INFO`. If you wish to enable this, you can change the `LOG_LEVEL` environment variable to `DEBUG`.
+The default log level for the api and worker are `INFO`. If you wish to enable this, you can change the `LOG_LEVEL` environment variable to `DEBUG`.
 If you'd instead like to lower the database logging, the `DB_LOG_LEVEL` environment variable may be specified to change the level at which database queries are logged.
