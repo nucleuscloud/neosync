@@ -17,12 +17,17 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
+	Logger   *LoggerConfig   `json:"logger" yaml:"logger,omitempty"`
 	Input    *InputConfig    `json:"input" yaml:"input"`
 	Buffer   *BufferConfig   `json:"buffer,omitempty" yaml:"buffer,omitempty"`
 	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
 	Output   *OutputConfig   `json:"output" yaml:"output"`
 }
 
+type LoggerConfig struct {
+	Level        string `json:"level" yaml:"level"`
+	AddTimestamp bool   `json:"add_timestamp" yaml:"add_timestamp"`
+}
 type InputConfig struct {
 	Label  string `json:"label" yaml:"label"`
 	Inputs `json:",inline" yaml:",inline"`

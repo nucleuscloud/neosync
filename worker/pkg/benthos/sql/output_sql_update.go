@@ -48,6 +48,7 @@ func (p *dbPoolProvider) GetDb(driver, dsn string) (SqlDbtx, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.SetMaxOpenConns(10)
 
 	p.pools[dsn] = db
 	return db, nil

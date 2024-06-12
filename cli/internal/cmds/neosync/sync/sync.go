@@ -46,10 +46,7 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/service"
 
-	"github.com/charmbracelet/bubbles/progress"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -75,27 +72,6 @@ var (
 type ConnectionType string
 type DriverType string
 
-type model struct {
-	ctx            context.Context
-	groupedConfigs [][]*benthosConfigResponse
-	tableSynced    int
-	index          int
-	width          int
-	height         int
-	spinner        spinner.Model
-	progress       progress.Model
-	done           bool
-}
-
-var (
-	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
-	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
-	printlog            = lipgloss.NewStyle().PaddingLeft(2)
-	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
-	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
-	checkMark           = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42")).SetString("✓")
-)
-
 type cmdConfig struct {
 	Source      *sourceConfig      `yaml:"source"`
 	Destination *destinationConfig `yaml:"destination"`
@@ -112,7 +88,7 @@ type connectionOpts struct {
 }
 
 type onConflictConfig struct {
-	OnConflictDoNothing bool `yaml:"on-conflict-do-nothing"`
+	DoNothing bool `yaml:"do-nothing"`
 }
 
 type destinationConfig struct {
@@ -121,7 +97,7 @@ type destinationConfig struct {
 	InitSchema           bool             `yaml:"init-schema,omitempty"`
 	TruncateBeforeInsert bool             `yaml:"truncate-before-insert,omitempty"`
 	TruncateCascade      bool             `yaml:"truncate-cascade,omitempty"`
-	OnConflict           onConflictConfig `yaml:"on-conflict-config,omitempty"`
+	OnConflict           onConflictConfig `yaml:"on-conflict,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -215,7 +191,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if onConflictDoNothing {
-				config.Destination.OnConflict.OnConflictDoNothing = onConflictDoNothing
+				config.Destination.OnConflict.DoNothing = onConflictDoNothing
 			}
 
 			jobId, err := cmd.Flags().GetString("job-id")
@@ -517,10 +493,6 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	}()
 
 	streambldr := service.NewStreamBuilder()
-	// benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	// streambldr.SetLogger(benthoslogger.With(
-	// 	"benthos", "true",
-	// ))
 
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
@@ -744,6 +716,10 @@ func generateBenthosConfig(
 
 	bc := &cli_neosync_benthos.BenthosConfig{
 		StreamConfig: cli_neosync_benthos.StreamConfig{
+			Logger: &cli_neosync_benthos.LoggerConfig{
+				Level:        "ERROR",
+				AddTimestamp: true,
+			},
 			Input: &cli_neosync_benthos.InputConfig{
 				Inputs: cli_neosync_benthos.Inputs{
 					NeosyncConnectionData: &cli_neosync_benthos.NeosyncConnectionData{
@@ -795,7 +771,7 @@ func generateBenthosConfig(
 					Schema:              schema,
 					Table:               table,
 					Columns:             syncConfig.SelectColumns,
-					OnConflictDoNothing: cmd.Destination.OnConflict.OnConflictDoNothing,
+					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
 					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns),
 
 					Batching: &cli_neosync_benthos.Batching{
@@ -874,135 +850,6 @@ func isConfigReady(config *benthosConfigResponse, queuedMap map[string][]string)
 		}
 	}
 	return true
-}
-
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *model {
-	p := progress.New(
-		progress.WithDefaultGradient(),
-		progress.WithWidth(40),
-		progress.WithoutPercentage(),
-	)
-	s := spinner.New()
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	return &model{
-		ctx:            ctx,
-		groupedConfigs: groupedConfigs,
-		tableSynced:    0,
-		spinner:        s,
-		progress:       p,
-	}
-}
-
-func (m *model) Init() tea.Cmd {
-	return tea.Batch(syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
-}
-
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width, m.height = msg.Width, msg.Height
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
-			return m, tea.Quit
-		}
-	case syncedDataMsg:
-		totalConfigCount := getConfigCount(m.groupedConfigs)
-		configCount := len(m.groupedConfigs)
-
-		successStrs := []string{}
-		for _, config := range m.groupedConfigs[m.index] {
-			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
-			m.tableSynced++
-		}
-		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
-
-		if m.index == configCount-1 {
-			m.done = true
-			log.Printf("Done! Completed %d tables.", configCount)
-			return m, tea.Batch(
-				progressCmd,
-				tea.Println(strings.Join(successStrs, " \n")),
-				tea.Quit,
-			)
-		}
-
-		m.index++
-		return m, tea.Batch(
-			progressCmd,
-			tea.Println(strings.Join(successStrs, " \n")),
-			syncConfigs(m.ctx, m.groupedConfigs[m.index]),
-		)
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	case progress.FrameMsg:
-		newModel, cmd := m.progress.Update(msg)
-		if newModel, ok := newModel.(progress.Model); ok {
-			m.progress = newModel
-		}
-		return m, cmd
-	}
-	return m, nil
-}
-
-func (m *model) View() string {
-	configCount := getConfigCount(m.groupedConfigs)
-	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
-
-	if m.done {
-		return doneStyle.Render(fmt.Sprintf("Done! Completed %d tables.\n", configCount))
-	}
-
-	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
-
-	spin := m.spinner.View() + " "
-	prog := m.progress.View()
-	cellsAvail := maxInt(0, m.width-lipgloss.Width(spin+prog+pkgCount))
-
-	successStrs := []string{}
-	for _, config := range m.groupedConfigs[m.index] {
-		successStrs = append(successStrs, config.Name)
-	}
-	pkgName := currentPkgNameStyle.Render(successStrs...)
-	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
-
-	cellsRemaining := maxInt(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
-	gap := strings.Repeat(" ", cellsRemaining)
-
-	return spin + info + gap + prog + pkgCount
-}
-
-type syncedDataMsg string
-
-func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
-	return func() tea.Msg {
-		errgrp, errctx := errgroup.WithContext(ctx)
-		for _, cfg := range configs {
-			cfg := cfg
-			errgrp.Go(func() error {
-				log.Printf("Syncing table %s \n", cfg.Name)
-				err := syncData(errctx, cfg)
-				if err != nil {
-					fmt.Printf("Error syncing table: %s \n", err.Error()) //nolint:forbidigo
-					return err
-				}
-				return nil
-			})
-		}
-
-		if err := errgrp.Wait(); err != nil {
-			tea.Printf("Error syncing data: %s \n", err.Error())
-			return tea.Quit
-		}
-
-		message := ""
-		for _, config := range configs {
-			message = fmt.Sprintf("%s, %s", message, config.Name)
-		}
-		return syncedDataMsg(message)
-	}
 }
 
 type schemaConfig struct {
@@ -1169,18 +1016,6 @@ func getDestinationTableConstraints(ctx context.Context, sqlmanagerclient sqlman
 	}
 
 	return constraints, nil
-}
-
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
-	count := 0
-	for _, group := range groupedConfigs {
-		for _, config := range group {
-			if config != nil {
-				count++
-			}
-		}
-	}
-	return count
 }
 
 func buildPlainInsertArgs(cols []string) string {
