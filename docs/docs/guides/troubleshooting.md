@@ -12,8 +12,8 @@ Databases are _complex_. Neosync does its best to handle any and all edge cases 
 
 It's worth reviewing the Neosync [Platform](/platform) overview to understand Neosync's architecture and where possible issues can come up. Generally speaking, issues can come from three different places:
 
-1. **Front-end\*** - Typically client-side react issues that are fairly rare.
-2. **Back-end** - API and Database issues that result from some sort of control plane error such as not being able to find jobs or connect to a source/destination. More common than front-end errors but still not the most common of errors.
+1. **Frontend** - Typically client-side react issues that are fairly rare.
+2. **Backend** - API and Database issues that result from some sort of control plane error such as not being able to find jobs or connect to a source/destination. More common than front-end errors but still not the most common of errors.
 3. **Worker** - Issues that come up when trying to sync and transform data. This is where the overwhelming majority of issues occur.
 
 Since most issues occur in the worker, let's dive a little deeper there. Let's take a look at the types of worker-related issues:
@@ -78,3 +78,11 @@ networks:
 ```
 
 This topic is further discussed [here](https://www.civo.com/learn/fixing-networking-for-docker) and [here](https://stackoverflow.com/questions/73101754/docker-change-mtu-on-the-fly).
+
+## Debugging Database Queries
+
+Neosync currently supports debugging database queries for Postgres connections.
+
+Database queries are logged by default at the log level `DEBUG`.
+The default loglevel for the api and worker are `INFO`. If you wish to enable this, you can change the `LOG_LEVEL` environment variable to `DEBUG`.
+If you'd instead like to lower the database logging, the `DB_LOG_LEVEL` environment variable may be specified to change the level at which database queries are logged.

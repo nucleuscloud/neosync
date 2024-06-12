@@ -5,12 +5,11 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/tracelog"
 	"github.com/spf13/viper"
 )
 
-// Pulled from: https://github.com/mcosta74/pgx-slog
+// Somewhat pulled from: https://github.com/mcosta74/pgx-slog
 // Copied to avoid adding another go mod dependency which also allows us to ensure this is always compatible with our version of pgx
 
 type Logger struct {
@@ -27,18 +26,22 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 		attrs = append(attrs, slog.Any(k, v))
 	}
 
+	if level == tracelog.LogLevelNone {
+		return
+	}
+
 	var lvl slog.Level
 	switch level {
-	case pgx.LogLevelTrace:
+	case tracelog.LogLevelTrace:
 		lvl = slog.LevelDebug - 1
 		attrs = append(attrs, slog.Any("PGX_LOG_LEVEL", level))
-	case pgx.LogLevelDebug:
+	case tracelog.LogLevelDebug:
 		lvl = slog.LevelDebug
-	case pgx.LogLevelInfo:
+	case tracelog.LogLevelInfo:
 		lvl = slog.LevelInfo
-	case pgx.LogLevelWarn:
+	case tracelog.LogLevelWarn:
 		lvl = slog.LevelWarn
-	case pgx.LogLevelError:
+	case tracelog.LogLevelError:
 		lvl = slog.LevelError
 	default:
 		lvl = slog.LevelError
@@ -50,18 +53,9 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 // Returns a tracelog.LogLevel as configured by the environment
 func GetDatabaseLogLevel() tracelog.LogLevel {
 	input := viper.GetString("DB_LOG_LEVEL")
-	switch strings.ToUpper(input) {
-	case "TRACE":
-		return tracelog.LogLevelTrace
-	case "DEBUG":
-		return tracelog.LogLevelDebug
-	case "INFO":
-		return tracelog.LogLevelInfo
-	case "WARN":
-		return tracelog.LogLevelWarn
-	case "ERROR":
-		return tracelog.LogLevelError
-	default:
+	ll, err := tracelog.LogLevelFromString(strings.ToLower(input))
+	if err != nil {
 		return tracelog.LogLevelDebug
 	}
+	return ll
 }
