@@ -5,9 +5,10 @@ import {
   SchemaFormValues,
   SourceFormValues,
 } from '@/yup-validations/jobs';
-import { Connection, IsJobNameAvailableResponse } from '@neosync/sdk';
+import { Connection } from '@neosync/sdk';
 import cron from 'cron-validate';
 import * as Yup from 'yup';
+import { isJobNameAvailable } from '../../jobs/util';
 
 export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
 
@@ -358,23 +359,3 @@ export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
 export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
 >;
-
-async function isJobNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsJobNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/is-job-name-available?name=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsJobNameAvailableResponse.fromJson(await res.json());
-}

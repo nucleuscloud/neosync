@@ -17,6 +17,7 @@ import {
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
   GetAiGeneratedDataRequest,
+  IsJobNameAvailableResponse,
   JobDestination,
   JobDestinationOptions,
   JobMapping,
@@ -510,4 +511,24 @@ async function removeJob(accountId: string, jobId: string): Promise<void> {
     throw new Error(body.message);
   }
   await res.json();
+}
+
+export async function isJobNameAvailable(
+  name: string,
+  accountId: string
+): Promise<IsJobNameAvailableResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/is-job-name-available?name=${name}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return IsJobNameAvailableResponse.fromJson(await res.json());
 }
