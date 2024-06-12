@@ -689,14 +689,13 @@ func (s *Service) GetConnectionInitStatements(
 	initSchemaStmts := []*mgmtv1alpha1.SchemaInitStatements{}
 	if req.Msg.GetOptions().GetInitSchema() {
 		tables := []*sqlmanager_shared.SchemaTable{}
-		for tableKey := range schemaTableMap {
-			schema, table := sqlmanager_shared.SplitTableKey(tableKey)
-			stmt, err := db.Db.GetCreateTableStatement(ctx, schema, table)
+		for k, v := range schemaTableMap {
+			stmt, err := db.Db.GetCreateTableStatement(ctx, v.Schema, v.Table)
 			if err != nil {
 				return nil, err
 			}
-			createStmtsMap[tableKey] = stmt
-			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+			createStmtsMap[k] = stmt
+			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
 		}
 		if db.Driver == sqlmanager_shared.PostgresDriver {
 			initBlocks, err := db.Db.GetSchemaInitStatements(ctx, tables)

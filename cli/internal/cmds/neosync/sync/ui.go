@@ -81,7 +81,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.totalConfigCount == m.tableSynced {
 			m.done = true
 			log.Printf("Done! Completed %d tables.", m.tableSynced)
-			return m, tea.Batch(
+			return m, tea.Sequence(
 				tea.Println(strings.Join(successStrs, " \n")),
 				tea.Quit,
 			)
@@ -121,7 +121,7 @@ func (m *model) View() string {
 	pkgName := currentPkgNameStyle.Render(strings.Join(processingTables, "\n"))
 	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgCount + " \n" + pkgName)
 
-	return spin + info
+	return printlog.Render("\n") + spin + info
 }
 
 type syncedDataMsg map[string]string

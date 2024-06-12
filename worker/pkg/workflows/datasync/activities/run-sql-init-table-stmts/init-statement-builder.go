@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -154,8 +153,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if sqlopts.TruncateCascade {
 				tableTruncateStmts := []string{}
 				for table := range uniqueTables {
-					split := strings.Split(table, ".")
-					stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(split[0], split[1])
+					schema, table := sqlmanager_shared.SplitTableKey(table)
+					stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(schema, table)
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err
@@ -183,8 +182,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				orderedTableTruncate := []string{}
 				for _, table := range orderedTablesResp.OrderedTables {
-					split := strings.Split(table, ".")
-					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
+					schema, table := sqlmanager_shared.SplitTableKey(table)
+					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, schema, table))
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
 				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
@@ -215,12 +214,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				tableCreateStmts := []string{}
 				for _, table := range orderedTablesResp.OrderedTables {
-					split := strings.Split(table, ".")
+					schema, table := sqlmanager_shared.SplitTableKey(table)
 					// todo: make this more efficient to reduce amount of times we have to connect to the source database
 					initStmt, err := sourcedb.Db.GetCreateTableStatement(
 						ctx,
-						split[0],
-						split[1],
+						schema,
+						table,
 					)
 					if err != nil {
 						destdb.Db.Close()
@@ -239,8 +238,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if sqlopts.TruncateBeforeInsert {
 				tableTruncate := []string{}
 				for table := range uniqueTables {
-					split := strings.Split(table, ".")
-					stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(split[0], split[1])
+					schema, table := sqlmanager_shared.SplitTableKey(table)
+					stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schema, table)
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err

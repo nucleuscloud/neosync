@@ -20,6 +20,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -520,22 +521,37 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 	}
 	defer db.Db.Close()
 	if cmd.Destination.InitSchema {
-		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
-		if err != nil {
-			return err
-		}
-		if orderedTablesResp.HasCycles {
-			return errors.New("init schema: unable to handle circular dependencies")
-		}
-		orderedInitStatements := []string{}
-		for _, t := range orderedTablesResp.OrderedTables {
-			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
-		}
+		if len(schemaConfig.InitSchemaStatements) != 0 {
+			for _, block := range schemaConfig.InitSchemaStatements {
+				fmt.Println(printlog.Render(fmt.Sprintf("[%s] found %d statements to execute during schema initialization \n", block.Label, len(block.Statements)))) //nolint:forbidigo
+				if len(block.Statements) == 0 {
+					continue
+				}
+				err = db.Db.BatchExec(ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
+				if err != nil {
+					fmt.Println("Error creating tables:", err) //nolint:forbidigo
+					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
+				}
+			}
+		} else if len(schemaConfig.InitTableStatementsMap) != 0 {
+			// @deprecated mysql init table statements
+			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			if err != nil {
+				return err
+			}
+			if orderedTablesResp.HasCycles {
+				return errors.New("init schema: unable to handle circular dependencies")
+			}
+			orderedInitStatements := []string{}
+			for _, t := range orderedTablesResp.OrderedTables {
+				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+			}
 
-		err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
-		if err != nil {
-			fmt.Println("Error creating tables:", err) //nolint:forbidigo
-			return err
+			err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
+			if err != nil {
+				fmt.Println("Error creating tables:", err) //nolint:forbidigo
+				return err
+			}
 		}
 	}
 	if cmd.Destination.Driver == postgresDriver {
@@ -557,7 +573,6 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 			if err != nil {
 				return err
 			}
-
 			orderedTruncateStatement := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
@@ -857,6 +872,7 @@ type schemaConfig struct {
 	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
 	InitTableStatementsMap     map[string]string
 	TruncateTableStatementsMap map[string]string
+	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
 
 func getConnectionSchemaConfig(
@@ -871,6 +887,7 @@ func getConnectionSchemaConfig(
 	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
 	var initTableStatementsMap map[string]string
 	var truncateTableStatementsMap map[string]string
+	var initSchemaStatements []*mgmtv1alpha1.SchemaInitStatements
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
 		schemaResp, err := connectiondataclient.GetConnectionSchema(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
@@ -901,6 +918,7 @@ func getConnectionSchemaConfig(
 		}
 		initTableStatementsMap = initStatementsResp.GetTableInitStatements()
 		truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
+		initSchemaStatements = initStatementsResp.GetSchemaInitStatements()
 		return nil
 	})
 	if err := errgrp.Wait(); err != nil {
@@ -932,6 +950,7 @@ func getConnectionSchemaConfig(
 		TablePrimaryKeys:           tablePrimaryKeys,
 		InitTableStatementsMap:     initTableStatementsMap,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
+		InitSchemaStatements:       initSchemaStatements,
 	}, nil
 }
 
@@ -979,24 +998,37 @@ func getDestinationSchemaConfig(
 		}
 	}
 
-	initTableStatementsMap := map[string]string{}
-	for t := range tableColMap {
-		statements := []string{}
-		if cmd.Destination.TruncateBeforeInsert {
-			if cmd.Destination.TruncateCascade {
-				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", t))
-			} else {
-				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s;", t))
+	truncateTableStatementsMap := map[string]string{}
+	if cmd.Destination.Driver == postgresDriver {
+		if cmd.Destination.TruncateCascade {
+			for t := range tableColMap {
+				schema, table := sqlmanager_shared.SplitTableKey(t)
+				stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(schema, table)
+				if err != nil {
+					return nil, err
+				}
+				truncateTableStatementsMap[t] = stmt
 			}
 		}
-		initTableStatementsMap[t] = strings.Join(statements, "\n")
+		// truncate before insert handled in runDestinationInitStatements
+	} else {
+		if cmd.Destination.TruncateBeforeInsert {
+			for t := range tableColMap {
+				schema, table := sqlmanager_shared.SplitTableKey(t)
+				stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schema, table)
+				if err != nil {
+					return nil, err
+				}
+				truncateTableStatementsMap[t] = stmt
+			}
+		}
 	}
 
 	return &schemaConfig{
-		Schemas:                schemaResp.Msg.GetSchemas(),
-		TableConstraints:       tableConstraints.ForeignKeyConstraints,
-		TablePrimaryKeys:       primaryKeys,
-		InitTableStatementsMap: initTableStatementsMap,
+		Schemas:                    schemaResp.Msg.GetSchemas(),
+		TableConstraints:           tableConstraints.ForeignKeyConstraints,
+		TablePrimaryKeys:           primaryKeys,
+		TruncateTableStatementsMap: truncateTableStatementsMap,
 	}, nil
 }
 
