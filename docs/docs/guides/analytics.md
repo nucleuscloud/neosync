@@ -24,7 +24,7 @@ Analytics are used simply to get a better view into how people use Neosync.
 
 Koala is similar to Posthog in that it is also used to capture user information. We send the same usage information to Koala that we send to Posthog.
 
-You can see what information is caputred by checking out the [koala-provider](https://github.com/nucleuscloud/neosync/blob/main/frontend/apps/web/components/providers/koala-provider.tsx) component that wraps each page's React components.
+You can see what information is captured by checking out the [koala-provider](https://github.com/nucleuscloud/neosync/blob/main/frontend/apps/web/components/providers/koala-provider.tsx) component that wraps each page's React components.
 
 ### Disabling Analytics
 
