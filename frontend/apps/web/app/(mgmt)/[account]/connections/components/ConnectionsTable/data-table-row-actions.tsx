@@ -17,7 +17,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { getConnectionType } from '../../util';
+import { getConnectionType, removeConnection } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -99,21 +99,4 @@ export function DataTableRowActions<TData>({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-async function removeConnection(
-  accountId: string,
-  connectionId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

@@ -25,6 +25,7 @@ message JobSourceOptions {
     MysqlSourceConnectionOptions mysql = 3;
     GenerateSourceOptions generate = 4;
     AiGenerateSourceOptions ai_generate = 5;
+    MongoDBSourceConnectionOptions mongodb = 6;
   }
 }
 
@@ -74,6 +75,10 @@ message GenerateSourceTableOption {
   int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
 }
 
+message MongoDBSourceConnectionOptions {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
 message PostgresSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
@@ -116,8 +121,11 @@ message JobDestinationOptions {
     PostgresDestinationConnectionOptions postgres_options = 1;
     AwsS3DestinationConnectionOptions aws_s3_options = 2;
     MysqlDestinationConnectionOptions mysql_options = 3;
+    MongoDBDestinationConnectionOptions mongodb_options = 4;
   }
 }
+
+message MongoDBDestinationConnectionOptions {}
 
 message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;

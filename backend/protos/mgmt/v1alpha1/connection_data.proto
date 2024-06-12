@@ -45,6 +45,7 @@ message AwsS3SchemaConfig {
     string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
   }
 }
+message MongoSchemaConfig {}
 
 message ConnectionSchemaConfig {
   oneof config {
@@ -53,6 +54,7 @@ message ConnectionSchemaConfig {
     PostgresSchemaConfig pg_config = 1;
     AwsS3SchemaConfig aws_s3_config = 2;
     MysqlSchemaConfig mysql_config = 3;
+    MongoSchemaConfig mongo_config = 4;
   }
 }
 

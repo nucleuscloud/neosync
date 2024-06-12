@@ -1178,6 +1178,108 @@ var _ interface {
 	ErrorName() string
 } = AwsS3SchemaConfigValidationError{}
 
+// Validate checks the field values on MongoSchemaConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MongoSchemaConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MongoSchemaConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MongoSchemaConfigMultiError, or nil if none found.
+func (m *MongoSchemaConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MongoSchemaConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return MongoSchemaConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MongoSchemaConfigMultiError is an error wrapping multiple validation errors
+// returned by MongoSchemaConfig.ValidateAll() if the designated constraints
+// aren't met.
+type MongoSchemaConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MongoSchemaConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MongoSchemaConfigMultiError) AllErrors() []error { return m }
+
+// MongoSchemaConfigValidationError is the validation error returned by
+// MongoSchemaConfig.Validate if the designated constraints aren't met.
+type MongoSchemaConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MongoSchemaConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MongoSchemaConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MongoSchemaConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MongoSchemaConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MongoSchemaConfigValidationError) ErrorName() string {
+	return "MongoSchemaConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MongoSchemaConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMongoSchemaConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MongoSchemaConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MongoSchemaConfigValidationError{}
+
 // Validate checks the field values on ConnectionSchemaConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1318,6 +1420,47 @@ func (m *ConnectionSchemaConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ConnectionSchemaConfigValidationError{
 					field:  "MysqlConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ConnectionSchemaConfig_MongoConfig:
+		if v == nil {
+			err := ConnectionSchemaConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMongoConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionSchemaConfigValidationError{
+						field:  "MongoConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionSchemaConfigValidationError{
+						field:  "MongoConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMongoConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionSchemaConfigValidationError{
+					field:  "MongoConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

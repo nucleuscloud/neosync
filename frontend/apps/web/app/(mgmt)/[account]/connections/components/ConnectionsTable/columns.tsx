@@ -142,6 +142,8 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
       return 'OpenAI';
     case 'localDirConfig':
       return 'Local Dir';
+    case 'mongoConfig':
+      return 'MongoDB';
     default:
       return '-';
   }

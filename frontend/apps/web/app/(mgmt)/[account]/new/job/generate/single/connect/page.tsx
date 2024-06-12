@@ -35,10 +35,7 @@ import JobsProgressSteps, {
   getJobProgressSteps,
 } from '../../../JobsProgressSteps';
 import ConnectionSelectContent from '../../../connect/ConnectionSelectContent';
-import {
-  SINGLE_TABLE_CONNECT_FORM_SCHEMA,
-  SingleTableConnectFormValues,
-} from '../../../schema';
+import { SingleTableConnectFormValues } from '../../../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -67,7 +64,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm({
     resolver: yupResolver<SingleTableConnectFormValues>(
-      SINGLE_TABLE_CONNECT_FORM_SCHEMA
+      SingleTableConnectFormValues
     ),
     defaultValues,
   });

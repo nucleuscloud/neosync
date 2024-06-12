@@ -66,6 +66,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
+	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil {
+		return &RunSqlInitTableStatementsResponse{}, nil
+	}
+
 	sourcedb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)

@@ -51,7 +51,7 @@ export default function PermissionsPage({ params }: PageProps) {
   );
 
   const { toast } = useToast();
-  const columns = useMemo(() => getPermissionColumns(), []);
+  const columns = useMemo(() => getPermissionColumns('postgres'), []);
 
   if (!id) {
     return <Error statusCode={404} />;

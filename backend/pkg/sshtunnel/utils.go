@@ -3,6 +3,7 @@ package sshtunnel
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -37,4 +38,24 @@ func ParseSshKey(keyString string) (ssh.PublicKey, error) {
 	}
 
 	return publicKey, nil
+}
+
+// Auth Method is optional and will return nil if there is no valid method.
+// Will only return error if unable to parse the private key into an auth method
+func GetTunnelAuthMethodFromSshConfig(auth *mgmtv1alpha1.SSHAuthentication) (ssh.AuthMethod, error) {
+	if auth == nil {
+		return nil, nil
+	}
+	switch config := auth.AuthConfig.(type) {
+	case *mgmtv1alpha1.SSHAuthentication_Passphrase:
+		return ssh.Password(config.Passphrase.Value), nil
+	case *mgmtv1alpha1.SSHAuthentication_PrivateKey:
+		authMethod, err := GetPrivateKeyAuthMethod([]byte(config.PrivateKey.Value), config.PrivateKey.Passphrase)
+		if err != nil {
+			return nil, err
+		}
+		return authMethod, nil
+	default:
+		return nil, nil
+	}
 }

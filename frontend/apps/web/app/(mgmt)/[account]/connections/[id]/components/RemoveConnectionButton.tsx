@@ -7,6 +7,7 @@ import { getErrorMessage } from '@/util/util';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
+import { removeConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -48,21 +49,4 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
       onConfirm={async () => onDelete()}
     />
   );
-}
-
-async function removeConnection(
-  accountId: string,
-  connectionId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

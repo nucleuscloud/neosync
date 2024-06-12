@@ -11,15 +11,23 @@ export function getSystemAppConfig(): SystemAppConfig {
     publicAppBaseUrl:
       process.env.NEXT_PUBLIC_APP_BASE_URL ?? 'http://localhost:3000',
     posthog: {
-      enabled: process.env.NEOSYNC_ANALYTICS_ENABLED
-        ? process.env.NEOSYNC_ANALYTICS_ENABLED === 'true'
-        : true,
+      enabled: isAnalyticsEnabled(),
       host: process.env.POSTHOG_HOST ?? 'https://app.posthog.com',
       key: process.env.POSTHOG_KEY,
+    },
+    koala: {
+      enabled: isAnalyticsEnabled() && !!process.env.KOALA_KEY,
+      key: process.env.KOALA_KEY,
     },
     isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
     enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',
     signInProviderId: process.env.AUTH_PROVIDER_ID,
     isMetricsServiceEnabled: process.env.METRICS_SERVICE_ENABLED === 'true',
   };
+}
+
+function isAnalyticsEnabled(): boolean {
+  return process.env.NEOSYNC_ANALYTICS_ENABLED
+    ? process.env.NEOSYNC_ANALYTICS_ENABLED === 'true'
+    : true;
 }

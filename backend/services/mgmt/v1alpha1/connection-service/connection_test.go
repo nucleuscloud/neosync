@@ -20,6 +20,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
@@ -674,6 +675,7 @@ type serviceMocks struct {
 	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQuerierMock          *pg_queries.MockQuerier
 	MysqlQuerierMock       *mysql_queries.MockQuerier
+	MongoConnectorMock     *mongoconnect.MockInterface
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -683,13 +685,15 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	mockPgquerier := pg_queries.NewMockQuerier(t)
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockMongoConnector := mongoconnect.NewMockInterface(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier)
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
+		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector)
 
 	return &serviceMocks{
 		Service:                service,
@@ -703,6 +707,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 		PgQuerierMock:          mockPgquerier,
 		MysqlQuerierMock:       mockMysqlquerier,
+		MongoConnectorMock:     mockMongoConnector,
 	}
 }
 

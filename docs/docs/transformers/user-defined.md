@@ -52,6 +52,11 @@ Now we can finish the rest of our job configuration and the newly created user d
 
 ## Custom Code Transformers
 
-Neosync also supports the ability to write your own custom logic in javascript for a transformer. We call this the `transform_javascript` transformer. Custom code transformers take in an input value at the `value` keyword and execute your custom code against that value. Custom code transformers are also only available for sync jobs since they require an input value.
+Neosync supports the ability to write your own custom logic using JavaScript.
+
+There exist two different transformers that enable this. One of them is input-free, while the other is input-full, and allows you to transform incoming values.
+
+- `transform_javascript` takes in and allows you to modify input. This transformer may be used in Sync jobs.
+- `generate_javascript` takes in no input and only expects an output. This transformer may be used in both Sync and Generate jobs.
 
 To create your own custom code transformer, check out the [Creating a Custom Code Transformer Guide.](/guides/custom-code-transformers)

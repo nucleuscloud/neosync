@@ -1,0 +1,16 @@
+services:
+  test-prod-db-mongo:
+    container_name: test-prod-db-mongo
+    image: mongo:latest
+    ports:
+      - 27117:27017
+    networks:
+      - neosync-network
+
+  # test-stage-db-mongo:
+  #   container_name: test-stage-db-mongo
+  #   image: mongo:latest
+  #   ports:
+  #     - 27217:27017
+  #   networks:
+  #     - neosync-network

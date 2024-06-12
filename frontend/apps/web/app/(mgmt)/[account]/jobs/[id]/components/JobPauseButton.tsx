@@ -5,9 +5,10 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { JobStatus, PauseJobRequest, PauseJobResponse } from '@neosync/sdk';
+import { JobStatus } from '@neosync/sdk';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
+import { pauseJob } from '../../util';
 
 interface Props {
   jobId: string;
@@ -76,28 +77,4 @@ export default function JobPauseButton({
       </Button>
     </div>
   );
-}
-
-async function pauseJob(
-  accountId: string,
-  jobId: string,
-  isPaused: boolean
-): Promise<PauseJobResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/pause`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new PauseJobRequest({
-        id: jobId,
-        pause: isPaused,
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return PauseJobResponse.fromJson(await res.json());
 }

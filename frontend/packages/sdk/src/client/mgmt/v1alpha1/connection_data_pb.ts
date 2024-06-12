@@ -384,6 +384,37 @@ export class AwsS3SchemaConfig extends Message<AwsS3SchemaConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.MongoSchemaConfig
+ */
+export class MongoSchemaConfig extends Message<MongoSchemaConfig> {
+  constructor(data?: PartialMessage<MongoSchemaConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MongoSchemaConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MongoSchemaConfig {
+    return new MongoSchemaConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MongoSchemaConfig {
+    return new MongoSchemaConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MongoSchemaConfig {
+    return new MongoSchemaConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MongoSchemaConfig | PlainMessage<MongoSchemaConfig> | undefined, b: MongoSchemaConfig | PlainMessage<MongoSchemaConfig> | undefined): boolean {
+    return proto3.util.equals(MongoSchemaConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.ConnectionSchemaConfig
  */
 export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
@@ -408,6 +439,12 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
      */
     value: MysqlSchemaConfig;
     case: "mysqlConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MongoSchemaConfig mongo_config = 4;
+     */
+    value: MongoSchemaConfig;
+    case: "mongoConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionSchemaConfig>) {
@@ -421,6 +458,7 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
     { no: 1, name: "pg_config", kind: "message", T: PostgresSchemaConfig, oneof: "config" },
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3SchemaConfig, oneof: "config" },
     { no: 3, name: "mysql_config", kind: "message", T: MysqlSchemaConfig, oneof: "config" },
+    { no: 4, name: "mongo_config", kind: "message", T: MongoSchemaConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionSchemaConfig {
