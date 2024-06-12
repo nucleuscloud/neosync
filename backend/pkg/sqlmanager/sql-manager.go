@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -262,8 +263,9 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		}
 		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(slog.Default()),
-			LogLevel: tracelog.LogLevelDebug,
+			LogLevel: tracelog.LogLevelInfo,
 		}
+		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
 		if err != nil {
 			return nil, err

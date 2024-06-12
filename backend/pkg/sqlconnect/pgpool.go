@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/tracelog"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -61,8 +62,9 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		}
 		config.ConnConfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(s.logger),
-			LogLevel: tracelog.LogLevelDebug,
+			LogLevel: tracelog.LogLevelInfo,
 		}
+		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 		// set max number of connections.
 		if s.details.MaxConnectionLimit != nil {
@@ -87,8 +89,10 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	}
 	config.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger:   pgxslog.NewLogger(s.logger),
-		LogLevel: tracelog.LogLevelDebug,
+		LogLevel: tracelog.LogLevelInfo,
 	}
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+
 	// set max number of connections.
 	if s.details.MaxConnectionLimit != nil {
 		config.MaxConns = *s.details.MaxConnectionLimit
