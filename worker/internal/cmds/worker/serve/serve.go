@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -56,6 +57,7 @@ func NewCmd() *cobra.Command {
 
 func serve(ctx context.Context) error {
 	logger, loglogger := neosynclogger.NewLoggers()
+	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
 
 	var activityMeter metric.Meter
 	if getIsOtelEnabled() {
