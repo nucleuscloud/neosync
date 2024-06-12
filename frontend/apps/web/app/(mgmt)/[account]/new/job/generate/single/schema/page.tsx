@@ -1,6 +1,7 @@
 'use client';
 
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
+import { createNewSingleTableGenerateJob } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
@@ -29,28 +30,11 @@ import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMa
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
-import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
-import {
-  convertJobMappingTransformerFormToJobMappingTransformer,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
+import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  ActivityOptions,
-  Connection,
-  CreateJobRequest,
-  CreateJobResponse,
-  GenerateSourceOptions,
-  GenerateSourceSchemaOption,
-  GenerateSourceTableOption,
   GetAccountOnboardingConfigResponse,
-  JobDestination,
-  JobMapping,
-  JobSource,
-  JobSourceOptions,
-  RetryPolicy,
   ValidateJobMappingsResponse,
-  WorkflowOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -64,7 +48,6 @@ import JobsProgressSteps, {
 } from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
-  SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
 } from '../../../schema';
@@ -135,7 +118,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver<SingleTableSchemaFormValues>(
-      SINGLE_TABLE_SCHEMA_FORM_SCHEMA
+      SingleTableSchemaFormValues
     ),
     values: schemaFormData,
     context: { accountId: account?.id },
@@ -156,12 +139,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return;
     }
     try {
-      const job = await createNewJob(
-        defineFormValues,
-        connectFormValues,
-        values,
+      const connMap = new Map(connections.map((c) => [c.id, c]));
+      const job = await createNewSingleTableGenerateJob(
+        {
+          define: defineFormValues,
+          connect: connectFormValues,
+          schema: values,
+        },
         account.id,
-        connections
+        (id) => connMap.get(id)
       );
       posthog.capture('New Job Created', {
         jobType: 'generate',
@@ -372,108 +358,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-async function createNewJob(
-  define: DefineFormValues,
-  connect: SingleTableConnectFormValues,
-  schema: SingleTableSchemaFormValues,
-  accountId: string,
-  connections: Connection[]
-): Promise<CreateJobResponse> {
-  const connectionIdMap = new Map(
-    connections.map((connection) => [connection.id, connection])
-  );
-  let workflowOptions: WorkflowOptions | undefined = undefined;
-  if (define.workflowSettings?.runTimeout) {
-    workflowOptions = new WorkflowOptions({
-      runTimeout: convertMinutesToNanoseconds(
-        define.workflowSettings.runTimeout
-      ),
-    });
-  }
-  let syncOptions: ActivityOptions | undefined = undefined;
-  if (define.syncActivityOptions) {
-    const formSyncOpts = define.syncActivityOptions;
-    syncOptions = new ActivityOptions({
-      scheduleToCloseTimeout:
-        formSyncOpts.scheduleToCloseTimeout !== undefined
-          ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
-          : undefined,
-      startToCloseTimeout:
-        formSyncOpts.startToCloseTimeout !== undefined
-          ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
-          : undefined,
-      retryPolicy: new RetryPolicy({
-        maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
-      }),
-    });
-  }
-  const tableSchema =
-    schema.mappings.length > 0 ? schema.mappings[0].schema : null;
-  const table = schema.mappings.length > 0 ? schema.mappings[0].table : null;
-  const body = new CreateJobRequest({
-    accountId,
-    jobName: define.jobName,
-    cronSchedule: define.cronSchedule,
-    initiateJobRun: define.initiateJobRun,
-    mappings: schema.mappings.map((m) => {
-      return new JobMapping({
-        schema: m.schema,
-        table: m.table,
-        column: m.column,
-        transformer: convertJobMappingTransformerFormToJobMappingTransformer(
-          m.transformer
-        ),
-      });
-    }),
-    source: new JobSource({
-      options: new JobSourceOptions({
-        config: {
-          case: 'generate',
-          value: new GenerateSourceOptions({
-            fkSourceConnectionId: connect.fkSourceConnectionId,
-            schemas:
-              tableSchema && table
-                ? [
-                    new GenerateSourceSchemaOption({
-                      schema: tableSchema,
-                      tables: [
-                        new GenerateSourceTableOption({
-                          rowCount: BigInt(schema.numRows),
-                          table: table,
-                        }),
-                      ],
-                    }),
-                  ]
-                : [],
-          }),
-        },
-      }),
-    }),
-    destinations: [
-      new JobDestination({
-        connectionId: connect.destination.connectionId,
-        options: toJobDestinationOptions(
-          connect.destination,
-          connectionIdMap.get(connect.destination.connectionId)
-        ),
-      }),
-    ],
-    workflowOptions: workflowOptions,
-    syncOptions: syncOptions,
-  });
-
-  const res = await fetch(`/api/accounts/${accountId}/jobs`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobResponse.fromJson(await res.json());
 }

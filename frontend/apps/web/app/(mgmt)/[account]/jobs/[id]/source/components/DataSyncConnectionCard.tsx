@@ -38,8 +38,8 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
-  SCHEMA_FORM_SCHEMA,
-  SOURCE_FORM_SCHEMA,
+  SchemaFormValues,
+  SourceFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -69,11 +69,11 @@ interface Props {
   jobId: string;
 }
 
-const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
+const FORM_SCHEMA = SourceFormValues.concat(
   Yup.object({
     destinationIds: Yup.array().of(Yup.string().required()),
   })
-).concat(SCHEMA_FORM_SCHEMA);
+).concat(SchemaFormValues);
 type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 function getConnectionIdFromSource(

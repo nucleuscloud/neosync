@@ -9,6 +9,9 @@ import {
   Connection,
   CreateJobRequest,
   CreateJobResponse,
+  GenerateSourceOptions,
+  GenerateSourceSchemaOption,
+  GenerateSourceTableOption,
   JobDestination,
   JobDestinationOptions,
   JobMapping,
@@ -31,12 +34,18 @@ import {
   RetryPolicy,
   WorkflowOptions,
 } from '@neosync/sdk';
-import { CreateJobFormValues, SubsetFormValues } from '../new/job/schema';
+import {
+  CreateJobFormValues,
+  CreateSingleTableGenerateJobFormValues,
+  SubsetFormValues,
+} from '../new/job/schema';
 
-export async function createNewSyncJob(
-  values: CreateJobFormValues,
+type GetConnectionById = (id: string) => Connection | undefined;
+
+export async function createNewSingleTableGenerateJob(
+  values: CreateSingleTableGenerateJobFormValues,
   accountId: string,
-  getConnectionById: (id: string) => Connection | undefined
+  getConnectionById: GetConnectionById
 ): Promise<CreateJobResponse> {
   return createJob(
     new CreateJobRequest({
@@ -44,9 +53,67 @@ export async function createNewSyncJob(
       jobName: values.define.jobName,
       cronSchedule: values.define.cronSchedule,
       initiateJobRun: values.define.initiateJobRun,
-      mappings: toJobMappings(values),
+      mappings: toSingleGenerateJobMappings(values),
+      source: toSingleTableGenerateJobSource(values),
+      destinations: toSingleTableGenerateJobDestinations(
+        values,
+        getConnectionById
+      ),
+      workflowOptions: toWorkflowOptions(values),
+      syncOptions: toSyncOptions(values),
+    }),
+    accountId
+  );
+}
+
+function toSingleTableGenerateJobSource(
+  values: Pick<CreateSingleTableGenerateJobFormValues, 'connect' | 'schema'>
+): JobSource {
+  const tableSchema =
+    values.schema.mappings.length > 0 ? values.schema.mappings[0].schema : null;
+  const table =
+    values.schema.mappings.length > 0 ? values.schema.mappings[0].table : null;
+
+  return new JobSource({
+    options: {
+      config: {
+        case: 'generate',
+        value: new GenerateSourceOptions({
+          fkSourceConnectionId: values.connect.fkSourceConnectionId,
+          schemas:
+            tableSchema && table
+              ? [
+                  new GenerateSourceSchemaOption({
+                    schema: tableSchema,
+                    tables: [
+                      new GenerateSourceTableOption({
+                        rowCount: BigInt(values.schema.numRows),
+                        table: table,
+                      }),
+                    ],
+                  }),
+                ]
+              : [],
+        }),
+      },
+    },
+  });
+}
+
+export async function createNewSyncJob(
+  values: CreateJobFormValues,
+  accountId: string,
+  getConnectionById: GetConnectionById
+): Promise<CreateJobResponse> {
+  return createJob(
+    new CreateJobRequest({
+      accountId,
+      jobName: values.define.jobName,
+      cronSchedule: values.define.cronSchedule,
+      initiateJobRun: values.define.initiateJobRun,
+      mappings: toSyncJobMappings(values),
       source: toJobSource(values, getConnectionById),
-      destinations: toJobDestinations(values, getConnectionById),
+      destinations: toSyncJobDestinations(values, getConnectionById),
       workflowOptions: toWorkflowOptions(values),
       syncOptions: toSyncOptions(values),
     }),
@@ -89,9 +156,24 @@ function toSyncOptions(
   return undefined;
 }
 
-function toJobDestinations(
+function toSingleTableGenerateJobDestinations(
+  values: Pick<CreateSingleTableGenerateJobFormValues, 'connect'>,
+  getConnectionById: GetConnectionById
+): JobDestination[] {
+  return [
+    new JobDestination({
+      connectionId: values.connect.destination.connectionId,
+      options: toJobDestinationOptions(
+        values.connect.destination,
+        getConnectionById(values.connect.destination.connectionId)
+      ),
+    }),
+  ];
+}
+
+function toSyncJobDestinations(
   values: Pick<CreateJobFormValues, 'connect'>,
-  getConnectionById: (id: string) => Connection | undefined
+  getConnectionById: GetConnectionById
 ): JobDestination[] {
   return values.connect.destinations.map((d) => {
     return new JobDestination({
@@ -166,7 +248,22 @@ export function toJobDestinationOptions(
   }
 }
 
-function toJobMappings(
+function toSingleGenerateJobMappings(
+  values: Pick<CreateSingleTableGenerateJobFormValues, 'schema'>
+): JobMapping[] {
+  return values.schema.mappings.map((m) => {
+    return new JobMapping({
+      schema: m.schema,
+      table: m.table,
+      column: m.column,
+      transformer: convertJobMappingTransformerFormToJobMappingTransformer(
+        m.transformer
+      ),
+    });
+  });
+}
+
+function toSyncJobMappings(
   values: Pick<CreateJobFormValues, 'schema'>
 ): JobMapping[] {
   return values.schema.mappings.map((m) => {
@@ -183,7 +280,7 @@ function toJobMappings(
 
 function toJobSource(
   values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
-  getConnectionById: (id: string) => Connection | undefined
+  getConnectionById: GetConnectionById
 ): JobSource {
   return new JobSource({
     options: toJobSourceOptions(values, getConnectionById),
@@ -192,7 +289,7 @@ function toJobSource(
 
 function toJobSourceOptions(
   values: Pick<CreateJobFormValues, 'connect' | 'subset'>,
-  getConnectionById: (id: string) => Connection | undefined
+  getConnectionById: GetConnectionById
 ): JobSourceOptions {
   const sourceConnection = getConnectionById(values.connect.sourceId);
   if (!sourceConnection) {

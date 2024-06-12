@@ -78,22 +78,21 @@ export function convertTransformerConfigSchemaToTransformerConfig(
       });
 }
 
-export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
-
-export const JOB_MAPPING_SCHEMA = Yup.object({
+export const JobMappingFormValues = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
   column: Yup.string().required(),
   transformer: JobMappingTransformerForm,
 }).required();
-export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
+export type JobMappingFormValues = Yup.InferType<typeof JobMappingFormValues>;
 
-export const SCHEMA_FORM_SCHEMA = Yup.object({
-  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+export const SchemaFormValues = Yup.object({
+  mappings: Yup.array().of(JobMappingFormValues).required(),
   connectionId: Yup.string().required(),
 });
+export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
 
-export const SOURCE_FORM_SCHEMA = Yup.object({
+export const SourceFormValues = Yup.object({
   sourceId: Yup.string().required('Source is required').uuid(),
   sourceOptions: Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),

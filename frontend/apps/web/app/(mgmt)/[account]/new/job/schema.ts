@@ -1,9 +1,9 @@
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
   DestinationFormValues,
-  JOB_MAPPING_SCHEMA,
-  SCHEMA_FORM_SCHEMA,
-  SOURCE_FORM_SCHEMA,
+  JobMappingFormValues,
+  SchemaFormValues,
+  SourceFormValues,
 } from '@/yup-validations/jobs';
 import { Connection, IsJobNameAvailableResponse } from '@neosync/sdk';
 import cron from 'cron-validate';
@@ -52,7 +52,7 @@ export const ActivityOptionsSchema = Yup.object({
 
 export type ActivityOptionsSchema = Yup.InferType<typeof ActivityOptionsSchema>;
 
-export const DEFINE_FORM_SCHEMA = Yup.object({
+export const DefineFormValues = Yup.object({
   jobName: Yup.string()
     .trim()
     .required('Name is a required field')
@@ -102,9 +102,9 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
   syncActivityOptions: ActivityOptionsSchema.optional(),
 });
 
-export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
+export type DefineFormValues = Yup.InferType<typeof DefineFormValues>;
 
-export const CONNECT_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
+export const ConnectFormValues = SourceFormValues.concat(
   Yup.object({
     destinations: Yup.array(DestinationFormValues).required(),
   })
@@ -181,7 +181,7 @@ export const CONNECT_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   }
 );
 
-export type ConnectFormValues = Yup.InferType<typeof CONNECT_FORM_SCHEMA>;
+export type ConnectFormValues = Yup.InferType<typeof ConnectFormValues>;
 
 function isValidConnectionPair(
   connId1: string,
@@ -238,12 +238,12 @@ const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
   whereClause: Yup.string().trim().optional(),
 });
 
-export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({
+export const SingleTableConnectFormValues = Yup.object({
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
   destination: DestinationFormValues,
 });
 export type SingleTableConnectFormValues = Yup.InferType<
-  typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
+  typeof SingleTableConnectFormValues
 >;
 
 export const SingleTableAiConnectFormValues = Yup.object({
@@ -298,12 +298,12 @@ export type SingleTableEditAiSourceFormValues = Yup.InferType<
   typeof SingleTableEditAiSourceFormValues
 >;
 
-export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
+export const SingleTableSchemaFormValues = Yup.object({
   numRows: Yup.number().required().min(1),
-  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+  mappings: Yup.array().of(JobMappingFormValues).required(),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
-  typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA
+  typeof SingleTableSchemaFormValues
 >;
 
 export const SingleTableEditSourceFormValues = Yup.object({
@@ -317,7 +317,7 @@ export const SingleTableEditSourceFormValues = Yup.object({
     .required('Must provide a number of rows to generate')
     .min(1)
     .default(10),
-  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+  mappings: Yup.array().of(JobMappingFormValues).required(),
 }).required();
 
 export type SingleTableEditSourceFormValues = Yup.InferType<
@@ -334,13 +334,21 @@ export const SubsetFormValues = Yup.object({
 export type SubsetFormValues = Yup.InferType<typeof SubsetFormValues>;
 
 const CreateJobFormValues = Yup.object({
-  define: DEFINE_FORM_SCHEMA,
-  connect: CONNECT_FORM_SCHEMA,
-  schema: SCHEMA_FORM_SCHEMA,
+  define: DefineFormValues,
+  connect: ConnectFormValues,
+  schema: SchemaFormValues,
   subset: SubsetFormValues.optional(),
-});
-
+}).required();
 export type CreateJobFormValues = Yup.InferType<typeof CreateJobFormValues>;
+
+export const CreateSingleTableGenerateJobFormValues = Yup.object({
+  define: DefineFormValues,
+  connect: SingleTableConnectFormValues,
+  schema: SingleTableSchemaFormValues,
+}).required();
+export type CreateSingleTableGenerateJobFormValues = Yup.InferType<
+  typeof CreateSingleTableGenerateJobFormValues
+>;
 
 async function isJobNameAvailable(
   name: string,

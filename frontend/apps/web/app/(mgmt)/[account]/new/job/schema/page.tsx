@@ -22,7 +22,7 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
-import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
+import { SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -113,7 +113,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
 
   const form = useForm<SchemaFormValues>({
-    resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
+    resolver: yupResolver<SchemaFormValues>(SchemaFormValues),
     values: getFormValues(connectFormValues.sourceId, schemaFormData),
     context: { accountId: account?.id },
   });
