@@ -383,6 +383,65 @@ func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// GetSchemaInitStatements provides a mock function with given fields: ctx, tables
+func (_m *MockSqlDatabase) GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	ret := _m.Called(ctx, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemaInitStatements")
+	}
+
+	var r0 []*sqlmanager_shared.InitSchemaStatements
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)); ok {
+		return rf(ctx, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*sqlmanager_shared.SchemaTable) []*sqlmanager_shared.InitSchemaStatements); ok {
+		r0 = rf(ctx, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.InitSchemaStatements)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*sqlmanager_shared.SchemaTable) error); ok {
+		r1 = rf(ctx, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetSchemaInitStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSchemaInitStatements'
+type MockSqlDatabase_GetSchemaInitStatements_Call struct {
+	*mock.Call
+}
+
+// GetSchemaInitStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tables []*sqlmanager_shared.SchemaTable
+func (_e *MockSqlDatabase_Expecter) GetSchemaInitStatements(ctx interface{}, tables interface{}) *MockSqlDatabase_GetSchemaInitStatements_Call {
+	return &MockSqlDatabase_GetSchemaInitStatements_Call{Call: _e.mock.On("GetSchemaInitStatements", ctx, tables)}
+}
+
+func (_c *MockSqlDatabase_GetSchemaInitStatements_Call) Run(run func(ctx context.Context, tables []*sqlmanager_shared.SchemaTable)) *MockSqlDatabase_GetSchemaInitStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]*sqlmanager_shared.SchemaTable))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaInitStatements_Call) Return(_a0 []*sqlmanager_shared.InitSchemaStatements, _a1 error) *MockSqlDatabase_GetSchemaInitStatements_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaInitStatements_Call) RunAndReturn(run func(context.Context, []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)) *MockSqlDatabase_GetSchemaInitStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSchemaTableDataTypes provides a mock function with given fields: ctx, tables
 func (_m *MockSqlDatabase) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	ret := _m.Called(ctx, tables)

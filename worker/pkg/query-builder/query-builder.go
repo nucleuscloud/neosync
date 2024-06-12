@@ -716,7 +716,7 @@ func qualifyWhereColumnNames(driver, where, table string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	schema, tableName := utils.SplitTableKey(table)
+	schema, tableName := sqlmanager_shared.SplitTableKey(table)
 	var updatedSql string
 	switch driver {
 	case sqlmanager_shared.MysqlDriver:

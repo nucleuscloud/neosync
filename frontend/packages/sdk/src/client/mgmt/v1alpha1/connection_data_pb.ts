@@ -932,6 +932,49 @@ export class GetConnectionInitStatementsRequest extends Message<GetConnectionIni
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.SchemaInitStatements
+ */
+export class SchemaInitStatements extends Message<SchemaInitStatements> {
+  /**
+   * @generated from field: string label = 1;
+   */
+  label = "";
+
+  /**
+   * @generated from field: repeated string statements = 2;
+   */
+  statements: string[] = [];
+
+  constructor(data?: PartialMessage<SchemaInitStatements>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SchemaInitStatements";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "label", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "statements", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SchemaInitStatements {
+    return new SchemaInitStatements().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SchemaInitStatements {
+    return new SchemaInitStatements().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SchemaInitStatements {
+    return new SchemaInitStatements().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SchemaInitStatements | PlainMessage<SchemaInitStatements> | undefined, b: SchemaInitStatements | PlainMessage<SchemaInitStatements> | undefined): boolean {
+    return proto3.util.equals(SchemaInitStatements, a, b);
+  }
+}
+
+/**
  * Init statement for a specific table
  *
  * @generated from message mgmt.v1alpha1.GetConnectionInitStatementsResponse
@@ -951,6 +994,11 @@ export class GetConnectionInitStatementsResponse extends Message<GetConnectionIn
    */
   tableTruncateStatements: { [key: string]: string } = {};
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.SchemaInitStatements schema_init_statements = 3;
+   */
+  schemaInitStatements: SchemaInitStatements[] = [];
+
   constructor(data?: PartialMessage<GetConnectionInitStatementsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -961,6 +1009,7 @@ export class GetConnectionInitStatementsResponse extends Message<GetConnectionIn
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "table_init_statements", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 2, name: "table_truncate_statements", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 3, name: "schema_init_statements", kind: "message", T: SchemaInitStatements, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionInitStatementsResponse {

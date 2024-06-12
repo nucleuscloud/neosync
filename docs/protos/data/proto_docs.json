@@ -3398,6 +3398,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "schema_init_statements",
+              "description": "",
+              "label": "repeated",
+              "type": "SchemaInitStatements",
+              "longType": "SchemaInitStatements",
+              "fullType": "mgmt.v1alpha1.SchemaInitStatements",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -4069,6 +4081,42 @@
           "fields": [
             {
               "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaInitStatements",
+          "longName": "SchemaInitStatements",
+          "fullName": "mgmt.v1alpha1.SchemaInitStatements",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "label",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "statements",
               "description": "",
               "label": "repeated",
               "type": "string",

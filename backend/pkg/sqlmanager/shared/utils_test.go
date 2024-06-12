@@ -23,3 +23,13 @@ func Test_getUniqueSchemaColMappings(t *testing.T) {
 	require.Contains(t, mappings["public.users"], "updated_by", "")
 	require.Contains(t, mappings["neosync_api.accounts"], "id", "")
 }
+
+func Test_splitTableKey(t *testing.T) {
+	schema, table := SplitTableKey("foo")
+	require.Equal(t, schema, "public")
+	require.Equal(t, table, "foo")
+
+	schema, table = SplitTableKey("neosync.foo")
+	require.Equal(t, schema, "neosync")
+	require.Equal(t, table, "foo")
+}

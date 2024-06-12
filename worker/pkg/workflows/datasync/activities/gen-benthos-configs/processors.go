@@ -213,7 +213,7 @@ func buildBranchCacheConfigs(
 		if ok {
 			for _, fk := range fks {
 				// skip self referencing cols
-				if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
+				if fk.Table == neosync_benthos.BuildBenthosTable(col.Schema, col.Table) {
 					continue
 				}
 

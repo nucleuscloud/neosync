@@ -296,6 +296,14 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 	return nil, errors.ErrUnsupported
 }
 
+// todo
+func (p *MysqlManager) GetSchemaInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
 	result, err := getShowTableCreate(ctx, m.pool, schema, table)
 	if err != nil {

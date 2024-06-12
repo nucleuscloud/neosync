@@ -116,127 +116,6 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	}, nil
 }
 
-// func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
-// 	if len(schemas) == 0 {
-// 		return []*sqlmanager_shared.ForeignKeyConstraintsRow{}, nil
-// 	}
-// 	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-// 	if err != nil && !nucleusdb.IsNoRows(err) {
-// 		return nil, err
-// 	} else if err != nil && nucleusdb.IsNoRows(err) {
-// 		return []*sqlmanager_shared.ForeignKeyConstraintsRow{}, nil
-// 	}
-
-// 	result := []*sqlmanager_shared.ForeignKeyConstraintsRow{}
-// 	for _, row := range rows {
-// 		if row.ConstraintType != "f" {
-// 			continue
-// 		}
-// 		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-// 			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
-// 		}
-// 		if len(row.ConstraintColumns) != len(row.Notnullable) {
-// 			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
-// 		}
-
-// 		for idx, colname := range row.ConstraintColumns {
-// 			fkcol := row.ForeignColumnNames[idx]
-// 			notnullable := row.Notnullable[idx]
-
-// 			result = append(result, &sqlmanager_shared.ForeignKeyConstraintsRow{
-// 				SchemaName:        row.SchemaName,
-// 				TableName:         row.TableName,
-// 				ColumnName:        colname,
-// 				IsNullable:        !notnullable,
-// 				ConstraintName:    row.ConstraintName,
-// 				ForeignSchemaName: row.ForeignSchemaName,
-// 				ForeignTableName:  row.ForeignTableName,
-// 				ForeignColumnName: fkcol,
-// 			})
-// 		}
-// 	}
-// 	return result, nil
-// }
-
-// // Key is schema.table value is list of tables that key depends on
-// func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
-// 	if len(schemas) == 0 {
-// 		return map[string][]*sqlmanager_shared.ForeignConstraint{}, nil
-// 	}
-// 	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if constraints == nil {
-// 		return map[string][]*sqlmanager_shared.ForeignConstraint{}, nil
-// 	}
-
-// 	return constraints.ForeignKeyConstraints, nil
-// }
-
-// func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {
-// 	if len(schemas) == 0 {
-// 		return []*sqlmanager_shared.PrimaryKey{}, nil
-// 	}
-// 	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-// 	if err != nil && !nucleusdb.IsNoRows(err) {
-// 		return nil, err
-// 	} else if err != nil && nucleusdb.IsNoRows(err) {
-// 		return []*sqlmanager_shared.PrimaryKey{}, nil
-// 	}
-
-// 	constraints := []*pg_queries.GetTableConstraintsBySchemaRow{}
-// 	for _, row := range rows {
-// 		if row.ConstraintType != "p" {
-// 			continue
-// 		}
-// 		constraints = append(constraints, row)
-// 	}
-// 	result := []*sqlmanager_shared.PrimaryKey{}
-// 	for _, row := range constraints {
-// 		columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
-// 		result = append(result, &sqlmanager_shared.PrimaryKey{
-// 			Schema:  row.SchemaName,
-// 			Table:   row.TableName,
-// 			Columns: columns,
-// 		})
-// 	}
-// 	return result, nil
-// }
-
-// func (p *PostgresManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
-// 	if len(schemas) == 0 {
-// 		return map[string][]string{}, nil
-// 	}
-// 	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if constraints == nil {
-// 		return map[string][]string{}, nil
-// 	}
-
-// 	return constraints.PrimaryKeyConstraints, nil
-// }
-
-// func (p *PostgresManager) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
-// 	if len(schemas) == 0 {
-// 		return map[string][][]string{}, nil
-// 	}
-// 	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if constraints == nil {
-// 		return map[string][][]string{}, nil
-// 	}
-
-// 	return constraints.UniqueConstraints, nil
-// }
-
 func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {
 	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool, role)
 	if err != nil && !nucleusdb.IsNoRows(err) {
@@ -565,6 +444,70 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		output = append(output, info)
 	}
 	return output, nil
+}
+
+func (p *PostgresManager) GetSchemaInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	dataTypeStmts := []string{}
+	errgrp.Go(func() error {
+		datatypeCfg, err := p.GetSchemaTableDataTypes(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+		}
+		dataTypeStmts = datatypeCfg.GetStatements()
+		return nil
+	})
+
+	tableTriggerStmts := []string{}
+	errgrp.Go(func() error {
+		tableTriggers, err := p.GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+		}
+		for _, ttrig := range tableTriggers {
+			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+		}
+		return nil
+	})
+
+	createTables := []string{}
+	nonFkAlterStmts := []string{}
+	fkAlterStmts := []string{}
+	idxStmts := []string{}
+	errgrp.Go(func() error {
+		initStatementCfgs, err := p.GetTableInitStatements(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
+		}
+		for _, stmtCfg := range initStatementCfgs {
+			createTables = append(createTables, stmtCfg.CreateTableStatement)
+			for _, alter := range stmtCfg.AlterTableStatements {
+				if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
+					fkAlterStmts = append(fkAlterStmts, alter.Statement)
+				} else {
+					nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+				}
+			}
+			idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+		}
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: dataTypeStmts},
+		{Label: "create table", Statements: createTables},
+		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
+		{Label: "table index", Statements: idxStmts},
+		{Label: "table triggers", Statements: tableTriggerStmts},
+	}, nil
 }
 
 func wrapPgIdempotentIndex(

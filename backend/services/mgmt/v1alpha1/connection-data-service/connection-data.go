@@ -656,13 +656,29 @@ func (s *Service) GetConnectionInitStatements(
 
 	createStmtsMap := map[string]string{}
 	truncateStmtsMap := map[string]string{}
+	initSchemaStmts := []*mgmtv1alpha1.SchemaInitStatements{}
 	if req.Msg.GetOptions().GetInitSchema() {
-		for k, v := range schemaTableMap {
-			stmt, err := db.Db.GetCreateTableStatement(ctx, v.Schema, v.Table)
+		tables := []*sqlmanager_shared.SchemaTable{}
+		for tableKey := range schemaTableMap {
+			schema, table := sqlmanager_shared.SplitTableKey(tableKey)
+			stmt, err := db.Db.GetCreateTableStatement(ctx, schema, table)
 			if err != nil {
 				return nil, err
 			}
-			createStmtsMap[k] = stmt
+			createStmtsMap[tableKey] = stmt
+			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
+		}
+		if db.Driver == sqlmanager_shared.PostgresDriver {
+			initBlocks, err := db.Db.GetSchemaInitStatements(ctx, tables)
+			if err != nil {
+				return nil, err
+			}
+			for _, b := range initBlocks {
+				initSchemaStmts = append(initSchemaStmts, &mgmtv1alpha1.SchemaInitStatements{
+					Label:      b.Label,
+					Statements: b.Statements,
+				})
+			}
 		}
 	}
 
@@ -698,6 +714,7 @@ func (s *Service) GetConnectionInitStatements(
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
 		TableInitStatements:     createStmtsMap,
 		TableTruncateStatements: truncateStmtsMap,
+		SchemaInitStatements:    initSchemaStmts,
 	}), nil
 }
 

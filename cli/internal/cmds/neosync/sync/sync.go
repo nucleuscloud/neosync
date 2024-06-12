@@ -24,7 +24,6 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	cli_neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
@@ -706,7 +705,7 @@ func generateBenthosConfig(
 	syncConfig *tabledependency.RunConfig,
 	authToken *string,
 ) *benthosConfigResponse {
-	schema, table := utils.SplitTableKey(syncConfig.Table)
+	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table)
 
 	var jobId, jobRunId *string
 	if cmd.Source.ConnectionOpts != nil {
