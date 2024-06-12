@@ -15,6 +15,7 @@ import (
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"golang.org/x/sync/errgroup"
 )
@@ -126,7 +127,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if sqlopts.InitSchema {
 				tables := []*sqlmanager_shared.SchemaTable{}
 				for tableKey := range uniqueTables {
-					schema, table := shared.SplitTableKey(tableKey)
+					schema, table := utils.SplitTableKey(tableKey)
 					tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 

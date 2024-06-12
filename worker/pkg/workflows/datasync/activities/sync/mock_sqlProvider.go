@@ -6,7 +6,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	mock "github.com/stretchr/testify/mock"
 
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 
 	slog "log/slog"
 

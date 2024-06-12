@@ -1,6 +1,6 @@
 package sync_activity
 
-import neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+import neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 
 type conngetter = func(dsn string) (neosync_benthos_sql.SqlDbtx, error)
 

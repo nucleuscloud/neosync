@@ -5,13 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
@@ -225,12 +224,4 @@ func GetConnectionById(
 		return nil, err
 	}
 	return getConnResp.Msg.Connection, nil
-}
-
-func SplitTableKey(key string) (schema, table string) {
-	pieces := strings.Split(key, ".")
-	if len(pieces) == 1 {
-		return "public", pieces[0]
-	}
-	return pieces[0], pieces[1]
 }

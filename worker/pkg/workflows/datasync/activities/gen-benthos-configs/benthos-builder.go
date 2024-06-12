@@ -13,7 +13,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -262,7 +263,7 @@ func groupMappingsByTable(
 
 	output := make([]*tableMapping, 0, len(groupedMappings))
 	for key, mappings := range groupedMappings {
-		schema, table := shared.SplitTableKey(key)
+		schema, table := utils.SplitTableKey(key)
 		output = append(output, &tableMapping{
 			Schema:   schema,
 			Table:    table,

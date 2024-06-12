@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -66,13 +64,6 @@ func DedupeSlice[T comparable](input []T) []T {
 	return output
 }
 
-func ToSha256(input string) string {
-	h := sha256.New()
-	h.Write([]byte(input))
-	bs := h.Sum(nil)
-	return fmt.Sprintf("%x", bs)
-}
-
 func GetBearerTokenFromHeader(
 	header http.Header,
 	key string,
@@ -90,12 +81,4 @@ func GetBearerTokenFromHeader(
 	}
 	token := pieces[1]
 	return token, nil
-}
-
-func SplitTableKey(key string) (schema, table string) {
-	pieces := strings.Split(key, ".")
-	if len(pieces) == 1 {
-		return "public", pieces[0]
-	}
-	return pieces[0], pieces[1]
 }

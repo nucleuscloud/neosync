@@ -3,7 +3,7 @@ package sync_activity
 import (
 	"testing"
 
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 func (s *Service) GetAccountApiKeys(
@@ -83,7 +83,7 @@ func (s *Service) CreateAccountApiKey(
 	}
 
 	clearKeyValue := apikey.NewV1AccountKey()
-	hashedKeyValue := utils.ToSha256(
+	hashedKeyValue := pkg_utils.ToSha256(
 		clearKeyValue,
 	)
 
@@ -127,7 +127,7 @@ func (s *Service) RegenerateAccountApiKey(
 		return nil, err
 	}
 	clearKeyValue := apikey.NewV1AccountKey()
-	hashedKeyValue := utils.ToSha256(
+	hashedKeyValue := pkg_utils.ToSha256(
 		clearKeyValue,
 	)
 	expiresAt, err := nucleusdb.ToTimestamp(req.Msg.ExpiresAt.AsTime())

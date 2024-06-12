@@ -29,13 +29,13 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
-	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
-	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
-	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
-	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
+	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
+	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 )
 
 const (
