@@ -1,58 +1,52 @@
 'use client';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import ko, { KoalaProvider } from '@getkoala/react';
 import { useSession } from 'next-auth/react';
-import { ReactElement, ReactNode, useEffect } from 'react';
-import { useAccount } from './account-provider';
+import Script from 'next/script';
+import { ReactElement, useEffect } from 'react';
 
 export default function KoalaIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: session } = useSession();
-  const { account, isLoading: isAccountLoading } = useAccount();
   const user = session?.user;
+
+  console.log('test 1');
 
   useEffect(() => {
     if (
-      isAccountLoading ||
-      (!isSystemAppConfigLoading &&
-        typeof window !== 'undefined' &&
-        systemAppConfig?.koala.enabled &&
-        systemAppConfig?.koala?.key)
+      isSystemAppConfigLoading ||
+      typeof window == 'undefined' ||
+      !systemAppConfig?.koala.enabled
     ) {
       return;
     }
 
-    ko!.identify(user?.email, {
-      account: account?.name,
-      name: user?.name,
-      neosyncCloud: systemAppConfig?.isNeosyncCloud ?? false,
-    });
+    try {
+      // eslint-disable-next-line
+      window.ko?.identify(user?.email ?? '', {
+        name: user?.name,
+        neosyncCloud: systemAppConfig?.isNeosyncCloud ?? false,
+      });
+      console.log('test 3');
+    } catch (error) {
+      console.error('Error in Koala identification:', error);
+    }
   }, [user?.name, systemAppConfig?.isNeosyncCloud]);
 
   return <></>;
 }
 
-interface KProps {
-  children: ReactNode;
-}
+export function KProvider() {
+  const { data: systemAppConfig } = useGetSystemAppConfig();
 
-export function KProvider({ children }: KProps) {
-  const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
-    useGetSystemAppConfig();
-
-  if (
-    typeof window !== 'undefined' &&
-    !isSystemAppConfigLoading &&
-    systemAppConfig?.koala?.enabled &&
-    systemAppConfig?.koala?.key
-  ) {
-    return children;
+  if (systemAppConfig?.koala.enabled) {
+    <Script
+      id="koala"
+      dangerouslySetInnerHTML={{
+        __html: `!function(t){if(window.ko)return;window.ko=[],["identify","track","removeListeners","open","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_4fa92236b6fe5d23fb878c88c14d209fd48e/sdk.js"),(document.body || document.head).appendChild(n)}();`,
+      }}
+    ></Script>;
+  } else {
+    return <></>;
   }
-
-  return (
-    <KoalaProvider publicApiKey={systemAppConfig?.koala.key}>
-      {children}
-    </KoalaProvider>
-  );
 }

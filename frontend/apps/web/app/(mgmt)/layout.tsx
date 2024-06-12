@@ -1,10 +1,10 @@
 import '@/app/globals.css';
+import { KProvider } from '@/components/providers/koala-provider';
 import {
   PHProvider,
   PostHogPageview,
 } from '@/components/providers/posthog-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
-import ko from '@getkoala/react';
 import { Metadata } from 'next';
 import { ReactElement, Suspense } from 'react';
 import BaseLayout from '../BaseLayout';
@@ -20,14 +20,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  if (process.env.KOALA_KEY) {
-    ko.init(process.env.KOALA_KEY);
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className="min-h-screen bg-background font-sans antialiased overflow-scroll">
+        <KProvider />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -39,9 +36,7 @@ export default async function RootLayout({
               <PostHogPageview />
             </Suspense>
             <PHProvider>
-              {/* <KProvider> */}
               <BaseLayout>{children}</BaseLayout>
-              {/* </KProvider> */}
             </PHProvider>
           </>
         </ThemeProvider>
