@@ -11,7 +11,7 @@ import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { DataTableRowActions } from './data-table-row-actions';
+import { DataTableRowActions } from './system-data-table-row-actions';
 
 interface GetSystemTransformercolumnsProps {
   accountName: string;
@@ -113,6 +113,10 @@ export function getSystemTransformerColumns(
     },
     {
       id: 'actions',
+      accessorKey: 'actions',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Actions" />
+      ),
       cell: ({ row }) => <DataTableRowActions row={row} />,
     },
   ];

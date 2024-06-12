@@ -29,7 +29,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function SystemTransformersDataTable<TData, TValue>({
+export function TransformersDataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {

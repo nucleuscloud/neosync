@@ -12,10 +12,9 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { ReactElement, useMemo } from 'react';
-import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
-import { SystemTransformersDataTable } from './components/SystemTransformersTable/data-table';
-import { getUserDefinedTransformerColumns } from './components/UserDefinedTransformersTable/columns';
-import { UserDefinedTransformersDataTable } from './components/UserDefinedTransformersTable/data-table';
+import { TransformersDataTable } from './components/TransformersTable/data-table';
+import { getSystemTransformerColumns } from './components/TransformersTable/system-columns';
+import { getUserDefinedTransformerColumns } from './components/TransformersTable/userdefined-columns';
 
 export default function Transformers(): ReactElement {
   const searchParams = useSearchParams();
@@ -97,13 +96,13 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
           <TabsTrigger value="system">System Transformers</TabsTrigger>
         </TabsList>
         <TabsContent value="ud">
-          <UserDefinedTransformersDataTable
+          <TransformersDataTable
             columns={userDefinedTransformerColumns}
             data={userDefinedTransformers}
           />
         </TabsContent>
         <TabsContent value="system">
-          <SystemTransformersDataTable
+          <TransformersDataTable
             columns={systemTransformerColumns}
             data={systemTransformers}
           />

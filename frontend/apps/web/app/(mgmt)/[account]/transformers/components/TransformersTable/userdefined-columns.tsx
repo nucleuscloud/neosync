@@ -11,7 +11,7 @@ import { UserDefinedTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { DataTableRowActions } from './data-table-row-actions';
+import { DataTableRowActions } from './userdefined-data-table-row-actions';
 
 interface getUserDefinedTransformerColumnsProps {
   onTransformerDeleted(id: string): void;
