@@ -5,13 +5,18 @@ import {
 } from '@/yup-validations/jobs';
 import {
   ActivityOptions,
+  AiGenerateSourceOptions,
+  AiGenerateSourceSchemaOption,
+  AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
   Connection,
   CreateJobRequest,
   CreateJobResponse,
+  DatabaseTable,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
+  GetAiGeneratedDataRequest,
   JobDestination,
   JobDestinationOptions,
   JobMapping,
@@ -34,13 +39,72 @@ import {
   RetryPolicy,
   WorkflowOptions,
 } from '@neosync/sdk';
+import { SampleRecord } from '../new/job/aigenerate/single/schema/types';
 import {
   CreateJobFormValues,
+  CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
   SubsetFormValues,
 } from '../new/job/schema';
 
 type GetConnectionById = (id: string) => Connection | undefined;
+
+export async function createNewSingleTableAiGenerateJob(
+  values: CreateSingleTableAiGenerateJobFormValues,
+  accountId: string,
+  getConnectionById: GetConnectionById
+): Promise<CreateJobResponse> {
+  return createJob(
+    new CreateJobRequest({
+      accountId,
+      jobName: values.define.jobName,
+      cronSchedule: values.define.cronSchedule,
+      initiateJobRun: values.define.initiateJobRun,
+      mappings: [],
+      source: toSingleTableAiGenerateJobSource(values),
+      destinations: toSingleTableGenerateJobDestinations(
+        values,
+        getConnectionById
+      ),
+      workflowOptions: toWorkflowOptions(values),
+      syncOptions: toSyncOptions(values),
+    }),
+    accountId
+  );
+}
+
+export async function sampleAiGeneratedRecords(
+  values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>,
+  accountId: string
+): Promise<SampleRecord[]> {
+  const body = new GetAiGeneratedDataRequest({
+    aiConnectionId: values.connect.sourceId,
+    count: BigInt(10),
+    modelName: values.schema.model,
+    userPrompt: values.schema.userPrompt,
+    dataConnectionId: values.connect.fkSourceConnectionId,
+    table: new DatabaseTable({
+      schema: values.schema.schema,
+      table: values.schema.table,
+    }),
+  });
+
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${values.connect.sourceId}/generate`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return (await res.json())?.records ?? [];
+}
 
 export async function createNewSingleTableGenerateJob(
   values: CreateSingleTableGenerateJobFormValues,
@@ -64,6 +128,35 @@ export async function createNewSingleTableGenerateJob(
     }),
     accountId
   );
+}
+
+function toSingleTableAiGenerateJobSource(
+  values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>
+): JobSource {
+  return new JobSource({
+    options: new JobSourceOptions({
+      config: {
+        case: 'aiGenerate',
+        value: new AiGenerateSourceOptions({
+          aiConnectionId: values.connect.sourceId,
+          modelName: values.schema.model,
+          fkSourceConnectionId: values.connect.fkSourceConnectionId,
+          userPrompt: values.schema.userPrompt,
+          schemas: [
+            new AiGenerateSourceSchemaOption({
+              schema: values.schema.schema,
+              tables: [
+                new AiGenerateSourceTableOption({
+                  table: values.schema.table,
+                  rowCount: BigInt(values.schema.numRows),
+                }),
+              ],
+            }),
+          ],
+        }),
+      },
+    }),
+  });
 }
 
 function toSingleTableGenerateJobSource(

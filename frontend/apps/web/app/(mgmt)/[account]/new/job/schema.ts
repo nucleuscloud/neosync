@@ -350,6 +350,15 @@ export type CreateSingleTableGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableGenerateJobFormValues
 >;
 
+export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
+  define: DefineFormValues,
+  connect: SingleTableAiConnectFormValues,
+  schema: SingleTableAiSchemaFormValues,
+}).required();
+export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
+  typeof CreateSingleTableAiGenerateJobFormValues
+>;
+
 async function isJobNameAvailable(
   name: string,
   accountId: string
