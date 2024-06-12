@@ -62,7 +62,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		}
 		config.ConnConfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(s.logger),
-			LogLevel: tracelog.LogLevelInfo,
+			LogLevel: tracelog.LogLevelDebug,
 		}
 		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
@@ -89,7 +89,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	}
 	config.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger:   pgxslog.NewLogger(s.logger),
-		LogLevel: tracelog.LogLevelInfo,
+		LogLevel: tracelog.LogLevelDebug,
 	}
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 

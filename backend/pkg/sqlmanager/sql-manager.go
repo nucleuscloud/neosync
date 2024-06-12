@@ -263,7 +263,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		}
 		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(slog.Default()),
-			LogLevel: tracelog.LogLevelInfo,
+			LogLevel: tracelog.LogLevelDebug,
 		}
 		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
