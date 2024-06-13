@@ -88,6 +88,8 @@ services:
       - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
       - DB_MIGRATIONS_TABLE_QUOTED=false
 
+      - DB_LOG_LEVEL=ERROR
+
       - AUTH_ENABLED=false
 
     networks:

@@ -13,11 +13,12 @@ import (
 // Copied to avoid adding another go mod dependency which also allows us to ensure this is always compatible with our version of pgx
 
 type Logger struct {
-	l *slog.Logger
+	l        *slog.Logger
+	omitArgs bool
 }
 
-func NewLogger(l *slog.Logger) *Logger {
-	return &Logger{l: l}
+func NewLogger(l *slog.Logger, omitArgs bool) *Logger {
+	return &Logger{l: l, omitArgs: omitArgs}
 }
 
 func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]any) {
@@ -27,6 +28,9 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 
 	attrs := make([]slog.Attr, 0, len(data))
 	for k, v := range data {
+		if k == "args" && l.omitArgs {
+			continue
+		}
 		attrs = append(attrs, slog.Any(k, v))
 	}
 
@@ -47,7 +51,14 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 		lvl = slog.LevelError
 		attrs = append(attrs, slog.Any("INVALID_PGX_LOG_LEVEL", level))
 	}
-	l.l.LogAttrs(ctx, lvl, msg, attrs...)
+
+	attrAny := make([]any, len(attrs))
+	for i, attr := range attrs {
+		attrAny[i] = attr
+	}
+	dbGroup := slog.Group("db", attrAny...)
+
+	l.l.LogAttrs(ctx, lvl, msg, dbGroup)
 }
 
 // Returns a tracelog.LogLevel as configured by the environment
@@ -58,4 +69,8 @@ func GetDatabaseLogLevel() tracelog.LogLevel {
 		return tracelog.LogLevelNone
 	}
 	return ll
+}
+
+func GetShouldOmitArgs() bool {
+	return viper.GetBool("DB_OMIT_ARGS")
 }

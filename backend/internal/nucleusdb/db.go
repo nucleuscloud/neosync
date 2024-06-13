@@ -62,7 +62,7 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 		return nil, err
 	}
 	pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
-		Logger:   pgxslog.NewLogger(slog.Default()),
+		Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
 
