@@ -98,8 +98,10 @@ Valid options for `DB_LOG_LEVEL` are (not case sensitive):
 - error
 - none
 
-**Note** - When turning on database logging, the statements **include arguments**pby default.
+**Note** - When turning on database logging, the statements **include arguments** default.
 
 So if planning to run this in any production environment, you may leak PII or other sensitive information.
 
 To disable arguments from being listed in the query, enable the `DB_OMIT_ARGS=true` environment variable.
+
+All database logs will be grouped under the `db` attribute key.
