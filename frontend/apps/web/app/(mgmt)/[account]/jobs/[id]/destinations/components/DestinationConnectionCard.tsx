@@ -20,24 +20,12 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import {
-  DESTINATION_FORM_SCHEMA,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
+import { DestinationFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Connection,
-  JobDestination,
-  JobDestinationOptions,
-  UpdateJobDestinationConnectionRequest,
-  UpdateJobDestinationConnectionResponse,
-} from '@neosync/sdk';
+import { Connection, JobDestination } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = DESTINATION_FORM_SCHEMA;
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+import { deleteJobConnection, setJobConnection } from '../../../util';
 
 interface Props {
   jobId: string;
@@ -62,11 +50,11 @@ export default function DestinationConnectionCard({
   const { account } = useAccount();
 
   const form = useForm({
-    resolver: yupResolver<FormValues>(FORM_SCHEMA),
+    resolver: yupResolver<DestinationFormValues>(DestinationFormValues),
     values: getDefaultValues(destination),
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: DestinationFormValues) {
     try {
       const connection = connections.find((c) => c.id === values.connectionId);
       await setJobConnection(
@@ -223,58 +211,7 @@ export default function DestinationConnectionCard({
   );
 }
 
-async function deleteJobConnection(
-  accountId: string,
-  jobId: string,
-  destinationId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection/${destinationId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-async function setJobConnection(
-  accountId: string,
-  jobId: string,
-  values: FormValues,
-  destinationId: string,
-  connection?: Connection
-): Promise<UpdateJobDestinationConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateJobDestinationConnectionRequest({
-          jobId: jobId,
-          connectionId: values.connectionId,
-          destinationId: destinationId,
-          options: new JobDestinationOptions(
-            toJobDestinationOptions(values, connection)
-          ),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
-}
-
-function getDefaultValues(d: JobDestination): FormValues {
+function getDefaultValues(d: JobDestination): DestinationFormValues {
   switch (d.options?.config.case) {
     case 'postgresOptions':
       return {
@@ -306,7 +243,7 @@ function getDefaultValues(d: JobDestination): FormValues {
 }
 
 function useShouldHideInitConnectionSchema(
-  control: Control<FormValues>,
+  control: Control<DestinationFormValues>,
   sourceId: string
 ): boolean {
   const [destinationConnectionid] = useWatch({

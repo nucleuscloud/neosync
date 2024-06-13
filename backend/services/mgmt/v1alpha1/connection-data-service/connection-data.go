@@ -24,6 +24,7 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"go.mongodb.org/mongo-driver/bson"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -360,12 +361,12 @@ func (s *Service) GetConnectionSchema(
 		if err != nil {
 			return nil, err
 		}
-
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
+				columnDefaultCopy := col.ColumnDefault
+				defaultColumn = &columnDefaultCopy
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
@@ -383,6 +384,36 @@ func (s *Service) GetConnectionSchema(
 			Schemas: schemas,
 		}), nil
 
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		db, err := s.mongoconnector.NewFromConnectionConfig(connection.GetConnectionConfig(), logger)
+		if err != nil {
+			return nil, err
+		}
+		mongoclient, err := db.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer db.Close(ctx)
+		dbnames, err := mongoclient.ListDatabaseNames(ctx, bson.D{})
+		if err != nil {
+			return nil, err
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, dbname := range dbnames {
+			collNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
+			if err != nil {
+				return nil, err
+			}
+			for _, collName := range collNames {
+				schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+					Schema: dbname,
+					Table:  collName,
+				})
+			}
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		awsCfg := req.Msg.SchemaConfig.GetAwsS3Config()
 		if awsCfg == nil {
@@ -495,7 +526,6 @@ func (s *Service) GetConnectionSchema(
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
 		}), nil
-
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
@@ -735,7 +765,12 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 				AwsS3Config: cfg,
 			},
 		}
-
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MongoConfig{
+				MongoConfig: &mgmtv1alpha1.MongoSchemaConfig{},
+			},
+		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
@@ -1067,56 +1102,60 @@ func (s *Service) GetConnectionTableConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db.Close()
-	tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
+	switch connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		connectionTimeout := 5
+		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
+		defer db.Db.Close()
+		tableConstraints, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+		if err != nil {
+			return nil, err
+		}
 
-	fkConstraintsMap := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for tableName, d := range tableConstraints.ForeignKeyConstraints {
-		fkConstraintsMap[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
-			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
+		fkConstraintsMap := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+		for tableName, d := range tableConstraints.ForeignKeyConstraints {
+			fkConstraintsMap[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
+				Constraints: []*mgmtv1alpha1.ForeignConstraint{},
+			}
+			for _, constraint := range d {
+				fkConstraintsMap[tableName].Constraints = append(fkConstraintsMap[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+					Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
+						Table:   constraint.ForeignKey.Table,
+						Columns: constraint.ForeignKey.Columns,
+					},
+				})
+			}
 		}
-		for _, constraint := range d {
-			fkConstraintsMap[tableName].Constraints = append(fkConstraintsMap[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-				Columns: constraint.Columns, NotNullable: constraint.NotNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
-					Table:   constraint.ForeignKey.Table,
-					Columns: constraint.ForeignKey.Columns,
-				},
-			})
-		}
-	}
 
-	pkConstraintsMap := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for table, pks := range tableConstraints.PrimaryKeyConstraints {
-		pkConstraintsMap[table] = &mgmtv1alpha1.PrimaryConstraint{
-			Columns: pks,
+		pkConstraintsMap := map[string]*mgmtv1alpha1.PrimaryConstraint{}
+		for table, pks := range tableConstraints.PrimaryKeyConstraints {
+			pkConstraintsMap[table] = &mgmtv1alpha1.PrimaryConstraint{
+				Columns: pks,
+			}
 		}
-	}
 
-	uniqueConstraintsMap := map[string]*mgmtv1alpha1.UniqueConstraints{}
-	for table, uniqueConstraints := range tableConstraints.UniqueConstraints {
-		uniqueConstraintsMap[table] = &mgmtv1alpha1.UniqueConstraints{
-			Constraints: []*mgmtv1alpha1.UniqueConstraint{},
+		uniqueConstraintsMap := map[string]*mgmtv1alpha1.UniqueConstraints{}
+		for table, uniqueConstraints := range tableConstraints.UniqueConstraints {
+			uniqueConstraintsMap[table] = &mgmtv1alpha1.UniqueConstraints{
+				Constraints: []*mgmtv1alpha1.UniqueConstraint{},
+			}
+			for _, uc := range uniqueConstraints {
+				uniqueConstraintsMap[table].Constraints = append(uniqueConstraintsMap[table].Constraints, &mgmtv1alpha1.UniqueConstraint{
+					Columns: uc,
+				})
+			}
 		}
-		for _, uc := range uniqueConstraints {
-			uniqueConstraintsMap[table].Constraints = append(uniqueConstraintsMap[table].Constraints, &mgmtv1alpha1.UniqueConstraint{
-				Columns: uc,
-			})
-		}
-	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{
-		ForeignKeyConstraints: fkConstraintsMap,
-		PrimaryKeyConstraints: pkConstraintsMap,
-		UniqueConstraints:     uniqueConstraintsMap,
-	}), nil
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{
+			ForeignKeyConstraints: fkConstraintsMap,
+			PrimaryKeyConstraints: pkConstraintsMap,
+			UniqueConstraints:     uniqueConstraintsMap,
+		}), nil
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{}), nil
 }
 
 func (s *Service) GetTableRowCount(

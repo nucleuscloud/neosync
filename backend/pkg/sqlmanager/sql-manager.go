@@ -6,12 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	pgxslog "github.com/nucleuscloud/neosync/backend/internal/pgx-slog"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
@@ -253,7 +257,16 @@ func (s *SqlManager) NewSqlDbFromUrl(
 	var db SqlDatabase
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
-		pgconn, err := pgxpool.New(ctx, connectionUrl)
+		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
+			Logger:   pgxslog.NewLogger(slog.Default()),
+			LogLevel: pgxslog.GetDatabaseLogLevel(),
+		}
+		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
 		if err != nil {
 			return nil, err
 		}
@@ -264,6 +277,12 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		})
 		driver = sqlmanager_shared.PostgresDriver
 	case sqlmanager_shared.MysqlDriver:
+		if strings.Contains(connectionUrl, "?") {
+			connectionUrl = fmt.Sprintf("%s&multiStatements=true", connectionUrl)
+		} else {
+			connectionUrl = fmt.Sprintf("%s?multiStatements=true", connectionUrl)
+		}
+
 		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)
 		if err != nil {
 			return nil, err

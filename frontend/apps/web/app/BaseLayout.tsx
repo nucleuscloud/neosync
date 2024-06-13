@@ -1,6 +1,7 @@
 import SiteFooter from '@/components/SiteFooter';
 import OnboardingChecklist from '@/components/onboarding-checklist/OnboardingChecklist';
 import AccountProvider from '@/components/providers/account-provider';
+import { KoalaIdentifier } from '@/components/providers/koala-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import SiteHeader from '@/components/site-header/SiteHeader';
@@ -21,6 +22,9 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
       <AccountProvider>
         <Suspense>
           <PostHogIdentifier />
+        </Suspense>
+        <Suspense>
+          <KoalaIdentifier />
         </Suspense>
         <div className="relative flex min-h-screen flex-col">
           <SiteHeader />

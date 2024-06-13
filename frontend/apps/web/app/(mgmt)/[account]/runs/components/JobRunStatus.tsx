@@ -18,116 +18,130 @@ import { ReactElement } from 'react';
 
 interface Props {
   status?: JobRunStatusEnum;
-  className?: string;
+  containerClassName?: string;
+  badgeClassName?: string;
 }
 
+const sharedContainerClassName = 'flex flex-row gap-3 px-2 max-w-28';
+const sharedBadgeClassName = 'flex flex-row gap-3';
+
 export default function JobRunStatus(props: Props): ReactElement {
-  const { status, className } = props;
+  const { status, containerClassName, badgeClassName } = props;
+
   switch (status) {
     case JobRunStatusEnum.ERROR:
       return (
-        <Badge variant="destructive" className={cn(className, 'min-w-[95px]')}>
-          <div className="flex flex-row items-center gap-1">
-            <ExclamationTriangleIcon className="w-3 h-3" />
-            <p>Error</p>
-          </div>
-        </Badge>
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            variant="destructive"
+            className={cn(sharedBadgeClassName, badgeClassName)}
+          >
+            <div className="flex flex-row items-center gap-1">
+              <ExclamationTriangleIcon className="w-3 h-3" />
+              <p>Error</p>
+            </div>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.COMPLETE:
       return (
-        <Badge variant="success" className={cn(className, 'min-w-[95px]')}>
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            variant="success"
+            className={cn(sharedBadgeClassName, badgeClassName)}
+          >
             <CheckIcon className="w-3 h-3" /> <p>Complete</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.FAILED:
       return (
-        <Badge variant="destructive" className={cn(className, 'min-w-[95px]')}>
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            variant="destructive"
+            className={cn(sharedBadgeClassName, badgeClassName)}
+          >
             <ExclamationTriangleIcon className="w-3 h-3" /> <p>Failed</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.RUNNING:
       return (
-        <Badge
-          className={cn(
-            'bg-blue-600 hover:bg-blue-500 min-w-[95px]',
-            className
-          )}
-        >
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            className={cn(
+              'bg-blue-600 hover:bg-blue-500',
+              sharedContainerClassName
+            )}
+          >
             <Spinner className="w-3 h-3" /> <p>Running</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.PENDING:
       return (
-        <Badge
-          className={cn(
-            'bg-purple-600  hover:bg-purple-500 min-w-[95px]',
-            className
-          )}
-        >
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            className={cn(
+              'bg-purple-600  hover:bg-purple-500',
+              sharedBadgeClassName
+            )}
+          >
             <Spinner className="w-3 h-3" /> <p>Pending</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.TERMINATED:
       return (
-        <Badge
-          className={cn(
-            'bg-gray-600  hover:bg-gray-500 min-w-[105px]',
-            className
-          )}
-        >
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            className={cn(
+              'bg-gray-600  hover:bg-gray-500',
+              sharedBadgeClassName
+            )}
+          >
             <ExclamationTriangleIcon className="w-3 h-3" /> <p>Terminated</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.CANCELED:
       return (
-        <Badge
-          className={cn(
-            'bg-gray-600  hover:bg-gray-500 min-w-[95px]',
-            className
-          )}
-        >
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            className={cn(
+              'bg-gray-600  hover:bg-gray-500',
+              sharedBadgeClassName
+            )}
+          >
             <ExclamationTriangleIcon className="w-3 h-3" /> <p>Canceled</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     case JobRunStatusEnum.TIMED_OUT:
       return (
-        <Badge
-          className={cn(
-            'bg-yellow-600  hover:bg-yellow-500 min-w-[120px]',
-            className
-          )}
-        >
-          <div className="flex flex-row items-center gap-1">
+        <div className={cn(sharedContainerClassName, containerClassName)}>
+          <Badge
+            className={cn(
+              'bg-yellow-600  hover:bg-yellow-500',
+              sharedBadgeClassName
+            )}
+          >
             <ClockIcon className="w-3 h-3" /> <p>Timed Out</p>
-          </div>
-        </Badge>
+          </Badge>
+        </div>
       );
     default:
       return (
         <TooltipProvider>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <div>
+              <div className={cn(sharedContainerClassName, containerClassName)}>
                 <Badge
                   variant="outline"
-                  className={cn(className, 'min-w-[95px]')}
+                  className={cn(sharedBadgeClassName, badgeClassName)}
                 >
-                  <div className="flex flex-row items-center gap-1">
-                    <QuestionMarkCircledIcon className="w-3 h-3" />
-                    <p>Unknown</p>
-                  </div>
+                  <QuestionMarkCircledIcon className="w-3 h-3" />
+                  <p>Unknown</p>
                 </Badge>
               </div>
             </TooltipTrigger>

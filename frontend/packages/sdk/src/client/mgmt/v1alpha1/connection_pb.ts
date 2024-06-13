@@ -669,6 +669,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: OpenAiConnectionConfig;
     case: "openaiConfig";
+  } | {
+    /**
+     * Configures a MongoDB Connection
+     *
+     * @generated from field: mgmt.v1alpha1.MongoConnectionConfig mongo_config = 6;
+     */
+    value: MongoConnectionConfig;
+    case: "mongoConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -684,6 +692,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 3, name: "mysql_config", kind: "message", T: MysqlConnectionConfig, oneof: "config" },
     { no: 4, name: "local_dir_config", kind: "message", T: LocalDirectoryConnectionConfig, oneof: "config" },
     { no: 5, name: "openai_config", kind: "message", T: OpenAiConnectionConfig, oneof: "config" },
+    { no: 6, name: "mongo_config", kind: "message", T: MongoConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -700,6 +709,69 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
 
   static equals(a: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined, b: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined): boolean {
     return proto3.util.equals(ConnectionConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MongoConnectionConfig
+ */
+export class MongoConnectionConfig extends Message<MongoConnectionConfig> {
+  /**
+   * May provide either a raw string url, or a structured version
+   *
+   * @generated from oneof mgmt.v1alpha1.MongoConnectionConfig.connection_config
+   */
+  connectionConfig: {
+    /**
+     * The full mongo connection url
+     *
+     * @generated from field: string url = 1;
+     */
+    value: string;
+    case: "url";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet
+   *
+   * @generated from field: mgmt.v1alpha1.SSHTunnel tunnel = 2;
+   */
+  tunnel?: SSHTunnel;
+
+  /**
+   * Provide client-side TLS Certificates
+   *
+   * @generated from field: mgmt.v1alpha1.ClientTlsConfig client_tls = 3;
+   */
+  clientTls?: ClientTlsConfig;
+
+  constructor(data?: PartialMessage<MongoConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MongoConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
+    { no: 2, name: "tunnel", kind: "message", T: SSHTunnel },
+    { no: 3, name: "client_tls", kind: "message", T: ClientTlsConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MongoConnectionConfig {
+    return new MongoConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MongoConnectionConfig {
+    return new MongoConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MongoConnectionConfig {
+    return new MongoConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MongoConnectionConfig | PlainMessage<MongoConnectionConfig> | undefined, b: MongoConnectionConfig | PlainMessage<MongoConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(MongoConnectionConfig, a, b);
   }
 }
 

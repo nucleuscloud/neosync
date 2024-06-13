@@ -3,6 +3,7 @@ package sshtunnel
 import (
 	"testing"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/zeebo/assert"
 )
 
@@ -61,4 +62,46 @@ func Test_ParseSshKey(t *testing.T) {
 	pk, err = ParseSshKey("bad key")
 	assert.Error(t, err)
 	assert.Nil(t, pk)
+}
+
+func Test_GetTunnelAuthMethodFromSshConfig(t *testing.T) {
+	out, err := GetTunnelAuthMethodFromSshConfig(nil)
+	assert.NoError(t, err)
+	assert.Nil(t, out)
+
+	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{})
+	assert.NoError(t, err)
+	assert.Nil(t, out)
+
+	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+		AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
+			Passphrase: &mgmtv1alpha1.SSHPassphrase{
+				Value: "foo",
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+
+	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
+			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
+				Value:      encryptedPrivateKey,
+				Passphrase: ptr(encryptedPrivateKeyPass),
+			},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+
+	out, err = GetTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
+		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
+			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
+				Value:      encryptedPrivateKey,
+				Passphrase: ptr("badpass"),
+			},
+		},
+	})
+	assert.Error(t, err)
+	assert.Nil(t, out)
 }

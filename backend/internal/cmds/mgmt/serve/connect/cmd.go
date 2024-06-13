@@ -35,9 +35,10 @@ import (
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
-	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
@@ -80,16 +81,14 @@ func serve(ctx context.Context) error {
 		host = "127.0.0.1"
 	}
 
-	logger := neosynclogger.New(neosynclogger.ShouldFormatAsJson(), nil)
+	slogger, loglogger := neosynclogger.NewLoggers()
 
 	neoEnv := viper.GetString("NUCLEUS_ENV")
 	if neoEnv != "" {
-		logger = logger.With("nucleusEnv", neoEnv)
+		slogger = slogger.With("nucleusEnv", neoEnv)
 	}
 
-	loglogger := neosynclogger.NewLogLogger(neosynclogger.ShouldFormatAsJson(), nil)
-
-	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
+	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
 
 	mux := http.NewServeMux()
 
@@ -145,7 +144,7 @@ func serve(ctx context.Context) error {
 			ctx,
 			nucleusdb.GetDbUrl(dbMigConfig),
 			schemaDir,
-			logger,
+			slogger,
 		); err != nil {
 			return err
 		}
@@ -160,7 +159,7 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
+	loggerInterceptor := logger_interceptor.NewInterceptor(slogger)
 	loggingInterceptor := logging_interceptor.NewInterceptor()
 
 	stdInterceptors := []connect.Interceptor{
@@ -273,7 +272,7 @@ func serve(ctx context.Context) error {
 		},
 	}, db.Q, db.Db)
 
-	authadminclient, err := getAuthAdminClient(ctx, authclient, logger)
+	authadminclient, err := getAuthAdminClient(ctx, authclient, slogger)
 	if err != nil {
 		return err
 	}
@@ -308,9 +307,9 @@ func serve(ctx context.Context) error {
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
 	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
-
+	mongoconnector := mongoconnect.NewConnector()
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
-		mysqlquerier)
+		mysqlquerier, mongoconnector)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -366,6 +365,7 @@ func serve(ctx context.Context) error {
 		sqlConnector,
 		pgquerier,
 		mysqlquerier,
+		mongoconnector,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
@@ -413,10 +413,10 @@ func serve(ctx context.Context) error {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	logger.Info(fmt.Sprintf("listening on %s", httpServer.Addr))
+	slogger.Info(fmt.Sprintf("listening on %s", httpServer.Addr))
 
 	if err = httpServer.ListenAndServe(); err != nil {
-		logger.Error(err.Error())
+		slogger.Error(err.Error())
 	}
 	return nil
 }

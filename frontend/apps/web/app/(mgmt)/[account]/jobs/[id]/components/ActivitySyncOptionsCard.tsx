@@ -13,18 +13,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { getErrorMessage } from '@/util/util';
+import { convertNanosecondsToMinutes, getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  ActivityOptions,
-  Job,
-  RetryPolicy,
-  SetJobSyncOptionsRequest,
-  SetJobWorkflowOptionsResponse,
-} from '@neosync/sdk';
+import { Job } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { ActivityOptionsSchema } from '../../../new/job/schema';
+import { updateJobSyncActivityOptions } from '../../util';
 
 interface Props {
   job: Job;
@@ -185,71 +180,4 @@ export default function ActivitySyncOptionsCard({
       </Form>
     </Card>
   );
-}
-
-async function updateJobSyncActivityOptions(
-  accountId: string,
-  jobId: string,
-  values: ActivityOptionsSchema
-): Promise<SetJobWorkflowOptionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/syncoptions`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobSyncOptionsRequest({
-          id: jobId,
-          syncOptions: new ActivityOptions({
-            startToCloseTimeout:
-              values.startToCloseTimeout !== undefined &&
-              values.startToCloseTimeout > 0
-                ? convertMinutesToNanoseconds(values.startToCloseTimeout)
-                : undefined,
-            scheduleToCloseTimeout:
-              values.scheduleToCloseTimeout !== undefined &&
-              values.scheduleToCloseTimeout > 0
-                ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
-                : undefined,
-            retryPolicy: new RetryPolicy({
-              maximumAttempts: values.retryPolicy?.maximumAttempts,
-            }),
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
-}
-
-const NANOS_PER_SECOND = BigInt(1000000000);
-const SECONDS_PER_MIN = BigInt(60);
-
-// if the duration is too large to convert to minutes, it will return the max safe integer
-function convertNanosecondsToMinutes(duration: bigint): number {
-  // Convert nanoseconds to minutes
-  const minutesBigInt = duration / NANOS_PER_SECOND / SECONDS_PER_MIN;
-
-  // Check if the result is within the safe range for JavaScript numbers
-  if (minutesBigInt <= BigInt(Number.MAX_SAFE_INTEGER)) {
-    return Number(minutesBigInt);
-  } else {
-    // Handle the case where the number of minutes is too large
-    console.warn(
-      'The number of minutes is too large for a safe JavaScript number. Returning as BigInt.'
-    );
-    return Number.MAX_SAFE_INTEGER;
-  }
-}
-
-// Convert minutes to BigInt to ensure precision in multiplication
-function convertMinutesToNanoseconds(minutes: number): bigint {
-  const minutesBigInt = BigInt(minutes);
-  return minutesBigInt * SECONDS_PER_MIN * NANOS_PER_SECOND;
 }

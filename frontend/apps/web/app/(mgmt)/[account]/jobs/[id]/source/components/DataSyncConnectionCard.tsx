@@ -37,8 +37,8 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
-  SCHEMA_FORM_SCHEMA,
-  SOURCE_FORM_SCHEMA,
+  SchemaFormValues,
+  SourceFormValues,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -51,6 +51,7 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
+  MongoDBSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
   UpdateJobSourceConnectionRequest,
@@ -70,11 +71,11 @@ interface Props {
   jobId: string;
 }
 
-const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
+const FORM_SCHEMA = SourceFormValues.concat(
   Yup.object({
     destinationIds: Yup.array().of(Yup.string().required()),
   })
-).concat(SCHEMA_FORM_SCHEMA);
+).concat(SchemaFormValues);
 type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 function getConnectionIdFromSource(
@@ -83,7 +84,8 @@ function getConnectionIdFromSource(
   if (
     js?.options?.config.case === 'postgres' ||
     js?.options?.config.case === 'mysql' ||
-    js?.options?.config.case === 'awsS3'
+    js?.options?.config.case === 'awsS3' ||
+    js?.options?.config.case === 'mongodb'
   ) {
     return js.options.config.value.connectionId;
   }
@@ -117,7 +119,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
-  const form = useForm({
+  const form = useForm<SourceFormValues>({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
     values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
@@ -141,7 +143,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
-  const { append, remove, fields } = useFieldArray<SourceFormValues>({
+  const { append, remove, update, fields } = useFieldArray<SourceFormValues>({
     control: form.control,
     name: 'mappings',
   });
@@ -314,25 +316,108 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             )}
           />
 
-          <SchemaTable
-            data={formMappings}
-            virtualForeignKeys={formVirtualForeignKeys}
-            jobType="sync"
-            constraintHandler={schemaConstraintHandler}
-            schema={connectionSchemaDataMap?.schemaMap ?? {}}
-            isSchemaDataReloading={isSchemaMapValidating}
-            selectedTables={selectedTables}
-            onSelectedTableToggle={onSelectedTableToggle}
-            formErrors={getAllFormErrors(
-              form.formState.errors,
-              formMappings,
-              validateMappingsResponse
-            )}
-            isJobMappingsValidating={isValidatingMappings}
-            onValidate={validateMappings}
-            addVirtualForeignKey={addVirtualForeignKey}
-            removeVirtualForeignKey={removeVirtualForeignKey}
-          />
+          {isNosqlSource(source ?? new Connection()) && (
+            <NosqlTable
+              data={formMappings}
+              schema={connectionSchemaDataMap?.schemaMap ?? {}}
+              isSchemaDataReloading={isSchemaMapValidating}
+              isJobMappingsValidating={isValidatingMappings}
+              formErrors={getAllFormErrors(
+                form.formState.errors,
+                formMappings,
+                validateMappingsResponse
+              )}
+              onValidate={validateMappings}
+              constraintHandler={schemaConstraintHandler}
+              onRemoveMappings={(values) => {
+                const valueSet = new Set(
+                  values.map((v) => `${v.schema}.${v.table}.${v.column}`)
+                );
+                const toRemove: number[] = [];
+                formMappings.forEach((mapping, idx) => {
+                  if (
+                    valueSet.has(
+                      `${mapping.schema}.${mapping.table}.${mapping.column}`
+                    )
+                  ) {
+                    toRemove.push(idx);
+                  }
+                });
+                if (toRemove.length > 0) {
+                  remove(toRemove);
+                }
+              }}
+              onEditMappings={(values) => {
+                const valuesMap = new Map(
+                  values.map((v) => [
+                    `${v.schema}.${v.table}.${v.column}`,
+                    v.transformer,
+                  ])
+                );
+                formMappings.forEach((fm, idx) => {
+                  const fmKey = `${fm.schema}.${fm.table}.${fm.column}`;
+                  const fmTrans = valuesMap.get(fmKey);
+                  if (fmTrans) {
+                    update(idx, {
+                      ...fm,
+                      transformer: fmTrans,
+                    });
+                  }
+                });
+              }}
+              onAddMappings={(values) => {
+                append(
+                  values.map((v) => {
+                    const [schema, table] = v.collection.split('.');
+                    return {
+                      schema,
+                      table,
+                      column: v.key,
+                      transformer: v.transformer,
+                    };
+                  })
+                );
+              }}
+            />
+          )}
+
+          {!isNosqlSource(source ?? new Connection()) && (
+            // <SchemaTable
+            //   data={formMappings}
+            //   jobType="sync"
+            //   constraintHandler={schemaConstraintHandler}
+            //   schema={connectionSchemaDataMap?.schemaMap ?? {}}
+            //   isSchemaDataReloading={isSchemaMapValidating}
+            //   selectedTables={selectedTables}
+            //   onSelectedTableToggle={onSelectedTableToggle}
+            //   formErrors={getAllFormErrors(
+            //     form.formState.errors,
+            //     formMappings,
+            //     validateMappingsResponse
+            //   )}
+            //   isJobMappingsValidating={isValidatingMappings}
+            //   onValidate={validateMappings}
+            // />
+            <SchemaTable
+              data={formMappings}
+              virtualForeignKeys={formVirtualForeignKeys}
+              jobType="sync"
+              constraintHandler={schemaConstraintHandler}
+              schema={connectionSchemaDataMap?.schemaMap ?? {}}
+              isSchemaDataReloading={isSchemaMapValidating}
+              selectedTables={selectedTables}
+              onSelectedTableToggle={onSelectedTableToggle}
+              formErrors={getAllFormErrors(
+                form.formState.errors,
+                formMappings,
+                validateMappingsResponse
+              )}
+              isJobMappingsValidating={isValidatingMappings}
+              onValidate={validateMappings}
+              addVirtualForeignKey={addVirtualForeignKey}
+              removeVirtualForeignKey={removeVirtualForeignKey}
+            />
+          )}
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>
           </div>
@@ -432,6 +517,16 @@ function toJobSourceOptions(
           }),
         },
       });
+    case 'mongoConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'mongodb',
+          value: new MongoDBSourceConnectionOptions({
+            ...getExistingMongoSourceConnectionOptions(job),
+            connectionId: newSourceId,
+          }),
+        },
+      });
     default:
       throw new Error('unsupported connection type');
   }
@@ -449,6 +544,14 @@ function getExistingMysqlSourceConnectionOptions(
   job: Job
 ): MysqlSourceConnectionOptions | undefined {
   return job.source?.options?.config.case === 'mysql'
+    ? job.source.options.config.value
+    : undefined;
+}
+
+function getExistingMongoSourceConnectionOptions(
+  job: Job
+): MongoDBSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'mongodb'
     ? job.source.options.config.value
     : undefined;
 }
@@ -500,24 +603,29 @@ function getJobSource(
     };
   });
 
-  Object.entries(mapData).forEach(([key, currcols]) => {
-    const dbcols = connSchemaMap[key];
-    if (!dbcols) {
-      return;
-    }
-    dbcols.forEach((dbcol) => {
-      if (!currcols.has(dbcol.column)) {
-        mappings.push({
-          schema: dbcol.schema,
-          table: dbcol.table,
-          column: dbcol.column,
-          transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer()
-          ),
-        });
+  if (
+    job.source?.options?.config.case === 'postgres' ||
+    job.source?.options?.config.case === 'mysql'
+  ) {
+    Object.entries(mapData).forEach(([key, currcols]) => {
+      const dbcols = connSchemaMap[key];
+      if (!dbcols) {
+        return;
       }
+      dbcols.forEach((dbcol) => {
+        if (!currcols.has(dbcol.column)) {
+          mappings.push({
+            schema: dbcol.schema,
+            table: dbcol.table,
+            column: dbcol.column,
+            transformer: convertJobMappingTransformerToForm(
+              new JobMappingTransformer()
+            ),
+          });
+        }
+      });
     });
-  });
+  }
 
   const destinationIds = job?.destinations.map((d) => d.connectionId);
   const values = {
@@ -526,7 +634,6 @@ function getJobSource(
     mappings: mappings || [],
     virtualForeignKeys: virtualForeignKeys || [],
   };
-
   const yupValidationValues = {
     ...values,
     sourceId: getConnectionIdFromSource(job.source) || '',
@@ -552,6 +659,12 @@ function getJobSource(
           haltOnNewColumnAddition:
             job?.source?.options?.config.value.haltOnNewColumnAddition,
         },
+      };
+    case 'mongodb':
+      return {
+        ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
+        sourceOptions: {},
       };
     default:
       return yupValidationValues;
@@ -604,5 +717,15 @@ async function getUpdatedValues(
       };
     default:
       return values;
+  }
+}
+
+function isNosqlSource(connection: Connection): boolean {
+  switch (connection.connectionConfig?.config.case) {
+    case 'mongoConfig':
+      return true;
+    default: {
+      return false;
+    }
   }
 }

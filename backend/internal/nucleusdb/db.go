@@ -7,7 +7,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	pgxslog "github.com/nucleuscloud/neosync/backend/internal/pgx-slog"
 )
 
 type DBTX interface {
@@ -55,7 +57,16 @@ func New(db DBTX, q db_queries.Querier) *NucleusDb {
 }
 
 func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
-	pool, err := pgxpool.New(context.Background(), GetDbUrl(config))
+	pgxconfig, err := pgxpool.ParseConfig(GetDbUrl(config))
+	if err != nil {
+		return nil, err
+	}
+	pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger:   pgxslog.NewLogger(slog.Default()),
+		LogLevel: pgxslog.GetDatabaseLogLevel(),
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), pgxconfig)
 	if err != nil {
 		return nil, err
 	}

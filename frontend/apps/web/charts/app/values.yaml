@@ -68,6 +68,9 @@ posthog:
   key: phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
   # host:
 
+koala:
+  key:
+
 tolerations: []
 nodeSelector: {}
 

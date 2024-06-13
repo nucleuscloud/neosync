@@ -377,6 +377,12 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
      */
     value: AiGenerateSourceOptions;
     case: "aiGenerate";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MongoDBSourceConnectionOptions mongodb = 6;
+     */
+    value: MongoDBSourceConnectionOptions;
+    case: "mongodb";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceOptions>) {
@@ -392,6 +398,7 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
     { no: 3, name: "mysql", kind: "message", T: MysqlSourceConnectionOptions, oneof: "config" },
     { no: 4, name: "generate", kind: "message", T: GenerateSourceOptions, oneof: "config" },
     { no: 5, name: "ai_generate", kind: "message", T: AiGenerateSourceOptions, oneof: "config" },
+    { no: 6, name: "mongodb", kind: "message", T: MongoDBSourceConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
@@ -784,6 +791,43 @@ export class GenerateSourceTableOption extends Message<GenerateSourceTableOption
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.MongoDBSourceConnectionOptions
+ */
+export class MongoDBSourceConnectionOptions extends Message<MongoDBSourceConnectionOptions> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<MongoDBSourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MongoDBSourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MongoDBSourceConnectionOptions {
+    return new MongoDBSourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MongoDBSourceConnectionOptions {
+    return new MongoDBSourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MongoDBSourceConnectionOptions {
+    return new MongoDBSourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MongoDBSourceConnectionOptions | PlainMessage<MongoDBSourceConnectionOptions> | undefined, b: MongoDBSourceConnectionOptions | PlainMessage<MongoDBSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MongoDBSourceConnectionOptions, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions
  */
 export class PostgresSourceConnectionOptions extends Message<PostgresSourceConnectionOptions> {
@@ -1127,6 +1171,12 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
      */
     value: MysqlDestinationConnectionOptions;
     case: "mysqlOptions";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MongoDBDestinationConnectionOptions mongodb_options = 4;
+     */
+    value: MongoDBDestinationConnectionOptions;
+    case: "mongodbOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobDestinationOptions>) {
@@ -1140,6 +1190,7 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
     { no: 1, name: "postgres_options", kind: "message", T: PostgresDestinationConnectionOptions, oneof: "config" },
     { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3DestinationConnectionOptions, oneof: "config" },
     { no: 3, name: "mysql_options", kind: "message", T: MysqlDestinationConnectionOptions, oneof: "config" },
+    { no: 4, name: "mongodb_options", kind: "message", T: MongoDBDestinationConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
@@ -1156,6 +1207,37 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
 
   static equals(a: JobDestinationOptions | PlainMessage<JobDestinationOptions> | undefined, b: JobDestinationOptions | PlainMessage<JobDestinationOptions> | undefined): boolean {
     return proto3.util.equals(JobDestinationOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MongoDBDestinationConnectionOptions
+ */
+export class MongoDBDestinationConnectionOptions extends Message<MongoDBDestinationConnectionOptions> {
+  constructor(data?: PartialMessage<MongoDBDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MongoDBDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MongoDBDestinationConnectionOptions {
+    return new MongoDBDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MongoDBDestinationConnectionOptions {
+    return new MongoDBDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MongoDBDestinationConnectionOptions {
+    return new MongoDBDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MongoDBDestinationConnectionOptions | PlainMessage<MongoDBDestinationConnectionOptions> | undefined, b: MongoDBDestinationConnectionOptions | PlainMessage<MongoDBDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MongoDBDestinationConnectionOptions, a, b);
   }
 }
 

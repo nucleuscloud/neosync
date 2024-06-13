@@ -126,6 +126,8 @@ export default function DestinationOptionsForm(
       );
     case 'awsS3Config':
       return <></>;
+    case 'mongoConfig':
+      return <></>;
     default:
       return (
         <div>

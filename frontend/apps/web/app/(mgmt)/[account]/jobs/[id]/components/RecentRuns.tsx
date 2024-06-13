@@ -71,8 +71,9 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     return <Skeleton className="w-full h-full" />;
   }
 
-  async function onRefreshClick(): Promise<void> {
-    await Promise.all([recentRunsMutate(), jobsRunsMutate()]);
+  function onRefreshClick(): void {
+    recentRunsMutate();
+    jobsRunsMutate();
   }
 
   async function onDelete(runId: string): Promise<void> {
@@ -137,8 +138,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
         </Alert>
       ) : (
         <div>
-          <div className="flex flex-row items-center px-2">
-            <CardTitle className="py-6 pl-4">Recent Job Runs</CardTitle>
+          <div className="flex flex-row items-center px-6">
+            <CardTitle className="py-6">Recent Job Runs</CardTitle>
             <Button
               className={
                 isValidating || jobRunsValidating ? 'animate-spin' : ''
@@ -151,14 +152,14 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
               <ReloadIcon className="h-4 w-4" />
             </Button>
           </div>
-          <Table className="pt-5">
+          <Table>
             <TableHeader className="bg-gray-100 dark:bg-gray-800 ">
               <TableRow>
-                <TableHead className="pl-6">Run Id</TableHead>
-                <TableHead>Start At</TableHead>
-                <TableHead>Completed At</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead className="px-6">Run Id</TableHead>
+                <TableHead className="px-6">Start At</TableHead>
+                <TableHead className="px-6">Completed At</TableHead>
+                <TableHead className="px-6">Status</TableHead>
+                <TableHead className="px-6">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -166,7 +167,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 const jobRun = jobRunsIdMap.get(r.jobRunId);
                 return (
                   <TableRow key={r.jobRunId}>
-                    <TableCell className="pl-6">
+                    <TableCell className="px-6">
                       {jobRun ? (
                         <Link
                           className="hover:underline"
@@ -178,22 +179,20 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                         <span className="font-medium">{r.jobRunId}</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-6">
                       <span className="font-medium">
                         {formatDateTime(r.startTime?.toDate())}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-6">
                       <span className="font-medium">
                         {jobRun && formatDateTime(jobRun.completedAt?.toDate())}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium">
-                        <JobRunStatus status={jobRun?.status} />
-                      </span>
+                    <TableCell className="px-6">
+                      <JobRunStatus status={jobRun?.status} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-6">
                       {jobRun && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

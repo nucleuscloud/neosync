@@ -1,4 +1,4 @@
-import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/new/connection/postgres/PostgresForm';
+import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/connections/util';
 import { getErrorMessage } from '@/util/util';
 import * as Yup from 'yup';
 
@@ -53,17 +53,8 @@ const connectionNameSchema = Yup.string()
     }
   );
 
-export const POSTGRES_CONNECTION = Yup.object({
-  host: Yup.string().required(),
-  name: Yup.string().required(),
-  user: Yup.string().required(),
-  pass: Yup.string().required(),
-  port: Yup.number().integer().positive().required(),
-  sslMode: Yup.string().optional(),
-});
-
 // todo: need to do better validation here
-export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
+export const SshTunnelFormValues = Yup.object({
   host: Yup.string(),
   port: Yup.number()
     .min(0)
@@ -78,6 +69,7 @@ export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
   privateKey: Yup.string(),
   passphrase: Yup.string(),
 });
+export type SshTunnelFormValues = Yup.InferType<typeof SshTunnelFormValues>;
 
 const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
   maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
@@ -89,20 +81,7 @@ export const ClientTlsFormValues = Yup.object({
   clientCert: Yup.string(),
   clientKey: Yup.string(),
 });
-
-export const NEW_POSTGRES_CONNECTION = Yup.object({
-  connectionName: connectionNameSchema,
-  connection: POSTGRES_CONNECTION,
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
-  options: SQL_OPTIONS_FORM_SCHEMA,
-});
-
-export const EXISTING_POSTGRES_CONNECTION = Yup.object({
-  id: Yup.string().uuid().required(),
-  connection: POSTGRES_CONNECTION,
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
-  options: SQL_OPTIONS_FORM_SCHEMA,
-});
+export type ClientTlsFormValues = Yup.InferType<typeof ClientTlsFormValues>;
 
 export const SSL_MODES = [
   'disable',
@@ -115,7 +94,7 @@ export const SSL_MODES = [
 
 export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 
-export const MYSQL_FORM_SCHEMA = Yup.object({
+export const MysqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().required(),
@@ -125,11 +104,15 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
     port: Yup.number().integer().positive().required(),
     protocol: Yup.string().required(),
   }).required(),
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  url: Yup.string().when('$activeTab', {
+    is: 'url', // Only require if activeTab is 'url'
+    then: (schema) => schema.required('The connection url is required'),
+  }),
+  tunnel: SshTunnelFormValues,
   options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
-export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
+export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
 
 export const POSTGRES_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
@@ -168,7 +151,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
     is: 'url', // Only require if activeTab is 'url'
     then: (schema) => schema.required('The connection url is required'),
   }),
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  tunnel: SshTunnelFormValues,
   options: SQL_OPTIONS_FORM_SCHEMA,
   clientTls: ClientTlsFormValues,
 });
@@ -205,3 +188,11 @@ export const OpenAiFormValues = Yup.object({
 });
 
 export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
+
+export const MongoDbFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+
+  url: Yup.string().required(),
+}).required();
+
+export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

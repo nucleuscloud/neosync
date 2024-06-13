@@ -1,6 +1,10 @@
 'use client';
 
 import FormPersist from '@/app/(mgmt)/FormPersist';
+import {
+  createNewSingleTableAiGenerateJob,
+  sampleAiGeneratedRecords,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import ButtonText from '@/components/ButtonText';
 import { Action } from '@/components/DualListBox/DualListBox';
 import Spinner from '@/components/Spinner';
@@ -32,26 +36,9 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
-import { toJobDestinationOptions } from '@/yup-validations/jobs';
+import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  ActivityOptions,
-  AiGenerateSourceOptions,
-  AiGenerateSourceSchemaOption,
-  AiGenerateSourceTableOption,
-  Connection,
-  CreateJobRequest,
-  CreateJobResponse,
-  DatabaseTable,
-  GetAccountOnboardingConfigResponse,
-  GetAiGeneratedDataRequest,
-  JobDestination,
-  JobSource,
-  JobSourceOptions,
-  RetryPolicy,
-  WorkflowOptions,
-} from '@neosync/sdk';
+import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
@@ -152,12 +139,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return;
     }
     try {
-      const job = await createNewJob(
-        defineFormValues,
-        connectFormValues,
-        values,
+      const connMap = new Map(connections.map((c) => [c.id, c]));
+      const job = await createNewSingleTableAiGenerateJob(
+        {
+          define: defineFormValues,
+          connect: connectFormValues,
+          schema: values,
+        },
         account.id,
-        connections
+        (id) => connMap.get(id)
       );
       posthog.capture('New Job Created', { jobType: 'ai-generate' });
       toast({
@@ -242,9 +232,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     try {
       setIsSampling(true);
-      const output = await sample(
-        connectFormValues,
-        form.getValues(),
+      const output = await sampleAiGeneratedRecords(
+        {
+          connect: connectFormValues,
+          schema: form.getValues(),
+        },
         account.id
       );
       setaioutput(output);
@@ -433,131 +425,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-async function sample(
-  connect: SingleTableAiConnectFormValues,
-  schemaform: SingleTableAiSchemaFormValues,
-  accountId: string
-): Promise<SampleRecord[]> {
-  const body = new GetAiGeneratedDataRequest({
-    aiConnectionId: connect.sourceId,
-    count: BigInt(10),
-    modelName: schemaform.model,
-    userPrompt: schemaform.userPrompt,
-    dataConnectionId: connect.fkSourceConnectionId,
-    table: new DatabaseTable({
-      schema: schemaform.schema,
-      table: schemaform.table,
-    }),
-  });
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connect.sourceId}/generate`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return (await res.json())?.records ?? [];
-}
-
-async function createNewJob(
-  define: DefineFormValues,
-  connect: SingleTableAiConnectFormValues,
-  schemaForm: SingleTableAiSchemaFormValues,
-  accountId: string,
-  connections: Connection[]
-): Promise<CreateJobResponse> {
-  const connectionIdMap = new Map(
-    connections.map((connection) => [connection.id, connection])
-  );
-  let workflowOptions: WorkflowOptions | undefined = undefined;
-  if (define.workflowSettings?.runTimeout) {
-    workflowOptions = new WorkflowOptions({
-      runTimeout: convertMinutesToNanoseconds(
-        define.workflowSettings.runTimeout
-      ),
-    });
-  }
-  let syncOptions: ActivityOptions | undefined = undefined;
-  if (define.syncActivityOptions) {
-    const formSyncOpts = define.syncActivityOptions;
-    syncOptions = new ActivityOptions({
-      scheduleToCloseTimeout:
-        formSyncOpts.scheduleToCloseTimeout !== undefined
-          ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
-          : undefined,
-      startToCloseTimeout:
-        formSyncOpts.startToCloseTimeout !== undefined
-          ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
-          : undefined,
-      retryPolicy: new RetryPolicy({
-        maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
-      }),
-    });
-  }
-
-  const body = new CreateJobRequest({
-    accountId,
-    jobName: define.jobName,
-    cronSchedule: define.cronSchedule,
-    initiateJobRun: define.initiateJobRun,
-    mappings: [],
-    source: new JobSource({
-      options: new JobSourceOptions({
-        config: {
-          case: 'aiGenerate',
-          value: new AiGenerateSourceOptions({
-            aiConnectionId: connect.sourceId,
-            modelName: schemaForm.model,
-            fkSourceConnectionId: connect.fkSourceConnectionId,
-            userPrompt: schemaForm.userPrompt,
-            schemas: [
-              new AiGenerateSourceSchemaOption({
-                schema: schemaForm.schema,
-                tables: [
-                  new AiGenerateSourceTableOption({
-                    table: schemaForm.table,
-                    rowCount: BigInt(schemaForm.numRows),
-                  }),
-                ],
-              }),
-            ],
-          }),
-        },
-      }),
-    }),
-    destinations: [
-      new JobDestination({
-        connectionId: connect.destination.connectionId,
-        options: toJobDestinationOptions(
-          connect.destination,
-          connectionIdMap.get(connect.destination.connectionId)
-        ),
-      }),
-    ],
-    workflowOptions: workflowOptions,
-    syncOptions: syncOptions,
-  });
-
-  const res = await fetch(`/api/accounts/${accountId}/jobs`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobResponse.fromJson(await res.json());
 }

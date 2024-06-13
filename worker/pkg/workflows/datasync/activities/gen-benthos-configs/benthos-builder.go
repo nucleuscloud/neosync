@@ -105,8 +105,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		primaryKeyToForeignKeysMap = resp.primaryKeyToForeignKeysMap
 		colTransformerMap = resp.ColumnTransformerMap
 		responses = append(responses, resp.BenthosConfigs...)
+	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
+		resp, err := b.getMongoDbSyncBenthosConfigResponses(ctx, job, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build benthos mongo sync source config responses: %w", err)
+		}
+		responses = append(responses, resp.BenthosConfigs...)
 	default:
-		return nil, errors.New("unsupported job source")
+		return nil, fmt.Errorf("unsupported job source: %T", job.GetSource().GetOptions().GetConfig())
 	}
 
 	for destIdx, destination := range job.Destinations {
@@ -152,8 +158,33 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				}
 				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, req.WorkflowId)
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
+			case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})
+				if resp.Config.Input.MongoDB != nil {
+					resp.Config.Output.MongoDB = &neosync_benthos.OutputMongoDb{
+						Url: dsn,
+
+						Database:   resp.TableSchema,
+						Collection: resp.TableName,
+						Operation:  "update-one",
+						Upsert:     true,
+						DocumentMap: `
+						  root = {
+								"$set": this
+							}
+						`,
+						FilterMap: `
+						  root._id = this._id
+						`,
+						WriteConcern: &neosync_benthos.MongoWriteConcern{
+							W: "1",
+						},
+					}
+				} else {
+					return nil, errors.New("unable to build destination connection due to unsupported source connection")
+				}
 			default:
-				return nil, fmt.Errorf("unsupported destination connection config")
+				return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.GetConnectionConfig().GetConfig())
 			}
 		}
 	}

@@ -12,8 +12,8 @@ Databases are _complex_. Neosync does its best to handle any and all edge cases 
 
 It's worth reviewing the Neosync [Platform](/platform) overview to understand Neosync's architecture and where possible issues can come up. Generally speaking, issues can come from three different places:
 
-1. **Front-end\*** - Typically client-side react issues that are fairly rare.
-2. **Back-end** - API and Database issues that result from some sort of control plane error such as not being able to find jobs or connect to a source/destination. More common than front-end errors but still not the most common of errors.
+1. **Frontend** - Typically client-side react issues that are fairly rare.
+2. **Backend** - API and Database issues that result from some sort of control plane error such as not being able to find jobs or connect to a source/destination. More common than front-end errors but still not the most common of errors.
 3. **Worker** - Issues that come up when trying to sync and transform data. This is where the overwhelming majority of issues occur.
 
 Since most issues occur in the worker, let's dive a little deeper there. Let's take a look at the types of worker-related issues:
@@ -78,3 +78,24 @@ networks:
 ```
 
 This topic is further discussed [here](https://www.civo.com/learn/fixing-networking-for-docker) and [here](https://stackoverflow.com/questions/73101754/docker-change-mtu-on-the-fly).
+
+## Debugging Database Queries
+
+Neosync currently supports debugging database queries for Postgres connections.
+
+Database query logging is by default turned off, which is equivalent to setting `DB_LOG_LEVEL=none`.
+
+This log level works similar to Neosync's standard `LOG_LEVEL` where you can set values to emit certain levels of database logging.
+To see only queries that result in an error, set the `DB_LOG_LEVEL` to `error`.
+If you'd like to see all queries, set the log level to `INFO` or `DEBUG`.
+
+Valid options for `DB_LOG_LEVEL` are (not case sensitive):
+
+- trace
+- debug
+- info
+- warn
+- error
+- none
+
+**Note** - When turning on database logging, the statements **include arguments**. So if planning to run this in any production environment, you may leak PII or other sensitive information. Work is in progress to allow omitting the arguments from the logging to include only statements.

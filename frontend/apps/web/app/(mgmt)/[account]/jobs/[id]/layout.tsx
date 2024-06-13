@@ -11,13 +11,20 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
-import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
+import {
+  GetJobStatusResponse,
+  Job,
+  JobSourceOptions,
+  JobStatus,
+} from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { removeJob, triggerJobRun } from '../util';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobPauseButton from './components/JobPauseButton';
 import { isAiDataGenJob, isDataGenJob } from './util';
@@ -28,6 +35,10 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const { account } = useAccount();
   const { data, isLoading } = useGetJob(account?.id ?? '', id);
   const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(
+    account?.id ?? '',
+    id
+  );
+  const { mutate: mutateRecentRuns } = useGetJobRecentRuns(
     account?.id ?? '',
     id
   );
@@ -47,8 +58,9 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         variant: 'success',
       });
       setTimeout(() => {
+        mutateRecentRuns();
         mutateJobRunsByJob();
-      }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
+      }, 4000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
       console.error(err);
       toast({
@@ -102,18 +114,13 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     );
   }
 
-  let sidebarNavItems = getSidebarNavItems(account?.name ?? '', data?.job);
-  sidebarNavItems =
-    isSystemConfigLoading || !systemAppConfigData?.isMetricsServiceEnabled
-      ? sidebarNavItems.filter((item) => !item.href.endsWith('/usage'))
-      : sidebarNavItems;
+  const sidebarNavItems = getSidebarNavItems(
+    account?.name ?? '',
+    data?.job,
+    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled
+  );
 
-  let badgeValue = 'Sync Job';
-  if (data.job.source?.options?.config.case === 'generate') {
-    badgeValue = 'Generate Job';
-  } else if (data.job.source?.options?.config.case === 'aiGenerate') {
-    badgeValue = 'AI Generate Job';
-  }
+  const badgeValue = getBadgeText(data.job.source?.options);
 
   return (
     <div>
@@ -172,18 +179,35 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   );
 }
 
+function getBadgeText(
+  options?: JobSourceOptions
+): 'Sync Job' | 'Generate Job' | 'AI Generate Job' {
+  switch (options?.config.case) {
+    case 'generate':
+      return 'Generate Job';
+    case 'aiGenerate':
+      return 'AI Generate Job';
+    default:
+      return 'Sync Job';
+  }
+}
+
 interface SidebarNav {
   title: string;
   href: string;
 }
-function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
+function getSidebarNavItems(
+  accountName: string,
+  job?: Job,
+  isMetricsServiceEnabled?: boolean
+): SidebarNav[] {
   if (!job) {
     return [{ title: 'Overview', href: `` }];
   }
   const basePath = `/${accountName}/jobs/${job.id}`;
 
   if (isDataGenJob(job) || isAiDataGenJob(job)) {
-    return [
+    const nav = [
       {
         title: 'Overview',
         href: `${basePath}`,
@@ -201,9 +225,15 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
         href: `${basePath}/usage`,
       },
     ];
+    if (isMetricsServiceEnabled) {
+      nav.push({
+        title: 'Usage',
+        href: `${basePath}/usage`,
+      });
+    }
   }
 
-  return [
+  const nav = [
     {
       title: 'Overview',
       href: `${basePath}`,
@@ -216,39 +246,30 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
       title: 'Destinations',
       href: `${basePath}/destinations`,
     },
-    {
+  ];
+
+  if (shouldEnableSubsettingNav(job)) {
+    nav.push({
       title: 'Subsets',
       href: `${basePath}/subsets`,
-    },
-    {
+    });
+  }
+
+  if (isMetricsServiceEnabled) {
+    nav.push({
       title: 'Usage',
       href: `${basePath}/usage`,
-    },
-  ];
+    });
+  }
+  return nav;
 }
 
-async function removeJob(accountId: string, jobId: string): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
+function shouldEnableSubsettingNav(job?: Job): boolean {
+  switch (job?.source?.options?.config.case) {
+    case 'postgres':
+    case 'mysql':
+      return true;
+    default:
+      return false;
   }
-  await res.json();
-}
-
-async function triggerJobRun(accountId: string, jobId: string): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/create-run`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ jobId }),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

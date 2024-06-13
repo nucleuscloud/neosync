@@ -1,17 +1,15 @@
-import {
-  SUBSET_FORM_SCHEMA,
-  SubsetFormValues,
-} from '@/app/(mgmt)/[account]/new/job/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
 import {
+  GetColumnsForSqlAutocomplete,
   buildRowKey,
   buildTableRowData,
-  GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
@@ -19,22 +17,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import {
-  toMysqlSourceSchemaOptions,
-  toPostgresSourceSchemaOptions,
-} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  GetJobResponse,
-  JobSourceOptions,
-  JobSourceSqlSubetSchemas,
-  MysqlSourceSchemaSubset,
-  PostgresSourceSchemaSubset,
-  SetJobSourceSqlConnectionSubsetsRequest,
-  SetJobSourceSqlConnectionSubsetsResponse,
-} from '@neosync/sdk';
+import { GetJobResponse, JobSourceOptions } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { setJobSubsets } from '../../../util';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
 
@@ -75,12 +63,11 @@ export default function SubsetCard(props: Props): ReactElement {
     }
   }, [fkConstraints, isTableConstraintsValidating]);
 
-  const dbType =
-    data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
+  const dbType = getDbtype(data?.job?.source?.options);
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
-    resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
+    resolver: yupResolver<SubsetFormValues>(SubsetFormValues),
     defaultValues: { subsets: [] },
     values: formValues,
   });
@@ -101,6 +88,19 @@ export default function SubsetCard(props: Props): ReactElement {
       <div className="space-y-10">
         <SubsetSkeleton />
       </div>
+    );
+  }
+
+  if (dbType === 'invalid') {
+    return (
+      <Alert variant="warning">
+        <ExclamationTriangleIcon className="h-4 w-4" />
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>
+          The source connection configured does not currently support
+          subsettings
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -282,50 +282,15 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
   };
 }
 
-async function setJobSubsets(
-  accountId: string,
-  jobId: string,
-  values: SubsetFormValues,
-  dbType: string
-): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
-  const schemas =
-    dbType == 'mysql'
-      ? new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'mysqlSubset',
-            value: new MysqlSourceSchemaSubset({
-              mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
-            }),
-          },
-        })
-      : new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'postgresSubset',
-            value: new PostgresSourceSchemaSubset({
-              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
-            }),
-          },
-        });
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobSourceSqlConnectionSubsetsRequest({
-          id: jobId,
-          subsetByForeignKeyConstraints:
-            values.subsetOptions.subsetByForeignKeyConstraints,
-          schemas,
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
+function getDbtype(
+  options?: JobSourceOptions
+): 'mysql' | 'postgres' | 'invalid' {
+  switch (options?.config.case) {
+    case 'postgres':
+      return 'postgres';
+    case 'mysql':
+      return 'mysql';
+    default:
+      return 'invalid';
   }
-  return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
 }

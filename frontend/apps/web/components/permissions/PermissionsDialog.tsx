@@ -18,7 +18,7 @@ import Spinner from '../Spinner';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
 import PermissionsDataTable from './PermissionsDataTable';
-import { getPermissionColumns } from './columns';
+import { PermissionConnectionType, getPermissionColumns } from './columns';
 
 interface Props {
   checkResponse: PlainMessage<CheckConnectionConfigResponse>;
@@ -26,6 +26,7 @@ interface Props {
   setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;
   connectionName: string;
+  connectionType: PermissionConnectionType;
 }
 
 export default function PermissionsDialog(props: Props): ReactElement {
@@ -35,9 +36,13 @@ export default function PermissionsDialog(props: Props): ReactElement {
     connectionName,
     checkResponse,
     isValidating,
+    connectionType,
   } = props;
 
-  const columns = useMemo(() => getPermissionColumns(), []);
+  const columns = useMemo(
+    () => getPermissionColumns(connectionType),
+    [connectionType]
+  );
 
   return (
     <Dialog open={openPermissionDialog} onOpenChange={setOpenPermissionDialog}>

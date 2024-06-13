@@ -2055,6 +2055,47 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 		}
 
+	case *ConnectionConfig_MongoConfig:
+		if v == nil {
+			err := ConnectionConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMongoConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MongoConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MongoConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMongoConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionConfigValidationError{
+					field:  "MongoConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2136,6 +2177,183 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ConnectionConfigValidationError{}
+
+// Validate checks the field values on MongoConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MongoConnectionConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MongoConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MongoConnectionConfigMultiError, or nil if none found.
+func (m *MongoConnectionConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MongoConnectionConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetTunnel()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MongoConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MongoConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTunnel()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MongoConnectionConfigValidationError{
+				field:  "Tunnel",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetClientTls()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MongoConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MongoConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetClientTls()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MongoConnectionConfigValidationError{
+				field:  "ClientTls",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	switch v := m.ConnectionConfig.(type) {
+	case *MongoConnectionConfig_Url:
+		if v == nil {
+			err := MongoConnectionConfigValidationError{
+				field:  "ConnectionConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Url
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return MongoConnectionConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MongoConnectionConfigMultiError is an error wrapping multiple validation
+// errors returned by MongoConnectionConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MongoConnectionConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MongoConnectionConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MongoConnectionConfigMultiError) AllErrors() []error { return m }
+
+// MongoConnectionConfigValidationError is the validation error returned by
+// MongoConnectionConfig.Validate if the designated constraints aren't met.
+type MongoConnectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MongoConnectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MongoConnectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MongoConnectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MongoConnectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MongoConnectionConfigValidationError) ErrorName() string {
+	return "MongoConnectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MongoConnectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMongoConnectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MongoConnectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MongoConnectionConfigValidationError{}
 
 // Validate checks the field values on OpenAiConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are

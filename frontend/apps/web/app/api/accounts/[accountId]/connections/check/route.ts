@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    const body = CheckConnectionConfigRequest.fromJson(await req.json());
-    return ctx.client.connections.checkConnectionConfig(body);
+    const body = (await req.json()) ?? {};
+    const typedRequest = CheckConnectionConfigRequest.fromJson(body);
+    return ctx.client.connections.checkConnectionConfig(typedRequest);
   })(req);
 }

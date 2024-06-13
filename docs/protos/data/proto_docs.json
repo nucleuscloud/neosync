@@ -1504,6 +1504,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongo_config",
+              "description": "Configures a MongoDB Connection",
+              "label": "",
+              "type": "MongoConnectionConfig",
+              "longType": "MongoConnectionConfig",
+              "fullType": "mgmt.v1alpha1.MongoConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1847,6 +1859,54 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MongoConnectionConfig",
+          "longName": "MongoConnectionConfig",
+          "fullName": "mgmt.v1alpha1.MongoConnectionConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The full mongo connection url",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "tunnel",
+              "description": "Provide tunnel configuration that can be used to access a connection that is not publicly accessible to the internet",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_tls",
+              "description": "Provide client-side TLS Certificates",
+              "label": "",
+              "type": "ClientTlsConfig",
+              "longType": "ClientTlsConfig",
+              "fullType": "mgmt.v1alpha1.ClientTlsConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2686,6 +2746,18 @@
               "type": "MysqlSchemaConfig",
               "longType": "MysqlSchemaConfig",
               "fullType": "mgmt.v1alpha1.MysqlSchemaConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "mongo_config",
+              "description": "",
+              "label": "",
+              "type": "MongoSchemaConfig",
+              "longType": "MongoSchemaConfig",
+              "fullType": "mgmt.v1alpha1.MongoSchemaConfig",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -4012,6 +4084,17 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "MongoSchemaConfig",
+          "longName": "MongoSchemaConfig",
+          "fullName": "mgmt.v1alpha1.MongoSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "MysqlSchemaConfig",
@@ -9044,6 +9127,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongodb_options",
+              "description": "",
+              "label": "",
+              "type": "MongoDBDestinationConnectionOptions",
+              "longType": "MongoDBDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -9632,6 +9727,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mongodb",
+              "description": "",
+              "label": "",
+              "type": "MongoDBSourceConnectionOptions",
+              "longType": "MongoDBSourceConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MongoDBSourceConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -9700,6 +9807,41 @@
               "type": "JobStatus",
               "longType": "JobStatus",
               "fullType": "mgmt.v1alpha1.JobStatus",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MongoDBDestinationConnectionOptions",
+          "longName": "MongoDBDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MongoDBSourceConnectionOptions",
+          "longName": "MongoDBSourceConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MongoDBSourceConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

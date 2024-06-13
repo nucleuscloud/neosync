@@ -16,6 +16,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { removeJob } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -81,15 +82,4 @@ export function DataTableRowActions<TData>({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-async function removeJob(accountId: string, jobId: string): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

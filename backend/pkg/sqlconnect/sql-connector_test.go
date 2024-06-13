@@ -9,18 +9,6 @@ import (
 	"github.com/zeebo/assert"
 )
 
-const (
-	testPrivateKey = `-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABDcxXuNyz
-EyQ3fS7uiTcfvDAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIHRde4TANOm21rV4
-hyHkZjPHFJazaxZHd9M/TzchhVKhAAAAoGQ2S553lBIdQHDHwsC+ySbc8PShkW2tmF9X2h
-LHW/Zvmd4uy2/jg7kWMnWPfkUkIytjD0Llo+o6yTq3wfaGfOkn8M57NcwGvdvHoCIswbv/
-COyG2jmUCxomIKi0qDxzDnp22ELGKpdEDTjit1d8aNwjWZU73AfyPwulhTa9H/uxao1Qat
-LqqnUvkQBvhk/q8M2CpbmDwBXJ8x3IVXOx/dQ=
------END OPENSSH PRIVATE KEY-----`
-	testPrivateKeyPass = "foobar"
-)
-
 var (
 	pgconnection = &mgmtv1alpha1.PostgresConnection{
 		Host:    "localhost",
@@ -150,6 +138,87 @@ func Test_getGeneralDbConnectionConfigFromMysql_Connection(t *testing.T) {
 	})
 }
 
+func Test_getGeneralDbConnectionConfigFromMysql_Url_mysql(t *testing.T) {
+	out, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysql://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.Equal(t, out, &GeneralDbConnectConfig{
+		Driver:      "mysql",
+		Host:        "localhost",
+		Port:        3306,
+		Database:    "mydatabase",
+		User:        "myuser",
+		Pass:        "mypassword",
+		Protocol:    nil,
+		QueryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+	})
+}
+func Test_getGeneralDbConnectionConfigFromMysql_Url_mysqlx(t *testing.T) {
+	out, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.Equal(t, out, &GeneralDbConnectConfig{
+		Driver:      "mysqlx",
+		Host:        "localhost",
+		Port:        3306,
+		Database:    "mydatabase",
+		User:        "myuser",
+		Pass:        "mypassword",
+		Protocol:    nil,
+		QueryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+	})
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_Error(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysql://myuser:mypassword/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_NoScheme(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlxxx://myuser:mypassword@localhost:3306/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
+func Test_getGeneralDbConnectionConfigFromMysql_Url_NoPort(t *testing.T) {
+	_, err := getGeneralDbConnectionConfigFromMysql(&mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+		MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+			ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+				Url: "mysqlxxx://myuser:mypassword@localhost/mydatabase?ssl=true",
+			},
+		},
+	}, ptr(uint32(5)))
+
+	assert.Error(t, err)
+}
+
 func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 	type testcase struct {
 		name     string
@@ -195,48 +264,6 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 			assert.Equal(t, tc.input.String(), tc.expected)
 		})
 	}
-}
-
-func Test_getTunnelAuthMethodFromSshConfig(t *testing.T) {
-	out, err := getTunnelAuthMethodFromSshConfig(nil)
-	assert.NoError(t, err)
-	assert.Nil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{})
-	assert.NoError(t, err)
-	assert.Nil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
-			Passphrase: &mgmtv1alpha1.SSHPassphrase{
-				Value: "foo",
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
-			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-				Value:      testPrivateKey,
-				Passphrase: ptr(testPrivateKeyPass),
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-
-	out, err = getTunnelAuthMethodFromSshConfig(&mgmtv1alpha1.SSHAuthentication{
-		AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
-			PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-				Value:      testPrivateKey,
-				Passphrase: ptr("badpass"),
-			},
-		},
-	})
-	assert.Error(t, err)
-	assert.Nil(t, out)
 }
 
 func Test_getConnectionDetails_Pg_NoTunnel(t *testing.T) {

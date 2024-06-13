@@ -20,15 +20,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Job,
-  UpdateJobScheduleRequest,
-  UpdateJobScheduleResponse,
-} from '@neosync/sdk';
+import { Job } from '@neosync/sdk';
 import cron from 'cron-validate';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { updateJobSchedule } from '../../util';
 
 export const DEFAULT_CRON_STRING = '0 0 1 1 *';
 
@@ -138,28 +135,4 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
       </Form>
     </Card>
   );
-}
-
-async function updateJobSchedule(
-  accountId: string,
-  jobId: string,
-  cronSchedule?: string
-): Promise<UpdateJobScheduleResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/schedule`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateJobScheduleRequest({
-        id: jobId,
-        cronSchedule: cronSchedule,
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobScheduleResponse.fromJson(await res.json());
 }
