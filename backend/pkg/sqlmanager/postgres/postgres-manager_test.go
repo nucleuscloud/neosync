@@ -708,7 +708,7 @@ func mockTableConstraintsRows() []*pg_queries.GetTableConstraintsBySchemaRow {
 	}
 }
 
-func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
+func Test_GetSchemaInitStatements(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mockpool := pg_queries.NewMockDBTX(t)
 	manager := PostgresManager{
@@ -772,7 +772,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	expected := []*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: []string{}},
 		{Label: "create table", Statements: []string{"CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);"}},
-		{Label: "non-fk alter table", Statements: []string{"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"}},
+		{Label: "non-fk alter table", Statements: []string{"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = (\n\t\t\tSELECT oid\n\t\t\tFROM pg_class\n\t\t\tWHERE relname = 'users'\n\t\t\tAND relnamespace = 'public'::regnamespace\n\t\t)\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"}},
 		{Label: "fk alter table", Statements: []string{}},
 		{Label: "table index", Statements: []string{"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id);\n\tEND IF;\nEND $$;"}},
 		{Label: "table triggers", Statements: []string{"DO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1\n        FROM pg_trigger t\n        JOIN pg_class c ON c.oid = t.tgrelid\n        JOIN pg_namespace n ON n.oid = c.relnamespace\n        WHERE t.tgname = 'foo_trigger'\n        AND c.relname = 'users'\n        AND n.nspname = 'public'\n    ) THEN\n        test-trigger-statement;\n    END IF;\nEND $$;"}},
