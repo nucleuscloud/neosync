@@ -1,8 +1,6 @@
 package v1alpha1_connectiondataservice
 
 import (
-	"sync"
-
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -43,11 +41,8 @@ func New(
 	pgquerier pg_queries.Querier,
 	mysqlquerier mysql_queries.Querier,
 	mongoconnector mongoconnect.Interface,
+	sqlmanager sql_manager.SqlManagerClient,
 ) *Service {
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
 	return &Service{
 		cfg:                cfg,
 		useraccountService: useraccountService,

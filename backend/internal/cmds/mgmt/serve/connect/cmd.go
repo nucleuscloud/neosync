@@ -366,6 +366,7 @@ func serve(ctx context.Context) error {
 		pgquerier,
 		mysqlquerier,
 		mongoconnector,
+		sqlmanager,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
