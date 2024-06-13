@@ -1,4 +1,5 @@
 'use client';
+import { buildCheckConnectionKey } from '@/app/(mgmt)/[account]/connections/util';
 import { JsonValue } from '@bufbuild/protobuf';
 import {
   CheckConnectionConfigResponse,
@@ -52,7 +53,7 @@ export function useTestProgressConnection(
     CheckConnectionConfigResponse,
     JsonValue | CheckConnectionConfigResponse
   >(
-    `/api/accounts/${accountId}/connections/postgres/check`,
+    buildCheckConnectionKey(accountId),
     !!accountId && canProceed,
     undefined,
     (data) =>
