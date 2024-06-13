@@ -38,7 +38,7 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 	case tracelog.LogLevelDebug:
 		lvl = slog.LevelDebug
 	case tracelog.LogLevelInfo:
-		lvl = slog.LevelDebug
+		lvl = slog.LevelInfo
 	case tracelog.LogLevelWarn:
 		lvl = slog.LevelWarn
 	case tracelog.LogLevelError:
