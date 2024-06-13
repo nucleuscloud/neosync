@@ -610,7 +610,7 @@ func Test_BuildInsertQuery(t *testing.T) {
 		driver              string
 		table               string
 		columns             []string
-		values              [][]interface{}
+		values              [][]interface{} //nolint:gofmt
 		onConflictDoNothing bool
 		expected            string
 	}{
