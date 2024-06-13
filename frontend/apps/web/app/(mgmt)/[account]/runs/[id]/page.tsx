@@ -191,7 +191,11 @@ export default function Page({ params }: PageProps): ReactElement {
             <StatCard
               header="Status"
               content={
-                <JobRunStatus status={jobRun?.status} className="text-lg" />
+                <JobRunStatus
+                  status={jobRun?.status}
+                  containerClassName="px-0"
+                  badgeClassName="text-lg"
+                />
               }
             />
             <StatCard

@@ -8,11 +8,11 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
@@ -130,6 +130,6 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.redisConfig,
 		a.metricsEnabled,
 	)
-	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }

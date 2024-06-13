@@ -18,11 +18,11 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/google/uuid"
 
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
-	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
@@ -112,7 +112,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		"activitySession", session,
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
-	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
 	stopActivityChan := make(chan error, 3)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}

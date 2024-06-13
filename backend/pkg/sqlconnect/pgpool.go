@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	pgxslog "github.com/nucleuscloud/neosync/backend/internal/pgx-slog"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 )
 
@@ -57,6 +60,11 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse dsn into pg config: %w", err)
 		}
+		config.ConnConfig.Tracer = &tracelog.TraceLog{
+			Logger:   pgxslog.NewLogger(s.logger),
+			LogLevel: pgxslog.GetDatabaseLogLevel(),
+		}
+		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 		// set max number of connections.
 		if s.details.MaxConnectionLimit != nil {
@@ -79,6 +87,12 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	if err != nil {
 		return nil, err
 	}
+	config.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger:   pgxslog.NewLogger(s.logger),
+		LogLevel: pgxslog.GetDatabaseLogLevel(),
+	}
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+
 	// set max number of connections.
 	if s.details.MaxConnectionLimit != nil {
 		config.MaxConns = *s.details.MaxConnectionLimit

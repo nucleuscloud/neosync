@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -14,8 +15,8 @@ import (
 	"connectrpc.com/grpcreflect"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -55,7 +56,8 @@ func NewCmd() *cobra.Command {
 }
 
 func serve(ctx context.Context) error {
-	logger, loglogger := logger_utils.NewLoggers()
+	logger, loglogger := neosynclogger.NewLoggers()
+	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
 
 	var activityMeter metric.Meter
 	if getIsOtelEnabled() {
