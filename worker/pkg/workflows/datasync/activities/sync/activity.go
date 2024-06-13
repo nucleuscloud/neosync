@@ -17,6 +17,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/google/uuid"
+	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/internal/benthos/openai_generate"
@@ -27,7 +28,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
-	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	"go.opentelemetry.io/otel/metric"
 
 	"connectrpc.com/connect"
@@ -111,7 +111,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		"activitySession", session,
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
-	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
+	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
 	stopActivityChan := make(chan error, 3)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}
