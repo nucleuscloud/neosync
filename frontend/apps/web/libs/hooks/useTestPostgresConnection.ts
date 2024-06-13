@@ -2,7 +2,9 @@
 import { buildCheckConnectionKey } from '@/app/(mgmt)/[account]/connections/util';
 import { JsonValue } from '@bufbuild/protobuf';
 import {
+  CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
+  ConnectionConfig,
   PostgresConnectionConfig,
 } from '@neosync/sdk';
 import { HookReply } from './types';
@@ -12,19 +14,20 @@ export function useTestProgressConnection(
   accountId: string,
   data: PostgresConnectionConfig
 ): HookReply<CheckConnectionConfigResponse> {
-  let requestBody = {};
   let canProceed: boolean = false;
   if (data.connectionConfig.case == 'url') {
-    const url = data.connectionConfig.value;
-    const tunnel = data.tunnel;
-    canProceed = !!url;
-    requestBody = { url, tunnel };
+    canProceed = !!data.connectionConfig.value;
   } else if (data.connectionConfig.case == 'connection') {
-    const db = data.connectionConfig.value;
-    const tunnel = data.tunnel;
-    requestBody = { db, tunnel };
-    canProceed = !!db.host;
+    canProceed = !!data.connectionConfig.value.host;
   }
+  const requestBody = new CheckConnectionConfigRequest({
+    connectionConfig: new ConnectionConfig({
+      config: {
+        case: 'pgConfig',
+        value: data,
+      },
+    }),
+  });
 
   const fetcher = (url: string) =>
     fetch(url, {
