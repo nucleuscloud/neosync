@@ -221,7 +221,7 @@ func BuildSelectRecursiveQuery(
 func BuildInsertQuery(
 	driver, table string,
 	columns []string,
-	values [][]interface{}, //nolint:gofmt
+	values [][]any,
 	onConflictDoNothing *bool,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
