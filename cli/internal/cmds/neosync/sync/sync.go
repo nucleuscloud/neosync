@@ -31,7 +31,6 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
-	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -50,8 +49,6 @@ import (
 )
 
 const (
-	maxPgParamLimit = 65535
-
 	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 
@@ -410,7 +407,7 @@ func sync(
 		return fmt.Errorf("this connection type is not currently supported")
 	}
 
-	syncConfigs := buildSyncConfigs(string(cmd.Destination.Driver), schemaConfig)
+	syncConfigs := buildSyncConfigs(schemaConfig)
 	if syncConfigs == nil {
 		return nil
 	}
@@ -600,7 +597,6 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 }
 
 func buildSyncConfigs(
-	driver string,
 	schemaConfig *schemaConfig,
 ) []*tabledependency.RunConfig {
 	tableColMap := getTableColMap(schemaConfig.Schemas)
@@ -616,27 +612,6 @@ func buildSyncConfigs(
 	if err != nil {
 		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
 		return nil
-	}
-
-	colInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{} // this can be empty because there is no subsetting
-	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(driver, schemaConfig.TableConstraints, runConfigs, false, colInfoMap)
-	if err != nil {
-		fmt.Println(bold.Render(fmt.Errorf("unable to build select queries: %w", err).Error())) //nolint:forbidigo
-		return nil
-	}
-
-	for _, cfg := range runConfigs {
-		queryMap, ok := tableRunTypeQueryMap[cfg.Table]
-		if !ok {
-			fmt.Println(bold.Render(fmt.Errorf("select query missing for table: %s", cfg.Table).Error())) //nolint:forbidigo
-			return nil
-		}
-		sql, ok := queryMap[cfg.RunType]
-		if !ok {
-			fmt.Println(bold.Render(fmt.Errorf("select query missing for table: %s runType: %s", cfg.Table, cfg.RunType).Error())) //nolint:forbidigo
-			return nil
-		}
-		cfg.SelectQuery = &sql
 	}
 
 	return runConfigs

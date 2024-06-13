@@ -39,11 +39,6 @@ func newInitStatementBuilder(
 	}
 }
 
-type initStatementBlock struct {
-	label      string
-	statements []string
-}
-
 func (b *initStatementBuilder) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
