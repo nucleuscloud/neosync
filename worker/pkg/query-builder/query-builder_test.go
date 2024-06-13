@@ -614,10 +614,10 @@ func Test_BuildInsertQuery(t *testing.T) {
 		onConflictDoNothing bool
 		expected            string
 	}{
-		{"Single Column mysql", "mysql", "public.users", []string{"name"}, [][]interface{}{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users` (`name`) VALUES ('Alice'), ('Bob')"},
-		{"Multiple Columns mysql", "mysql", "public.users", []string{"name", "email"}, [][]interface{}{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com')"},
-		{"Single Column postgres", "postgres", "public.users", []string{"name"}, [][]interface{}{{"Alice"}, {"Bob"}}, false, `INSERT INTO "public"."users" ("name") VALUES ('Alice'), ('Bob')`},
-		{"Multiple Columns postgres", "postgres", "public.users", []string{"name", "email"}, [][]interface{}{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, `INSERT INTO "public"."users" ("name", "email") VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com') ON CONFLICT DO NOTHING`},
+		{"Single Column mysql", "mysql", "public.users", []string{"name"}, [][]interface{}{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users` (`name`) VALUES ('Alice'), ('Bob')"},                                                                                                                      //nolint:gofmt
+		{"Multiple Columns mysql", "mysql", "public.users", []string{"name", "email"}, [][]interface{}{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com')"},                       //nolint:gofmt
+		{"Single Column postgres", "postgres", "public.users", []string{"name"}, [][]interface{}{{"Alice"}, {"Bob"}}, false, `INSERT INTO "public"."users" ("name") VALUES ('Alice'), ('Bob')`},                                                                                                                //nolint:gofmt
+		{"Multiple Columns postgres", "postgres", "public.users", []string{"name", "email"}, [][]interface{}{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, `INSERT INTO "public"."users" ("name", "email") VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com') ON CONFLICT DO NOTHING`}, //nolint:gofmt
 	}
 
 	for _, tt := range tests {
