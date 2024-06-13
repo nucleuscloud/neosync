@@ -17,6 +17,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -1533,7 +1534,7 @@ func (s *Service) ValidateJobMappings(
 
 	schemasMap := map[string]struct{}{}
 	for tableName := range colInfoMap {
-		schema, _ := utils.SplitTableKey(tableName)
+		schema, _ := sqlmanager_shared.SplitTableKey(tableName)
 		schemasMap[schema] = struct{}{}
 	}
 
@@ -1549,7 +1550,7 @@ func (s *Service) ValidateJobMappings(
 
 	tableColMappings := map[string]map[string]*mgmtv1alpha1.JobMapping{}
 	for _, m := range req.Msg.Mappings {
-		tn := fmt.Sprintf("%s.%s", m.Schema, m.Table)
+		tn := sqlmanager_shared.BuildTable(m.Schema, m.Table)
 		if _, ok := tableColMappings[tn]; !ok {
 			tableColMappings[tn] = map[string]*mgmtv1alpha1.JobMapping{}
 		}
@@ -1674,7 +1675,7 @@ func (s *Service) ValidateJobMappings(
 	colErrors := []*mgmtv1alpha1.ColumnError{}
 	for tableName, colMap := range colErrorsMap {
 		for col, errors := range colMap {
-			schema, table := utils.SplitTableKey(tableName)
+			schema, table := sqlmanager_shared.SplitTableKey(tableName)
 			colErrors = append(colErrors, &mgmtv1alpha1.ColumnError{
 				Schema: schema,
 				Table:  table,

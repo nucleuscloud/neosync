@@ -168,3 +168,8 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 	}
 	return output
 }
+
+type InitSchemaStatements struct {
+	Label      string
+	Statements []string
+}

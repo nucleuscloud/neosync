@@ -132,10 +132,10 @@ func Test_GetForeignKeyConstraintsMap(t *testing.T) {
 			},
 		}}
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
 	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
+		require.ElementsMatch(t, expect, actual.ForeignKeyConstraints[table])
 	}
 }
 
@@ -160,9 +160,9 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases(t *testing.T) {
 		constraints, nil,
 	)
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
-	require.Equal(t, actual, map[string][]*sqlmanager_shared.ForeignConstraint{
+	require.Equal(t, actual.ForeignKeyConstraints, map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.t1": {
 			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id"}}},
 			{Columns: []string{"c"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"user_id"}}},
@@ -200,10 +200,10 @@ func Test_GetPrimaryKeyConstraintsMap(t *testing.T) {
 		"public.composite": {"id", "other_id"},
 	}
 
-	actual, err := manager.GetPrimaryKeyConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 	require.NoError(t, err)
 	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
+		require.ElementsMatch(t, expect, actual.PrimaryKeyConstraints[table])
 	}
 }
 
@@ -226,14 +226,14 @@ func Test_GetUniqueConstraintsMap(t *testing.T) {
 		"public.region": {{"code"}, {"name"}},
 	}
 
-	actual, err := manager.GetUniqueConstraintsMap(context.Background(), schemas)
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
 
 	require.NoError(t, err)
-	require.Len(t, actual["public.person"], 1)
-	require.Len(t, actual["public.region"], 2)
-	require.ElementsMatch(t, expected["public.person"][0], actual["public.person"][0])
-	require.ElementsMatch(t, expected["public.region"][0], actual["public.region"][0])
-	require.ElementsMatch(t, expected["public.region"][1], actual["public.region"][1])
+	require.Len(t, actual.UniqueConstraints["public.person"], 1)
+	require.Len(t, actual.UniqueConstraints["public.region"], 2)
+	require.ElementsMatch(t, expected["public.person"][0], actual.UniqueConstraints["public.person"][0])
+	require.ElementsMatch(t, expected["public.region"][0], actual.UniqueConstraints["public.region"][0])
+	require.ElementsMatch(t, expected["public.region"][1], actual.UniqueConstraints["public.region"][1])
 }
 
 func Test_GetRolePermissionsMap(t *testing.T) {
@@ -706,4 +706,79 @@ func mockTableConstraintsRows() []*pg_queries.GetTableConstraintsBySchemaRow {
 			ConstraintType:    "u",
 		},
 	}
+}
+
+func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mockpool := pg_queries.NewMockDBTX(t)
+	manager := PostgresManager{
+		querier: pgquerier,
+		pool:    mockpool,
+	}
+	pgquerier.On("GetCustomSequencesBySchemaAndTables", mock.Anything, mock.Anything, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{Schema: "public", Tables: []string{"users"}}).
+		Return([]*pg_queries.GetCustomSequencesBySchemaAndTablesRow{}, nil)
+	pgquerier.On("GetCustomFunctionsBySchemaAndTables", mock.Anything, mock.Anything, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{Schema: "public", Tables: []string{"users"}}).
+		Return([]*pg_queries.GetCustomFunctionsBySchemaAndTablesRow{}, nil)
+	pgquerier.On("GetDataTypesBySchemaAndTables", mock.Anything, mock.Anything, &pg_queries.GetDataTypesBySchemaAndTablesParams{Schema: "public", Tables: []string{"users"}}).
+		Return([]*pg_queries.GetDataTypesBySchemaAndTablesRow{}, nil)
+
+	pgquerier.On("GetCustomTriggersBySchemaAndTables", mock.Anything, mock.Anything, []string{"public.users"}).
+		Return([]*pg_queries.GetCustomTriggersBySchemaAndTablesRow{{SchemaName: "public", TableName: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
+
+	pgquerier.On("GetDatabaseTableSchemasBySchemasAndTables", mock.Anything, mockpool, []string{"public.users"}).
+		Return(
+			[]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{
+				{
+					SchemaName:    "public",
+					TableName:     "users",
+					ColumnName:    "id",
+					DataType:      "uuid",
+					ColumnDefault: "",
+					IsNullable:    "NO",
+				},
+			},
+			nil,
+		)
+
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockpool, []string{"public"}).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{
+				{
+					ConstraintName:       "pk_public_users",
+					ConstraintType:       "p",
+					SchemaName:           "public",
+					TableName:            "users",
+					ConstraintColumns:    []string{"id"},
+					Notnullable:          []bool{true},
+					ConstraintDefinition: "PRIMARY KEY(id)",
+				},
+			},
+			nil,
+		)
+
+	pgquerier.On("GetIndicesBySchemasAndTables", mock.Anything, mockpool, []string{"public.users"}).
+		Return(
+			[]*pg_queries.GetIndicesBySchemasAndTablesRow{
+				{
+					SchemaName:      "public",
+					TableName:       "users",
+					IndexName:       "foo",
+					IndexDefinition: "CREATE INDEX foo ON public.users USING btree (users_id)",
+				},
+			},
+			nil,
+		)
+
+	expected := []*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: []string{}},
+		{Label: "create table", Statements: []string{"CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);"}},
+		{Label: "non-fk alter table", Statements: []string{"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"}},
+		{Label: "fk alter table", Statements: []string{}},
+		{Label: "table index", Statements: []string{"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id);\n\tEND IF;\nEND $$;"}},
+		{Label: "table triggers", Statements: []string{"DO $$\nBEGIN\n    IF NOT EXISTS (\n        SELECT 1\n        FROM pg_trigger t\n        JOIN pg_class c ON c.oid = t.tgrelid\n        JOIN pg_namespace n ON n.oid = c.relnamespace\n        WHERE t.tgname = 'foo_trigger'\n        AND c.relname = 'users'\n        AND n.nspname = 'public'\n    ) THEN\n        test-trigger-statement;\n    END IF;\nEND $$;"}},
+	}
+
+	actual, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}})
+	require.NoError(t, err)
+	require.Equal(t, expected, actual)
 }

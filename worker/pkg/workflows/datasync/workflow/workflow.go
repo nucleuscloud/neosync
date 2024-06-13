@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -101,7 +102,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
 		}
-		redisDependsOn[fmt.Sprintf("%s.%s", cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
+		redisDependsOn[neosync_benthos.BuildBenthosTable(cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
 	}
 
 	workselector := workflow.NewSelector(ctx)
@@ -130,7 +131,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				cancelHandler()
 				activityErr = err
 			}
-			delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
+			delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
 			// clean up redis
 			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 			if err != nil {
@@ -178,7 +179,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					activityErr = err
 				}
 				logger.Info("config sync completed", "name", bc.Name)
-				delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
+				delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
 				// clean up redis
 				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 				if err != nil {
@@ -280,7 +281,7 @@ func invokeSync(
 			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
 		if err == nil {
-			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)
 			if err != nil {
 				settable.Set(result, err)

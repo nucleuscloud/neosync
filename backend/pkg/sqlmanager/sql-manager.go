@@ -28,17 +28,13 @@ type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error)
 	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
-	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error)
-	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error)
-	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error)
-	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
-	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
 	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
 	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
 	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
+	GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()

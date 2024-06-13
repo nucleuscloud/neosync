@@ -12,9 +12,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -213,7 +213,7 @@ func buildBranchCacheConfigs(
 		if ok {
 			for _, fk := range fks {
 				// skip self referencing cols
-				if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
+				if fk.Table == neosync_benthos.BuildBenthosTable(col.Schema, col.Table) {
 					continue
 				}
 

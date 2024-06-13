@@ -1,4 +1,4 @@
-package neosync_benthos
+package cli_neosync_benthos
 
 type BenthosConfig struct {
 	// HTTP         HTTPConfig `json:"http" yaml:"http"`
@@ -17,20 +17,23 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
+	Logger   *LoggerConfig   `json:"logger" yaml:"logger,omitempty"`
 	Input    *InputConfig    `json:"input" yaml:"input"`
 	Buffer   *BufferConfig   `json:"buffer,omitempty" yaml:"buffer,omitempty"`
-	Pipeline *PipelineConfig `json:"pipeline,omitempty" yaml:"pipeline,omitempty"`
+	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
 	Output   *OutputConfig   `json:"output" yaml:"output"`
 }
 
+type LoggerConfig struct {
+	Level        string `json:"level" yaml:"level"`
+	AddTimestamp bool   `json:"add_timestamp" yaml:"add_timestamp"`
+}
 type InputConfig struct {
 	Label  string `json:"label" yaml:"label"`
 	Inputs `json:",inline" yaml:",inline"`
 }
 
 type Inputs struct {
-	SqlSelect             *SqlSelect             `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
-	HttpClient            *HttpClient            `json:"http_client,omitempty" yaml:"http_client,omitempty"`
 	NeosyncConnectionData *NeosyncConnectionData `json:"neosync_connection_data,omitempty" yaml:"neosync_connection_data,omitempty"`
 }
 
@@ -45,38 +48,6 @@ type NeosyncConnectionData struct {
 	Table          string  `json:"table" yaml:"table"`
 }
 
-type HttpClient struct {
-	Url       string   `json:"url" yaml:"url"`
-	Verb      string   `json:"verb" yaml:"verb"`
-	Headers   *Headers `json:"headers,omitempty" yaml:"headers,omitempty"`
-	RateLimit *string  `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
-	Timeout   string   `json:"timeout" yaml:"timeout"`
-	Payload   *string  `json:"payload,omitempty" yaml:"payload,omitempty"`
-	Stream    *Stream  `json:"stream,omitempty" yaml:"stream,omitempty"`
-}
-
-type Headers struct {
-	Authorization *string `json:"Authorization,omitempty" yaml:"Authorization,omitempty"`
-	ContentType   *string `json:"Content-Type,omitempty" yaml:"Content-Type,omitempty"`
-	Accept        *string `json:"Accept,omitempty" yaml:"Accept,omitempty"`
-}
-
-type Stream struct {
-	Enabled   bool   `json:"enabled,omitempty" yaml:"enabled,omitempty"`
-	Reconnect bool   `json:"reconnect,omitempty" yaml:"reconnect,omitempty"`
-	Codec     string `json:"codec" yaml:"codec"`
-}
-
-type SqlSelect struct {
-	Driver        string   `json:"driver" yaml:"driver"`
-	Dsn           string   `json:"dsn" yaml:"dsn"`
-	Table         string   `json:"table" yaml:"table"`
-	Columns       []string `json:"columns" yaml:"columns"`
-	Where         string   `json:"where,omitempty" yaml:"where,omitempty"`
-	ArgsMapping   string   `json:"args_mapping,omitempty" yaml:"args_mapping,omitempty"`
-	InitStatement string   `json:"init_statement,omitempty" yaml:"init_statement,omitempty"`
-}
-
 type BufferConfig struct{}
 
 type PipelineConfig struct {
@@ -85,86 +56,48 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation   string      `json:"mutation,omitempty" yaml:"mutation,omitempty"`
-	Protobuf   *Protobuf   `json:"protobuf,omitempty" yaml:"protobuf,omitempty"`
-	DataStream *DataStream `json:"datastream,omitempty" yaml:"datastream,omitempty"`
 }
 
-type DataStream struct{}
-
-type Protobuf struct {
-	Operator    string   `json:"operator" yaml:"operator"`
-	Message     string   `json:"message" yaml:"message"`
-	ImportPaths []string `json:"import_paths" yaml:"import_paths"`
+type BranchConfig struct {
+	Processors []ProcessorConfig `json:"processors" yaml:"processors"`
+	RequestMap *string           `json:"request_map,omitempty" yaml:"request_map,omitempty"`
+	ResultMap  *string           `json:"result_map,omitempty" yaml:"result_map,omitempty"`
 }
 
 type OutputConfig struct {
-	Label   string `json:"label" yaml:"label"`
-	Outputs `json:",inline" yaml:",inline"`
+	Label      string `json:"label" yaml:"label"`
+	Outputs    `json:",inline" yaml:",inline"`
+	Processors []ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 	// Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
 type Outputs struct {
-	SqlInsert *SqlInsert          `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
-	SqlRaw    *SqlRaw             `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
-	AwsS3     *AwsS3Insert        `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
-	Retry     *RetryConfig        `json:"retry,omitempty" yaml:"retry,omitempty"`
-	Broker    *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
-	DropOn    *DropOnConfig       `json:"drop_on,omitempty" yaml:"drop_on,omitempty"`
-	Drop      *DropConfig         `json:"drop,omitempty" yaml:"drop,omitempty"`
-	Resource  string              `json:"resource,omitempty" yaml:"resource,omitempty"`
-	Fallback  []Outputs           `json:"fallback,omitempty" yaml:"fallback,omitempty"`
+	PooledSqlInsert *PooledSqlInsert `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
+	PooledSqlUpdate *PooledSqlUpdate `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
+	AwsS3           *AwsS3Insert     `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 }
 
-type DropConfig struct{}
-
-type DropOnConfig struct {
-	Error        bool    `json:"error" yaml:"error"`
-	Backpressure string  `json:"back_pressure" yaml:"back_pressure"`
-	Output       Outputs `json:"output" yaml:"output"`
+type PooledSqlUpdate struct {
+	Driver       string    `json:"driver" yaml:"driver"`
+	Dsn          string    `json:"dsn" yaml:"dsn"`
+	Schema       string    `json:"schema" yaml:"schema"`
+	Table        string    `json:"table" yaml:"table"`
+	Columns      []string  `json:"columns" yaml:"columns"`
+	WhereColumns []string  `json:"where_columns" yaml:"where_columns"`
+	ArgsMapping  string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching     *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
-type RetryConfig struct {
-	Output            OutputConfig `json:"output" yaml:"output"`
-	InlineRetryConfig `json:",inline" yaml:",inline"`
-}
-
-type InlineRetryConfig struct {
-	MaxRetries uint64  `json:"max_retries" yaml:"max_retries"`
-	Backoff    Backoff `json:"backoff" yaml:"backoff"`
-}
-
-type Backoff struct {
-	InitialInterval string `json:"initial_interval" yaml:"initial_interval"`
-	MaxInterval     string `json:"max_interval" yaml:"max_interval"`
-	MaxElapsedTime  string `json:"max_elapsed_time" yaml:"max_elapsed_time"`
-}
-
-type SqlRaw struct {
-	Driver          string    `json:"driver" yaml:"driver"`
-	Dsn             string    `json:"dsn" yaml:"dsn"`
-	Query           string    `json:"query" yaml:"query"`
-	ArgsMapping     string    `json:"args_mapping" yaml:"args_mapping"`
-	InitStatement   string    `json:"init_statement" yaml:"init_statement"`
-	ConnMaxIdleTime string    `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty"`
-	ConnMaxLifeTime string    `json:"conn_max_life_time,omitempty" yaml:"conn_max_life_time,omitempty"`
-	ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
-	ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
-	Batching        *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
-}
-
-type SqlInsert struct {
-	Driver          string    `json:"driver" yaml:"driver"`
-	Dsn             string    `json:"dsn" yaml:"dsn"`
-	Table           string    `json:"table" yaml:"table"`
-	Columns         []string  `json:"columns" yaml:"columns"`
-	ArgsMapping     string    `json:"args_mapping" yaml:"args_mapping"`
-	InitStatement   string    `json:"init_statement" yaml:"init_statement"`
-	ConnMaxIdleTime string    `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty"`
-	ConnMaxLifeTime string    `json:"conn_max_life_time,omitempty" yaml:"conn_max_life_time,omitempty"`
-	ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
-	ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
-	Batching        *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+type PooledSqlInsert struct {
+	Driver              string    `json:"driver" yaml:"driver"`
+	Dsn                 string    `json:"dsn" yaml:"dsn"`
+	Schema              string    `json:"schema" yaml:"schema"`
+	Table               string    `json:"table" yaml:"table"`
+	Columns             []string  `json:"columns" yaml:"columns"`
+	OnConflictDoNothing bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
+	TruncateOnRetry     bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
+	ArgsMapping         string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching            *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type AwsS3Insert struct {

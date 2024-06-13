@@ -65,17 +65,17 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
-	foreignKeyMap, err := m.GetForeignKeyConstraintsMap(ctx, schemas)
+	foreignKeyMap, err := m.getForeignKeyConstraintsMap(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
-	primaryKeyMap, err := m.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	primaryKeyMap, err := m.getPrimaryKeyConstraintsMap(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
 
-	uniqueConstraintsMap, err := m.GetUniqueConstraintsMap(ctx, schemas)
+	uniqueConstraintsMap, err := m.getUniqueConstraintsMap(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 	}, nil
 }
 
-func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
+func (m *MysqlManager) getForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
 	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range schemas {
@@ -128,8 +128,8 @@ func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []s
 }
 
 // Key is schema.table value is list of tables that key depends on
-func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
-	fkConstraints, err := m.GetForeignKeyConstraints(ctx, schemas)
+func (m *MysqlManager) getForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
+	fkConstraints, err := m.getForeignKeyConstraints(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []s
 	return result, nil
 }
 
-func (m *MysqlManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
+func (m *MysqlManager) getPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
 	primaryKeys, err := m.GetPrimaryKeyConstraints(ctx, schemas)
 	if err != nil {
 		return nil, err
@@ -213,7 +213,7 @@ func (m *MysqlManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas 
 	return result, nil
 }
 
-func (m *MysqlManager) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
+func (m *MysqlManager) getUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	holder := make([][]*mysql_queries.GetUniqueConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range schemas {
@@ -293,6 +293,14 @@ func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sq
 
 // todo
 func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
+	return nil, errors.ErrUnsupported
+}
+
+// todo
+func (p *MysqlManager) GetSchemaInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
 	return nil, errors.ErrUnsupported
 }
 

@@ -35,14 +35,6 @@ func Test_MapSlice(t *testing.T) {
 	)
 }
 
-func Test_ToSha256(t *testing.T) {
-	assert.Equal(
-		t,
-		ToSha256("foobar"),
-		"c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2",
-	)
-}
-
 func Test_GetBearerTokenFromHeader(t *testing.T) {
 	_, err := GetBearerTokenFromHeader(http.Header{}, "Authorization")
 	assert.Error(t, err)

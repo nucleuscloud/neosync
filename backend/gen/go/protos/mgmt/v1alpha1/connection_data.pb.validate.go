@@ -2817,6 +2817,110 @@ var _ interface {
 	ErrorName() string
 } = GetConnectionInitStatementsRequestValidationError{}
 
+// Validate checks the field values on SchemaInitStatements with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SchemaInitStatements) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SchemaInitStatements with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SchemaInitStatementsMultiError, or nil if none found.
+func (m *SchemaInitStatements) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SchemaInitStatements) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Label
+
+	if len(errors) > 0 {
+		return SchemaInitStatementsMultiError(errors)
+	}
+
+	return nil
+}
+
+// SchemaInitStatementsMultiError is an error wrapping multiple validation
+// errors returned by SchemaInitStatements.ValidateAll() if the designated
+// constraints aren't met.
+type SchemaInitStatementsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SchemaInitStatementsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SchemaInitStatementsMultiError) AllErrors() []error { return m }
+
+// SchemaInitStatementsValidationError is the validation error returned by
+// SchemaInitStatements.Validate if the designated constraints aren't met.
+type SchemaInitStatementsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SchemaInitStatementsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SchemaInitStatementsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SchemaInitStatementsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SchemaInitStatementsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SchemaInitStatementsValidationError) ErrorName() string {
+	return "SchemaInitStatementsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SchemaInitStatementsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSchemaInitStatements.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SchemaInitStatementsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SchemaInitStatementsValidationError{}
+
 // Validate checks the field values on GetConnectionInitStatementsResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the first error encountered is returned, or nil if there are
@@ -2843,6 +2947,40 @@ func (m *GetConnectionInitStatementsResponse) validate(all bool) error {
 	// no validation rules for TableInitStatements
 
 	// no validation rules for TableTruncateStatements
+
+	for idx, item := range m.GetSchemaInitStatements() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetConnectionInitStatementsResponseValidationError{
+						field:  fmt.Sprintf("SchemaInitStatements[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetConnectionInitStatementsResponseValidationError{
+						field:  fmt.Sprintf("SchemaInitStatements[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetConnectionInitStatementsResponseValidationError{
+					field:  fmt.Sprintf("SchemaInitStatements[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return GetConnectionInitStatementsResponseMultiError(errors)

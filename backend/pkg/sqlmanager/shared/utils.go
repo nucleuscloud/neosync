@@ -2,6 +2,7 @@ package sqlmanager_shared
 
 import (
 	"fmt"
+	"strings"
 )
 
 func GetUniqueSchemaColMappings(
@@ -58,4 +59,12 @@ func DedupeSlice(input []string) []string {
 		output = append(output, key)
 	}
 	return output
+}
+
+func SplitTableKey(key string) (schema, table string) {
+	pieces := strings.Split(key, ".")
+	if len(pieces) == 1 {
+		return "public", pieces[0]
+	}
+	return pieces[0], pieces[1]
 }

@@ -138,31 +138,13 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).
-		Return(&sqlmanager_shared.SchemaTableDataTypeResponse{
-			Sequences:  []*sqlmanager_shared.DataType{},
-			Functions:  []*sqlmanager_shared.DataType{},
-			Composites: []*sqlmanager_shared.DataType{},
-			Enums:      []*sqlmanager_shared.DataType{},
-			Domains:    []*sqlmanager_shared.DataType{},
-		}, nil)
-	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).
-		Return([]*sqlmanager_shared.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
-	mockSqlDb.On("GetTableInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.TableInitStatement{
-		{
-			CreateTableStatement: "test-create-statement",
-			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
-				{
-					Statement:      "test-pk-statement",
-					ConstraintType: sqlmanager_shared.PrimaryConstraintType,
-				},
-				{
-					Statement:      "test-fk-statement",
-					ConstraintType: sqlmanager_shared.ForeignConstraintType,
-				},
-			},
-			IndexStatements: []string{"test-idx-statement"},
-		},
+	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: []string{}},
+		{Label: "create table", Statements: []string{"test-create-statement"}},
+		{Label: "non-fk alter table", Statements: []string{"test-pk-statement"}},
+		{Label: "fk alter table", Statements: []string{"test-fk-statement"}},
+		{Label: "table index", Statements: []string{"test-idx-statement"}},
+		{Label: "table triggers", Statements: []string{"test-trigger-statement"}},
 	}, nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-trigger-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
@@ -531,12 +513,14 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.users": {{
-			Columns:     []string{"account_id"},
-			NotNullable: []bool{true},
-			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
-		}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.users": {{
+				Columns:     []string{"account_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			}},
+		},
 	}, nil)
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -669,31 +653,14 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetSchemaTableDataTypes", mock.Anything, mock.Anything).
-		Return(&sqlmanager_shared.SchemaTableDataTypeResponse{
-			Sequences:  []*sqlmanager_shared.DataType{},
-			Functions:  []*sqlmanager_shared.DataType{},
-			Composites: []*sqlmanager_shared.DataType{},
-			Enums:      []*sqlmanager_shared.DataType{},
-			Domains:    []*sqlmanager_shared.DataType{},
-		}, nil)
-	mockSqlDb.On("GetSchemaTableTriggers", mock.Anything, mock.Anything).
-		Return([]*sqlmanager_shared.TableTrigger{{Schema: "public", Table: "users", TriggerName: "foo_trigger", Definition: "test-trigger-statement"}}, nil)
-	mockSqlDb.On("GetTableInitStatements", mock.Anything, mock.Anything).Return([]*sqlmanager_shared.TableInitStatement{
-		{
-			CreateTableStatement: "test-create-statement",
-			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
-				{
-					Statement:      "test-pk-statement",
-					ConstraintType: sqlmanager_shared.PrimaryConstraintType,
-				},
-				{
-					Statement:      "test-fk-statement",
-					ConstraintType: sqlmanager_shared.ForeignConstraintType,
-				},
-			},
-			IndexStatements: []string{"test-idx-statement"},
-		},
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, mock.Anything).Return([]*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: []string{}},
+		{Label: "create table", Statements: []string{"test-create-statement"}},
+		{Label: "non-fk alter table", Statements: []string{"test-pk-statement"}},
+		{Label: "fk alter table", Statements: []string{"test-fk-statement"}},
+		{Label: "table index", Statements: []string{"test-idx-statement"}},
+		{Label: "table triggers", Statements: []string{"test-trigger-statement"}},
 	}, nil)
 
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"test-create-statement"}, &sqlmanager_shared.BatchExecOpts{}).Return(nil)
@@ -947,13 +914,16 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sqlmanager_shared.ForeignConstraint{
-		"public.users": {{
-			Columns:     []string{"account_id"},
-			NotNullable: []bool{true},
-			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
-		}},
+	mockSqlDb.On("GetTableConstraintsBySchema", mock.Anything, []string{"public"}).Return(&sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"public.users": {{
+				Columns:     []string{"account_id"},
+				NotNullable: []bool{true},
+				ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
+			}},
+		},
 	}, nil)
+
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
 	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
 	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "accounts").Return(accountCreateStmt, nil)

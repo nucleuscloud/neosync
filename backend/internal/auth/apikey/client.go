@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	pkg_utils "github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type TokenContextKey struct{}
@@ -57,7 +58,7 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 	}
 
 	if apikey.IsValidV1AccountKey(token) {
-		hashedKeyValue := utils.ToSha256(
+		hashedKeyValue := pkg_utils.ToSha256(
 			token,
 		)
 		apiKey, err := c.q.GetAccountApiKeyByKeyValue(ctx, c.db, hashedKeyValue)

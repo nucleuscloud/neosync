@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"slices"
@@ -24,9 +23,10 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
+	cli_neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
@@ -41,18 +41,14 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
+	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 
 	"github.com/benthosdev/benthos/v4/public/service"
 
-	"github.com/charmbracelet/bubbles/progress"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
-	maxPgParamLimit = 65535
-
 	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 
@@ -73,27 +69,6 @@ var (
 type ConnectionType string
 type DriverType string
 
-type model struct {
-	ctx            context.Context
-	groupedConfigs [][]*benthosConfigResponse
-	tableSynced    int
-	index          int
-	width          int
-	height         int
-	spinner        spinner.Model
-	progress       progress.Model
-	done           bool
-}
-
-var (
-	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
-	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
-	printlog            = lipgloss.NewStyle().PaddingLeft(2)
-	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
-	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
-	checkMark           = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42")).SetString("✓")
-)
-
 type cmdConfig struct {
 	Source      *sourceConfig      `yaml:"source"`
 	Destination *destinationConfig `yaml:"destination"`
@@ -109,23 +84,17 @@ type connectionOpts struct {
 	JobRunId *string `yaml:"job-run-id,omitempty"`
 }
 
-type destinationConfig struct {
-	ConnectionUrl        string     `yaml:"connection-url"`
-	Driver               DriverType `yaml:"driver"`
-	InitSchema           bool       `yaml:"init-schema,omitempty"`
-	TruncateBeforeInsert bool       `yaml:"truncate-before-insert,omitempty"`
-	TruncateCascade      bool       `yaml:"truncate-cascade,omitempty"`
+type onConflictConfig struct {
+	DoNothing bool `yaml:"do-nothing"`
 }
 
-type syncConfig struct {
-	Query         string
-	ArgsMapping   string
-	InitStatement string
-	DependsOn     []*tabledependency.DependsOn
-	Schema        string
-	Table         string
-	Columns       []string
-	Name          string
+type destinationConfig struct {
+	ConnectionUrl        string           `yaml:"connection-url"`
+	Driver               DriverType       `yaml:"driver"`
+	InitSchema           bool             `yaml:"init-schema,omitempty"`
+	TruncateBeforeInsert bool             `yaml:"truncate-before-insert,omitempty"`
+	TruncateCascade      bool             `yaml:"truncate-cascade,omitempty"`
+	OnConflict           onConflictConfig `yaml:"on-conflict,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -214,6 +183,14 @@ func NewCmd() *cobra.Command {
 				config.Destination.TruncateCascade = truncateCascade
 			}
 
+			onConflictDoNothing, err := cmd.Flags().GetBool("on-conflict-do-nothing")
+			if err != nil {
+				return err
+			}
+			if onConflictDoNothing {
+				config.Destination.OnConflict.DoNothing = onConflictDoNothing
+			}
+
 			jobId, err := cmd.Flags().GetString("job-id")
 			if err != nil {
 				return err
@@ -272,6 +249,7 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
+	cmd.Flags().Bool("on-conflict-do-nothing", false, "If there is a conflict when inserting data do not insert")
 	output.AttachOutputFlag(cmd)
 
 	return cmd
@@ -366,7 +344,6 @@ func sync(
 	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) //nolint:forbidigo
 	fmt.Println(printlog.Render("Retrieving connection schema..."))                    //nolint:forbidigo
 
-	syncConfigs := []*syncConfig{}
 	var schemaConfig *schemaConfig
 	switch connectionType {
 	case awsS3Connection:
@@ -392,20 +369,6 @@ func sync(
 		}
 		schemaConfig = schemaCfg
 
-		if cmd.Destination.Driver == postgresDriver {
-			configs := buildSyncConfigs(schemaCfg, buildPostgresInsertQuery, buildPostgresUpdateQuery)
-			if configs == nil {
-				return nil
-			}
-			syncConfigs = append(syncConfigs, configs...)
-		} else if cmd.Destination.Driver == mysqlDriver {
-			configs := buildSyncConfigs(schemaCfg, buildMysqlInsertQuery, buildMysqlUpdateQuery)
-			if configs == nil {
-				return nil
-			}
-			syncConfigs = append(syncConfigs, configs...)
-		}
-
 	case mysqlConnection:
 		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
 		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
@@ -422,12 +385,6 @@ func sync(
 			return nil
 		}
 		schemaConfig = schemaCfg
-
-		configs := buildSyncConfigs(schemaCfg, buildMysqlInsertQuery, buildMysqlUpdateQuery)
-		if configs == nil {
-			return nil
-		}
-		syncConfigs = append(syncConfigs, configs...)
 
 	case postgresConnection:
 		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
@@ -446,23 +403,22 @@ func sync(
 		}
 		schemaConfig = schemaCfg
 
-		configs := buildSyncConfigs(schemaCfg, buildPostgresInsertQuery, buildPostgresUpdateQuery)
-		if configs == nil {
-			return nil
-		}
-		syncConfigs = append(syncConfigs, configs...)
-
 	default:
 		return fmt.Errorf("this connection type is not currently supported")
 	}
 
+	syncConfigs := buildSyncConfigs(schemaConfig)
+	if syncConfigs == nil {
+		return nil
+	}
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
 	err = runDestinationInitStatements(ctx, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(printlog.Render("Generating configs... \n")) //nolint:forbidigo
+	syncConfigCount := len(syncConfigs)
+	fmt.Println(printlog.Render(fmt.Sprintf("Generating %d sync configs... \n", syncConfigCount))) //nolint:forbidigo
 	configs := []*benthosConfigResponse{}
 	for _, cfg := range syncConfigs {
 		benthosConfig := generateBenthosConfig(cmd, connectionType, serverconfig.GetApiBaseUrl(), cfg, token)
@@ -534,11 +490,6 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	}()
 
 	streambldr := service.NewStreamBuilder()
-	// would ideally use the activity logger here but can't convert it into a slog.
-	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	streambldr.SetLogger(benthoslogger.With(
-		"benthos", "true",
-	))
 
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
@@ -559,7 +510,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
+func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*tabledependency.RunConfig, schemaConfig *schemaConfig) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
 	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
@@ -567,29 +518,44 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 	}
 	defer db.Db.Close()
 	if cmd.Destination.InitSchema {
-		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
-		if err != nil {
-			return err
-		}
-		if orderedTablesResp.HasCycles {
-			return errors.New("init schema: unable to handle circular dependencies")
-		}
-		orderedInitStatements := []string{}
-		for _, t := range orderedTablesResp.OrderedTables {
-			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
-		}
+		if len(schemaConfig.InitSchemaStatements) != 0 {
+			for _, block := range schemaConfig.InitSchemaStatements {
+				fmt.Println(printlog.Render(fmt.Sprintf("[%s] found %d statements to execute during schema initialization \n", block.Label, len(block.Statements)))) //nolint:forbidigo
+				if len(block.Statements) == 0 {
+					continue
+				}
+				err = db.Db.BatchExec(ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
+				if err != nil {
+					fmt.Println("Error creating tables:", err) //nolint:forbidigo
+					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
+				}
+			}
+		} else if len(schemaConfig.InitTableStatementsMap) != 0 {
+			// @deprecated mysql init table statements
+			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			if err != nil {
+				return err
+			}
+			if orderedTablesResp.HasCycles {
+				return errors.New("init schema: unable to handle circular dependencies")
+			}
+			orderedInitStatements := []string{}
+			for _, t := range orderedTablesResp.OrderedTables {
+				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+			}
 
-		err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
-		if err != nil {
-			fmt.Println("Error creating tables:", err) //nolint:forbidigo
-			return err
+			err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
+			if err != nil {
+				fmt.Println("Error creating tables:", err) //nolint:forbidigo
+				return err
+			}
 		}
 	}
 	if cmd.Destination.Driver == postgresDriver {
 		if cmd.Destination.TruncateCascade {
 			truncateCascadeStmts := []string{}
 			for _, syncCfg := range syncConfigs {
-				stmt, ok := schemaConfig.TruncateTableStatementsMap[sql_manager.BuildTable(syncCfg.Schema, syncCfg.Table)]
+				stmt, ok := schemaConfig.TruncateTableStatementsMap[syncCfg.Table]
 				if ok {
 					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
 				}
@@ -604,7 +570,6 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 			if err != nil {
 				return err
 			}
-
 			orderedTruncateStatement := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
@@ -633,86 +598,35 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
-	buildInsertQueryFunc func(schema, table string, cols []string) string,
-	buildUpdateQueryFunc func(schema, table string, col []string, primaryKeys []string) string,
-) []*syncConfig {
-	syncConfigs := []*syncConfig{}
+) []*tabledependency.RunConfig {
 	tableColMap := getTableColMap(schemaConfig.Schemas)
 	if len(tableColMap) == 0 {
-		return syncConfigs
+		return nil
 	}
 	primaryKeysMap := map[string][]string{}
 	for table, constraints := range schemaConfig.TablePrimaryKeys {
 		primaryKeysMap[table] = constraints.GetColumns()
 	}
 
-	dependencyMap, err := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap, primaryKeysMap)
+	runConfigs, err := tabledependency.GetRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap)
 	if err != nil {
 		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
 		return nil
 	}
 
-	for table, dc := range dependencyMap {
-		split := strings.Split(table, ".")
-		cols := tableColMap[table]
-		if len(dc) > 1 {
-			for _, c := range dc {
-				if c.RunType == tabledependency.RunTypeInsert {
-					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(split[0], split[1], c.InsertColumns),
-						ArgsMapping:   buildPlainInsertArgs(c.InsertColumns),
-						InitStatement: schemaConfig.InitTableStatementsMap[table],
-						Schema:        split[0],
-						Table:         split[1],
-						Columns:       c.InsertColumns,
-						DependsOn:     c.DependsOn,
-						Name:          table,
-					})
-				} else if c.RunType == tabledependency.RunTypeUpdate {
-					if len(c.PrimaryKeys) == 0 {
-						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) //nolint:forbidigo
-						return nil
-					}
-					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:       buildUpdateQueryFunc(split[0], split[1], c.InsertColumns, c.PrimaryKeys),
-						ArgsMapping: buildPlainInsertArgs(c.SelectColumns),
-
-						Schema:    split[0],
-						Table:     split[1],
-						Columns:   c.InsertColumns,
-						DependsOn: c.DependsOn,
-						Name:      fmt.Sprintf("%s.update", table),
-					})
-				}
-			}
-		} else {
-			syncConfigs = append(syncConfigs, &syncConfig{
-				Query:         buildInsertQueryFunc(split[0], split[1], cols),
-				ArgsMapping:   buildPlainInsertArgs(cols),
-				InitStatement: schemaConfig.InitTableStatementsMap[table],
-				Schema:        split[0],
-				Table:         split[1],
-				Columns:       cols,
-				DependsOn:     dc[0].DependsOn,
-				Name:          table,
-			})
-		}
-	}
-
-	return syncConfigs
+	return runConfigs
 }
 
-func buildDependencyMap(syncConfigs []*syncConfig) map[string][]string {
+func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
-		key := sql_manager.BuildTable(cfg.Schema, cfg.Table)
-		_, dpOk := dependencyMap[key]
+		_, dpOk := dependencyMap[cfg.Table]
 		if !dpOk {
-			dependencyMap[key] = []string{}
+			dependencyMap[cfg.Table] = []string{}
 		}
 
 		for _, dep := range cfg.DependsOn {
-			dependencyMap[key] = append(dependencyMap[key], dep.Table)
+			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], dep.Table)
 		}
 	}
 	return dependencyMap
@@ -769,7 +683,7 @@ func getTableColMap(schemas []*mgmtv1alpha1.DatabaseColumn) map[string][]string 
 type benthosConfigResponse struct {
 	Name      string
 	DependsOn []*tabledependency.DependsOn
-	Config    *neosync_benthos.BenthosConfig
+	Config    *cli_neosync_benthos.BenthosConfig
 	Table     string
 	Columns   []string
 }
@@ -778,10 +692,10 @@ func generateBenthosConfig(
 	cmd *cmdConfig,
 	connectionType ConnectionType,
 	apiUrl string,
-	syncConfig *syncConfig,
+	syncConfig *tabledependency.RunConfig,
 	authToken *string,
 ) *benthosConfigResponse {
-	tableName := sql_manager.BuildTable(syncConfig.Schema, syncConfig.Table)
+	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table)
 
 	var jobId, jobRunId *string
 	if cmd.Source.ConnectionOpts != nil {
@@ -789,49 +703,81 @@ func generateBenthosConfig(
 		jobId = cmd.Source.ConnectionOpts.JobId
 	}
 
-	bc := &neosync_benthos.BenthosConfig{
-		StreamConfig: neosync_benthos.StreamConfig{
-			Input: &neosync_benthos.InputConfig{
-				Inputs: neosync_benthos.Inputs{
-					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
+	bc := &cli_neosync_benthos.BenthosConfig{
+		StreamConfig: cli_neosync_benthos.StreamConfig{
+			Logger: &cli_neosync_benthos.LoggerConfig{
+				Level:        "ERROR",
+				AddTimestamp: true,
+			},
+			Input: &cli_neosync_benthos.InputConfig{
+				Inputs: cli_neosync_benthos.Inputs{
+					NeosyncConnectionData: &cli_neosync_benthos.NeosyncConnectionData{
 						ApiKey:         authToken,
 						ApiUrl:         apiUrl,
 						ConnectionId:   cmd.Source.ConnectionId,
 						ConnectionType: string(connectionType),
 						JobId:          jobId,
 						JobRunId:       jobRunId,
-						Schema:         syncConfig.Schema,
-						Table:          syncConfig.Table,
+						Schema:         schema,
+						Table:          table,
 					},
 				},
 			},
-			Pipeline: &neosync_benthos.PipelineConfig{},
-			Output: &neosync_benthos.OutputConfig{
-				Outputs: neosync_benthos.Outputs{
-					SqlRaw: &neosync_benthos.SqlRaw{
-						Driver: string(cmd.Destination.Driver),
-						Dsn:    cmd.Destination.ConnectionUrl,
-
-						Query:       syncConfig.Query,
-						ArgsMapping: syncConfig.ArgsMapping,
-
-						Batching: &neosync_benthos.Batching{
-							Period: "5s",
-							// max allowed by postgres in a single batch
-							Count: 100,
-						},
-					},
-				},
-			},
+			Pipeline: &cli_neosync_benthos.PipelineConfig{},
+			Output:   &cli_neosync_benthos.OutputConfig{},
 		},
 	}
 
+	if syncConfig.RunType == tabledependency.RunTypeUpdate {
+		args := syncConfig.InsertColumns
+		args = append(args, syncConfig.PrimaryKeys...)
+		bc.Output = &cli_neosync_benthos.OutputConfig{
+			Outputs: cli_neosync_benthos.Outputs{
+				PooledSqlUpdate: &cli_neosync_benthos.PooledSqlUpdate{
+					Driver: string(cmd.Destination.Driver),
+					Dsn:    cmd.Destination.ConnectionUrl,
+
+					Schema:       schema,
+					Table:        table,
+					Columns:      syncConfig.InsertColumns,
+					WhereColumns: syncConfig.PrimaryKeys,
+					ArgsMapping:  buildPlainInsertArgs(args),
+
+					Batching: &cli_neosync_benthos.Batching{
+						Period: "5s",
+						Count:  100,
+					},
+				},
+			},
+		}
+	} else {
+		bc.Output = &cli_neosync_benthos.OutputConfig{
+			Outputs: cli_neosync_benthos.Outputs{
+				PooledSqlInsert: &cli_neosync_benthos.PooledSqlInsert{
+					Driver: string(cmd.Destination.Driver),
+					Dsn:    cmd.Destination.ConnectionUrl,
+
+					Schema:              schema,
+					Table:               table,
+					Columns:             syncConfig.SelectColumns,
+					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
+					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns),
+
+					Batching: &cli_neosync_benthos.Batching{
+						Period: "5s",
+						Count:  100,
+					},
+				},
+			},
+		}
+	}
+
 	return &benthosConfigResponse{
-		Name:      syncConfig.Name,
+		Name:      fmt.Sprintf("%s.%s", syncConfig.Table, syncConfig.RunType),
 		Config:    bc,
 		DependsOn: syncConfig.DependsOn,
-		Table:     tableName,
-		Columns:   syncConfig.Columns,
+		Table:     syncConfig.Table,
+		Columns:   syncConfig.InsertColumns,
 	}
 }
 func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConfigResponse {
@@ -862,6 +808,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 			fmt.Println(bold.Render("Unable to order configs by dependency. No path found.")) //nolint:forbidigo
 			return nil
 		}
+		prevTableLen = len(configMap)
 		dependentConfigs := []*benthosConfigResponse{}
 		for _, c := range configMap {
 			if isConfigReady(c, queuedMap) {
@@ -872,7 +819,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 		if len(dependentConfigs) > 0 {
 			groupedConfigs = append(groupedConfigs, dependentConfigs)
 			for _, c := range dependentConfigs {
-				queuedMap[c.Table] = c.Columns
+				queuedMap[c.Table] = append(queuedMap[c.Table], c.Columns...)
 			}
 		}
 	}
@@ -894,141 +841,13 @@ func isConfigReady(config *benthosConfigResponse, queuedMap map[string][]string)
 	return true
 }
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *model {
-	p := progress.New(
-		progress.WithDefaultGradient(),
-		progress.WithWidth(40),
-		progress.WithoutPercentage(),
-	)
-	s := spinner.New()
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	return &model{
-		ctx:            ctx,
-		groupedConfigs: groupedConfigs,
-		tableSynced:    0,
-		spinner:        s,
-		progress:       p,
-	}
-}
-
-func (m *model) Init() tea.Cmd {
-	return tea.Batch(syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
-}
-
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width, m.height = msg.Width, msg.Height
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
-			return m, tea.Quit
-		}
-	case syncedDataMsg:
-		totalConfigCount := getConfigCount(m.groupedConfigs)
-		configCount := len(m.groupedConfigs)
-
-		successStrs := []string{}
-		for _, config := range m.groupedConfigs[m.index] {
-			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
-			m.tableSynced++
-		}
-		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
-
-		if m.index == configCount-1 {
-			m.done = true
-			log.Printf("Done! Completed %d tables.", configCount)
-			return m, tea.Batch(
-				progressCmd,
-				tea.Println(strings.Join(successStrs, " \n")),
-				tea.Quit,
-			)
-		}
-
-		m.index++
-		return m, tea.Batch(
-			progressCmd,
-			tea.Println(strings.Join(successStrs, " \n")),
-			syncConfigs(m.ctx, m.groupedConfigs[m.index]),
-		)
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	case progress.FrameMsg:
-		newModel, cmd := m.progress.Update(msg)
-		if newModel, ok := newModel.(progress.Model); ok {
-			m.progress = newModel
-		}
-		return m, cmd
-	}
-	return m, nil
-}
-
-func (m *model) View() string {
-	configCount := getConfigCount(m.groupedConfigs)
-	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
-
-	if m.done {
-		return doneStyle.Render(fmt.Sprintf("Done! Completed %d tables.\n", configCount))
-	}
-
-	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
-
-	spin := m.spinner.View() + " "
-	prog := m.progress.View()
-	cellsAvail := maxInt(0, m.width-lipgloss.Width(spin+prog+pkgCount))
-
-	successStrs := []string{}
-	for _, config := range m.groupedConfigs[m.index] {
-		successStrs = append(successStrs, config.Name)
-	}
-	pkgName := currentPkgNameStyle.Render(successStrs...)
-	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
-
-	cellsRemaining := maxInt(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
-	gap := strings.Repeat(" ", cellsRemaining)
-
-	return spin + info + gap + prog + pkgCount
-}
-
-type syncedDataMsg string
-
-func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
-	return func() tea.Msg {
-		errgrp, errctx := errgroup.WithContext(ctx)
-		for _, cfg := range configs {
-			cfg := cfg
-			errgrp.Go(func() error {
-				log.Printf("Syncing table %s \n", cfg.Name)
-				err := syncData(errctx, cfg)
-				if err != nil {
-					fmt.Printf("Error syncing table: %s \n", err.Error()) //nolint:forbidigo
-					return err
-				}
-				return nil
-			})
-		}
-
-		if err := errgrp.Wait(); err != nil {
-			tea.Printf("Error syncing data: %s \n", err.Error())
-			return tea.Quit
-		}
-
-		message := ""
-		for _, config := range configs {
-			message = fmt.Sprintf("%s, %s", message, config.Name)
-		}
-		return syncedDataMsg(message)
-	}
-}
-
 type schemaConfig struct {
 	Schemas                    []*mgmtv1alpha1.DatabaseColumn
 	TableConstraints           map[string][]*sql_manager.ForeignConstraint
 	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
 	InitTableStatementsMap     map[string]string
 	TruncateTableStatementsMap map[string]string
+	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
 
 func getConnectionSchemaConfig(
@@ -1043,6 +862,7 @@ func getConnectionSchemaConfig(
 	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
 	var initTableStatementsMap map[string]string
 	var truncateTableStatementsMap map[string]string
+	var initSchemaStatements []*mgmtv1alpha1.SchemaInitStatements
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
 		schemaResp, err := connectiondataclient.GetConnectionSchema(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
@@ -1057,20 +877,12 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		fkConnectionResp, err := connectiondataclient.GetConnectionForeignConstraints(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
+		constraintConnectionResp, err := connectiondataclient.GetConnectionTableConstraints(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionTableConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
 		if err != nil {
 			return err
 		}
-		tableConstraints = fkConnectionResp.Msg.GetTableConstraints()
-		return nil
-	})
-
-	errgrp.Go(func() error {
-		pkConnectionResp, err := connectiondataclient.GetConnectionPrimaryConstraints(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
-		if err != nil {
-			return err
-		}
-		tablePrimaryKeys = pkConnectionResp.Msg.GetTableConstraints()
+		tableConstraints = constraintConnectionResp.Msg.GetForeignKeyConstraints()
+		tablePrimaryKeys = constraintConnectionResp.Msg.GetPrimaryKeyConstraints()
 		return nil
 	})
 
@@ -1081,6 +893,7 @@ func getConnectionSchemaConfig(
 		}
 		initTableStatementsMap = initStatementsResp.GetTableInitStatements()
 		truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
+		initSchemaStatements = initStatementsResp.GetSchemaInitStatements()
 		return nil
 	})
 	if err := errgrp.Wait(); err != nil {
@@ -1093,13 +906,13 @@ func getConnectionSchemaConfig(
 			var foreignKey *sql_manager.ForeignKey
 			if fk.ForeignKey != nil {
 				foreignKey = &sql_manager.ForeignKey{
-					Table:   fk.ForeignKey.Table,
-					Columns: []string{fk.ForeignKey.Column},
+					Table:   fk.GetForeignKey().GetTable(),
+					Columns: fk.GetForeignKey().GetColumns(),
 				}
 			}
 			fkConstraints = append(fkConstraints, &sql_manager.ForeignConstraint{
-				Columns:     []string{fk.Column},
-				NotNullable: []bool{!fk.IsNullable},
+				Columns:     fk.GetColumns(),
+				NotNullable: fk.GetNotNullable(),
 				ForeignKey:  foreignKey,
 			})
 		}
@@ -1112,6 +925,7 @@ func getConnectionSchemaConfig(
 		TablePrimaryKeys:           tablePrimaryKeys,
 		InitTableStatementsMap:     initTableStatementsMap,
 		TruncateTableStatementsMap: truncateTableStatementsMap,
+		InitSchemaStatements:       initSchemaStatements,
 	}, nil
 }
 
@@ -1159,24 +973,37 @@ func getDestinationSchemaConfig(
 		}
 	}
 
-	initTableStatementsMap := map[string]string{}
-	for t := range tableColMap {
-		statements := []string{}
-		if cmd.Destination.TruncateBeforeInsert {
-			if cmd.Destination.TruncateCascade {
-				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", t))
-			} else {
-				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s;", t))
+	truncateTableStatementsMap := map[string]string{}
+	if cmd.Destination.Driver == postgresDriver {
+		if cmd.Destination.TruncateCascade {
+			for t := range tableColMap {
+				schema, table := sqlmanager_shared.SplitTableKey(t)
+				stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(schema, table)
+				if err != nil {
+					return nil, err
+				}
+				truncateTableStatementsMap[t] = stmt
 			}
 		}
-		initTableStatementsMap[t] = strings.Join(statements, "\n")
+		// truncate before insert handled in runDestinationInitStatements
+	} else {
+		if cmd.Destination.TruncateBeforeInsert {
+			for t := range tableColMap {
+				schema, table := sqlmanager_shared.SplitTableKey(t)
+				stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schema, table)
+				if err != nil {
+					return nil, err
+				}
+				truncateTableStatementsMap[t] = stmt
+			}
+		}
 	}
 
 	return &schemaConfig{
-		Schemas:                schemaResp.Msg.GetSchemas(),
-		TableConstraints:       tableConstraints.ForeignKeyConstraints,
-		TablePrimaryKeys:       primaryKeys,
-		InitTableStatementsMap: initTableStatementsMap,
+		Schemas:                    schemaResp.Msg.GetSchemas(),
+		TableConstraints:           tableConstraints.ForeignKeyConstraints,
+		TablePrimaryKeys:           primaryKeys,
+		TruncateTableStatementsMap: truncateTableStatementsMap,
 	}, nil
 }
 
@@ -1195,56 +1022,6 @@ func getDestinationTableConstraints(ctx context.Context, sqlmanagerclient sqlman
 	}
 
 	return constraints, nil
-}
-
-func getDependencyConfigs(
-	tc map[string][]*sql_manager.ForeignConstraint,
-	tableColMap map[string][]string,
-	primaryKeyMap map[string][]string,
-) (map[string][]*tabledependency.RunConfig, error) {
-	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, map[string]string{}, primaryKeyMap, tableColMap)
-	if err != nil {
-		return nil, err
-	}
-	dependencyMap := map[string][]*tabledependency.RunConfig{}
-	for _, cfg := range dependencyConfigs {
-		_, ok := dependencyMap[cfg.Table]
-		if ok {
-			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
-		} else {
-			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
-		}
-	}
-	return dependencyMap, nil
-}
-
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
-	count := 0
-	for _, group := range groupedConfigs {
-		for _, config := range group {
-			if config != nil {
-				count++
-			}
-		}
-	}
-	return count
-}
-
-func computeMaxPgBatchCount(numCols int) int {
-	if numCols < 1 {
-		return maxPgParamLimit
-	}
-	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
-}
-
-func clampInt(input, low, high int) int {
-	if input < low {
-		return low
-	}
-	if input > high {
-		return high
-	}
-	return input
 }
 
 func buildPlainInsertArgs(cols []string) string {
@@ -1281,57 +1058,4 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 		return postgresConnection, nil
 	}
 	return "", errors.New("unsupported connection type")
-}
-
-func buildPostgresUpdateQuery(schema, table string, columns, primaryKeys []string) string {
-	values := make([]string, len(columns))
-	var where string
-	paramCount := 1
-	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = $%d", sqlmanager_postgres.EscapePgColumn(col), paramCount)
-		paramCount++
-	}
-	if len(primaryKeys) > 0 {
-		clauses := []string{}
-		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", sqlmanager_postgres.EscapePgColumn(col), paramCount))
-			paramCount++
-		}
-		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
-	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("%q.%q", schema, table), strings.Join(values, ", "), where)
-}
-
-func buildPostgresInsertQuery(schema, table string, columns []string) string {
-	values := make([]string, len(columns))
-	paramCount := 1
-	for i := range columns {
-		values[i] = fmt.Sprintf("$%d", paramCount)
-		paramCount++
-	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("%q.%q", schema, table), strings.Join(sqlmanager_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
-}
-
-func buildMysqlInsertQuery(schema, table string, columns []string) string {
-	values := make([]string, len(columns))
-	for i := range columns {
-		values[i] = "?"
-	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(sqlmanager_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
-}
-
-func buildMysqlUpdateQuery(schema, table string, columns, primaryKeys []string) string {
-	values := make([]string, len(columns))
-	var where string
-	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = ?", sqlmanager_mysql.EscapeMysqlColumn(col))
-	}
-	if len(primaryKeys) > 0 {
-		clauses := []string{}
-		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", sqlmanager_mysql.EscapeMysqlColumn(col)))
-		}
-		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
-	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(values, ", "), where)
 }
