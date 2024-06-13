@@ -61,7 +61,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 			return nil, fmt.Errorf("unable to parse dsn into pg config: %w", err)
 		}
 		config.ConnConfig.Tracer = &tracelog.TraceLog{
-			Logger:   pgxslog.NewLogger(s.logger),
+			Logger:   pgxslog.NewLogger(s.logger, pgxslog.GetShouldOmitArgs()),
 			LogLevel: pgxslog.GetDatabaseLogLevel(),
 		}
 		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
@@ -88,7 +88,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		return nil, err
 	}
 	config.ConnConfig.Tracer = &tracelog.TraceLog{
-		Logger:   pgxslog.NewLogger(s.logger),
+		Logger:   pgxslog.NewLogger(s.logger, pgxslog.GetShouldOmitArgs()),
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
