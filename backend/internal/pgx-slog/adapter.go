@@ -55,7 +55,7 @@ func GetDatabaseLogLevel() tracelog.LogLevel {
 	input := viper.GetString("DB_LOG_LEVEL")
 	ll, err := tracelog.LogLevelFromString(strings.ToLower(input))
 	if err != nil {
-		return tracelog.LogLevelDebug
+		return tracelog.LogLevelNone
 	}
 	return ll
 }
