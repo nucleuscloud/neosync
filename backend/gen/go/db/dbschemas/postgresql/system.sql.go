@@ -30,6 +30,20 @@ trigger_functions AS (
     JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
     WHERE t.tgrelid IN (SELECT oid FROM relevant_schemas_tables)
     AND NOT t.tgisinternal
+),
+column_default_functions AS (
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        p.proname AS function_name,
+        pg_catalog.pg_get_functiondef(p.oid) AS definition,
+        pg_catalog.pg_get_function_identity_arguments(p.oid) AS function_signature
+    FROM pg_catalog.pg_attrdef ad
+    JOIN pg_catalog.pg_depend d ON ad.oid = d.objid
+    JOIN pg_catalog.pg_proc p ON d.refobjid = p.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE ad.adrelid IN (SELECT oid FROM relevant_schemas_tables)
+    AND d.refclassid = 'pg_proc'::regclass
+    AND d.classid = 'pg_attrdef'::regclass
 )
 SELECT
     schema_name,
@@ -38,6 +52,14 @@ SELECT
     definition
 FROM
     trigger_functions
+UNION
+SELECT
+    schema_name,
+    function_name,
+    function_signature,
+    definition
+FROM
+    column_default_functions
 ORDER BY
     schema_name,
     function_name

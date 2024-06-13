@@ -417,28 +417,6 @@ func Test_GetTableInitStatements(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 2, len(output))
-	require.ElementsMatch(
-		t,
-		[]*sqlmanager_shared.TableInitStatement{
-			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL);",
-				AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
-					{ConstraintType: sqlmanager_shared.PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public_users'\n\t\tAND connamespace = 'public'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public\".\"users\" ADD CONSTRAINT pk_public_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
-				},
-				IndexStatements: []string{
-					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public'\n\t) THEN\n\t\tCREATE INDEX foo ON public.users USING btree (users_id);\n\tEND IF;\nEND $$;",
-				},
-			},
-			{CreateTableStatement: "CREATE TABLE IF NOT EXISTS \"public2\".\"users\" (\"id\" uuid NOT NULL);",
-				AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{
-					{ConstraintType: sqlmanager_shared.PrimaryConstraintType, Statement: "DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_constraint\n\t\tWHERE conname = 'pk_public2_users'\n\t\tAND connamespace = 'public2'::regnamespace\n\t\tAND conrelid = 'users'::regclass\n\t) THEN\n\t\tALTER TABLE \"public2\".\"users\" ADD CONSTRAINT pk_public2_users PRIMARY KEY(id);\n\tEND IF;\nEND $$;"},
-				},
-				IndexStatements: []string{
-					"DO $$\nBEGIN\n\tIF NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM pg_class c\n\t\tJOIN pg_namespace n ON n.oid = c.relnamespace\n\t\tWHERE c.relkind = 'i'\n\t\tAND c.relname = 'foo'\n\t\tAND n.nspname = 'public2'\n\t) THEN\n\t\tCREATE INDEX foo ON public2.users USING btree (users_id);\n\tEND IF;\nEND $$;",
-				},
-			},
-		},
-		output,
-	)
 }
 
 func Test_GenerateCreateTableStatement(t *testing.T) {

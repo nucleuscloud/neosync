@@ -603,12 +603,17 @@ BEGIN
 		FROM pg_constraint
 		WHERE conname = '%s'
 		AND connamespace = '%s'::regnamespace
-		AND conrelid = '%s'::regclass
+		AND conrelid = (
+			SELECT oid
+			FROM pg_class
+			WHERE relname = '%s'
+			AND relnamespace = '%s'::regnamespace
+		)
 	) THEN
 		%s
 	END IF;
 END $$;
-	`, constraintName, schema, table, addSuffixIfNotExist(alterStatement, ";"))
+	`, constraintName, schema, table, schema, addSuffixIfNotExist(alterStatement, ";"))
 	return strings.TrimSpace(stmt)
 }
 
