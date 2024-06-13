@@ -71,7 +71,8 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Badge
             className={cn(
               'bg-blue-600 hover:bg-blue-500',
-              sharedContainerClassName
+              sharedBadgeClassName,
+              badgeClassName
             )}
           >
             <Spinner className="w-3 h-3" /> <p>Running</p>
@@ -84,7 +85,8 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Badge
             className={cn(
               'bg-purple-600  hover:bg-purple-500',
-              sharedBadgeClassName
+              sharedBadgeClassName,
+              badgeClassName
             )}
           >
             <Spinner className="w-3 h-3" /> <p>Pending</p>
@@ -97,7 +99,8 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Badge
             className={cn(
               'bg-gray-600  hover:bg-gray-500',
-              sharedBadgeClassName
+              sharedBadgeClassName,
+              badgeClassName
             )}
           >
             <ExclamationTriangleIcon className="w-3 h-3" /> <p>Terminated</p>
@@ -110,7 +113,8 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Badge
             className={cn(
               'bg-gray-600  hover:bg-gray-500',
-              sharedBadgeClassName
+              sharedBadgeClassName,
+              badgeClassName
             )}
           >
             <ExclamationTriangleIcon className="w-3 h-3" /> <p>Canceled</p>
@@ -123,7 +127,8 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Badge
             className={cn(
               'bg-yellow-600  hover:bg-yellow-500',
-              sharedBadgeClassName
+              sharedBadgeClassName,
+              badgeClassName
             )}
           >
             <ClockIcon className="w-3 h-3" /> <p>Timed Out</p>
