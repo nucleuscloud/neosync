@@ -83,11 +83,11 @@ This topic is further discussed [here](https://www.civo.com/learn/fixing-network
 
 Neosync currently supports debugging database queries for Postgres connections.
 
-Database queries are logged by default at the log level `DEBUG`.
-The default log level for the api and worker are `INFO`. If you wish to enable this, you can change the `LOG_LEVEL` environment variable to `DEBUG`.
-If you'd instead like to lower the database logging, the `DB_LOG_LEVEL` environment variable may be specified to change the level at which database queries are logged.
+Database query logging is by default turned off, which is equivalent to setting `DB_LOG_LEVEL=none`.
 
-To fully disable database logging regardless of the system log level, set `DB_LOG_LEVEL=none`.
+This log level works similar to Neosync's standard `LOG_LEVEL` where you can set values to emit certain levels of database logging.
+To see only queryies that result in an error, set the `DB_LOG_LEVEL` to `error`.
+If you'd like to see all queries, set the log level to `INFO` or `DEBUG`.
 
 Valid options for `DB_LOG_LEVEL` are (not case sensitive):
 
@@ -98,6 +98,4 @@ Valid options for `DB_LOG_LEVEL` are (not case sensitive):
 - error
 - none
 
-Note, Neosync uses `slog/logger` for all of it's logging and does not natively support `trace`. The adapter will set it to debug level - 1.
-
-**Note** - When turning on database logging, the statements **include arguments**. So if planning to run this in any production environment, you may leak, PII or other sensitive information.
+**Note** - When turning on database logging, the statements **include arguments**. So if planning to run this in any production environment, you may leak PII or other sensitive information. Work is in progress to allow omitting the arguments from the logging to include only statements.

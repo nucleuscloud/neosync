@@ -38,7 +38,7 @@ func (l *Logger) Log(ctx context.Context, level tracelog.LogLevel, msg string, d
 	case tracelog.LogLevelDebug:
 		lvl = slog.LevelDebug
 	case tracelog.LogLevelInfo:
-		lvl = slog.LevelInfo
+		lvl = slog.LevelDebug
 	case tracelog.LogLevelWarn:
 		lvl = slog.LevelWarn
 	case tracelog.LogLevelError:
@@ -55,7 +55,7 @@ func GetDatabaseLogLevel() tracelog.LogLevel {
 	input := viper.GetString("DB_LOG_LEVEL")
 	ll, err := tracelog.LogLevelFromString(strings.ToLower(input))
 	if err != nil {
-		return tracelog.LogLevelDebug
+		return tracelog.LogLevelNone
 	}
 	return ll
 }
