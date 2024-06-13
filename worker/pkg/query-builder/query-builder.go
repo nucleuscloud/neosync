@@ -70,6 +70,19 @@ func BuildSelectQuery(
 	return formatSqlQuery(sql), nil
 }
 
+func BuildSelectLimitQuery(
+	driver, table string,
+	limit uint,
+) (string, error) {
+	builder := goqu.Dialect(driver)
+	sqltable := goqu.I(table)
+	sql, _, err := builder.From((sqltable)).Limit(limit).ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return sql, nil
+}
+
 func BuildSelectJoinQuery(
 	driver, table string,
 	columns []string,

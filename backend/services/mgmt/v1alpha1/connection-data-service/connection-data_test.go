@@ -508,7 +508,7 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 		},
 	})
 
-	expectedTruncate := `TRUNCATE "public"."users";`
+	expectedTruncate := "TRUNCATE `public`.`users`;"
 	require.Nil(t, err)
 	require.Len(t, resp.Msg.TableInitStatements, 0)
 	require.Len(t, resp.Msg.TableTruncateStatements, 1)
