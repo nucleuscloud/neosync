@@ -65,7 +65,6 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 		Logger:   pgxslog.NewLogger(slog.Default()),
 		LogLevel: pgxslog.GetDatabaseLogLevel(),
 	}
-	pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgxconfig)
 	if err != nil {
