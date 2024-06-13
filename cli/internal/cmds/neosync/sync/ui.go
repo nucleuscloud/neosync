@@ -118,9 +118,13 @@ func (m *model) View() string {
 		processingTables = append(processingTables, config.Name)
 	}
 
-	pkgName := currentPkgNameStyle.Render(strings.Join(processingTables, "\n"))
+	var pkgName string
+	if len(processingTables) > 5 {
+		pkgName = currentPkgNameStyle.Render(fmt.Sprintf("%s \n + %d others...", strings.Join(processingTables[:5], "\n"), len(processingTables)))
+	} else {
+		pkgName = currentPkgNameStyle.Render(strings.Join(processingTables, "\n"))
+	}
 	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgCount + " \n" + pkgName)
-
 	return printlog.Render("\n") + spin + info
 }
 
@@ -130,6 +134,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
+		errgrp.SetLimit(5)
 		for _, cfg := range configs {
 			cfg := cfg
 			errgrp.Go(func() error {
@@ -153,7 +158,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 		}
 
 		results := map[string]string{}
-		//nolint:forbidigo
+		//nolint:gofmt
 		messageMap.Range(func(key, value interface{}) bool {
 			d := value.(time.Duration)
 			results[key.(string)] = fmt.Sprintf("%s %s %s", checkMark, key,
