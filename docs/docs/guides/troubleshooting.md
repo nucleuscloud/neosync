@@ -86,7 +86,7 @@ Neosync currently supports debugging database queries for Postgres connections.
 Database query logging is by default turned off, which is equivalent to setting `DB_LOG_LEVEL=none`.
 
 This log level works similar to Neosync's standard `LOG_LEVEL` where you can set values to emit certain levels of database logging.
-To see only queryies that result in an error, set the `DB_LOG_LEVEL` to `error`.
+To see only queries that result in an error, set the `DB_LOG_LEVEL` to `error`.
 If you'd like to see all queries, set the log level to `INFO` or `DEBUG`.
 
 Valid options for `DB_LOG_LEVEL` are (not case sensitive):
