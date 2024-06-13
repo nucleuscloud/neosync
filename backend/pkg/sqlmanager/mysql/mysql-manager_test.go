@@ -94,6 +94,8 @@ func Test_GetForeignKeyConstraintsMap_Mysql(t *testing.T) {
 		{ConstraintName: "fk_user_identity_provider_user_id", SchemaName: "neosync_api", TableName: "user_identity_provider_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
 	}
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mockPool, "neosync_api").Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetUniqueConstraints", mock.Anything, mockPool, "neosync_api").Return([]*mysql_queries.GetUniqueConstraintsRow{}, nil)
 
 	expected := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"neosync_api.account_user_associations": {
@@ -159,6 +161,8 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases_Mysql(t *testing.T) {
 	}
 
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mockPool, "neosync_api").Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetUniqueConstraints", mock.Anything, mockPool, "neosync_api").Return([]*mysql_queries.GetUniqueConstraintsRow{}, nil)
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"neosync_api"})
 	require.NoError(t, err)
@@ -212,6 +216,8 @@ func Test_GetPrimaryKeyConstraintsMap_Mysql(t *testing.T) {
 			},
 		}, nil,
 	)
+	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "public").Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetUniqueConstraints", mock.Anything, mockPool, "public").Return([]*mysql_queries.GetUniqueConstraintsRow{}, nil)
 
 	expected := map[string][]string{
 		"public.users":     {"id"},
@@ -265,6 +271,8 @@ func Test_GetUniqueConstraintsMap_Mysql(t *testing.T) {
 			},
 		}, nil,
 	)
+	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "public").Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mockPool, "public").Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{}, nil)
 
 	expected := map[string][][]string{
 		"public.person": {{"name", "email"}},
