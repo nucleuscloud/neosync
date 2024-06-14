@@ -98,7 +98,8 @@ FROM
     information_schema.TABLE_PRIVILEGES AS tp
 WHERE
     tp.TABLE_SCHEMA NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
-    AND (tp.GRANTEE = CONCAT("'", CURRENT_USER(), "'@'%'") OR tp.GRANTEE = "'public'@'%'")
+    AND (tp.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'"))
 ORDER BY
     tp.TABLE_SCHEMA,
     tp.TABLE_NAME;
+
