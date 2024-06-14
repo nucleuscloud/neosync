@@ -204,11 +204,33 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 		}
 	}
+	// hack to remove update configs when only syncing to s3
+	if isS3OnlyDestination(job.Destinations) {
+		filteredResponses := []*BenthosConfigResponse{}
+		for _, r := range responses {
+			if r.RunType == tabledependency.RunTypeInsert {
+				filteredResponses = append(filteredResponses, r)
+			}
+		}
+		slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(filteredResponses)))
+		return &GenerateBenthosConfigsResponse{
+			BenthosConfigs: filteredResponses,
+		}, nil
+	}
 
 	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func isS3OnlyDestination(destinations []*mgmtv1alpha1.JobDestination) bool {
+	for _, dest := range destinations {
+		if dest.GetOptions().GetAwsS3Options() == nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (b *benthosBuilder) getJobById(
