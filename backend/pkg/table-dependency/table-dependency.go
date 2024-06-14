@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type RunType string
@@ -56,7 +57,7 @@ func GetRunConfigs(
 
 	// dedupe table columns
 	for table, cols := range tableColumnsMap {
-		tableColumnsMap[table] = dedupeSlice(cols)
+		tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
 	}
 
 	for table, constraints := range dependencyMap {
@@ -85,7 +86,7 @@ func GetRunConfigs(
 	}
 
 	for table, deps := range filteredDepsMap {
-		filteredDepsMap[table] = dedupeSlice(deps)
+		filteredDepsMap[table] = utils.DedupeSliceOrdered(deps)
 	}
 
 	// create map containing all tables to track when each is processed
@@ -684,16 +685,4 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 	}
 	return true
-}
-
-func dedupeSlice(input []string) []string {
-	set := map[string]any{}
-	for _, i := range input {
-		set[i] = struct{}{}
-	}
-	output := make([]string, 0, len(set))
-	for key := range set {
-		output = append(output, key)
-	}
-	return output
 }
