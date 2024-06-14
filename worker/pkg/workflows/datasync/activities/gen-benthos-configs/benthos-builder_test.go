@@ -2099,7 +2099,7 @@ output:
                 - aws_s3:
                     bucket: s3-bucket
                     max_in_flight: 64
-                    path: /workflows/123/activities/public.users/data/${!count("files")}.txt.gz
+                    path: workflows/123/activities/public.users/data/${!count("files")}.txt.gz
                     batching:
                         count: 100
                         byte_size: 0
@@ -2231,7 +2231,7 @@ output:
                 - aws_s3:
                     bucket: s3-bucket
                     max_in_flight: 64
-                    path: /workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
+                    path: workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
                     batching:
                         count: 100
                         byte_size: 0
