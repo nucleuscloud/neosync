@@ -321,17 +321,19 @@ GROUP BY
 
 -- name: GetPostgresRolePermissions :many
 SELECT
-    rtg.table_schema as table_schema,
-    rtg.table_name as table_name,
-    rtg.privilege_type as privilege_type
+    tp.grantee,
+    tp.table_schema,
+    tp.table_name,
+    tp.privilege_type
 FROM
-    information_schema.role_table_grants as rtg
+    information_schema.table_privileges AS tp
 WHERE
-    table_schema NOT IN ('pg_catalog', 'information_schema')
-AND grantee =  sqlc.arg('role')
+    tp.table_schema NOT IN ('pg_catalog', 'information_schema')
+AND (tp.grantee = current_user OR tp.grantee = 'PUBLIC')
 ORDER BY
-    table_schema,
-    table_name;
+    tp.table_schema,
+    tp.table_name;
+
 
 -- name: GetIndicesBySchemasAndTables :many
 SELECT
