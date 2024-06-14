@@ -495,6 +495,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a
@@ -508,7 +509,7 @@ column_defaults AS (
         AND c.relkind = 'r'
 )
 SELECT
-    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.identity_generation, cd.table_oid,
     CASE
         WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
         WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
@@ -535,6 +536,7 @@ type GetDatabaseSchemaRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
 }
@@ -560,6 +562,7 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
 		); err != nil {
@@ -647,6 +650,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a
@@ -660,7 +664,7 @@ column_defaults AS (
         AND c.relkind = 'r'
 )
 SELECT
-    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.identity_generation, cd.table_oid,
     CASE
         WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
         WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
@@ -687,6 +691,7 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
 }
@@ -712,6 +717,7 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
 		); err != nil {

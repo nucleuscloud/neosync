@@ -72,6 +72,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a
@@ -173,6 +174,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a

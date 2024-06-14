@@ -20,6 +20,7 @@ type DatabaseSchemaRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          *string
+	IdentityGeneration     *string
 }
 
 type ForeignKeyConstraintsRow struct {
