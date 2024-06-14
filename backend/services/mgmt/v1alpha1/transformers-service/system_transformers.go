@@ -93,7 +93,7 @@ var (
 			},
 		},
 		{
-			Name:              "Generate Default",
+			Name:              "Use Column Default",
 			Description:       "Defers to the database column default",
 			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_ANY, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},

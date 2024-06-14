@@ -89,6 +89,10 @@ function shouldIncludeSystem(
   if (filters.isGenerated) {
     return transformer.source === TransformerSource.GENERATE_DEFAULT;
   }
+  // if identitytype is 'a', which means always, no value may be provided other than the database default
+  if (filters.identityType === 'a') {
+    return transformer.source === TransformerSource.GENERATE_DEFAULT;
+  }
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
     return filters.hasDefault;
   }
@@ -142,6 +146,7 @@ export interface TransformerFilters {
   isNullable: boolean;
   hasDefault: boolean;
   isGenerated: boolean;
+  identityType?: string;
   jobType: SupportedJobType;
 }
 
