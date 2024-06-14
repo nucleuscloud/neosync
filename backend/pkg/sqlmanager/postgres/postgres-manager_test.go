@@ -244,7 +244,7 @@ func Test_GetRolePermissionsMap(t *testing.T) {
 		pool:    mockPool,
 	}
 
-	pgquerier.On("GetPostgresRolePermissions", mock.Anything, mockPool, "postgres").Return(
+	pgquerier.On("GetPostgresRolePermissions", mock.Anything, mockPool).Return(
 		[]*pg_queries.GetPostgresRolePermissionsRow{
 			{TableSchema: "public", TableName: "users", PrivilegeType: "INSERT"},
 			{TableSchema: "public", TableName: "users", PrivilegeType: "UPDATE"},

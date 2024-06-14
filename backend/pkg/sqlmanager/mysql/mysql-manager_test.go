@@ -299,7 +299,7 @@ func Test_GetRolePermissionsMap_Mysql(t *testing.T) {
 		pool:    mockPool,
 	}
 
-	mysqlquerier.On("GetMysqlRolePermissions", mock.Anything, mockPool, "postgres").Return(
+	mysqlquerier.On("GetMysqlRolePermissions", mock.Anything, mockPool).Return(
 		[]*mysql_queries.GetMysqlRolePermissionsRow{
 			{TableSchema: "public", TableName: "users", PrivilegeType: "INSERT"},
 			{TableSchema: "public", TableName: "users", PrivilegeType: "UPDATE"},
