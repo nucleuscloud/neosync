@@ -298,7 +298,7 @@ func updateCompletedMap(tableName string, completed *sync.Map, columns []string)
 	if loaded {
 		currCols, ok := val.([]string)
 		if !ok {
-			return fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+			return fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
 		}
 		currCols = append(currCols, columns...)
 		completed.Store(tableName, currCols)
@@ -322,7 +322,7 @@ func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, com
 		if loaded {
 			completedCols, ok := val.([]string)
 			if !ok {
-				return false, fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+				return false, fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
 			}
 			for _, dc := range dep.Columns {
 				if !slices.Contains(completedCols, dc) {
