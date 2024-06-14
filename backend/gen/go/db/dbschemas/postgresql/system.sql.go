@@ -549,12 +549,12 @@ SELECT
         WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
     END AS sequence_type,
-    ic.increment_by,
-    ic.min_value,
-    ic.max_value,
-    ic.start_value,
-    ic.cache_value,
-    ic.cycle_option
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -583,12 +583,12 @@ type GetDatabaseSchemaRow struct {
 	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
-	IncrementBy            *int64
-	MinValue               *int64
-	MaxValue               *int64
-	StartValue             *int64
-	CacheValue             *int64
-	CycleOption            *bool
+	SeqIncrementBy         *int64
+	SeqMinValue            *int64
+	SeqMaxValue            *int64
+	SeqStartValue          *int64
+	SeqCacheValue          *int64
+	SeqCycleOption         *bool
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -615,12 +615,12 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
-			&i.IncrementBy,
-			&i.MinValue,
-			&i.MaxValue,
-			&i.StartValue,
-			&i.CacheValue,
-			&i.CycleOption,
+			&i.SeqIncrementBy,
+			&i.SeqMinValue,
+			&i.SeqMaxValue,
+			&i.SeqStartValue,
+			&i.SeqCacheValue,
+			&i.SeqCycleOption,
 		); err != nil {
 			return nil, err
 		}
@@ -741,12 +741,12 @@ SELECT
         WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
     END AS sequence_type,
-    ic.increment_by,
-    ic.min_value,
-    ic.max_value,
-    ic.start_value,
-    ic.cache_value,
-    ic.cycle_option
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -775,12 +775,12 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
-	IncrementBy            *int64
-	MinValue               *int64
-	MaxValue               *int64
-	StartValue             *int64
-	CacheValue             *int64
-	CycleOption            *bool
+	SeqIncrementBy         *int64
+	SeqMinValue            *int64
+	SeqMaxValue            *int64
+	SeqStartValue          *int64
+	SeqCacheValue          *int64
+	SeqCycleOption         *bool
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -807,12 +807,12 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
-			&i.IncrementBy,
-			&i.MinValue,
-			&i.MaxValue,
-			&i.StartValue,
-			&i.CacheValue,
-			&i.CycleOption,
+			&i.SeqIncrementBy,
+			&i.SeqMinValue,
+			&i.SeqMaxValue,
+			&i.SeqStartValue,
+			&i.SeqCacheValue,
+			&i.SeqCycleOption,
 		); err != nil {
 			return nil, err
 		}

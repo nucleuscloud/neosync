@@ -107,12 +107,12 @@ SELECT
         WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
     END AS sequence_type,
-    ic.increment_by,
-    ic.min_value,
-    ic.max_value,
-    ic.start_value,
-    ic.cache_value,
-    ic.cycle_option
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
@@ -234,12 +234,12 @@ SELECT
         WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
     END AS sequence_type,
-    ic.increment_by,
-    ic.min_value,
-    ic.max_value,
-    ic.start_value,
-    ic.cache_value,
-    ic.cycle_option
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
