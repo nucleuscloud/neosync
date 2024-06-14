@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type RunType string
@@ -54,6 +55,11 @@ func GetRunConfigs(
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
 
+	// dedupe table columns
+	for table, cols := range tableColumnsMap {
+		tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
+	}
+
 	for table, constraints := range dependencyMap {
 		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
@@ -80,7 +86,7 @@ func GetRunConfigs(
 	}
 
 	for table, deps := range filteredDepsMap {
-		filteredDepsMap[table] = dedupeSlice(deps)
+		filteredDepsMap[table] = utils.DedupeSliceOrdered(deps)
 	}
 
 	// create map containing all tables to track when each is processed
@@ -635,7 +641,12 @@ func isValidRunOrder(configs []*RunConfig) bool {
 
 	configMap := map[string]*RunConfig{}
 	for _, config := range configs {
-		configMap[fmt.Sprintf("%s.%s", config.Table, config.RunType)] = config
+		configName := fmt.Sprintf("%s.%s", config.Table, config.RunType)
+		if _, exists := configMap[configName]; exists {
+			// configs should be unique
+			return false
+		}
+		configMap[configName] = config
 	}
 
 	prevTableLen := 0
@@ -674,16 +685,4 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 	}
 	return true
-}
-
-func dedupeSlice(input []string) []string {
-	set := map[string]any{}
-	for _, i := range input {
-		set[i] = struct{}{}
-	}
-	output := make([]string, 0, len(set))
-	for key := range set {
-		output = append(output, key)
-	}
-	return output
 }

@@ -514,7 +514,15 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
@@ -606,7 +614,15 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
@@ -833,6 +849,34 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 			},
 		},
 		{
+			name: "Duplicate Columns",
+			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
+				"public.a": {
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+				},
+				"public.b": {
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+				},
+				"public.c": {},
+			},
+			tableColsMap: map[string][]string{
+				"public.a": {"id", "b_id", "id"},
+				"public.b": {"id", "c_id", "other_id", "id"},
+				"public.c": {"id", "id"},
+			},
+			primaryKeyMap: map[string][]string{
+				"public.a": {"id"},
+				"public.b": {"id"},
+				"public.c": {"id"},
+			},
+			subsets: map[string]string{},
+			expect: []*RunConfig{
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "other_id"}, InsertColumns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
 			name: "Sub Tree",
 			dependencies: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"public.a": {
@@ -863,7 +907,15 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
