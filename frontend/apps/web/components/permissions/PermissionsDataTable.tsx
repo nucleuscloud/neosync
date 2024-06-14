@@ -92,7 +92,10 @@ export default function PermissionsDataTable<TData, TValue>({
         <StickyHeaderTable>
           <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="flex w-full px-2">
+              <TableRow
+                key={headerGroup.id}
+                className="flex justify-between w-full px-2"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -135,7 +138,7 @@ export default function PermissionsDataTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="flex absolute w-full px-2"
+                  className="flex absolute justify-between w-full px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
