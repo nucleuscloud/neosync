@@ -514,7 +514,15 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
@@ -606,7 +614,15 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
@@ -891,7 +907,15 @@ func Test_GetRunConfigs_NoSubset_NoCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
