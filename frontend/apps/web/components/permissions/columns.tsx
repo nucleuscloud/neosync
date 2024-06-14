@@ -43,6 +43,9 @@ export function getPermissionColumns(
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Role" />
           ),
+          cell: ({ getValue }) => {
+            return <p className="truncate">{getValue<string>()}</p>;
+          },
         },
 
         {

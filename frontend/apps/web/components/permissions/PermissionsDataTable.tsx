@@ -94,15 +94,15 @@ export default function PermissionsDataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex flex-row items-center justify-between w-full px-2"
+                className="flex justify-between w-full px-2"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      style={{ minWidth: `${header.column.getSize()}px` }}
+                      style={{ width: header.getSize() }}
                       colSpan={header.colSpan}
-                      className="flex items-center"
+                      className="flex w-full"
                     >
                       {header.isPlaceholder
                         ? null
@@ -117,7 +117,7 @@ export default function PermissionsDataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody
-            className="grid"
+            className="grid relative"
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}
@@ -138,15 +138,15 @@ export default function PermissionsDataTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full justify-between px-2"
+                  className="flex absolute justify-between w-full px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td
                         key={cell.id}
-                        className="py-2 text-sm"
+                        className="py-2 text-sm flex"
                         style={{
-                          minWidth: cell.column.getSize(),
+                          width: cell.column.getSize(),
                         }}
                       >
                         {flexRender(

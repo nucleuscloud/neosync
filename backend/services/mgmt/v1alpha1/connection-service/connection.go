@@ -40,7 +40,7 @@ func (s *Service) CheckConnectionConfig(
 			return nil, err
 		}
 		defer db.Db.Close()
-		schematablePrivsMap, err := db.Db.GetRolePermissionsMap(ctx, role)
+		schematablePrivsMap, err := db.Db.GetRolePermissionsMap(ctx)
 		if err != nil {
 			errmsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{

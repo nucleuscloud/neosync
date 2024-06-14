@@ -782,17 +782,17 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
 SELECT
-    rtg.table_schema as table_schema,
-    rtg.table_name as table_name,
-    rtg.privilege_type as privilege_type
+    tp.table_schema::text as table_schema,
+    tp.table_name::text as table_name,
+    tp.privilege_type::text as privilege_type
 FROM
-    information_schema.role_table_grants as rtg
+    information_schema.table_privileges AS tp
 WHERE
-    table_schema NOT IN ('pg_catalog', 'information_schema')
-AND grantee =  $1
+    tp.table_schema NOT IN ('pg_catalog', 'information_schema')
+AND (tp.grantee = current_user OR tp.grantee = 'PUBLIC')
 ORDER BY
-    table_schema,
-    table_name
+    tp.table_schema,
+    tp.table_name
 `
 
 type GetPostgresRolePermissionsRow struct {
@@ -801,8 +801,8 @@ type GetPostgresRolePermissionsRow struct {
 	PrivilegeType string
 }
 
-func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
-	rows, err := db.Query(ctx, getPostgresRolePermissions, role)
+func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error) {
+	rows, err := db.Query(ctx, getPostgresRolePermissions)
 	if err != nil {
 		return nil, err
 	}
