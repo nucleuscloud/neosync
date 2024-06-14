@@ -104,17 +104,17 @@ func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DB
 
 const getCustomSequencesBySchemaAndTables = `-- name: GetCustomSequencesBySchemaAndTables :many
 WITH relevant_schemas_tables AS (
-    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    SELECT c.oid AS table_oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = $1
-    AND c.relname = ANY($2::TEXT[])
+    AND c.relname = ANY(sql.arg('tables')::TEXT[])
 ),
-all_sequences AS (
+custom_sequences AS (
     SELECT
+        seq.oid AS sequence_oid,
         seq.relname AS sequence_name,
-        nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
+        nsp.nspname AS schema_name
     FROM
         pg_catalog.pg_class seq
     JOIN
@@ -122,70 +122,65 @@ all_sequences AS (
     WHERE
         seq.relkind = 'S'
 ),
-linked_to_serial AS (
+columns_with_custom_sequences AS (
     SELECT
-        seq.relname AS sequence_name,
+        att.attrelid AS table_oid,
+        cls.relname AS table_name,
         nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
+        att.attname AS column_name,
+        seqs.sequence_name,
+        seqs.schema_name AS sequence_schema_name
     FROM
-        pg_catalog.pg_class seq
+        pg_catalog.pg_attribute att
     JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+        pg_catalog.pg_class cls ON att.attrelid = cls.oid
     JOIN
-        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+        pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
     JOIN
-        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+        pg_catalog.pg_attrdef ad ON att.attrelid = ad.adrelid AND att.attnum = ad.adnum
+    JOIN
+        custom_sequences seqs ON pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE '%' || seqs.sequence_name || '%'
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
-),
-custom_sequences AS (
-    SELECT
-        seq.sequence_name,
-        seq.schema_name,
-        seq.sequence_oid
-    FROM
-        all_sequences seq
-    LEFT JOIN
-        linked_to_serial serial ON seq.sequence_oid = serial.sequence_oid
-    WHERE
-        serial.sequence_oid IS NULL
+        att.attnum > 0
+        AND NOT att.attisdropped
+        AND att.attidentity = ''
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pg_catalog.pg_depend dep
+            WHERE dep.objid = seqs.sequence_oid
+            AND dep.refobjid = att.attrelid
+            AND dep.refobjsubid = att.attnum
+            AND dep.classid = 'pg_catalog.pg_class'::regclass
+            AND dep.refclassid = 'pg_catalog.pg_class'::regclass
+            AND dep.deptype = 'a'
+        )
 )
-SELECT DISTINCT
-    cs.schema_name,
-    cs.sequence_name,
-    (
-        'CREATE SEQUENCE ' || cs.schema_name || '.' || cs.sequence_name ||
-        ' START WITH ' || seqs.start_value ||
-        ' INCREMENT BY ' || seqs.increment_by ||
-        ' MINVALUE ' || seqs.min_value ||
-        ' MAXVALUE ' || seqs.max_value ||
-        ' CACHE ' || seqs.cache_size ||
-        CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
-    )::text AS "definition"
+SELECT
+    rst.schema_name,
+    rst.table_name,
+    cws.column_name,
+    cws.sequence_schema_name,
+    cws.sequence_name
 FROM
-    custom_sequences cs
+    relevant_schemas_tables rst
 JOIN
-    relevant_schemas_tables rst ON cs.schema_name = rst.schema_name
-JOIN
-    pg_catalog.pg_sequences seqs ON seqs.schemaname = cs.schema_name AND seqs.sequencename = cs.sequence_name
+    columns_with_custom_sequences cws ON rst.table_oid = cws.table_oid
 ORDER BY
-    cs.schema_name,
-    cs.sequence_name
+    rst.schema_name,
+    rst.table_name,
+    cws.column_name
 `
 
-type GetCustomSequencesBySchemaAndTablesParams struct {
-	Schema string
-	Tables []string
-}
-
 type GetCustomSequencesBySchemaAndTablesRow struct {
-	SchemaName   string
-	SequenceName string
-	Definition   string
+	SchemaName         string
+	TableName          string
+	ColumnName         string
+	SequenceSchemaName string
+	SequenceName       string
 }
 
-func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, arg.Schema, arg.Tables)
+func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, schema)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +188,13 @@ func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DB
 	var items []*GetCustomSequencesBySchemaAndTablesRow
 	for rows.Next() {
 		var i GetCustomSequencesBySchemaAndTablesRow
-		if err := rows.Scan(&i.SchemaName, &i.SequenceName, &i.Definition); err != nil {
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.SequenceSchemaName,
+			&i.SequenceName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
