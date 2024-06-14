@@ -39,6 +39,11 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			generatedTypeCopy := row.GeneratedType
 			generatedType = &generatedTypeCopy
 		}
+		var identityGeneration *string
+		if row.IdentityGeneration != "" {
+			val := row.IdentityGeneration
+			identityGeneration = &val
+		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.SchemaName,
 			TableName:              row.TableName,
@@ -51,6 +56,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			NumericScale:           row.NumericScale,
 			OrdinalPosition:        row.OrdinalPosition,
 			GeneratedType:          generatedType,
+			IdentityGeneration:     identityGeneration,
 		})
 	}
 	return result, nil
@@ -419,6 +425,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 				IsNullable:    td.IsNullable == "YES",
 				GeneratedType: td.GeneratedType,
 				IsSerial:      td.SequenceType == "SERIAL", //nolint:goconst
+				// todo: update to include identity generation
 			}))
 		}
 
