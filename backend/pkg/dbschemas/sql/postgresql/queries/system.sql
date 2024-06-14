@@ -321,10 +321,9 @@ GROUP BY
 
 -- name: GetPostgresRolePermissions :many
 SELECT
-    tp.grantee,
-    tp.table_schema,
-    tp.table_name,
-    tp.privilege_type
+    tp.table_schema::text as table_schema,
+    tp.table_name::text as table_name,
+    tp.privilege_type::text as privilege_type
 FROM
     information_schema.table_privileges AS tp
 WHERE

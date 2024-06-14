@@ -266,9 +266,9 @@ func (_c *MockSqlDatabase_GetDatabaseSchema_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// GetRolePermissionsMap provides a mock function with given fields: ctx, role
-func (_m *MockSqlDatabase) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {
-	ret := _m.Called(ctx, role)
+// GetRolePermissionsMap provides a mock function with given fields: ctx
+func (_m *MockSqlDatabase) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
+	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRolePermissionsMap")
@@ -276,19 +276,19 @@ func (_m *MockSqlDatabase) GetRolePermissionsMap(ctx context.Context, role strin
 
 	var r0 map[string][]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (map[string][]string, error)); ok {
-		return rf(ctx, role)
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string][]string, error)); ok {
+		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) map[string][]string); ok {
-		r0 = rf(ctx, role)
+	if rf, ok := ret.Get(0).(func(context.Context) map[string][]string); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, role)
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -303,14 +303,13 @@ type MockSqlDatabase_GetRolePermissionsMap_Call struct {
 
 // GetRolePermissionsMap is a helper method to define mock.On call
 //   - ctx context.Context
-//   - role string
-func (_e *MockSqlDatabase_Expecter) GetRolePermissionsMap(ctx interface{}, role interface{}) *MockSqlDatabase_GetRolePermissionsMap_Call {
-	return &MockSqlDatabase_GetRolePermissionsMap_Call{Call: _e.mock.On("GetRolePermissionsMap", ctx, role)}
+func (_e *MockSqlDatabase_Expecter) GetRolePermissionsMap(ctx interface{}) *MockSqlDatabase_GetRolePermissionsMap_Call {
+	return &MockSqlDatabase_GetRolePermissionsMap_Call{Call: _e.mock.On("GetRolePermissionsMap", ctx)}
 }
 
-func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) Run(run func(ctx context.Context, role string)) *MockSqlDatabase_GetRolePermissionsMap_Call {
+func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) Run(run func(ctx context.Context)) *MockSqlDatabase_GetRolePermissionsMap_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -320,7 +319,7 @@ func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) Return(_a0 map[string][]st
 	return _c
 }
 
-func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) RunAndReturn(run func(context.Context, string) (map[string][]string, error)) *MockSqlDatabase_GetRolePermissionsMap_Call {
+func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) RunAndReturn(run func(context.Context) (map[string][]string, error)) *MockSqlDatabase_GetRolePermissionsMap_Call {
 	_c.Call.Return(run)
 	return _c
 }

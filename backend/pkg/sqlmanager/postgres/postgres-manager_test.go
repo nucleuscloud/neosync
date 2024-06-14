@@ -259,7 +259,7 @@ func Test_GetRolePermissionsMap(t *testing.T) {
 		"other.accounts": {"INSERT"},
 	}
 
-	actual, err := manager.GetRolePermissionsMap(context.Background(), "postgres")
+	actual, err := manager.GetRolePermissionsMap(context.Background())
 	require.NoError(t, err)
 	for table, expect := range expected {
 		require.ElementsMatch(t, expect, actual[table])

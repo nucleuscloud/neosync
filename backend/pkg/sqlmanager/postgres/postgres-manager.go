@@ -116,8 +116,8 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	}, nil
 }
 
-func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {
-	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool, role)
+func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
+	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {

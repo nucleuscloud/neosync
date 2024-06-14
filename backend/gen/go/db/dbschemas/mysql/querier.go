@@ -11,7 +11,7 @@ import (
 type Querier interface {
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error)
-	GetMysqlRolePermissions(ctx context.Context, db DBTX, role string) ([]*GetMysqlRolePermissionsRow, error)
+	GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetMysqlRolePermissionsRow, error)
 	GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error)
 	GetUniqueConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetUniqueConstraintsRow, error)
 }

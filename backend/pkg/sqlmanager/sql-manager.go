@@ -30,7 +30,7 @@ type SqlDatabase interface {
 	GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error)
-	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
+	GetRolePermissionsMap(ctx context.Context) (map[string][]string, error)
 	GetTableRowCount(ctx context.Context, schema, table string, whereClause *string) (int64, error)
 	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
 	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)

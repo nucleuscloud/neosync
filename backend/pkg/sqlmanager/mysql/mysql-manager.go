@@ -265,8 +265,8 @@ func (m *MysqlManager) getUniqueConstraintsMap(ctx context.Context, schemas []st
 	return output, nil
 }
 
-func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {
-	rows, err := m.querier.GetMysqlRolePermissions(ctx, m.pool, role)
+func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
+	rows, err := m.querier.GetMysqlRolePermissions(ctx, m.pool)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {

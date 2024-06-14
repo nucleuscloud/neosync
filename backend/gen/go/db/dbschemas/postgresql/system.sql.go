@@ -782,10 +782,9 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
 SELECT
-    tp.grantee,
-    tp.table_schema,
-    tp.table_name,
-    tp.privilege_type
+    tp.table_schema::text as table_schema,
+    tp.table_name::text as table_name,
+    tp.privilege_type::text as privilege_type
 FROM
     information_schema.table_privileges AS tp
 WHERE
@@ -797,10 +796,9 @@ ORDER BY
 `
 
 type GetPostgresRolePermissionsRow struct {
-	Grantee       interface{}
-	TableSchema   interface{}
-	TableName     interface{}
-	PrivilegeType interface{}
+	TableSchema   string
+	TableName     string
+	PrivilegeType string
 }
 
 func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error) {
@@ -812,12 +810,7 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*G
 	var items []*GetPostgresRolePermissionsRow
 	for rows.Next() {
 		var i GetPostgresRolePermissionsRow
-		if err := rows.Scan(
-			&i.Grantee,
-			&i.TableSchema,
-			&i.TableName,
-			&i.PrivilegeType,
-		); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
