@@ -614,7 +614,7 @@ WITH relevant_schemas_tables AS (
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = sqlc.arg('schema')
-    AND c.relname = ANY(sql.arg('tables')::TEXT[])
+    AND c.relname = ANY(sqlc.arg('tables')::TEXT[])
 ),
 custom_sequences AS (
     SELECT
@@ -666,11 +666,22 @@ SELECT
     rst.table_name,
     cws.column_name,
     cws.sequence_schema_name,
-    cws.sequence_name
+    cws.sequence_name,
+   (
+        'CREATE SEQUENCE ' || cws.sequence_schema_name || '.' || cws.sequence_name ||
+        ' START WITH ' || seqs.start_value ||
+        ' INCREMENT BY ' || seqs.increment_by ||
+        ' MINVALUE ' || seqs.min_value ||
+        ' MAXVALUE ' || seqs.max_value ||
+        ' CACHE ' || seqs.cache_size ||
+        CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
+    )::text AS "definition"
 FROM
     relevant_schemas_tables rst
 JOIN
     columns_with_custom_sequences cws ON rst.table_oid = cws.table_oid
+JOIN
+    pg_catalog.pg_sequences seqs ON seqs.schemaname = cws.sequence_schema_name AND seqs.sequencename = cws.sequence_name
 ORDER BY
     rst.schema_name,
     rst.table_name,

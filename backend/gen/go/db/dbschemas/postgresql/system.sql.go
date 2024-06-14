@@ -108,7 +108,7 @@ WITH relevant_schemas_tables AS (
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = $1
-    AND c.relname = ANY(sql.arg('tables')::TEXT[])
+    AND c.relname = ANY($2::TEXT[])
 ),
 custom_sequences AS (
     SELECT
@@ -160,16 +160,32 @@ SELECT
     rst.table_name,
     cws.column_name,
     cws.sequence_schema_name,
-    cws.sequence_name
+    cws.sequence_name,
+   (
+        'CREATE SEQUENCE ' || cws.sequence_schema_name || '.' || cws.sequence_name ||
+        ' START WITH ' || seqs.start_value ||
+        ' INCREMENT BY ' || seqs.increment_by ||
+        ' MINVALUE ' || seqs.min_value ||
+        ' MAXVALUE ' || seqs.max_value ||
+        ' CACHE ' || seqs.cache_size ||
+        CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
+    )::text AS "definition"
 FROM
     relevant_schemas_tables rst
 JOIN
     columns_with_custom_sequences cws ON rst.table_oid = cws.table_oid
+JOIN
+    pg_catalog.pg_sequences seqs ON seqs.schemaname = cws.sequence_schema_name AND seqs.sequencename = cws.sequence_name
 ORDER BY
     rst.schema_name,
     rst.table_name,
     cws.column_name
 `
+
+type GetCustomSequencesBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
 
 type GetCustomSequencesBySchemaAndTablesRow struct {
 	SchemaName         string
@@ -177,10 +193,11 @@ type GetCustomSequencesBySchemaAndTablesRow struct {
 	ColumnName         string
 	SequenceSchemaName string
 	SequenceName       string
+	Definition         string
 }
 
-func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
-	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, schema)
+func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
+	rows, err := db.Query(ctx, getCustomSequencesBySchemaAndTables, arg.Schema, arg.Tables)
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +211,7 @@ func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DB
 			&i.ColumnName,
 			&i.SequenceSchemaName,
 			&i.SequenceName,
+			&i.Definition,
 		); err != nil {
 			return nil, err
 		}
