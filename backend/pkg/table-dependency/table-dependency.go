@@ -54,6 +54,11 @@ func GetRunConfigs(
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
 
+	// dedupe table columns
+	for table, cols := range tableColumnsMap {
+		tableColumnsMap[table] = dedupeSlice(cols)
+	}
+
 	for table, constraints := range dependencyMap {
 		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
@@ -635,7 +640,12 @@ func isValidRunOrder(configs []*RunConfig) bool {
 
 	configMap := map[string]*RunConfig{}
 	for _, config := range configs {
-		configMap[fmt.Sprintf("%s.%s", config.Table, config.RunType)] = config
+		configName := fmt.Sprintf("%s.%s", config.Table, config.RunType)
+		if _, exists := configMap[configName]; exists {
+			// configs should be unique
+			return false
+		}
+		configMap[configName] = config
 	}
 
 	prevTableLen := 0
