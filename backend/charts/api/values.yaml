@@ -32,6 +32,7 @@ db:
   username:
   password:
   disableSsl: false
+  options:
 
 migrations:
   db:
@@ -44,6 +45,7 @@ migrations:
     schemaDir: /migrations
     migrationsTableName: neosync_api_schema_migrations
     migrationsTableQuoted: false
+    options:
 
 resources:
   # These are low-usage defaults. Change these depending on your needs.

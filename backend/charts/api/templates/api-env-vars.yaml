@@ -11,6 +11,9 @@ stringData:
     DB_USER: {{ .Values.db.username }}
     DB_PASS: {{ .Values.db.password }}
     DB_SSL_DISABLE: {{ .Values.db.disableSsl | quote}}
+    {{- if .Values.db.options }}
+    DB_OPTIONS: {{ .Values.db.options | quote}}
+    {{- end }}
 
     {{- if .Values.host }}
     HOST: {{ .Values.host | quote}}

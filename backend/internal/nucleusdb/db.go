@@ -41,6 +41,7 @@ type ConnectConfig struct {
 	SslMode               *string
 	MigrationsTableName   *string
 	MigrationsTableQuoted *bool
+	Options               *string
 }
 
 func New(db DBTX, q db_queries.Querier) *NucleusDb {
