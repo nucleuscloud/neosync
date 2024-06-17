@@ -12,7 +12,7 @@ stringData:
     DB_PASS: {{ .Values.migrations.db.password }}
     DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
     {{- if .Values.db.options }}
-    DB_OPTIONS: {{ .Values.db.options | quote}}
+    DB_MIGRATIONS_OPTIONS: {{ .Values.db.options | quote}}
     {{- end }}
 
     DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}

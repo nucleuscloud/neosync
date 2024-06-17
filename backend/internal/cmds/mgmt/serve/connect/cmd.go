@@ -514,8 +514,8 @@ func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 	}
 
 	var dbOptions *string
-	if viper.IsSet("DB_OPTIONS") {
-		val := viper.GetString("DB_OPTIONS")
+	if viper.IsSet("DB_MIGRATIONS_OPTIONS") {
+		val := viper.GetString("DB_MIGRATIONS_OPTIONS")
 		dbOptions = &val
 	}
 
