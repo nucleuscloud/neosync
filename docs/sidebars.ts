@@ -158,6 +158,11 @@ const sidebars: SidebarsConfig = {
       id: 'deploy/auth',
       label: 'Authentication',
     },
+    {
+      type: 'doc',
+      id: 'deploy/database',
+      label: 'Database Setup',
+    },
 
     {
       type: 'html',
