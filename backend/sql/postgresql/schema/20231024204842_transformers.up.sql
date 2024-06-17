@@ -18,7 +18,3 @@ CREATE TABLE IF NOT EXISTS neosync_api.transformers (
   CONSTRAINT fk_transformers_created_by_users_id FOREIGN KEY (created_by_id) REFERENCES neosync_api.users(id),
   CONSTRAINT fk_transformers_updated_by_users_id FOREIGN KEY (updated_by_id) REFERENCES neosync_api.users(id)
 );
-ALTER TABLE neosync_api.transformers OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.transformers TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.transformers TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.transformers TO neosync_api_readonly;

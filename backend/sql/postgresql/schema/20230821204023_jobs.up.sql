@@ -24,10 +24,6 @@ CREATE TABLE IF NOT EXISTS neosync_api.jobs (
   CONSTRAINT fk_jobs_updated_by_users_id FOREIGN KEY (updated_by_id) REFERENCES neosync_api.users(id),
   CONSTRAINT fk_jobs_conn_source_id_conn_id FOREIGN KEY (connection_source_id) REFERENCES neosync_api.connections(id)
 );
-ALTER TABLE neosync_api.jobs OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.jobs TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.jobs TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.jobs TO neosync_api_readonly;
 
 CREATE TABLE IF NOT EXISTS neosync_api.job_destination_connection_associations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -43,7 +39,4 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_destination_connection_associations (
   CONSTRAINT fk_jobdstconassoc_conn_id_conn_id FOREIGN KEY (connection_id) REFERENCES neosync_api.connections(id) ON DELETE CASCADE,
   CONSTRAINT job_id_connection_id UNIQUE (job_id, connection_id)
 );
-ALTER TABLE neosync_api.job_destination_connection_associations OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.job_destination_connection_associations TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.job_destination_connection_associations TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.job_destination_connection_associations TO neosync_api_readonly;
+

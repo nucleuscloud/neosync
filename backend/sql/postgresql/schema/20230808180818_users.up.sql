@@ -4,10 +4,6 @@ CREATE TABLE IF NOT EXISTS neosync_api.users (
 	updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-ALTER TABLE neosync_api.users OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.users TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.users TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.users TO neosync_api_readonly;
 
 CREATE TABLE IF NOT EXISTS neosync_api.user_identity_provider_associations (
 	id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -19,10 +15,6 @@ CREATE TABLE IF NOT EXISTS neosync_api.user_identity_provider_associations (
 	CONSTRAINT user_identity_provider_associations_pkey PRIMARY KEY (id),
 	CONSTRAINT fk_user_identity_provider_user_id FOREIGN KEY (user_id) REFERENCES neosync_api.users(id) ON DELETE CASCADE
 );
-ALTER TABLE neosync_api.user_identity_provider_associations OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.user_identity_provider_associations TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.user_identity_provider_associations TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.user_identity_provider_associations TO neosync_api_readonly;
 
 CREATE TABLE IF NOT EXISTS neosync_api.accounts (
 	id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -36,10 +28,6 @@ CREATE TABLE IF NOT EXISTS neosync_api.accounts (
 	-- trial_environment_limit int2 NULL,
 	CONSTRAINT accounts_pkey PRIMARY KEY (id)
 );
-ALTER TABLE neosync_api.accounts OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.accounts TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.accounts TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.accounts TO neosync_api_readonly;
 
 CREATE TABLE IF NOT EXISTS neosync_api.account_user_associations (
 	id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -52,7 +40,3 @@ CREATE TABLE IF NOT EXISTS neosync_api.account_user_associations (
 	CONSTRAINT fk_account_user_associations_account_id FOREIGN KEY (account_id) REFERENCES neosync_api.accounts(id) ON DELETE CASCADE,
 	CONSTRAINT fk_account_user_associations_user_id FOREIGN KEY (user_id) REFERENCES neosync_api.users(id) ON DELETE CASCADE
 );
-ALTER TABLE neosync_api.account_user_associations OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.account_user_associations TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.account_user_associations TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.account_user_associations TO neosync_api_readonly;
