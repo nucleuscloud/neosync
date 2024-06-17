@@ -179,9 +179,9 @@ func getMysqlUserFromConnectionConfig(pgconfig *mgmtv1alpha1.MysqlConnectionConf
 		if err != nil {
 			var urlErr *url.Error
 			if errors.As(err, &urlErr) {
-				return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+				return "", fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
 			}
-			return "", fmt.Errorf("unable to parse postgres url: %w", err)
+			return "", fmt.Errorf("unable to parse mysql url: %w", err)
 		}
 		return u.User.Username(), nil
 	default:
