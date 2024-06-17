@@ -995,6 +995,99 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	}
 }
 
+func Test_GetRunConfigs_HumanResources(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.countries": {
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
+		},
+		"public.departments": {
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+		},
+		"public.dependents": {
+			{Columns: []string{"employee_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.employees": {
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.locations": {
+			{Columns: []string{"country_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.regions":     {"region_id"},
+		"public.countries":   {"country_id"},
+		"public.locations":   {"location_id"},
+		"public.jobs":        {"job_id"},
+		"public.departments": {"department_id"},
+		"public.employees":   {"employee_id"},
+		"public.dependents":  {"dependent_id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.regions": {
+			"region_id",
+			"region_name",
+		},
+		"public.countries": {
+			"country_id",
+			"country_name",
+			"region_id",
+		},
+		"public.locations": {
+			"location_id",
+			"street_address",
+			"country_id",
+		},
+		"public.jobs": {
+			"job_id",
+			"job_title",
+		},
+		"public.departments": {
+			"department_id",
+			"department_name",
+			"location_id",
+		},
+		"public.employees": {
+			"employee_id",
+			"email",
+			"name",
+			"job_id",
+			"manager_id",
+			"department_id",
+		},
+		"public.dependents": {
+			"dependent_id",
+			"name",
+			"employee_id",
+		},
+	}
+
+	expect := []*RunConfig{
+		{Table: "public.regions", RunType: RunTypeInsert, PrimaryKeys: []string{"region_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"region_id", "region_name"}, InsertColumns: []string{"region_id", "region_name"}, DependsOn: []*DependsOn{}},
+		{Table: "public.countries", RunType: RunTypeInsert, PrimaryKeys: []string{"country_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"country_id", "country_name", "region_id"}, InsertColumns: []string{"country_id", "country_name", "region_id"}, DependsOn: []*DependsOn{{Table: "public.regions", Columns: []string{"region_id"}}}},
+		{Table: "public.locations", RunType: RunTypeInsert, PrimaryKeys: []string{"location_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"location_id", "street_address", "country_id"}, InsertColumns: []string{"location_id", "street_address", "country_id"}, DependsOn: []*DependsOn{{Table: "public.countries", Columns: []string{"country_id"}}}},
+		{Table: "public.jobs", RunType: RunTypeInsert, PrimaryKeys: []string{"job_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"job_id", "job_title"}, InsertColumns: []string{"job_id", "job_title"}, DependsOn: []*DependsOn{}},
+		{Table: "public.departments", RunType: RunTypeInsert, PrimaryKeys: []string{"department_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"department_id", "department_name", "location_id"}, InsertColumns: []string{"department_id", "department_name", "location_id"}, DependsOn: []*DependsOn{{Table: "public.locations", Columns: []string{"location_id"}}}},
+		{Table: "public.employees", RunType: RunTypeInsert, PrimaryKeys: []string{"employee_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"employee_id", "email", "name", "job_id", "manager_id", "department_id"}, InsertColumns: []string{"employee_id", "email", "name", "job_id", "department_id"}, DependsOn: []*DependsOn{{Table: "public.departments", Columns: []string{"department_id"}}, {Table: "public.jobs", Columns: []string{"job_id"}}}},
+		{Table: "public.dependents", RunType: RunTypeInsert, PrimaryKeys: []string{"dependent_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"dependent_id", "name", "employee_id"}, InsertColumns: []string{"dependent_id", "name", "employee_id"}, DependsOn: []*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}},
+		{Table: "public.employees", RunType: RunTypeUpdate, PrimaryKeys: []string{"employee_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"employee_id", "manager_id"}, InsertColumns: []string{"manager_id"}, DependsOn: []*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}},
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+		require.NotNil(t, acutalConfig)
+		require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+		require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+		require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+		require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+		require.Equal(t, e.WhereClause, e.WhereClause)
+	}
+}
+
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {

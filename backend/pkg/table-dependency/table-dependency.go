@@ -176,6 +176,7 @@ func processCycles(
 		}
 		updateConfig.SelectColumns = append(updateConfig.SelectColumns, pks...)
 		deps := foreignKeyColsMap[startTable]
+		// builds depends on slice
 		for fkTable, fkCols := range deps {
 			if fkTable == startTable {
 				continue
@@ -187,14 +188,19 @@ func processCycles(
 					insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
 				}
 			} else {
-				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
+				insertCols := fkCols.NonNullableColumns
+				insertCols = append(insertCols, fkCols.NullableColumns...)
+				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: insertCols})
 			}
 		}
+		// builds select + insert columns slices
 		for _, d := range dependencies {
-			for idx, col := range d.Columns {
-				if !d.NotNullable[idx] {
-					updateConfig.SelectColumns = append(updateConfig.SelectColumns, col)
-					updateConfig.InsertColumns = append(updateConfig.InsertColumns, col)
+			if isTableInCycles(cycles, d.ForeignKey.Table) {
+				for idx, col := range d.Columns {
+					if !d.NotNullable[idx] {
+						updateConfig.SelectColumns = append(updateConfig.SelectColumns, col)
+						updateConfig.InsertColumns = append(updateConfig.InsertColumns, col)
+					}
 				}
 			}
 		}
