@@ -13,3 +13,6 @@ node_modules
 
 Chart.lock
 charts/**/*.tgz
+
+/package.json
+/package-lock.json

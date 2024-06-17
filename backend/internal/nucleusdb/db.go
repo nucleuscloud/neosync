@@ -2,6 +2,7 @@ package nucleusdb
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -41,6 +42,7 @@ type ConnectConfig struct {
 	SslMode               *string
 	MigrationsTableName   *string
 	MigrationsTableQuoted *bool
+	Options               *string
 }
 
 func New(db DBTX, q db_queries.Querier) *NucleusDb {
@@ -59,7 +61,7 @@ func New(db DBTX, q db_queries.Querier) *NucleusDb {
 func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 	pgxconfig, err := pgxpool.ParseConfig(GetDbUrl(config))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to parse pgxpool config: %w", err)
 	}
 	pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
 		Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
@@ -68,7 +70,7 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgxconfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("uanble to initialize pgx pool from configuration: %w", err)
 	}
 	return New(pool, nil), nil
 }

@@ -5,14 +5,15 @@ metadata:
     namespace: {{ .Release.Namespace }}
 type: Opaque
 stringData:
-    # SKIP_SCHEMA_CREATION: {{ .Values.migrations.skipSchemaCreation | quote }}
-
     DB_HOST: {{ .Values.migrations.db.host }}
     DB_PORT: {{ .Values.migrations.db.port | quote }}
     DB_NAME: {{ .Values.migrations.db.name }}
     DB_USER: {{ .Values.migrations.db.username }}
     DB_PASS: {{ .Values.migrations.db.password }}
     DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
+    {{- if .Values.migrations.db.options }}
+    DB_MIGRATIONS_OPTIONS: {{ .Values.migrations.db.options | quote}}
+    {{- end }}
 
     DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}
     DB_MIGRATIONS_TABLE: {{ .Values.migrations.db.migrationsTableName }}

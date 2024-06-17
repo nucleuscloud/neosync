@@ -117,7 +117,6 @@ func Up(
 		return err
 	}
 	m.Log = newMigrateLogger(logger, false)
-
 	err = m.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
@@ -182,6 +181,12 @@ func getDbUrl() (string, error) {
 		tableQuoted = &isQuoted
 	}
 
+	var dbOptions *string
+	if viper.IsSet("DB_MIGRATIONS_OPTIONS") {
+		val := viper.GetString("DB_MIGRATIONS_OPTIONS")
+		dbOptions = &val
+	}
+
 	return nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
@@ -191,5 +196,6 @@ func getDbUrl() (string, error) {
 		SslMode:               &sslMode,
 		MigrationsTableName:   migrationsTable,
 		MigrationsTableQuoted: tableQuoted,
+		Options:               dbOptions,
 	}), nil
 }
