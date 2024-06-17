@@ -11,8 +11,8 @@ stringData:
     DB_USER: {{ .Values.migrations.db.username }}
     DB_PASS: {{ .Values.migrations.db.password }}
     DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
-    {{- if .Values.db.options }}
-    DB_MIGRATIONS_OPTIONS: {{ .Values.db.options | quote}}
+    {{- if .Values.migrations.db.options }}
+    DB_MIGRATIONS_OPTIONS: {{ .Values.migrations.db.options | quote}}
     {{- end }}
 
     DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}
