@@ -78,7 +78,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
 
-	constraints, ok := actual.ForeignKeyConstraints[fmt.Sprintf("%s.child1", s.schema)]
+	constraints, ok := actual.ForeignKeyConstraints[s.buildTable("child1")]
 	require.True(s.T(), ok)
 	require.NotEmpty(s.T(), constraints)
 
@@ -90,6 +90,99 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 				Table:   fmt.Sprintf("%s.parent1", s.schema),
 				Columns: []string{"id"},
 			},
+		},
+	})
+
+	constraints, ok = actual.ForeignKeyConstraints[s.buildTable("t1")]
+	require.True(s.T(), ok, "t1 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t1 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t1"), Columns: []string{"a"}},
+		},
+	})
+
+	constraints, ok = actual.ForeignKeyConstraints[s.buildTable("t2")]
+	require.True(s.T(), ok, "t2 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t2 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t3"), Columns: []string{"a"}},
+		},
+	})
+
+	constraints, ok = actual.ForeignKeyConstraints[s.buildTable("t3")]
+	require.True(s.T(), ok, "t3 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t3 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t2"), Columns: []string{"a"}},
+		},
+	})
+}
+
+func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
+	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+
+	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+
+	constraints, ok := actual.ForeignKeyConstraints[s.buildTable("t1")]
+	require.True(s.T(), ok, "t1 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t1 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t1"), Columns: []string{"a"}},
+		},
+	})
+
+	constraints, ok = actual.ForeignKeyConstraints[s.buildTable("t2")]
+	require.True(s.T(), ok, "t2 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t2 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t3"), Columns: []string{"a"}},
+		},
+	})
+
+	constraints, ok = actual.ForeignKeyConstraints[s.buildTable("t3")]
+	require.True(s.T(), ok, "t3 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t3 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"b"},
+			NotNullable: []bool{false},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t2"), Columns: []string{"a"}},
+		},
+	})
+}
+
+func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
+	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+
+	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+
+	constraints, ok := actual.ForeignKeyConstraints[s.buildTable("t5")]
+	require.True(s.T(), ok, "t5 should be in map")
+	require.NotEmpty(s.T(), constraints, "should contain t5 constraints")
+	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
+		{
+			Columns:     []string{"x", "y"},
+			NotNullable: []bool{true, true},
+			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable("t4"), Columns: []string{"a", "b"}},
 		},
 	})
 }
