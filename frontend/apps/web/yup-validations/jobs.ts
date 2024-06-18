@@ -92,7 +92,6 @@ export const SchemaFormValues = Yup.object({
   mappings: Yup.array().of(JobMappingFormValues).required(),
   virtualForeignKeys: Yup.array().of(VIRTUAL_FOREIGN_CONSTRAINT_SCHEMA),
   connectionId: Yup.string().required(),
-  virtualForeignKeys: Yup.array().of(VIRTUAL_FOREIGN_CONSTRAINT_SCHEMA),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
 

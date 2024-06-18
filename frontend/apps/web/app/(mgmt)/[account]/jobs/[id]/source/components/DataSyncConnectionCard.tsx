@@ -414,22 +414,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           )}
 
           {!isNosqlSource(source ?? new Connection()) && (
-            // <SchemaTable
-            //   data={formMappings}
-            //   jobType="sync"
-            //   constraintHandler={schemaConstraintHandler}
-            //   schema={connectionSchemaDataMap?.schemaMap ?? {}}
-            //   isSchemaDataReloading={isSchemaMapValidating}
-            //   selectedTables={selectedTables}
-            //   onSelectedTableToggle={onSelectedTableToggle}
-            //   formErrors={getAllFormErrors(
-            //     form.formState.errors,
-            //     formMappings,
-            //     validateMappingsResponse
-            //   )}
-            //   isJobMappingsValidating={isValidatingMappings}
-            //   onValidate={validateMappings}
-            // />
             <SchemaTable
               data={formMappings}
               virtualForeignKeys={formVirtualForeignKeys}

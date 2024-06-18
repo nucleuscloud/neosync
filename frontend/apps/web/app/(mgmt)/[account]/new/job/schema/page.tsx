@@ -22,7 +22,10 @@ import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionT
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
-import { SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  SchemaFormValues,
+  VirtualForeignConstraintFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -197,6 +200,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formMappings = form.watch('mappings');
+  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -210,6 +214,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       console.error('Failed to validate job mappings:', error);
       toast({
         title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
+  async function validateVirtualForeignKeys(
+    vfks: VirtualForeignConstraintFormValues[]
+  ) {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        connectFormValues.sourceId,
+        formMappings,
+        account?.id || '',
+        vfks
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate virtual foreign keys:', error);
+      toast({
+        title: 'Unable to validate virtual foreign keys',
         variant: 'destructive',
       });
     } finally {
@@ -233,6 +260,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     control: form.control,
     name: 'mappings',
   });
+
+  const { append: appendVfk, remove: removeVfk } =
+    useFieldArray<SchemaFormValues>({
+      control: form.control,
+      name: 'virtualForeignKeys',
+    });
+
   const onSelectedTableToggle = getOnSelectedTableToggle(
     connectionSchemaDataMap?.schemaMap ?? {},
     selectedTables,
@@ -264,6 +298,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )
     );
   }, [isSchemaMapLoading, connectFormValues.sourceId]);
+
+  async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
+    appendVfk(vfk);
+    const vfks = [vfk, ...(formVirtualForeignKeys || [])];
+    await validateVirtualForeignKeys(vfks);
+  }
+
+  async function removeVirtualForeignKey(index: number) {
+    const currVfks = formVirtualForeignKeys || [];
+    if (index >= 0 && index < currVfks.length) {
+      currVfks.splice(index, 1);
+    }
+    removeVfk(index);
+    await validateVirtualForeignKeys(currVfks);
+  }
 
   if (isConnectionLoading || isSchemaMapLoading) {
     return <SkeletonForm />;
@@ -372,6 +421,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 validateMappingsResponse
               )}
               onValidate={validateMappings}
+              virtualForeignKeys={formVirtualForeignKeys}
+              addVirtualForeignKey={addVirtualForeignKey}
+              removeVirtualForeignKey={removeVirtualForeignKey}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">
@@ -415,6 +467,7 @@ function getFormValues(
 
   return {
     mappings: [],
+    virtualForeignKeys: [],
     connectionId,
   };
 }

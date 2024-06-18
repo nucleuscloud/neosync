@@ -54,6 +54,8 @@ import {
   UpdateJobDestinationConnectionResponse,
   UpdateJobScheduleRequest,
   UpdateJobScheduleResponse,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
   WorkflowOptions,
 } from '@neosync/sdk';
 import { SampleRecord } from '../new/job/aigenerate/single/schema/types';
@@ -224,6 +226,7 @@ export async function createNewSyncJob(
       cronSchedule: values.define.cronSchedule,
       initiateJobRun: values.define.initiateJobRun,
       mappings: toSyncJobMappings(values),
+      virtualForeignKeys: toSyncVirtualForeignKeys(values),
       source: toJobSource(values, getConnectionById),
       destinations: toSyncJobDestinations(values, getConnectionById),
       workflowOptions: toWorkflowOptions(values.define.workflowSettings),
@@ -386,6 +389,25 @@ function toSyncJobMappings(
       ),
     });
   });
+}
+
+function toSyncVirtualForeignKeys(
+  values: Pick<CreateJobFormValues, 'schema'>
+): VirtualForeignConstraint[] {
+  return (
+    values.schema.virtualForeignKeys?.map((v) => {
+      return new VirtualForeignConstraint({
+        schema: v.schema,
+        table: v.table,
+        columns: v.columns,
+        foreignKey: new VirtualForeignKey({
+          schema: v.foreignKey.schema,
+          table: v.foreignKey.table,
+          columns: v.foreignKey.columns,
+        }),
+      });
+    }) || []
+  );
 }
 
 function toJobSource(
