@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 
@@ -16,6 +15,8 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/cobra"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -80,7 +81,7 @@ func switchAccount(
 	}
 
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http.DefaultClient,
+		http_client.NewWithHeaders(version.Get().Headers()),
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),

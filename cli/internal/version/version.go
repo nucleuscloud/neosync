@@ -3,6 +3,8 @@ package version
 import (
 	"fmt"
 	"runtime"
+
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type VersionInfo struct {
@@ -16,6 +18,14 @@ type VersionInfo struct {
 
 func (info *VersionInfo) String() string {
 	return info.GitVersion
+}
+
+func (info *VersionInfo) Headers() map[string]string {
+	return map[string]string{
+		utils.CliVersionKey:  info.GitVersion,
+		utils.CliPlatformKey: info.Platform,
+		utils.CliCommitKey:   info.GitCommit,
+	}
 }
 
 // Get returns the overall codebase version. It's for detecting

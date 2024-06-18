@@ -79,9 +79,10 @@ func Test_NewWithAuth(t *testing.T) {
 }
 
 func Test_getAuthHeaders(t *testing.T) {
+	token := "foo"
 	assert.Equal(
 		t,
-		getAuthHeaders("foo"),
+		GetAuthHeaders(&token),
 		map[string]string{"Authorization": "Bearer foo"},
 	)
 }

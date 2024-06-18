@@ -153,7 +153,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/charmbracelet/harmonica v0.2.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/cncf/xds/go v0.0.0-20231128003011-0fa0005c9caa // indirect

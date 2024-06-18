@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 )
 
@@ -38,14 +38,15 @@ func getAuthHeaderToken(ctx context.Context) (string, error) {
 }
 
 func getToken(ctx context.Context) (string, error) {
-	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, serverconfig.GetApiBaseUrl())
+	httpclient := http_client.NewWithHeaders(version.Get().Headers())
+	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, serverconfig.GetApiBaseUrl())
 
 	accessToken, err := userconfig.GetAccessToken()
 	if err != nil {
 		return "", err
 	}
 	authedAuthClient := mgmtv1alpha1connect.NewAuthServiceClient(
-		http_client.NewWithAuth(&accessToken),
+		http_client.NewWithHeaders(http_client.MergeMaps(http_client.GetAuthHeaders(&accessToken), version.Get().Headers())),
 		serverconfig.GetApiBaseUrl(),
 	)
 	_, err = authedAuthClient.CheckToken(ctx, connect.NewRequest(&mgmtv1alpha1.CheckTokenRequest{}))
@@ -82,7 +83,8 @@ func getToken(ctx context.Context) (string, error) {
 }
 
 func IsAuthEnabled(ctx context.Context) (bool, error) {
-	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, serverconfig.GetApiBaseUrl())
+	httpclient := http_client.NewWithHeaders(version.Get().Headers())
+	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, serverconfig.GetApiBaseUrl())
 	isEnabledResp, err := authclient.GetAuthStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}))
 	if err != nil {
 		return false, err

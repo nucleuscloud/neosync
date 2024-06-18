@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"slices"
 	"strings"
@@ -31,6 +30,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -42,6 +42,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 
 	"github.com/benthosdev/benthos/v4/public/service"
 
@@ -266,8 +267,9 @@ func sync(
 		return err
 	}
 
+	httpclient := http_client.NewWithHeaders(version.Get().Headers())
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		http.DefaultClient,
+		httpclient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
@@ -275,7 +277,7 @@ func sync(
 	)
 
 	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(
-		http.DefaultClient,
+		httpclient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),

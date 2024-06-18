@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -14,6 +13,8 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/cobra"
 )
 
@@ -75,7 +76,7 @@ func triggerJob(
 	}
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		http.DefaultClient,
+		http_client.NewWithHeaders(version.Get().Headers()),
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey))),
 	)

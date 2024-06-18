@@ -18,6 +18,8 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/toqueteos/webbrowser"
@@ -46,7 +48,8 @@ func NewCmd() *cobra.Command {
 }
 
 func login(ctx context.Context) error {
-	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, serverconfig.GetApiBaseUrl())
+	httpclient := http_client.NewWithHeaders(version.Get().Headers())
+	authclient := mgmtv1alpha1connect.NewAuthServiceClient(httpclient, serverconfig.GetApiBaseUrl())
 	authEnabledResp, err := authclient.GetAuthStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}))
 	if err != nil {
 		return err
@@ -63,7 +66,7 @@ func login(ctx context.Context) error {
 	var nokey *string
 	isAuthEnabled := true
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http.DefaultClient,
+		httpclient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(nokey)),
