@@ -18,7 +18,11 @@ CREATE TABLE users_with_identity (
 
 CREATE TABLE unique_emails (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email text not null UNIQUE,
+    email text not null UNIQUE
+);
+CREATE TABLE unique_emails_and_usernames (
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email text not null,
     username text not null,
     CONSTRAINT unique_email_username UNIQUE (email, username)
 );

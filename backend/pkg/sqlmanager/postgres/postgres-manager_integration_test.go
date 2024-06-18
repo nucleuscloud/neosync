@@ -214,7 +214,20 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
 
 	uniques, ok := actual.UniqueConstraints[s.buildTable("unique_emails")]
 	require.True(s.T(), ok, "unique_emails had no entries")
-	require.ElementsMatch(s.T(), [][]string{{"email"}, {"email", "username"}}, uniques)
+	require.ElementsMatch(s.T(), [][]string{{"email"}}, uniques)
+}
+
+func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{s.schema})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+	require.NotEmpty(s.T(), actual.UniqueConstraints)
+
+	uniques, ok := actual.UniqueConstraints[s.buildTable("unique_emails_and_usernames")]
+	require.True(s.T(), ok, "unique_emails_and_usernames had no entries")
+	require.ElementsMatch(s.T(), [][]string{{"email", "username"}}, uniques)
 }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
