@@ -59,6 +59,7 @@ type Inputs struct {
 	Generate       *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
 	OpenAiGenerate *OpenAiGenerate    `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
 	MongoDB        *InputMongoDb      `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
+	PooledMongoDB  *InputMongoDb      `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
 }
 
 type InputMongoDb struct {
