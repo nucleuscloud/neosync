@@ -8,6 +8,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,7 +19,7 @@ func NewProvider() *Provider {
 	return &Provider{}
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[*mongo.Client, any] = &Provider{}
+var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient, any] = &Provider{}
 
 func (p *Provider) GetConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
@@ -29,7 +30,7 @@ func (p *Provider) GetConnectionDetails(
 }
 
 // this is currently untested as it isn't really used anywhere
-func (p *Provider) GetConnectionClient(driver, connectionString string, opts any) (*mongo.Client, error) {
+func (p *Provider) GetConnectionClient(driver, connectionString string, opts any) (neosync_benthos_mongodb.MongoClient, error) {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts2 := options.Client().ApplyURI(connectionString).SetServerAPIOptions(serverAPI)
 
@@ -40,7 +41,7 @@ func (p *Provider) GetConnectionClient(driver, connectionString string, opts any
 	return client, nil
 }
 
-func (p *Provider) CloseClientConnection(client *mongo.Client) error {
+func (p *Provider) CloseClientConnection(client neosync_benthos_mongodb.MongoClient) error {
 	return client.Disconnect(context.Background())
 }
 

@@ -65,8 +65,8 @@ type Inputs struct {
 type InputMongoDb struct {
 	Url             string         `json:"url" yaml:"url"`
 	Database        string         `json:"database" yaml:"database"`
-	Username        string         `json:"username" yaml:"username"`
-	Password        string         `json:"password" yaml:"password"`
+	Username        string         `json:"username,omitempty" yaml:"username,omitempty"`
+	Password        string         `json:"password,omitempty" yaml:"password,omitempty"`
 	Operation       *string        `json:"operation,omitempty" yaml:"operation,omitempty"`
 	Collection      string         `json:"collection" yaml:"collection"`
 	JsonMarshalMode *string        `json:"json_marshal_mode,omitempty" yaml:"json_marshal_mode,omitempty"`

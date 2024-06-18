@@ -7,19 +7,19 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Provider struct {
-	mp connectiontunnelmanager.ConnectionProvider[*mongo.Client, any]
+	mp connectiontunnelmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient, any]
 	sp connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig]
 }
 
 var _ connectiontunnelmanager.ConnectionProvider[any, any] = &Provider{}
 
 func NewProvider(
-	mp connectiontunnelmanager.ConnectionProvider[*mongo.Client, any],
+	mp connectiontunnelmanager.ConnectionProvider[neosync_benthos_mongodb.MongoClient, any],
 	sp connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig],
 ) *Provider {
 	return &Provider{
@@ -64,7 +64,7 @@ func (p *Provider) CloseClientConnection(client any) error {
 	switch typedclient := client.(type) {
 	case neosync_benthos_sql.SqlDbtx:
 		return p.sp.CloseClientConnection(typedclient)
-	case *mongo.Client:
+	case neosync_benthos_mongodb.MongoClient:
 		return p.mp.CloseClientConnection(typedclient)
 	default:
 		return fmt.Errorf("unsupported client, unable to close connection: %T", client)

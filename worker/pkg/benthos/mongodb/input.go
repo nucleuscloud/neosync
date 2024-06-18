@@ -71,7 +71,7 @@ type MongoPoolProvider interface {
 }
 
 type MongoClient interface {
-	Database(name string) *mongo.Database
+	Database(name string, options ...*options.DatabaseOptions) *mongo.Database
 	Ping(ctx context.Context, rp *readpref.ReadPref) error
 	Disconnect(ctx context.Context) error
 }
