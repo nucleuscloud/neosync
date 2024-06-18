@@ -1,5 +1,6 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import {
   SchemaTable,
   getAllFormErrors,
