@@ -235,6 +235,52 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 	)
 }
 
+func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	actual, err := manager.GetCreateTableStatement(context.Background(), s.schema, "users")
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+	// todo: test that the statement can actually be invoked
+}
+
+func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	actual, err := manager.GetTableInitStatements(
+		context.Background(),
+		[]*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "parent1"}, {Schema: s.schema, Table: "child1"}},
+	)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+	// todo: test that the statements can actually be invoked
+}
+
+func (s *IntegrationTestSuite) Test_Exec() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	err := manager.Exec(context.Background(), fmt.Sprintf("SELECT 1 FROM %s.%s", s.schema, "users"))
+	require.NoError(s.T(), err)
+}
+
+func (s *IntegrationTestSuite) Test_BatchExec() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", s.schema, "users")
+	err := manager.BatchExec(context.Background(), 2, []string{stmt, stmt, stmt}, &sqlmanager_shared.BatchExecOpts{})
+	require.NoError(s.T(), err)
+}
+
+func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", s.schema, "users")
+	err := manager.BatchExec(context.Background(), 2, []string{stmt}, &sqlmanager_shared.BatchExecOpts{
+		Prefix: &stmt,
+	})
+	require.NoError(s.T(), err)
+}
+
 func containsSubset[T any](t testing.TB, array, subset []T) {
 	t.Helper()
 	for _, elem := range subset {
