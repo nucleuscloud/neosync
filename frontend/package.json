@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "build": "turbo run build",
-    "build:packages": "turbo run build --filter=./packages/*",
+    "build": "turbo run build --env-mode=loose",
+    "build:packages": "turbo run build --env-mode=loose --filter=./packages/*",
     "build:pkgs": "npm run build:packages",
     "clean": "turbo run clean",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --env-mode=loose",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
