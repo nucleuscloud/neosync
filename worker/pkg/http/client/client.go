@@ -10,7 +10,7 @@ func NewWithAuth(token *string) *http.Client {
 	if token == nil || *token == "" {
 		return http.DefaultClient
 	}
-	return NewWithHeaders(getAuthHeaders(*token))
+	return NewWithHeaders(GetAuthHeaders(token))
 }
 
 // Returns a new http client that will send headers along with the request
@@ -40,6 +40,21 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.Transport.RoundTrip(req)
 }
 
-func getAuthHeaders(token string) map[string]string {
-	return map[string]string{"Authorization": fmt.Sprintf("Bearer %s", token)}
+func GetAuthHeaders(token *string) map[string]string {
+	if token == nil || *token == "" {
+		return map[string]string{}
+	}
+	return map[string]string{"Authorization": fmt.Sprintf("Bearer %s", *token)}
+}
+
+func MergeMaps(maps ...map[string]string) map[string]string {
+	output := map[string]string{}
+
+	for _, input := range maps {
+		for k, v := range input {
+			output[k] = v
+		}
+	}
+
+	return output
 }

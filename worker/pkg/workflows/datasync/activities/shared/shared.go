@@ -12,7 +12,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
-	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/viper"
 )
 

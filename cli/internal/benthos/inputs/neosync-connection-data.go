@@ -2,7 +2,6 @@ package input
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	"connectrpc.com/connect"
@@ -11,6 +10,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 )
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
@@ -126,7 +127,7 @@ type neosyncInput struct {
 
 func (g *neosyncInput) Connect(ctx context.Context) error {
 	g.neosyncConnectApi = mgmtv1alpha1connect.NewConnectionDataServiceClient(
-		http.DefaultClient,
+		http_client.NewWithHeaders(version.Get().Headers()),
 		g.apiUrl,
 		connect.WithInterceptors(auth_interceptor.NewInterceptor(g.apiKey != nil, auth.AuthHeader, auth.GetAuthHeaderTokenFn(g.apiKey))),
 	)
