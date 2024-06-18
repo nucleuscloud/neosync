@@ -50,7 +50,7 @@ As of the writing of this article, the `neosync_api` schema is hardcoded into th
 
 ### Custom Role
 
-> **NB:** This section is detailing an example setup to showcase a more advanced configuration that contains hierarchal roles. It is not necessarily meant for a production usecase.
+> **NB:** This section details an example setup to showcase a more advanced configuration that contains hierarchal roles. It is not necessarily meant for a production usecase.
 
 If you aren't running the database migrations with a SUPERUSER, and instead with a custom role, you'll need to give it some base permissions that coincide with the resources it creates that are detailed in the summary of the parent section.
 
