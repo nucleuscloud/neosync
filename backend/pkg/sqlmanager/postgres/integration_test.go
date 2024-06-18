@@ -32,6 +32,10 @@ type IntegrationTestSuite struct {
 	schema string
 }
 
+func (s *IntegrationTestSuite) buildTable(tableName string) string {
+	return fmt.Sprintf("%s.%s", s.schema, tableName)
+}
+
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.schema = "sqlmanagerpostgres"
