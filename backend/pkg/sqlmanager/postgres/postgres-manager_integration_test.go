@@ -227,7 +227,9 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
 
 	uniques, ok := actual.UniqueConstraints[s.buildTable("unique_emails_and_usernames")]
 	require.True(s.T(), ok, "unique_emails_and_usernames had no entries")
-	require.ElementsMatch(s.T(), [][]string{{"email", "username"}}, uniques)
+	require.Len(s.T(), uniques, 1)
+	entry := uniques[0]
+	require.ElementsMatch(s.T(), []string{"email", "username"}, entry)
 }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
