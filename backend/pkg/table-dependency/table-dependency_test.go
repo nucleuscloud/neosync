@@ -106,6 +106,29 @@ func Test_FindCircularDependencies(t *testing.T) {
 	}
 }
 
+func Test_uniqueCycles(t *testing.T) {
+	tests := []struct {
+		name   string
+		cycles [][]string
+		expect [][]string
+	}{
+		{
+			name:   "duplicates",
+			cycles: [][]string{{"a", "b", "c", "d"}, {"a", "b"}, {"b", "c"}, {"c", "d"}, {"d", "a"}, {"c", "a", "d", "b"}},
+			expect: [][]string{{"a", "b", "c", "d"}, {"a", "b"}, {"b", "c"}, {"c", "d"}, {"d", "a"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := uniqueCycles(tt.cycles)
+
+			require.Len(t, actual, len(tt.expect))
+			require.ElementsMatch(t, tt.expect, actual)
+		})
+	}
+}
+
 func Test_determineCycleStart(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -1088,6 +1111,123 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 	}
 }
 
+func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.table_1": {
+			{Columns: []string{"prev_id_1"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_4", Columns: []string{"id_4"}}},
+			{Columns: []string{"next_id_1"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_2", Columns: []string{"id_2"}}},
+		},
+		"public.table_2": {
+			{Columns: []string{"prev_id_2"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_1", Columns: []string{"id_1"}}},
+			{Columns: []string{"next_id_2"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_3", Columns: []string{"id_3"}}},
+		},
+		"public.table_3": {
+			{Columns: []string{"prev_id_3"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_2", Columns: []string{"id_2"}}},
+			{Columns: []string{"next_id_3"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_4", Columns: []string{"id_4"}}},
+		},
+		"public.table_4": {
+			{Columns: []string{"prev_id_4"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_3", Columns: []string{"id_3"}}},
+			{Columns: []string{"next_id_4"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.table_1", Columns: []string{"id_1"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.table_1": {"id_1"},
+		"public.table_2": {"id_2"},
+		"public.table_3": {"id_3"},
+		"public.table_4": {"id_4"},
+	}
+	tablesColMap := map[string][]string{
+		"public.table_1": {"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+		"public.table_2": {"id_2", "name_2", "address_2", "prev_id_2", "next_id_2"},
+		"public.table_3": {"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+		"public.table_4": {"id_4", "name_4", "address_4", "prev_id_4", "next_id_4"},
+	}
+
+	expect := []*RunConfig{
+		{
+			Table:         "public.table_4",
+			RunType:       RunTypeInsert,
+			PrimaryKeys:   []string{"id_4"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_4", "name_4", "address_4", "prev_id_4", "next_id_4"},
+			InsertColumns: []string{"id_4", "name_4", "address_4"},
+			DependsOn:     []*DependsOn{},
+		},
+		{
+			Table:         "public.table_4",
+			RunType:       RunTypeUpdate,
+			PrimaryKeys:   []string{"id_4"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_4", "prev_id_4", "next_id_4"},
+			InsertColumns: []string{"prev_id_4", "next_id_4"},
+			DependsOn: []*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+				{Table: "public.table_3", Columns: []string{"id_3"}},
+				{Table: "public.table_1", Columns: []string{"id_1"}},
+			},
+		},
+		{
+			Table:         "public.table_2",
+			RunType:       RunTypeInsert,
+			PrimaryKeys:   []string{"id_2"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_2", "name_2", "address_2", "prev_id_2", "next_id_2"},
+			InsertColumns: []string{"id_2", "name_2", "address_2"},
+			DependsOn:     []*DependsOn{},
+		},
+		{
+			Table:         "public.table_2",
+			RunType:       RunTypeUpdate,
+			PrimaryKeys:   []string{"id_2"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_2", "prev_id_2", "next_id_2"},
+			InsertColumns: []string{"prev_id_2", "next_id_2"},
+			DependsOn: []*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+				{Table: "public.table_1", Columns: []string{"id_1"}},
+				{Table: "public.table_3", Columns: []string{"id_3"}},
+			},
+		},
+		{
+			Table:         "public.table_1",
+			RunType:       RunTypeInsert,
+			PrimaryKeys:   []string{"id_1"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+			InsertColumns: []string{"id_1", "name_1", "address_1", "prev_id_1", "next_id_1"},
+			DependsOn: []*DependsOn{
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+			},
+		},
+		{
+			Table:         "public.table_3",
+			RunType:       RunTypeInsert,
+			PrimaryKeys:   []string{"id_3"},
+			WhereClause:   &emptyWhere,
+			SelectColumns: []string{"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+			InsertColumns: []string{"id_3", "name_3", "address_3", "prev_id_3", "next_id_3"},
+			DependsOn: []*DependsOn{
+				{Table: "public.table_2", Columns: []string{"id_2"}},
+				{Table: "public.table_4", Columns: []string{"id_4"}},
+			},
+		},
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		actualConfig := getConfigByTableAndType(e.Table, e.RunType, actual) // Adjust getConfigByTableAndType according to your actual utility functions
+		require.NotNil(t, actualConfig)
+		require.ElementsMatch(t, e.InsertColumns, actualConfig.InsertColumns)
+		require.ElementsMatch(t, e.SelectColumns, actualConfig.SelectColumns)
+		require.ElementsMatch(t, e.DependsOn, actualConfig.DependsOn)
+		require.ElementsMatch(t, e.PrimaryKeys, actualConfig.PrimaryKeys)
+		require.Equal(t, e.WhereClause, e.WhereClause)
+	}
+}
+
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"public.a": {
@@ -1207,7 +1347,7 @@ func TestCycleOrder(t *testing.T) {
 		{
 			name:     "Duplicate minimums",
 			cycle:    []string{"c", "a", "b", "a"},
-			expected: []string{"a", "b", "a", "c"},
+			expected: []string{"a", "a", "b", "c"},
 		},
 		{
 			name:     "All elements are same",

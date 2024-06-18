@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -133,16 +134,26 @@ func processCycles(
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
+	processed := map[string]bool{}
+	for _, cycle := range cycles {
+		for _, table := range cycle {
+			processed[table] = false
+		}
+	}
 	// determine start table
 	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(startTables) == 0 {
 		return nil, fmt.Errorf("unable to determine start of multi circular dependency: %+v", cycles)
 	}
 
 	for _, startTable := range startTables {
+		if processed[startTable] {
+			continue
+		}
 		// create insert and update configs for each start table
 		cols, colsOk := tableColumnsMap[startTable]
 		if !colsOk {
@@ -211,16 +222,13 @@ func processCycles(
 			// select cols in insert config must be all columns due to S3 as possible output
 			insertConfig.SelectColumns = append(insertConfig.SelectColumns, col)
 		}
+		processed[startTable] = true
 		configs = append(configs, insertConfig, updateConfig)
 	}
 
-	allTables := []string{}
-	for _, cycle := range cycles {
-		allTables = append(allTables, cycle...)
-	}
 	// create insert configs for all other tables in cycles
-	for _, table := range allTables {
-		if slices.Contains(startTables, table) {
+	for table := range processed {
+		if processed[table] {
 			// skip. already created configs for start tables
 			continue
 		}
@@ -448,29 +456,10 @@ func buildCycleKey(cycle []string) string {
 }
 
 func cycleOrder(cycle []string) []string {
-	if len(cycle) == 0 {
-		return []string{}
-	}
-	minVal := cycle[0]
-	for _, node := range cycle {
-		if node < minVal {
-			minVal = node
-		}
-	}
-
-	startIndex := -1
-	for i, node := range cycle {
-		if node == minVal && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
-			startIndex = i
-		}
-	}
-
-	ordered := []string{}
-	for i := 0; i < len(cycle); i++ {
-		ordered = append(ordered, cycle[(startIndex+i)%len(cycle)])
-	}
-
-	return ordered
+	sortedCycle := make([]string, len(cycle))
+	copy(sortedCycle, cycle)
+	sort.Strings(sortedCycle)
+	return sortedCycle
 }
 
 func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
