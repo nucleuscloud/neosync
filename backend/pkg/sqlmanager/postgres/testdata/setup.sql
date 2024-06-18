@@ -68,3 +68,46 @@ CREATE TABLE t5 (
     z int NULL,
     CONSTRAINT t5_t4_fkey FOREIGN KEY (x, y) REFERENCES t4 (a, b)
 );
+
+CREATE SEQUENCE custom_seq
+  START WITH 1
+  INCREMENT BY 1
+  NO MINVALUE
+  NO MAXVALUE
+  CACHE 1;
+CREATE TYPE custom_type AS (
+  part1 INTEGER,
+  part2 TEXT
+);
+CREATE FUNCTION custom_function() RETURNS TRIGGER AS $$
+BEGIN
+  NEW.id := nextval('custom_seq');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TYPE custom_enum AS ENUM (
+  'value1',
+  'value2',
+  'value3'
+);
+CREATE DOMAIN custom_domain AS TEXT
+  CHECK (VALUE ~ '^[a-zA-Z]+$'); -- Only allows alphabetic characters
+
+CREATE TABLE custom_table (
+  id INTEGER NOT NULL DEFAULT nextval('custom_seq'),
+  name custom_domain NOT NULL,
+  data custom_type,
+  status custom_enum NOT NULL,
+  created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+-- Adding a trigger to use the custom function for setting the 'id' field
+CREATE TRIGGER set_custom_id
+  BEFORE INSERT ON custom_table
+  FOR EACH ROW
+  EXECUTE FUNCTION custom_function();
+CREATE INDEX idx_name ON custom_table(name);
+
+CREATE TABLE tablewithcount (
+    id TEXT NOT NULL
+);
+INSERT INTO tablewithcount(id) VALUES ('1'), ('2');

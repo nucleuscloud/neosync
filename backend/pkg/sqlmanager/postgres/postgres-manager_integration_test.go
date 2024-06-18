@@ -289,6 +289,56 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
 	require.NotEmpty(s.T(), statements)
 }
 
+func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), statements)
+}
+
+func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
+	require.NoError(s.T(), err)
+	require.NotNil(s.T(), resp)
+	require.NotEmpty(s.T(), resp.GetStatements())
+	require.NotEmpty(s.T(), resp.Sequences)
+	require.NotEmpty(s.T(), resp.Functions)
+	require.NotEmpty(s.T(), resp.Composites)
+	require.NotEmpty(s.T(), resp.Enums)
+	require.NotEmpty(s.T(), resp.Domains)
+}
+
+func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	triggers, err := manager.GetSchemaTableTriggers(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), triggers)
+}
+
+func (s *IntegrationTestSuite) Test_GetTableRowCount() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	table := "tablewithcount"
+
+	count, err := manager.GetTableRowCount(context.Background(), s.schema, table, nil)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), count, int64(2))
+
+	where := "id = '1'"
+	count, err = manager.GetTableRowCount(context.Background(), s.schema, table, &where)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), count, int64(1))
+
+	where = "id = 'doesnotexist'"
+	count, err = manager.GetTableRowCount(context.Background(), s.schema, table, &where)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), count, int64(0))
+}
+
 func containsSubset[T any](t testing.TB, array, subset []T) {
 	t.Helper()
 	for _, elem := range subset {
