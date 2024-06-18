@@ -20,6 +20,7 @@ type DatabaseSchemaRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          *string
+	IdentityGeneration     *string
 }
 
 type ForeignKeyConstraintsRow struct {
@@ -167,4 +168,9 @@ func (s *SchemaTableDataTypeResponse) GetStatements() []string {
 		output = append(output, domain.Definition)
 	}
 	return output
+}
+
+type InitSchemaStatements struct {
+	Label      string
+	Statements []string
 }

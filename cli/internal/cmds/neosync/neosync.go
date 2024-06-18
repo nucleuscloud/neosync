@@ -35,14 +35,7 @@ func Execute() {
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
-
-			versionInfo := version.Get()
-			md := metadata.New(map[string]string{
-				"cliVersion":  versionInfo.GitVersion,
-				"cliPlatform": versionInfo.Platform,
-				"cliCommit":   versionInfo.GitCommit,
-			})
-			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), md))
+			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), version.Get().GrpcMetadata()))
 		},
 	}
 

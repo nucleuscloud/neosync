@@ -3,6 +3,9 @@ package version
 import (
 	"fmt"
 	"runtime"
+
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
+	"google.golang.org/grpc/metadata"
 )
 
 type VersionInfo struct {
@@ -16,6 +19,18 @@ type VersionInfo struct {
 
 func (info *VersionInfo) String() string {
 	return info.GitVersion
+}
+
+func (info *VersionInfo) Headers() map[string]string {
+	return map[string]string{
+		utils.CliVersionKey:  info.GitVersion,
+		utils.CliPlatformKey: info.Platform,
+		utils.CliCommitKey:   info.GitCommit,
+	}
+}
+
+func (info *VersionInfo) GrpcMetadata() metadata.MD {
+	return metadata.New(info.Headers())
 }
 
 // Get returns the overall codebase version. It's for detecting

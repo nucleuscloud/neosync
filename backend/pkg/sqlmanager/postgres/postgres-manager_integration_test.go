@@ -35,11 +35,11 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
 
-	actual, err := manager.GetForeignKeyConstraintsMap(s.ctx, []string{s.schema})
+	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
 
-	constraints, ok := actual[fmt.Sprintf("%s.child1", s.schema)]
+	constraints, ok := actual.ForeignKeyConstraints[fmt.Sprintf("%s.child1", s.schema)]
 	require.True(s.T(), ok)
 	require.NotEmpty(s.T(), constraints)
 

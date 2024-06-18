@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type RunType string
@@ -54,6 +56,11 @@ func GetRunConfigs(
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
 
+	// dedupe table columns
+	for table, cols := range tableColumnsMap {
+		tableColumnsMap[table] = utils.DedupeSliceOrdered(cols)
+	}
+
 	for table, constraints := range dependencyMap {
 		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
@@ -80,7 +87,7 @@ func GetRunConfigs(
 	}
 
 	for table, deps := range filteredDepsMap {
-		filteredDepsMap[table] = dedupeSlice(deps)
+		filteredDepsMap[table] = utils.DedupeSliceOrdered(deps)
 	}
 
 	// create map containing all tables to track when each is processed
@@ -127,16 +134,26 @@ func processCycles(
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
+	processed := map[string]bool{}
+	for _, cycle := range cycles {
+		for _, table := range cycle {
+			processed[table] = false
+		}
+	}
 	// determine start table
 	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(startTables) == 0 {
 		return nil, fmt.Errorf("unable to determine start of multi circular dependency: %+v", cycles)
 	}
 
 	for _, startTable := range startTables {
+		if processed[startTable] {
+			continue
+		}
 		// create insert and update configs for each start table
 		cols, colsOk := tableColumnsMap[startTable]
 		if !colsOk {
@@ -170,6 +187,7 @@ func processCycles(
 		}
 		updateConfig.SelectColumns = append(updateConfig.SelectColumns, pks...)
 		deps := foreignKeyColsMap[startTable]
+		// builds depends on slice
 		for fkTable, fkCols := range deps {
 			if fkTable == startTable {
 				continue
@@ -181,14 +199,19 @@ func processCycles(
 					insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
 				}
 			} else {
-				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
+				insertCols := fkCols.NonNullableColumns
+				insertCols = append(insertCols, fkCols.NullableColumns...)
+				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: insertCols})
 			}
 		}
+		// builds select + insert columns slices
 		for _, d := range dependencies {
-			for idx, col := range d.Columns {
-				if !d.NotNullable[idx] {
-					updateConfig.SelectColumns = append(updateConfig.SelectColumns, col)
-					updateConfig.InsertColumns = append(updateConfig.InsertColumns, col)
+			if isTableInCycles(cycles, d.ForeignKey.Table) {
+				for idx, col := range d.Columns {
+					if !d.NotNullable[idx] {
+						updateConfig.SelectColumns = append(updateConfig.SelectColumns, col)
+						updateConfig.InsertColumns = append(updateConfig.InsertColumns, col)
+					}
 				}
 			}
 		}
@@ -199,16 +222,13 @@ func processCycles(
 			// select cols in insert config must be all columns due to S3 as possible output
 			insertConfig.SelectColumns = append(insertConfig.SelectColumns, col)
 		}
+		processed[startTable] = true
 		configs = append(configs, insertConfig, updateConfig)
 	}
 
-	allTables := []string{}
-	for _, cycle := range cycles {
-		allTables = append(allTables, cycle...)
-	}
 	// create insert configs for all other tables in cycles
-	for _, table := range allTables {
-		if slices.Contains(startTables, table) {
+	for table := range processed {
+		if processed[table] {
 			// skip. already created configs for start tables
 			continue
 		}
@@ -436,29 +456,10 @@ func buildCycleKey(cycle []string) string {
 }
 
 func cycleOrder(cycle []string) []string {
-	if len(cycle) == 0 {
-		return []string{}
-	}
-	minVal := cycle[0]
-	for _, node := range cycle {
-		if node < minVal {
-			minVal = node
-		}
-	}
-
-	startIndex := -1
-	for i, node := range cycle {
-		if node == minVal && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
-			startIndex = i
-		}
-	}
-
-	ordered := []string{}
-	for i := 0; i < len(cycle); i++ {
-		ordered = append(ordered, cycle[(startIndex+i)%len(cycle)])
-	}
-
-	return ordered
+	sortedCycle := make([]string, len(cycle))
+	copy(sortedCycle, cycle)
+	sort.Strings(sortedCycle)
+	return sortedCycle
 }
 
 func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
@@ -635,7 +636,12 @@ func isValidRunOrder(configs []*RunConfig) bool {
 
 	configMap := map[string]*RunConfig{}
 	for _, config := range configs {
-		configMap[fmt.Sprintf("%s.%s", config.Table, config.RunType)] = config
+		configName := fmt.Sprintf("%s.%s", config.Table, config.RunType)
+		if _, exists := configMap[configName]; exists {
+			// configs should be unique
+			return false
+		}
+		configMap[configName] = config
 	}
 
 	prevTableLen := 0
@@ -674,16 +680,4 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 	}
 	return true
-}
-
-func dedupeSlice(input []string) []string {
-	set := map[string]any{}
-	for _, i := range input {
-		set[i] = struct{}{}
-	}
-	output := make([]string, 0, len(set))
-	for key := range set {
-		output = append(output, key)
-	}
-	return output
 }

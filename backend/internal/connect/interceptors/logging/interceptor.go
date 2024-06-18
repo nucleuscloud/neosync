@@ -3,10 +3,13 @@ package logging_interceptor
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"time"
 
 	"connectrpc.com/connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 )
 
 type Interceptor struct {
@@ -20,6 +23,12 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
 		logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 		logger = logger.With("procedure", request.Spec().Procedure)
+
+		cliAttr := getCliAttr(request.Header())
+		if cliAttr != nil {
+			logger = logger.With(*cliAttr)
+		}
+
 		ctx = logger_interceptor.SetLoggerContext(ctx, logger)
 
 		now := time.Now()
@@ -64,6 +73,34 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		)
 		return resp, nil
 	}
+}
+
+func getCliAttr(header http.Header) *slog.Attr {
+	cliVersion := header.Get(utils.CliVersionKey)
+	cliPlatform := header.Get(utils.CliPlatformKey)
+	cliCommit := header.Get(utils.CliCommitKey)
+
+	attrs := []slog.Attr{}
+	if cliVersion != "" {
+		attrs = append(attrs, slog.String("version", cliVersion))
+	}
+	if cliPlatform != "" {
+		attrs = append(attrs, slog.String("platform", cliPlatform))
+	}
+	if cliCommit != "" {
+		attrs = append(attrs, slog.String("commit", cliCommit))
+	}
+
+	attrAny := make([]any, len(attrs))
+	for i, attr := range attrs {
+		attrAny[i] = attr
+	}
+
+	if len(attrAny) == 0 {
+		return nil
+	}
+	cliGroup := slog.Group("cli", attrAny...)
+	return &cliGroup
 }
 
 func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {

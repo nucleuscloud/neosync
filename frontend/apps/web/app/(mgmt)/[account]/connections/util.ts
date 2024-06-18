@@ -377,7 +377,7 @@ async function checkConnection(
   input: CheckConnectionConfigRequest,
   accountId: string
 ): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections/check`, {
+  const res = await fetch(buildCheckConnectionKey(accountId), {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -389,6 +389,10 @@ async function checkConnection(
     throw new Error(body.message);
   }
   return CheckConnectionConfigResponse.fromJson(await res.json());
+}
+
+export function buildCheckConnectionKey(accountId: string): string {
+  return `/api/accounts/${accountId}/connections/check`;
 }
 
 async function createConnection(

@@ -462,5 +462,6 @@ export function getTransformerFilter(
     isNullable,
     jobType: toSupportedJobtype(jobType),
     isGenerated,
+    identityType: constraintHandler.getIdentityType(colkey),
   };
 }

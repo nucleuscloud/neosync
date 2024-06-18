@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -50,7 +51,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
 	err := workflow.ExecuteActivity(ctx, genbenthosactivity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
-		JobId: req.JobId,
+		JobId:      req.JobId,
+		WorkflowId: wfinfo.WorkflowExecution.ID,
 	}).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
@@ -101,7 +103,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
 		}
-		redisDependsOn[fmt.Sprintf("%s.%s", cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
+		redisDependsOn[neosync_benthos.BuildBenthosTable(cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
 	}
 
 	workselector := workflow.NewSelector(ctx)
@@ -130,7 +132,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				cancelHandler()
 				activityErr = err
 			}
-			delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
+			delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
 			// clean up redis
 			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 			if err != nil {
@@ -178,7 +180,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					activityErr = err
 				}
 				logger.Info("config sync completed", "name", bc.Name)
-				delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
+				delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
 				// clean up redis
 				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 				if err != nil {
@@ -280,7 +282,7 @@ func invokeSync(
 			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
 		if err == nil {
-			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)
 			if err != nil {
 				settable.Set(result, err)
@@ -296,7 +298,7 @@ func updateCompletedMap(tableName string, completed *sync.Map, columns []string)
 	if loaded {
 		currCols, ok := val.([]string)
 		if !ok {
-			return fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+			return fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
 		}
 		currCols = append(currCols, columns...)
 		completed.Store(tableName, currCols)
@@ -320,7 +322,7 @@ func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, com
 		if loaded {
 			completedCols, ok := val.([]string)
 			if !ok {
-				return false, fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+				return false, fmt.Errorf("unable to retrieve completed columns from completed map. Expected []string, received: %T", val)
 			}
 			for _, dc := range dep.Columns {
 				if !slices.Contains(completedCols, dc) {

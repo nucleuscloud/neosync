@@ -30,6 +30,20 @@ trigger_functions AS (
     JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
     WHERE t.tgrelid IN (SELECT oid FROM relevant_schemas_tables)
     AND NOT t.tgisinternal
+),
+column_default_functions AS (
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        p.proname AS function_name,
+        pg_catalog.pg_get_functiondef(p.oid) AS definition,
+        pg_catalog.pg_get_function_identity_arguments(p.oid) AS function_signature
+    FROM pg_catalog.pg_attrdef ad
+    JOIN pg_catalog.pg_depend d ON ad.oid = d.objid
+    JOIN pg_catalog.pg_proc p ON d.refobjid = p.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE ad.adrelid IN (SELECT oid FROM relevant_schemas_tables)
+    AND d.refclassid = 'pg_proc'::regclass
+    AND d.classid = 'pg_attrdef'::regclass
 )
 SELECT
     schema_name,
@@ -38,6 +52,14 @@ SELECT
     definition
 FROM
     trigger_functions
+UNION
+SELECT
+    schema_name,
+    function_name,
+    function_signature,
+    definition
+FROM
+    column_default_functions
 ORDER BY
     schema_name,
     function_name
@@ -82,17 +104,17 @@ func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DB
 
 const getCustomSequencesBySchemaAndTables = `-- name: GetCustomSequencesBySchemaAndTables :many
 WITH relevant_schemas_tables AS (
-    SELECT c.oid, n.nspname AS schema_name, c.relname AS table_name
+    SELECT c.oid AS table_oid, n.nspname AS schema_name, c.relname AS table_name
     FROM pg_catalog.pg_class c
     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = $1
     AND c.relname = ANY($2::TEXT[])
 ),
-all_sequences AS (
+custom_sequences AS (
     SELECT
+        seq.oid AS sequence_oid,
         seq.relname AS sequence_name,
-        nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
+        nsp.nspname AS schema_name
     FROM
         pg_catalog.pg_class seq
     JOIN
@@ -100,39 +122,47 @@ all_sequences AS (
     WHERE
         seq.relkind = 'S'
 ),
-linked_to_serial AS (
+columns_with_custom_sequences AS (
     SELECT
-        seq.relname AS sequence_name,
+        att.attrelid AS table_oid,
+        cls.relname AS table_name,
         nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
+        att.attname AS column_name,
+        seqs.sequence_name,
+        seqs.schema_name AS sequence_schema_name
     FROM
-        pg_catalog.pg_class seq
+        pg_catalog.pg_attribute att
     JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+        pg_catalog.pg_class cls ON att.attrelid = cls.oid
     JOIN
-        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+        pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
     JOIN
-        pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
+        pg_catalog.pg_attrdef ad ON att.attrelid = ad.adrelid AND att.attnum = ad.adnum
+    JOIN
+        custom_sequences seqs ON pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE '%' || seqs.sequence_name || '%'
     WHERE
-        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%'
-),
-custom_sequences AS (
-    SELECT
-        seq.sequence_name,
-        seq.schema_name,
-        seq.sequence_oid
-    FROM
-        all_sequences seq
-    LEFT JOIN
-        linked_to_serial serial ON seq.sequence_oid = serial.sequence_oid
-    WHERE
-        serial.sequence_oid IS NULL
+        att.attnum > 0
+        AND NOT att.attisdropped
+        AND att.attidentity = ''
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pg_catalog.pg_depend dep
+            WHERE dep.objid = seqs.sequence_oid
+            AND dep.refobjid = att.attrelid
+            AND dep.refobjsubid = att.attnum
+            AND dep.classid = 'pg_catalog.pg_class'::regclass
+            AND dep.refclassid = 'pg_catalog.pg_class'::regclass
+            AND dep.deptype = 'a'
+        )
 )
-SELECT DISTINCT
-    cs.schema_name,
-    cs.sequence_name,
-    (
-        'CREATE SEQUENCE ' || cs.schema_name || '.' || cs.sequence_name ||
+SELECT
+    rst.schema_name,
+    rst.table_name,
+    cws.column_name,
+    cws.sequence_schema_name,
+    cws.sequence_name,
+   (
+        'CREATE SEQUENCE ' || cws.sequence_schema_name || '.' || cws.sequence_name ||
         ' START WITH ' || seqs.start_value ||
         ' INCREMENT BY ' || seqs.increment_by ||
         ' MINVALUE ' || seqs.min_value ||
@@ -141,14 +171,15 @@ SELECT DISTINCT
         CASE WHEN seqs.cycle THEN ' CYCLE' ELSE ' NO CYCLE' END || ';'
     )::text AS "definition"
 FROM
-    custom_sequences cs
+    relevant_schemas_tables rst
 JOIN
-    relevant_schemas_tables rst ON cs.schema_name = rst.schema_name
+    columns_with_custom_sequences cws ON rst.table_oid = cws.table_oid
 JOIN
-    pg_catalog.pg_sequences seqs ON seqs.schemaname = cs.schema_name AND seqs.sequencename = cs.sequence_name
+    pg_catalog.pg_sequences seqs ON seqs.schemaname = cws.sequence_schema_name AND seqs.sequencename = cws.sequence_name
 ORDER BY
-    cs.schema_name,
-    cs.sequence_name
+    rst.schema_name,
+    rst.table_name,
+    cws.column_name
 `
 
 type GetCustomSequencesBySchemaAndTablesParams struct {
@@ -157,9 +188,12 @@ type GetCustomSequencesBySchemaAndTablesParams struct {
 }
 
 type GetCustomSequencesBySchemaAndTablesRow struct {
-	SchemaName   string
-	SequenceName string
-	Definition   string
+	SchemaName         string
+	TableName          string
+	ColumnName         string
+	SequenceSchemaName string
+	SequenceName       string
+	Definition         string
 }
 
 func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomSequencesBySchemaAndTablesParams) ([]*GetCustomSequencesBySchemaAndTablesRow, error) {
@@ -171,7 +205,14 @@ func (q *Queries) GetCustomSequencesBySchemaAndTables(ctx context.Context, db DB
 	var items []*GetCustomSequencesBySchemaAndTablesRow
 	for rows.Next() {
 		var i GetCustomSequencesBySchemaAndTablesRow
-		if err := rows.Scan(&i.SchemaName, &i.SequenceName, &i.Definition); err != nil {
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.SequenceSchemaName,
+			&i.SequenceName,
+			&i.Definition,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -400,31 +441,20 @@ func (q *Queries) GetDataTypesBySchemaAndTables(ctx context.Context, db DBTX, ar
 }
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
-WITH all_sequences AS (
+WITH linked_to_serial AS (
     SELECT
-        seq.relname AS sequence_name,
+        cl.relname AS sequence_name,
         nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
-    FROM
-        pg_catalog.pg_class seq
-    JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
-    WHERE
-        seq.relkind = 'S'
-),
-linked_to_serial AS (
-    SELECT
-        seq.relname AS sequence_name,
-        nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid,
+        cl.oid AS sequence_oid,
         ad.adrelid,
-        ad.adnum
+        ad.adnum,
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)
     FROM
-        pg_catalog.pg_class seq
+        pg_catalog.pg_class cl
     JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+        pg_catalog.pg_namespace nsp ON cl.relnamespace = nsp.oid
     JOIN
-        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+        pg_catalog.pg_depend dep ON dep.objid = cl.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
@@ -473,6 +503,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a
@@ -484,19 +515,55 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind = 'r'
+),
+identity_columns AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        a.attidentity AS identity_generation,
+        s.seqincrement AS increment_by,
+        s.seqmin AS min_value,
+        s.seqmax AS max_value,
+        s.seqstart AS start_value,
+        s.seqcache AS cache_value,
+        s.seqcycle AS cycle_option
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_class seq ON seq.relname = c.relname || '_' || a.attname || '_seq'
+    JOIN
+        pg_catalog.pg_sequence s ON seq.oid = s.seqrelid
+    WHERE
+        a.attidentity IN ('a', 'd')
 )
 SELECT
-    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.identity_generation, cd.table_oid,
     CASE
         WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
         WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
-    END AS sequence_type
+    END AS sequence_type,
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
     ON cd.table_oid = ls.adrelid
     AND cd.ordinal_position = ls.adnum
+LEFT JOIN identity_columns ic
+    ON cd.schema_name = ic.schema_name
+    AND cd.table_name = ic.table_name
+    AND cd.column_name = ic.column_name
 ORDER BY
     cd.ordinal_position
 `
@@ -513,8 +580,15 @@ type GetDatabaseSchemaRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
+	SeqIncrementBy         *int64
+	SeqMinValue            *int64
+	SeqMaxValue            *int64
+	SeqStartValue          *int64
+	SeqCacheValue          *int64
+	SeqCycleOption         *bool
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -538,8 +612,15 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
+			&i.SeqIncrementBy,
+			&i.SeqMinValue,
+			&i.SeqMaxValue,
+			&i.SeqStartValue,
+			&i.SeqCacheValue,
+			&i.SeqCycleOption,
 		); err != nil {
 			return nil, err
 		}
@@ -552,31 +633,20 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 }
 
 const getDatabaseTableSchemasBySchemasAndTables = `-- name: GetDatabaseTableSchemasBySchemasAndTables :many
-WITH all_sequences AS (
+WITH linked_to_serial AS (
     SELECT
-        seq.relname AS sequence_name,
+        cl.relname AS sequence_name,
         nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid
-    FROM
-        pg_catalog.pg_class seq
-    JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
-    WHERE
-        seq.relkind = 'S'
-),
-linked_to_serial AS (
-    SELECT
-        seq.relname AS sequence_name,
-        nsp.nspname AS schema_name,
-        seq.oid AS sequence_oid,
+        cl.oid AS sequence_oid,
         ad.adrelid,
-        ad.adnum
+        ad.adnum,
+        pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)
     FROM
-        pg_catalog.pg_class seq
+        pg_catalog.pg_class cl
     JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
+        pg_catalog.pg_namespace nsp ON cl.relnamespace = nsp.oid
     JOIN
-        pg_catalog.pg_depend dep ON dep.objid = seq.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
+        pg_catalog.pg_depend dep ON dep.objid = cl.oid AND dep.classid = 'pg_catalog.pg_class'::regclass
     JOIN
         pg_catalog.pg_attrdef ad ON dep.refobjid = ad.adrelid AND dep.refobjsubid = ad.adnum
     WHERE
@@ -625,6 +695,7 @@ column_defaults AS (
         END AS numeric_scale,
         a.attnum AS ordinal_position,
         a.attgenerated::text as generated_type,
+        a.attidentity::text as identity_generation,
         c.oid AS table_oid
     FROM
         pg_catalog.pg_attribute a
@@ -636,19 +707,55 @@ column_defaults AS (
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND c.relkind = 'r'
+),
+identity_columns AS (
+    SELECT
+        n.nspname AS schema_name,
+        c.relname AS table_name,
+        a.attname AS column_name,
+        a.attidentity AS identity_generation,
+        s.seqincrement AS increment_by,
+        s.seqmin AS min_value,
+        s.seqmax AS max_value,
+        s.seqstart AS start_value,
+        s.seqcache AS cache_value,
+        s.seqcycle AS cycle_option
+    FROM
+        pg_catalog.pg_class c
+    JOIN
+        pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+    JOIN
+        pg_catalog.pg_attribute a ON a.attrelid = c.oid
+    JOIN
+        pg_catalog.pg_class seq ON seq.relname = c.relname || '_' || a.attname || '_seq'
+    JOIN
+        pg_catalog.pg_sequence s ON seq.oid = s.seqrelid
+    WHERE
+        a.attidentity IN ('a', 'd')
 )
 SELECT
-    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.table_oid,
+    cd.schema_name, cd.table_name, cd.column_name, cd.data_type, cd.column_default, cd.is_nullable, cd.character_maximum_length, cd.numeric_precision, cd.numeric_scale, cd.ordinal_position, cd.generated_type, cd.identity_generation, cd.table_oid,
     CASE
         WHEN ls.sequence_oid IS NOT NULL THEN 'SERIAL'
         WHEN cd.column_default LIKE 'nextval(%::regclass)' THEN 'USER-DEFINED SEQUENCE'
+        WHEN cd.identity_generation != '' THEN 'IDENTITY'
         ELSE ''
-    END AS sequence_type
+    END AS sequence_type,
+    ic.increment_by as seq_increment_by,
+    ic.min_value as seq_min_value,
+    ic.max_value as seq_max_value,
+    ic.start_value as seq_start_value,
+    ic.cache_value as seq_cache_value,
+    ic.cycle_option as seq_cycle_option
 FROM
     column_defaults cd
 LEFT JOIN linked_to_serial ls
     ON cd.table_oid = ls.adrelid
     AND cd.ordinal_position = ls.adnum
+LEFT JOIN identity_columns ic
+    ON cd.schema_name = ic.schema_name
+    AND cd.table_name = ic.table_name
+    AND cd.column_name = ic.column_name
 ORDER BY
     cd.ordinal_position
 `
@@ -665,8 +772,15 @@ type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	NumericScale           int32
 	OrdinalPosition        int16
 	GeneratedType          string
+	IdentityGeneration     string
 	TableOid               pgtype.Uint32
 	SequenceType           string
+	SeqIncrementBy         *int64
+	SeqMinValue            *int64
+	SeqMaxValue            *int64
+	SeqStartValue          *int64
+	SeqCacheValue          *int64
+	SeqCycleOption         *bool
 }
 
 func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, schematables []string) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
@@ -690,8 +804,15 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.NumericScale,
 			&i.OrdinalPosition,
 			&i.GeneratedType,
+			&i.IdentityGeneration,
 			&i.TableOid,
 			&i.SequenceType,
+			&i.SeqIncrementBy,
+			&i.SeqMinValue,
+			&i.SeqMaxValue,
+			&i.SeqStartValue,
+			&i.SeqCacheValue,
+			&i.SeqCycleOption,
 		); err != nil {
 			return nil, err
 		}
@@ -760,17 +881,17 @@ func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, sch
 
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
 SELECT
-    rtg.table_schema as table_schema,
-    rtg.table_name as table_name,
-    rtg.privilege_type as privilege_type
+    tp.table_schema::text as table_schema,
+    tp.table_name::text as table_name,
+    tp.privilege_type::text as privilege_type
 FROM
-    information_schema.role_table_grants as rtg
+    information_schema.table_privileges AS tp
 WHERE
-    table_schema NOT IN ('pg_catalog', 'information_schema')
-AND grantee =  $1
+    tp.table_schema NOT IN ('pg_catalog', 'information_schema')
+AND (tp.grantee = current_user OR tp.grantee = 'PUBLIC')
 ORDER BY
-    table_schema,
-    table_name
+    tp.table_schema,
+    tp.table_name
 `
 
 type GetPostgresRolePermissionsRow struct {
@@ -779,8 +900,8 @@ type GetPostgresRolePermissionsRow struct {
 	PrivilegeType string
 }
 
-func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
-	rows, err := db.Query(ctx, getPostgresRolePermissions, role)
+func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error) {
+	rows, err := db.Query(ctx, getPostgresRolePermissions)
 	if err != nil {
 		return nil, err
 	}

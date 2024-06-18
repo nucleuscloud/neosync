@@ -7,8 +7,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
 type Provider struct{}

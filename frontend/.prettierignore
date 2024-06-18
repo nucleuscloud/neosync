@@ -8,4 +8,6 @@ dev
 pnpm-lock.yaml
 package-lock.json
 packages/sdk/src/client/
+packages/sdk/dist/
 package.json
+.next

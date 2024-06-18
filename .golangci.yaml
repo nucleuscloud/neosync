@@ -9,7 +9,7 @@ linters-settings:
       #     - pkg: "github.com/sirupsen/logrus"
       #       desc: logging is allowed only by logutils.Log
   dupl:
-    threshold: 100
+    threshold: 150
   funlen:
     lines: -1 # the number of lines (code + empty lines) is not a right metric and leads to code without empty line or one-liner.
     statements: 50
@@ -29,13 +29,11 @@ linters-settings:
       - octalLiteral
       - whyNoLint
   gocyclo:
-    min-complexity: 15
+    min-complexity: 20
   gofmt:
     rewrite-rules:
       - pattern: "interface{}"
         replacement: "any"
-  goimports:
-    local-prefixes: github.com/golangci/golangci-lint
   gomnd:
     # don't include the "operation" and "assign"
     checks:
@@ -134,6 +132,7 @@ issues:
     - charts
     - docs
     - node_modules
+    - backend/gen
   #   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
@@ -142,29 +141,8 @@ issues:
         - lll
         - goconst
         - gosec
-
-#     - path: pkg/golinters/errcheck.go
-#       text: "SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead"
-#     - path: pkg/commands/run.go
-#       text: "SA1019: lsc.Errcheck.Exclude is deprecated: use ExcludeFunctions instead"
-#     - path: pkg/commands/run.go
-#       text: "SA1019: e.cfg.Run.Deadline is deprecated: Deadline exists for historical compatibility and should not be used."
-
-#     - path: pkg/golinters/gofumpt.go
-#       text: "SA1019: settings.LangVersion is deprecated: use the global `run.go` instead."
-#     - path: pkg/golinters/staticcheck_common.go
-#       text: "SA1019: settings.GoVersion is deprecated: use the global `run.go` instead."
-#     - path: pkg/lint/lintersdb/manager.go
-#       text: "SA1019: (.+).(GoVersion|LangVersion) is deprecated: use the global `run.go` instead."
-#     - path: pkg/golinters/unused.go
-#       text: "rangeValCopy: each iteration copies 160 bytes \\(consider pointers or indexing\\)"
-#     - path: test/(fix|linters)_test.go
-#       text: "string `gocritic.go` has 3 occurrences, make it a constant"
+    - path: ^mock_.*\.go$
+      text: "exclude mock files"
 
 run:
   timeout: 10m
-  # skip-dirs:
-  #   - test/testdata_etc # test files
-  #   - internal/cache # extracted from Go code
-  #   - internal/renameio # extracted from Go code
-  #   - internal/robustio # extracted from Go code

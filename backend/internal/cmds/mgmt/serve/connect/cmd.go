@@ -146,7 +146,7 @@ func serve(ctx context.Context) error {
 			schemaDir,
 			slogger,
 		); err != nil {
-			return err
+			return fmt.Errorf("unable to complete database migrations: %w", err)
 		}
 	}
 
@@ -366,6 +366,7 @@ func serve(ctx context.Context) error {
 		pgquerier,
 		mysqlquerier,
 		mongoconnector,
+		sqlmanager,
 	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
@@ -452,6 +453,12 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		sslMode = "disable"
 	}
 
+	var dbOptions *string
+	if viper.IsSet("DB_OPTIONS") {
+		val := viper.GetString("DB_OPTIONS")
+		dbOptions = &val
+	}
+
 	return &nucleusdb.ConnectConfig{
 		Host:     dbHost,
 		Port:     dbPort,
@@ -459,6 +466,7 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		User:     dbUser,
 		Pass:     dbPass,
 		SslMode:  &sslMode,
+		Options:  dbOptions,
 	}, nil
 }
 
@@ -505,6 +513,12 @@ func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 		tableQuoted = &isQuoted
 	}
 
+	var dbOptions *string
+	if viper.IsSet("DB_MIGRATIONS_OPTIONS") {
+		val := viper.GetString("DB_MIGRATIONS_OPTIONS")
+		dbOptions = &val
+	}
+
 	return &nucleusdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
@@ -514,6 +528,7 @@ func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 		SslMode:               &sslMode,
 		MigrationsTableName:   migrationsTable,
 		MigrationsTableQuoted: tableQuoted,
+		Options:               dbOptions,
 	}, nil
 }
 

@@ -440,9 +440,9 @@ func (_c *MockQuerier_GetIndicesBySchemasAndTables_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// GetPostgresRolePermissions provides a mock function with given fields: ctx, db, role
-func (_m *MockQuerier) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
-	ret := _m.Called(ctx, db, role)
+// GetPostgresRolePermissions provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) GetPostgresRolePermissions(ctx context.Context, db DBTX) ([]*GetPostgresRolePermissionsRow, error) {
+	ret := _m.Called(ctx, db)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostgresRolePermissions")
@@ -450,19 +450,19 @@ func (_m *MockQuerier) GetPostgresRolePermissions(ctx context.Context, db DBTX, 
 
 	var r0 []*GetPostgresRolePermissionsRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, interface{}) ([]*GetPostgresRolePermissionsRow, error)); ok {
-		return rf(ctx, db, role)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetPostgresRolePermissionsRow, error)); ok {
+		return rf(ctx, db)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, interface{}) []*GetPostgresRolePermissionsRow); ok {
-		r0 = rf(ctx, db, role)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) []*GetPostgresRolePermissionsRow); ok {
+		r0 = rf(ctx, db)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*GetPostgresRolePermissionsRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, interface{}) error); ok {
-		r1 = rf(ctx, db, role)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -478,14 +478,13 @@ type MockQuerier_GetPostgresRolePermissions_Call struct {
 // GetPostgresRolePermissions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - role interface{}
-func (_e *MockQuerier_Expecter) GetPostgresRolePermissions(ctx interface{}, db interface{}, role interface{}) *MockQuerier_GetPostgresRolePermissions_Call {
-	return &MockQuerier_GetPostgresRolePermissions_Call{Call: _e.mock.On("GetPostgresRolePermissions", ctx, db, role)}
+func (_e *MockQuerier_Expecter) GetPostgresRolePermissions(ctx interface{}, db interface{}) *MockQuerier_GetPostgresRolePermissions_Call {
+	return &MockQuerier_GetPostgresRolePermissions_Call{Call: _e.mock.On("GetPostgresRolePermissions", ctx, db)}
 }
 
-func (_c *MockQuerier_GetPostgresRolePermissions_Call) Run(run func(ctx context.Context, db DBTX, role interface{})) *MockQuerier_GetPostgresRolePermissions_Call {
+func (_c *MockQuerier_GetPostgresRolePermissions_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_GetPostgresRolePermissions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(interface{}))
+		run(args[0].(context.Context), args[1].(DBTX))
 	})
 	return _c
 }
@@ -495,7 +494,7 @@ func (_c *MockQuerier_GetPostgresRolePermissions_Call) Return(_a0 []*GetPostgres
 	return _c
 }
 
-func (_c *MockQuerier_GetPostgresRolePermissions_Call) RunAndReturn(run func(context.Context, DBTX, interface{}) ([]*GetPostgresRolePermissionsRow, error)) *MockQuerier_GetPostgresRolePermissions_Call {
+func (_c *MockQuerier_GetPostgresRolePermissions_Call) RunAndReturn(run func(context.Context, DBTX) ([]*GetPostgresRolePermissionsRow, error)) *MockQuerier_GetPostgresRolePermissions_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -39,6 +39,11 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			generatedTypeCopy := row.GeneratedType
 			generatedType = &generatedTypeCopy
 		}
+		var identityGeneration *string
+		if row.IdentityGeneration != "" {
+			val := row.IdentityGeneration
+			identityGeneration = &val
+		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.SchemaName,
 			TableName:              row.TableName,
@@ -51,6 +56,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_
 			NumericScale:           row.NumericScale,
 			OrdinalPosition:        row.OrdinalPosition,
 			GeneratedType:          generatedType,
+			IdentityGeneration:     identityGeneration,
 		})
 	}
 	return result, nil
@@ -116,129 +122,8 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	}, nil
 }
 
-func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
-	if len(schemas) == 0 {
-		return []*sqlmanager_shared.ForeignKeyConstraintsRow{}, nil
-	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return []*sqlmanager_shared.ForeignKeyConstraintsRow{}, nil
-	}
-
-	result := []*sqlmanager_shared.ForeignKeyConstraintsRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "f" {
-			continue
-		}
-		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
-		}
-		if len(row.ConstraintColumns) != len(row.Notnullable) {
-			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
-		}
-
-		for idx, colname := range row.ConstraintColumns {
-			fkcol := row.ForeignColumnNames[idx]
-			notnullable := row.Notnullable[idx]
-
-			result = append(result, &sqlmanager_shared.ForeignKeyConstraintsRow{
-				SchemaName:        row.SchemaName,
-				TableName:         row.TableName,
-				ColumnName:        colname,
-				IsNullable:        !notnullable,
-				ConstraintName:    row.ConstraintName,
-				ForeignSchemaName: row.ForeignSchemaName,
-				ForeignTableName:  row.ForeignTableName,
-				ForeignColumnName: fkcol,
-			})
-		}
-	}
-	return result, nil
-}
-
-// Key is schema.table value is list of tables that key depends on
-func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
-	if len(schemas) == 0 {
-		return map[string][]*sqlmanager_shared.ForeignConstraint{}, nil
-	}
-	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	if constraints == nil {
-		return map[string][]*sqlmanager_shared.ForeignConstraint{}, nil
-	}
-
-	return constraints.ForeignKeyConstraints, nil
-}
-
-func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {
-	if len(schemas) == 0 {
-		return []*sqlmanager_shared.PrimaryKey{}, nil
-	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return []*sqlmanager_shared.PrimaryKey{}, nil
-	}
-
-	constraints := []*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "p" {
-			continue
-		}
-		constraints = append(constraints, row)
-	}
-	result := []*sqlmanager_shared.PrimaryKey{}
-	for _, row := range constraints {
-		columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
-		result = append(result, &sqlmanager_shared.PrimaryKey{
-			Schema:  row.SchemaName,
-			Table:   row.TableName,
-			Columns: columns,
-		})
-	}
-	return result, nil
-}
-
-func (p *PostgresManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
-	if len(schemas) == 0 {
-		return map[string][]string{}, nil
-	}
-	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	if constraints == nil {
-		return map[string][]string{}, nil
-	}
-
-	return constraints.PrimaryKeyConstraints, nil
-}
-
-func (p *PostgresManager) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
-	if len(schemas) == 0 {
-		return map[string][][]string{}, nil
-	}
-	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-
-	if constraints == nil {
-		return map[string][][]string{}, nil
-	}
-
-	return constraints.UniqueConstraints, nil
-}
-
-func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {
-	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool, role)
+func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
+	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -532,14 +417,29 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 			continue
 		}
 		columns := make([]string, 0, len(tableData))
-		for _, td := range tableData {
+		for _, record := range tableData {
+			record := record
+			var seqConfig *SequenceConfiguration
+			if record.IdentityGeneration != "" && record.SeqStartValue != nil && record.SeqMinValue != nil &&
+				record.SeqMaxValue != nil && record.SeqIncrementBy != nil && record.SeqCycleOption != nil && record.SeqCacheValue != nil {
+				seqConfig = &SequenceConfiguration{
+					StartValue:  *record.SeqStartValue,
+					MinValue:    *record.SeqMinValue,
+					MaxValue:    *record.SeqMaxValue,
+					IncrementBy: *record.SeqIncrementBy,
+					CycleOption: *record.SeqCycleOption,
+					CacheValue:  *record.SeqCacheValue,
+				}
+			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
-				ColumnName:    td.ColumnName,
-				ColumnDefault: td.ColumnDefault,
-				DataType:      td.DataType,
-				IsNullable:    td.IsNullable == "YES",
-				GeneratedType: td.GeneratedType,
-				IsSerial:      td.SequenceType == "SERIAL", //nolint:goconst
+				ColumnName:    record.ColumnName,
+				ColumnDefault: record.ColumnDefault,
+				DataType:      record.DataType,
+				IsNullable:    record.IsNullable == "YES",
+				GeneratedType: record.GeneratedType,
+				IsSerial:      record.SequenceType == "SERIAL", //nolint:goconst
+				Sequence:      seqConfig,
+				IdentityType:  &record.IdentityGeneration,
 			}))
 		}
 
@@ -565,6 +465,70 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		output = append(output, info)
 	}
 	return output, nil
+}
+
+func (p *PostgresManager) GetSchemaInitStatements(
+	ctx context.Context,
+	tables []*sqlmanager_shared.SchemaTable,
+) ([]*sqlmanager_shared.InitSchemaStatements, error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	dataTypeStmts := []string{}
+	errgrp.Go(func() error {
+		datatypeCfg, err := p.GetSchemaTableDataTypes(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table data types: %w", err)
+		}
+		dataTypeStmts = datatypeCfg.GetStatements()
+		return nil
+	})
+
+	tableTriggerStmts := []string{}
+	errgrp.Go(func() error {
+		tableTriggers, err := p.GetSchemaTableTriggers(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table triggers: %w", err)
+		}
+		for _, ttrig := range tableTriggers {
+			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+		}
+		return nil
+	})
+
+	createTables := []string{}
+	nonFkAlterStmts := []string{}
+	fkAlterStmts := []string{}
+	idxStmts := []string{}
+	errgrp.Go(func() error {
+		initStatementCfgs, err := p.GetTableInitStatements(ctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve postgres schema table create statements: %w", err)
+		}
+		for _, stmtCfg := range initStatementCfgs {
+			createTables = append(createTables, stmtCfg.CreateTableStatement)
+			for _, alter := range stmtCfg.AlterTableStatements {
+				if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
+					fkAlterStmts = append(fkAlterStmts, alter.Statement)
+				} else {
+					nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+				}
+			}
+			idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+		}
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: dataTypeStmts},
+		{Label: "create table", Statements: createTables},
+		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
+		{Label: "table index", Statements: idxStmts},
+		{Label: "table triggers", Statements: tableTriggerStmts},
+	}, nil
 }
 
 func wrapPgIdempotentIndex(
@@ -603,12 +567,17 @@ BEGIN
 		FROM pg_constraint
 		WHERE conname = '%s'
 		AND connamespace = '%s'::regnamespace
-		AND conrelid = '%s'::regclass
+		AND conrelid = (
+			SELECT oid
+			FROM pg_class
+			WHERE relname = '%s'
+			AND relnamespace = '%s'::regnamespace
+		)
 	) THEN
 		%s
 	END IF;
 END $$;
-	`, constraintName, schema, table, addSuffixIfNotExist(alterStatement, ";"))
+	`, constraintName, schema, table, schema, addSuffixIfNotExist(alterStatement, ";"))
 	return strings.TrimSpace(stmt)
 }
 
@@ -736,6 +705,18 @@ func generateCreateTableStatement(
 	columns := make([]string, len(tableSchemas))
 	for idx := range tableSchemas {
 		record := tableSchemas[idx]
+		var seqConfig *SequenceConfiguration
+		if record.IdentityGeneration != "" && record.SeqStartValue != nil && record.SeqMinValue != nil &&
+			record.SeqMaxValue != nil && record.SeqIncrementBy != nil && record.SeqCycleOption != nil && record.SeqCacheValue != nil {
+			seqConfig = &SequenceConfiguration{
+				StartValue:  *record.SeqStartValue,
+				MinValue:    *record.SeqMinValue,
+				MaxValue:    *record.SeqMaxValue,
+				IncrementBy: *record.SeqIncrementBy,
+				CycleOption: *record.SeqCycleOption,
+				CacheValue:  *record.SeqCacheValue,
+			}
+		}
 		columns[idx] = buildTableCol(&buildTableColRequest{
 			ColumnName:    record.ColumnName,
 			ColumnDefault: record.ColumnDefault,
@@ -743,6 +724,8 @@ func generateCreateTableStatement(
 			IsNullable:    record.IsNullable == "YES",
 			GeneratedType: record.GeneratedType,
 			IsSerial:      record.SequenceType == "SERIAL",
+			Sequence:      seqConfig,
+			IdentityType:  &record.IdentityGeneration,
 		})
 	}
 
@@ -762,6 +745,37 @@ type buildTableColRequest struct {
 	IsNullable    bool
 	GeneratedType string
 	IsSerial      bool
+	IdentityType  *string
+	Sequence      *SequenceConfiguration
+}
+
+type SequenceConfiguration struct {
+	IncrementBy int64
+	MinValue    int64
+	MaxValue    int64
+	StartValue  int64
+	CacheValue  int64
+	CycleOption bool
+}
+
+func (s *SequenceConfiguration) ToGeneratedDefaultIdentity() string {
+	return fmt.Sprintf("GENERATED BY DEFAULT AS IDENTITY( %s )", s.identitySequenceConfiguration())
+}
+func (s *SequenceConfiguration) ToGeneratedAlwaysIdentity() string {
+	return fmt.Sprintf("GENERATED ALWAYS AS IDENTITY ( %s )", s.identitySequenceConfiguration())
+}
+
+func (s *SequenceConfiguration) identitySequenceConfiguration() string {
+	return fmt.Sprintf("INCREMENT BY %d MINVALUE %d MAXVALUE %d START %d CACHE %d %s",
+		s.IncrementBy, s.MinValue, s.MaxValue, s.StartValue, s.CacheValue, s.toCycelText(),
+	)
+}
+
+func (s *SequenceConfiguration) toCycelText() string {
+	if s.CycleOption {
+		return "CYCLE"
+	}
+	return "NO CYCLE"
 }
 
 func buildTableCol(record *buildTableColRequest) string {
@@ -774,6 +788,12 @@ func buildTableCol(record *buildTableColRequest) string {
 			pieces[1] = "BIGSERIAL"
 		} else {
 			pieces[1] = "SERIAL"
+		}
+	} else if record.IdentityType != nil && *record.IdentityType != "" && record.Sequence != nil {
+		if *record.IdentityType == "d" {
+			pieces = append(pieces, record.Sequence.ToGeneratedDefaultIdentity())
+		} else if *record.IdentityType == "a" {
+			pieces = append(pieces, record.Sequence.ToGeneratedAlwaysIdentity())
 		}
 	} else if record.ColumnDefault != "" {
 		if record.GeneratedType == "s" {

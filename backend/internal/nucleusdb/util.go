@@ -56,6 +56,9 @@ func GetDbUrl(cfg *ConnectConfig) string {
 	if cfg.MigrationsTableQuoted != nil {
 		pgOpts["x-migrations-table-quoted"] = []string{strconv.FormatBool(*cfg.MigrationsTableQuoted)}
 	}
+	if cfg.Options != nil {
+		pgOpts["options"] = []string{*cfg.Options}
+	}
 	if len(pgOpts) > 0 {
 		return fmt.Sprintf("%s?%s", dburl, pgOpts.Encode())
 	}

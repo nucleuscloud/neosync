@@ -12,8 +12,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs/query-builder"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -453,7 +453,7 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 				AwsS3: &neosync_benthos.AwsS3Insert{
 					Bucket:      connection.AwsS3Config.Bucket,
 					MaxInFlight: 64,
-					Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+					Path:        strings.Join(s3pathpieces, "/"),
 					Batching: &neosync_benthos.Batching{
 						Count:  100,
 						Period: "5s",

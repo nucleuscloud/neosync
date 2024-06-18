@@ -36,18 +36,24 @@ The following options can be passed using the `neosync sync` command:
 - `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
 - `--truncate-cascade` - Truncate cascades to all tables. Only supported for postgres.
 - `--init-schema` - Creates the table schema and its constraints.
+- `--on-conflict-do-nothing` - If there is a conflict when inserting data into SQL database do not insert.
 - `--output` - Sets output type (auto, plain, tty). (default `auto`).
 
 ## Yaml Config File
 
 ```yaml
-connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
+source:
+  connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
+  connection-opts:
+    job-run-id: 43a4aac5-c4a8-4e4f-8554-03b7c5fffc04-2024-06-14T17:43:24Z
 destination:
   connection-url: user:pass@tcp(127.0.0.1:3306)/database
   driver: mysql
   truncate-before-insert: false
   truncate-cascade: false
   init-schema: false
+  on-conflict:
+    do-nothing: false
 ```
 
 ## Circular Dependencies

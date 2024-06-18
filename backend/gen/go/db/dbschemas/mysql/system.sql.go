@@ -160,30 +160,27 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSc
 
 const getMysqlRolePermissions = `-- name: GetMysqlRolePermissions :many
 SELECT
-    t.table_schema,
-    t.table_name,
-	p.grantee,
-	p.privilege_type
+    tp.TABLE_SCHEMA AS table_schema,
+    tp.TABLE_NAME AS table_name,
+    tp.PRIVILEGE_TYPE AS privilege_type
 FROM
-    information_schema.tables t
-    JOIN information_schema.table_privileges p ON t.table_schema = p.table_schema
-    AND t.table_name = p.table_name
+    information_schema.TABLE_PRIVILEGES AS tp
 WHERE
-    t.table_schema NOT IN ('sys', 'performance_schema', 'mysql', 'information_schema')
-  AND p.GRANTEE = ?
+    tp.TABLE_SCHEMA NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
+    AND (tp.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'"))
 ORDER BY
-    t.table_schema, t.table_name, p.GRANTEE
+    tp.TABLE_SCHEMA,
+    tp.TABLE_NAME
 `
 
 type GetMysqlRolePermissionsRow struct {
 	TableSchema   string
 	TableName     string
-	Grantee       string
 	PrivilegeType string
 }
 
-func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX, role string) ([]*GetMysqlRolePermissionsRow, error) {
-	rows, err := db.QueryContext(ctx, getMysqlRolePermissions, role)
+func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetMysqlRolePermissionsRow, error) {
+	rows, err := db.QueryContext(ctx, getMysqlRolePermissions)
 	if err != nil {
 		return nil, err
 	}
@@ -191,12 +188,7 @@ func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX, role str
 	var items []*GetMysqlRolePermissionsRow
 	for rows.Next() {
 		var i GetMysqlRolePermissionsRow
-		if err := rows.Scan(
-			&i.TableSchema,
-			&i.TableName,
-			&i.Grantee,
-			&i.PrivilegeType,
-		); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

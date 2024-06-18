@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"connectrpc.com/connect"
 	"github.com/fatih/color"
@@ -13,6 +12,8 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,7 @@ func listAccounts(
 		return err
 	}
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http.DefaultClient,
+		http_client.NewWithHeaders(version.Get().Headers()),
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),

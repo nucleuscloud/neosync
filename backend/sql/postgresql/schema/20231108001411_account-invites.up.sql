@@ -12,7 +12,3 @@ CREATE TABLE IF NOT EXISTS neosync_api.account_invites (
   CONSTRAINT fk_invites_accounts_id FOREIGN KEY (account_id) REFERENCES neosync_api.accounts(id) ON DELETE CASCADE,
   CONSTRAINT fk_invites_user_id FOREIGN KEY (sender_user_id) REFERENCES neosync_api.users(id) ON DELETE SET NULL
 );
-ALTER TABLE neosync_api.account_invites OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.account_invites TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.account_invites TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.account_invites TO neosync_api_readonly;

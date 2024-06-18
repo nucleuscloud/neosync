@@ -3,7 +3,6 @@ package whoami_cmd
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -11,6 +10,8 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,7 @@ func whoami(ctx context.Context, apiKey *string) error {
 		return err
 	}
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
-		http.DefaultClient,
+		http_client.NewWithHeaders(version.Get().Headers()),
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),

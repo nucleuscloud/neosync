@@ -16,7 +16,4 @@ CREATE TABLE IF NOT EXISTS neosync_api.account_api_keys (
   CONSTRAINT fk_account_api_keys_created_by_id FOREIGN KEY (created_by_id) REFERENCES neosync_api.users(id),
   CONSTRAINT fk_account_api_keys_updated_by_id FOREIGN KEY (updated_by_id) REFERENCES neosync_api.users(id)
 );
-ALTER TABLE neosync_api.account_api_keys OWNER TO neosync_api_owner;
-GRANT ALL ON TABLE neosync_api.account_api_keys TO neosync_api_owner;
-GRANT INSERT, DELETE, UPDATE, SELECT ON TABLE neosync_api.account_api_keys TO neosync_api_readwrite;
-GRANT SELECT ON TABLE neosync_api.account_api_keys TO neosync_api_readonly;
+
