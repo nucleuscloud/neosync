@@ -39,7 +39,7 @@ export function UserDefinedTransformersDataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    initialState: {
+    state: {
       pagination: { pageIndex: pagination, pageSize: pageSize },
     },
     enableRowSelection: false,
