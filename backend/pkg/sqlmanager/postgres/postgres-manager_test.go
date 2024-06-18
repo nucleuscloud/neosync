@@ -22,35 +22,6 @@ func compareSlices(slice1, slice2 []string) bool {
 	return true
 }
 
-func Test_GetUniqueConstraintsMap(t *testing.T) {
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mockPool := pg_queries.NewMockDBTX(t)
-	manager := PostgresManager{
-		querier: pgquerier,
-		pool:    mockPool,
-	}
-
-	schemas := []string{"public"}
-
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockPool, schemas).Return(
-		mockTableConstraintsRows(), nil,
-	)
-
-	expected := map[string][][]string{
-		"public.person": {{"name", "email"}},
-		"public.region": {{"code"}, {"name"}},
-	}
-
-	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
-
-	require.NoError(t, err)
-	require.Len(t, actual.UniqueConstraints["public.person"], 1)
-	require.Len(t, actual.UniqueConstraints["public.region"], 2)
-	require.ElementsMatch(t, expected["public.person"][0], actual.UniqueConstraints["public.person"][0])
-	require.ElementsMatch(t, expected["public.region"][0], actual.UniqueConstraints["public.region"][0])
-	require.ElementsMatch(t, expected["public.region"][1], actual.UniqueConstraints["public.region"][1])
-}
-
 func Test_GetCreateTableStatement(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mockPool := pg_queries.NewMockDBTX(t)

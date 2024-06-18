@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS sqlmanagerpostgres;
 
 SET search_path TO sqlmanagerpostgres;
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id TEXT NOT NULL,
     age int NOT NULL,
     current_salary float NOT NULL,
@@ -11,9 +11,16 @@ CREATE TABLE IF NOT EXISTS users (
     fullname TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED
 );
 
-CREATE TABLE IF NOT EXISTS users_with_identity (
+CREATE TABLE users_with_identity (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     age int NOT NULL
+);
+
+CREATE TABLE unique_emails (
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email text not null UNIQUE,
+    username text not null,
+    CONSTRAINT unique_email_username UNIQUE (email, username)
 );
 
 CREATE TABLE parent1 (id uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT pk_parent1_id PRIMARY KEY (id));
