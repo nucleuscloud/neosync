@@ -23,16 +23,13 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
-	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
-	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
-	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
+	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"go.opentelemetry.io/otel/metric"
 
 	"connectrpc.com/connect"
-	"github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -189,15 +186,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		connectionMap[connection.Id] = connection
 	}
 
-	benthosenv := service.NewEnvironment()
-
-	if a.meter != nil {
-		err = benthos_metrics.RegisterOtelMetricsExporter(benthosenv, a.meter)
-		if err != nil {
-			return nil, fmt.Errorf("unable to register otel_collector for benthos metering: %w", err)
-		}
-	}
-
 	envKeyDsnSyncMap := sync.Map{}
 	dsnToConnectionIdMap := sync.Map{}
 	errgrp := errgroup.Group{}
@@ -221,31 +209,16 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	poolprovider := newPoolProvider(getPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger))
-
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider, isRetry)
+	benthosenv, err := benthos_environment.New(&benthos_environment.RegisterConfig{
+		Meter: a.meter,
+		SqlConfig: &benthos_environment.SqlConfig{
+			Provider: newPoolProvider(getPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			IsRetry:  isRetry,
+		},
+		StopChannel: stopActivityChan,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to register pooled_sql_insert output to benthos instance: %w", err)
-	}
-	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, poolprovider)
-	if err != nil {
-		return nil, err
-	}
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider, stopActivityChan)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
-	}
-	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopActivityChan)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
-	}
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, stopActivityChan)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register error output to benthos instance: %w", err)
-	}
-	err = openaigenerate.RegisterOpenaiGenerate(benthosenv)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register openai_generate input to benthos instance: %w", err)
+		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
