@@ -96,7 +96,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const dealbody = {
       data: {
         values: {
-          name: 'test',
+          name: registerEvent.details.email,
           stage: 'App sign up',
           owner: 'evis@nucleuscloud.com',
           associated_people: [
