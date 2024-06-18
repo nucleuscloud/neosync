@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 	accounts_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/accounts"
 	connections_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/connections"
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
@@ -38,9 +39,9 @@ func Execute() {
 
 			versionInfo := version.Get()
 			md := metadata.New(map[string]string{
-				"cliVersion":  versionInfo.GitVersion,
-				"cliPlatform": versionInfo.Platform,
-				"cliCommit":   versionInfo.GitCommit,
+				utils.CliVersionKey:  versionInfo.GitVersion,
+				utils.CliPlatformKey: versionInfo.Platform,
+				utils.CliCommitKey:   versionInfo.GitCommit,
 			})
 			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), md))
 		},

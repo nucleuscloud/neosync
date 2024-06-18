@@ -28,9 +28,6 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 				return nil, err
 			}
 			request.Header().Set(i.authHeader, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 		return next(ctx, request)
 	}

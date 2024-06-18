@@ -11,6 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 )
 
 const (
@@ -44,9 +45,7 @@ func getToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 	authedAuthClient := mgmtv1alpha1connect.NewAuthServiceClient(
-		newHttpClient(map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-		}),
+		http_client.NewWithAuth(&accessToken),
 		serverconfig.GetApiBaseUrl(),
 	)
 	_, err = authedAuthClient.CheckToken(ctx, connect.NewRequest(&mgmtv1alpha1.CheckTokenRequest{}))
@@ -89,30 +88,4 @@ func IsAuthEnabled(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return isEnabledResp.Msg.IsEnabled, nil
-}
-
-func newHttpClient(
-	headers map[string]string,
-) *http.Client {
-	return &http.Client{
-		Transport: &headerTransport{
-			Transport: http.DefaultTransport,
-			Headers:   headers,
-		},
-	}
-}
-
-type headerTransport struct {
-	Transport http.RoundTripper
-	Headers   map[string]string
-}
-
-func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if req.Header == nil {
-		req.Header = http.Header{}
-	}
-	for key, value := range t.Headers {
-		req.Header.Add(key, value)
-	}
-	return t.Transport.RoundTrip(req)
 }

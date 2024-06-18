@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+const (
+	CliVersionKey  = "cliVersion"
+	CliPlatformKey = "cliPlatform"
+	CliCommitKey   = "cliCommit"
+)
+
 func ToSha256(input string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
 }
