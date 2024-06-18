@@ -113,13 +113,13 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                     const source = splitSchemaTable(sourceTable);
                     const target = splitSchemaTable(targetTable);
                     addVirtualForeignKey({
-                      schema: source.schema,
-                      table: source.table,
-                      columns: [sourceColumn],
+                      schema: target.schema,
+                      table: target.table,
+                      columns: [targetColumn],
                       foreignKey: {
-                        schema: target.schema,
-                        table: target.table,
-                        columns: [targetColumn],
+                        schema: source.schema,
+                        table: source.table,
+                        columns: [sourceColumn],
                       },
                     });
                     setSourceTable(undefined);

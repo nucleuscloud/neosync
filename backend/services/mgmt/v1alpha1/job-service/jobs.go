@@ -1608,10 +1608,10 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
-	_, vfkErrsMap, vfkDbErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
-	dbErrors.Errors = append(dbErrors.Errors, vfkDbErrs...)
+	vfkErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
+	dbErrors.Errors = append(dbErrors.Errors, vfkErrs.DbErrors...)
 
-	for t, colErrMap := range vfkErrsMap {
+	for t, colErrMap := range vfkErrs.ColumnErrorMap {
 		if _, ok := colErrorsMap[t]; !ok {
 			colErrorsMap[t] = map[string][]string{}
 		}
@@ -1648,8 +1648,34 @@ func (s *Service) ValidateJobMappings(
 		}
 	}
 
+	allForeignKeys := tableConstraints.ForeignKeyConstraints
 	for _, vfk := range req.Msg.GetVirtualForeignKeys() {
-		filteredDepsMap[vfk.Table] = append(filteredDepsMap[vfk.Table], vfk.ForeignKey.Table)
+		tableName := sqlmanager_shared.BuildTable(vfk.Schema, vfk.Table)
+		fkTable := sqlmanager_shared.BuildTable(vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
+		filteredDepsMap[tableName] = append(filteredDepsMap[tableName], fkTable)
+
+		// merge virtual foreign keys with table foreign keys
+		tableCols, ok := colInfoMap[tableName]
+		if !ok {
+			continue
+		}
+		notNullable := []bool{}
+		for _, col := range vfk.GetColumns() {
+			colInfo, ok := tableCols[col]
+			if !ok {
+				return nil, fmt.Errorf("Column does not exist in schema: %s.%s", tableName, col)
+			}
+			notNullable = append(notNullable, !colInfo.IsNullable)
+		}
+
+		allForeignKeys[tableName] = append(allForeignKeys[tableName], &sqlmanager_shared.ForeignConstraint{
+			Columns:     vfk.GetColumns(),
+			NotNullable: notNullable,
+			ForeignKey: &sqlmanager_shared.ForeignKey{
+				Columns: vfk.GetColumns(),
+				Table:   fkTable,
+			},
+		})
 	}
 
 	for table, deps := range filteredDepsMap {
@@ -1657,7 +1683,7 @@ func (s *Service) ValidateJobMappings(
 	}
 
 	cycles := tabledependency.FindCircularDependencies(filteredDepsMap)
-	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, tableConstraints.ForeignKeyConstraints)
+	startTables, err := tabledependency.DetermineCycleStarts(cycles, map[string]string{}, allForeignKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -1746,19 +1772,25 @@ func (s *Service) ValidateJobMappings(
 	}), nil
 }
 
+type validateVirtualForeignKeysResponse struct {
+	IsValid        bool
+	ColumnErrorMap map[string]map[string][]string
+	DbErrors       []string
+}
+
 func validateVirtualForeignKeys(
 	virtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint,
 	jobColMappings map[string]map[string]*mgmtv1alpha1.JobMapping,
 	tc *sqlmanager_shared.TableConstraints,
 	colMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
-) (bool, map[string]map[string][]string, []string) {
+) *validateVirtualForeignKeysResponse {
 	dbErrors := []string{}
 	colErrorsMap := map[string]map[string][]string{}
 	isValid := true
 
 	for _, vfk := range virtualForeignKeys {
-		sourceTable := fmt.Sprintf("%s.%s", vfk.Schema, vfk.Table)
-		targetTable := fmt.Sprintf("%s.%s", vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
+		sourceTable := fmt.Sprintf("%s.%s", vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
+		targetTable := fmt.Sprintf("%s.%s", vfk.Schema, vfk.Table)
 
 		// check that source table exist in job mappings
 		sourceColMappings, ok := jobColMappings[sourceTable]
@@ -1775,7 +1807,7 @@ func validateVirtualForeignKeys(
 			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable))
 			continue
 		}
-		for _, c := range vfk.Columns {
+		for _, c := range vfk.GetForeignKey().GetColumns() {
 			_, ok = sourceColMappings[c]
 			if !ok {
 				isValid = false
@@ -1794,7 +1826,6 @@ func validateVirtualForeignKeys(
 				continue
 			}
 		}
-
 		// check that all sources of virtual foreign keys are either a primary key or have a unique constraint
 		pks := tc.PrimaryKeyConstraints[sourceTable]
 		uniqueConstraints := tc.UniqueConstraints[sourceTable]
@@ -1803,8 +1834,8 @@ func validateVirtualForeignKeys(
 			if _, ok := colErrorsMap[sourceTable]; !ok {
 				colErrorsMap[sourceTable] = map[string][]string{}
 			}
-			for _, c := range vfk.Columns {
-				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", sourceTable, vfk.Columns))
+			for _, c := range vfk.GetForeignKey().GetColumns() {
+				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", sourceTable, vfk.GetForeignKey().GetColumns()))
 			}
 		}
 
@@ -1821,10 +1852,9 @@ func validateVirtualForeignKeys(
 			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
 			continue
 		}
-
 		// check that all self referencing virtual foreign keys are on nullable columns
 		if sourceTable == targetTable {
-			for _, c := range vfk.ForeignKey.Columns {
+			for _, c := range vfk.GetColumns() {
 				_, ok = targetColMappings[c]
 				if !ok {
 					isValid = false
@@ -1858,8 +1888,8 @@ func validateVirtualForeignKeys(
 			continue
 		}
 		// check that source and target column datatypes are the same
-		for idx, srcCol := range vfk.GetColumns() {
-			tarCol := vfk.GetForeignKey().GetColumns()[idx]
+		for idx, srcCol := range vfk.GetForeignKey().GetColumns() {
+			tarCol := vfk.GetColumns()[idx]
 			srcColInfo := sourceCols[srcCol]
 			tarColInfo := targetCols[tarCol]
 			if srcColInfo.DataType != tarColInfo.DataType {
@@ -1871,8 +1901,11 @@ func validateVirtualForeignKeys(
 			}
 		}
 	}
-
-	return isValid, colErrorsMap, dbErrors
+	return &validateVirtualForeignKeysResponse{
+		IsValid:        isValid,
+		ColumnErrorMap: colErrorsMap,
+		DbErrors:       dbErrors,
+	}
 }
 
 func isVirtualForeignKeySourceUnique(
@@ -1880,11 +1913,11 @@ func isVirtualForeignKeySourceUnique(
 	primaryKeys []string,
 	uniqueConstraints [][]string,
 ) bool {
-	if utils.CompareSlices(virtualForeignKey.GetColumns(), primaryKeys) {
+	if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), primaryKeys) {
 		return true
 	}
 	for _, uc := range uniqueConstraints {
-		if utils.CompareSlices(virtualForeignKey.GetColumns(), uc) {
+		if utils.CompareSlices(virtualForeignKey.GetForeignKey().GetColumns(), uc) {
 			return true
 		}
 	}

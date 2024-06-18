@@ -16,11 +16,47 @@ export function getVirtualForeignKeysColumns(
   const { removeVirtualForeignKey } = props;
   return [
     {
-      accessorFn: (row) => `${row.schema}.${row.table}`,
+      accessorFn: (row) => `${row.foreignKey.schema}.${row.foreignKey.table}`,
       id: 'sourceTable',
       footer: (props) => props.column.id,
       header: ({ column }) => (
         <VirtualForeignKeysColumnHeader column={column} title="Source Table" />
+      ),
+      cell: ({ getValue }) => {
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            {getValue<string>()}
+          </span>
+        );
+      },
+      maxSize: 500,
+      size: 300,
+    },
+    {
+      accessorFn: (row) => row.foreignKey.columns,
+      id: 'sourceColumns',
+      header: ({ column }) => (
+        <VirtualForeignKeysColumnHeader
+          column={column}
+          title="Source Columns"
+        />
+      ),
+      cell: ({ getValue }) => {
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            {getValue<string[]>()}
+          </span>
+        );
+      },
+      maxSize: 500,
+      size: 200,
+    },
+    {
+      accessorFn: (row) => `${row.schema}.${row.table}`,
+      id: 'targetTable',
+      footer: (props) => props.column.id,
+      header: ({ column }) => (
+        <VirtualForeignKeysColumnHeader column={column} title="Target Table" />
       ),
       cell: ({ getValue }) => {
         return (
@@ -51,43 +87,6 @@ export function getVirtualForeignKeysColumns(
       size: 200,
     },
     {
-      accessorFn: (row) => `${row.foreignKey.schema}.${row.foreignKey.table}`,
-      id: 'targetTable',
-      footer: (props) => props.column.id,
-      header: ({ column }) => (
-        <VirtualForeignKeysColumnHeader column={column} title="Target Table" />
-      ),
-      cell: ({ getValue }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {getValue<string>()}
-          </span>
-        );
-      },
-      maxSize: 500,
-      size: 300,
-    },
-    {
-      accessorFn: (row) => row.foreignKey.columns,
-      id: 'targetColumns',
-      header: ({ column }) => (
-        <VirtualForeignKeysColumnHeader
-          column={column}
-          title="Target Columns"
-        />
-      ),
-      cell: ({ getValue }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {getValue<string[]>()}
-          </span>
-        );
-      },
-      maxSize: 500,
-      size: 200,
-    },
-    {
-      accessorFn: (row) => row.foreignKey.columns,
       id: 'actions',
       header: ({ column }) => (
         <VirtualForeignKeysColumnHeader column={column} title="Actions" />

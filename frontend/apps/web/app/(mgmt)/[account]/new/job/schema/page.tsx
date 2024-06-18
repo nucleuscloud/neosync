@@ -306,12 +306,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   async function removeVirtualForeignKey(index: number) {
-    const currVfks = formVirtualForeignKeys || [];
-    if (index >= 0 && index < currVfks.length) {
-      currVfks.splice(index, 1);
-    }
+    const newVfks: VirtualForeignConstraintFormValues[] = [];
+    formVirtualForeignKeys?.forEach((vfk, idx) => {
+      if (idx != index) {
+        newVfks.push(vfk);
+      }
+    });
     removeVfk(index);
-    await validateVirtualForeignKeys(currVfks);
+    await validateVirtualForeignKeys(newVfks);
   }
 
   if (isConnectionLoading || isSchemaMapLoading) {
