@@ -134,9 +134,11 @@ func processCycles(
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
-	processed := make(map[string]bool, len(tableColumnsMap))
-	for t := range tableColumnsMap {
-		processed[t] = false
+	processed := map[string]bool{}
+	for _, cycle := range cycles {
+		for _, table := range cycle {
+			processed[table] = false
+		}
 	}
 	// determine start table
 	startTables, err := DetermineCycleStarts(cycles, subsets, dependencyMap)
