@@ -187,6 +187,23 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
 	})
 }
 
+func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{s.schema})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), actual)
+	require.NotEmpty(s.T(), actual.PrimaryKeyConstraints)
+
+	pkeys, ok := actual.PrimaryKeyConstraints[s.buildTable("users_with_identity")]
+	require.True(s.T(), ok, "users_with_identity had no entries")
+	require.ElementsMatch(s.T(), []string{"id"}, pkeys)
+
+	pkeys, ok = actual.PrimaryKeyConstraints[s.buildTable("t4")]
+	require.True(s.T(), ok, "t4 had no entries")
+	require.ElementsMatch(s.T(), []string{"a", "b"}, pkeys)
+}
+
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 	manager := NewManager(s.querier, s.pgpool, func() {})
 

@@ -22,34 +22,6 @@ func compareSlices(slice1, slice2 []string) bool {
 	return true
 }
 
-func Test_GetPrimaryKeyConstraintsMap(t *testing.T) {
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mockPool := pg_queries.NewMockDBTX(t)
-	manager := PostgresManager{
-		querier: pgquerier,
-		pool:    mockPool,
-	}
-
-	schemas := []string{"public"}
-
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mockPool, schemas).Return(
-		mockTableConstraintsRows(), nil,
-	)
-
-	expected := map[string][]string{
-		"public.users":     {"id"},
-		"public.accounts":  {"id"},
-		"public.orders":    {"id"},
-		"public.composite": {"id", "other_id"},
-	}
-
-	actual, err := manager.GetTableConstraintsBySchema(context.Background(), schemas)
-	require.NoError(t, err)
-	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual.PrimaryKeyConstraints[table])
-	}
-}
-
 func Test_GetUniqueConstraintsMap(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mockPool := pg_queries.NewMockDBTX(t)
