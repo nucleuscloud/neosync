@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS users (
     fullname TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED
 );
 
+CREATE TABLE IF NOT EXISTS users_with_identity (
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    age int NOT NULL
+);
+
 
 CREATE TABLE parent1 (id uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT pk_parent1_id PRIMARY KEY (id));
 CREATE TABLE child1 (

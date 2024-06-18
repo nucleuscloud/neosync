@@ -22,75 +22,6 @@ func compareSlices(slice1, slice2 []string) bool {
 	return true
 }
 
-func Test_GetDatabaseSchema(t *testing.T) {
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mockPool := pg_queries.NewMockDBTX(t)
-	manager := PostgresManager{
-		querier: pgquerier,
-		pool:    mockPool,
-	}
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mockPool).Return(
-		[]*pg_queries.GetDatabaseSchemaRow{
-			{
-				SchemaName:             "public",
-				TableName:              "users",
-				ColumnName:             "id",
-				DataType:               "varchar",
-				ColumnDefault:          "",
-				IsNullable:             "NO",
-				CharacterMaximumLength: 220,
-				NumericPrecision:       -1,
-				NumericScale:           -1,
-				OrdinalPosition:        4,
-			},
-			{
-				SchemaName:             "public",
-				TableName:              "orders",
-				ColumnName:             "buyer_id",
-				DataType:               "integer",
-				ColumnDefault:          "",
-				IsNullable:             "NO",
-				CharacterMaximumLength: -1,
-				NumericPrecision:       32,
-				NumericScale:           0,
-				OrdinalPosition:        5,
-			},
-		}, nil,
-	)
-
-	expected := []*sqlmanager_shared.DatabaseSchemaRow{
-		{
-			TableSchema:            "public",
-			TableName:              "users",
-			ColumnName:             "id",
-			DataType:               "varchar",
-			ColumnDefault:          "",
-			IsNullable:             "NO",
-			CharacterMaximumLength: 220,
-			NumericPrecision:       -1,
-			NumericScale:           -1,
-			OrdinalPosition:        4,
-		},
-		{
-			TableSchema:            "public",
-			TableName:              "orders",
-			ColumnName:             "buyer_id",
-			DataType:               "integer",
-			ColumnDefault:          "",
-			IsNullable:             "NO",
-			CharacterMaximumLength: -1,
-			NumericPrecision:       32,
-			NumericScale:           0,
-			OrdinalPosition:        5,
-		},
-	}
-
-	actual, err := manager.GetDatabaseSchema(context.Background())
-	require.NoError(t, err)
-	require.ElementsMatch(t, expected, actual)
-}
-
 func Test_GetForeignKeyConstraintsMap(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mockPool := pg_queries.NewMockDBTX(t)
@@ -234,36 +165,6 @@ func Test_GetUniqueConstraintsMap(t *testing.T) {
 	require.ElementsMatch(t, expected["public.person"][0], actual.UniqueConstraints["public.person"][0])
 	require.ElementsMatch(t, expected["public.region"][0], actual.UniqueConstraints["public.region"][0])
 	require.ElementsMatch(t, expected["public.region"][1], actual.UniqueConstraints["public.region"][1])
-}
-
-func Test_GetRolePermissionsMap(t *testing.T) {
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mockPool := pg_queries.NewMockDBTX(t)
-	manager := PostgresManager{
-		querier: pgquerier,
-		pool:    mockPool,
-	}
-
-	pgquerier.On("GetPostgresRolePermissions", mock.Anything, mockPool).Return(
-		[]*pg_queries.GetPostgresRolePermissionsRow{
-			{TableSchema: "public", TableName: "users", PrivilegeType: "INSERT"},
-			{TableSchema: "public", TableName: "users", PrivilegeType: "UPDATE"},
-			{TableSchema: "person", TableName: "users", PrivilegeType: "DELETE"},
-			{TableSchema: "other", TableName: "accounts", PrivilegeType: "INSERT"},
-		}, nil,
-	)
-
-	expected := map[string][]string{
-		"public.users":   {"INSERT", "UPDATE"},
-		"person.users":   {"DELETE"},
-		"other.accounts": {"INSERT"},
-	}
-
-	actual, err := manager.GetRolePermissionsMap(context.Background())
-	require.NoError(t, err)
-	for table, expect := range expected {
-		require.ElementsMatch(t, expect, actual[table])
-	}
 }
 
 func Test_GetCreateTableStatement(t *testing.T) {
