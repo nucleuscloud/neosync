@@ -78,7 +78,7 @@ func Test_NewWithAuth(t *testing.T) {
 	assert.NotNil(t, client)
 }
 
-func Test_getAuthHeaders(t *testing.T) {
+func Test_GetAuthHeaders(t *testing.T) {
 	token := "foo"
 	assert.Equal(
 		t,

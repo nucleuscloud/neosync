@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nucleuscloud/neosync/backend/pkg/utils"
 	accounts_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/accounts"
 	connections_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/connections"
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
@@ -36,14 +35,7 @@ func Execute() {
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
-
-			versionInfo := version.Get()
-			md := metadata.New(map[string]string{
-				utils.CliVersionKey:  versionInfo.GitVersion,
-				utils.CliPlatformKey: versionInfo.Platform,
-				utils.CliCommitKey:   versionInfo.GitCommit,
-			})
-			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), md))
+			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), version.Get().GrpcMetadata()))
 		},
 	}
 
