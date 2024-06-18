@@ -52,8 +52,8 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
             <CardTitle>Add Virtual Foreign Key</CardTitle>
           </div>
           <CardDescription>
-            Select the tables that you want to transform and move them from the
-            source to destination table.
+            Select the source table and column, as well as the target table and
+            column, to create a virtual foreign key.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,6 +122,10 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                         columns: [targetColumn],
                       },
                     });
+                    setSourceTable(undefined);
+                    setSourceColumn(undefined);
+                    setTargetTable(undefined);
+                    setTargetColumn(undefined);
                   }}
                 >
                   Add

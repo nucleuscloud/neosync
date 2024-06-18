@@ -961,14 +961,21 @@ func (s *Service) UpdateJobSourceConnection(
 		mappings = append(mappings, jm)
 	}
 
+	vfkKeys := map[string]struct{}{}
 	virtualForeignKeys := []*pg_models.VirtualForeignConstraint{}
 	for _, fk := range req.Msg.GetVirtualForeignKeys() {
+		key := fmt.Sprintf("%s.%s.%s.%s.%s.%s", fk.GetSchema(), fk.GetTable(), strings.Join(fk.GetColumns(), "."), fk.GetForeignKey().GetSchema(), fk.GetForeignKey().GetTable(), strings.Join(fk.GetForeignKey().GetColumns(), "."))
+		if _, exists := vfkKeys[key]; exists {
+			// skip duplicates
+			continue
+		}
 		vfk := &pg_models.VirtualForeignConstraint{}
 		err = vfk.FromDto(fk)
 		if err != nil {
 			return nil, err
 		}
 		virtualForeignKeys = append(virtualForeignKeys, vfk)
+		vfkKeys[key] = struct{}{}
 	}
 
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
@@ -1602,12 +1609,12 @@ func (s *Service) ValidateJobMappings(
 	}
 
 	_, vfkErrsMap, vfkDbErrs := validateVirtualForeignKeys(req.Msg.GetVirtualForeignKeys(), tableColMappings, tableConstraints, colInfoMap)
-
-	for _, e := range vfkDbErrs {
-		dbErrors.Errors = append(dbErrors.Errors, e)
-	}
+	dbErrors.Errors = append(dbErrors.Errors, vfkDbErrs...)
 
 	for t, colErrMap := range vfkErrsMap {
+		if _, ok := colErrorsMap[t]; !ok {
+			colErrorsMap[t] = map[string][]string{}
+		}
 		for c, e := range colErrMap {
 			colErrorsMap[t][c] = append(colErrorsMap[t][c], e...)
 		}
@@ -1753,16 +1760,12 @@ func validateVirtualForeignKeys(
 		sourceTable := fmt.Sprintf("%s.%s", vfk.Schema, vfk.Table)
 		targetTable := fmt.Sprintf("%s.%s", vfk.ForeignKey.Schema, vfk.ForeignKey.Table)
 
-		// check that source and target tables exist in job mappings
+		// check that source table exist in job mappings
 		sourceColMappings, ok := jobColMappings[sourceTable]
 		if !ok {
 			isValid = false
 			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in job mappings. Table: %s", sourceTable))
-		}
-		targetColMappings, ok := jobColMappings[targetTable]
-		if !ok {
-			isValid = false
-			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable))
+			continue
 		}
 
 		// check that source table and columns exist in source
@@ -1770,17 +1773,25 @@ func validateVirtualForeignKeys(
 		if !ok {
 			isValid = false
 			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key source table missing in source database. Table: %s", sourceTable))
+			continue
 		}
 		for _, c := range vfk.Columns {
-			_, ok := sourceCols[c]
-			if !ok {
-				isValid = false
-				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", sourceTable, c))
-			}
 			_, ok = sourceColMappings[c]
 			if !ok {
 				isValid = false
+				if _, ok := colErrorsMap[sourceTable]; !ok {
+					colErrorsMap[sourceTable] = map[string][]string{}
+				}
 				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in job mappings. Table: %s Column: %s", sourceTable, c))
+			}
+			_, ok := sourceCols[c]
+			if !ok {
+				isValid = false
+				if _, ok := colErrorsMap[sourceTable]; !ok {
+					colErrorsMap[sourceTable] = map[string][]string{}
+				}
+				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", sourceTable, c))
+				continue
 			}
 		}
 
@@ -1789,33 +1800,74 @@ func validateVirtualForeignKeys(
 		uniqueConstraints := tc.UniqueConstraints[sourceTable]
 		isValid = isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
 		if !isValid {
+			if _, ok := colErrorsMap[sourceTable]; !ok {
+				colErrorsMap[sourceTable] = map[string][]string{}
+			}
 			for _, c := range vfk.Columns {
 				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source must be either a primary key or have a unique constraint. Table: %s  Columns: %+v", sourceTable, vfk.Columns))
 			}
 		}
 
+		// check that target table exist in job mappings
+		targetColMappings, ok := jobColMappings[targetTable]
+		if !ok {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in job mappings. Table: %s", targetTable))
+			continue
+		}
+		targetCols, ok := colMap[targetTable]
+		if !ok {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
+			continue
+		}
+
 		// check that all self referencing virtual foreign keys are on nullable columns
 		if sourceTable == targetTable {
-			targetCols, ok := colMap[targetTable]
-			if !ok {
-				isValid = false
-				dbErrors = append(dbErrors, fmt.Sprintf("Virtual foreign key target table missing in source database. Table: %s", targetTable))
-			}
 			for _, c := range vfk.ForeignKey.Columns {
-				colInfo, ok := targetCols[c]
-				if !ok {
-					isValid = false
-					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c))
-				}
-				if !colInfo.IsNullable {
-					isValid = false
-					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Columns: %s", targetTable, c))
-				}
 				_, ok = targetColMappings[c]
 				if !ok {
 					isValid = false
-					colErrorsMap[sourceTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c))
+					if _, ok := colErrorsMap[targetTable]; !ok {
+						colErrorsMap[targetTable] = map[string][]string{}
+					}
+					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in job mappings. Table: %s Column: %s", targetTable, c))
 				}
+				colInfo, ok := targetCols[c]
+				if !ok {
+					isValid = false
+					if _, ok := colErrorsMap[targetTable]; !ok {
+						colErrorsMap[targetTable] = map[string][]string{}
+					}
+					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Virtual foreign key target column missing in source database. Table: %s Column: %s", targetTable, c))
+					continue
+				}
+				if !colInfo.IsNullable {
+					isValid = false
+					if _, ok := colErrorsMap[targetTable]; !ok {
+						colErrorsMap[targetTable] = map[string][]string{}
+					}
+					colErrorsMap[targetTable][c] = append(colErrorsMap[targetTable][c], fmt.Sprintf("Self referencing virtual foreign key target column must be nullable. Table: %s  Column: %s", targetTable, c))
+				}
+			}
+		}
+
+		if len(vfk.GetColumns()) != len(vfk.GetForeignKey().GetColumns()) {
+			isValid = false
+			dbErrors = append(dbErrors, fmt.Sprintf("length of source columns was not equal to length of foreign key cols: %d %d. SourceTable: %s SourceColumn: %+v TargetTable: %s  TargetColumn: %+v", len(vfk.GetColumns()), len(vfk.GetForeignKey().GetColumns()), sourceTable, vfk.GetColumns(), targetTable, vfk.GetForeignKey().GetColumns()))
+			continue
+		}
+		// check that source and target column datatypes are the same
+		for idx, srcCol := range vfk.GetColumns() {
+			tarCol := vfk.GetForeignKey().GetColumns()[idx]
+			srcColInfo := sourceCols[srcCol]
+			tarColInfo := targetCols[tarCol]
+			if srcColInfo.DataType != tarColInfo.DataType {
+				isValid = false
+				if _, ok := colErrorsMap[targetTable]; !ok {
+					colErrorsMap[targetTable] = map[string][]string{}
+				}
+				colErrorsMap[targetTable][tarCol] = append(colErrorsMap[targetTable][tarCol], fmt.Sprintf("Column datatype mismatch. Source: %s.%s %s Target: %s.%s %s", sourceTable, srcCol, srcColInfo.DataType, targetTable, tarCol, tarColInfo.DataType))
 			}
 		}
 	}

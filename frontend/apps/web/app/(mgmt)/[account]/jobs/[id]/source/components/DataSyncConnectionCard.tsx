@@ -215,13 +215,37 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const res = await validateJobMapping(
         sourceConnectionId || '',
         formMappings,
-        account?.id || ''
+        account?.id || '',
+        formVirtualForeignKeys
       );
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
       toast({
         title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
+  async function validateVirtualForeignKeys(
+    vfks: VirtualForeignConstraintFormValues[]
+  ) {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        sourceConnectionId || '',
+        formMappings,
+        account?.id || '',
+        vfks
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate virtual foreign keys:', error);
+      toast({
+        title: 'Unable to validate virtual foreign keys',
         variant: 'destructive',
       });
     } finally {
@@ -245,12 +269,19 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     validateJobMappings();
   }, [selectedTables]);
 
-  function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
+  async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
     appendVfk(vfk);
+    const vfks = [vfk, ...(formVirtualForeignKeys || [])];
+    await validateVirtualForeignKeys(vfks);
   }
 
-  function removeVirtualForeignKey(index: number) {
+  async function removeVirtualForeignKey(index: number) {
+    const currVfks = formVirtualForeignKeys || [];
+    if (index >= 0 && index < currVfks.length) {
+      currVfks.splice(index, 1);
+    }
     removeVfk(index);
+    await validateVirtualForeignKeys(currVfks);
   }
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
