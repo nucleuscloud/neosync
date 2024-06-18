@@ -281,6 +281,14 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 	require.NoError(s.T(), err)
 }
 
+func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
+	manager := NewManager(s.querier, s.pgpool, func() {})
+
+	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "parent1"}})
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), statements)
+}
+
 func containsSubset[T any](t testing.TB, array, subset []T) {
 	t.Helper()
 	for _, elem := range subset {
