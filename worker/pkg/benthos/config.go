@@ -80,8 +80,8 @@ type InputMongoDb struct {
 type OutputMongoDb struct {
 	Url          string             `json:"url" yaml:"url"`
 	Database     string             `json:"database" yaml:"database"`
-	Username     string             `json:"username" yaml:"username"`
-	Password     string             `json:"password" yaml:"password"`
+	Username     string             `json:"username,omitempty" yaml:"username,omitempty"`
+	Password     string             `json:"password,omitempty" yaml:"password,omitempty"`
 	Operation    string             `json:"operation" yaml:"operation"`
 	Collection   string             `json:"collection" yaml:"collection"`
 	DocumentMap  string             `json:"document_map" yaml:"document_map"`
@@ -224,6 +224,7 @@ type Outputs struct {
 	Error           *ErrorOutputConfig     `json:"error,omitempty" yaml:"error,omitempty"`
 	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
 	MongoDB         *OutputMongoDb         `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
+	PooledMongoDB   *OutputMongoDb         `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
 }
 
 type SwitchOutputConfig struct {

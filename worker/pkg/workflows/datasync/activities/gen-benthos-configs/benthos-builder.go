@@ -161,7 +161,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})
 				if resp.Config.Input.PooledMongoDB != nil || resp.Config.Input.MongoDB != nil {
-					resp.Config.Output.MongoDB = &neosync_benthos.OutputMongoDb{
+					resp.Config.Output.PooledMongoDB = &neosync_benthos.OutputMongoDb{
 						Url: dsn,
 
 						Database:   resp.TableSchema,

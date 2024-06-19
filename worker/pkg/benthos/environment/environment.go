@@ -74,6 +74,10 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*serv
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_mongodb input to benthos instance: %w", err)
 		}
+		err = neosync_benthos_mongodb.RegisterPooledMongoDbOutput(env, config.MongoConfig.Provider)
+		if err != nil {
+			return nil, fmt.Errorf("unable to register pooled_mongodb output to benthos instance: %w", err)
+		}
 	}
 
 	err := openaigenerate.RegisterOpenaiGenerate(env)
