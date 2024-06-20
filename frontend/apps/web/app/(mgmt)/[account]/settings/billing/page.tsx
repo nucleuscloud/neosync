@@ -19,7 +19,7 @@ import { UserAccountType } from '@neosync/sdk';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
-import { ReactElement, ReactNode, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 const plans = [
@@ -113,6 +113,7 @@ export default function Billing(): ReactElement {
           setShowNewTeamDialog={setShowNewTeamDialog}
           showNewTeamDialog={showNewTeamDialog}
           onSubmit={onSubmit}
+          upgradeHref={systemAppConfigData.calendlyUpgradeLink}
         />
       </div>
     </div>
@@ -147,6 +148,7 @@ interface PlanProps {
   setShowNewTeamDialog: (val: boolean) => void;
   showNewTeamDialog: boolean;
   onSubmit: (values: CreateTeamFormValues) => Promise<void>;
+  upgradeHref: string;
 }
 
 function Plans({
@@ -154,6 +156,7 @@ function Plans({
   showNewTeamDialog,
   setShowNewTeamDialog,
   onSubmit,
+  upgradeHref,
 }: PlanProps): ReactElement {
   const form = useForm({
     mode: 'onChange',
@@ -163,51 +166,6 @@ function Plans({
     },
   });
 
-  const handlePlanButton = (
-    plan: string,
-    planType: UserAccountType
-  ): ReactNode => {
-    switch (plan) {
-      case 'Personal':
-        if (planType == UserAccountType.PERSONAL) {
-          return <div></div>;
-        } else {
-          return <Button>Get Started</Button>;
-        }
-      case 'Team':
-        if (planType == UserAccountType.TEAM) {
-          return <div></div>;
-        } else {
-          return (
-            <Button>
-              <Link
-                href="https://calendly.com/evis1/30min"
-                className="w-[242px]"
-                target="_blank"
-              >
-                Get in touch
-              </Link>
-            </Button>
-          );
-        }
-      case 'Enterprise':
-        if (planType == UserAccountType.ENTERPRISE) {
-          return <div></div>;
-        } else {
-          return (
-            <Button>
-              <Link
-                href="https://calendly.com/evis1/30min"
-                className="w-[242px]"
-                target="_blank"
-              >
-                Get in touch
-              </Link>
-            </Button>
-          );
-        }
-    }
-  };
   return (
     <div>
       <div className="border border-gray-200 rounded-xl p-6 flex flex-col gap-4">
@@ -256,6 +214,7 @@ function Plans({
                         onSubmit={onSubmit}
                         setShowNewTeamDialog={setShowNewTeamDialog}
                         planType={planType}
+                        upgradeHref={upgradeHref}
                       />
                     </Dialog>
                     <div className="flex flex-col gap-2">
@@ -269,7 +228,11 @@ function Plans({
                         </div>
                       ))}
                     </div>
-                    {handlePlanButton(plan.name, planType)}
+                    <PlanButton
+                      plan={plan.name}
+                      planType={planType}
+                      upgradeHref={upgradeHref}
+                    />
                   </div>
                 </div>
               </div>
@@ -279,4 +242,47 @@ function Plans({
       </div>
     </div>
   );
+}
+
+interface PlanButtonProps {
+  plan: string;
+  planType: UserAccountType;
+  upgradeHref: string;
+}
+
+function PlanButton(props: PlanButtonProps): ReactElement {
+  const { plan, planType, upgradeHref } = props;
+  switch (plan) {
+    case 'Personal':
+      if (planType == UserAccountType.PERSONAL) {
+        return <div></div>;
+      } else {
+        return <Button>Get Started</Button>;
+      }
+    case 'Team':
+      if (planType == UserAccountType.TEAM) {
+        return <div></div>;
+      } else {
+        return (
+          <Button>
+            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+              Get in touch
+            </Link>
+          </Button>
+        );
+      }
+    case 'Enterprise':
+      if (planType == UserAccountType.ENTERPRISE) {
+        return <div></div>;
+      } else {
+        return (
+          <Button>
+            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+              Get in touch
+            </Link>
+          </Button>
+        );
+      }
+  }
+  return <div />;
 }

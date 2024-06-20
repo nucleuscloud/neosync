@@ -6,6 +6,7 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -74,6 +75,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
   const { data, mutate, isLoading } = useGetUserAccounts();
   const [open, setOpen] = useState(false);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
+  const { data: systemAppConfigData } = useGetSystemAppConfig();
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),
@@ -218,6 +220,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
         onSubmit={onSubmit}
         setShowNewTeamDialog={setShowNewTeamDialog}
         planType={account?.type ?? UserAccountType.PERSONAL}
+        upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
       />
     </Dialog>
   );
@@ -234,17 +237,18 @@ interface CreateNewTeamDialogProps {
   onSubmit: (values: CreateTeamFormValues) => Promise<void>;
   setShowNewTeamDialog: (val: boolean) => void;
   planType: UserAccountType;
+  upgradeHref: string;
 }
 
 export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
-  const { planType } = props;
+  const { planType, upgradeHref } = props;
   return (
     <div>
       {/* {(planType && planType == UserAccountType.PERSONAL) ||
       planType == UserAccountType.TEAM ? ( */}
-      <UpgradeDialog planType={planType} />
+      <UpgradeDialog planType={planType} upgradeHref={upgradeHref} />
       {/* ) : (
         <DialogContent className="flex flex-col gap-3">
           <DialogHeader>
@@ -296,9 +300,10 @@ export function CreateNewTeamDialog(
 
 interface UpgradeDialog {
   planType: UserAccountType;
+  upgradeHref: string;
 }
 
-function UpgradeDialog({}: UpgradeDialog) {
+function UpgradeDialog({ upgradeHref }: UpgradeDialog) {
   return (
     <div>
       <DialogContent className="flex flex-col gap-3">
@@ -311,11 +316,7 @@ function UpgradeDialog({}: UpgradeDialog) {
         <DialogFooter>
           <div className="flex flex-row w-full pt-6 justify-center">
             <Button>
-              <Link
-                href="https://calendly.com/evis1/30min"
-                className="w-[242px]"
-                target="_blank"
-              >
+              <Link href={upgradeHref} className="w-[242px]" target="_blank">
                 Get in touch
               </Link>
             </Button>
