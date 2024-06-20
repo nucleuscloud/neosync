@@ -368,6 +368,7 @@ function buildMongoConnectionConfig(
       case: 'url',
       value: values.url,
     },
+    tunnel: getTunnelConfig(values.tunnel),
   });
 
   return mongoconfig;
