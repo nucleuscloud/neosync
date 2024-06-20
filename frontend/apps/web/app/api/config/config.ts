@@ -23,6 +23,8 @@ export function getSystemAppConfig(): SystemAppConfig {
     enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',
     signInProviderId: process.env.AUTH_PROVIDER_ID,
     isMetricsServiceEnabled: process.env.METRICS_SERVICE_ENABLED === 'true',
+    calendlyUpgradeLink:
+      process.env.CALENDLY_UPGRADE_LINK ?? 'https://calendly.com/evis1/30min',
   };
 }
 

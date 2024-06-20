@@ -56,14 +56,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     let peopleRecordId = '';
 
-    const peopleBody = {
-      data: {
-        values: {
-          email_addresses: [registerEvent.details.email],
-        },
-      },
-    };
-
     const commonHeaders = {
       Authorization: `Bearer ${ATTIO_API_KEY}`,
       'Content-Type': 'application/json',
@@ -71,6 +63,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // create the person first and then use that to associate it when we create the deal otherwise it fails
     try {
+      const peopleBody = {
+        data: {
+          values: {
+            email_addresses: [registerEvent.details.email],
+          },
+        },
+      };
       const response = await fetch(
         'https://api.attio.com/v2/objects/people/records',
         {
@@ -93,24 +92,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const dealbody = {
-      data: {
-        values: {
-          name: registerEvent.details.email,
-          stage: 'App sign up',
-          owner: 'evis@nucleuscloud.com',
-          associated_people: [
-            {
-              target_object: 'people',
-              target_record_id: peopleRecordId,
-            },
-          ],
-        },
-      },
-    };
-
     // Then try to create the deal
     try {
+      const dealbody = {
+        data: {
+          values: {
+            name: registerEvent.details.email,
+            stage: 'App sign up',
+            owner: 'evis@nucleuscloud.com',
+            associated_people: [
+              {
+                target_object: 'people',
+                target_record_id: peopleRecordId,
+              },
+            ],
+          },
+        },
+      };
       const response = await fetch(
         'https://api.attio.com/v2/objects/deals/records/',
         {
