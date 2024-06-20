@@ -62,6 +62,10 @@ func New(
 	}
 }
 
+func (t *Sshtunnel) IsOpen() bool {
+	return t.isOpen
+}
+
 // After a tunnel has started, this will return the auto-generated port (if 0 was passed in)
 func (t *Sshtunnel) GetLocalHostPort() (host string, port int) {
 	return t.local.Host, t.local.Port

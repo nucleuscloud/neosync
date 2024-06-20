@@ -28,5 +28,8 @@ func NewEndpoint(host string, port int) *Endpoint {
 
 // Returns the stringified endpoint sans user
 func (endpoint *Endpoint) String() string {
+	if endpoint.Port < 0 {
+		return endpoint.Host
+	}
 	return fmt.Sprintf("%s:%d", endpoint.Host, endpoint.Port)
 }

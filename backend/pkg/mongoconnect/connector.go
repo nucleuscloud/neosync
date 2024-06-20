@@ -35,15 +35,15 @@ type WrappedMongoClient struct {
 	clientMu sync.Mutex
 
 	details *connstring.ConnString
-	// tunnel  *sshtunnel.Sshtunnel
+	tunnel  *sshtunnel.Sshtunnel
 
-	// logger *slog.Logger
+	logger *slog.Logger
 }
 
 var _ DbContainer = &WrappedMongoClient{}
 
-func newWrappedMongoClient(details *connstring.ConnString) *WrappedMongoClient {
-	return &WrappedMongoClient{details: details}
+func newWrappedMongoClient(details *connstring.ConnString, tunnel *sshtunnel.Sshtunnel, logger *slog.Logger) *WrappedMongoClient {
+	return &WrappedMongoClient{details: details, tunnel: tunnel, logger: logger}
 }
 
 func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
@@ -52,7 +52,14 @@ func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
 	if w.client != nil {
 		return w.client, nil
 	}
-	// todo: tunneling
+
+	if w.tunnel != nil {
+		ready, err := w.tunnel.Start(w.logger)
+		if err != nil {
+			return nil, err
+		}
+		<-ready
+	}
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(w.details.String()).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(ctx, opts)
@@ -71,7 +78,11 @@ func (w *WrappedMongoClient) Close(ctx context.Context) error {
 	}
 	client := w.client
 	w.client = nil
-	return client.Disconnect(ctx)
+	err := client.Disconnect(ctx)
+	if w.tunnel.IsOpen() {
+		w.tunnel.Close()
+	}
+	return err
 }
 
 var _ Interface = &Connector{}
@@ -94,7 +105,7 @@ func (c *Connector) NewFromConnectionConfig(
 	if err != nil {
 		return nil, err
 	}
-	wrappedclient := newWrappedMongoClient(details.Details)
+	wrappedclient := newWrappedMongoClient(details.Details, details.Tunnel, logger)
 	return wrappedclient, nil
 }
 
@@ -107,7 +118,12 @@ func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
 	return c.Tunnel
 }
 func (c *ConnectionDetails) String() string {
-	// todo: add tunnel support
+	if c.Tunnel != nil && c.Tunnel.IsOpen() {
+		localhost, port := c.Tunnel.GetLocalHostPort()
+		newDetails := *c.Details
+		newDetails.Hosts = []string{fmt.Sprintf("%s:%d", localhost, port)}
+		return newDetails.String()
+	}
 	return c.Details.String()
 }
 
@@ -142,7 +158,10 @@ func GetConnectionDetails(
 		}, nil
 	}
 
-	var destination *sshtunnel.Endpoint // todo
+	destination, err := getEndpointFromMongoConnectionConfig(mongoConfig)
+	if err != nil {
+		return nil, err
+	}
 	authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(tunnelCfg.GetAuthentication())
 	if err != nil {
 		return nil, err
@@ -166,7 +185,6 @@ func GetConnectionDetails(
 	if err != nil {
 		return nil, err
 	}
-	_ = connDetails
 
 	return &ConnectionDetails{
 		Tunnel:  tunnel,
@@ -180,4 +198,12 @@ func getGeneralDbConnectConfigFromMongo(config *mgmtv1alpha1.MongoConnectionConf
 		return nil, fmt.Errorf("must provide valid mongoconfig url")
 	}
 	return connstring.ParseAndValidate(dburl)
+}
+
+func getEndpointFromMongoConnectionConfig(config *mgmtv1alpha1.MongoConnectionConfig) (*sshtunnel.Endpoint, error) {
+	details, err := getGeneralDbConnectConfigFromMongo(config)
+	if err != nil {
+		return nil, err
+	}
+	return sshtunnel.NewEndpointWithUser(details.Hosts[0], -1, details.Username), nil
 }
