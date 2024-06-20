@@ -125,6 +125,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
   });
+  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
 
   const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
     useGetConnectionTableConstraints(
@@ -132,16 +133,36 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       sourceConnectionId ?? ''
     );
 
-  const schemaConstraintHandler = useMemo(
-    () =>
-      getSchemaConstraintHandler(
-        connectionSchemaDataMap?.schemaMap ?? {},
-        tableConstraints?.primaryKeyConstraints ?? {},
-        tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
-      ),
-    [isSchemaMapValidating, isTableConstraintsValidating]
-  );
+  const schemaConstraintHandler = useMemo(() => {
+    const virtualForeignKeys = data?.job?.virtualForeignKeys ?? [];
+    formVirtualForeignKeys?.forEach((v) => {
+      virtualForeignKeys.push(
+        new VirtualForeignConstraint({
+          schema: v.schema,
+          table: v.table,
+          columns: v.columns,
+          foreignKey: new VirtualForeignKey({
+            schema: v.foreignKey.schema,
+            table: v.foreignKey.table,
+            columns: v.foreignKey.columns,
+          }),
+        })
+      );
+    });
+
+    return getSchemaConstraintHandler(
+      connectionSchemaDataMap?.schemaMap ?? {},
+      tableConstraints?.primaryKeyConstraints ?? {},
+      tableConstraints?.foreignKeyConstraints ?? {},
+      tableConstraints?.uniqueConstraints ?? {},
+      virtualForeignKeys
+    );
+  }, [
+    isSchemaMapValidating,
+    isTableConstraintsValidating,
+    isJobDataLoading,
+    formVirtualForeignKeys,
+  ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
   const { append, remove, update, fields } = useFieldArray<SourceFormValues>({
@@ -209,7 +230,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
   const formMappings = form.watch('mappings');
-  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);

@@ -210,7 +210,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         connectionSchemaDataMap?.schemaMap ?? {},
         tableConstraints?.primaryKeyConstraints ?? {},
         tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
+        tableConstraints?.uniqueConstraints ?? {},
+        []
       ),
     [isSchemaMapValidating, isTableConstraintsValidating]
   );

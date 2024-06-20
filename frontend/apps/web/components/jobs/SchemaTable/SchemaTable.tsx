@@ -150,6 +150,7 @@ export function SchemaTable(props: Props): ReactElement {
             <div className="flex flex-col gap-6 pt-4">
               <VirtualForeignKeyForm
                 schema={schema}
+                constraintHandler={constraintHandler}
                 selectedTables={selectedTables}
                 addVirtualForeignKey={addVirtualForeignKey}
               />

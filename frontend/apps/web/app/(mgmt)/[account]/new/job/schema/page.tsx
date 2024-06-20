@@ -34,6 +34,8 @@ import {
   GetAccountOnboardingConfigResponse,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -244,16 +246,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const schemaConstraintHandler = useMemo(
-    () =>
-      getSchemaConstraintHandler(
-        connectionSchemaDataMap?.schemaMap ?? {},
-        tableConstraints?.primaryKeyConstraints ?? {},
-        tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
-      ),
-    [isSchemaMapValidating, isTableConstraintsValidating]
-  );
+  const schemaConstraintHandler = useMemo(() => {
+    const virtualForeignKeys = formVirtualForeignKeys?.map((v) => {
+      return new VirtualForeignConstraint({
+        schema: v.schema,
+        table: v.table,
+        columns: v.columns,
+        foreignKey: new VirtualForeignKey({
+          schema: v.foreignKey.schema,
+          table: v.foreignKey.table,
+          columns: v.foreignKey.columns,
+        }),
+      });
+    });
+    return getSchemaConstraintHandler(
+      connectionSchemaDataMap?.schemaMap ?? {},
+      tableConstraints?.primaryKeyConstraints ?? {},
+      tableConstraints?.foreignKeyConstraints ?? {},
+      tableConstraints?.uniqueConstraints ?? {},
+      virtualForeignKeys ?? []
+    );
+  }, [
+    isSchemaMapValidating,
+    isTableConstraintsValidating,
+    formVirtualForeignKeys,
+  ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
   const { append, remove, fields, update } = useFieldArray<SchemaFormValues>({

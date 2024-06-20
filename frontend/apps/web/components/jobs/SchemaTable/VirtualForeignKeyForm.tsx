@@ -13,17 +13,24 @@ import { VirtualForeignConstraintFormValues } from '@/yup-validations/jobs';
 import { ReactElement, useState } from 'react';
 import { GoWorkflow } from 'react-icons/go';
 import { StringSelect } from './StringSelect';
+import { SchemaConstraintHandler } from './schema-constraint-handler';
 
 interface Props {
   schema: ConnectionSchemaMap;
   virtualForeignKey?: VirtualForeignConstraintFormValues;
   selectedTables: Set<string>;
   addVirtualForeignKey: (vfk: VirtualForeignConstraintFormValues) => void;
+  constraintHandler: SchemaConstraintHandler;
 }
 
 export function VirtualForeignKeyForm(props: Props): ReactElement {
-  const { schema, selectedTables, virtualForeignKey, addVirtualForeignKey } =
-    props;
+  const {
+    schema,
+    selectedTables,
+    virtualForeignKey,
+    constraintHandler,
+    addVirtualForeignKey,
+  } = props;
 
   const srcTable = virtualForeignKey
     ? `${virtualForeignKey?.schema}-${virtualForeignKey?.table}`
@@ -70,7 +77,11 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                 />
                 <StringSelect
                   value={sourceColumn}
-                  values={getColumnOptions(schema, sourceTable)}
+                  values={getSourceColumnOptions(
+                    schema,
+                    constraintHandler,
+                    sourceTable
+                  )}
                   setValue={setSourceColumn}
                   text="column"
                 />
@@ -88,7 +99,7 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                 />
                 <StringSelect
                   value={targetColumn}
-                  values={getColumnOptions(schema, targetTable)}
+                  values={getTargetColumnOptions(schema, targetTable)}
                   setValue={setTargetColumn}
                   text="column"
                 />
@@ -139,7 +150,37 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
   );
 }
 
-function getColumnOptions(
+function getSourceColumnOptions(
+  schema: ConnectionSchemaMap,
+  constraintHandler: SchemaConstraintHandler,
+  table?: string
+): string[] {
+  if (!table) {
+    return [];
+  }
+  const columns = new Set<string>();
+  const cols = schema[table];
+  cols.forEach((c) => {
+    const colkey = {
+      schema: c.schema,
+      table: c.table,
+      column: c.column,
+    };
+
+    if (constraintHandler.getIsNullable(colkey)) {
+      return;
+    }
+
+    const isUnique = constraintHandler.getIsUniqueConstraint(colkey);
+    const isPrimary = constraintHandler.getIsPrimaryKey(colkey);
+
+    if (isUnique || isPrimary) {
+      columns.add(c.column);
+    }
+  });
+  return Array.from(columns);
+}
+function getTargetColumnOptions(
   schema: ConnectionSchemaMap,
   table?: string
 ): string[] {
@@ -149,7 +190,6 @@ function getColumnOptions(
   const columns = new Set<string>();
   const cols = schema[table];
   cols.forEach((c) => {
-    // need to filter out any non unique cols
     columns.add(c.column);
   });
   return Array.from(columns);
