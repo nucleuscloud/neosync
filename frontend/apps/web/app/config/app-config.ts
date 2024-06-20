@@ -7,6 +7,8 @@ export interface SystemAppConfig {
   enableRunLogs: boolean;
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;
+
+  calendlyUpgradeLink: string;
 }
 
 interface PosthogConfig {

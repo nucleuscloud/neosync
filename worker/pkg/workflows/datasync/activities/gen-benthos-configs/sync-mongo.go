@@ -38,7 +38,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
-						MongoDB: &neosync_benthos.InputMongoDb{
+						PooledMongoDB: &neosync_benthos.InputMongoDb{
 							Url:        "${SOURCE_CONNECTION_DSN}",
 							Database:   tableMapping.Schema,
 							Collection: tableMapping.Table,

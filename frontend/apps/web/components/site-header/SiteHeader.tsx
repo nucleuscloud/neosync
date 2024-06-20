@@ -28,7 +28,9 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {!systemAppConfig?.isNeosyncCloud && <UpgradeButton />}
+          {!systemAppConfig?.isNeosyncCloud && (
+            <UpgradeButton href={systemAppConfig.calendlyUpgradeLink} />
+          )}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost">
@@ -59,12 +61,16 @@ export default function SiteHeader(): ReactElement {
   );
 }
 
-function UpgradeButton(): ReactElement {
+interface UpgradeButtonProps {
+  href: string;
+}
+function UpgradeButton(props: UpgradeButtonProps): ReactElement {
+  const { href } = props;
   return (
     <div>
       <Button variant="outline" size="sm">
         <div className="flex flex-row gap-2 items-center">
-          <Link href="https://calendly.com/evis1/30min" target="_blank">
+          <Link href={href} target="_blank">
             <div>Upgrade</div>
           </Link>
           <ArrowUpIcon />{' '}
