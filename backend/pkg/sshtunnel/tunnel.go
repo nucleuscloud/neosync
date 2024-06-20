@@ -112,6 +112,7 @@ func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.
 			t.isOpen = false
 			go func() {
 				t.shutdowns.Range(func(key, value any) bool {
+					logger.Debug("shutting down tunnel session", "key", key)
 					sd, ok := value.(chan any)
 					if ok {
 						sd <- struct{}{}
@@ -212,7 +213,7 @@ func (s *Sshtunnel) getSshClient(
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("conntected to %s", addr))
+	logger.Debug(fmt.Sprintf("[ssh-client] conntected to %s", addr))
 	s.sshclient = client
 	return client, nil
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -58,12 +59,14 @@ func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
 			return nil, err
 		}
 		<-ready
+		w.logger.Info("tunnel is now ready", "isopen", w.details.Tunnel.IsOpen())
 	}
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	w.logger.Info("connecting to mongo instance", "url", w.details.String())
 	opts := options.Client().ApplyURI(w.details.String()).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to mongo instance: %w", err)
 	}
 	w.client = client
 	return client, nil
@@ -79,6 +82,7 @@ func (w *WrappedMongoClient) Close(ctx context.Context) error {
 	w.client = nil
 	err := client.Disconnect(ctx)
 	if w.details.Tunnel != nil && w.details.Tunnel.IsOpen() {
+		w.logger.Debug("closing tunnel...")
 		w.details.Tunnel.Close()
 	}
 	return err
@@ -119,9 +123,13 @@ func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
 func (c *ConnectionDetails) String() string {
 	if c.Tunnel != nil && c.Tunnel.IsOpen() {
 		localhost, port := c.Tunnel.GetLocalHostPort()
-		newDetails := *c.Details
-		newDetails.Hosts = []string{fmt.Sprintf("%s:%d", localhost, port)}
-		return newDetails.String()
+		parseUrl, err := url.Parse(c.Details.String())
+		if err != nil {
+			return "" // todo
+		}
+		parseUrl.Host = fmt.Sprintf("%s:%d", localhost, port)
+		parseUrl.Scheme = "mongodb"
+		return parseUrl.String()
 	}
 	return c.Details.String()
 }
@@ -165,7 +173,7 @@ func GetConnectionDetails(
 		return nil, err
 	}
 	var publickey ssh.PublicKey
-	if tunnelCfg.GetKnownHostPublicKey() == "" {
+	if tunnelCfg.GetKnownHostPublicKey() != "" {
 		publickey, err = sshtunnel.ParseSshKey(tunnelCfg.GetKnownHostPublicKey())
 		if err != nil {
 			return nil, err
