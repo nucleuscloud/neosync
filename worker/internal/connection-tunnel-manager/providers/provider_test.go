@@ -8,6 +8,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -15,14 +16,14 @@ import (
 )
 
 func Test_NewProvider(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	require.NotNil(t, NewProvider(mockMp, mockSp))
 }
 
 func Test_Provider_GetConnectionDetails_Mongo(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -38,7 +39,7 @@ func Test_Provider_GetConnectionDetails_Mongo(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionDetails_Postgres(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -54,7 +55,7 @@ func Test_Provider_GetConnectionDetails_Postgres(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionDetails_Mysql(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -70,7 +71,7 @@ func Test_Provider_GetConnectionDetails_Mysql(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClient_Mongo(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -85,7 +86,7 @@ func Test_Provider_GetConnectionClient_Mongo(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClient_Postgres(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 	mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
@@ -101,7 +102,7 @@ func Test_Provider_GetConnectionClient_Postgres(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClient_Postgres_BadConfig(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -113,7 +114,7 @@ func Test_Provider_GetConnectionClient_Postgres_BadConfig(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClient_Mysql(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 	mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
@@ -129,7 +130,7 @@ func Test_Provider_GetConnectionClient_Mysql(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClient_Mysql_BadConfig(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -141,7 +142,7 @@ func Test_Provider_GetConnectionClient_Mysql_BadConfig(t *testing.T) {
 }
 
 func Test_Provider_CloseClientConnection_Mongo(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -154,7 +155,7 @@ func Test_Provider_CloseClientConnection_Mongo(t *testing.T) {
 }
 
 func Test_Provider_CloseClientConnection_Sql(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 	mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
 
@@ -167,7 +168,7 @@ func Test_Provider_CloseClientConnection_Sql(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClientConfig_Mongo(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -185,7 +186,7 @@ func Test_Provider_GetConnectionClientConfig_Mongo(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClientConfig_Postgres(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)
@@ -203,7 +204,7 @@ func Test_Provider_GetConnectionClientConfig_Postgres(t *testing.T) {
 }
 
 func Test_Provider_GetConnectionClientConfig_Mysql(t *testing.T) {
-	mockMp := connectiontunnelmanager.NewMockConnectionProvider[*mongo.Client, any](t)
+	mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
 	mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
 
 	provider := NewProvider(mockMp, mockSp)

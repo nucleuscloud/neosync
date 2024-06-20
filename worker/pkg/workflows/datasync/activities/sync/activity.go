@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"sync"
 	"time"
 
@@ -25,7 +24,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	"go.opentelemetry.io/otel/metric"
 
@@ -212,8 +210,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	benthosenv, err := benthos_environment.New(&benthos_environment.RegisterConfig{
 		Meter: a.meter,
 		SqlConfig: &benthos_environment.SqlConfig{
-			Provider: newPoolProvider(getPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			Provider: newSqlPoolProvider(getSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 			IsRetry:  isRetry,
+		},
+		MongoConfig: &benthos_environment.MongoConfig{
+			Provider: newMongoPoolProvider(getMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		},
 		StopChannel: stopActivityChan,
 	})
@@ -271,42 +272,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
-}
-
-// Returns a function that converts a raw DSN directly to the relevant pooled sql client.
-// Allows sharing connections across activities for effective pooling and SSH tunnel management.
-func getPoolProviderGetter(
-	tunnelmanager connectiontunnelmanager.Interface[any],
-	dsnToConnectionIdMap *sync.Map,
-	connectionMap map[string]*mgmtv1alpha1.Connection,
-	session string,
-	slogger *slog.Logger,
-) func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-	return func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-		connid, ok := dsnToConnectionIdMap.Load(dsn)
-		if !ok {
-			return nil, errors.New("unable to find connection id by dsn when getting db pool")
-		}
-		connectionId, ok := connid.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert connection id to string. Type was %T", connectionId)
-		}
-		connection, ok := connectionMap[connectionId]
-		if !ok {
-			return nil, errors.New("unable to find connection by connection id when getting db pool")
-		}
-		connclient, err := tunnelmanager.GetConnection(session, connection, slogger)
-		if err != nil {
-			return nil, err
-		}
-		// tunnel manager is generic and can return all different kinda of database clients.
-		// Due to this, we have to make sure it is of the correct type as we expect this to be SQL connections
-		dbclient, ok := connclient.(neosync_benthos_sql.SqlDbtx)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert connection client to neosync_benthos_sql.SqlDbtx. Type was %T", connclient)
-		}
-		return dbclient, nil
-	}
 }
 
 func getConnectionsFromBenthosDsns(

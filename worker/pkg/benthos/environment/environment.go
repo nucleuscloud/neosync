@@ -7,6 +7,7 @@ import (
 	"github.com/benthosdev/benthos/v4/public/service"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"go.opentelemetry.io/otel/metric"
@@ -17,12 +18,18 @@ type RegisterConfig struct {
 
 	SqlConfig *SqlConfig // nil to disable
 
+	MongoConfig *MongoConfig // nil to disable
+
 	StopChannel chan<- error
 }
 
 type SqlConfig struct {
 	Provider neosync_benthos_sql.DbPoolProvider
 	IsRetry  bool
+}
+
+type MongoConfig struct {
+	Provider neosync_benthos_mongodb.MongoPoolProvider
 }
 
 func New(config *RegisterConfig) (*service.Environment, error) {
@@ -59,6 +66,17 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*serv
 		err = neosync_benthos_sql.RegisterPooledSqlRawInput(env, config.SqlConfig.Provider, config.StopChannel)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
+		}
+	}
+
+	if config.MongoConfig != nil {
+		err := neosync_benthos_mongodb.RegisterPooledMongoDbInput(env, config.MongoConfig.Provider)
+		if err != nil {
+			return nil, fmt.Errorf("unable to register pooled_mongodb input to benthos instance: %w", err)
+		}
+		err = neosync_benthos_mongodb.RegisterPooledMongoDbOutput(env, config.MongoConfig.Provider)
+		if err != nil {
+			return nil, fmt.Errorf("unable to register pooled_mongodb output to benthos instance: %w", err)
 		}
 	}
 

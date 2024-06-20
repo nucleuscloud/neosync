@@ -8,11 +8,11 @@ import (
 )
 
 func Test_newPoolProvider(t *testing.T) {
-	assert.NotNil(t, newPoolProvider(nil))
+	assert.NotNil(t, newSqlPoolProvider(nil))
 }
 
 func Test_newPoolProvider_GetDb(t *testing.T) {
-	provider := newPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
+	provider := newSqlPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 		return neosync_benthos_sql.NewMockSqlDbtx(t), nil
 	})
 	assert.NotNil(t, provider)
