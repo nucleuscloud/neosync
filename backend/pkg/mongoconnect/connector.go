@@ -34,16 +34,15 @@ type WrappedMongoClient struct {
 	client   *mongo.Client
 	clientMu sync.Mutex
 
-	details *connstring.ConnString
-	tunnel  *sshtunnel.Sshtunnel
+	details *ConnectionDetails
 
 	logger *slog.Logger
 }
 
 var _ DbContainer = &WrappedMongoClient{}
 
-func newWrappedMongoClient(details *connstring.ConnString, tunnel *sshtunnel.Sshtunnel, logger *slog.Logger) *WrappedMongoClient {
-	return &WrappedMongoClient{details: details, tunnel: tunnel, logger: logger}
+func newWrappedMongoClient(details *ConnectionDetails, logger *slog.Logger) *WrappedMongoClient {
+	return &WrappedMongoClient{details: details, logger: logger}
 }
 
 func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
@@ -53,8 +52,8 @@ func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
 		return w.client, nil
 	}
 
-	if w.tunnel != nil {
-		ready, err := w.tunnel.Start(w.logger)
+	if w.details.Tunnel != nil {
+		ready, err := w.details.Tunnel.Start(w.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -79,8 +78,8 @@ func (w *WrappedMongoClient) Close(ctx context.Context) error {
 	client := w.client
 	w.client = nil
 	err := client.Disconnect(ctx)
-	if w.tunnel.IsOpen() {
-		w.tunnel.Close()
+	if w.details.Tunnel != nil && w.details.Tunnel.IsOpen() {
+		w.details.Tunnel.Close()
 	}
 	return err
 }
@@ -105,7 +104,7 @@ func (c *Connector) NewFromConnectionConfig(
 	if err != nil {
 		return nil, err
 	}
-	wrappedclient := newWrappedMongoClient(details.Details, details.Tunnel, logger)
+	wrappedclient := newWrappedMongoClient(details, logger)
 	return wrappedclient, nil
 }
 
@@ -135,7 +134,6 @@ func GetConnectionDetails(
 	if cc == nil {
 		return nil, errors.New("cc was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
-
 	mongoConfig := cc.GetMongoConfig()
 	if mongoConfig == nil {
 		return nil, fmt.Errorf("mongo config was nil, expected ConnectionConfig to contain valid MongoConfig")
