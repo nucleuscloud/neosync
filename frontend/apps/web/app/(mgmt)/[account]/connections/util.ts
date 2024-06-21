@@ -368,6 +368,8 @@ function buildMongoConnectionConfig(
       case: 'url',
       value: values.url,
     },
+
+    clientTls: getClientTlsConfig(values.clientTls),
   });
 
   return mongoconfig;
