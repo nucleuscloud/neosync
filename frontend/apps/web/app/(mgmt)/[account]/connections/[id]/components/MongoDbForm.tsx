@@ -150,9 +150,7 @@ export default function MongoDbForm(props: Props): ReactElement {
             <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
                 Configuring this section allows Neosync to connect to the
-                database using SSL/TLS. The verification mode may be configured
-                using the SSL Field, or by specifying the option in the
-                postgresql url.
+                database using SSL/TLS.
               </div>
               <FormField
                 control={form.control}
