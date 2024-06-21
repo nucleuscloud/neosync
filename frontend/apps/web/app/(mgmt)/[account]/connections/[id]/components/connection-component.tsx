@@ -361,6 +361,22 @@ export function getConnectionComponentDetails(
               connectionName: connection.name,
               url: connection.connectionConfig.config.value.connectionConfig
                 .value,
+
+              clientTls: {
+                rootCert: connection.connectionConfig.config.value.clientTls
+                  ?.rootCert
+                  ? connection.connectionConfig.config.value.clientTls.rootCert
+                  : '',
+                clientCert: connection.connectionConfig.config.value.clientTls
+                  ?.clientCert
+                  ? connection.connectionConfig.config.value.clientTls
+                      .clientCert
+                  : '',
+                clientKey: connection.connectionConfig.config.value.clientTls
+                  ?.clientKey
+                  ? connection.connectionConfig.config.value.clientTls.clientKey
+                  : '',
+              },
             }}
             onSaved={(resp) => onSaved(resp)}
             onSaveFailed={onSaveFailed}
