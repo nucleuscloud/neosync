@@ -67,6 +67,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         data: {
           values: {
             email_addresses: [registerEvent.details.email],
+            name: getFullname(registerEvent),
           },
         },
       };
@@ -148,4 +149,29 @@ function verifySignature(
   const trusted = Buffer.from(signature, 'ascii');
   const untrusted = Buffer.from(untrustedSignature, 'ascii');
   return timingSafeEqual(trusted, untrusted);
+}
+
+interface Name {
+  first_name: string;
+  last_name: string;
+  full_name: string;
+}
+
+function getFullname(event: RegisterEvent): Name | undefined {
+  const fullname: string[] = [];
+  if (event.details.first_name) {
+    fullname.push(event.details.first_name);
+  }
+  if (event.details.last_name) {
+    fullname.push(event.details.last_name);
+  }
+  if (fullname.length !== 2) {
+    return undefined;
+  }
+
+  return {
+    first_name: fullname[0],
+    last_name: fullname[1],
+    full_name: fullname.join(' '),
+  };
 }
