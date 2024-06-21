@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -90,7 +91,7 @@ func (c *Connector) NewFromConnectionConfig(
 		return nil, errors.New("cc was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	details, err := GetConnectionDetails(cc, clienttls.UpsertCLientTlsFiles, logger)
+	details, err := GetConnectionDetails(cc, clienttls.UpsertClientTlsFileSingleClient, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -178,6 +179,25 @@ func getGeneralDbConnectConfigFromMongo(config *mgmtv1alpha1.MongoConnectionConf
 	dburl := config.GetUrl()
 	if dburl == "" {
 		return nil, fmt.Errorf("must provide valid mongoconfig url")
+	}
+
+	if config.GetClientTls() != nil {
+		parsedurl, err := url.Parse(dburl)
+		if err != nil {
+			return nil, err
+		}
+
+		filenames := clienttls.GetClientTlsFileNamesSingleClient(config.GetClientTls())
+		query := parsedurl.Query()
+		query.Set("tls", "true")
+		if filenames.RootCert != nil {
+			query.Set("tlsCAFile", *filenames.RootCert)
+		}
+		if filenames.ClientKey != nil && filenames.ClientCert != nil {
+			query.Set("tlsCertificateKeyFile", *filenames.ClientKey)
+		}
+		parsedurl.RawQuery = query.Encode()
+		dburl = parsedurl.String()
 	}
 	return connstring.ParseAndValidate(dburl)
 }
