@@ -189,7 +189,9 @@ func getGeneralDbConnectConfigFromMongo(config *mgmtv1alpha1.MongoConnectionConf
 
 		filenames := clienttls.GetClientTlsFileNamesSingleClient(config.GetClientTls())
 		query := parsedurl.Query()
-		query.Set("tls", "true")
+		if !query.Has("tls") {
+			query.Set("tls", "true")
+		}
 		if filenames.RootCert != nil {
 			query.Set("tlsCAFile", *filenames.RootCert)
 		}
