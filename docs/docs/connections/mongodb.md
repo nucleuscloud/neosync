@@ -4,6 +4,7 @@ description: MongoDB is a source-available, cross-platform, document-oriented da
 id: mongodb
 hide_title: false
 slug: /connections/mongodb
+# cSpell:words textareas
 ---
 
 ## Introduction
@@ -31,7 +32,7 @@ Your setup will vary based on your specific settings, but generally, you can con
 
 By doing so, Neosync will store them on disk and update the connection url to point to those files so that they can be used to connect.
 
-The `tls=true` query parameter will also be added automatically if both of those fields are specified.
+The `tls=true` query parameter will also be added automatically if both of those fields are specified and the `tls` parameter has not been explicitly set in the connection url.
 If using Mongo Atlas, the pem file will contain both the certificate and key. They must be split and put into their respective fields in the Connection form.
 
 You may need to add a few query parameters to your URL in order to properly connect.
