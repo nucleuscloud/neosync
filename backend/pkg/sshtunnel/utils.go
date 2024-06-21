@@ -32,7 +32,7 @@ func getPlaintextPrivateKeyAuthMethod(keyBytes []byte) (ssh.AuthMethod, error) {
 
 func ParseSshKey(keyString string) (ssh.PublicKey, error) {
 	// Parse the key
-	publicKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(keyString)) //nolint
+	publicKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(keyString)) //nolint:dogsled
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: %v", err)
 	}

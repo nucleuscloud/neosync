@@ -193,6 +193,16 @@ export const MongoDbFormValues = Yup.object({
   connectionName: connectionNameSchema,
 
   url: Yup.string().required(),
+
+  tunnel: SshTunnelFormValues,
 }).required();
 
 export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;
+
+export interface MongoDbFormContext {
+  accountId: string;
+}
+
+export interface EditMongoDbFormContext extends MongoDbFormContext {
+  originalConnectionName: string;
+}

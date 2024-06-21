@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -34,16 +35,15 @@ type WrappedMongoClient struct {
 	client   *mongo.Client
 	clientMu sync.Mutex
 
-	details *connstring.ConnString
-	// tunnel  *sshtunnel.Sshtunnel
+	details *ConnectionDetails
 
-	// logger *slog.Logger
+	logger *slog.Logger
 }
 
 var _ DbContainer = &WrappedMongoClient{}
 
-func newWrappedMongoClient(details *connstring.ConnString) *WrappedMongoClient {
-	return &WrappedMongoClient{details: details}
+func newWrappedMongoClient(details *ConnectionDetails, logger *slog.Logger) *WrappedMongoClient {
+	return &WrappedMongoClient{details: details, logger: logger}
 }
 
 func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
@@ -52,12 +52,21 @@ func (w *WrappedMongoClient) Open(ctx context.Context) (*mongo.Client, error) {
 	if w.client != nil {
 		return w.client, nil
 	}
-	// todo: tunneling
+
+	if w.details.Tunnel != nil {
+		ready, err := w.details.Tunnel.Start(w.logger)
+		if err != nil {
+			return nil, err
+		}
+		<-ready
+		w.logger.Info("tunnel is now ready", "isopen", w.details.Tunnel.IsOpen())
+	}
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	w.logger.Info("connecting to mongo instance", "url", w.details.String())
 	opts := options.Client().ApplyURI(w.details.String()).SetServerAPIOptions(serverAPI)
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to mongo instance: %w", err)
 	}
 	w.client = client
 	return client, nil
@@ -71,7 +80,12 @@ func (w *WrappedMongoClient) Close(ctx context.Context) error {
 	}
 	client := w.client
 	w.client = nil
-	return client.Disconnect(ctx)
+	err := client.Disconnect(ctx)
+	if w.details.Tunnel != nil && w.details.Tunnel.IsOpen() {
+		w.logger.Debug("closing tunnel...")
+		w.details.Tunnel.Close()
+	}
+	return err
 }
 
 var _ Interface = &Connector{}
@@ -94,7 +108,7 @@ func (c *Connector) NewFromConnectionConfig(
 	if err != nil {
 		return nil, err
 	}
-	wrappedclient := newWrappedMongoClient(details.Details)
+	wrappedclient := newWrappedMongoClient(details, logger)
 	return wrappedclient, nil
 }
 
@@ -107,7 +121,16 @@ func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
 	return c.Tunnel
 }
 func (c *ConnectionDetails) String() string {
-	// todo: add tunnel support
+	if c.Tunnel != nil && c.Tunnel.IsOpen() {
+		localhost, port := c.Tunnel.GetLocalHostPort()
+		parseUrl, err := url.Parse(c.Details.String())
+		if err != nil {
+			return "" // todo
+		}
+		parseUrl.Host = fmt.Sprintf("%s:%d", localhost, port)
+		parseUrl.Scheme = "mongodb"
+		return parseUrl.String()
+	}
 	return c.Details.String()
 }
 
@@ -119,7 +142,6 @@ func GetConnectionDetails(
 	if cc == nil {
 		return nil, errors.New("cc was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
-
 	mongoConfig := cc.GetMongoConfig()
 	if mongoConfig == nil {
 		return nil, fmt.Errorf("mongo config was nil, expected ConnectionConfig to contain valid MongoConfig")
@@ -142,13 +164,16 @@ func GetConnectionDetails(
 		}, nil
 	}
 
-	var destination *sshtunnel.Endpoint // todo
+	destination, err := getEndpointFromMongoConnectionConfig(mongoConfig)
+	if err != nil {
+		return nil, err
+	}
 	authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(tunnelCfg.GetAuthentication())
 	if err != nil {
 		return nil, err
 	}
 	var publickey ssh.PublicKey
-	if tunnelCfg.GetKnownHostPublicKey() == "" {
+	if tunnelCfg.GetKnownHostPublicKey() != "" {
 		publickey, err = sshtunnel.ParseSshKey(tunnelCfg.GetKnownHostPublicKey())
 		if err != nil {
 			return nil, err
@@ -166,7 +191,6 @@ func GetConnectionDetails(
 	if err != nil {
 		return nil, err
 	}
-	_ = connDetails
 
 	return &ConnectionDetails{
 		Tunnel:  tunnel,
@@ -180,4 +204,12 @@ func getGeneralDbConnectConfigFromMongo(config *mgmtv1alpha1.MongoConnectionConf
 		return nil, fmt.Errorf("must provide valid mongoconfig url")
 	}
 	return connstring.ParseAndValidate(dburl)
+}
+
+func getEndpointFromMongoConnectionConfig(config *mgmtv1alpha1.MongoConnectionConfig) (*sshtunnel.Endpoint, error) {
+	details, err := getGeneralDbConnectConfigFromMongo(config)
+	if err != nil {
+		return nil, err
+	}
+	return sshtunnel.NewEndpointWithUser(details.Hosts[0], -1, details.Username), nil
 }

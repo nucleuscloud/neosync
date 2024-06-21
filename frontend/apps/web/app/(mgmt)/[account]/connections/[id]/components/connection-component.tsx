@@ -361,6 +361,33 @@ export function getConnectionComponentDetails(
               connectionName: connection.name,
               url: connection.connectionConfig.config.value.connectionConfig
                 .value,
+              tunnel: {
+                host:
+                  connection.connectionConfig.config.value.tunnel?.host ?? '',
+                port:
+                  connection.connectionConfig.config.value.tunnel?.port ?? 22,
+                knownHostPublicKey:
+                  connection.connectionConfig.config.value.tunnel
+                    ?.knownHostPublicKey ?? '',
+                user:
+                  connection.connectionConfig.config.value.tunnel?.user ?? '',
+                passphrase:
+                  connection.connectionConfig.config.value.tunnel &&
+                  connection.connectionConfig.config.value.tunnel.authentication
+                    ? getPassphraseFromSshAuthentication(
+                        connection.connectionConfig.config.value.tunnel
+                          .authentication
+                      ) ?? ''
+                    : '',
+                privateKey:
+                  connection.connectionConfig.config.value.tunnel &&
+                  connection.connectionConfig.config.value.tunnel.authentication
+                    ? getPrivateKeyFromSshAuthentication(
+                        connection.connectionConfig.config.value.tunnel
+                          .authentication
+                      ) ?? ''
+                    : '',
+              },
             }}
             onSaved={(resp) => onSaved(resp)}
             onSaveFailed={onSaveFailed}

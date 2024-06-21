@@ -62,6 +62,10 @@ func New(
 	}
 }
 
+func (t *Sshtunnel) IsOpen() bool {
+	return t.isOpen
+}
+
 // After a tunnel has started, this will return the auto-generated port (if 0 was passed in)
 func (t *Sshtunnel) GetLocalHostPort() (host string, port int) {
 	return t.local.Host, t.local.Port
@@ -108,6 +112,7 @@ func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.
 			t.isOpen = false
 			go func() {
 				t.shutdowns.Range(func(key, value any) bool {
+					logger.Debug("shutting down tunnel session", "key", key)
 					sd, ok := value.(chan any)
 					if ok {
 						sd <- struct{}{}
@@ -208,7 +213,7 @@ func (s *Sshtunnel) getSshClient(
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("conntected to %s", addr))
+	logger.Debug(fmt.Sprintf("[ssh-client] conntected to %s", addr))
 	s.sshclient = client
 	return client, nil
 }
