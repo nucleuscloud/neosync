@@ -26,7 +26,13 @@ func (info *VersionInfo) Headers() map[string]string {
 		utils.CliVersionKey:  info.GitVersion,
 		utils.CliPlatformKey: info.Platform,
 		utils.CliCommitKey:   info.GitCommit,
+		"User-Agent":         constructUserAgent(info),
 	}
+}
+
+func constructUserAgent(info *VersionInfo) string {
+	return fmt.Sprintf("neosync/%s (commit: %s; build: %s; go: %s; compiler: %s; platform: %s)",
+		info.GitVersion, info.GitCommit, info.BuildDate, info.GoVersion, info.Compiler, info.Platform)
 }
 
 func (info *VersionInfo) GrpcMetadata() metadata.MD {
