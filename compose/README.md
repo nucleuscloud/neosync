@@ -4,6 +4,8 @@ These compose files are meant to be layered in to the top-level compose files.
 
 They enable adding in extra databases or also enabling metrics.
 
+Most of these save for compose-metrics.yml (as it hasn't been fully updated yet) cannot be run alone and must be layered.
+
 ## compose-db.yml
 
 Stands up two separate postgres databases that can be used for testing Neosync.
@@ -36,8 +38,6 @@ Neosync API can be configured to retrieve these metrics via the metrics service.
 ### Logs
 
 Loki, Promtail are used to suck up logs from the work and serve them into the dashboard.
-
-They expect the `neosync-network` docker network to exist.
 
 Promtail scrapes the docker container logs files and pushes them into Loki.
 
