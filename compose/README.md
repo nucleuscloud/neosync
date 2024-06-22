@@ -1,24 +1,46 @@
 # Compose
 
-Alternative Compose files that can be used to stand up additional services, or alternate versions of Neosync
+These compose files are meant to be layered in to the top-level compose files.
 
-## compose-auth.yml
-
-Everything in the root `compose.yml` but it also enables authentication through the use of Keycloak.
-
-## compose-auth-prod.yml
-
-This is the same as `compose-auth.yml` but it uses pre-packaged Docker images.
-This is a good compose file to run if you just want to try out Neosync (with auth) and not worry about a build environment. All that is needed is Docker!
-
-## compose-prod.yml
-
-This is the same as `compose.yml` (or `compose-auth.yml` minus auth) but it uses pre-packaged Docker images.
-This is a good compose file to run if you just want to try out Neosync (without auth) and not worry about a build environment. All that is needed is Docker!
+They enable adding in extra databases or also enabling metrics.
 
 ## compose-db.yml
 
 Stands up two separate postgres databases that can be used for testing Neosync.
-They are not initialized with any data and it all must be created from scratch.
+This is enabled by default.
+
+## compose-db-mongo.yml
+
+Stands up mongodb databases.
+
+## compose-db-mysql.yml
+
+Stands up mysql databases.
+
+## compose-metrics.yml
+
+Stands up an entire metrics suite.
+
+There are a lot of contains that get added here and this should only be provided if testing metrics or logging.
+
+The sections below detail more about what the containers are used for.
+Grafana is used by all of them to surface metrics or logs. This local copy does not come pre-defined with any dashboards.
+
+### Service Metrics
+
+OpenTelemtry, Prometheus are used to retrieve worker metrics.
+Otel is used to retrieve the metrics from the worker. These are then exported to Prometheus.
+
+Neosync API can be configured to retrieve these metrics via the metrics service.
+
+### Logs
+
+Loki, Promtail are used to suck up logs from the work and serve them into the dashboard.
 
 They expect the `neosync-network` docker network to exist.
+
+Promtail scrapes the docker container logs files and pushes them into Loki.
+
+Loki can be configured as a datasource in Grafana to surface logs.
+
+Loki can also be wired up to Neosync API to surface logs to the app dashboard.
