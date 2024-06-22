@@ -55,8 +55,9 @@ func New(
 	temporalclient client.Client,
 	meter metric.Meter,
 	benthosStreamManager BenthosStreamManagerClient,
+	disableReaper bool,
 ) *Activity {
-	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter, benthosStreamManager: benthosStreamManager}
+	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter, benthosStreamManager: benthosStreamManager, disableReaper: disableReaper}
 }
 
 type Activity struct {
@@ -65,6 +66,7 @@ type Activity struct {
 	temporalclient       client.Client
 	meter                metric.Meter // optional
 	benthosStreamManager BenthosStreamManagerClient
+	disableReaper        bool
 }
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
@@ -76,6 +78,9 @@ func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnel
 	manager, ok := val.(connectiontunnelmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
+	}
+	if a.disableReaper {
+		return manager, nil
 	}
 	if !loaded {
 		go manager.Reaper()

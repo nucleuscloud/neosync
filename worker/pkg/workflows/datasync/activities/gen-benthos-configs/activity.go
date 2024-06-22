@@ -2,15 +2,11 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"sync"
 	"time"
 
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -57,12 +53,9 @@ type Activity struct {
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 
-	sqlconnector sqlconnect.SqlConnector
+	sqlmanager sql_manager.SqlManagerClient
 
 	redisConfig *shared.RedisConfig
-
-	pgquerier    pg_queries.Querier
-	mysqlquerier mysql_queries.Querier
 
 	metricsEnabled bool
 }
@@ -71,7 +64,7 @@ func New(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	sqlconnector sqlconnect.SqlConnector,
+	sqlmanager sql_manager.SqlManagerClient,
 	redisConfig *shared.RedisConfig,
 	metricsEnabled bool,
 ) *Activity {
@@ -79,10 +72,8 @@ func New(
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,
-		sqlconnector:      sqlconnector,
+		sqlmanager:        sqlmanager,
 		redisConfig:       redisConfig,
-		pgquerier:         pg_queries.New(),
-		mysqlquerier:      mysql_queries.New(),
 		metricsEnabled:    metricsEnabled,
 	}
 }
@@ -115,13 +106,8 @@ func (a *Activity) GenerateBenthosConfigs(
 		}
 	}()
 
-	pgpoolmap := &sync.Map{}
-	mysqlpoolmap := &sync.Map{}
-
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
-
 	bbuilder := newBenthosBuilder(
-		sqlmanager,
+		a.sqlmanager,
 		a.jobclient,
 		a.connclient,
 		a.transformerclient,

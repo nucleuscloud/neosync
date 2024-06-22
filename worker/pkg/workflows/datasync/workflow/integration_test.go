@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,34 +13,41 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	pgpool  *pgxpool.Pool
-	querier pg_queries.Querier
+	pgpool       *pgxpool.Pool
+	sourcePgPool *pgxpool.Pool
+	targetPgPool *pgxpool.Pool
 
-	setupSql    string
-	teardownSql string
+	sourceDsn string
+	targetDsn string
+
+	querier pg_queries.Querier
 
 	ctx context.Context
 
 	pgcontainer *testpg.PostgresContainer
+	databases   []string
 
-	schema string
+	redisUrl       string
+	rediscontainer *redis.RedisContainer
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
-	s.schema = "datasync"
 
 	dburl := os.Getenv("TEST_DB_URL")
 	if dburl == "" {
 		pgcontainer, err := testpg.RunContainer(s.ctx,
 			testcontainers.WithImage("postgres:15"),
+			postgres.WithDatabase("datasync"),
 			testcontainers.WithWaitStrategy(
 				wait.ForLog("database system is ready to accept connections").
 					WithOccurrence(2).WithStartupTimeout(5*time.Second),
@@ -56,48 +64,118 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		dburl = connstr
 	}
 
-	setupSql, err := os.ReadFile("./testdata/setup.sql")
-	if err != nil {
-		panic(err)
-	}
-	s.setupSql = string(setupSql)
-
-	teardownSql, err := os.ReadFile("./testdata/teardown.sql")
-	if err != nil {
-		panic(err)
-	}
-	s.teardownSql = string(teardownSql)
-
+	s.databases = []string{"datasync_source", "datasync_target"}
 	pool, err := pgxpool.New(s.ctx, dburl)
 	if err != nil {
 		panic(err)
 	}
+
 	s.pgpool = pool
+	for _, db := range s.databases {
+		_, err = s.pgpool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	connStr, err := s.pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
+
+	s.sourceDsn = strings.Replace(connStr, "datasync", "datasync_source", 1)
+	sourceConn, err := pgxpool.New(s.ctx, s.sourceDsn)
+	if err != nil {
+		panic(err)
+	}
+	s.sourcePgPool = sourceConn
+
+	s.targetDsn = strings.Replace(connStr, "datasync", "datasync_target", 1)
+	targetConn, err := pgxpool.New(s.ctx, s.targetDsn)
+	if err != nil {
+		panic(err)
+	}
+	s.targetPgPool = targetConn
+
 	s.querier = pg_queries.New()
+
+	// redis
+	redisUrl := os.Getenv("TEST_REDIS_URL")
+	if redisUrl == "" {
+		redisContainer, err := redis.RunContainer(s.ctx,
+			testcontainers.WithImage("docker.io/redis:7"),
+			redis.WithSnapshotting(10, 1),
+			redis.WithLogLevel(redis.LogLevelVerbose),
+		)
+		if err != nil {
+			panic(err)
+		}
+		s.rediscontainer = redisContainer
+		s.redisUrl, err = redisContainer.ConnectionString(s.ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
-// Runs before each test
-func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.pgpool.Exec(s.ctx, s.setupSql)
+func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
+	setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/source-setup.sql", testFolder))
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.sourcePgPool.Exec(s.ctx, string(setupSourceSql))
+	if err != nil {
+		panic(err)
+	}
+	setupTargetSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/target-setup.sql", testFolder))
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.targetPgPool.Exec(s.ctx, string(setupTargetSql))
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (s *IntegrationTestSuite) TearDownTest() {
-	_, err := s.pgpool.Exec(s.ctx, s.teardownSql)
+func (s *IntegrationTestSuite) TearDownTestByFolder(testFolder string) {
+	teardownSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/teardown.sql", testFolder))
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.targetPgPool.Exec(s.ctx, string(teardownSql))
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.sourcePgPool.Exec(s.ctx, string(teardownSql))
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
+	for _, db := range s.databases {
+		_, err := s.pgpool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
+		if err != nil {
+			panic(err)
+		}
+	}
+	if s.sourcePgPool != nil {
+		s.sourcePgPool.Close()
+	}
+	if s.targetPgPool != nil {
+		s.targetPgPool.Close()
+	}
 	if s.pgpool != nil {
 		s.pgpool.Close()
 	}
 	if s.pgcontainer != nil {
 		err := s.pgcontainer.Terminate(s.ctx)
 		if err != nil {
+			panic(err)
+		}
+	}
+	if s.rediscontainer != nil {
+		if err := s.rediscontainer.Terminate(s.ctx); err != nil {
 			panic(err)
 		}
 	}

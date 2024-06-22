@@ -180,7 +180,8 @@ func buildBenthosSqlSourceConfigResponses(
 						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							Driver: driver,
 							Dsn:    "${SOURCE_CONNECTION_DSN}",
-							Query:  query,
+
+							Query: query,
 						},
 					},
 				},
