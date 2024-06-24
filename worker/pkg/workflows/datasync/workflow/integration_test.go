@@ -71,6 +71,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
+	s.T().Logf("creating databases. %+v \n", s.databases)
 	s.pgpool = pool
 	for _, db := range s.databases {
 		_, err = s.pgpool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
