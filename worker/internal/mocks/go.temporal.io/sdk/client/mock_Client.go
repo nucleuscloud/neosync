@@ -8,7 +8,7 @@ import (
 	enums "go.temporal.io/api/enums/v1"
 	converter "go.temporal.io/sdk/converter"
 
-	internal "go.temporal.io/sdk/internal"
+	internal "go.temporal.io/sdk/client"
 
 	mock "github.com/stretchr/testify/mock"
 
