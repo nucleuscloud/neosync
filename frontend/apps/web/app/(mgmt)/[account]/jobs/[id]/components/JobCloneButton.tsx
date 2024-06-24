@@ -74,7 +74,7 @@ export function getJobCloneUrlFromJob(
     jobType: getNewJobTypeFromJob(job),
     sessionId: sessionId,
   });
-  return `/${account.name}/new/job?${urlParams.toString()}`;
+  return `/${account.name}/new/job/define?${urlParams.toString()}`;
 }
 
 function getNewJobTypeFromJob(job: Job): NewJobType {
