@@ -65,6 +65,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
   const [isScheduleEnabled, setIsScheduleEnabled] = useState<boolean>(false);
 
+  // run once to check if schedule should be enabled. (only want to run this a single time)
+  useEffect(() => {
+    if (defaultValues.cronSchedule && !isScheduleEnabled) {
+      setIsScheduleEnabled(true);
+    }
+  }, []);
+
   const form = useForm<DefineFormValues>({
     mode: 'onChange',
     resolver: yupResolver<DefineFormValues>(DefineFormValues),
