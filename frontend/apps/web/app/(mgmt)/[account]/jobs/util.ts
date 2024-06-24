@@ -1170,7 +1170,7 @@ function collectStringLeafs(obj: any): string[] {
   return [];
 }
 
-export function cleanNewJobSession(storage: Storage, sessionId: string): void {
+export function clearNewJobSession(storage: Storage, sessionId: string): void {
   const keys = collectStringLeafs(getNewJobSessionKeys(sessionId));
   keys.forEach((key) => storage.removeItem(key));
 }

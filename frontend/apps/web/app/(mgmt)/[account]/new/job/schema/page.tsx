@@ -41,7 +41,7 @@ import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import {
-  cleanNewJobSession,
+  clearNewJobSession,
   createNewSyncJob,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
@@ -155,7 +155,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           variant: 'success',
         });
 
-        cleanNewJobSession(window.sessionStorage, sessionPrefix);
+        clearNewJobSession(window.sessionStorage, sessionPrefix);
 
         // updates the onboarding data
         if (!onboardingData?.config?.hasCreatedJob) {

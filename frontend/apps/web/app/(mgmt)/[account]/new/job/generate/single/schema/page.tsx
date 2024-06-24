@@ -2,7 +2,7 @@
 
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
-  cleanNewJobSession,
+  clearNewJobSession,
   createNewSingleTableGenerateJob,
   getNewJobSessionKeys,
 } from '@/app/(mgmt)/[account]/jobs/util';
@@ -162,7 +162,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         variant: 'success',
       });
 
-      cleanNewJobSession(window.sessionStorage, sessionPrefix);
+      clearNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {

@@ -2,7 +2,7 @@
 
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
-  cleanNewJobSession,
+  clearNewJobSession,
   createNewSingleTableAiGenerateJob,
   getNewJobSessionKeys,
   sampleAiGeneratedRecords,
@@ -158,7 +158,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         variant: 'success',
       });
 
-      cleanNewJobSession(window.sessionStorage, sessionPrefix);
+      clearNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
