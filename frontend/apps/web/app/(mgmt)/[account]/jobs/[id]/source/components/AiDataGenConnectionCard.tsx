@@ -517,15 +517,12 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       job.source.options.config.value.fkSourceConnectionId ?? '';
     model = job.source.options.config.value.modelName;
     userPrompt = job.source.options.config.value.userPrompt ?? '';
-    const srcSchemas = job.source.options.config.value.schemas;
-    if (srcSchemas.length > 0) {
-      const tables = srcSchemas[0].tables;
-      if (tables.length > 0) {
-        numRows = Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
-        schema = srcSchemas[0].schema;
-        table = tables[0].table;
-      }
-    }
+    numRows = getSingleTableAiGenerateNumRows(job.source.options.config.value);
+    const schematable = getSingleTableAiSchemaTable(
+      job.source.options.config.value
+    );
+    schema = schematable.schema;
+    table = schematable.table;
   }
 
   return {
@@ -541,6 +538,36 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       userPrompt,
     },
   };
+}
+
+export function getSingleTableAiGenerateNumRows(
+  sourceOpts: AiGenerateSourceOptions
+): number {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
+    }
+  }
+  return 0;
+}
+
+export function getSingleTableAiSchemaTable(
+  sourceOpts: AiGenerateSourceOptions
+): { schema: string; table: string } {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return {
+        schema: srcSchemas[0].schema,
+        table: tables[0].table,
+      };
+    }
+    return { schema: srcSchemas[0].schema, table: '' };
+  }
+  return { schema: '', table: '' };
 }
 
 async function sample(

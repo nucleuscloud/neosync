@@ -51,7 +51,7 @@ export default function DestinationConnectionCard({
 
   const form = useForm({
     resolver: yupResolver<DestinationFormValues>(DestinationFormValues),
-    values: getDefaultValues(destination),
+    values: getDefaultDestinationFormValues(destination),
   });
 
   async function onSubmit(values: DestinationFormValues) {
@@ -211,7 +211,9 @@ export default function DestinationConnectionCard({
   );
 }
 
-function getDefaultValues(d: JobDestination): DestinationFormValues {
+export function getDefaultDestinationFormValues(
+  d: JobDestination
+): DestinationFormValues {
   switch (d.options?.config.case) {
     case 'postgresOptions':
       return {

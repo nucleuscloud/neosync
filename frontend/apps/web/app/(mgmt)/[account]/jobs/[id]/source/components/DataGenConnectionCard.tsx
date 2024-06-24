@@ -413,16 +413,11 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
       numRows: 0,
     };
   }
-  let numRows = 0;
-  if (job.source?.options?.config.case === 'generate') {
-    const srcSchemas = job.source.options.config.value.schemas;
-    if (srcSchemas.length > 0) {
-      const tables = srcSchemas[0].tables;
-      if (tables.length > 0) {
-        numRows = Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
-      }
-    }
-  }
+
+  const numRows =
+    job.source?.options?.config.case === 'generate'
+      ? getSingleTableGenerateNumRows(job.source?.options?.config.value)
+      : 0;
 
   const mappings: SingleTableEditSourceFormValues['mappings'] = (
     job.mappings ?? []
@@ -450,6 +445,19 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
     mappings: mappings,
     numRows: numRows,
   };
+}
+
+export function getSingleTableGenerateNumRows(
+  sourceOpts: GenerateSourceOptions
+): number {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
+    }
+  }
+  return 0;
 }
 
 async function updateJobConnection(
