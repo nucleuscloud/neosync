@@ -57,7 +57,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 			panic(err)
 		}
 		s.pgcontainer = pgcontainer
-		connstr, err := pgcontainer.ConnectionString(s.ctx)
+		connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -78,19 +78,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		}
 	}
 
-	connStr, err := s.pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-
-	s.sourceDsn = strings.Replace(connStr, "datasync", "datasync_source", 1)
+	s.sourceDsn = strings.Replace(dburl, "datasync", "datasync_source", 1)
 	sourceConn, err := pgxpool.New(s.ctx, s.sourceDsn)
 	if err != nil {
 		panic(err)
 	}
 	s.sourcePgPool = sourceConn
 
-	s.targetDsn = strings.Replace(connStr, "datasync", "datasync_target", 1)
+	s.targetDsn = strings.Replace(dburl, "datasync", "datasync_target", 1)
 	targetConn, err := pgxpool.New(s.ctx, s.targetDsn)
 	if err != nil {
 		panic(err)

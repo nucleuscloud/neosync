@@ -8,7 +8,7 @@ import (
 	enums "go.temporal.io/api/enums/v1"
 	converter "go.temporal.io/sdk/converter"
 
-	temporalclient "go.temporal.io/sdk/client"
+	internal "go.temporal.io/sdk/internal"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -79,27 +79,27 @@ func (_c *MockClient_CancelWorkflow_Call) RunAndReturn(run func(context.Context,
 }
 
 // CheckHealth provides a mock function with given fields: ctx, request
-func (_m *MockClient) CheckHealth(ctx context.Context, request *temporalclient.CheckHealthRequest) (*temporalclient.CheckHealthResponse, error) {
+func (_m *MockClient) CheckHealth(ctx context.Context, request *internal.CheckHealthRequest) (*internal.CheckHealthResponse, error) {
 	ret := _m.Called(ctx, request)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CheckHealth")
 	}
 
-	var r0 *temporalclient.CheckHealthResponse
+	var r0 *internal.CheckHealthResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.CheckHealthRequest) (*temporalclient.CheckHealthResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.CheckHealthRequest) (*internal.CheckHealthResponse, error)); ok {
 		return rf(ctx, request)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.CheckHealthRequest) *temporalclient.CheckHealthResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.CheckHealthRequest) *internal.CheckHealthResponse); ok {
 		r0 = rf(ctx, request)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*temporalclient.CheckHealthResponse)
+			r0 = ret.Get(0).(*internal.CheckHealthResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *temporalclient.CheckHealthRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *internal.CheckHealthRequest) error); ok {
 		r1 = rf(ctx, request)
 	} else {
 		r1 = ret.Error(1)
@@ -115,24 +115,24 @@ type MockClient_CheckHealth_Call struct {
 
 // CheckHealth is a helper method to define mock.On call
 //   - ctx context.Context
-//   - request *temporalclient.CheckHealthRequest
+//   - request *internal.CheckHealthRequest
 func (_e *MockClient_Expecter) CheckHealth(ctx interface{}, request interface{}) *MockClient_CheckHealth_Call {
 	return &MockClient_CheckHealth_Call{Call: _e.mock.On("CheckHealth", ctx, request)}
 }
 
-func (_c *MockClient_CheckHealth_Call) Run(run func(ctx context.Context, request *temporalclient.CheckHealthRequest)) *MockClient_CheckHealth_Call {
+func (_c *MockClient_CheckHealth_Call) Run(run func(ctx context.Context, request *internal.CheckHealthRequest)) *MockClient_CheckHealth_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.CheckHealthRequest))
+		run(args[0].(context.Context), args[1].(*internal.CheckHealthRequest))
 	})
 	return _c
 }
 
-func (_c *MockClient_CheckHealth_Call) Return(_a0 *temporalclient.CheckHealthResponse, _a1 error) *MockClient_CheckHealth_Call {
+func (_c *MockClient_CheckHealth_Call) Return(_a0 *internal.CheckHealthResponse, _a1 error) *MockClient_CheckHealth_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_CheckHealth_Call) RunAndReturn(run func(context.Context, *temporalclient.CheckHealthRequest) (*temporalclient.CheckHealthResponse, error)) *MockClient_CheckHealth_Call {
+func (_c *MockClient_CheckHealth_Call) RunAndReturn(run func(context.Context, *internal.CheckHealthRequest) (*internal.CheckHealthResponse, error)) *MockClient_CheckHealth_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -450,7 +450,7 @@ func (_c *MockClient_DescribeWorkflowExecution_Call) RunAndReturn(run func(conte
 }
 
 // ExecuteWorkflow provides a mock function with given fields: ctx, options, workflow, args
-func (_m *MockClient) ExecuteWorkflow(ctx context.Context, options temporalclient.StartWorkflowOptions, workflow interface{}, args ...interface{}) (temporalclient.WorkflowRun, error) {
+func (_m *MockClient) ExecuteWorkflow(ctx context.Context, options internal.StartWorkflowOptions, workflow interface{}, args ...interface{}) (internal.WorkflowRun, error) {
 	var _ca []interface{}
 	_ca = append(_ca, ctx, options, workflow)
 	_ca = append(_ca, args...)
@@ -460,20 +460,20 @@ func (_m *MockClient) ExecuteWorkflow(ctx context.Context, options temporalclien
 		panic("no return value specified for ExecuteWorkflow")
 	}
 
-	var r0 temporalclient.WorkflowRun
+	var r0 internal.WorkflowRun
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) (temporalclient.WorkflowRun, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, internal.StartWorkflowOptions, interface{}, ...interface{}) (internal.WorkflowRun, error)); ok {
 		return rf(ctx, options, workflow, args...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) temporalclient.WorkflowRun); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, internal.StartWorkflowOptions, interface{}, ...interface{}) internal.WorkflowRun); ok {
 		r0 = rf(ctx, options, workflow, args...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowRun)
+			r0 = ret.Get(0).(internal.WorkflowRun)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, internal.StartWorkflowOptions, interface{}, ...interface{}) error); ok {
 		r1 = rf(ctx, options, workflow, args...)
 	} else {
 		r1 = ret.Error(1)
@@ -489,7 +489,7 @@ type MockClient_ExecuteWorkflow_Call struct {
 
 // ExecuteWorkflow is a helper method to define mock.On call
 //   - ctx context.Context
-//   - options temporalclient.StartWorkflowOptions
+//   - options internal.StartWorkflowOptions
 //   - workflow interface{}
 //   - args ...interface{}
 func (_e *MockClient_Expecter) ExecuteWorkflow(ctx interface{}, options interface{}, workflow interface{}, args ...interface{}) *MockClient_ExecuteWorkflow_Call {
@@ -497,7 +497,7 @@ func (_e *MockClient_Expecter) ExecuteWorkflow(ctx interface{}, options interfac
 		append([]interface{}{ctx, options, workflow}, args...)...)}
 }
 
-func (_c *MockClient_ExecuteWorkflow_Call) Run(run func(ctx context.Context, options temporalclient.StartWorkflowOptions, workflow interface{}, args ...interface{})) *MockClient_ExecuteWorkflow_Call {
+func (_c *MockClient_ExecuteWorkflow_Call) Run(run func(ctx context.Context, options internal.StartWorkflowOptions, workflow interface{}, args ...interface{})) *MockClient_ExecuteWorkflow_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]interface{}, len(args)-3)
 		for i, a := range args[3:] {
@@ -505,17 +505,17 @@ func (_c *MockClient_ExecuteWorkflow_Call) Run(run func(ctx context.Context, opt
 				variadicArgs[i] = a.(interface{})
 			}
 		}
-		run(args[0].(context.Context), args[1].(temporalclient.StartWorkflowOptions), args[2].(interface{}), variadicArgs...)
+		run(args[0].(context.Context), args[1].(internal.StartWorkflowOptions), args[2].(interface{}), variadicArgs...)
 	})
 	return _c
 }
 
-func (_c *MockClient_ExecuteWorkflow_Call) Return(_a0 temporalclient.WorkflowRun, _a1 error) *MockClient_ExecuteWorkflow_Call {
+func (_c *MockClient_ExecuteWorkflow_Call) Return(_a0 internal.WorkflowRun, _a1 error) *MockClient_ExecuteWorkflow_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_ExecuteWorkflow_Call) RunAndReturn(run func(context.Context, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) (temporalclient.WorkflowRun, error)) *MockClient_ExecuteWorkflow_Call {
+func (_c *MockClient_ExecuteWorkflow_Call) RunAndReturn(run func(context.Context, internal.StartWorkflowOptions, interface{}, ...interface{}) (internal.WorkflowRun, error)) *MockClient_ExecuteWorkflow_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -579,27 +579,27 @@ func (_c *MockClient_GetSearchAttributes_Call) RunAndReturn(run func(context.Con
 }
 
 // GetWorkerBuildIdCompatibility provides a mock function with given fields: ctx, options
-func (_m *MockClient) GetWorkerBuildIdCompatibility(ctx context.Context, options *temporalclient.GetWorkerBuildIdCompatibilityOptions) (*temporalclient.WorkerBuildIDVersionSets, error) {
+func (_m *MockClient) GetWorkerBuildIdCompatibility(ctx context.Context, options *internal.GetWorkerBuildIdCompatibilityOptions) (*internal.WorkerBuildIDVersionSets, error) {
 	ret := _m.Called(ctx, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkerBuildIdCompatibility")
 	}
 
-	var r0 *temporalclient.WorkerBuildIDVersionSets
+	var r0 *internal.WorkerBuildIDVersionSets
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.GetWorkerBuildIdCompatibilityOptions) (*temporalclient.WorkerBuildIDVersionSets, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.GetWorkerBuildIdCompatibilityOptions) (*internal.WorkerBuildIDVersionSets, error)); ok {
 		return rf(ctx, options)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.GetWorkerBuildIdCompatibilityOptions) *temporalclient.WorkerBuildIDVersionSets); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.GetWorkerBuildIdCompatibilityOptions) *internal.WorkerBuildIDVersionSets); ok {
 		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*temporalclient.WorkerBuildIDVersionSets)
+			r0 = ret.Get(0).(*internal.WorkerBuildIDVersionSets)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *temporalclient.GetWorkerBuildIdCompatibilityOptions) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *internal.GetWorkerBuildIdCompatibilityOptions) error); ok {
 		r1 = rf(ctx, options)
 	} else {
 		r1 = ret.Error(1)
@@ -615,50 +615,50 @@ type MockClient_GetWorkerBuildIdCompatibility_Call struct {
 
 // GetWorkerBuildIdCompatibility is a helper method to define mock.On call
 //   - ctx context.Context
-//   - options *temporalclient.GetWorkerBuildIdCompatibilityOptions
+//   - options *internal.GetWorkerBuildIdCompatibilityOptions
 func (_e *MockClient_Expecter) GetWorkerBuildIdCompatibility(ctx interface{}, options interface{}) *MockClient_GetWorkerBuildIdCompatibility_Call {
 	return &MockClient_GetWorkerBuildIdCompatibility_Call{Call: _e.mock.On("GetWorkerBuildIdCompatibility", ctx, options)}
 }
 
-func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) Run(run func(ctx context.Context, options *temporalclient.GetWorkerBuildIdCompatibilityOptions)) *MockClient_GetWorkerBuildIdCompatibility_Call {
+func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) Run(run func(ctx context.Context, options *internal.GetWorkerBuildIdCompatibilityOptions)) *MockClient_GetWorkerBuildIdCompatibility_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.GetWorkerBuildIdCompatibilityOptions))
+		run(args[0].(context.Context), args[1].(*internal.GetWorkerBuildIdCompatibilityOptions))
 	})
 	return _c
 }
 
-func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) Return(_a0 *temporalclient.WorkerBuildIDVersionSets, _a1 error) *MockClient_GetWorkerBuildIdCompatibility_Call {
+func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) Return(_a0 *internal.WorkerBuildIDVersionSets, _a1 error) *MockClient_GetWorkerBuildIdCompatibility_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) RunAndReturn(run func(context.Context, *temporalclient.GetWorkerBuildIdCompatibilityOptions) (*temporalclient.WorkerBuildIDVersionSets, error)) *MockClient_GetWorkerBuildIdCompatibility_Call {
+func (_c *MockClient_GetWorkerBuildIdCompatibility_Call) RunAndReturn(run func(context.Context, *internal.GetWorkerBuildIdCompatibilityOptions) (*internal.WorkerBuildIDVersionSets, error)) *MockClient_GetWorkerBuildIdCompatibility_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetWorkerTaskReachability provides a mock function with given fields: ctx, options
-func (_m *MockClient) GetWorkerTaskReachability(ctx context.Context, options *temporalclient.GetWorkerTaskReachabilityOptions) (*temporalclient.WorkerTaskReachability, error) {
+func (_m *MockClient) GetWorkerTaskReachability(ctx context.Context, options *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error) {
 	ret := _m.Called(ctx, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkerTaskReachability")
 	}
 
-	var r0 *temporalclient.WorkerTaskReachability
+	var r0 *internal.WorkerTaskReachability
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.GetWorkerTaskReachabilityOptions) (*temporalclient.WorkerTaskReachability, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error)); ok {
 		return rf(ctx, options)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.GetWorkerTaskReachabilityOptions) *temporalclient.WorkerTaskReachability); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.GetWorkerTaskReachabilityOptions) *internal.WorkerTaskReachability); ok {
 		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*temporalclient.WorkerTaskReachability)
+			r0 = ret.Get(0).(*internal.WorkerTaskReachability)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *temporalclient.GetWorkerTaskReachabilityOptions) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *internal.GetWorkerTaskReachabilityOptions) error); ok {
 		r1 = rf(ctx, options)
 	} else {
 		r1 = ret.Error(1)
@@ -674,42 +674,42 @@ type MockClient_GetWorkerTaskReachability_Call struct {
 
 // GetWorkerTaskReachability is a helper method to define mock.On call
 //   - ctx context.Context
-//   - options *temporalclient.GetWorkerTaskReachabilityOptions
+//   - options *internal.GetWorkerTaskReachabilityOptions
 func (_e *MockClient_Expecter) GetWorkerTaskReachability(ctx interface{}, options interface{}) *MockClient_GetWorkerTaskReachability_Call {
 	return &MockClient_GetWorkerTaskReachability_Call{Call: _e.mock.On("GetWorkerTaskReachability", ctx, options)}
 }
 
-func (_c *MockClient_GetWorkerTaskReachability_Call) Run(run func(ctx context.Context, options *temporalclient.GetWorkerTaskReachabilityOptions)) *MockClient_GetWorkerTaskReachability_Call {
+func (_c *MockClient_GetWorkerTaskReachability_Call) Run(run func(ctx context.Context, options *internal.GetWorkerTaskReachabilityOptions)) *MockClient_GetWorkerTaskReachability_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.GetWorkerTaskReachabilityOptions))
+		run(args[0].(context.Context), args[1].(*internal.GetWorkerTaskReachabilityOptions))
 	})
 	return _c
 }
 
-func (_c *MockClient_GetWorkerTaskReachability_Call) Return(_a0 *temporalclient.WorkerTaskReachability, _a1 error) *MockClient_GetWorkerTaskReachability_Call {
+func (_c *MockClient_GetWorkerTaskReachability_Call) Return(_a0 *internal.WorkerTaskReachability, _a1 error) *MockClient_GetWorkerTaskReachability_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_GetWorkerTaskReachability_Call) RunAndReturn(run func(context.Context, *temporalclient.GetWorkerTaskReachabilityOptions) (*temporalclient.WorkerTaskReachability, error)) *MockClient_GetWorkerTaskReachability_Call {
+func (_c *MockClient_GetWorkerTaskReachability_Call) RunAndReturn(run func(context.Context, *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error)) *MockClient_GetWorkerTaskReachability_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetWorkflow provides a mock function with given fields: ctx, workflowID, runID
-func (_m *MockClient) GetWorkflow(ctx context.Context, workflowID string, runID string) temporalclient.WorkflowRun {
+func (_m *MockClient) GetWorkflow(ctx context.Context, workflowID string, runID string) internal.WorkflowRun {
 	ret := _m.Called(ctx, workflowID, runID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkflow")
 	}
 
-	var r0 temporalclient.WorkflowRun
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) temporalclient.WorkflowRun); ok {
+	var r0 internal.WorkflowRun
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) internal.WorkflowRun); ok {
 		r0 = rf(ctx, workflowID, runID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowRun)
+			r0 = ret.Get(0).(internal.WorkflowRun)
 		}
 	}
 
@@ -736,30 +736,30 @@ func (_c *MockClient_GetWorkflow_Call) Run(run func(ctx context.Context, workflo
 	return _c
 }
 
-func (_c *MockClient_GetWorkflow_Call) Return(_a0 temporalclient.WorkflowRun) *MockClient_GetWorkflow_Call {
+func (_c *MockClient_GetWorkflow_Call) Return(_a0 internal.WorkflowRun) *MockClient_GetWorkflow_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockClient_GetWorkflow_Call) RunAndReturn(run func(context.Context, string, string) temporalclient.WorkflowRun) *MockClient_GetWorkflow_Call {
+func (_c *MockClient_GetWorkflow_Call) RunAndReturn(run func(context.Context, string, string) internal.WorkflowRun) *MockClient_GetWorkflow_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetWorkflowHistory provides a mock function with given fields: ctx, workflowID, runID, isLongPoll, filterType
-func (_m *MockClient) GetWorkflowHistory(ctx context.Context, workflowID string, runID string, isLongPoll bool, filterType enums.HistoryEventFilterType) temporalclient.HistoryEventIterator {
+func (_m *MockClient) GetWorkflowHistory(ctx context.Context, workflowID string, runID string, isLongPoll bool, filterType enums.HistoryEventFilterType) internal.HistoryEventIterator {
 	ret := _m.Called(ctx, workflowID, runID, isLongPoll, filterType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkflowHistory")
 	}
 
-	var r0 temporalclient.HistoryEventIterator
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool, enums.HistoryEventFilterType) temporalclient.HistoryEventIterator); ok {
+	var r0 internal.HistoryEventIterator
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool, enums.HistoryEventFilterType) internal.HistoryEventIterator); ok {
 		r0 = rf(ctx, workflowID, runID, isLongPoll, filterType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.HistoryEventIterator)
+			r0 = ret.Get(0).(internal.HistoryEventIterator)
 		}
 	}
 
@@ -788,30 +788,30 @@ func (_c *MockClient_GetWorkflowHistory_Call) Run(run func(ctx context.Context, 
 	return _c
 }
 
-func (_c *MockClient_GetWorkflowHistory_Call) Return(_a0 temporalclient.HistoryEventIterator) *MockClient_GetWorkflowHistory_Call {
+func (_c *MockClient_GetWorkflowHistory_Call) Return(_a0 internal.HistoryEventIterator) *MockClient_GetWorkflowHistory_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockClient_GetWorkflowHistory_Call) RunAndReturn(run func(context.Context, string, string, bool, enums.HistoryEventFilterType) temporalclient.HistoryEventIterator) *MockClient_GetWorkflowHistory_Call {
+func (_c *MockClient_GetWorkflowHistory_Call) RunAndReturn(run func(context.Context, string, string, bool, enums.HistoryEventFilterType) internal.HistoryEventIterator) *MockClient_GetWorkflowHistory_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetWorkflowUpdateHandle provides a mock function with given fields: ref
-func (_m *MockClient) GetWorkflowUpdateHandle(ref temporalclient.GetWorkflowUpdateHandleOptions) temporalclient.WorkflowUpdateHandle {
+func (_m *MockClient) GetWorkflowUpdateHandle(ref internal.GetWorkflowUpdateHandleOptions) internal.WorkflowUpdateHandle {
 	ret := _m.Called(ref)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWorkflowUpdateHandle")
 	}
 
-	var r0 temporalclient.WorkflowUpdateHandle
-	if rf, ok := ret.Get(0).(func(temporalclient.GetWorkflowUpdateHandleOptions) temporalclient.WorkflowUpdateHandle); ok {
+	var r0 internal.WorkflowUpdateHandle
+	if rf, ok := ret.Get(0).(func(internal.GetWorkflowUpdateHandleOptions) internal.WorkflowUpdateHandle); ok {
 		r0 = rf(ref)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowUpdateHandle)
+			r0 = ret.Get(0).(internal.WorkflowUpdateHandle)
 		}
 	}
 
@@ -824,24 +824,24 @@ type MockClient_GetWorkflowUpdateHandle_Call struct {
 }
 
 // GetWorkflowUpdateHandle is a helper method to define mock.On call
-//   - ref temporalclient.GetWorkflowUpdateHandleOptions
+//   - ref internal.GetWorkflowUpdateHandleOptions
 func (_e *MockClient_Expecter) GetWorkflowUpdateHandle(ref interface{}) *MockClient_GetWorkflowUpdateHandle_Call {
 	return &MockClient_GetWorkflowUpdateHandle_Call{Call: _e.mock.On("GetWorkflowUpdateHandle", ref)}
 }
 
-func (_c *MockClient_GetWorkflowUpdateHandle_Call) Run(run func(ref temporalclient.GetWorkflowUpdateHandleOptions)) *MockClient_GetWorkflowUpdateHandle_Call {
+func (_c *MockClient_GetWorkflowUpdateHandle_Call) Run(run func(ref internal.GetWorkflowUpdateHandleOptions)) *MockClient_GetWorkflowUpdateHandle_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(temporalclient.GetWorkflowUpdateHandleOptions))
+		run(args[0].(internal.GetWorkflowUpdateHandleOptions))
 	})
 	return _c
 }
 
-func (_c *MockClient_GetWorkflowUpdateHandle_Call) Return(_a0 temporalclient.WorkflowUpdateHandle) *MockClient_GetWorkflowUpdateHandle_Call {
+func (_c *MockClient_GetWorkflowUpdateHandle_Call) Return(_a0 internal.WorkflowUpdateHandle) *MockClient_GetWorkflowUpdateHandle_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockClient_GetWorkflowUpdateHandle_Call) RunAndReturn(run func(temporalclient.GetWorkflowUpdateHandleOptions) temporalclient.WorkflowUpdateHandle) *MockClient_GetWorkflowUpdateHandle_Call {
+func (_c *MockClient_GetWorkflowUpdateHandle_Call) RunAndReturn(run func(internal.GetWorkflowUpdateHandleOptions) internal.WorkflowUpdateHandle) *MockClient_GetWorkflowUpdateHandle_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1202,27 +1202,27 @@ func (_c *MockClient_QueryWorkflow_Call) RunAndReturn(run func(context.Context, 
 }
 
 // QueryWorkflowWithOptions provides a mock function with given fields: ctx, request
-func (_m *MockClient) QueryWorkflowWithOptions(ctx context.Context, request *temporalclient.QueryWorkflowWithOptionsRequest) (*temporalclient.QueryWorkflowWithOptionsResponse, error) {
+func (_m *MockClient) QueryWorkflowWithOptions(ctx context.Context, request *internal.QueryWorkflowWithOptionsRequest) (*internal.QueryWorkflowWithOptionsResponse, error) {
 	ret := _m.Called(ctx, request)
 
 	if len(ret) == 0 {
 		panic("no return value specified for QueryWorkflowWithOptions")
 	}
 
-	var r0 *temporalclient.QueryWorkflowWithOptionsResponse
+	var r0 *internal.QueryWorkflowWithOptionsResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.QueryWorkflowWithOptionsRequest) (*temporalclient.QueryWorkflowWithOptionsResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.QueryWorkflowWithOptionsRequest) (*internal.QueryWorkflowWithOptionsResponse, error)); ok {
 		return rf(ctx, request)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.QueryWorkflowWithOptionsRequest) *temporalclient.QueryWorkflowWithOptionsResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.QueryWorkflowWithOptionsRequest) *internal.QueryWorkflowWithOptionsResponse); ok {
 		r0 = rf(ctx, request)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*temporalclient.QueryWorkflowWithOptionsResponse)
+			r0 = ret.Get(0).(*internal.QueryWorkflowWithOptionsResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *temporalclient.QueryWorkflowWithOptionsRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *internal.QueryWorkflowWithOptionsRequest) error); ok {
 		r1 = rf(ctx, request)
 	} else {
 		r1 = ret.Error(1)
@@ -1238,24 +1238,24 @@ type MockClient_QueryWorkflowWithOptions_Call struct {
 
 // QueryWorkflowWithOptions is a helper method to define mock.On call
 //   - ctx context.Context
-//   - request *temporalclient.QueryWorkflowWithOptionsRequest
+//   - request *internal.QueryWorkflowWithOptionsRequest
 func (_e *MockClient_Expecter) QueryWorkflowWithOptions(ctx interface{}, request interface{}) *MockClient_QueryWorkflowWithOptions_Call {
 	return &MockClient_QueryWorkflowWithOptions_Call{Call: _e.mock.On("QueryWorkflowWithOptions", ctx, request)}
 }
 
-func (_c *MockClient_QueryWorkflowWithOptions_Call) Run(run func(ctx context.Context, request *temporalclient.QueryWorkflowWithOptionsRequest)) *MockClient_QueryWorkflowWithOptions_Call {
+func (_c *MockClient_QueryWorkflowWithOptions_Call) Run(run func(ctx context.Context, request *internal.QueryWorkflowWithOptionsRequest)) *MockClient_QueryWorkflowWithOptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.QueryWorkflowWithOptionsRequest))
+		run(args[0].(context.Context), args[1].(*internal.QueryWorkflowWithOptionsRequest))
 	})
 	return _c
 }
 
-func (_c *MockClient_QueryWorkflowWithOptions_Call) Return(_a0 *temporalclient.QueryWorkflowWithOptionsResponse, _a1 error) *MockClient_QueryWorkflowWithOptions_Call {
+func (_c *MockClient_QueryWorkflowWithOptions_Call) Return(_a0 *internal.QueryWorkflowWithOptionsResponse, _a1 error) *MockClient_QueryWorkflowWithOptions_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_QueryWorkflowWithOptions_Call) RunAndReturn(run func(context.Context, *temporalclient.QueryWorkflowWithOptionsRequest) (*temporalclient.QueryWorkflowWithOptionsResponse, error)) *MockClient_QueryWorkflowWithOptions_Call {
+func (_c *MockClient_QueryWorkflowWithOptions_Call) RunAndReturn(run func(context.Context, *internal.QueryWorkflowWithOptionsRequest) (*internal.QueryWorkflowWithOptionsResponse, error)) *MockClient_QueryWorkflowWithOptions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1498,19 +1498,19 @@ func (_c *MockClient_ScanWorkflow_Call) RunAndReturn(run func(context.Context, *
 }
 
 // ScheduleClient provides a mock function with given fields:
-func (_m *MockClient) ScheduleClient() temporalclient.ScheduleClient {
+func (_m *MockClient) ScheduleClient() internal.ScheduleClient {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for ScheduleClient")
 	}
 
-	var r0 temporalclient.ScheduleClient
-	if rf, ok := ret.Get(0).(func() temporalclient.ScheduleClient); ok {
+	var r0 internal.ScheduleClient
+	if rf, ok := ret.Get(0).(func() internal.ScheduleClient); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.ScheduleClient)
+			r0 = ret.Get(0).(internal.ScheduleClient)
 		}
 	}
 
@@ -1534,18 +1534,18 @@ func (_c *MockClient_ScheduleClient_Call) Run(run func()) *MockClient_ScheduleCl
 	return _c
 }
 
-func (_c *MockClient_ScheduleClient_Call) Return(_a0 temporalclient.ScheduleClient) *MockClient_ScheduleClient_Call {
+func (_c *MockClient_ScheduleClient_Call) Return(_a0 internal.ScheduleClient) *MockClient_ScheduleClient_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockClient_ScheduleClient_Call) RunAndReturn(run func() temporalclient.ScheduleClient) *MockClient_ScheduleClient_Call {
+func (_c *MockClient_ScheduleClient_Call) RunAndReturn(run func() internal.ScheduleClient) *MockClient_ScheduleClient_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SignalWithStartWorkflow provides a mock function with given fields: ctx, workflowID, signalName, signalArg, options, workflow, workflowArgs
-func (_m *MockClient) SignalWithStartWorkflow(ctx context.Context, workflowID string, signalName string, signalArg interface{}, options temporalclient.StartWorkflowOptions, workflow interface{}, workflowArgs ...interface{}) (temporalclient.WorkflowRun, error) {
+func (_m *MockClient) SignalWithStartWorkflow(ctx context.Context, workflowID string, signalName string, signalArg interface{}, options internal.StartWorkflowOptions, workflow interface{}, workflowArgs ...interface{}) (internal.WorkflowRun, error) {
 	var _ca []interface{}
 	_ca = append(_ca, ctx, workflowID, signalName, signalArg, options, workflow)
 	_ca = append(_ca, workflowArgs...)
@@ -1555,20 +1555,20 @@ func (_m *MockClient) SignalWithStartWorkflow(ctx context.Context, workflowID st
 		panic("no return value specified for SignalWithStartWorkflow")
 	}
 
-	var r0 temporalclient.WorkflowRun
+	var r0 internal.WorkflowRun
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) (temporalclient.WorkflowRun, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}, internal.StartWorkflowOptions, interface{}, ...interface{}) (internal.WorkflowRun, error)); ok {
 		return rf(ctx, workflowID, signalName, signalArg, options, workflow, workflowArgs...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) temporalclient.WorkflowRun); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}, internal.StartWorkflowOptions, interface{}, ...interface{}) internal.WorkflowRun); ok {
 		r0 = rf(ctx, workflowID, signalName, signalArg, options, workflow, workflowArgs...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowRun)
+			r0 = ret.Get(0).(internal.WorkflowRun)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, interface{}, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, interface{}, internal.StartWorkflowOptions, interface{}, ...interface{}) error); ok {
 		r1 = rf(ctx, workflowID, signalName, signalArg, options, workflow, workflowArgs...)
 	} else {
 		r1 = ret.Error(1)
@@ -1587,7 +1587,7 @@ type MockClient_SignalWithStartWorkflow_Call struct {
 //   - workflowID string
 //   - signalName string
 //   - signalArg interface{}
-//   - options temporalclient.StartWorkflowOptions
+//   - options internal.StartWorkflowOptions
 //   - workflow interface{}
 //   - workflowArgs ...interface{}
 func (_e *MockClient_Expecter) SignalWithStartWorkflow(ctx interface{}, workflowID interface{}, signalName interface{}, signalArg interface{}, options interface{}, workflow interface{}, workflowArgs ...interface{}) *MockClient_SignalWithStartWorkflow_Call {
@@ -1595,7 +1595,7 @@ func (_e *MockClient_Expecter) SignalWithStartWorkflow(ctx interface{}, workflow
 		append([]interface{}{ctx, workflowID, signalName, signalArg, options, workflow}, workflowArgs...)...)}
 }
 
-func (_c *MockClient_SignalWithStartWorkflow_Call) Run(run func(ctx context.Context, workflowID string, signalName string, signalArg interface{}, options temporalclient.StartWorkflowOptions, workflow interface{}, workflowArgs ...interface{})) *MockClient_SignalWithStartWorkflow_Call {
+func (_c *MockClient_SignalWithStartWorkflow_Call) Run(run func(ctx context.Context, workflowID string, signalName string, signalArg interface{}, options internal.StartWorkflowOptions, workflow interface{}, workflowArgs ...interface{})) *MockClient_SignalWithStartWorkflow_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]interface{}, len(args)-6)
 		for i, a := range args[6:] {
@@ -1603,17 +1603,17 @@ func (_c *MockClient_SignalWithStartWorkflow_Call) Run(run func(ctx context.Cont
 				variadicArgs[i] = a.(interface{})
 			}
 		}
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(interface{}), args[4].(temporalclient.StartWorkflowOptions), args[5].(interface{}), variadicArgs...)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(interface{}), args[4].(internal.StartWorkflowOptions), args[5].(interface{}), variadicArgs...)
 	})
 	return _c
 }
 
-func (_c *MockClient_SignalWithStartWorkflow_Call) Return(_a0 temporalclient.WorkflowRun, _a1 error) *MockClient_SignalWithStartWorkflow_Call {
+func (_c *MockClient_SignalWithStartWorkflow_Call) Return(_a0 internal.WorkflowRun, _a1 error) *MockClient_SignalWithStartWorkflow_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_SignalWithStartWorkflow_Call) RunAndReturn(run func(context.Context, string, string, interface{}, temporalclient.StartWorkflowOptions, interface{}, ...interface{}) (temporalclient.WorkflowRun, error)) *MockClient_SignalWithStartWorkflow_Call {
+func (_c *MockClient_SignalWithStartWorkflow_Call) RunAndReturn(run func(context.Context, string, string, interface{}, internal.StartWorkflowOptions, interface{}, ...interface{}) (internal.WorkflowRun, error)) *MockClient_SignalWithStartWorkflow_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1729,7 +1729,7 @@ func (_c *MockClient_TerminateWorkflow_Call) RunAndReturn(run func(context.Conte
 }
 
 // UpdateWorkerBuildIdCompatibility provides a mock function with given fields: ctx, options
-func (_m *MockClient) UpdateWorkerBuildIdCompatibility(ctx context.Context, options *temporalclient.UpdateWorkerBuildIdCompatibilityOptions) error {
+func (_m *MockClient) UpdateWorkerBuildIdCompatibility(ctx context.Context, options *internal.UpdateWorkerBuildIdCompatibilityOptions) error {
 	ret := _m.Called(ctx, options)
 
 	if len(ret) == 0 {
@@ -1737,7 +1737,7 @@ func (_m *MockClient) UpdateWorkerBuildIdCompatibility(ctx context.Context, opti
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.UpdateWorkerBuildIdCompatibilityOptions) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.UpdateWorkerBuildIdCompatibilityOptions) error); ok {
 		r0 = rf(ctx, options)
 	} else {
 		r0 = ret.Error(0)
@@ -1753,14 +1753,14 @@ type MockClient_UpdateWorkerBuildIdCompatibility_Call struct {
 
 // UpdateWorkerBuildIdCompatibility is a helper method to define mock.On call
 //   - ctx context.Context
-//   - options *temporalclient.UpdateWorkerBuildIdCompatibilityOptions
+//   - options *internal.UpdateWorkerBuildIdCompatibilityOptions
 func (_e *MockClient_Expecter) UpdateWorkerBuildIdCompatibility(ctx interface{}, options interface{}) *MockClient_UpdateWorkerBuildIdCompatibility_Call {
 	return &MockClient_UpdateWorkerBuildIdCompatibility_Call{Call: _e.mock.On("UpdateWorkerBuildIdCompatibility", ctx, options)}
 }
 
-func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) Run(run func(ctx context.Context, options *temporalclient.UpdateWorkerBuildIdCompatibilityOptions)) *MockClient_UpdateWorkerBuildIdCompatibility_Call {
+func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) Run(run func(ctx context.Context, options *internal.UpdateWorkerBuildIdCompatibilityOptions)) *MockClient_UpdateWorkerBuildIdCompatibility_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.UpdateWorkerBuildIdCompatibilityOptions))
+		run(args[0].(context.Context), args[1].(*internal.UpdateWorkerBuildIdCompatibilityOptions))
 	})
 	return _c
 }
@@ -1770,13 +1770,13 @@ func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) Return(_a0 error) *M
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) RunAndReturn(run func(context.Context, *temporalclient.UpdateWorkerBuildIdCompatibilityOptions) error) *MockClient_UpdateWorkerBuildIdCompatibility_Call {
+func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) RunAndReturn(run func(context.Context, *internal.UpdateWorkerBuildIdCompatibilityOptions) error) *MockClient_UpdateWorkerBuildIdCompatibility_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateWorkflow provides a mock function with given fields: ctx, workflowID, workflowRunID, updateName, args
-func (_m *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, workflowRunID string, updateName string, args ...interface{}) (temporalclient.WorkflowUpdateHandle, error) {
+func (_m *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, workflowRunID string, updateName string, args ...interface{}) (internal.WorkflowUpdateHandle, error) {
 	var _ca []interface{}
 	_ca = append(_ca, ctx, workflowID, workflowRunID, updateName)
 	_ca = append(_ca, args...)
@@ -1786,16 +1786,16 @@ func (_m *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, wor
 		panic("no return value specified for UpdateWorkflow")
 	}
 
-	var r0 temporalclient.WorkflowUpdateHandle
+	var r0 internal.WorkflowUpdateHandle
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) (temporalclient.WorkflowUpdateHandle, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) (internal.WorkflowUpdateHandle, error)); ok {
 		return rf(ctx, workflowID, workflowRunID, updateName, args...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) temporalclient.WorkflowUpdateHandle); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) internal.WorkflowUpdateHandle); ok {
 		r0 = rf(ctx, workflowID, workflowRunID, updateName, args...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowUpdateHandle)
+			r0 = ret.Get(0).(internal.WorkflowUpdateHandle)
 		}
 	}
 
@@ -1837,38 +1837,38 @@ func (_c *MockClient_UpdateWorkflow_Call) Run(run func(ctx context.Context, work
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkflow_Call) Return(_a0 temporalclient.WorkflowUpdateHandle, _a1 error) *MockClient_UpdateWorkflow_Call {
+func (_c *MockClient_UpdateWorkflow_Call) Return(_a0 internal.WorkflowUpdateHandle, _a1 error) *MockClient_UpdateWorkflow_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkflow_Call) RunAndReturn(run func(context.Context, string, string, string, ...interface{}) (temporalclient.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflow_Call {
+func (_c *MockClient_UpdateWorkflow_Call) RunAndReturn(run func(context.Context, string, string, string, ...interface{}) (internal.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflow_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateWorkflowWithOptions provides a mock function with given fields: ctx, request
-func (_m *MockClient) UpdateWorkflowWithOptions(ctx context.Context, request *temporalclient.UpdateWorkflowWithOptionsRequest) (temporalclient.WorkflowUpdateHandle, error) {
+func (_m *MockClient) UpdateWorkflowWithOptions(ctx context.Context, request *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error) {
 	ret := _m.Called(ctx, request)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateWorkflowWithOptions")
 	}
 
-	var r0 temporalclient.WorkflowUpdateHandle
+	var r0 internal.WorkflowUpdateHandle
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.UpdateWorkflowWithOptionsRequest) (temporalclient.WorkflowUpdateHandle, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error)); ok {
 		return rf(ctx, request)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *temporalclient.UpdateWorkflowWithOptionsRequest) temporalclient.WorkflowUpdateHandle); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) internal.WorkflowUpdateHandle); ok {
 		r0 = rf(ctx, request)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(temporalclient.WorkflowUpdateHandle)
+			r0 = ret.Get(0).(internal.WorkflowUpdateHandle)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *temporalclient.UpdateWorkflowWithOptionsRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) error); ok {
 		r1 = rf(ctx, request)
 	} else {
 		r1 = ret.Error(1)
@@ -1884,24 +1884,24 @@ type MockClient_UpdateWorkflowWithOptions_Call struct {
 
 // UpdateWorkflowWithOptions is a helper method to define mock.On call
 //   - ctx context.Context
-//   - request *temporalclient.UpdateWorkflowWithOptionsRequest
+//   - request *internal.UpdateWorkflowWithOptionsRequest
 func (_e *MockClient_Expecter) UpdateWorkflowWithOptions(ctx interface{}, request interface{}) *MockClient_UpdateWorkflowWithOptions_Call {
 	return &MockClient_UpdateWorkflowWithOptions_Call{Call: _e.mock.On("UpdateWorkflowWithOptions", ctx, request)}
 }
 
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) Run(run func(ctx context.Context, request *temporalclient.UpdateWorkflowWithOptionsRequest)) *MockClient_UpdateWorkflowWithOptions_Call {
+func (_c *MockClient_UpdateWorkflowWithOptions_Call) Run(run func(ctx context.Context, request *internal.UpdateWorkflowWithOptionsRequest)) *MockClient_UpdateWorkflowWithOptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*temporalclient.UpdateWorkflowWithOptionsRequest))
+		run(args[0].(context.Context), args[1].(*internal.UpdateWorkflowWithOptionsRequest))
 	})
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) Return(_a0 temporalclient.WorkflowUpdateHandle, _a1 error) *MockClient_UpdateWorkflowWithOptions_Call {
+func (_c *MockClient_UpdateWorkflowWithOptions_Call) Return(_a0 internal.WorkflowUpdateHandle, _a1 error) *MockClient_UpdateWorkflowWithOptions_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) RunAndReturn(run func(context.Context, *temporalclient.UpdateWorkflowWithOptionsRequest) (temporalclient.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflowWithOptions_Call {
+func (_c *MockClient_UpdateWorkflowWithOptions_Call) RunAndReturn(run func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflowWithOptions_Call {
 	_c.Call.Return(run)
 	return _c
 }
