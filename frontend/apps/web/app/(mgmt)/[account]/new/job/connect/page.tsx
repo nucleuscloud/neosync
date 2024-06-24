@@ -21,7 +21,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { splitConnections } from '@/libs/utils';
+import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
@@ -36,6 +36,7 @@ import {
   DESTINATION_ONLY_CONNECTION_TYPES,
   getConnectionType,
 } from '../../../connections/util';
+import { getNewJobSessionKeys } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
@@ -53,8 +54,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
-  const sessionKey = `${sessionPrefix}-new-job-connect`;
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
+  const sessionKey = sessionKeys.dataSync.connect;
   const [defaultValues] = useSessionStorage<ConnectFormValues>(sessionKey, {
     sourceId: '',
     sourceOptions: {},

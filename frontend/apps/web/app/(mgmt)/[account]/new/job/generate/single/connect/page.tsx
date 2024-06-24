@@ -1,5 +1,6 @@
 'use client';
 import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
+import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -22,7 +23,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { splitConnections } from '@/libs/utils';
+import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
@@ -49,8 +50,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
-  const formKey = `${sessionPrefix}-new-job-single-table-connect`;
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
+  const formKey = sessionKeys.generate.connect;
   const [defaultValues] = useSessionStorage<SingleTableConnectFormValues>(
     formKey,
     {

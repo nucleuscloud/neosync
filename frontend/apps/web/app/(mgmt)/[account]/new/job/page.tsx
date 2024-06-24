@@ -28,7 +28,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
 
   useEffect(() => {
     // Generate the session token only on the client side
-    setSessionToken(params?.sessionToken ?? nanoid());
+    setSessionToken(params?.sessionId ?? nanoid());
   }, []);
 
   const dataSyncParams = new URLSearchParams(searchParams);
