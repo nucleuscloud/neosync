@@ -1,7 +1,10 @@
 'use client';
 
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
-import { createNewSingleTableGenerateJob } from '@/app/(mgmt)/[account]/jobs/util';
+import {
+  createNewSingleTableGenerateJob,
+  getNewJobSessionKeys,
+} from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
@@ -30,6 +33,7 @@ import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMa
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -76,15 +80,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
-
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
   // Used to complete the whole form
-  const defineFormKey = `${sessionPrefix}-new-job-define`;
+  const defineFormKey = sessionKeys.global.define;
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     defineFormKey,
     { jobName: '' }
   );
-  const connectFormKey = `${sessionPrefix}-new-job-single-table-connect`;
+  const connectFormKey = sessionKeys.generate.connect;
   const [connectFormValues] = useSessionStorage<SingleTableConnectFormValues>(
     connectFormKey,
     {
@@ -96,8 +100,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const formKey = `${sessionPrefix}-new-job-single-table-schema`;
-
+  const formKey = sessionKeys.generate.schema;
   const [schemaFormData] = useSessionStorage<SingleTableSchemaFormValues>(
     formKey,
     {

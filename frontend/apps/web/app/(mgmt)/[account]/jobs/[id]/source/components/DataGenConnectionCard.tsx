@@ -59,6 +59,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
+import { getSingleTableGenerateNumRows } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
 
@@ -445,19 +446,6 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
     mappings: mappings,
     numRows: numRows,
   };
-}
-
-export function getSingleTableGenerateNumRows(
-  sourceOpts: GenerateSourceOptions
-): number {
-  const srcSchemas = sourceOpts.schemas;
-  if (srcSchemas.length > 0) {
-    const tables = srcSchemas[0].tables;
-    if (tables.length > 0) {
-      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
-    }
-  }
-  return 0;
 }
 
 async function updateJobConnection(

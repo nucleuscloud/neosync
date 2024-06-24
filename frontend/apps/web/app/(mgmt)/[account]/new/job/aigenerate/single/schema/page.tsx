@@ -3,6 +3,7 @@
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
   createNewSingleTableAiGenerateJob,
+  getNewJobSessionKeys,
   sampleAiGeneratedRecords,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import ButtonText from '@/components/ButtonText';
@@ -36,6 +37,7 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
@@ -77,15 +79,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
 
   // Used to complete the whole form
-  const defineFormKey = `${sessionPrefix}-new-job-define`;
+  const defineFormKey = sessionKeys.global.define;
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     defineFormKey,
     { jobName: '' }
   );
-  const connectFormKey = `${sessionPrefix}-new-job-single-table-ai-connect`;
+  const connectFormKey = sessionKeys.aigenerate.connect;
   const [connectFormValues] = useSessionStorage<SingleTableAiConnectFormValues>(
     connectFormKey,
     {
@@ -107,8 +110,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectFormValues.fkSourceConnectionId
   );
 
-  const formKey = `${sessionPrefix}-new-job-single-table-ai-schema`;
-
+  const formKey = sessionKeys.aigenerate.schema;
   const [schemaFormData] = useSessionStorage<SingleTableAiSchemaFormValues>(
     formKey,
     {

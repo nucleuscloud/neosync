@@ -62,6 +62,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
+import {
+  getSingleTableAiGenerateNumRows,
+  getSingleTableAiSchemaTable,
+} from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 
 interface Props {
@@ -538,36 +542,6 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       userPrompt,
     },
   };
-}
-
-export function getSingleTableAiGenerateNumRows(
-  sourceOpts: AiGenerateSourceOptions
-): number {
-  const srcSchemas = sourceOpts.schemas;
-  if (srcSchemas.length > 0) {
-    const tables = srcSchemas[0].tables;
-    if (tables.length > 0) {
-      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
-    }
-  }
-  return 0;
-}
-
-export function getSingleTableAiSchemaTable(
-  sourceOpts: AiGenerateSourceOptions
-): { schema: string; table: string } {
-  const srcSchemas = sourceOpts.schemas;
-  if (srcSchemas.length > 0) {
-    const tables = srcSchemas[0].tables;
-    if (tables.length > 0) {
-      return {
-        schema: srcSchemas[0].schema,
-        table: tables[0].table,
-      };
-    }
-    return { schema: srcSchemas[0].schema, table: '' };
-  }
-  return { schema: '', table: '' };
 }
 
 async function sample(

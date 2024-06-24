@@ -21,6 +21,7 @@ import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMa
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -39,7 +40,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
-import { createNewSyncJob } from '../../../jobs/util';
+import { createNewSyncJob, getNewJobSessionKeys } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
 
@@ -70,16 +71,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
 
   // Used to complete the whole form
-  const defineFormKey = `${sessionPrefix}-new-job-define`;
+  const defineFormKey = sessionKeys.global.define;
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     defineFormKey,
     { jobName: '' }
   );
 
-  const connectFormKey = `${sessionPrefix}-new-job-connect`;
+  const connectFormKey = sessionKeys.dataSync.connect;
   const [connectFormValues] = useSessionStorage<ConnectFormValues>(
     connectFormKey,
     {
@@ -89,7 +91,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const schemaFormKey = `${sessionPrefix}-new-job-schema`;
+  const schemaFormKey = sessionKeys.dataSync.schema;
   const [schemaFormData] = useSessionStorage<SchemaFormValues>(schemaFormKey, {
     mappings: [],
     connectionId: '', // hack to track if source id changes
@@ -118,7 +120,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     context: { accountId: account?.id },
   });
 
-  useFormPersist(`${sessionPrefix}-new-job-schema`, {
+  useFormPersist(schemaFormKey, {
     watch: form.watch,
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,

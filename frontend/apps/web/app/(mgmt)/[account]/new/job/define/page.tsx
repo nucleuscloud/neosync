@@ -35,6 +35,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
+import { getNewJobSessionKeys } from '../../../jobs/util';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -47,22 +48,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
-  const [defaultValues] = useSessionStorage<DefineFormValues>(
-    `${sessionPrefix}-new-job-define`,
-    {
-      jobName: '',
-      cronSchedule: '',
-      initiateJobRun: false,
-      workflowSettings: {},
-      syncActivityOptions: {
-        startToCloseTimeout: 10,
-        retryPolicy: {
-          maximumAttempts: 1,
-        },
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
+
+  const formKey = sessionKeys.global.define;
+  const [defaultValues] = useSessionStorage<DefineFormValues>(formKey, {
+    jobName: '',
+    cronSchedule: '',
+    initiateJobRun: false,
+    workflowSettings: {},
+    syncActivityOptions: {
+      startToCloseTimeout: 10,
+      retryPolicy: {
+        maximumAttempts: 1,
       },
-    }
-  );
+    },
+  });
   const [isScheduleEnabled, setIsScheduleEnabled] = useState<boolean>(false);
 
   // run once to check if schedule should be enabled. (only want to run this a single time)
@@ -81,7 +82,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     },
   });
 
-  useFormPersist(`${sessionPrefix}-new-job-define`, {
+  useFormPersist(formKey, {
     watch: form.watch,
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
