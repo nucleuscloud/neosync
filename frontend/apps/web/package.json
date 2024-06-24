@@ -52,7 +52,7 @@
     "got": "^14.3.0",
     "monaco-editor": "^0.49.0",
     "nanoid": "^5.0.7",
-    "next": "^14.2.3",
+    "next": "^14.2.4",
     "next-auth": "^5.0.0-beta.4",
     "next-themes": "^0.3.0",
     "posthog-js": "^1.136.5",
