@@ -17,11 +17,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
-import {
-  getJobCloneUrlFromJob,
-  setDefaultNewJobFormValues,
-} from '../../[id]/components/JobCloneButton';
-import { removeJob } from '../../util';
+import { getJobCloneUrlFromJob } from '../../[id]/components/JobCloneButton';
+import { removeJob, setDefaultNewJobFormValues } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;

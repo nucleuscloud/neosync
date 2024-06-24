@@ -29,8 +29,8 @@ export default function JobCloneButton(props: Props): ReactElement {
   }
 
   return (
-    <Button onClick={onCloneClick}>
-      <ButtonText text="Clone Job" leftIcon={<GrClone className="mr-1" />} />
+    <Button variant="outline" onClick={onCloneClick}>
+      <ButtonText text="Clone Job" leftIcon={<GrClone />} />
     </Button>
   );
 }
