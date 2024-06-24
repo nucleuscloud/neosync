@@ -7,7 +7,7 @@ import {
   SchemaFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { Job, JobMappingTransformer } from '@neosync/sdk';
+import { Job, JobMappingTransformer, UserAccount } from '@neosync/sdk';
 import { nanoid } from 'nanoid';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -36,25 +36,15 @@ interface Props {
 export default function JobCloneButton(props: Props): ReactElement {
   const { job } = props;
   const { account } = useAccount();
-  const sessionToken = nanoid();
   const router = useRouter();
-
-  const urlParams = new URLSearchParams({
-    jobType: getNewJobTypeFromJob(job),
-    sessionToken: sessionToken,
-  });
 
   function onCloneClick(): void {
     if (!account) {
       return;
     }
-    // set session token values
-    setDefaultDefineFormValues(window.sessionStorage, job, sessionToken);
-    setDefaultConnectFormValues(window.sessionStorage, job, sessionToken);
-    setDefaultSchemaFormValues(window.sessionStorage, job, sessionToken);
-    setDefaultSubsetFormValues(window.sessionStorage, job, sessionToken);
-
-    router.push(`/${account.name}/new/job?${urlParams.toString()}`);
+    const sessionToken = nanoid();
+    setDefaultNewJobFormValues(window.sessionStorage, job, sessionToken);
+    router.push(getJobCloneUrlFromJob(account, job, sessionToken));
   }
 
   return (
@@ -62,6 +52,29 @@ export default function JobCloneButton(props: Props): ReactElement {
       <ButtonText text="Clone Job" leftIcon={<GrClone className="mr-1" />} />
     </Button>
   );
+}
+
+export function setDefaultNewJobFormValues(
+  storage: Storage,
+  job: Job,
+  sessionToken: string
+): void {
+  setDefaultDefineFormValues(storage, job, sessionToken);
+  setDefaultConnectFormValues(storage, job, sessionToken);
+  setDefaultSchemaFormValues(storage, job, sessionToken);
+  setDefaultSubsetFormValues(storage, job, sessionToken);
+}
+
+export function getJobCloneUrlFromJob(
+  account: UserAccount,
+  job: Job,
+  sessionToken: string
+): string {
+  const urlParams = new URLSearchParams({
+    jobType: getNewJobTypeFromJob(job),
+    sessionToken: sessionToken,
+  });
+  return `/${account.name}/new/job?${urlParams.toString()}`;
 }
 
 function getNewJobTypeFromJob(job: Job): NewJobType {
