@@ -2,10 +2,11 @@ package datasync_workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	if testDbUrl == "" {
 		pgcontainer, err := testpg.RunContainer(s.ctx,
 			testcontainers.WithImage("postgres:15"),
-			postgres.WithDatabase("datasync"),
+			postgres.WithDatabase("postgres"),
 			testcontainers.WithWaitStrategy(
 				wait.ForLog("database system is ready to accept connections").
 					WithOccurrence(2).WithStartupTimeout(5*time.Second),
@@ -80,14 +81,22 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		}
 	}
 
-	s.sourceDsn = strings.Replace(dburl, "datasync", "datasync_source", 1)
+	srcUrl, err := getDbPgUrl(dburl, "datasync_source", "disable")
+	if err != nil {
+		panic(err)
+	}
+	s.sourceDsn = srcUrl
 	sourceConn, err := pgxpool.New(s.ctx, s.sourceDsn)
 	if err != nil {
 		panic(err)
 	}
 	s.sourcePgPool = sourceConn
 
-	s.targetDsn = strings.Replace(dburl, "datasync", "datasync_target", 1)
+	targetUrl, err := getDbPgUrl(dburl, "datasync_target", "disable")
+	if err != nil {
+		panic(err)
+	}
+	s.targetDsn = targetUrl
 	targetConn, err := pgxpool.New(s.ctx, s.targetDsn)
 	if err != nil {
 		panic(err)
@@ -189,4 +198,20 @@ func TestIntegrationTestSuite(t *testing.T) {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))
+}
+
+func getDbPgUrl(dburl, database, sslmode string) (string, error) {
+	u, err := url.Parse(dburl)
+	if err != nil {
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+		}
+		return "", fmt.Errorf("unable to parse postgres url: %w", err)
+	}
+
+	u.Path = database
+	query := u.Query()
+	query.Add("sslmode", "disable")
+	return u.String(), nil
 }
