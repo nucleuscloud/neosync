@@ -15,7 +15,7 @@ interface Props {
 
 // Add more common models here to make it easier for folks to plug in to well known OpenAI compatible platforms
 const COMMON_MODELS = {
-  OpenAI: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-4-turbo'],
+  OpenAI: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-4-turbo', 'gpt-4o'],
 };
 
 export default function SelectModelNames(props: Props): ReactElement {

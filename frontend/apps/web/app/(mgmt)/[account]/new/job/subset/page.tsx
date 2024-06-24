@@ -22,6 +22,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -37,7 +38,11 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { createNewSyncJob } from '../../../jobs/util';
+import {
+  clearNewJobSession,
+  createNewSyncJob,
+  getNewJobSessionKeys,
+} from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
   ConnectFormValues,
@@ -62,9 +67,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
-  const sessionPrefix = searchParams?.sessionId ?? '';
-  const formKey = `${sessionPrefix}-new-job-subset`;
+  const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
 
+  const formKey = sessionKeys.dataSync.subset;
   const [subsetFormValues] = useSessionStorage<SubsetFormValues>(formKey, {
     subsets: [],
     subsetOptions: {
@@ -73,14 +79,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   // Used to complete the whole form
-  const defineFormKey = `${sessionPrefix}-new-job-define`;
+  const defineFormKey = sessionKeys.global.define;
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     defineFormKey,
     { jobName: '' }
   );
 
   // Used to complete the whole form
-  const connectFormKey = `${sessionPrefix}-new-job-connect`;
+  const connectFormKey = sessionKeys.dataSync.connect;
   const [connectFormValues] = useSessionStorage<ConnectFormValues>(
     connectFormKey,
     {
@@ -90,7 +96,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const schemaFormKey = `${sessionPrefix}-new-job-schema`;
+  const schemaFormKey = sessionKeys.dataSync.schema;
   const [schemaFormValues] = useSessionStorage<SchemaFormValues>(
     schemaFormKey,
     {
@@ -163,10 +169,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         title: 'Successfully created the job!',
         variant: 'success',
       });
-      window.sessionStorage.removeItem(defineFormKey);
-      window.sessionStorage.removeItem(connectFormKey);
-      window.sessionStorage.removeItem(schemaFormKey);
-      window.sessionStorage.removeItem(formKey);
+      clearNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {

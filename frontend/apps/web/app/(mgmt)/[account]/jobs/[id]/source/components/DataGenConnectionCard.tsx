@@ -59,6 +59,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
+import { getSingleTableGenerateNumRows } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
 
@@ -414,16 +415,11 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
       numRows: 0,
     };
   }
-  let numRows = 0;
-  if (job.source?.options?.config.case === 'generate') {
-    const srcSchemas = job.source.options.config.value.schemas;
-    if (srcSchemas.length > 0) {
-      const tables = srcSchemas[0].tables;
-      if (tables.length > 0) {
-        numRows = Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
-      }
-    }
-  }
+
+  const numRows =
+    job.source?.options?.config.case === 'generate'
+      ? getSingleTableGenerateNumRows(job.source?.options?.config.value)
+      : 0;
 
   const mappings: SingleTableEditSourceFormValues['mappings'] = (
     job.mappings ?? []

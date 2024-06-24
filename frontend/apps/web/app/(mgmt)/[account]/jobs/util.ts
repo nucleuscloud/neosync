@@ -1,7 +1,12 @@
-import { convertMinutesToNanoseconds } from '@/util/util';
+import {
+  convertMinutesToNanoseconds,
+  convertNanosecondsToMinutes,
+} from '@/util/util';
 import {
   DestinationFormValues,
+  SchemaFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import {
   ActivityOptions,
@@ -20,9 +25,11 @@ import {
   GenerateSourceTableOption,
   GetAiGeneratedDataRequest,
   IsJobNameAvailableResponse,
+  Job,
   JobDestination,
   JobDestinationOptions,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   JobSourceSqlSubetSchemas,
@@ -61,9 +68,15 @@ import {
 import { SampleRecord } from '../new/job/aigenerate/single/schema/types';
 import {
   ActivityOptionsSchema,
+  ConnectFormValues,
   CreateJobFormValues,
   CreateSingleTableAiGenerateJobFormValues,
   CreateSingleTableGenerateJobFormValues,
+  DefineFormValues,
+  SingleTableAiConnectFormValues,
+  SingleTableAiSchemaFormValues,
+  SingleTableConnectFormValues,
+  SingleTableSchemaFormValues,
   SubsetFormValues,
   WorkflowSettingsSchema,
 } from '../new/job/schema';
@@ -841,4 +854,345 @@ export async function setJobSubsets(
     throw new Error(body.message);
   }
   return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
+}
+
+export function setDefaultNewJobFormValues(
+  storage: Storage,
+  job: Job,
+  sessionId: string
+): void {
+  setDefaultDefineFormValues(storage, job, sessionId);
+  setDefaultConnectFormValues(storage, job, sessionId);
+  setDefaultSchemaFormValues(storage, job, sessionId);
+  setDefaultSubsetFormValues(storage, job, sessionId);
+}
+
+function setDefaultDefineFormValues(
+  storage: Storage,
+  job: Job,
+  sessionPrefix: string
+): void {
+  const values: DefineFormValues = {
+    jobName: `${job.name}-copy`,
+    cronSchedule: job.cronSchedule,
+    initiateJobRun: false,
+    syncActivityOptions: job.syncOptions
+      ? {
+          retryPolicy: job.syncOptions.retryPolicy,
+          scheduleToCloseTimeout: job.syncOptions.scheduleToCloseTimeout
+            ? convertNanosecondsToMinutes(
+                job.syncOptions.scheduleToCloseTimeout
+              )
+            : undefined,
+          startToCloseTimeout: job.syncOptions.startToCloseTimeout
+            ? convertNanosecondsToMinutes(job.syncOptions.startToCloseTimeout)
+            : undefined,
+        }
+      : undefined,
+    workflowSettings: job.workflowOptions
+      ? {
+          runTimeout: job.workflowOptions.runTimeout
+            ? convertNanosecondsToMinutes(job.workflowOptions.runTimeout)
+            : undefined,
+        }
+      : undefined,
+  };
+  storage.setItem(
+    getNewJobSessionKeys(sessionPrefix).global.define,
+    JSON.stringify(values)
+  );
+}
+
+function setDefaultConnectFormValues(
+  storage: Storage,
+  job: Job,
+  sessionPrefix: string
+): void {
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
+  switch (job.source?.options?.config.case) {
+    case 'aiGenerate': {
+      const values: SingleTableAiConnectFormValues = {
+        sourceId: job.source.options.config.value.aiConnectionId,
+        fkSourceConnectionId:
+          job.source.options.config.value.fkSourceConnectionId ?? '',
+        destination:
+          job.destinations.length > 0
+            ? getDefaultDestinationFormValues(job.destinations[0])
+            : {
+                connectionId: '',
+                destinationOptions: {},
+              },
+      };
+      storage.setItem(sessionKeys.aigenerate.connect, JSON.stringify(values));
+      return;
+    }
+    case 'generate': {
+      const values: SingleTableConnectFormValues = {
+        fkSourceConnectionId:
+          job.source.options.config.value.fkSourceConnectionId ?? '',
+        destination:
+          job.destinations.length > 0
+            ? getDefaultDestinationFormValues(job.destinations[0])
+            : {
+                connectionId: '',
+                destinationOptions: {},
+              },
+      };
+
+      storage.setItem(sessionKeys.generate.connect, JSON.stringify(values));
+      return;
+    }
+    case 'mongodb': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {},
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
+        ),
+      };
+
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
+    case 'mysql': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {
+          haltOnNewColumnAddition:
+            job.source.options.config.value.haltOnNewColumnAddition,
+        },
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
+        ),
+      };
+
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
+    case 'postgres': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {
+          haltOnNewColumnAddition:
+            job.source.options.config.value.haltOnNewColumnAddition,
+        },
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
+        ),
+      };
+
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
+  }
+}
+
+function setDefaultSchemaFormValues(
+  storage: Storage,
+  job: Job,
+  sessionPrefix: string
+): void {
+  const sessionKeys = getNewJobSessionKeys(sessionPrefix);
+  switch (job.source?.options?.config.case) {
+    case 'aiGenerate': {
+      const values: SingleTableAiSchemaFormValues = {
+        numRows: getSingleTableAiGenerateNumRows(
+          job.source.options.config.value
+        ),
+        userPrompt: job.source.options.config.value.userPrompt,
+        model: job.source.options.config.value.modelName,
+        ...getSingleTableAiSchemaTable(job.source.options.config.value),
+      };
+
+      storage.setItem(sessionKeys.aigenerate.schema, JSON.stringify(values));
+      return;
+    }
+    case 'generate': {
+      const values: SingleTableSchemaFormValues = {
+        numRows: getSingleTableGenerateNumRows(job.source.options.config.value),
+        mappings: job.mappings.map((mapping) => {
+          return {
+            ...mapping,
+            transformer: mapping.transformer
+              ? convertJobMappingTransformerToForm(mapping.transformer)
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+          };
+        }),
+      };
+
+      storage.setItem(sessionKeys.generate.schema, JSON.stringify(values));
+      return;
+    }
+    case 'mysql':
+    case 'mongodb':
+    case 'postgres': {
+      const values: SchemaFormValues = {
+        connectionId: job.source.options.config.value.connectionId,
+        mappings: job.mappings.map((mapping) => {
+          return {
+            ...mapping,
+            transformer: mapping.transformer
+              ? convertJobMappingTransformerToForm(mapping.transformer)
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+          };
+        }),
+      };
+
+      storage.setItem(sessionKeys.dataSync.schema, JSON.stringify(values));
+      return;
+    }
+  }
+}
+
+function setDefaultSubsetFormValues(
+  storage: Storage,
+  job: Job,
+  sessionPrefix: string
+): void {
+  switch (job.source?.options?.config.case) {
+    case 'postgres':
+    case 'mysql': {
+      const values: SubsetFormValues = {
+        subsets: job.source.options.config.value.schemas.flatMap(
+          (schema): SubsetFormValues['subsets'] => {
+            return schema.tables.map((table) => {
+              return {
+                schema: schema.schema,
+                table: table.table,
+                whereClause: table.whereClause,
+              };
+            });
+          }
+        ),
+        subsetOptions: {
+          subsetByForeignKeyConstraints:
+            job.source.options.config.value.subsetByForeignKeyConstraints,
+        },
+      };
+      storage.setItem(
+        getNewJobSessionKeys(sessionPrefix).dataSync.subset,
+        JSON.stringify(values)
+      );
+      return;
+    }
+  }
+}
+
+export function getSingleTableAiGenerateNumRows(
+  sourceOpts: AiGenerateSourceOptions
+): number {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
+    }
+  }
+  return 0;
+}
+
+export function getSingleTableAiSchemaTable(
+  sourceOpts: AiGenerateSourceOptions
+): { schema: string; table: string } {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return {
+        schema: srcSchemas[0].schema,
+        table: tables[0].table,
+      };
+    }
+    return { schema: srcSchemas[0].schema, table: '' };
+  }
+  return { schema: '', table: '' };
+}
+
+export function getSingleTableGenerateNumRows(
+  sourceOpts: GenerateSourceOptions
+): number {
+  const srcSchemas = sourceOpts.schemas;
+  if (srcSchemas.length > 0) {
+    const tables = srcSchemas[0].tables;
+    if (tables.length > 0) {
+      return Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
+    }
+  }
+  return 0;
+}
+
+export function getDefaultDestinationFormValues(
+  d: JobDestination
+): DestinationFormValues {
+  switch (d.options?.config.case) {
+    case 'postgresOptions':
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          truncateBeforeInsert:
+            d.options.config.value.truncateTable?.truncateBeforeInsert,
+          truncateCascade: d.options.config.value.truncateTable?.cascade,
+          initTableSchema: d.options.config.value.initTableSchema,
+          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
+        },
+      };
+    case 'mysqlOptions':
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          truncateBeforeInsert:
+            d.options.config.value.truncateTable?.truncateBeforeInsert,
+          initTableSchema: d.options.config.value.initTableSchema,
+          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
+        },
+      };
+    default:
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {},
+      };
+  }
+}
+
+interface NewJobSessionKeys {
+  global: { define: string };
+  dataSync: { connect: string; schema: string; subset: string };
+  generate: { connect: string; schema: string };
+  aigenerate: { connect: string; schema: string };
+}
+
+export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
+  return {
+    global: {
+      define: `${sessionId}-new-job-define`,
+    },
+    dataSync: {
+      connect: `${sessionId}-new-job-connect`,
+      schema: `${sessionId}-new-job-schema`,
+      subset: `${sessionId}-new-job-subset`,
+    },
+    generate: {
+      connect: `${sessionId}-new-job-single-table-connect`,
+      schema: `${sessionId}-new-job-single-table-schema`,
+    },
+    aigenerate: {
+      connect: `${sessionId}-new-job-single-table-ai-connect`,
+      schema: `${sessionId}-new-job-single-table-ai-schema`,
+    },
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function collectStringLeafs(obj: any): string[] {
+  if (typeof obj === 'string') {
+    return [obj];
+  } else if (typeof obj === 'object' && obj != null) {
+    return Object.keys(obj).flatMap((key) => collectStringLeafs(obj[key]));
+  }
+  return [];
+}
+
+export function clearNewJobSession(storage: Storage, sessionId: string): void {
+  const keys = collectStringLeafs(getNewJobSessionKeys(sessionId));
+  keys.forEach((key) => storage.removeItem(key));
 }

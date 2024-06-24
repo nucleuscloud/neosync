@@ -26,6 +26,7 @@ import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { removeJob, triggerJobRun } from '../util';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
+import JobCloneButton from './components/JobCloneButton';
 import JobPauseButton from './components/JobPauseButton';
 import { isAiDataGenJob, isDataGenJob } from './util';
 
@@ -139,7 +140,8 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
               }
               leftBadgeValue={badgeValue}
               extraHeading={
-                <div className="flex flex-row space-x-4">
+                <div className="flex flex-row gap-4">
+                  <JobCloneButton job={data.job} />
                   <DeleteConfirmationDialog
                     trigger={
                       <Button variant="destructive">

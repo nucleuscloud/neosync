@@ -16,7 +16,9 @@ import { useAccount } from '@/components/providers/account-provider';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { removeJob } from '../../util';
+import { nanoid } from 'nanoid';
+import { getJobCloneUrlFromJob } from '../../[id]/components/JobCloneButton';
+import { removeJob, setDefaultNewJobFormValues } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -51,6 +53,15 @@ export function DataTableRowActions<TData>({
     }
   }
 
+  function onCloneClick(): void {
+    if (!account) {
+      return;
+    }
+    const sessionToken = nanoid();
+    setDefaultNewJobFormValues(window.sessionStorage, job, sessionToken);
+    router.push(getJobCloneUrlFromJob(account, job, sessionToken));
+  }
+
   return (
     <DropdownMenu
       modal={false} // needed because otherwise this breaks after a single use in conjunction with the delete dialog
@@ -64,6 +75,12 @@ export function DataTableRowActions<TData>({
           onClick={() => router.push(`/${account?.name}/jobs/${job.id}`)}
         >
           View
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => onCloneClick()}
+        >
+          Clone
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteConfirmationDialog

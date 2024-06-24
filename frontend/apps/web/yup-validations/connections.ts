@@ -193,6 +193,8 @@ export const MongoDbFormValues = Yup.object({
   connectionName: connectionNameSchema,
 
   url: Yup.string().required(),
+
+  clientTls: ClientTlsFormValues,
 }).required();
 
 export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

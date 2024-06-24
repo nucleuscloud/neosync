@@ -25,7 +25,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Connection, JobDestination } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
-import { deleteJobConnection, setJobConnection } from '../../../util';
+import {
+  deleteJobConnection,
+  getDefaultDestinationFormValues,
+  setJobConnection,
+} from '../../../util';
 
 interface Props {
   jobId: string;
@@ -51,7 +55,7 @@ export default function DestinationConnectionCard({
 
   const form = useForm({
     resolver: yupResolver<DestinationFormValues>(DestinationFormValues),
-    values: getDefaultValues(destination),
+    values: getDefaultDestinationFormValues(destination),
   });
 
   async function onSubmit(values: DestinationFormValues) {
@@ -209,37 +213,6 @@ export default function DestinationConnectionCard({
       </Form>
     </Card>
   );
-}
-
-function getDefaultValues(d: JobDestination): DestinationFormValues {
-  switch (d.options?.config.case) {
-    case 'postgresOptions':
-      return {
-        connectionId: d.connectionId,
-        destinationOptions: {
-          truncateBeforeInsert:
-            d.options.config.value.truncateTable?.truncateBeforeInsert,
-          truncateCascade: d.options.config.value.truncateTable?.cascade,
-          initTableSchema: d.options.config.value.initTableSchema,
-          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
-        },
-      };
-    case 'mysqlOptions':
-      return {
-        connectionId: d.connectionId,
-        destinationOptions: {
-          truncateBeforeInsert:
-            d.options.config.value.truncateTable?.truncateBeforeInsert,
-          initTableSchema: d.options.config.value.initTableSchema,
-          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
-        },
-      };
-    default:
-      return {
-        connectionId: d.connectionId,
-        destinationOptions: {},
-      };
-  }
 }
 
 function useShouldHideInitConnectionSchema(
