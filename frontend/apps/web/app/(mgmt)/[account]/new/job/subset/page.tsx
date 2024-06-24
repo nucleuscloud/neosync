@@ -38,7 +38,11 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { createNewSyncJob, getNewJobSessionKeys } from '../../../jobs/util';
+import {
+  cleanNewJobSession,
+  createNewSyncJob,
+  getNewJobSessionKeys,
+} from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
   ConnectFormValues,
@@ -165,10 +169,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         title: 'Successfully created the job!',
         variant: 'success',
       });
-      window.sessionStorage.removeItem(defineFormKey);
-      window.sessionStorage.removeItem(connectFormKey);
-      window.sessionStorage.removeItem(schemaFormKey);
-      window.sessionStorage.removeItem(formKey);
+      cleanNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {

@@ -40,7 +40,11 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
-import { createNewSyncJob, getNewJobSessionKeys } from '../../../jobs/util';
+import {
+  cleanNewJobSession,
+  createNewSyncJob,
+  getNewJobSessionKeys,
+} from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
 
@@ -150,9 +154,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           title: 'Successfully created the job!',
           variant: 'success',
         });
-        window.sessionStorage.removeItem(defineFormKey);
-        window.sessionStorage.removeItem(connectFormKey);
-        window.sessionStorage.removeItem(schemaFormKey);
+
+        cleanNewJobSession(window.sessionStorage, sessionPrefix);
 
         // updates the onboarding data
         if (!onboardingData?.config?.hasCreatedJob) {

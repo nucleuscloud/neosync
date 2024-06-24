@@ -1159,3 +1159,18 @@ export function getNewJobSessionKeys(sessionId: string): NewJobSessionKeys {
     },
   };
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function collectStringLeafs(obj: any): string[] {
+  if (typeof obj === 'string') {
+    return [obj];
+  } else if (typeof obj === 'object' && obj != null) {
+    return Object.keys(obj).flatMap((key) => collectStringLeafs(obj[key]));
+  }
+  return [];
+}
+
+export function cleanNewJobSession(storage: Storage, sessionId: string): void {
+  const keys = collectStringLeafs(getNewJobSessionKeys(sessionId));
+  keys.forEach((key) => storage.removeItem(key));
+}

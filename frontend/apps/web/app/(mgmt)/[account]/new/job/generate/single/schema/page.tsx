@@ -2,6 +2,7 @@
 
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
+  cleanNewJobSession,
   createNewSingleTableGenerateJob,
   getNewJobSessionKeys,
 } from '@/app/(mgmt)/[account]/jobs/util';
@@ -160,9 +161,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         title: 'Successfully created job!',
         variant: 'success',
       });
-      window.sessionStorage.removeItem(defineFormKey);
-      window.sessionStorage.removeItem(connectFormKey);
-      window.sessionStorage.removeItem(formKey);
+
+      cleanNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
