@@ -43,7 +43,7 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	dburl := os.Getenv("TEST_DB_URL")
+	dburl := fmt.Sprintf("%s?sslmode=disable", os.Getenv("TEST_DB_URL"))
 	if dburl == "" {
 		pgcontainer, err := testpg.RunContainer(s.ctx,
 			testcontainers.WithImage("postgres:15"),
