@@ -472,7 +472,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 				Job: &mgmtv1alpha1.Job{
-					Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+					Id: "fd4d8660-31a0-48b2-9adf-10f11b94898f",
 					Source: &mgmtv1alpha1.JobSource{
 						Options: &mgmtv1alpha1.JobSourceOptions{
 							Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
@@ -884,7 +884,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		},
 	))
 	srv := startHTTPServer(s.T(), mux)
-	executeWorkflow(s.T(), srv, s.redisUrl, "115aaf2c-776e-4847-8268-d914e3c15968")
+	executeWorkflow(s.T(), srv, s.redisUrl, "fd4d8660-31a0-48b2-9adf-10f11b94898f")
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "locations", "jobs", "employees"}
 	for _, t := range tables {

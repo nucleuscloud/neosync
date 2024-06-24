@@ -43,8 +43,9 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	dburl := fmt.Sprintf("%s?sslmode=disable", os.Getenv("TEST_DB_URL"))
-	if dburl == "" {
+	testDbUrl := os.Getenv("TEST_DB_URL")
+	dburl := fmt.Sprintf("%s?sslmode=disable", testDbUrl)
+	if testDbUrl == "" {
 		pgcontainer, err := testpg.RunContainer(s.ctx,
 			testcontainers.WithImage("postgres:15"),
 			postgres.WithDatabase("datasync"),
@@ -114,6 +115,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
+	s.T().Logf("setting up test. folder: %s \n", testFolder)
 	setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/source-setup.sql", testFolder))
 	if err != nil {
 		panic(err)
@@ -133,6 +135,7 @@ func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
 }
 
 func (s *IntegrationTestSuite) TearDownTestByFolder(testFolder string) {
+	s.T().Logf("tearing down test. folder: %s \n", testFolder)
 	teardownSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/teardown.sql", testFolder))
 	if err != nil {
 		panic(err)
@@ -148,6 +151,7 @@ func (s *IntegrationTestSuite) TearDownTestByFolder(testFolder string) {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
+	s.T().Log("tearing down test suite")
 	for _, db := range s.databases {
 		_, err := s.pgpool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
 		if err != nil {
