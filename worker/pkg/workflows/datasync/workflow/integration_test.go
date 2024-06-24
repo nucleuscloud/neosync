@@ -107,6 +107,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	// redis
 	redisUrl := os.Getenv("TEST_REDIS_URL")
+	s.redisUrl = redisUrl
 	if redisUrl == "" {
 		redisContainer, err := redis.RunContainer(s.ctx,
 			testcontainers.WithImage("docker.io/redis:7"),
@@ -122,7 +123,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 			panic(err)
 		}
 	}
-	s.redisUrl = redisUrl
 }
 
 func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
