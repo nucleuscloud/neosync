@@ -405,7 +405,6 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Passthrough() {
 	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-
 			if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
 				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 					Connection: &mgmtv1alpha1.Connection{

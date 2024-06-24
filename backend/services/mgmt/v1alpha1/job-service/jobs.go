@@ -1823,14 +1823,14 @@ func validateVirtualForeignKeys(
 					colErrorsMap[sourceTable] = map[string][]string{}
 				}
 				colErrorsMap[sourceTable][c] = append(colErrorsMap[sourceTable][c], fmt.Sprintf("Virtual foreign key source column missing in source database. Table: %s Column: %s", sourceTable, c))
-				continue
 			}
 		}
 		// check that all sources of virtual foreign keys are either a primary key or have a unique constraint
 		pks := tc.PrimaryKeyConstraints[sourceTable]
 		uniqueConstraints := tc.UniqueConstraints[sourceTable]
-		isValid = isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
-		if !isValid {
+		isVfkValid := isVirtualForeignKeySourceUnique(vfk, pks, uniqueConstraints)
+		if !isVfkValid {
+			isValid = false
 			if _, ok := colErrorsMap[sourceTable]; !ok {
 				colErrorsMap[sourceTable] = map[string][]string{}
 			}
