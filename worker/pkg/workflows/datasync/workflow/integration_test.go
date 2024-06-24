@@ -122,6 +122,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 			panic(err)
 		}
 	}
+	s.redisUrl = redisUrl
 }
 
 func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
@@ -212,6 +213,6 @@ func getDbPgUrl(dburl, database, sslmode string) (string, error) {
 
 	u.Path = database
 	query := u.Query()
-	query.Add("sslmode", "disable")
+	query.Add("sslmode", sslmode)
 	return u.String(), nil
 }
