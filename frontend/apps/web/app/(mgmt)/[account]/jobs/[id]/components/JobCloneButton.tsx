@@ -42,9 +42,9 @@ export default function JobCloneButton(props: Props): ReactElement {
     if (!account) {
       return;
     }
-    const sessionToken = nanoid();
-    setDefaultNewJobFormValues(window.sessionStorage, job, sessionToken);
-    router.push(getJobCloneUrlFromJob(account, job, sessionToken));
+    const sessionId = nanoid();
+    setDefaultNewJobFormValues(window.sessionStorage, job, sessionId);
+    router.push(getJobCloneUrlFromJob(account, job, sessionId));
   }
 
   return (
@@ -57,22 +57,22 @@ export default function JobCloneButton(props: Props): ReactElement {
 export function setDefaultNewJobFormValues(
   storage: Storage,
   job: Job,
-  sessionToken: string
+  sessionId: string
 ): void {
-  setDefaultDefineFormValues(storage, job, sessionToken);
-  setDefaultConnectFormValues(storage, job, sessionToken);
-  setDefaultSchemaFormValues(storage, job, sessionToken);
-  setDefaultSubsetFormValues(storage, job, sessionToken);
+  setDefaultDefineFormValues(storage, job, sessionId);
+  setDefaultConnectFormValues(storage, job, sessionId);
+  setDefaultSchemaFormValues(storage, job, sessionId);
+  setDefaultSubsetFormValues(storage, job, sessionId);
 }
 
 export function getJobCloneUrlFromJob(
   account: UserAccount,
   job: Job,
-  sessionToken: string
+  sessionId: string
 ): string {
   const urlParams = new URLSearchParams({
     jobType: getNewJobTypeFromJob(job),
-    sessionToken: sessionToken,
+    sessionId: sessionId,
   });
   return `/${account.name}/new/job?${urlParams.toString()}`;
 }
