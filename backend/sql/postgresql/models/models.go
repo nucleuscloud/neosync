@@ -9,12 +9,13 @@ import (
 )
 
 type ConnectionConfig struct {
-	PgConfig             *PostgresConnectionConfig       `json:"pgConfig,omitempty"`
-	AwsS3Config          *AwsS3ConnectionConfig          `json:"awsS3Config,omitempty"`
-	MysqlConfig          *MysqlConnectionConfig          `json:"mysqlConfig,omitempty"`
-	LocalDirectoryConfig *LocalDirectoryConnectionConfig `json:"localDirConfig,omitempty"`
-	OpenAiConfig         *OpenAiConnectionConfig         `json:"openaiConfig,omitempty"`
-	MongoConfig          *MongoConnectionConfig          `json:"mongoConfig,omitempty"`
+	PgConfig              *PostgresConnectionConfig       `json:"pgConfig,omitempty"`
+	AwsS3Config           *AwsS3ConnectionConfig          `json:"awsS3Config,omitempty"`
+	MysqlConfig           *MysqlConnectionConfig          `json:"mysqlConfig,omitempty"`
+	LocalDirectoryConfig  *LocalDirectoryConnectionConfig `json:"localDirConfig,omitempty"`
+	OpenAiConfig          *OpenAiConnectionConfig         `json:"openaiConfig,omitempty"`
+	MongoConfig           *MongoConnectionConfig          `json:"mongoConfig,omitempty"`
+	GcpCloudStorageConfig *GcpCloudStorageConfig          `json:"gcpCloudStorageConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
@@ -133,6 +134,16 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				MongoConfig: mdto,
 			},
 		}, nil
+	} else if c.GcpCloudStorageConfig != nil {
+		gdto, err := c.GcpCloudStorageConfig.ToDto()
+		if err != nil {
+			return nil, err
+		}
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: gdto,
+			},
+		}, nil
 	}
 	return nil, errors.ErrUnsupported
 }
@@ -214,6 +225,12 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if err != nil {
 			return err
 		}
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		c.GcpCloudStorageConfig = &GcpCloudStorageConfig{}
+		err := c.GcpCloudStorageConfig.FromDto(config.GcpCloudstorageConfig)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unable to convert to ConnectionConfig from DTO ConnectionConfig, type not supported: %T", config)
 	}
@@ -263,6 +280,30 @@ func (m *MongoConnectionConfig) FromDto(dto *mgmtv1alpha1.MongoConnectionConfig)
 		m.SSHTunnel = &SSHTunnel{}
 		m.SSHTunnel.FromDto(dto.GetTunnel())
 	}
+	return nil
+}
+
+type GcpCloudStorageConfig struct {
+	Bucket     string  `json:"bucket"`
+	PathPrefix *string `json:"pathPrefix,omitempty"`
+
+	ServiceAccountCredentials *string `json:"serviceAccountCredentials,omitempty"`
+}
+
+func (g *GcpCloudStorageConfig) ToDto() (*mgmtv1alpha1.GcpCloudStorageConnectionConfig, error) {
+	return &mgmtv1alpha1.GcpCloudStorageConnectionConfig{
+		Bucket:                    g.Bucket,
+		PathPrefix:                g.PathPrefix,
+		ServiceAccountCredentials: g.ServiceAccountCredentials,
+	}, nil
+}
+func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnectionConfig) error {
+	if dto == nil {
+		return errors.New("dto was nil, expected *mgmtv1alpha1.GcpCloudStorageConnectionConfig")
+	}
+	g.Bucket = dto.Bucket
+	g.PathPrefix = dto.PathPrefix
+	g.ServiceAccountCredentials = dto.ServiceAccountCredentials
 	return nil
 }
 

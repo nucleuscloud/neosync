@@ -629,6 +629,8 @@ export class Connection extends Message<Connection> {
 }
 
 /**
+ * Configuration for all of the supported Neosync connection types
+ *
  * @generated from message mgmt.v1alpha1.ConnectionConfig
  */
 export class ConnectionConfig extends Message<ConnectionConfig> {
@@ -637,18 +639,24 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
    */
   config: {
     /**
+     * Configures a PostgreSQL connection
+     *
      * @generated from field: mgmt.v1alpha1.PostgresConnectionConfig pg_config = 1;
      */
     value: PostgresConnectionConfig;
     case: "pgConfig";
   } | {
     /**
+     * Configures an AWS S3 Connection
+     *
      * @generated from field: mgmt.v1alpha1.AwsS3ConnectionConfig aws_s3_config = 2;
      */
     value: AwsS3ConnectionConfig;
     case: "awsS3Config";
   } | {
     /**
+     * Configures a MySQL connection
+     *
      * @generated from field: mgmt.v1alpha1.MysqlConnectionConfig mysql_config = 3;
      */
     value: MysqlConnectionConfig;
@@ -677,6 +685,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: MongoConnectionConfig;
     case: "mongoConfig";
+  } | {
+    /**
+     * Configures a GCP Cloud Storage Connection
+     *
+     * @generated from field: mgmt.v1alpha1.GcpCloudStorageConnectionConfig gcp_cloudstorage_config = 7;
+     */
+    value: GcpCloudStorageConnectionConfig;
+    case: "gcpCloudstorageConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -693,6 +709,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 4, name: "local_dir_config", kind: "message", T: LocalDirectoryConnectionConfig, oneof: "config" },
     { no: 5, name: "openai_config", kind: "message", T: OpenAiConnectionConfig, oneof: "config" },
     { no: 6, name: "mongo_config", kind: "message", T: MongoConnectionConfig, oneof: "config" },
+    { no: 7, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -1593,6 +1610,63 @@ export class AwsS3Credentials extends Message<AwsS3Credentials> {
 
   static equals(a: AwsS3Credentials | PlainMessage<AwsS3Credentials> | undefined, b: AwsS3Credentials | PlainMessage<AwsS3Credentials> | undefined): boolean {
     return proto3.util.equals(AwsS3Credentials, a, b);
+  }
+}
+
+/**
+ * Configuration for GCP Cloud Storage Buckets
+ *
+ * @generated from message mgmt.v1alpha1.GcpCloudStorageConnectionConfig
+ */
+export class GcpCloudStorageConnectionConfig extends Message<GcpCloudStorageConnectionConfig> {
+  /**
+   * The GCP Cloud Storage bucket that will be accessed.
+   *
+   * @generated from field: string bucket = 1;
+   */
+  bucket = "";
+
+  /**
+   * The path prefix that will be appended to each file
+   *
+   * @generated from field: optional string path_prefix = 2;
+   */
+  pathPrefix?: string;
+
+  /**
+   * stringified json of the service account credentials file
+   *
+   * @generated from field: optional string service_account_credentials = 3;
+   */
+  serviceAccountCredentials?: string;
+
+  constructor(data?: PartialMessage<GcpCloudStorageConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GcpCloudStorageConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bucket", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "path_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "service_account_credentials", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GcpCloudStorageConnectionConfig {
+    return new GcpCloudStorageConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GcpCloudStorageConnectionConfig {
+    return new GcpCloudStorageConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GcpCloudStorageConnectionConfig {
+    return new GcpCloudStorageConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GcpCloudStorageConnectionConfig | PlainMessage<GcpCloudStorageConnectionConfig> | undefined, b: GcpCloudStorageConnectionConfig | PlainMessage<GcpCloudStorageConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(GcpCloudStorageConnectionConfig, a, b);
   }
 }
 
