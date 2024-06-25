@@ -1,7 +1,0 @@
-## @section Test Title
-
-## @param image blah
-image: foo
-
-## @param nameOverride allows you to verride the name
-nameOverride: blah
