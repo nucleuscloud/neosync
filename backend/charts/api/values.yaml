@@ -1,4 +1,4 @@
-# image Configure the API Docker Image
+# Configure the API Docker Image
 image:
   # -- The default image repository
   repository: ghcr.io/nucleuscloud/neosync/api
@@ -15,7 +15,7 @@ fullnameOverride:
 # -- Define a list of image pull secrets that will be used by the deployment
 imagePullSecrets: []
 
-# serviceAccount Specify service account options for the deployment
+# Specify service account options for the deployment
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -27,14 +27,14 @@ serviceAccount:
 # -- Mostly used by NeosyncCloud. Adds a special tag to the logging to determine what environment is running
 nucleusEnv:
 
-# otel Currently does not do anything but will eventaully allow emitting otel metrics and traces
+# Currently does not do anything but will eventaully allow emitting otel metrics and traces
 otel:
   # -- whether or not to enable open telemetry settings
   enabled: false
   # -- Specifies the port that otel is listening on that the service will export metrics and traces to
   otlpPort: 4317
 
-# db Specify database connection information for the backend to connect to
+# Specify database connection information for the backend to connect to
 db:
   # -- The database hostname
   host:
@@ -51,7 +51,7 @@ db:
   # -- Extra database options that will be appended to the query string
   options:
 
-# ram migrations Specify connection information for the migrations init container
+# Specify connection information for the migrations init container
 migrations:
   ## Specify database connection information for the migrations init container to connect to
   db:
@@ -192,7 +192,7 @@ kubernetes:
   # -- Corresponds with the app label that is present on the worker pod
   workerAppName: neosync-worker
 
-# is runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
+# If runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
 runLogs:
   # -- Independently set so that configuration can exist but logs can still be independently disabled. Defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes
   enabled: true
@@ -214,7 +214,7 @@ runLogs:
     # -- List format.
     keepLabels:
 
-# check out the ingress.yaml file to see what values are available for configuration on this object.
+# Check out the ingress.yaml file to see what values are available for configuration on this object.
 ingress:
   # -- Enable this if using K8s ingress to expose the backend to the internet
   enabled: false
