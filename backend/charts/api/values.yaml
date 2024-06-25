@@ -1,5 +1,3 @@
-## @section Configuration
-
 # image Configure the API Docker Image
 image:
   # -- The default image repository
