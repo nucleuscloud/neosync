@@ -76,7 +76,7 @@ migrations:
     # -- Extra database options that will be appended to the query string
     options:
 
-# resources Set requests and limits on the backend to change its performance
+# Set requests and limits on the backend to change its performance
 resources:
   ## Sets the CPU and Memory baseline. These are low-usage defaults. Change these depending on your needs.
   requests:
@@ -114,7 +114,6 @@ datadog:
 
 # -- Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads.
 host: 0.0.0.0
-
 # -- The K8s service port
 servicePort: 80
 # -- The container port
