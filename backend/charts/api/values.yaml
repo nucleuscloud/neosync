@@ -1,4 +1,5 @@
 image:
+  # The default image repository
   repository: ghcr.io/nucleuscloud/neosync/api
   # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
