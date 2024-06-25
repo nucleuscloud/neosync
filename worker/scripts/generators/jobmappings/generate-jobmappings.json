@@ -1,0 +1,13 @@
+
+[
+	{
+		"base_path":   "workflows/datasync/workflow/testdata/double-reference",
+		"sql_path":    "source-create.sql",
+		"output_path": "internal/mocks/jobmappings/double-reference/passthrough_mappings.go"
+	},
+	{
+		"base_path":   "workflows/datasync/workflow/testdata/virtual-foreign-keys",
+		"sql_path":    "source-setup.sql",
+		"output_path": "internal/mocks/jobmappings/virtual-foreign-keys/passthrough_mappings.go"
+	}
+]
