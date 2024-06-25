@@ -291,6 +291,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'table-constraints/virtual-foreign-keys',
+      label: 'Virtual Foreign Keys',
+    },
+    {
+      type: 'doc',
       id: 'table-constraints/circular-dependencies',
       label: 'Circular Dependencies',
     },
