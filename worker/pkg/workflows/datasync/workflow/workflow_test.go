@@ -79,13 +79,15 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	syncActivity := sync_activity.Activity{}
 	env.OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, mock.Anything).Return(&sync_activity.SyncResponse{}, nil)
@@ -149,13 +151,15 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 				Columns:     []string{"id"},
 			},
 		}}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	count := 0
 	syncActivity := sync_activity.Activity{}
@@ -252,13 +256,15 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
 	syncActivity := sync_activity.Activity{}
@@ -374,13 +380,15 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
 	syncActivities := &sync_activity.Activity{}
@@ -487,9 +495,11 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
@@ -588,9 +598,11 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
-	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,

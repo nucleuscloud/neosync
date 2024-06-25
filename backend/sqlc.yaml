@@ -24,6 +24,13 @@ sql:
               type: JobMapping
               pointer: true
               slice: true
+          - column: neosync_api.jobs.virtual_foreign_keys
+            go_type:
+              import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
+              package: pg_models
+              type: VirtualForeignConstraint
+              pointer: true
+              slice: true 
           - column: neosync_api.jobs.connection_options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models

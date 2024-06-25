@@ -115,7 +115,8 @@ export default function AiDataGenConnectionCard({
         connectionSchemaDataMap?.schemaMap ?? {},
         tableConstraints?.primaryKeyConstraints ?? {},
         tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
+        tableConstraints?.uniqueConstraints ?? {},
+        []
       ),
     [isSchemaMapValidating, isTableConstraintsValidating]
   );

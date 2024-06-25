@@ -14,9 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
-import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingFormValues,
+  SchemaFormValues,
+  VirtualForeignConstraintFormValues,
+} from '@/yup-validations/jobs';
 import { ValidateJobMappingsResponse } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
@@ -24,10 +29,16 @@ import { FieldErrors } from 'react-hook-form';
 import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
+import { getVirtualForeignKeysColumns } from './VirtualFkColumns';
+import VirtualFkPageTable from './VirtualFkPageTable';
+import { VirtualForeignKeyForm } from './VirtualForeignKeyForm';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 
 interface Props {
   data: JobMappingFormValues[];
+  virtualForeignKeys?: VirtualForeignConstraintFormValues[];
+  addVirtualForeignKey?: (vfk: VirtualForeignConstraintFormValues) => void;
+  removeVirtualForeignKey?: (index: number) => void;
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
@@ -44,6 +55,9 @@ interface Props {
 export function SchemaTable(props: Props): ReactElement {
   const {
     data,
+    virtualForeignKeys,
+    addVirtualForeignKey,
+    removeVirtualForeignKey,
     constraintHandler,
     jobType,
     schema,
@@ -66,6 +80,10 @@ export function SchemaTable(props: Props): ReactElement {
     });
   }, [handler, constraintHandler, jobType]);
 
+  const virtualForeignKeyColumns = useMemo(() => {
+    return getVirtualForeignKeysColumns({ removeVirtualForeignKey });
+  }, [removeVirtualForeignKey]);
+
   // it is imperative that this is stable to not cause infinite re-renders of the listbox(s)
   const dualListBoxOpts = useMemo(
     () => getDualListBoxOptions(schema, data),
@@ -77,7 +95,7 @@ export function SchemaTable(props: Props): ReactElement {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-10">
       <div className="flex flex-col md:flex-row gap-3">
         <Card className="w-full">
           <CardHeader className="flex flex-col gap-2">
@@ -108,13 +126,42 @@ export function SchemaTable(props: Props): ReactElement {
           onValidate={onValidate}
         />
       </div>
-      <SchemaPageTable
-        columns={columns}
-        data={data}
-        transformerHandler={handler}
-        constraintHandler={constraintHandler}
-        jobType={jobType}
-      />
+
+      <Tabs defaultValue="mappings">
+        <TabsList>
+          <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
+          {virtualForeignKeys && (
+            <TabsTrigger value="virtualforeignkeys">
+              Virtual Foreign Keys
+            </TabsTrigger>
+          )}
+        </TabsList>
+        <TabsContent value="mappings">
+          <SchemaPageTable
+            columns={columns}
+            data={data}
+            transformerHandler={handler}
+            constraintHandler={constraintHandler}
+            jobType={jobType}
+          />
+        </TabsContent>
+        {virtualForeignKeys && addVirtualForeignKey && (
+          <TabsContent value="virtualforeignkeys">
+            <div className="flex flex-col gap-6 pt-4">
+              <VirtualForeignKeyForm
+                schema={schema}
+                constraintHandler={constraintHandler}
+                selectedTables={selectedTables}
+                addVirtualForeignKey={addVirtualForeignKey}
+              />
+              <VirtualFkPageTable
+                columns={virtualForeignKeyColumns}
+                data={virtualForeignKeys}
+              />
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
