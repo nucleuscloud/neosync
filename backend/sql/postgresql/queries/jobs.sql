@@ -18,9 +18,10 @@ DELETE FROM neosync_api.jobs WHERE id = $1;
 -- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
   name, account_id, status, connection_options, mappings,
-  cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
+  cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options,
+  virtual_foreign_keys
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 RETURNING *;
 
@@ -58,6 +59,13 @@ RETURNING *;
 -- name: UpdateJobSource :one
 UPDATE neosync_api.jobs
 SET connection_options = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING *;
+
+-- name: UpdateJobVirtualForeignKeys :one
+UPDATE neosync_api.jobs
+SET virtual_foreign_keys = $1,
 updated_by_id = $2
 WHERE id = $3
 RETURNING *;

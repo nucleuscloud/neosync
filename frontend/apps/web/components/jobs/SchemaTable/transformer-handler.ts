@@ -96,7 +96,7 @@ function shouldIncludeSystem(
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
     return filters.hasDefault;
   }
-  if (filters.isForeignKey) {
+  if (filters.isForeignKey || filters.isVirtualForeignKey) {
     const allowedFkTransformers = buildAllowedForeignKeyTransformers(filters);
     return allowedFkTransformers.some((t) => t === transformer.source);
   }
@@ -142,6 +142,7 @@ function buildAllowedForeignKeyTransformers(
 
 export interface TransformerFilters {
   isForeignKey: boolean;
+  isVirtualForeignKey: boolean;
   dataType: TransformerDataType;
   isNullable: boolean;
   hasDefault: boolean;

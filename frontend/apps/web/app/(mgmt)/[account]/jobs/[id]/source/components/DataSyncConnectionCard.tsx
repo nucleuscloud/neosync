@@ -40,6 +40,7 @@ import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
   SourceFormValues,
+  VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -57,6 +58,8 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
 } from '@neosync/sdk';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -122,6 +125,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
   });
+  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
 
   const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
     useGetConnectionTableConstraints(
@@ -129,22 +133,48 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       sourceConnectionId ?? ''
     );
 
-  const schemaConstraintHandler = useMemo(
-    () =>
-      getSchemaConstraintHandler(
-        connectionSchemaDataMap?.schemaMap ?? {},
-        tableConstraints?.primaryKeyConstraints ?? {},
-        tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
-      ),
-    [isSchemaMapValidating, isTableConstraintsValidating]
-  );
+  const schemaConstraintHandler = useMemo(() => {
+    const virtualForeignKeys = data?.job?.virtualForeignKeys ?? [];
+    formVirtualForeignKeys?.forEach((v) => {
+      virtualForeignKeys.push(
+        new VirtualForeignConstraint({
+          schema: v.schema,
+          table: v.table,
+          columns: v.columns,
+          foreignKey: new VirtualForeignKey({
+            schema: v.foreignKey.schema,
+            table: v.foreignKey.table,
+            columns: v.foreignKey.columns,
+          }),
+        })
+      );
+    });
+
+    return getSchemaConstraintHandler(
+      connectionSchemaDataMap?.schemaMap ?? {},
+      tableConstraints?.primaryKeyConstraints ?? {},
+      tableConstraints?.foreignKeyConstraints ?? {},
+      tableConstraints?.uniqueConstraints ?? {},
+      virtualForeignKeys
+    );
+  }, [
+    isSchemaMapValidating,
+    isTableConstraintsValidating,
+    isJobDataLoading,
+    formVirtualForeignKeys,
+  ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
   const { append, remove, update, fields } = useFieldArray<SourceFormValues>({
     control: form.control,
     name: 'mappings',
   });
+
+  const { append: appendVfk, remove: removeVfk } =
+    useFieldArray<SourceFormValues>({
+      control: form.control,
+      name: 'virtualForeignKeys',
+    });
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -206,13 +236,37 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const res = await validateJobMapping(
         sourceConnectionId || '',
         formMappings,
-        account?.id || ''
+        account?.id || '',
+        formVirtualForeignKeys
       );
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
       toast({
         title: 'Unable to validate job mappings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
+  async function validateVirtualForeignKeys(
+    vfks: VirtualForeignConstraintFormValues[]
+  ) {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        sourceConnectionId || '',
+        formMappings,
+        account?.id || '',
+        vfks
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate virtual foreign keys:', error);
+      toast({
+        title: 'Unable to validate virtual foreign keys',
         variant: 'destructive',
       });
     } finally {
@@ -235,6 +289,23 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     };
     validateJobMappings();
   }, [selectedTables]);
+
+  async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
+    appendVfk(vfk);
+    const vfks = [vfk, ...(formVirtualForeignKeys || [])];
+    await validateVirtualForeignKeys(vfks);
+  }
+
+  async function removeVirtualForeignKey(index: number) {
+    const newVfks: VirtualForeignConstraintFormValues[] = [];
+    formVirtualForeignKeys?.forEach((vfk, idx) => {
+      if (idx != index) {
+        newVfks.push(vfk);
+      }
+    });
+    removeVfk(index);
+    await validateVirtualForeignKeys(newVfks);
+  }
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
@@ -367,6 +438,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           {!isNosqlSource(source ?? new Connection()) && (
             <SchemaTable
               data={formMappings}
+              virtualForeignKeys={formVirtualForeignKeys}
               jobType="sync"
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -380,6 +452,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               )}
               isJobMappingsValidating={isValidatingMappings}
               onValidate={validateMappings}
+              addVirtualForeignKey={addVirtualForeignKey}
+              removeVirtualForeignKey={removeVirtualForeignKey}
             />
           )}
           <div className="flex flex-row items-center justify-end w-full mt-4">
@@ -418,6 +492,19 @@ async function updateJobConnection(
                 ),
             });
           }),
+          virtualForeignKeys:
+            values.virtualForeignKeys?.map((v) => {
+              return new VirtualForeignConstraint({
+                schema: v.schema,
+                table: v.table,
+                columns: v.columns,
+                foreignKey: new VirtualForeignKey({
+                  schema: v.foreignKey.schema,
+                  table: v.foreignKey.table,
+                  columns: v.foreignKey.columns,
+                }),
+              });
+            }) || [],
           source: new JobSource({
             options: toJobSourceOptions(
               values,
@@ -519,6 +606,7 @@ function getJobSource(
       },
       destinationIds: [],
       mappings: [],
+      virtualForeignKeys: [],
       connectionId: '',
     };
   }
@@ -539,6 +627,17 @@ function getJobSource(
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
         : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+    };
+  });
+
+  const virtualForeignKeys = (job.virtualForeignKeys ?? []).map((vfk) => {
+    return {
+      ...vfk,
+      foreignKey: {
+        schema: vfk.foreignKey?.schema || '',
+        table: vfk.foreignKey?.table || '',
+        columns: vfk.foreignKey?.columns || [],
+      },
     };
   });
 
@@ -571,6 +670,7 @@ function getJobSource(
     sourceOptions: {},
     destinationIds: destinationIds,
     mappings: mappings || [],
+    virtualForeignKeys: virtualForeignKeys || [],
   };
   const yupValidationValues = {
     ...values,

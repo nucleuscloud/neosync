@@ -15,6 +15,18 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+type Activity struct {
+	jobclient mgmtv1alpha1connect.JobServiceClient
+}
+
+func New(
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+) *Activity {
+	return &Activity{
+		jobclient: jobclient,
+	}
+}
+
 type RetrieveActivityOptionsRequest struct {
 	JobId string
 }
@@ -22,7 +34,7 @@ type RetrieveActivityOptionsResponse struct {
 	SyncActivityOptions *workflow.ActivityOptions
 }
 
-func RetrieveActivityOptions(
+func (a *Activity) RetrieveActivityOptions(
 	ctx context.Context,
 	req *RetrieveActivityOptionsRequest,
 	wfmetadata *shared.WorkflowMetadata,
@@ -35,15 +47,7 @@ func RetrieveActivityOptions(
 	)
 	_ = logger
 
-	neosyncUrl := shared.GetNeosyncUrl()
-	httpClient := shared.GetNeosyncHttpClient()
-
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	jobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
+	jobResp, err := a.jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
 	if err != nil {
 		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -46,6 +47,18 @@ func AnyElementEqual[T comparable](slice []T, value T) bool {
 func NoElementEqual[T comparable](slice []T, value T) bool {
 	for _, el := range slice {
 		if el == value {
+			return false
+		}
+	}
+	return true
+}
+
+func CompareSlices(slice1, slice2 []string) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+	for _, ele := range slice1 {
+		if !slices.Contains(slice2, ele) {
 			return false
 		}
 	}

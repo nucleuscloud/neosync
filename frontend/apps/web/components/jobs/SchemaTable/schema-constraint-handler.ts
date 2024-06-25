@@ -7,6 +7,8 @@ import {
   PrimaryConstraint,
   TransformerDataType,
   UniqueConstraints,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
 } from '@neosync/sdk';
 
 export type JobType = 'sync' | 'generate';
@@ -14,6 +16,7 @@ export type JobType = 'sync' | 'generate';
 export interface SchemaConstraintHandler {
   getIsPrimaryKey(key: ColumnKey): boolean;
   getIsForeignKey(key: ColumnKey): [boolean, string[]];
+  getIsVirtualForeignKey(key: ColumnKey): [boolean, string[]];
   getIsNullable(key: ColumnKey): boolean;
   getDataType(key: ColumnKey): string;
   getConvertedDataType(key: ColumnKey): TransformerDataType; // Returns the databases data types transformed to the Neosync Transformer Data Types
@@ -33,6 +36,7 @@ interface ColumnKey {
 interface ColDetails {
   isPrimaryKey: boolean;
   fk: [boolean, string[]];
+  virtualForeignKey: [boolean, string[]];
   isNullable: boolean;
   dataType: string;
   isUniqueConstraint: boolean;
@@ -45,13 +49,28 @@ export function getSchemaConstraintHandler(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
-  uniqueConstraints: Record<string, UniqueConstraints>
+  uniqueConstraints: Record<string, UniqueConstraints>,
+  virtualForeignConstraints: VirtualForeignConstraint[]
 ): SchemaConstraintHandler {
+  const vfkMap = virtualForeignConstraints.reduce(
+    (vfkMap, vfk) => {
+      const key = `${vfk.schema}.${vfk.table}`;
+      const vfkArray = vfkMap[key];
+      if (!vfkArray) {
+        vfkMap[key] = [vfk];
+      } else {
+        vfkMap[key].push(vfk);
+      }
+      return vfkMap;
+    },
+    {} as Record<string, VirtualForeignConstraint[]>
+  );
   const colmap = buildColDetailsMap(
     schema,
     primaryConstraints,
     foreignConstraints,
-    uniqueConstraints
+    uniqueConstraints,
+    vfkMap
   );
 
   return {
@@ -67,6 +86,9 @@ export function getSchemaConstraintHandler(
     },
     getIsForeignKey(key) {
       return colmap[fromColKey(key)]?.fk ?? [false, []];
+    },
+    getIsVirtualForeignKey(key) {
+      return colmap[fromColKey(key)]?.virtualForeignKey ?? [false, []];
     },
     getIsNullable(key) {
       return colmap[fromColKey(key)]?.isNullable ?? false;
@@ -198,7 +220,8 @@ function buildColDetailsMap(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
-  uniqueConstraints: Record<string, UniqueConstraints>
+  uniqueConstraints: Record<string, UniqueConstraints>,
+  virtualForeignConstraints: Record<string, VirtualForeignConstraint[]>
 ): Record<string, ColDetails> {
   const colmap: Record<string, ColDetails> = {};
   //<schema.table: dbCols>
@@ -207,6 +230,7 @@ function buildColDetailsMap(
     const primaryCols = new Set(tablePkeys.columns);
     const foreignFkeys =
       foreignConstraints[key] ?? new ForeignConstraintTables();
+    const virtualForeignKeys = virtualForeignConstraints[key] ?? [];
     const tableUniqueConstraints =
       uniqueConstraints[key] ?? new UniqueConstraints({});
     const uniqueConstraintCols = tableUniqueConstraints.constraints.reduce(
@@ -231,8 +255,24 @@ function buildColDetailsMap(
       });
     });
 
+    const virtualFkMap: Record<string, VirtualForeignKey> = {};
+    virtualForeignKeys.forEach((vfk) => {
+      vfk.columns.forEach((col, idx) => {
+        if (vfk.foreignKey) {
+          virtualFkMap[col] = new VirtualForeignKey({
+            schema: vfk.foreignKey.schema,
+            table: vfk.foreignKey?.table,
+            columns: [vfk.foreignKey?.columns[idx]],
+          });
+        } else {
+          virtualFkMap[col] = new VirtualForeignKey();
+        }
+      });
+    });
+
     dbcols.forEach((dbcol) => {
       const fk: ForeignKey | undefined = fkconstraintsMap[dbcol.column];
+      const vfk: VirtualForeignKey | undefined = virtualFkMap[dbcol.column];
       colmap[fromDbCol(dbcol)] = {
         isNullable: dbcol.isNullable === 'YES',
         dataType: dbcol.dataType,
@@ -240,6 +280,14 @@ function buildColDetailsMap(
           fk !== undefined,
           fk !== undefined
             ? fk.columns.map((column) => `${fk.table}.${column}`)
+            : [],
+        ],
+        virtualForeignKey: [
+          vfk !== undefined,
+          vfk !== undefined
+            ? vfk.columns.map(
+                (column) => `${vfk.schema}.${vfk.table}.${column}`
+              )
             : [],
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),

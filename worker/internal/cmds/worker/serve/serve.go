@@ -14,9 +14,12 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"github.com/go-logr/logr"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -123,28 +126,37 @@ func serve(ctx context.Context) error {
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
+	pgpoolmap := &sync.Map{}
+	mysqlpoolmap := &sync.Map{}
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl)
 	sqlconnector := &sqlconnect.SqlOpenConnector{}
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlconnector)
 	redisconfig := shared.GetRedisConfig()
 
 	genbenthosActivity := genbenthosconfigs_activity.New(
 		jobclient,
 		connclient,
 		transformerclient,
-		sqlconnector,
+		sqlmanager,
 		redisconfig,
 		getIsOtelEnabled(),
 	)
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager())
+	disableReaper := false
+	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
+	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
-	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
-	w.RegisterActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements)
+	w.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
+	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	w.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 

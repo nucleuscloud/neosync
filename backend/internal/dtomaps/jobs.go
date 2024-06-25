@@ -17,6 +17,11 @@ func ToJobDto(
 		mappings = append(mappings, mapping.ToDto())
 	}
 
+	virtualForeignKeys := []*mgmtv1alpha1.VirtualForeignConstraint{}
+	for _, vfk := range inputJob.VirtualForeignKeys {
+		virtualForeignKeys = append(virtualForeignKeys, vfk.ToDto())
+	}
+
 	destinations := []*mgmtv1alpha1.JobDestination{}
 	for i := range inputDestConnections {
 		dest := inputDestConnections[i]
@@ -34,14 +39,15 @@ func ToJobDto(
 	}
 
 	return &mgmtv1alpha1.Job{
-		Id:              nucleusdb.UUIDString(inputJob.ID),
-		Name:            inputJob.Name,
-		CreatedAt:       timestamppb.New(inputJob.CreatedAt.Time),
-		UpdatedAt:       timestamppb.New(inputJob.UpdatedAt.Time),
-		CreatedByUserId: nucleusdb.UUIDString(inputJob.CreatedByID),
-		UpdatedByUserId: nucleusdb.UUIDString(inputJob.UpdatedByID),
-		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
-		Mappings:        mappings,
+		Id:                 nucleusdb.UUIDString(inputJob.ID),
+		Name:               inputJob.Name,
+		CreatedAt:          timestamppb.New(inputJob.CreatedAt.Time),
+		UpdatedAt:          timestamppb.New(inputJob.UpdatedAt.Time),
+		CreatedByUserId:    nucleusdb.UUIDString(inputJob.CreatedByID),
+		UpdatedByUserId:    nucleusdb.UUIDString(inputJob.UpdatedByID),
+		CronSchedule:       nucleusdb.ToNullableString(inputJob.CronSchedule),
+		Mappings:           mappings,
+		VirtualForeignKeys: virtualForeignKeys,
 		Source: &mgmtv1alpha1.JobSource{
 			Options: inputJob.ConnectionOptions.ToDto(),
 		},

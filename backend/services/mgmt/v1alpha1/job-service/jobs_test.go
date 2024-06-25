@@ -411,10 +411,11 @@ func Test_CreateJob(t *testing.T) {
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
-		CreatedByID:     userUuid,
-		UpdatedByID:     userUuid,
-		WorkflowOptions: &pg_models.WorkflowOptions{},
-		SyncOptions:     &pg_models.ActivityOptions{},
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		CreatedByID:        userUuid,
+		UpdatedByID:        userUuid,
+		WorkflowOptions:    &pg_models.WorkflowOptions{},
+		SyncOptions:        &pg_models.ActivityOptions{},
 	}).Return(job1, nil)
 	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
 	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job1.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
@@ -557,10 +558,11 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
-		CreatedByID:     userUuid,
-		UpdatedByID:     userUuid,
-		WorkflowOptions: &pg_models.WorkflowOptions{},
-		SyncOptions:     &pg_models.ActivityOptions{},
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		CreatedByID:        userUuid,
+		UpdatedByID:        userUuid,
+		WorkflowOptions:    &pg_models.WorkflowOptions{},
+		SyncOptions:        &pg_models.ActivityOptions{},
 	}).Return(job1, nil)
 	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
 
@@ -707,10 +709,11 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
-		CreatedByID:     userUuid,
-		UpdatedByID:     userUuid,
-		WorkflowOptions: &pg_models.WorkflowOptions{},
-		SyncOptions:     &pg_models.ActivityOptions{},
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		CreatedByID:        userUuid,
+		UpdatedByID:        userUuid,
+		WorkflowOptions:    &pg_models.WorkflowOptions{},
+		SyncOptions:        &pg_models.ActivityOptions{},
 	}).Return(job1, nil)
 	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
 
@@ -1014,6 +1017,11 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		},
 		UpdatedByID: userUuid,
 	}).Return(job, nil)
+	m.QuerierMock.On("UpdateJobVirtualForeignKeys", mock.Anything, mockTx, db_queries.UpdateJobVirtualForeignKeysParams{
+		ID:                 job.ID,
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		UpdatedByID:        userUuid,
+	}).Return(job, nil)
 	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
 		AccountId:    accountUuid,
 		ConnectionId: conn.ID,
@@ -1096,6 +1104,11 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 			}},
 		},
 		UpdatedByID: userUuid,
+	}).Return(job, nil)
+	m.QuerierMock.On("UpdateJobVirtualForeignKeys", mock.Anything, mockTx, db_queries.UpdateJobVirtualForeignKeysParams{
+		ID:                 job.ID,
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+		UpdatedByID:        userUuid,
 	}).Return(job, nil)
 	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
 		AccountId:    accountUuid,

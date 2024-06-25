@@ -69,8 +69,25 @@ export const JobMappingFormValues = Yup.object({
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JobMappingFormValues>;
 
+const VIRTUAL_FOREIGN_KEY_SCHEMA = Yup.object({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
+  columns: Yup.array().of(Yup.string().required()),
+}).required();
+
+const VIRTUAL_FOREIGN_CONSTRAINT_SCHEMA = Yup.object({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
+  columns: Yup.array().of(Yup.string().required()),
+  foreignKey: VIRTUAL_FOREIGN_KEY_SCHEMA,
+}).required();
+export type VirtualForeignConstraintFormValues = Yup.InferType<
+  typeof VIRTUAL_FOREIGN_CONSTRAINT_SCHEMA
+>;
+
 export const SchemaFormValues = Yup.object({
   mappings: Yup.array().of(JobMappingFormValues).required(),
+  virtualForeignKeys: Yup.array().of(VIRTUAL_FOREIGN_CONSTRAINT_SCHEMA),
   connectionId: Yup.string().required(),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;

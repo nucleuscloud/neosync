@@ -115,7 +115,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         connectionSchemaDataMap?.schemaMap ?? {},
         tableConstraints?.primaryKeyConstraints ?? {},
         tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
+        tableConstraints?.uniqueConstraints ?? {},
+        []
       ),
     [isSchemaMapValidating, isTableConstraintsValidating]
   );

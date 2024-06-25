@@ -187,6 +187,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
         const isUniqueConstraint = constraintHandler.getIsUniqueConstraint(key);
+        const [isVirtualForeignKey, vfkCols] =
+          constraintHandler.getIsVirtualForeignKey(key);
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
@@ -214,6 +216,25 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       </TooltipTrigger>
                       <TooltipContent>
                         {fkCols.map((col) => `Primary Key: ${col}`).join('\n')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+              <div>
+                {isVirtualForeignKey && (
+                  <TooltipProvider>
+                    <Tooltip delayDuration={200}>
+                      <TooltipTrigger>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-orange-100 text-gray-800 cursor-default dark:dark:text-gray-900 dark:bg-orange-300"
+                        >
+                          Virtual Foreign Key
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {vfkCols.map((col) => `Primary Key: ${col}`).join('\n')}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -451,6 +472,8 @@ export function getTransformerFilter(
   jobType: JobType
 ): TransformerFilters {
   const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
+  const [isVirtualForeignKey] =
+    constraintHandler.getIsVirtualForeignKey(colkey);
   const isNullable = constraintHandler.getIsNullable(colkey);
   const convertedDataType = constraintHandler.getConvertedDataType(colkey);
   const hasDefault = constraintHandler.getHasDefault(colkey);
@@ -459,6 +482,7 @@ export function getTransformerFilter(
     dataType: convertedDataType,
     hasDefault,
     isForeignKey,
+    isVirtualForeignKey,
     isNullable,
     jobType: toSupportedJobtype(jobType),
     isGenerated,

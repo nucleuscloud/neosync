@@ -2,19 +2,33 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"sync"
 	"time"
 
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
+
+type Activity struct {
+	jobclient  mgmtv1alpha1connect.JobServiceClient
+	connclient mgmtv1alpha1connect.ConnectionServiceClient
+
+	sqlmanager sql_manager.SqlManagerClient
+}
+
+func New(
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	sqlmanager sql_manager.SqlManagerClient,
+) *Activity {
+	return &Activity{
+		jobclient:  jobclient,
+		connclient: connclient,
+		sqlmanager: sqlmanager,
+	}
+}
 
 type RunSqlInitTableStatementsRequest struct {
 	JobId      string
@@ -24,7 +38,7 @@ type RunSqlInitTableStatementsRequest struct {
 type RunSqlInitTableStatementsResponse struct {
 }
 
-func RunSqlInitTableStatements(
+func (a *Activity) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
 ) (*RunSqlInitTableStatementsResponse, error) {
@@ -47,28 +61,10 @@ func RunSqlInitTableStatements(
 		}
 	}()
 
-	neosyncUrl := shared.GetNeosyncUrl()
-	httpClient := shared.GetNeosyncHttpClient()
-
-	pgpoolmap := &sync.Map{}
-	pgquerier := pg_queries.New()
-	mysqlpoolmap := &sync.Map{}
-	mysqlquerier := mysql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, &sqlconnect.SqlOpenConnector{})
-
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
 	builder := newInitStatementBuilder(
-		sqlmanager,
-		jobclient,
-		connclient,
+		a.sqlmanager,
+		a.jobclient,
+		a.connclient,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(
 		"jobId", req.JobId,

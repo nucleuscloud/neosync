@@ -23,7 +23,10 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  SchemaFormValues,
+  VirtualForeignConstraintFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -32,6 +35,8 @@ import {
   GetAccountOnboardingConfigResponse,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
+  VirtualForeignConstraint,
+  VirtualForeignKey,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -202,6 +207,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formMappings = form.watch('mappings');
+  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -222,22 +228,67 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const schemaConstraintHandler = useMemo(
-    () =>
-      getSchemaConstraintHandler(
-        connectionSchemaDataMap?.schemaMap ?? {},
-        tableConstraints?.primaryKeyConstraints ?? {},
-        tableConstraints?.foreignKeyConstraints ?? {},
-        tableConstraints?.uniqueConstraints ?? {}
-      ),
-    [isSchemaMapValidating, isTableConstraintsValidating]
-  );
+  async function validateVirtualForeignKeys(
+    vfks: VirtualForeignConstraintFormValues[]
+  ) {
+    try {
+      setIsValidatingMappings(true);
+      const res = await validateJobMapping(
+        connectFormValues.sourceId,
+        formMappings,
+        account?.id || '',
+        vfks
+      );
+      setValidateMappingsResponse(res);
+    } catch (error) {
+      console.error('Failed to validate virtual foreign keys:', error);
+      toast({
+        title: 'Unable to validate virtual foreign keys',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsValidatingMappings(false);
+    }
+  }
+
+  const schemaConstraintHandler = useMemo(() => {
+    const virtualForeignKeys = formVirtualForeignKeys?.map((v) => {
+      return new VirtualForeignConstraint({
+        schema: v.schema,
+        table: v.table,
+        columns: v.columns,
+        foreignKey: new VirtualForeignKey({
+          schema: v.foreignKey.schema,
+          table: v.foreignKey.table,
+          columns: v.foreignKey.columns,
+        }),
+      });
+    });
+    return getSchemaConstraintHandler(
+      connectionSchemaDataMap?.schemaMap ?? {},
+      tableConstraints?.primaryKeyConstraints ?? {},
+      tableConstraints?.foreignKeyConstraints ?? {},
+      tableConstraints?.uniqueConstraints ?? {},
+      virtualForeignKeys ?? []
+    );
+  }, [
+    isSchemaMapValidating,
+    isTableConstraintsValidating,
+    formVirtualForeignKeys,
+  ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
   const { append, remove, fields, update } = useFieldArray<SchemaFormValues>({
     control: form.control,
     name: 'mappings',
   });
+
+  const { append: appendVfk, remove: removeVfk } =
+    useFieldArray<SchemaFormValues>({
+      control: form.control,
+      name: 'virtualForeignKeys',
+    });
+
   const onSelectedTableToggle = getOnSelectedTableToggle(
     connectionSchemaDataMap?.schemaMap ?? {},
     selectedTables,
@@ -269,6 +320,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )
     );
   }, [isSchemaMapLoading, connectFormValues.sourceId]);
+
+  async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
+    appendVfk(vfk);
+    const vfks = [vfk, ...(formVirtualForeignKeys || [])];
+    await validateVirtualForeignKeys(vfks);
+  }
+
+  async function removeVirtualForeignKey(index: number) {
+    const newVfks: VirtualForeignConstraintFormValues[] = [];
+    formVirtualForeignKeys?.forEach((vfk, idx) => {
+      if (idx != index) {
+        newVfks.push(vfk);
+      }
+    });
+    removeVfk(index);
+    await validateVirtualForeignKeys(newVfks);
+  }
 
   if (isConnectionLoading || isSchemaMapLoading) {
     return <SkeletonForm />;
@@ -377,6 +445,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 validateMappingsResponse
               )}
               onValidate={validateMappings}
+              virtualForeignKeys={formVirtualForeignKeys}
+              addVirtualForeignKey={addVirtualForeignKey}
+              removeVirtualForeignKey={removeVirtualForeignKey}
             />
           )}
           <div className="flex flex-row gap-1 justify-between">
@@ -420,6 +491,7 @@ function getFormValues(
 
   return {
     mappings: [],
+    virtualForeignKeys: [],
     connectionId,
   };
 }

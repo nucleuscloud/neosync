@@ -74,7 +74,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		HeartbeatTimeout: 1 * time.Minute,
 	})
 	logger.Info("scheduling RetrieveActivityOptions for execution.")
-	err = workflow.ExecuteActivity(ctx, syncactivityopts_activity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
+	var activityOptsActivity *syncactivityopts_activity.Activity
+	err = workflow.ExecuteActivity(ctx, activityOptsActivity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &actOptResp)
 	if err != nil {
@@ -85,7 +86,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
-	err = workflow.ExecuteActivity(ctx, runsqlinittablestmts_activity.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
+	var runSqlInitTableStatements *runsqlinittablestmts_activity.Activity
+	err = workflow.ExecuteActivity(ctx, runSqlInitTableStatements.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
 		JobId:      req.JobId,
 		WorkflowId: wfinfo.WorkflowExecution.ID,
 	}).Get(ctx, &resp)

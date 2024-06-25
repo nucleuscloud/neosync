@@ -1587,6 +1587,11 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
    */
   syncOptions?: ActivityOptions;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.VirtualForeignConstraint virtual_foreign_keys = 10;
+   */
+  virtualForeignKeys: VirtualForeignConstraint[] = [];
+
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1604,6 +1609,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 7, name: "initiate_job_run", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "workflow_options", kind: "message", T: WorkflowOptions },
     { no: 9, name: "sync_options", kind: "message", T: ActivityOptions },
+    { no: 10, name: "virtual_foreign_keys", kind: "message", T: VirtualForeignConstraint, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -2164,6 +2170,11 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
    */
   mappings: JobMapping[] = [];
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.VirtualForeignConstraint virtual_foreign_keys = 4;
+   */
+  virtualForeignKeys: VirtualForeignConstraint[] = [];
+
   constructor(data?: PartialMessage<UpdateJobSourceConnectionRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2175,6 +2186,7 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "source", kind: "message", T: JobSource },
     { no: 3, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 4, name: "virtual_foreign_keys", kind: "message", T: VirtualForeignConstraint, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobSourceConnectionRequest {
@@ -3219,6 +3231,11 @@ export class Job extends Message<Job> {
    */
   workflowOptions?: WorkflowOptions;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.VirtualForeignConstraint virtual_foreign_keys = 14;
+   */
+  virtualForeignKeys: VirtualForeignConstraint[] = [];
+
   constructor(data?: PartialMessage<Job>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3240,6 +3257,7 @@ export class Job extends Message<Job> {
     { no: 11, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 12, name: "sync_options", kind: "message", T: ActivityOptions },
     { no: 13, name: "workflow_options", kind: "message", T: WorkflowOptions },
+    { no: 14, name: "virtual_foreign_keys", kind: "message", T: VirtualForeignConstraint, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {
@@ -4643,6 +4661,11 @@ export class ValidateJobMappingsRequest extends Message<ValidateJobMappingsReque
    */
   connectionId = "";
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.VirtualForeignConstraint virtual_foreign_keys = 4;
+   */
+  virtualForeignKeys: VirtualForeignConstraint[] = [];
+
   constructor(data?: PartialMessage<ValidateJobMappingsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4654,6 +4677,7 @@ export class ValidateJobMappingsRequest extends Message<ValidateJobMappingsReque
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "virtual_foreign_keys", kind: "message", T: VirtualForeignConstraint, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateJobMappingsRequest {
@@ -4805,6 +4829,110 @@ export class ValidateJobMappingsResponse extends Message<ValidateJobMappingsResp
 
   static equals(a: ValidateJobMappingsResponse | PlainMessage<ValidateJobMappingsResponse> | undefined, b: ValidateJobMappingsResponse | PlainMessage<ValidateJobMappingsResponse> | undefined): boolean {
     return proto3.util.equals(ValidateJobMappingsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.VirtualForeignKey
+ */
+export class VirtualForeignKey extends Message<VirtualForeignKey> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  /**
+   * @generated from field: repeated string columns = 3;
+   */
+  columns: string[] = [];
+
+  constructor(data?: PartialMessage<VirtualForeignKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.VirtualForeignKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): VirtualForeignKey {
+    return new VirtualForeignKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): VirtualForeignKey {
+    return new VirtualForeignKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): VirtualForeignKey {
+    return new VirtualForeignKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: VirtualForeignKey | PlainMessage<VirtualForeignKey> | undefined, b: VirtualForeignKey | PlainMessage<VirtualForeignKey> | undefined): boolean {
+    return proto3.util.equals(VirtualForeignKey, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.VirtualForeignConstraint
+ */
+export class VirtualForeignConstraint extends Message<VirtualForeignConstraint> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  /**
+   * @generated from field: repeated string columns = 3;
+   */
+  columns: string[] = [];
+
+  /**
+   * @generated from field: mgmt.v1alpha1.VirtualForeignKey foreign_key = 4;
+   */
+  foreignKey?: VirtualForeignKey;
+
+  constructor(data?: PartialMessage<VirtualForeignConstraint>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.VirtualForeignConstraint";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "foreign_key", kind: "message", T: VirtualForeignKey },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): VirtualForeignConstraint {
+    return new VirtualForeignConstraint().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): VirtualForeignConstraint {
+    return new VirtualForeignConstraint().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): VirtualForeignConstraint {
+    return new VirtualForeignConstraint().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: VirtualForeignConstraint | PlainMessage<VirtualForeignConstraint> | undefined, b: VirtualForeignConstraint | PlainMessage<VirtualForeignConstraint> | undefined): boolean {
+    return proto3.util.equals(VirtualForeignConstraint, a, b);
   }
 }
 
