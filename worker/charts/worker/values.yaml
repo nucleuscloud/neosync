@@ -1,103 +1,144 @@
+# image Configure the Worker Docker Image
 image:
+  # -- The default image repository
   repository: ghcr.io/nucleuscloud/neosync/worker
-  # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+  # -- Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
+  # -- Overrides the default K8s pull policy
   pullPolicy:
 
+# -- Override the name specified on the Chart, which defaults to .Chart.Name
 nameOverride:
+# -- Fully overrides the chart name
 fullnameOverride:
 
+# -- Define a list of image pull secrets that will be used by the deployment
 imagePullSecrets: []
 
+# serviceAccount Specify service account options for the deployment
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
+  # -- The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
   name:
+  # -- Specify annotations here that will be attached to the service account. Useful for specifying role information or other tagging depending on environment.
   annotations: {}
-  #   eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
 
-# Determines what .env file to load in if running bare metal
-# also adds a tag to the API logger
+# -- Mostly used by NeosyncCloud. Adds a special tag to the logging to determine what environment is running
 nucleusEnv:
 
-# Will eventually allow sending traces.
+# -- Will eventually allow sending traces.
 # The worker does emit record-based metrics, but does not currently listen to otel.enabled.
 # Must provide the OTEL_SDK_DISABLED=false environment variable separately today.
 otel:
   enabled: false
   otlpPort: 4317
 
+# Set requests and limits on the backend to change its performance
 resources:
-  # These are low-usage defaults. Change these depending on your needs.
+  ## Sets the CPU and Memory baseline. These are low-usage defaults. Change these depending on your needs.
   requests:
+    # -- Sets the CPU amount to be requested
     cpu: "100m"
+    # -- Sets the Memory amount to be requested
     memory: "128Mi"
+  ## Sets teh max CPU and Memory. These are low-usage defaults. Change these depending on your needs.
   limits:
+    # -- Sets the max CPU amount
     cpu: "500m"
+    # -- Sets the max Memory amount
     memory: "512Mi"
 
+# Configure autoscaling of the container
 autoscaling:
+  # -- Whether or not to install the HPA autoscaler
   enabled: false
+  # -- The minimum amount of replicas to have running
   minReplicas: 1
-  maxReplicas: 10
+  # -- The maximum number of replicas to scale to
+  maxReplicas: 4
+  # -- The CPU % utilization to begin a scale up
   targetCPUUtilizationPercentage: 80
 
-# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details.
+# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details. This may be omitted and applied manually via the deployment's annotations and labels
 istio:
+  # -- Whether or not to apply the default istio annotations/labels to the deployment
   enabled: false
 
-# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details.
+# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details. This may be omitted and applied manually to the deployment.
 datadog:
+  # -- Whether or not to apply the default Datadog annotations/labels to the deployment
   enabled: false
 
+# -- The amount of time in seconds to wait for the pod to shut down when a termination event has occurred.
 terminationGracePeriodSeconds:
+# -- Not currently used
 shutdownTimeoutSeconds:
 
 neosync:
+  # -- The url to the Neoysnc API instance
   url: http://neosync-api
-  # only required if running the backend in auth-mode
+  # -- Only required if running the backend in auth-mode
   apiKey:
 
 temporal:
-  # default value based on how Temporal manifests are by default configured
-  # change this based on your temporal configuration
+  # -- The default value based on how Temporal manifests are by default configured. Change this based on your temporal configuration
   url: temporal.temporal:7233
-  # if not provided, falls back to hardcoded default value
+  # -- If not provided, falls back to hardcoded default value
   namespace:
-  # if not provided, falls back to hardcoded default value
+  # -- If not provided, falls back to hardcoded default value
   taskQueue:
-
   certificate:
+    # -- The location of the certificate key file
     keyFilePath:
+    # -- The location of the certificate file
     certFilePath:
 
+    # -- The full contents of the key. Provide this or the keyFilePath, not both.
     keyContents:
+    # -- The full contents of the certificate. Provide this or the certFilePath, not both.
     certContents:
 
 redis:
+  # -- The url to the redis instance that will be used for PK/FK transformation storage cache
   url:
+  # -- The kind of redis instance. simpke, cluster, failover
   kind:
+  # -- Name of redis master when in failover mode
   master:
   tls:
+    # -- Whether or not to enable redis tls
     enabled: false
+    # -- Optionally skip cert verification
     skipCertVerify: false
+    # -- Whether to allow the remote server to repeatedly request renegotiation
     enableRenegotiation: false
+    # -- Root certificate authority
     rootCertAuthority:
+    # -- Root certificate authority file location
     rootCertAuthorityFile:
+    # -- Client TLS Certificate files
     clientCerts: []
 
+# -- Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads.
 host: 0.0.0.0
+# -- The K8s service port
 servicePort: 80
+# -- The container port
 containerPort: 8080
 
+# -- Any tolerations that should be applied to the deployment
 tolerations: []
+# -- Any node selectors that should be applied to the deployment
 nodeSelector: {}
 
+# -- Volumes that will be attached to the deployment
 volumes: []
+# -- Volumes that will be mounted to the deployment
 volumeMounts: []
 
-# Provide extra environment variables that will be applied to the deployment.
-extraEnvVars: []
-
+# -- The strategy to use when rolling out new replicas
 updateStrategy:
+
+# -- Provide extra environment variables that will be applied to the deployment.
+extraEnvVars: []

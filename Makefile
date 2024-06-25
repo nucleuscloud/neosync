@@ -8,7 +8,8 @@
         compose/up compose/down \
         compose/auth/up compose/auth/down \
         compose/dev/up compose/dev/down \
-        compose/dev/auth/up compose/dev/auth/down
+        compose/dev/auth/up compose/dev/auth/down \
+				helm/docs
 default: help
 
 help:
@@ -119,3 +120,6 @@ compose/dev/auth/up: ## Composes up the development environment with auth. Must 
 
 compose/dev/auth/down: ## Composes down the development environment with auth
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) down
+
+helm/docs: ## Generates documentation for the repository's helm charts.
+	./scripts/gen-helmdocs.sh

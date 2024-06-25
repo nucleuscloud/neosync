@@ -1,175 +1,235 @@
+# Configure the API Docker Image
 image:
+  # -- The default image repository
   repository: ghcr.io/nucleuscloud/neosync/api
-  # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+  # -- Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
+  # -- Overrides the default K8s pull policy
   pullPolicy:
 
+# -- Override the name specified on the Chart, which defaults to .Chart.Name
 nameOverride:
+# -- Fully overrides the chart name
 fullnameOverride:
 
+# -- Define a list of image pull secrets that will be used by the deployment
 imagePullSecrets: []
 
+# Specify service account options for the deployment
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
+  # -- The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
   name:
+  # -- Specify annotations here that will be attached to the service account. Useful for specifying role information or other tagging depending on environment.
   annotations: {}
-  #   eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
 
-# Determines what .env file to load in if running bare metal
-# also adds a tag to the API logger
+# -- Mostly used by NeosyncCloud. Adds a special tag to the logging to determine what environment is running
 nucleusEnv:
 
 # Currently does not do anything but will eventaully allow emitting otel metrics and traces
 otel:
+  # -- whether or not to enable open telemetry settings
   enabled: false
+  # -- Specifies the port that otel is listening on that the service will export metrics and traces to
   otlpPort: 4317
 
 # Specify database connection information for the backend to connect to
 db:
+  # -- The database hostname
   host:
+  # -- The name of the database to connect to
   name:
+  # -- The database port
   port: 5432
+  # -- The username that will be used for authentication
   username:
+  # -- The username's password for authentication
   password:
+  # -- Whether or not to disable SSL when connecting to the database
   disableSsl: false
+  # -- Extra database options that will be appended to the query string
   options:
 
 # Specify connection information for the migrations init container
 migrations:
+  ## Specify database connection information for the migrations init container to connect to
   db:
+    # -- The database hostname
     host:
+    # -- The name of the database
     name:
+    # -- The database port
     port: 5432
+    # -- The username that will be used for authentication
     username:
+    # -- The username's password for authentication
     password:
+    # -- Whether or not to disable SSL when connecting to the database
     disableSsl: false
+    # -- The directory where the migrations are located.
     schemaDir: /migrations
+    # -- This is the tablename that will be created in the postgres "public" schema
     migrationsTableName: neosync_api_schema_migrations
+    # -- Whether or not the tablename is quoted in the connection string
     migrationsTableQuoted: false
+    # -- Extra database options that will be appended to the query string
     options:
 
 # Set requests and limits on the backend to change its performance
 resources:
-  # These are low-usage defaults. Change these depending on your needs.
+  ## Sets the CPU and Memory baseline. These are low-usage defaults. Change these depending on your needs.
   requests:
+    # -- Sets the CPU amount to be requested
     cpu: "100m"
+    # -- Sets the Memory amount to be requested
     memory: "128Mi"
+  ## Sets teh max CPU and Memory. These are low-usage defaults. Change these depending on your needs.
   limits:
+    # -- Sets the max CPU amount
     cpu: "500m"
+    # -- Sets the max Memory amount
     memory: "512Mi"
 
 # Configure autoscaling of the container
 autoscaling:
+  # -- Whether or not to install the HPA autoscaler
   enabled: false
+  # -- The minimum amount of replicas to have running
   minReplicas: 1
+  # -- The maximum number of replicas to scale to
   maxReplicas: 4
+  # -- The CPU % utilization to begin a scale up
   targetCPUUtilizationPercentage: 80
 
-# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details.
+# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details. This may be omitted and applied manually via the deployment's annotations and labels
 istio:
+  # -- Whether or not to apply the default istio annotations/labels to the deployment
   enabled: false
 
-# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details.
+# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details. This may be omitted and applied manually to the deployment.
 datadog:
+  # -- Whether or not to apply the default Datadog annotations/labels to the deployment
   enabled: false
 
-# Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads.
+# -- Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads.
 host: 0.0.0.0
-
-# The K8s service port
+# -- The K8s service port
 servicePort: 80
-# The container port
+# -- The container port
 containerPort: 8080
 
+# -- The amount of time in seconds to wait for the pod to shut down when a termination event has occurred.
 terminationGracePeriodSeconds:
+# -- Not currently used
 shutdownTimeoutSeconds:
 
 # Configure the backend to use authentication. This will allow it to communicate with a JWT-based auth service such as keycloak.
 auth:
+  # -- Enable/Disable authentication
   enabled: false
-  # The audience that is expected to be present in the JWT aud claim
+  # -- The audience that is expected to be present in the JWT aud claim
   audience:
-  # The base url of the auth server
+  # -- The base url of the auth server
   baseUrl:
-  # The client id that the CLI will use to communicate with the backend for authentication (if auth is enabled)
+  # -- The client id that the CLI will use to communicate with the backend for authentication (if auth is enabled)
   cliClientId:
-  # The aud that is expected to be present when the CLI auths to the backend
+  # -- The aud that is expected to be present when the CLI auths to the backend
   cliAudience:
-  # A map of clientId->clientSecret of allowed clients
+  # -- A map of clientId->clientSecret of allowed clients
   clientMap:
-  # API Service Account credentials. This is used by the service itself to perform admin actions against the auth service.
+  ## API Service Account credentials. This is used by the service itself to perform admin actions against the auth service.
   api:
+    # -- The service account client id
     clientId:
+    # -- The service account client secret
     clientSecret:
+    # -- The base url to the auth service's admin url
     baseUrl:
+    # -- The provider that should be used. Supported types are auth0 and keycloak. Default is keycloak
     provider:
 
 temporal:
-  # default value based on how Temporal manifests are by default configured
-  # change this based on your temporal configuration
+  # -- The default value based on how Temporal manifests are by default configured. Change this based on your temporal configuration
   url: temporal.temporal:7233
-  # if not provided, falls back to hardcoded default value
+  # -- If not provided, falls back to hardcoded default value
   defaultNamespace:
-  # if not provided, falls back to hardcoded default value
+  # -- If not provided, falls back to hardcoded default value
   defaultSyncJobQueue:
   certificate:
+    # -- The location of the certificate key file
     keyFilePath:
+    # -- The location of the certificate file
     certFilePath:
 
+    # -- The full contents of the key. Provide this or the keyFilePath, not both.
     keyContents:
+    # -- The full contents of the certificate. Provide this or the certFilePath, not both.
     certContents:
 
+# -- Any tolerations that should be applied to the deployment
 tolerations: []
+# -- Any node selectors that should be applied to the deployment
 nodeSelector: {}
 
+# -- Volumes that will be attached to the deployment
 volumes: []
+# -- Volumes that will be mounted to the deployment
 volumeMounts: []
 
 neosyncCloud:
+  # -- Whether or not this is NeosyncCloud
   enabled: false
+  # -- Worker API keys that have been allowlisted to for use
   workerApiKeys: []
 
 # currently this is used for k8s pods runLogs but is deprecated and runLogs should be configured instead
 kubernetes:
+  # -- Whether or not this is kubernetes (should always be true)
   enabled: true
-  # falls back to the helm release namespace
+  # -- Falls back to the helm release namespace
   namespace:
-  # corresponds with the app label that is present on the worker pod
+  # -- Corresponds with the app label that is present on the worker pod
   workerAppName: neosync-worker
 
-# is runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
+# If runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
 runLogs:
-  # Independently set so that configuration can exist but logs can still be independently disabled
-  # defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes
+  # -- Independently set so that configuration can exist but logs can still be independently disabled. Defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes
   enabled: true
-  # possible values: k8s-pods, loki
+  # -- Possible values: k8s-pods, loki
   type: k8s-pods
 
+  ## The configuration used if the type is k8s-pods
   podConfig:
-    workerNamespace: # falls back to the release namespace
+    # -- The namespace the worker lives in
+    workerNamespace:
+    # -- Corresponds to the app label that is present on the worker pod that will be used to surface logs
     workerAppName: neosync-worker
+  ## The configuration used if the type is loki
   lokiConfig:
-    baseUrl: # base url to loki instance
-    labelsQuery: # LogQL labels query (without the {} as those are provided by the system)
-    keepLabels: # list form
+    # -- The base url to the loki instance
+    baseUrl:
+    # -- LogQL labels query (without the {} as those are provided by the system)
+    labelsQuery:
+    # -- List format.
+    keepLabels:
 
-# check out the ingress.yaml file to see what values are available for configuration on this object.
+# Check out the ingress.yaml file to see what values are available for configuration on this object.
 ingress:
-  # enable this if using K8s ingress to expose the backend to the internet
+  # -- Enable this if using K8s ingress to expose the backend to the internet
   enabled: false
 
 # configure whether or not the api should expose the service metrics proto
 protometrics:
-  # will enable the metrics service proto
+  # -- Will enable the metrics service proto
   enabled: false
-  # the url, will default to http://localhost:9090 if not provided
+  # -- The url, will default to http://localhost:9090 if not provided. Should be a prometheus compliant API
   url:
-  # optionally provide an API key if the prometheus service requires authentication
+  # -- Optionally provide an API key if the prometheus service requires authentication
   apiKey:
 
+# -- The strategy to use when rolling out new replicas
 updateStrategy:
 
-# Provide extra environment variables that will be applied to the deployment.
+# -- Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
