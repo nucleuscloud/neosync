@@ -1036,6 +1036,16 @@ function setDefaultSchemaFormValues(
               : convertJobMappingTransformerToForm(new JobMappingTransformer()),
           };
         }),
+        virtualForeignKeys: job.virtualForeignKeys.map((v) => {
+          return {
+            ...v,
+            foreignKey: {
+              schema: v.foreignKey?.schema ?? '',
+              table: v.foreignKey?.table ?? '',
+              columns: v.foreignKey?.columns ?? [],
+            },
+          };
+        }),
       };
 
       storage.setItem(sessionKeys.dataSync.schema, JSON.stringify(values));
