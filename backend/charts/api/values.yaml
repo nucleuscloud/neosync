@@ -1,5 +1,5 @@
 image:
-  repository:
+  repository: ghcr.io/nucleuscloud/neosync/api
   # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
   pullPolicy:
@@ -11,7 +11,7 @@ imagePullSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create:
+  create: true
   # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
   name:
   annotations: {}
@@ -21,10 +21,12 @@ serviceAccount:
 # also adds a tag to the API logger
 nucleusEnv:
 
+# Currently does not do anything but will eventaully allow emitting otel metrics and traces
 otel:
   enabled: false
   otlpPort: 4317
 
+# Specify database connection information for the backend to connect to
 db:
   host:
   name:
@@ -34,6 +36,7 @@ db:
   disableSsl: false
   options:
 
+# Specify connection information for the migrations init container
 migrations:
   db:
     host:
@@ -47,6 +50,7 @@ migrations:
     migrationsTableQuoted: false
     options:
 
+# Set requests and limits on the backend to change its performance
 resources:
   # These are low-usage defaults. Change these depending on your needs.
   requests:
@@ -56,33 +60,46 @@ resources:
     cpu: "500m"
     memory: "512Mi"
 
+# Configure autoscaling of the container
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 4
   targetCPUUtilizationPercentage: 80
 
+# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details.
 istio:
   enabled: false
 
+# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details.
 datadog:
   enabled: false
 
+# Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads.
 host: 0.0.0.0
 
+# The K8s service port
 servicePort: 80
+# The container port
 containerPort: 8080
 
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
+# Configure the backend to use authentication. This will allow it to communicate with a JWT-based auth service such as keycloak.
 auth:
   enabled: false
+  # The audience that is expected to be present in the JWT aud claim
   audience:
+  # The base url of the auth server
   baseUrl:
+  # The client id that the CLI will use to communicate with the backend for authentication (if auth is enabled)
   cliClientId:
+  # The aud that is expected to be present when the CLI auths to the backend
   cliAudience:
+  # A map of clientId->clientSecret of allowed clients
   clientMap:
+  # API Service Account credentials. This is used by the service itself to perform admin actions against the auth service.
   api:
     clientId:
     clientSecret:
@@ -138,7 +155,7 @@ runLogs:
     labelsQuery: # LogQL labels query (without the {} as those are provided by the system)
     keepLabels: # list form
 
-# check out the ingress.yaml file to see what ither values are available for configuration on this object.
+# check out the ingress.yaml file to see what values are available for configuration on this object.
 ingress:
   # enable this if using K8s ingress to expose the backend to the internet
   enabled: false

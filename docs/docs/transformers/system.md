@@ -959,12 +959,3 @@ Neosync has limited support for array data types today.
 2. Null - If the column is nullable, this transformer can be safely set.
 3. Default - If the column has a default set, this transformer can be set to allow the column be set to its default state.
 4. Javascript Code - The JS code transformer has support for array data types as the logic is effectively up to the function's implementation.
-
-### Foreign Keys
-
-Neosync has limited support for foreign keys and is a feature that is in active development.
-Any primary key that is foreign keyed into another table must be set to passthrough for it to effectively work.
-This will change in an upcoming release that adds foreign key support to all foreign key columns and transformers.
-
-Given this, it's worth noting that not all transformers support unique constraints and may generate the same value.
-It is generally safe to use the `uuid` transformer as that will theoretically always generate a new unique value.

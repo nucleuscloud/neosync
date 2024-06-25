@@ -1,5 +1,5 @@
 image:
-  repository:
+  repository: ghcr.io/nucleuscloud/neosync/app
   # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
   pullPolicy:
@@ -11,7 +11,7 @@ imagePullSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create:
+  create: true
   # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
   name:
   annotations: {}
@@ -21,13 +21,16 @@ serviceAccount:
 # also adds a tag to the API logger
 nucleusEnv:
 
+# Currently does not do anything but will eventaully allow emitting otel metrics and traces
 otel:
   enabled: false
   otlpPort: 4317
 
+# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details.
 istio:
   enabled: false
 
+# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details.
 datadog:
   enabled: false
 
@@ -62,7 +65,7 @@ ingress:
   enabled: false
 
 analytics:
-  enabled: true
+  enabled: true # enables analytics such as posthog and koala
 
 posthog:
   key: phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
@@ -77,6 +80,8 @@ nodeSelector: {}
 neosyncCloud:
   enabled: false
 
+# feature flag that enables the frontend to show the run logs on the Run [id] page.
+# only enable this if the backend has been configured to surface run logs
 enableRunLogs: false
 
 # whether or not to enable the metrics service and display usage metrics in the app

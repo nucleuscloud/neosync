@@ -12,7 +12,7 @@ The Kubernetes guide covers how to deploy Neosync specific resources.
 Deploying a Postgres database and Temporal instances are not covered under this guide.
 See the external dependency section below for more information regarding these resources.
 
-## Deploying with Helm Charts
+## Neosync Helm Chart Layout
 
 Neosync can be deployed to Kubernetes easily with the assistance of Helm charts.
 
@@ -77,6 +77,68 @@ worker:
 
 These can easily be spread across multiple `values.yaml` files if desired to keep them separate, but they will still need to be nested underneath their respective chart name keys.
 
+## Install Neosync on a Kubernetes Cluster
+
+### Prerequisites
+
+This sequences assumes
+
+- That your system is configured to access a kubernetes cluster
+- That your machine has the following installed and is able to access your cluster:
+  - kubectl
+  - Helm v3
+
+This example uses the umbrella chart for simplicity.
+
+### Basic Installation
+
+Neosync uses the OCI image format for Helm, so there is no need to add a separate registry prior to doing the install.
+
+This example assumes that an external Postgres database has been provisioned as well as a functioning Temporal instance (or cloud).
+In the future we will add support for these external dependencies to make it easier to get up and running quickly.
+
+Create a `values.yaml` file.
+
+This is a very minimal install that basically configures the database and temporal, and redis.
+There are a number of other options which you'll need to consult the values files for the chart for more information.
+
+```
+api:
+  db:
+    host: <db-host>
+    name: <db-name>
+    port: 5432
+    username: <user>
+    password: <password>
+  migrations:
+    host: <db-host>
+    name: <db-name>
+    port: 5432
+    username: <user>
+    password: <password>
+
+  temporal:
+    url: <temporal-url>
+    namespace: <temporal-namespace>
+
+worker:
+  temporal:
+    url: <temporal-url>
+    namespace: <temporal-namespace>
+
+  # required if intending transform primary/foreign keys
+  redis:
+    url: <redis-url>
+```
+
+Install the chart:
+
+When specifying the version, be sure to omit the `v` from the github release. So if the current version if `v0.4.38`, specify `0.4.38` as the helm version.
+
+```
+helm install oci://ghcr.io/nucleuscloud/neosync/helm/neosync --version <version> -f values.yaml
+```
+
 ## External Dependencies for Production Deployments
 
 We do not cover how to deploy a Postgres database for Neosync or the Temporal suite.
@@ -89,8 +151,6 @@ Generally, we suggest going with a cloud provider to host the database, but if i
 
 Temporal can also be deployed to Kubernetes via a Helm chart that can be found in their [Github repo](https://github.com/temporalio/helm-charts). We suggest following their helm chart guide for deploying Temporal into Kubernetes.
 Temporal also has [Temporal Cloud](https://cloud.temporal.io/) that can be used if it's not desirable to self-host Temporal in a production environment.
-
-It's worth noting that Temporal does not publish their Helm Charts anywhere. To utilize them, you may have to re-publish them to your own internal chart repository, or figure out some means of installing them (either manually or some other automated fashion.)
 
 There is also a community maintained [Temporal Operator](https://github.com/alexandrevilain/temporal-operator) that could be of use to assist with Temporal management and upgrades. Use at your own risk.
 
