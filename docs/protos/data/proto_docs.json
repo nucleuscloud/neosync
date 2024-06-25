@@ -1516,6 +1516,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "gcp_cloudstorage_config",
+              "description": "",
+              "label": "",
+              "type": "GcpCloudStorageConnectionConfig",
+              "longType": "GcpCloudStorageConnectionConfig",
+              "fullType": "mgmt.v1alpha1.GcpCloudStorageConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1685,6 +1697,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GcpCloudStorageConnectionConfig",
+          "longName": "GcpCloudStorageConnectionConfig",
+          "fullName": "mgmt.v1alpha1.GcpCloudStorageConnectionConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "bucket",
+              "description": "The GCP Cloud Storage bucket that will be accessed.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "path_prefix",
+              "description": "The path prefix that will be appended to each file",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_path_prefix",
+              "defaultValue": ""
+            },
+            {
+              "name": "service_account_credentials",
+              "description": "stringified json of the service account credentials file",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_service_account_credentials",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GetConnectionRequest",
