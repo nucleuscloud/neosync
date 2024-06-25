@@ -1439,7 +1439,7 @@
           "name": "ConnectionConfig",
           "longName": "ConnectionConfig",
           "fullName": "mgmt.v1alpha1.ConnectionConfig",
-          "description": "",
+          "description": "Configuration for all of the supported Neosync connection types",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": true,
@@ -1447,7 +1447,7 @@
           "fields": [
             {
               "name": "pg_config",
-              "description": "",
+              "description": "Configures a PostgreSQL connection",
               "label": "",
               "type": "PostgresConnectionConfig",
               "longType": "PostgresConnectionConfig",
@@ -1459,7 +1459,7 @@
             },
             {
               "name": "aws_s3_config",
-              "description": "",
+              "description": "Configures an AWS S3 Connection",
               "label": "",
               "type": "AwsS3ConnectionConfig",
               "longType": "AwsS3ConnectionConfig",
@@ -1471,7 +1471,7 @@
             },
             {
               "name": "mysql_config",
-              "description": "",
+              "description": "Configures a MySQL connection",
               "label": "",
               "type": "MysqlConnectionConfig",
               "longType": "MysqlConnectionConfig",
@@ -1519,7 +1519,7 @@
             },
             {
               "name": "gcp_cloudstorage_config",
-              "description": "",
+              "description": "Configures a GCP Cloud Storage Connection",
               "label": "",
               "type": "GcpCloudStorageConnectionConfig",
               "longType": "GcpCloudStorageConnectionConfig",
@@ -1702,7 +1702,7 @@
           "name": "GcpCloudStorageConnectionConfig",
           "longName": "GcpCloudStorageConnectionConfig",
           "fullName": "mgmt.v1alpha1.GcpCloudStorageConnectionConfig",
-          "description": "",
+          "description": "Configuration for GCP Cloud Storage Buckets",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": true,

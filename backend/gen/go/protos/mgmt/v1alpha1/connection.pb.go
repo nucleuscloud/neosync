@@ -806,6 +806,7 @@ func (x *Connection) GetAccountId() string {
 	return ""
 }
 
+// Configuration for all of the supported Neosync connection types
 type ConnectionConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -916,14 +917,17 @@ type isConnectionConfig_Config interface {
 }
 
 type ConnectionConfig_PgConfig struct {
+	// Configures a PostgreSQL connection
 	PgConfig *PostgresConnectionConfig `protobuf:"bytes,1,opt,name=pg_config,json=pgConfig,proto3,oneof"`
 }
 
 type ConnectionConfig_AwsS3Config struct {
+	// Configures an AWS S3 Connection
 	AwsS3Config *AwsS3ConnectionConfig `protobuf:"bytes,2,opt,name=aws_s3_config,json=awsS3Config,proto3,oneof"`
 }
 
 type ConnectionConfig_MysqlConfig struct {
+	// Configures a MySQL connection
 	MysqlConfig *MysqlConnectionConfig `protobuf:"bytes,3,opt,name=mysql_config,json=mysqlConfig,proto3,oneof"`
 }
 
@@ -943,6 +947,7 @@ type ConnectionConfig_MongoConfig struct {
 }
 
 type ConnectionConfig_GcpCloudstorageConfig struct {
+	// Configures a GCP Cloud Storage Connection
 	GcpCloudstorageConfig *GcpCloudStorageConnectionConfig `protobuf:"bytes,7,opt,name=gcp_cloudstorage_config,json=gcpCloudstorageConfig,proto3,oneof"`
 }
 
@@ -2114,6 +2119,7 @@ func (x *AwsS3Credentials) GetRoleExternalId() string {
 	return ""
 }
 
+// Configuration for GCP Cloud Storage Buckets
 type GcpCloudStorageConnectionConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

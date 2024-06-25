@@ -82,12 +82,16 @@ message Connection {
   string account_id = 8;
 }
 
+// Configuration for all of the supported Neosync connection types
 message ConnectionConfig {
   oneof config {
     option (buf.validate.oneof).required = true;
 
+    // Configures a PostgreSQL connection
     PostgresConnectionConfig pg_config = 1;
+    // Configures an AWS S3 Connection
     AwsS3ConnectionConfig aws_s3_config = 2;
+    // Configures a MySQL connection
     MysqlConnectionConfig mysql_config = 3;
     // Configures a connection to a directory available on the local file system
     LocalDirectoryConnectionConfig local_dir_config = 4;
@@ -95,6 +99,7 @@ message ConnectionConfig {
     OpenAiConnectionConfig openai_config = 5;
     // Configures a MongoDB Connection
     MongoConnectionConfig mongo_config = 6;
+    // Configures a GCP Cloud Storage Connection
     GcpCloudStorageConnectionConfig gcp_cloudstorage_config = 7;
   }
 }
@@ -253,6 +258,7 @@ message AwsS3Credentials {
   optional string role_external_id = 7;
 }
 
+// Configuration for GCP Cloud Storage Buckets
 message GcpCloudStorageConnectionConfig {
   // The GCP Cloud Storage bucket that will be accessed.
   string bucket = 1 [(buf.validate.field).string.min_len = 1];

@@ -629,6 +629,8 @@ export class Connection extends Message<Connection> {
 }
 
 /**
+ * Configuration for all of the supported Neosync connection types
+ *
  * @generated from message mgmt.v1alpha1.ConnectionConfig
  */
 export class ConnectionConfig extends Message<ConnectionConfig> {
@@ -637,18 +639,24 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
    */
   config: {
     /**
+     * Configures a PostgreSQL connection
+     *
      * @generated from field: mgmt.v1alpha1.PostgresConnectionConfig pg_config = 1;
      */
     value: PostgresConnectionConfig;
     case: "pgConfig";
   } | {
     /**
+     * Configures an AWS S3 Connection
+     *
      * @generated from field: mgmt.v1alpha1.AwsS3ConnectionConfig aws_s3_config = 2;
      */
     value: AwsS3ConnectionConfig;
     case: "awsS3Config";
   } | {
     /**
+     * Configures a MySQL connection
+     *
      * @generated from field: mgmt.v1alpha1.MysqlConnectionConfig mysql_config = 3;
      */
     value: MysqlConnectionConfig;
@@ -679,6 +687,8 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     case: "mongoConfig";
   } | {
     /**
+     * Configures a GCP Cloud Storage Connection
+     *
      * @generated from field: mgmt.v1alpha1.GcpCloudStorageConnectionConfig gcp_cloudstorage_config = 7;
      */
     value: GcpCloudStorageConnectionConfig;
@@ -1604,6 +1614,8 @@ export class AwsS3Credentials extends Message<AwsS3Credentials> {
 }
 
 /**
+ * Configuration for GCP Cloud Storage Buckets
+ *
  * @generated from message mgmt.v1alpha1.GcpCloudStorageConnectionConfig
  */
 export class GcpCloudStorageConnectionConfig extends Message<GcpCloudStorageConnectionConfig> {
