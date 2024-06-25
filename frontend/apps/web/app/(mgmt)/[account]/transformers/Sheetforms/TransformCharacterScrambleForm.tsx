@@ -106,7 +106,7 @@ export default function TransformCharacterScrambleForm(
                     substring of the value. Leave this blank to transform the
                     entire value. Note: the regex needs to compile in Go.
                   </FormDescription>
-                  <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+                  <LearnMoreTag href="https://docs.neosync.dev/transformers/system#transform-character-scramble" />
                 </div>
                 <FormControl>
                   <div className="flex flex-col items-center">
