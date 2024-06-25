@@ -1,5 +1,5 @@
 image:
-  repository:
+  repository: ghcr.io/nucleuscloud/neosync/worker
   # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
   tag:
   pullPolicy:
@@ -11,7 +11,7 @@ imagePullSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create:
+  create: true
   # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
   name:
   annotations: {}
@@ -21,6 +21,9 @@ serviceAccount:
 # also adds a tag to the API logger
 nucleusEnv:
 
+# Will eventually allow sending traces.
+# The worker does emit record-based metrics, but does not currently listen to otel.enabled.
+# Must provide the OTEL_SDK_DISABLED=false environment variable separately today.
 otel:
   enabled: false
   otlpPort: 4317
@@ -40,9 +43,11 @@ autoscaling:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
 
+# Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details.
 istio:
   enabled: false
 
+# Adds annotations to support sending logs to Datadog. See the Neosync k8s docs for more details.
 datadog:
   enabled: false
 
