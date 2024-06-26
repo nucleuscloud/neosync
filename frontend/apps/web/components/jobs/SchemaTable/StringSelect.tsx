@@ -34,7 +34,7 @@ export function StringSelect(props: Props): ReactElement {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className=" justify-between"
         >
           {value ? values.find((v) => v === value) : `Select ${text}...`}
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

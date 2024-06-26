@@ -44,7 +44,7 @@ export function getVirtualForeignKeysColumns(
       cell: ({ getValue }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {getValue<string[]>()}
+            {getValue<string[]>().toString()}
           </span>
         );
       },
@@ -69,17 +69,18 @@ export function getVirtualForeignKeysColumns(
       size: 300,
     },
     {
-      accessorKey: 'columns',
+      accessorFn: (row) => row.columns,
+      id: 'targetColumns',
       header: ({ column }) => (
         <VirtualForeignKeysColumnHeader
           column={column}
           title="Source Columns"
         />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('columns')}
+            {getValue<string[]>().toString()}
           </span>
         );
       },
@@ -115,17 +116,3 @@ export function getVirtualForeignKeysColumns(
     },
   ];
 }
-
-// function buildVirtualForeignKeyId(row: RowData): string {
-//   const strList: string[] = [row.schema, row.table];
-//   row.columns?.forEach((c) => {
-//     strList.push(c);
-//   });
-//   strList.push(row.foreignKey.schema);
-//   strList.push(row.foreignKey.table);
-//   row.foreignKey.columns?.forEach((c) => {
-//     strList.push(c);
-//   });
-
-//   return strList.join('-');
-// }
