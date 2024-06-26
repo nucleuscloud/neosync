@@ -193,6 +193,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		connectionMap[connection.Id] = connection
 	}
 
+	// todo: add support for gcp cloud storage authentication
+
 	envKeyDsnSyncMap := sync.Map{}
 	dsnToConnectionIdMap := sync.Map{}
 	errgrp := errgroup.Group{}
