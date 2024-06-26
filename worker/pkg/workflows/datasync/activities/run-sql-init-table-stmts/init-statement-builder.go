@@ -78,8 +78,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
 		}
-		if destinationConnection.GetConnectionConfig().GetAwsS3Config() != nil {
-			// nothing to do for AWS S3 destination
+		if destinationConnection.GetConnectionConfig().GetAwsS3Config() != nil || destinationConnection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
+			// nothing to do for Bucket destinations
 			continue
 		}
 		sqlopts, err := getSqlJobDestinationOpts(destination.GetOptions())
