@@ -95,8 +95,6 @@ jobs:
           go test -race -coverprofile=coverage.out -covermode=atomic ./...
         env:
           INTEGRATION_TESTS_ENABLED: 1
-          TEST_DB_URL: postgres://postgres:postgres@localhost:5432/postgres
-          TEST_REDIS_URL: redis://localhost:6379
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
