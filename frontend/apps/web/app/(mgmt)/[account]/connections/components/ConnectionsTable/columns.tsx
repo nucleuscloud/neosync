@@ -144,6 +144,8 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
       return 'Local Dir';
     case 'mongoConfig':
       return 'MongoDB';
+    case 'gcpCloudstorageConfig':
+      return 'GCP Cloud Storage';
     default:
       return '-';
   }
