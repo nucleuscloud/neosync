@@ -25,11 +25,16 @@ export function getSystemAppConfig(): SystemAppConfig {
     isMetricsServiceEnabled: process.env.METRICS_SERVICE_ENABLED === 'true',
     calendlyUpgradeLink:
       process.env.CALENDLY_UPGRADE_LINK ?? 'https://calendly.com/evis1/30min',
+    isGcpCloudStorageConnectionsEnabled: isGcpConnectionsEnabled(),
   };
 }
 
+function isGcpConnectionsEnabled(): boolean {
+  const val = process.env.GCP_CS_CONNECTIONS_DISABLED;
+  return val ? val === 'false' : true;
+}
+
 function isAnalyticsEnabled(): boolean {
-  return process.env.NEOSYNC_ANALYTICS_ENABLED
-    ? process.env.NEOSYNC_ANALYTICS_ENABLED === 'true'
-    : true;
+  const val = process.env.NEOSYNC_ANALYTICS_ENABLED;
+  return val ? val === 'true' : true;
 }

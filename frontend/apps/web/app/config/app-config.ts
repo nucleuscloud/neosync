@@ -9,6 +9,7 @@ export interface SystemAppConfig {
   isMetricsServiceEnabled: boolean;
 
   calendlyUpgradeLink: string;
+  isGcpCloudStorageConnectionsEnabled: boolean;
 }
 
 interface PosthogConfig {

@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { getConnection } from '@/libs/hooks/useGetConnection';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
@@ -31,6 +32,7 @@ import {
   GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
+import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -44,6 +46,8 @@ export default function GcpCloudStorageForm(): ReactElement {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
+  const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
+    useGetSystemAppConfig();
   const { data: onboardingData, mutate: mutateOnboardingData } =
     useGetAccountOnboardingConfig(account?.id ?? '');
   const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
@@ -167,8 +171,11 @@ export default function GcpCloudStorageForm(): ReactElement {
     fetchData();
   }, [account?.id]);
 
-  if (isLoading || !account?.id) {
+  if (isLoading || !account?.id || isSystemAppConfigLoading) {
     return <SkeletonForm />;
+  }
+  if (!systemAppConfig?.isGcpCloudStorageConnectionsEnabled) {
+    return <Error statusCode={404} />;
   }
 
   return (

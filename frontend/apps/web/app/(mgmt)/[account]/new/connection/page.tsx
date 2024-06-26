@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
 import ConnectionCard, { ConnectionMeta } from './components/ConnectionCard';
@@ -69,11 +70,13 @@ const CONNECTIONS: ConnectionMeta[] = [
 
 export default function NewConnectionPage(): ReactElement {
   const searchParams = useSearchParams();
+  const { data: sytemAppConfigData } = useGetSystemAppConfig();
   const connectionTypes = new Set(searchParams.getAll('connectionType'));
-  const connections =
-    connectionTypes.size === 0
-      ? CONNECTIONS
-      : CONNECTIONS.filter((c) => connectionTypes.has(c.connectionType));
+
+  const connections = getConnectionsMetadata(
+    connectionTypes,
+    sytemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
+  );
   return (
     <OverviewContainer
       Header={
@@ -91,4 +94,22 @@ export default function NewConnectionPage(): ReactElement {
       </div>
     </OverviewContainer>
   );
+}
+
+function getConnectionsMetadata(
+  connectionTypes: Set<string>,
+  isGcpCloudStorageConnectionsEnabled: boolean
+): ConnectionMeta[] {
+  let connections = CONNECTIONS;
+  if (!isGcpCloudStorageConnectionsEnabled) {
+    connections = connections.filter(
+      (c) => c.connectionType !== 'gcp-cloud-storage'
+    );
+  }
+  if (connectionTypes.size > 0) {
+    connections = connections.filter((c) =>
+      connectionTypes.has(c.connectionType)
+    );
+  }
+  return connections;
 }
