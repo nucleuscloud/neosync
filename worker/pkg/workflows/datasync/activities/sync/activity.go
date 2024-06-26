@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
+	_ "github.com/benthosdev/benthos/v4/public/components/gcp"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/mongodb"
@@ -15,7 +16,6 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
-	"github.com/google/uuid"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
@@ -25,16 +25,20 @@ import (
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
-	"go.opentelemetry.io/otel/metric"
 
-	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+
+	"connectrpc.com/connect"
+	"go.opentelemetry.io/otel/metric"
+
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/log"
+
+	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
 

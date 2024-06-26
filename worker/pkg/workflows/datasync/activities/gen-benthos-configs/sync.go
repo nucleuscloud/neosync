@@ -478,7 +478,58 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 			}},
 		},
 	})
+	return outputs
+}
 
+func (b *benthosBuilder) getGcpCloudStorageSyncBenthosOutput(
+	connection *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig,
+	benthosConfig *BenthosConfigResponse,
+	workflowId string,
+) []neosync_benthos.Outputs {
+	outputs := []neosync_benthos.Outputs{}
+
+	pathpieces := []string{}
+	if connection.GcpCloudstorageConfig.PathPrefix != nil && *connection.GcpCloudstorageConfig.PathPrefix != "" {
+		pathpieces = append(pathpieces, strings.Trim(*connection.GcpCloudstorageConfig.PathPrefix, "/"))
+	}
+
+	pathpieces = append(
+		pathpieces,
+		"workflows",
+		workflowId,
+		"activities",
+		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
+		"data",
+		`${!count("files")}.txt.gz`,
+	)
+
+	outputs = append(outputs, neosync_benthos.Outputs{
+		Fallback: []neosync_benthos.Outputs{
+			{
+				GcpCloudStorage: &neosync_benthos.GcpCloudStorageOutput{
+					Bucket:      connection.GcpCloudstorageConfig.GetBucket(),
+					MaxInFlight: 64,
+					Path:        strings.Join(pathpieces, "/"),
+					Batching: &neosync_benthos.Batching{
+						Count:  100,
+						Period: "5s",
+						Processors: []*neosync_benthos.BatchProcessor{
+							{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
+							{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+						},
+					},
+				},
+			},
+			// kills activity depending on error
+			{Error: &neosync_benthos.ErrorOutputConfig{
+				ErrorMsg: `${! meta("fallback_error")}`,
+				Batching: &neosync_benthos.Batching{
+					Period: "5s",
+					Count:  100,
+				},
+			}},
+		},
+	})
 	return outputs
 }
 

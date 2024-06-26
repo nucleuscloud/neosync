@@ -158,6 +158,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				}
 				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, req.WorkflowId)
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
+			case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+				if resp.RunType == tabledependency.RunTypeUpdate {
+					continue
+				}
+				output := b.getGcpCloudStorageSyncBenthosOutput(connection, resp, req.WorkflowId)
+				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, output...)
 			case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})
 				if resp.Config.Input.PooledMongoDB != nil || resp.Config.Input.MongoDB != nil {
@@ -205,7 +211,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 	}
 	// hack to remove update configs when only syncing to s3
-	if isS3OnlyDestination(job.Destinations) {
+	if isOnlyBucketDestinations(job.Destinations) {
 		filteredResponses := []*BenthosConfigResponse{}
 		for _, r := range responses {
 			if r.RunType == tabledependency.RunTypeInsert {
@@ -224,9 +230,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}, nil
 }
 
-func isS3OnlyDestination(destinations []*mgmtv1alpha1.JobDestination) bool {
+func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {
 	for _, dest := range destinations {
-		if dest.GetOptions().GetAwsS3Options() == nil {
+		if dest.GetOptions().GetAwsS3Options() == nil && dest.GetOptions().GetGcpCloudstorageOptions() == nil {
 			return false
 		}
 	}

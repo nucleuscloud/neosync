@@ -250,10 +250,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 			}
 			destdb.Db.Close()
-		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		default:
-			return nil, fmt.Errorf("unsupported destination connection config")
+			return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.ConnectionConfig.Config)
 		}
 	}
 
@@ -321,6 +321,6 @@ func getSqlJobDestinationOpts(
 			InitSchema:           opts.MysqlOptions.GetInitTableSchema(),
 		}, nil
 	default:
-		return nil, errors.New("unsupported job destination options type")
+		return nil, fmt.Errorf("unsupported job destination options type: %T", opts)
 	}
 }

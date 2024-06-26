@@ -214,6 +214,7 @@ type Outputs struct {
 	PooledSqlInsert *PooledSqlInsert       `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
 	PooledSqlUpdate *PooledSqlUpdate       `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
 	AwsS3           *AwsS3Insert           `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	GcpCloudStorage *GcpCloudStorageOutput `json:"gcp_cloud_storage,omitempty" yaml:"gcp_cloud_storage,omitempty"`
 	Retry           *RetryConfig           `json:"retry,omitempty" yaml:"retry,omitempty"`
 	Broker          *OutputBrokerConfig    `json:"broker,omitempty" yaml:"broker,omitempty"`
 	DropOn          *DropOnConfig          `json:"drop_on,omitempty" yaml:"drop_on,omitempty"`
@@ -357,8 +358,8 @@ type SqlInsert struct {
 
 type AwsS3Insert struct {
 	Bucket      string    `json:"bucket" yaml:"bucket"`
-	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
 	Path        string    `json:"path" yaml:"path"`
+	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
 	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 
 	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
@@ -375,6 +376,19 @@ type AwsCredentials struct {
 	FromEc2Role    bool   `json:"from_ec2_role,omitempty" yaml:"from_ec2_role,omitempty"`
 	Role           string `json:"role,omitempty" yaml:"role,omitempty"`
 	RoleExternalId string `json:"role_external_id,omitempty" yaml:"role_external_id,omitempty"`
+}
+
+type GcpCloudStorageOutput struct {
+	Bucket      string    `json:"bucket" yaml:"bucket"`
+	Path        string    `json:"path" yaml:"path"`
+	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
+	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+
+	ContentType     *string `json:"content_type,omitempty" yaml:"content_type,omitempty"`
+	ContentEncoding *string `json:"content_encoding,omitempty" yaml:"content_encoding,omitempty"`
+	CollisionMode   *string `json:"collision_mode,omitempty" yaml:"collision_mode,omitempty"`
+	ChunkSize       *int    `json:"chunk_size,omitempty" yaml:"chunk_size,omitempty"`
+	Timeout         *string `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 type Batching struct {
