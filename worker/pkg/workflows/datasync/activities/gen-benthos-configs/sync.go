@@ -507,9 +507,11 @@ func (b *benthosBuilder) getGcpCloudStorageSyncBenthosOutput(
 		Fallback: []neosync_benthos.Outputs{
 			{
 				GcpCloudStorage: &neosync_benthos.GcpCloudStorageOutput{
-					Bucket:      connection.GcpCloudstorageConfig.GetBucket(),
-					MaxInFlight: 64,
-					Path:        strings.Join(pathpieces, "/"),
+					Bucket:          connection.GcpCloudstorageConfig.GetBucket(),
+					MaxInFlight:     64,
+					Path:            strings.Join(pathpieces, "/"),
+					ContentType:     shared.Ptr("txt/plain"),
+					ContentEncoding: shared.Ptr("gzip"),
 					Batching: &neosync_benthos.Batching{
 						Count:  100,
 						Period: "5s",
