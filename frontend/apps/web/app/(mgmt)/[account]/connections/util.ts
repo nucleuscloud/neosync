@@ -1,5 +1,6 @@
 import {
   ClientTlsFormValues,
+  GcpCloudStorageFormValues,
   MongoDbFormValues,
   MysqlFormValues,
   PostgresFormValues,
@@ -12,6 +13,7 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GcpCloudStorageConnectionConfig,
   IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
   MysqlConnection,
@@ -84,6 +86,25 @@ export async function isConnectionNameAvailable(
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
+export async function createGcpCloudStorageConnection(
+  values: GcpCloudStorageFormValues,
+  accountId: string
+): Promise<CreateConnectionResponse> {
+  return createConnection(
+    new CreateConnectionRequest({
+      name: values.connectionName,
+      accountId: accountId,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'gcpCloudstorageConfig',
+          value: buildGcpCloudStorageConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
 export async function createMysqlConnection(
   values: MysqlFormValues,
   accountId: string
@@ -138,6 +159,15 @@ export async function checkMysqlConnection(
     }),
     accountId
   );
+}
+
+function buildGcpCloudStorageConnectionConfig(
+  values: GcpCloudStorageFormValues
+): GcpCloudStorageConnectionConfig {
+  return new GcpCloudStorageConnectionConfig({
+    bucket: values.gcp.bucket,
+    pathPrefix: values.gcp.pathPrefix,
+  });
 }
 
 function buildMysqlConnectionConfig(
