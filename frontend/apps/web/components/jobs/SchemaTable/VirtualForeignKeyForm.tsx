@@ -115,6 +115,10 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                           constraintHandler,
                           sourceTable
                         )}
+                        badgeValueMap={getColumnDataTypeMap(
+                          schema,
+                          sourceTable
+                        )}
                         setValue={(value) => updateSourceColumn(index, value)}
                         text="column"
                       />
@@ -138,6 +142,10 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                         key={index}
                         value={col}
                         values={getTargetColumnOptions(schema, targetTable)}
+                        badgeValueMap={getColumnDataTypeMap(
+                          schema,
+                          targetTable
+                        )}
                         setValue={(value) => updateTargetColumn(index, value)}
                         text="column"
                       />
@@ -207,6 +215,21 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
       </Card>
     </div>
   );
+}
+
+function getColumnDataTypeMap(
+  schema: ConnectionSchemaMap,
+  table?: string
+): Record<string, string> {
+  const results: Record<string, string> = {};
+  if (!table) {
+    return results;
+  }
+  const columns = schema[table];
+  columns.forEach((c) => {
+    results[c.column] = c.dataType;
+  });
+  return results;
 }
 
 function getSourceColumnOptions(
