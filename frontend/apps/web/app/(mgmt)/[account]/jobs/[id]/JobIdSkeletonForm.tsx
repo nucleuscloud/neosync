@@ -11,6 +11,7 @@ export default function JobIdSkeletonForm(): ReactElement {
             <Skeleton className="h-10 w-[200px]" />
             <Skeleton className="h-10 w-[200px]" />
             <Skeleton className="h-10 w-[200px]" />
+            <Skeleton className="h-10 w-[200px]" />
           </div>
         </div>
         <Skeleton className="h-10 w-full" />

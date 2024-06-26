@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
 import ConnectionCard, { ConnectionMeta } from './components/ConnectionCard';
@@ -28,11 +29,19 @@ const CONNECTIONS: ConnectionMeta[] = [
     connectionType: 'aws-s3',
   },
   {
+    urlSlug: 'gcp-cloud-storage',
+    name: 'GCP Cloud Storage',
+    description:
+      'GCP Cloud Storage is an object storage service used to store and retrieve any data.',
+    connectionType: 'gcp-cloud-storage',
+  },
+  {
     urlSlug: 'neon',
     name: 'Neon',
     description:
       'Neon is a serverless Postgres database that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
     connectionType: 'postgres',
+    connectionTypeVariant: 'neon',
   },
   {
     urlSlug: 'supabase',
@@ -40,6 +49,7 @@ const CONNECTIONS: ConnectionMeta[] = [
     description:
       'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more.',
     connectionType: 'postgres',
+    connectionTypeVariant: 'supabase',
   },
   {
     urlSlug: 'openai',
@@ -60,11 +70,13 @@ const CONNECTIONS: ConnectionMeta[] = [
 
 export default function NewConnectionPage(): ReactElement {
   const searchParams = useSearchParams();
+  const { data: sytemAppConfigData } = useGetSystemAppConfig();
   const connectionTypes = new Set(searchParams.getAll('connectionType'));
-  const connections =
-    connectionTypes.size === 0
-      ? CONNECTIONS
-      : CONNECTIONS.filter((c) => connectionTypes.has(c.connectionType));
+
+  const connections = getConnectionsMetadata(
+    connectionTypes,
+    sytemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
+  );
   return (
     <OverviewContainer
       Header={
@@ -82,4 +94,22 @@ export default function NewConnectionPage(): ReactElement {
       </div>
     </OverviewContainer>
   );
+}
+
+function getConnectionsMetadata(
+  connectionTypes: Set<string>,
+  isGcpCloudStorageConnectionsEnabled: boolean
+): ConnectionMeta[] {
+  let connections = CONNECTIONS;
+  if (!isGcpCloudStorageConnectionsEnabled) {
+    connections = connections.filter(
+      (c) => c.connectionType !== 'gcp-cloud-storage'
+    );
+  }
+  if (connectionTypes.size > 0) {
+    connections = connections.filter((c) =>
+      connectionTypes.has(c.connectionType)
+    );
+  }
+  return connections;
 }

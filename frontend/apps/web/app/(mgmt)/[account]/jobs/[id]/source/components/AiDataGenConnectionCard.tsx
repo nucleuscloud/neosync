@@ -350,6 +350,8 @@ export default function AiDataGenConnectionCard({
 
                         return (
                           c.connectionConfig?.config.case !== 'awsS3Config' &&
+                          c.connectionConfig?.config.case !==
+                            'gcpCloudstorageConfig' &&
                           dests.some((dest) => {
                             const destConn = connectionsMap.get(
                               dest.connectionId

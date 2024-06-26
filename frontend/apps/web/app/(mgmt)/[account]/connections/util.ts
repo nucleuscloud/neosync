@@ -1,5 +1,6 @@
 import {
   ClientTlsFormValues,
+  GcpCloudStorageFormValues,
   MongoDbFormValues,
   MysqlFormValues,
   PostgresFormValues,
@@ -12,6 +13,7 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GcpCloudStorageConnectionConfig,
   IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
   MysqlConnection,
@@ -32,10 +34,15 @@ export type ConnectionType =
   | 'mysql'
   | 'aws-s3'
   | 'openai'
-  | 'mongodb';
+  | 'mongodb'
+  | 'gcp-cloud-storage';
+
+// Variant of a connection type.
+export type ConnectionTypeVariant = 'neon' | 'supabase';
 
 export const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionType>([
   'aws-s3',
+  'gcp-cloud-storage',
 ]);
 
 export function getConnectionType(
@@ -52,6 +59,8 @@ export function getConnectionType(
       return 'openai';
     case 'mongoConfig':
       return 'mongodb';
+    case 'gcpCloudstorageConfig':
+      return 'gcp-cloud-storage';
     default:
       return null;
   }
@@ -75,6 +84,45 @@ export async function isConnectionNameAvailable(
     throw new Error(body.message);
   }
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
+}
+
+export async function createGcpCloudStorageConnection(
+  values: GcpCloudStorageFormValues,
+  accountId: string
+): Promise<CreateConnectionResponse> {
+  return createConnection(
+    new CreateConnectionRequest({
+      name: values.connectionName,
+      accountId: accountId,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'gcpCloudstorageConfig',
+          value: buildGcpCloudStorageConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
+export async function updateGcpCloudStorageConnection(
+  values: GcpCloudStorageFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateConnectionResponse> {
+  return updateConnection(
+    new UpdateConnectionRequest({
+      id: resourceId,
+      name: values.connectionName,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'gcpCloudstorageConfig',
+          value: buildGcpCloudStorageConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
 }
 
 export async function createMysqlConnection(
@@ -131,6 +179,15 @@ export async function checkMysqlConnection(
     }),
     accountId
   );
+}
+
+function buildGcpCloudStorageConnectionConfig(
+  values: GcpCloudStorageFormValues
+): GcpCloudStorageConnectionConfig {
+  return new GcpCloudStorageConnectionConfig({
+    bucket: values.gcp.bucket,
+    pathPrefix: values.gcp.pathPrefix,
+  });
 }
 
 function buildMysqlConnectionConfig(

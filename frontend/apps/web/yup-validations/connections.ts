@@ -179,6 +179,25 @@ export const AWS_FORM_SCHEMA = Yup.object({
 
 export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
 
+export const GcpCloudStorageFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+  gcp: Yup.object({
+    bucket: Yup.string().required(),
+    pathPrefix: Yup.string().optional(),
+  }).required(),
+});
+
+export type GcpCloudStorageFormValues = Yup.InferType<
+  typeof GcpCloudStorageFormValues
+>;
+
+export interface CreateConnectionFormContext {
+  accountId: string;
+}
+export interface EditConnectionFormContext extends CreateConnectionFormContext {
+  originalConnectionName: string;
+}
+
 export const OpenAiFormValues = Yup.object({
   connectionName: connectionNameSchema,
   sdk: Yup.object({

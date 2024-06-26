@@ -128,6 +128,8 @@ export default function DestinationOptionsForm(
       return <></>;
     case 'mongoConfig':
       return <></>;
+    case 'gcpCloudstorageConfig':
+      return <></>;
     default:
       return (
         <div>

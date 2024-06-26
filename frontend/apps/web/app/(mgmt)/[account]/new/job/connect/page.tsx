@@ -92,7 +92,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const { postgres, mysql, s3, mongodb } = splitConnections(connections);
+  const { postgres, mysql, s3, mongodb, gcpcs } = splitConnections(connections);
 
   return (
     <div
@@ -211,8 +211,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               postgres={postgres}
                               mysql={mysql}
                               mongodb={mongodb}
-                              s3={[]}
-                              openai={[]}
                               newConnectionValue={NEW_CONNECTION_VALUE}
                             />
                           </SelectContent>
@@ -308,6 +306,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           );
                                           urlParams.append(
                                             'connectionType',
+                                            'gcp-cloud-storage'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
                                             'mongodb'
                                           );
                                         }
@@ -343,6 +345,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         mysql={mysql}
                                         s3={s3}
                                         mongodb={mongodb}
+                                        gcpcs={gcpcs}
                                         newConnectionValue={
                                           NEW_CONNECTION_VALUE
                                         }

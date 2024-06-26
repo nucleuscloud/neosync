@@ -10,13 +10,17 @@ import {
 } from '@/components/ui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
-import { ConnectionType } from '../../../connections/util';
+import {
+  ConnectionType,
+  ConnectionTypeVariant,
+} from '../../../connections/util';
 
 export interface ConnectionMeta {
   name: string;
   description: string;
   urlSlug: string;
   connectionType: ConnectionType;
+  connectionTypeVariant?: ConnectionTypeVariant;
   isExperimental?: boolean;
 }
 
@@ -43,7 +47,10 @@ export default function ConnectionCard(props: Props): ReactElement {
       <CardHeader>
         <CardTitle>
           <div className="flex flex-row items-center space-x-2">
-            <ConnectionIcon name={connection.name} />
+            <ConnectionIcon
+              connectionType={connection.connectionType}
+              connectionTypeVariant={connection.connectionTypeVariant}
+            />
             <p>{connection.name}</p>
             {connection.isExperimental ? <Badge>Experimental</Badge> : null}
           </div>

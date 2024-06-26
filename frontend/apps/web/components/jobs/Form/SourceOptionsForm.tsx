@@ -78,6 +78,8 @@ export default function SourceOptionsForm(
       return <></>;
     case 'mongoConfig':
       return <></>;
+    case 'gcpCloudstorageConfig':
+      return <></>;
     default:
       return (
         <div>

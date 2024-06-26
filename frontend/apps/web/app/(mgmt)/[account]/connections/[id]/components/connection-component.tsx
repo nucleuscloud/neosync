@@ -10,6 +10,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
+import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MysqlForm from './MysqlForm';
 import OpenAiForm from './OpenAiForm';
@@ -95,9 +96,12 @@ export function getConnectionComponentDetails(
             header={headerType == 'neon' ? 'Neon' : 'PostgreSQL'}
             leftIcon={
               headerType == 'neon' ? (
-                <ConnectionIcon name="neon" />
+                <ConnectionIcon
+                  connectionType="postgres"
+                  connectionTypeVariant="neon"
+                />
               ) : (
-                <ConnectionIcon name="postgres" />
+                <ConnectionIcon connectionType="postgres" />
               )
             }
             extraHeading={extraPageHeading}
@@ -193,7 +197,7 @@ export function getConnectionComponentDetails(
             header: (
               <PageHeader
                 header="Mysql"
-                leftIcon={<ConnectionIcon name="mysql" />}
+                leftIcon={<ConnectionIcon connectionType="mysql" />}
                 extraHeading={extraPageHeading}
                 subHeadings={subHeading}
               />
@@ -246,7 +250,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="AWS S3"
-            leftIcon={<ConnectionIcon name="aws S3" />}
+            leftIcon={<ConnectionIcon connectionType="aws-s3" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -299,7 +303,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="OpenAI"
-            leftIcon={<ConnectionIcon name="openai" />}
+            leftIcon={<ConnectionIcon connectionType="openai" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -349,7 +353,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="MongoDB"
-            leftIcon={<ConnectionIcon name="mongodb" />}
+            leftIcon={<ConnectionIcon connectionType="mongodb" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -383,6 +387,38 @@ export function getConnectionComponentDetails(
           />
         ),
       };
+    case 'gcpCloudstorageConfig': {
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="GCP Cloud Storage"
+            leftIcon={<ConnectionIcon connectionType="gcp-cloud-storage" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <GcpCloudStorageForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              gcp: {
+                bucket: connection.connectionConfig.config.value.bucket,
+                pathPrefix: connection.connectionConfig.config.value.pathPrefix,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    }
     default:
       return {
         name: 'Invalid Connection',

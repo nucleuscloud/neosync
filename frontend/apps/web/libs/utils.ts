@@ -36,12 +36,14 @@ export function splitConnections(connections: Connection[]): {
   s3: Connection[];
   openai: Connection[];
   mongodb: Connection[];
+  gcpcs: Connection[];
 } {
   const postgres: Connection[] = [];
   const mysql: Connection[] = [];
   const s3: Connection[] = [];
   const openai: Connection[] = [];
   const mongodb: Connection[] = [];
+  const gcpcs: Connection[] = [];
 
   connections.forEach((connection) => {
     if (connection.connectionConfig?.config.case === 'pgConfig') {
@@ -54,6 +56,10 @@ export function splitConnections(connections: Connection[]): {
       openai.push(connection);
     } else if (connection.connectionConfig?.config.case === 'mongoConfig') {
       mongodb.push(connection);
+    } else if (
+      connection.connectionConfig?.config.case === 'gcpCloudstorageConfig'
+    ) {
+      gcpcs.push(connection);
     }
   });
 
@@ -63,5 +69,6 @@ export function splitConnections(connections: Connection[]): {
     s3,
     openai,
     mongodb,
+    gcpcs,
   };
 }

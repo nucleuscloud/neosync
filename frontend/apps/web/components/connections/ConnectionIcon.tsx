@@ -1,3 +1,7 @@
+import {
+  ConnectionType,
+  ConnectionTypeVariant,
+} from '@/app/(mgmt)/[account]/connections/util';
 import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
 import { OpenAiLogo } from '@/app/(mgmt)/[account]/new/connection/openai/OpenAiLogo';
 import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/SupabaseLogo';
@@ -6,23 +10,42 @@ import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
 import { DiMongodb, DiMysql, DiPostgresql } from 'react-icons/di';
 import { FaAws } from 'react-icons/fa';
+import { SiGooglecloud } from 'react-icons/si';
 
 interface Props {
-  name: string;
+  connectionType: ConnectionType;
+  connectionTypeVariant?: ConnectionTypeVariant;
   iconWidth?: string;
   iconHeight?: string;
 }
 
 export default function ConnectionIcon(props: Props): ReactElement | null {
-  const { name, iconWidth, iconHeight } = props;
+  const { connectionType, connectionTypeVariant, iconWidth, iconHeight } =
+    props;
 
   const width = iconWidth || '40px';
   const height = iconHeight || '40px';
 
   const { resolvedTheme } = useTheme();
 
-  switch (name.toLowerCase()) {
+  switch (connectionType) {
     case 'postgres': {
+      switch (connectionTypeVariant) {
+        case 'neon': {
+          return (
+            <IconContext.Provider value={{ style: { width, height } }}>
+              <NeonLogo />
+            </IconContext.Provider>
+          );
+        }
+        case 'supabase': {
+          return (
+            <IconContext.Provider value={{ style: { width, height } }}>
+              <SupabaseLogo />
+            </IconContext.Provider>
+          );
+        }
+      }
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <DiPostgresql />
@@ -36,24 +59,10 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
         </IconContext.Provider>
       );
     }
-    case 'aws s3': {
+    case 'aws-s3': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <FaAws />
-        </IconContext.Provider>
-      );
-    }
-    case 'neon': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <NeonLogo />
-        </IconContext.Provider>
-      );
-    }
-    case 'supabase': {
-      return (
-        <IconContext.Provider value={{ style: { width, height } }}>
-          <SupabaseLogo />
         </IconContext.Provider>
       );
     }
@@ -68,6 +77,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <DiMongodb />
+        </IconContext.Provider>
+      );
+    }
+    case 'gcp-cloud-storage': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <SiGooglecloud />
         </IconContext.Provider>
       );
     }
