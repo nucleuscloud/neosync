@@ -1,0 +1,6 @@
+# Artifact Hub repository metadata file
+
+repositoryID: 96324873-dacc-4c4c-83d0-82472242338b
+owners: # (optional, used to claim repository ownership)
+  - name: Nick Zelei
+    email: nick@nucleuscloud.com
