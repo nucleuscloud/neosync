@@ -1,6 +1,12 @@
 # neosync
 
-A Helm chart for Neosync
+A Helm chart for Neosync that contains the api, app, and worker
+
+**Homepage:** <https://www.neosync.dev>
+
+## Source Code
+
+* <https://github.com/nucleuscloud/neosync>
 
 ## Requirements
 

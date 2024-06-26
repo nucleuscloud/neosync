@@ -1,6 +1,10 @@
 apiVersion: v2
 name: api
 description: A Helm chart for the Neosync Backend API
+home: https://www.neosync.dev
+sources:
+  - https://github.com/nucleuscloud/neosync
+icon: https://assets.nucleuscloud.com/neosync/newbrand/logo_small.png
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
@@ -14,6 +18,6 @@ type: application
 #
 # This is changed automatically to the tag by the github workflow.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 'v0'
+version: "v0"
 
-appVersion: 'v0'
+appVersion: "v0"

@@ -1,6 +1,10 @@
 apiVersion: v2
 name: app
 description: A Helm chart for the Neosync App
+home: https://www.neosync.dev
+sources:
+  - https://github.com/nucleuscloud/neosync
+icon: https://assets.nucleuscloud.com/neosync/newbrand/logo_small.png
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
