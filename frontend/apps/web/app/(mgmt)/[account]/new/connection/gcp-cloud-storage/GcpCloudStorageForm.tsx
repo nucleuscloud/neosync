@@ -23,7 +23,7 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
-  CreateGcpCloudStorageFormContext,
+  CreateConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -46,10 +46,7 @@ export default function GcpCloudStorageForm(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>();
   const { data: onboardingData, mutate: mutateOnboardingData } =
     useGetAccountOnboardingConfig(account?.id ?? '');
-  const form = useForm<
-    GcpCloudStorageFormValues,
-    CreateGcpCloudStorageFormContext
-  >({
+  const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
     mode: 'onChange',
     defaultValues: {

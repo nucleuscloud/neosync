@@ -10,6 +10,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
+import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MysqlForm from './MysqlForm';
 import OpenAiForm from './OpenAiForm';
@@ -386,6 +387,38 @@ export function getConnectionComponentDetails(
           />
         ),
       };
+    case 'gcpCloudstorageConfig': {
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="GCP Cloud Storage"
+            leftIcon={<ConnectionIcon connectionType="gcp-cloud-storage" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <GcpCloudStorageForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              gcp: {
+                bucket: connection.connectionConfig.config.value.bucket,
+                pathPrefix: connection.connectionConfig.config.value.pathPrefix,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    }
     default:
       return {
         name: 'Invalid Connection',

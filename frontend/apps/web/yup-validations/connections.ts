@@ -191,8 +191,11 @@ export type GcpCloudStorageFormValues = Yup.InferType<
   typeof GcpCloudStorageFormValues
 >;
 
-export interface CreateGcpCloudStorageFormContext {
+export interface CreateConnectionFormContext {
   accountId: string;
+}
+export interface EditConnectionFormContext extends CreateConnectionFormContext {
+  originalConnectionName: string;
 }
 
 export const OpenAiFormValues = Yup.object({

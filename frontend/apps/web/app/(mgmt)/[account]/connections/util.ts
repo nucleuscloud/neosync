@@ -105,6 +105,26 @@ export async function createGcpCloudStorageConnection(
   );
 }
 
+export async function updateGcpCloudStorageConnection(
+  values: GcpCloudStorageFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateConnectionResponse> {
+  return updateConnection(
+    new UpdateConnectionRequest({
+      id: resourceId,
+      name: values.connectionName,
+      connectionConfig: new ConnectionConfig({
+        config: {
+          case: 'gcpCloudstorageConfig',
+          value: buildGcpCloudStorageConnectionConfig(values),
+        },
+      }),
+    }),
+    accountId
+  );
+}
+
 export async function createMysqlConnection(
   values: MysqlFormValues,
   accountId: string
