@@ -103,7 +103,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func getDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
+func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{{- range .Mappings }}
 		{
@@ -134,9 +134,9 @@ func getDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 
 func main() {
 	args := os.Args
-	// if len(args) < 4 {
-	// 	panic("must provide necessary args")
-	// }
+	if len(args) < 3 {
+		panic("must provide necessary args")
+	}
 
 	configFile := args[1]
 	gopackage := args[2]

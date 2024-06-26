@@ -36,24 +36,20 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.schema = "genbenthosconfigs_querybuilder"
 
-	dburl := os.Getenv("TEST_DB_URL")
-	if dburl == "" {
-		pgcontainer, err := testpg.RunContainer(s.ctx,
-			testcontainers.WithImage("postgres:15"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").
-					WithOccurrence(2).WithStartupTimeout(5*time.Second),
-			),
-		)
-		if err != nil {
-			panic(err)
-		}
-		s.pgcontainer = pgcontainer
-		connstr, err := pgcontainer.ConnectionString(s.ctx)
-		if err != nil {
-			panic(err)
-		}
-		dburl = connstr
+	pgcontainer, err := testpg.RunContainer(s.ctx,
+		testcontainers.WithImage("postgres:15"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).WithStartupTimeout(5*time.Second),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+	s.pgcontainer = pgcontainer
+	connstr, err := pgcontainer.ConnectionString(s.ctx)
+	if err != nil {
+		panic(err)
 	}
 
 	setupSql, err := os.ReadFile("./testdata/setup.sql")
@@ -68,7 +64,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.teardownSql = string(teardownSql)
 
-	pool, err := pgxpool.New(s.ctx, dburl)
+	pool, err := pgxpool.New(s.ctx, connstr)
 	if err != nil {
 		panic(err)
 	}

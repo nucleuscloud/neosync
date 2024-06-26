@@ -12,8 +12,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:             "virtual-foreign-keys",
 			SourceFilePaths:    []string{"source-setup.sql"},
 			TargetFilePaths:    []string{"target-setup.sql"},
-			JobMappings:        getDefaultSyncJobMappings(),
-			VirtualForeignKeys: getVirtualForeignKeys(),
+			JobMappings:        GetDefaultSyncJobMappings(),
+			VirtualForeignKeys: GetVirtualForeignKeys(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"vfk_hr.regions":     &workflow_testdata.ExpectedOutput{RowCount: 4},
 				"vfk_hr.countries":   &workflow_testdata.ExpectedOutput{RowCount: 25},
@@ -35,8 +35,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			JobOptions: &workflow_testdata.TestJobOptions{
 				SubsetByForeignKeyConstraints: true,
 			},
-			JobMappings:        getDefaultSyncJobMappings(),
-			VirtualForeignKeys: getVirtualForeignKeys(),
+			JobMappings:        GetDefaultSyncJobMappings(),
+			VirtualForeignKeys: GetVirtualForeignKeys(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"vfk_hr.regions":     &workflow_testdata.ExpectedOutput{RowCount: 4},
 				"vfk_hr.countries":   &workflow_testdata.ExpectedOutput{RowCount: 25},
@@ -50,7 +50,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	}
 }
 
-func getVirtualForeignKeys() []*mgmtv1alpha1.VirtualForeignConstraint {
+func GetVirtualForeignKeys() []*mgmtv1alpha1.VirtualForeignConstraint {
 	return []*mgmtv1alpha1.VirtualForeignConstraint{
 		{
 			Schema:  "vfk_hr",

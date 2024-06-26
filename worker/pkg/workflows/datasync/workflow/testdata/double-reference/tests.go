@@ -9,7 +9,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Folder:          "double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
-			JobMappings:     getDefaultSyncJobMappings(),
+			JobMappings:     GetDefaultSyncJobMappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"double_reference.company":        &workflow_testdata.ExpectedOutput{RowCount: 3},
 				"double_reference.department":     &workflow_testdata.ExpectedOutput{RowCount: 4},
@@ -28,7 +28,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			JobOptions: &workflow_testdata.TestJobOptions{
 				SubsetByForeignKeyConstraints: true,
 			},
-			JobMappings: getDefaultSyncJobMappings(),
+			JobMappings: GetDefaultSyncJobMappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"double_reference.company":        &workflow_testdata.ExpectedOutput{RowCount: 1},
 				"double_reference.department":     &workflow_testdata.ExpectedOutput{RowCount: 2},
