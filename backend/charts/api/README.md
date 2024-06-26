@@ -2,6 +2,12 @@
 
 A Helm chart for the Neosync Backend API
 
+**Homepage:** <https://www.neosync.dev>
+
+## Source Code
+
+* <https://github.com/nucleuscloud/neosync>
+
 ## Values
 
 | Key | Type | Default | Description |
