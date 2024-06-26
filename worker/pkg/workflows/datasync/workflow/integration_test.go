@@ -125,6 +125,34 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 }
 
+func (s *IntegrationTestSuite) SetupSourceDb(testFolder string, files []string) {
+	s.T().Logf("setting up source db. folder: %s \n", testFolder)
+	for _, file := range files {
+		setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		if err != nil {
+			panic(err)
+		}
+		_, err = s.sourcePgPool.Exec(s.ctx, string(setupSourceSql))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (s *IntegrationTestSuite) SetupTargetDb(testFolder string, files []string) {
+	s.T().Logf("setting up target db. folder: %s \n", testFolder)
+	for _, file := range files {
+		setupTargetSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		if err != nil {
+			panic(err)
+		}
+		_, err = s.targetPgPool.Exec(s.ctx, string(setupTargetSql))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
 	s.T().Logf("setting up test. folder: %s \n", testFolder)
 	setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/source-setup.sql", testFolder))

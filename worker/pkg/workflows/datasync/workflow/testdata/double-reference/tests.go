@@ -9,39 +9,44 @@ type IntegrationTest struct {
 	Name            string
 	SourceFilePaths []string
 	TargetFilePaths []string
+	Folder          string
 	SubsetMap       map[string]string                                         // schema.table -> where clause
 	TransformerMap  map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table.column -> transformer config
-	OutputPath      string
+	JobMappings     []*mgmtv1alpha1.JobMapping
 	ExpectError     *bool
 	Expected        map[string]*ExpectedOutput // schema.table -> expected output
 }
 
-var Tests = []*IntegrationTest{
-	{
-		Name:            "Double reference sync",
-		SourceFilePaths: []string{"double-reference/source-create.sql", "double-reference/insert.sql"},
-		TargetFilePaths: []string{"double-reference/source-create.sql"},
-		OutputPath:      "double-reference/mocks.go",
-		Expected: map[string]*ExpectedOutput{
-			"double_reference.company":        &ExpectedOutput{RowCount: 3},
-			"double_reference.department":     &ExpectedOutput{RowCount: 4},
-			"double_reference.expense_report": &ExpectedOutput{RowCount: 2},
-			"double_reference.transaction":    &ExpectedOutput{RowCount: 3},
+func GetTests() []*IntegrationTest {
+	return []*IntegrationTest{
+		{
+			Name:            "Double reference sync",
+			Folder:          "double-reference",
+			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
+			TargetFilePaths: []string{"source-create.sql"},
+			JobMappings:     getDefaultJobMappings(),
+			Expected: map[string]*ExpectedOutput{
+				"double_reference.company":        &ExpectedOutput{RowCount: 3},
+				"double_reference.department":     &ExpectedOutput{RowCount: 4},
+				"double_reference.expense_report": &ExpectedOutput{RowCount: 2},
+				"double_reference.transaction":    &ExpectedOutput{RowCount: 3},
+			},
 		},
-	},
-	{
-		Name:            "Double reference subset",
-		SourceFilePaths: []string{"double-reference/source-create.sql", "double-reference/insert.sql"},
-		TargetFilePaths: []string{"double-reference/source-create.sql"},
-		SubsetMap: map[string]string{
-			"double_reference.company": "id in (1)",
+		{
+			Name:            "Double reference subset",
+			Folder:          "double-reference",
+			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
+			TargetFilePaths: []string{"source-create.sql"},
+			SubsetMap: map[string]string{
+				"double_reference.company": "id in (1)",
+			},
+			JobMappings: getDefaultJobMappings(),
+			Expected: map[string]*ExpectedOutput{
+				"double_reference.company":        &ExpectedOutput{RowCount: 1},
+				"double_reference.department":     &ExpectedOutput{RowCount: 2},
+				"double_reference.expense_report": &ExpectedOutput{RowCount: 1},
+				"double_reference.transaction":    &ExpectedOutput{RowCount: 2},
+			},
 		},
-		OutputPath: "double-reference/mocks.go",
-		Expected: map[string]*ExpectedOutput{
-			"double_reference.company":        &ExpectedOutput{RowCount: 1},
-			"double_reference.department":     &ExpectedOutput{RowCount: 2},
-			"double_reference.expense_report": &ExpectedOutput{RowCount: 1},
-			"double_reference.transaction":    &ExpectedOutput{RowCount: 2},
-		},
-	},
+	}
 }
