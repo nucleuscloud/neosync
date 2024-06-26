@@ -183,7 +183,8 @@ export default function GcpCloudStorageForm(): ReactElement {
             <AlertTitle className="font-semibold">Heads up!</AlertTitle>
           </div>
           <AlertDescription className="pl-8">
-            Right now AWS S3 connections can only be used as a destination
+            Right now GCP Cloud Storage connections can only be used as a
+            destination
           </AlertDescription>
         </Alert>
         <Controller
