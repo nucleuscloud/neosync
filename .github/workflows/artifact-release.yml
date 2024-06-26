@@ -206,10 +206,12 @@ jobs:
             TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           fi
 
       - name: Setup Chart.yaml
@@ -221,6 +223,8 @@ jobs:
               echo "$filepath"
               yq -i '.version = strenv(CHART_VERSION)' "$filepath"
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
+
+              yq -i '.annotations."artifacthub.io/prerelease" = strenv(IS_PRERELEASE)' "$filepath"
             done
 
             for filepath in $(find backend/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
@@ -283,10 +287,12 @@ jobs:
             TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           fi
 
       - name: Setup Chart.yaml
@@ -298,6 +304,8 @@ jobs:
               echo "$filepath"
               yq -i '.version = strenv(CHART_VERSION)' "$filepath"
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
+
+              yq -i '.annotations."artifacthub.io/prerelease" = strenv(IS_PRERELEASE)' "$filepath"
             done
 
             for filepath in $(find frontend/apps/web/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
@@ -360,10 +368,12 @@ jobs:
             TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           fi
 
       - name: Setup Chart.yaml
@@ -375,6 +385,8 @@ jobs:
               echo "$filepath"
               yq -i '.version = strenv(CHART_VERSION)' "$filepath"
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
+
+              yq -i '.annotations."artifacthub.io/prerelease" = strenv(IS_PRERELEASE)' "$filepath"
             done
 
             for filepath in $(find worker/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
@@ -439,10 +451,12 @@ jobs:
             TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
             echo "$TRIMMED_VERSION"
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
             echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           fi
 
       - name: Setup Chart.yaml
@@ -454,6 +468,8 @@ jobs:
               echo "$filepath"
               yq -i '.version = strenv(CHART_VERSION)' "$filepath"
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
+
+              yq -i '.annotations."artifacthub.io/prerelease" = strenv(IS_PRERELEASE)' "$filepath"
             done
 
             for filepath in $(find charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
