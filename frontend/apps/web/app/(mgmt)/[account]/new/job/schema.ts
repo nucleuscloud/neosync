@@ -201,6 +201,12 @@ function isValidConnectionPair(
   ) {
     return true;
   }
+  if (
+    conn1.connectionConfig?.config.case === 'gcpCloudstorageConfig' ||
+    conn2.connectionConfig?.config.case === 'gcpCloudstorageConfig'
+  ) {
+    return true;
+  }
 
   if (
     conn1.connectionConfig?.config.case === conn2.connectionConfig?.config.case
@@ -218,17 +224,22 @@ function getErrorConnectionTypes(
 ): string {
   const conn = connections.find((c) => c.id === connId);
   if (!conn) {
-    return isSource ? '[Postgres, Mysql]' : '[Postgres, Mysql, AWS S3]';
+    return isSource
+      ? '[Postgres, Mysql]'
+      : '[Postgres, Mysql, AWS S3, GCP Cloud Storage]';
   }
-  if (conn.connectionConfig?.config.case === 'awsS3Config') {
+  if (
+    conn.connectionConfig?.config.case === 'awsS3Config' ||
+    conn.connectionConfig?.config.case === 'gcpCloudstorageConfig'
+  ) {
     return '[Mysql, Postgres]';
   }
   if (conn.connectionConfig?.config.case === 'mysqlConfig') {
-    return isSource ? '[Postgres]' : '[Mysql, AWS S3]';
+    return isSource ? '[Postgres]' : '[Mysql, AWS S3, GCP Cloud Storage]';
   }
 
   if (conn.connectionConfig?.config.case === 'pgConfig') {
-    return isSource ? '[Mysql]' : '[Postgres, AWS S3]';
+    return isSource ? '[Mysql]' : '[Postgres, AWS S3, GCP Cloud Storage]';
   }
   return '';
 }

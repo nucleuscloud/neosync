@@ -20,6 +20,7 @@ import {
   CreateJobRequest,
   CreateJobResponse,
   DatabaseTable,
+  GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -365,6 +366,14 @@ function toJobDestinationOptions(
         config: {
           case: 'mongodbOptions',
           value: new MongoDBDestinationConnectionOptions({}),
+        },
+      });
+    }
+    case 'gcpCloudstorageConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'gcpCloudstorageOptions',
+          value: new GcpCloudStorageDestinationConnectionOptions({}),
         },
       });
     }

@@ -316,6 +316,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
                         return (
                           c.connectionConfig?.config.case !== 'awsS3Config' &&
+                          c.connectionConfig?.config.case !==
+                            'gcpCloudstorageConfig' &&
                           dests.some((dest) => {
                             const destConn = connectionsMap.get(
                               dest.connectionId
