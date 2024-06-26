@@ -1005,11 +1005,14 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	PostgresOptions *PostgresDestinationOptions `json:"postgresOptions,omitempty"`
-	AwsS3Options    *AwsS3DestinationOptions    `json:"awsS3Options,omitempty"`
-	MysqlOptions    *MysqlDestinationOptions    `json:"mysqlOptions,omitempty"`
-	MongoOptions    *MongoDestinationOptions    `json:"mongoOptions,omitempty"`
+	PostgresOptions        *PostgresDestinationOptions        `json:"postgresOptions,omitempty"`
+	AwsS3Options           *AwsS3DestinationOptions           `json:"awsS3Options,omitempty"`
+	MysqlOptions           *MysqlDestinationOptions           `json:"mysqlOptions,omitempty"`
+	MongoOptions           *MongoDestinationOptions           `json:"mongoOptions,omitempty"`
+	GcpCloudStorageOptions *GcpCloudStorageDestinationOptions `json:"gcpCloudStorageOptions,omitempty"`
 }
+
+type GcpCloudStorageDestinationOptions struct{}
 
 type MongoDestinationOptions struct{}
 
@@ -1134,6 +1137,13 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 			},
 		}
 	}
+	if j.GcpCloudStorageOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions{
+				GcpCloudstorageOptions: &mgmtv1alpha1.GcpCloudStorageDestinationConnectionOptions{},
+			},
+		}
+	}
 
 	return nil
 }
@@ -1171,6 +1181,8 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		j.AwsS3Options = &AwsS3DestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_MongodbOptions:
 		j.MongoOptions = &MongoDestinationOptions{}
+	case *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:
+		j.GcpCloudStorageOptions = &GcpCloudStorageDestinationOptions{}
 	default:
 		return fmt.Errorf("invalid job destination options config")
 	}
