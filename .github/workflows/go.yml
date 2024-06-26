@@ -56,30 +56,6 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_PASSWORD: postgres
-          PGUSER: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,8 +71,6 @@ jobs:
           go test -race -coverprofile=coverage.out -covermode=atomic ./...
         env:
           INTEGRATION_TESTS_ENABLED: 1
-          TEST_DB_URL: postgres://postgres:postgres@localhost:5432/postgres
-          TEST_REDIS_URL: redis://localhost:6379
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

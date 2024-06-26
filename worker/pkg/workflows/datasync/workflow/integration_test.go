@@ -44,30 +44,25 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	testDbUrl := os.Getenv("TEST_DB_URL")
-	dburl := fmt.Sprintf("%s?sslmode=disable", testDbUrl)
-	if testDbUrl == "" {
-		pgcontainer, err := testpg.RunContainer(s.ctx,
-			testcontainers.WithImage("postgres:15"),
-			postgres.WithDatabase("postgres"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").
-					WithOccurrence(2).WithStartupTimeout(5*time.Second),
-			),
-		)
-		if err != nil {
-			panic(err)
-		}
-		s.pgcontainer = pgcontainer
-		connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
-		if err != nil {
-			panic(err)
-		}
-		dburl = connstr
+	pgcontainer, err := testpg.RunContainer(s.ctx,
+		testcontainers.WithImage("postgres:15"),
+		postgres.WithDatabase("postgres"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).WithStartupTimeout(5*time.Second),
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+	s.pgcontainer = pgcontainer
+	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
+	if err != nil {
+		panic(err)
 	}
 
 	s.databases = []string{"datasync_source", "datasync_target"}
-	pool, err := pgxpool.New(s.ctx, dburl)
+	pool, err := pgxpool.New(s.ctx, connstr)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +76,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		}
 	}
 
-	srcUrl, err := getDbPgUrl(dburl, "datasync_source", "disable")
+	srcUrl, err := getDbPgUrl(connstr, "datasync_source", "disable")
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +87,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.sourcePgPool = sourceConn
 
-	targetUrl, err := getDbPgUrl(dburl, "datasync_target", "disable")
+	targetUrl, err := getDbPgUrl(connstr, "datasync_target", "disable")
 	if err != nil {
 		panic(err)
 	}
@@ -106,19 +101,43 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.querier = pg_queries.New()
 
 	// redis
-	redisUrl := os.Getenv("TEST_REDIS_URL")
-	s.redisUrl = redisUrl
-	if redisUrl == "" {
-		redisContainer, err := redis.RunContainer(s.ctx,
-			testcontainers.WithImage("docker.io/redis:7"),
-			redis.WithSnapshotting(10, 1),
-			redis.WithLogLevel(redis.LogLevelVerbose),
-		)
+	redisContainer, err := redis.RunContainer(s.ctx,
+		testcontainers.WithImage("docker.io/redis:7"),
+		redis.WithSnapshotting(10, 1),
+		redis.WithLogLevel(redis.LogLevelVerbose),
+	)
+	if err != nil {
+		panic(err)
+	}
+	s.rediscontainer = redisContainer
+	s.redisUrl, err = redisContainer.ConnectionString(s.ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (s *IntegrationTestSuite) SetupSourceDb(testFolder string, files []string) {
+	s.T().Logf("setting up source db. folder: %s \n", testFolder)
+	for _, file := range files {
+		setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
 		if err != nil {
 			panic(err)
 		}
-		s.rediscontainer = redisContainer
-		s.redisUrl, err = redisContainer.ConnectionString(s.ctx)
+		_, err = s.sourcePgPool.Exec(s.ctx, string(setupSourceSql))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (s *IntegrationTestSuite) SetupTargetDb(testFolder string, files []string) {
+	s.T().Logf("setting up target db. folder: %s \n", testFolder)
+	for _, file := range files {
+		setupTargetSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		if err != nil {
+			panic(err)
+		}
+		_, err = s.targetPgPool.Exec(s.ctx, string(setupTargetSql))
 		if err != nil {
 			panic(err)
 		}

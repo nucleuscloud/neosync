@@ -1,0 +1,11 @@
+
+[
+	{
+		"folder": "double-reference",
+		"sql_file":    "source-create.sql"
+	},
+	{
+		"folder": "virtual-foreign-keys",
+		"sql_file":    "source-setup.sql"
+	}
+]
