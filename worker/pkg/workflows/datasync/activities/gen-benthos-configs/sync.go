@@ -489,8 +489,8 @@ func (b *benthosBuilder) getGcpCloudStorageSyncBenthosOutput(
 	outputs := []neosync_benthos.Outputs{}
 
 	pathpieces := []string{}
-	if connection.GcpCloudstorageConfig.PathPrefix != nil && *connection.GcpCloudstorageConfig.PathPrefix != "" {
-		pathpieces = append(pathpieces, strings.Trim(*connection.GcpCloudstorageConfig.PathPrefix, "/"))
+	if connection.GcpCloudstorageConfig.GetPathPrefix() != "" {
+		pathpieces = append(pathpieces, strings.Trim(connection.GcpCloudstorageConfig.GetPathPrefix(), "/"))
 	}
 
 	pathpieces = append(
