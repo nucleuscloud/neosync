@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -19,12 +20,13 @@ import { ReactElement, useState } from 'react';
 interface Props {
   value?: string;
   values: string[];
+  badgeValueMap?: Record<string, string>;
   setValue(v: string): void;
   text: string;
 }
 
 export function StringSelect(props: Props): ReactElement {
-  const { value, values, setValue, text } = props;
+  const { value, values, setValue, text, badgeValueMap } = props;
   const [open, setOpen] = useState(false);
 
   return (
@@ -34,13 +36,13 @@ export function StringSelect(props: Props): ReactElement {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className=" justify-between "
         >
           {value ? values.find((v) => v === value) : `Select ${text}...`}
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className=" p-0">
         <Command>
           <CommandInput placeholder={`Search ${text}...`} />
           <CommandList>
@@ -61,7 +63,10 @@ export function StringSelect(props: Props): ReactElement {
                       value === v ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {v}
+                  <p className="mr-2">{v}</p>
+                  {badgeValueMap && (
+                    <Badge variant="secondary">{badgeValueMap[v]}</Badge>
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>

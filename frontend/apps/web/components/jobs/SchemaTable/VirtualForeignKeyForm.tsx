@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
@@ -35,18 +36,45 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
   const srcTable = virtualForeignKey
     ? `${virtualForeignKey?.schema}-${virtualForeignKey?.table}`
     : undefined;
-  const srcCol = virtualForeignKey?.columns && virtualForeignKey?.columns[0];
+  const srcCols = virtualForeignKey?.columns || [''];
   const [sourceTable, setSourceTable] = useState<string | undefined>(srcTable);
-  const [sourceColumn, setSourceColumn] = useState<string | undefined>(srcCol);
+  const [sourceColumns, setSourceColumns] = useState<string[]>(srcCols);
 
   const tarTable = virtualForeignKey
     ? `${virtualForeignKey?.foreignKey?.schema}-${virtualForeignKey?.foreignKey?.table}`
     : undefined;
-  const tarCol =
-    virtualForeignKey?.foreignKey.columns &&
-    virtualForeignKey?.foreignKey.columns[0];
+  const tarCols = virtualForeignKey?.foreignKey.columns || [''];
   const [targetTable, setTargetTable] = useState<string | undefined>(tarTable);
-  const [targetColumn, setTargetColumn] = useState<string | undefined>(tarCol);
+  const [targetColumns, setTargetColumns] = useState<string[]>(tarCols);
+
+  const addCompositeColumns = () => {
+    setSourceColumns([...sourceColumns, '']);
+    setTargetColumns([...targetColumns, '']);
+  };
+
+  const removeLastCompositeColumn = () => {
+    if (sourceColumns.length == 1) {
+      return;
+    }
+    const newSourceColumns = [...sourceColumns];
+    newSourceColumns.pop();
+    setSourceColumns(newSourceColumns);
+    const newTargetColumns = [...targetColumns];
+    newTargetColumns.pop();
+    setTargetColumns(newTargetColumns);
+  };
+
+  const updateSourceColumn = (index: number, value: string) => {
+    const newSourceColumns = [...sourceColumns];
+    newSourceColumns[index] = value;
+    setSourceColumns(newSourceColumns);
+  };
+
+  const updateTargetColumn = (index: number, value: string) => {
+    const newTargetColumns = [...targetColumns];
+    newTargetColumns[index] = value;
+    setTargetColumns(newTargetColumns);
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-3">
@@ -59,88 +87,127 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
             <CardTitle>Add Virtual Foreign Key</CardTitle>
           </div>
           <CardDescription>
-            Select the source table and column, as well as the target table and
-            column, to create a virtual foreign key.
+            Select the source table and columns, as well as the target table and
+            columns, to create a virtual foreign key. <br /> Add additional
+            columns to create a composite virtual foreign key.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex flex-col gap-2">
-              <FormLabel>Source</FormLabel>
-              <FormDescription>The primary key</FormDescription>
-              <div className="flex flex-col md:flex-row gap-3">
-                <StringSelect
-                  value={sourceTable}
-                  values={Array.from(selectedTables)}
-                  setValue={setSourceTable}
-                  text="table"
-                />
-                <StringSelect
-                  value={sourceColumn}
-                  values={getSourceColumnOptions(
-                    schema,
-                    constraintHandler,
-                    sourceTable
-                  )}
-                  setValue={setSourceColumn}
-                  text="column"
-                />
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex flex-col gap-2">
+                <FormLabel>Source</FormLabel>
+                <FormDescription>The primary key</FormDescription>
+                <div className="flex flex-col md:flex-row gap-3">
+                  <StringSelect
+                    value={sourceTable}
+                    values={Array.from(selectedTables)}
+                    setValue={setSourceTable}
+                    text="table"
+                  />
+                  <div className="flex flex-col gap-3">
+                    {sourceColumns.map((col, index) => (
+                      <StringSelect
+                        key={index}
+                        value={col}
+                        values={getSourceColumnOptions(
+                          schema,
+                          constraintHandler,
+                          sourceTable
+                        )}
+                        badgeValueMap={getColumnDataTypeMap(
+                          schema,
+                          sourceTable
+                        )}
+                        setValue={(value) => updateSourceColumn(index, value)}
+                        text="column"
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <FormLabel>Target</FormLabel>
-              <FormDescription>The foreign key</FormDescription>
-              <div className="flex flex-col md:flex-row gap-3">
-                <StringSelect
-                  value={targetTable}
-                  values={Array.from(selectedTables)}
-                  setValue={setTargetTable}
-                  text="table"
-                />
-                <StringSelect
-                  value={targetColumn}
-                  values={getTargetColumnOptions(schema, targetTable)}
-                  setValue={setTargetColumn}
-                  text="column"
-                />
-                <Button
-                  type="button"
-                  key="virtualforeignkey"
-                  onClick={() => {
-                    if (
-                      !sourceTable ||
-                      !sourceColumn ||
-                      !targetTable ||
-                      !targetColumn
-                    ) {
-                      // add alert toast. missing required values
-                      toast({
-                        title: 'Unable to add virtual foreign key',
-                        description: 'Missing required field',
-                        variant: 'destructive',
+              <div className="flex flex-col gap-2">
+                <FormLabel>Target</FormLabel>
+                <FormDescription>The foreign key</FormDescription>
+                <div className="flex flex-col md:flex-row gap-3">
+                  <StringSelect
+                    value={targetTable}
+                    values={Array.from(selectedTables)}
+                    setValue={setTargetTable}
+                    text="table"
+                  />
+                  <div className="flex flex-col gap-3">
+                    {targetColumns.map((col, index) => (
+                      <StringSelect
+                        key={index}
+                        value={col}
+                        values={getTargetColumnOptions(schema, targetTable)}
+                        badgeValueMap={getColumnDataTypeMap(
+                          schema,
+                          targetTable
+                        )}
+                        setValue={(value) => updateTargetColumn(index, value)}
+                        text="column"
+                      />
+                    ))}
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addCompositeColumns}
+                    >
+                      +
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={removeLastCompositeColumn}
+                    >
+                      -
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    key="virtualforeignkey"
+                    className="w-[90px]"
+                    onClick={() => {
+                      if (
+                        !sourceTable ||
+                        sourceColumns.includes('') ||
+                        !targetTable ||
+                        targetColumns.includes('')
+                      ) {
+                        toast({
+                          title: 'Unable to add virtual foreign key',
+                          description: 'Missing required field',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      const source = splitSchemaTable(sourceTable);
+                      const target = splitSchemaTable(targetTable);
+                      addVirtualForeignKey({
+                        schema: target.schema,
+                        table: target.table,
+                        columns: targetColumns,
+                        foreignKey: {
+                          schema: source.schema,
+                          table: source.table,
+                          columns: sourceColumns,
+                        },
                       });
-                      return;
-                    }
-                    const source = splitSchemaTable(sourceTable);
-                    const target = splitSchemaTable(targetTable);
-                    addVirtualForeignKey({
-                      schema: target.schema,
-                      table: target.table,
-                      columns: [targetColumn],
-                      foreignKey: {
-                        schema: source.schema,
-                        table: source.table,
-                        columns: [sourceColumn],
-                      },
-                    });
-                    setSourceTable(undefined);
-                    setSourceColumn(undefined);
-                    setTargetTable(undefined);
-                    setTargetColumn(undefined);
-                  }}
-                >
-                  Add
-                </Button>
+                      setSourceTable(undefined);
+                      setSourceColumns(['']);
+                      setTargetTable(undefined);
+                      setTargetColumns(['']);
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -148,6 +215,21 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
       </Card>
     </div>
   );
+}
+
+function getColumnDataTypeMap(
+  schema: ConnectionSchemaMap,
+  table?: string
+): Record<string, string> {
+  const results: Record<string, string> = {};
+  if (!table) {
+    return results;
+  }
+  const columns = schema[table];
+  columns.forEach((c) => {
+    results[c.column] = c.dataType;
+  });
+  return results;
 }
 
 function getSourceColumnOptions(
@@ -180,6 +262,7 @@ function getSourceColumnOptions(
   });
   return Array.from(columns);
 }
+
 function getTargetColumnOptions(
   schema: ConnectionSchemaMap,
   table?: string
