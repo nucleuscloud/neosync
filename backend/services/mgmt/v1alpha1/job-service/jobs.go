@@ -2,7 +2,6 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -538,8 +537,9 @@ func (s *Service) CreateJob(
 	}
 
 	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, cj.ID)
+	// not returning an error here because the job has already been successfully created and we just want to return the created job
 	if err != nil {
-		logger.Error("unable to retrieve job destination connections")
+		logger.Error(fmt.Sprintf("unable to retrieve job destination connections: %s", err.Error()))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
@@ -1375,8 +1375,8 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 
 	for i := range dests {
 		d := dests[i]
-		// AWS S3 is always a valid destination regardless of source connection type
-		if d.ConnectionConfig.AwsS3Config != nil {
+		// AWS S3 and GCP CloudStorage are always a valid destination regardless of source connection type
+		if d.ConnectionConfig.AwsS3Config != nil || d.ConnectionConfig.GcpCloudStorageConfig != nil {
 			continue
 		}
 		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.PgConfig == nil {
@@ -1946,7 +1946,7 @@ func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error
 			connectionIdToVerify = &fkConnId
 		}
 	default:
-		return nil, errors.New("unsupported source option config type")
+		return nil, fmt.Errorf("unsupported source option config type: %T", config)
 	}
 	return connectionIdToVerify, nil
 }

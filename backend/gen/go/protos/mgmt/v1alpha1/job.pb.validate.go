@@ -2969,6 +2969,47 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobDestinationOptions_GcpCloudstorageOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetGcpCloudstorageOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "GcpCloudstorageOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "GcpCloudstorageOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetGcpCloudstorageOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "GcpCloudstorageOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -3157,6 +3198,112 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MongoDBDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on
+// GcpCloudStorageDestinationConnectionOptions with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GcpCloudStorageDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GcpCloudStorageDestinationConnectionOptions with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// GcpCloudStorageDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *GcpCloudStorageDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GcpCloudStorageDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GcpCloudStorageDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// GcpCloudStorageDestinationConnectionOptionsMultiError is an error wrapping
+// multiple validation errors returned by
+// GcpCloudStorageDestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type GcpCloudStorageDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GcpCloudStorageDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GcpCloudStorageDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// GcpCloudStorageDestinationConnectionOptionsValidationError is the validation
+// error returned by GcpCloudStorageDestinationConnectionOptions.Validate if
+// the designated constraints aren't met.
+type GcpCloudStorageDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "GcpCloudStorageDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GcpCloudStorageDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGcpCloudStorageDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GcpCloudStorageDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GcpCloudStorageDestinationConnectionOptionsValidationError{}
 
 // Validate checks the field values on PostgresDestinationConnectionOptions
 // with the rules defined in the proto definition for this message. If any

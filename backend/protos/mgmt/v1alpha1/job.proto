@@ -122,10 +122,15 @@ message JobDestinationOptions {
     AwsS3DestinationConnectionOptions aws_s3_options = 2;
     MysqlDestinationConnectionOptions mysql_options = 3;
     MongoDBDestinationConnectionOptions mongodb_options = 4;
+    // Destination Connecton options for Google Cloud Storage
+    GcpCloudStorageDestinationConnectionOptions gcp_cloudstorage_options = 5;
   }
 }
 
 message MongoDBDestinationConnectionOptions {}
+
+// Configuration for Google Cloud Storage Connection Job Options
+message GcpCloudStorageDestinationConnectionOptions {}
 
 message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;

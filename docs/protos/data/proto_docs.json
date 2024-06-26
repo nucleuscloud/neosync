@@ -8207,6 +8207,17 @@
           "fields": []
         },
         {
+          "name": "GcpCloudStorageDestinationConnectionOptions",
+          "longName": "GcpCloudStorageDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions",
+          "description": "Configuration for Google Cloud Storage Connection Job Options",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "GenerateSourceOptions",
           "longName": "GenerateSourceOptions",
           "fullName": "mgmt.v1alpha1.GenerateSourceOptions",
@@ -9255,6 +9266,18 @@
               "type": "MongoDBDestinationConnectionOptions",
               "longType": "MongoDBDestinationConnectionOptions",
               "fullType": "mgmt.v1alpha1.MongoDBDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "gcp_cloudstorage_options",
+              "description": "Destination Connecton options for Google Cloud Storage",
+              "label": "",
+              "type": "GcpCloudStorageDestinationConnectionOptions",
+              "longType": "GcpCloudStorageDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

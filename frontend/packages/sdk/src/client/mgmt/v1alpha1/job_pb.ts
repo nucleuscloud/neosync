@@ -1177,6 +1177,14 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
      */
     value: MongoDBDestinationConnectionOptions;
     case: "mongodbOptions";
+  } | {
+    /**
+     * Destination Connecton options for Google Cloud Storage
+     *
+     * @generated from field: mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions gcp_cloudstorage_options = 5;
+     */
+    value: GcpCloudStorageDestinationConnectionOptions;
+    case: "gcpCloudstorageOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobDestinationOptions>) {
@@ -1191,6 +1199,7 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
     { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3DestinationConnectionOptions, oneof: "config" },
     { no: 3, name: "mysql_options", kind: "message", T: MysqlDestinationConnectionOptions, oneof: "config" },
     { no: 4, name: "mongodb_options", kind: "message", T: MongoDBDestinationConnectionOptions, oneof: "config" },
+    { no: 5, name: "gcp_cloudstorage_options", kind: "message", T: GcpCloudStorageDestinationConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
@@ -1238,6 +1247,39 @@ export class MongoDBDestinationConnectionOptions extends Message<MongoDBDestinat
 
   static equals(a: MongoDBDestinationConnectionOptions | PlainMessage<MongoDBDestinationConnectionOptions> | undefined, b: MongoDBDestinationConnectionOptions | PlainMessage<MongoDBDestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(MongoDBDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * Configuration for Google Cloud Storage Connection Job Options
+ *
+ * @generated from message mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions
+ */
+export class GcpCloudStorageDestinationConnectionOptions extends Message<GcpCloudStorageDestinationConnectionOptions> {
+  constructor(data?: PartialMessage<GcpCloudStorageDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GcpCloudStorageDestinationConnectionOptions {
+    return new GcpCloudStorageDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GcpCloudStorageDestinationConnectionOptions {
+    return new GcpCloudStorageDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GcpCloudStorageDestinationConnectionOptions {
+    return new GcpCloudStorageDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GcpCloudStorageDestinationConnectionOptions | PlainMessage<GcpCloudStorageDestinationConnectionOptions> | undefined, b: GcpCloudStorageDestinationConnectionOptions | PlainMessage<GcpCloudStorageDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(GcpCloudStorageDestinationConnectionOptions, a, b);
   }
 }
 
