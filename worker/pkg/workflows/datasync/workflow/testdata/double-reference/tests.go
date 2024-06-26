@@ -1,35 +1,20 @@
 package testdata_doublereference
 
-import mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 
-type ExpectedOutput struct {
-	RowCount int
-}
-type IntegrationTest struct {
-	Name            string
-	SourceFilePaths []string
-	TargetFilePaths []string
-	Folder          string
-	SubsetMap       map[string]string                                         // schema.table -> where clause
-	TransformerMap  map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table.column -> transformer config
-	JobMappings     []*mgmtv1alpha1.JobMapping
-	ExpectError     *bool
-	Expected        map[string]*ExpectedOutput // schema.table -> expected output
-}
-
-func GetTests() []*IntegrationTest {
-	return []*IntegrationTest{
+func GetSyncTests() []*workflow_testdata.IntegrationTest {
+	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Double reference sync",
 			Folder:          "double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
-			JobMappings:     getDefaultJobMappings(),
-			Expected: map[string]*ExpectedOutput{
-				"double_reference.company":        &ExpectedOutput{RowCount: 3},
-				"double_reference.department":     &ExpectedOutput{RowCount: 4},
-				"double_reference.expense_report": &ExpectedOutput{RowCount: 2},
-				"double_reference.transaction":    &ExpectedOutput{RowCount: 3},
+			JobMappings:     getDefaultSyncJobMappings(),
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"double_reference.company":        &workflow_testdata.ExpectedOutput{RowCount: 3},
+				"double_reference.department":     &workflow_testdata.ExpectedOutput{RowCount: 4},
+				"double_reference.expense_report": &workflow_testdata.ExpectedOutput{RowCount: 2},
+				"double_reference.transaction":    &workflow_testdata.ExpectedOutput{RowCount: 3},
 			},
 		},
 		{
@@ -40,12 +25,15 @@ func GetTests() []*IntegrationTest {
 			SubsetMap: map[string]string{
 				"double_reference.company": "id in (1)",
 			},
-			JobMappings: getDefaultJobMappings(),
-			Expected: map[string]*ExpectedOutput{
-				"double_reference.company":        &ExpectedOutput{RowCount: 1},
-				"double_reference.department":     &ExpectedOutput{RowCount: 2},
-				"double_reference.expense_report": &ExpectedOutput{RowCount: 1},
-				"double_reference.transaction":    &ExpectedOutput{RowCount: 2},
+			JobOptions: &workflow_testdata.TestJobOptions{
+				SubsetByForeignKeyConstraints: true,
+			},
+			JobMappings: getDefaultSyncJobMappings(),
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"double_reference.company":        &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"double_reference.department":     &workflow_testdata.ExpectedOutput{RowCount: 2},
+				"double_reference.expense_report": &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"double_reference.transaction":    &workflow_testdata.ExpectedOutput{RowCount: 2},
 			},
 		},
 	}

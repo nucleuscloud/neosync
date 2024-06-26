@@ -103,7 +103,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-func getDefaultJobMappings()[]*mgmtv1alpha1.JobMapping {
+func getDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{{- range .Mappings }}
 		{
@@ -151,14 +151,12 @@ func main() {
 	}
 	defer jsonFile.Close()
 
-	// Read the file content into a byte slice
 	byteValue, err := io.ReadAll(jsonFile)
 	if err != nil {
 		fmt.Println("failed to read file: %s", err)
 		return
 	}
 
-	// Unmarshal the byte slice into the struct
 	var inputs []Input
 	if err := json.Unmarshal(byteValue, &inputs); err != nil {
 		fmt.Println("failed to unmarshal JSON: %s", err)
@@ -171,13 +169,11 @@ func main() {
 			fmt.Println("failed to open file: %s", err)
 		}
 
-		// Read the file content into a byte slice
 		byteValue, err := io.ReadAll(sqlFile)
 		if err != nil {
 			fmt.Println("failed to read file: %s", err)
 		}
 
-		// Convert the byte slice to a string
 		sqlContent := string(byteValue)
 		sqlFile.Close()
 
