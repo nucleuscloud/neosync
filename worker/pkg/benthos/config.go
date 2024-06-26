@@ -358,8 +358,8 @@ type SqlInsert struct {
 
 type AwsS3Insert struct {
 	Bucket      string    `json:"bucket" yaml:"bucket"`
-	Path        string    `json:"path" yaml:"path"`
 	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
+	Path        string    `json:"path" yaml:"path"`
 	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 
 	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
