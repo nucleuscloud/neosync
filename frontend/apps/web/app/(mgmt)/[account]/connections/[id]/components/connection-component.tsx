@@ -95,9 +95,12 @@ export function getConnectionComponentDetails(
             header={headerType == 'neon' ? 'Neon' : 'PostgreSQL'}
             leftIcon={
               headerType == 'neon' ? (
-                <ConnectionIcon name="neon" />
+                <ConnectionIcon
+                  connectionType="postgres"
+                  connectionTypeVariant="neon"
+                />
               ) : (
-                <ConnectionIcon name="postgres" />
+                <ConnectionIcon connectionType="postgres" />
               )
             }
             extraHeading={extraPageHeading}
@@ -193,7 +196,7 @@ export function getConnectionComponentDetails(
             header: (
               <PageHeader
                 header="Mysql"
-                leftIcon={<ConnectionIcon name="mysql" />}
+                leftIcon={<ConnectionIcon connectionType="mysql" />}
                 extraHeading={extraPageHeading}
                 subHeadings={subHeading}
               />
@@ -246,7 +249,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="AWS S3"
-            leftIcon={<ConnectionIcon name="aws S3" />}
+            leftIcon={<ConnectionIcon connectionType="aws-s3" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -299,7 +302,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="OpenAI"
-            leftIcon={<ConnectionIcon name="openai" />}
+            leftIcon={<ConnectionIcon connectionType="openai" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -349,7 +352,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="MongoDB"
-            leftIcon={<ConnectionIcon name="mongodb" />}
+            leftIcon={<ConnectionIcon connectionType="mongodb" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />

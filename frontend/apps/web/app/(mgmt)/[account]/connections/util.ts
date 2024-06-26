@@ -32,10 +32,15 @@ export type ConnectionType =
   | 'mysql'
   | 'aws-s3'
   | 'openai'
-  | 'mongodb';
+  | 'mongodb'
+  | 'gcp-cloud-storage';
+
+// Variant of a connection type.
+export type ConnectionTypeVariant = 'neon' | 'supabase';
 
 export const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionType>([
   'aws-s3',
+  'gcp-cloud-storage',
 ]);
 
 export function getConnectionType(
@@ -52,6 +57,8 @@ export function getConnectionType(
       return 'openai';
     case 'mongoConfig':
       return 'mongodb';
+    case 'gcpCloudstorageConfig':
+      return 'gcp-cloud-storage';
     default:
       return null;
   }

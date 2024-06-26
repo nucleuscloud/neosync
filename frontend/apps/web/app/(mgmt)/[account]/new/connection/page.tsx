@@ -28,11 +28,19 @@ const CONNECTIONS: ConnectionMeta[] = [
     connectionType: 'aws-s3',
   },
   {
+    urlSlug: 'gcp-cloud-storage',
+    name: 'GCP Cloud Storage',
+    description:
+      'GCP Cloud Storage is an object storage service used to store and retrieve any data.',
+    connectionType: 'gcp-cloud-storage',
+  },
+  {
     urlSlug: 'neon',
     name: 'Neon',
     description:
       'Neon is a serverless Postgres database that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
     connectionType: 'postgres',
+    connectionTypeVariant: 'neon',
   },
   {
     urlSlug: 'supabase',
@@ -40,6 +48,7 @@ const CONNECTIONS: ConnectionMeta[] = [
     description:
       'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more.',
     connectionType: 'postgres',
+    connectionTypeVariant: 'supabase',
   },
   {
     urlSlug: 'openai',
