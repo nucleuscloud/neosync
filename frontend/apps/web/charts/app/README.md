@@ -23,6 +23,7 @@ A Helm chart for the Neosync App
 | auth.scope | string | `nil` | The scopes that should be requested. Standard are "openid email profile offline_access" |
 | containerPort | int | `3000` | The container port |
 | datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
+| disableGcpCloudStorageConnections | bool | `false` | Feature flag that will disable GCP Cloud Storage Connections from being visible. Note: This only disables the new connections form and is a temporary flag until authentication in the multi-tenant environment is better understood. |
 | enableRunLogs | bool | `false` | Feature flag that enables the frontend to show the run logs on the Run [id] page. only enable this if the backend has been configured to surface run logs |
 | extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | fullnameOverride | string | `nil` | Fully overrides the chart name |

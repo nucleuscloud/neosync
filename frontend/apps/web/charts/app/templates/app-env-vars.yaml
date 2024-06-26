@@ -100,3 +100,5 @@ stringData:
     {{ if and .Values.protometrics .Values.protometrics.enabled }}
     METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled | default "false" | quote }}
     {{- end }}
+
+    GCP_CS_CONNECTIONS_DISABLED: {{ .Values.disableGcpCloudStorageConnections | default "false" | quote }}
