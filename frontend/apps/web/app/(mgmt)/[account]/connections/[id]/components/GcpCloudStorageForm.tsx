@@ -46,7 +46,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
   });
 
   async function onSubmit(values: GcpCloudStorageFormValues): Promise<void> {
-    if (!account || form.formState.isSubmitting) {
+    if (!account) {
       return;
     }
 
@@ -119,7 +119,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
           )}
         />
 
-        <div className="flex flex-row gap-2 justify-between">
+        <div className="flex flex-row gap-2 justify-end">
           <Button type="submit">
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : null}
