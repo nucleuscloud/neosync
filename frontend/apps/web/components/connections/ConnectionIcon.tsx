@@ -9,7 +9,8 @@ import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
 import { DiMongodb, DiMysql, DiPostgresql } from 'react-icons/di';
-import { FaAws, FaGoogle } from 'react-icons/fa';
+import { FaAws } from 'react-icons/fa';
+import { SiGooglecloud } from 'react-icons/si';
 
 interface Props {
   connectionType: ConnectionType;
@@ -82,7 +83,7 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
     case 'gcp-cloud-storage': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
-          <FaGoogle />
+          <SiGooglecloud />
         </IconContext.Provider>
       );
     }

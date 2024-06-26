@@ -1,6 +1,6 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { FaGoogle } from 'react-icons/fa';
+import { SiGooglecloud } from 'react-icons/si';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 
 export default async function GCPCloudStoragePage() {
@@ -10,7 +10,7 @@ export default async function GCPCloudStoragePage() {
         <PageHeader
           header="GCP Cloud Storage"
           subHeadings="Configure a GCP Cloud Storage bucket as a connection"
-          leftIcon={<FaGoogle className="w-[40px] h-[40px]" />}
+          leftIcon={<SiGooglecloud className="w-[40px] h-[40px]" />}
         />
       }
       containerClassName="px-12 md:px-24 lg:px-32"
