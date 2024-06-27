@@ -117,11 +117,17 @@ func getCategory(cc *mgmtv1alpha1.ConnectionConfig) string {
 	}
 	switch cc.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return "Postgres"
+		return "PostgreSQL"
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return "Mysql"
+		return "MySQL"
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		return "AWS S3"
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		return "GCP Cloud Storage"
+	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
+		return "MongoDB"
+	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
+		return "OpenAI"
 	default:
 		return "Unknown"
 	}
