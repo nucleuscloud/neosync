@@ -34,7 +34,7 @@ func (j *javascriptProcessor) newVM() (*vmRunner, error) {
 	}
 
 	for name, fc := range vmRunnerFunctionCtors {
-		if err := setFunction(vr, name, fc.ctor(vr)); err != nil {
+		if err := setFunction(vr, fc.namespace, name, fc.ctor(vr)); err != nil {
 			return nil, err
 		}
 	}
@@ -42,18 +42,19 @@ func (j *javascriptProcessor) newVM() (*vmRunner, error) {
 }
 
 // The namespace within all our function definitions
-const fnCtxName = "benthos"
+const benthosFnCtxName = "benthos"
+const neosyncFnCtxName = "neosync"
 
-func setFunction(vr *vmRunner, name string, function jsFunction) error {
+func setFunction(vr *vmRunner, namespace, name string, function jsFunction) error {
 	var targetObj *goja.Object
-	if targetObjValue := vr.vm.GlobalObject().Get(fnCtxName); targetObjValue != nil {
+	if targetObjValue := vr.vm.GlobalObject().Get(namespace); targetObjValue != nil {
 		targetObj = targetObjValue.ToObject(vr.vm)
 	}
 	if targetObj == nil {
-		if err := vr.vm.GlobalObject().Set(fnCtxName, map[string]any{}); err != nil {
-			return fmt.Errorf("failed to set global benthos object: %w", err)
+		if err := vr.vm.GlobalObject().Set(namespace, map[string]interface{}{}); err != nil {
+			return fmt.Errorf("failed to set global %s object: %w", namespace, err)
 		}
-		targetObj = vr.vm.GlobalObject().Get(fnCtxName).ToObject(vr.vm)
+		targetObj = vr.vm.GlobalObject().Get(namespace).ToObject(vr.vm)
 	}
 
 	if err := targetObj.Set(name, func(call goja.FunctionCall, rt *goja.Runtime) goja.Value {
@@ -64,8 +65,9 @@ func setFunction(vr *vmRunner, name string, function jsFunction) error {
 		}
 		return rt.ToValue(result)
 	}); err != nil {
-		return fmt.Errorf("failed to set global function %v: %w", name, err)
+		return fmt.Errorf("failed to set global %s function %v: %w", namespace, name, err)
 	}
+
 	return nil
 }
 

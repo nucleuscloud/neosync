@@ -21,6 +21,7 @@ type jsFunctionParam struct {
 }
 
 type jsFunctionDefinition struct {
+	namespace   string
 	name        string
 	description string
 	params      []jsFunctionParam
@@ -44,6 +45,11 @@ func (j *jsFunctionDefinition) Example(example string) *jsFunctionDefinition {
 
 func (j *jsFunctionDefinition) FnCtor(ctor func(r *vmRunner) jsFunction) *jsFunctionDefinition {
 	j.ctor = ctor
+	return j
+}
+
+func (j *jsFunctionDefinition) Namespace(namespace string) *jsFunctionDefinition {
+	j.namespace = namespace
 	return j
 }
 
@@ -89,6 +95,7 @@ var _ = registerVMRunnerFunction(
 	"v0_fetch",
 	`Executes an HTTP request synchronously and returns the result as an object of the form `+"`"+`{"status":200,"body":"foo"}`+"`"+`.`,
 ).
+	Namespace(benthosFnCtxName).
 	Param("url", "string", "The URL to fetch").
 	Param("headers", "object(string,string)", "An object of string/string key/value pairs to add the request as headers.").
 	Param("method", "string", "The method of the request.").
@@ -145,6 +152,7 @@ benthos.v0_msg_set_structured(result);
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_set_string", `Set the contents of the processed message to a given string.`).
+	Namespace(benthosFnCtxName).
 	Param("value", "string", "The value to set it to.").
 	Example(`benthos.v0_msg_set_string("hello world");`).
 	FnCtor(func(r *vmRunner) jsFunction {
@@ -160,6 +168,7 @@ var _ = registerVMRunnerFunction("v0_msg_set_string", `Set the contents of the p
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_as_string", `Obtain the raw contents of the processed message as a string.`).
+	Namespace(benthosFnCtxName).
 	Example(`let contents = benthos.v0_msg_as_string();`).
 	FnCtor(func(r *vmRunner) jsFunction {
 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
@@ -172,6 +181,7 @@ var _ = registerVMRunnerFunction("v0_msg_as_string", `Obtain the raw contents of
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_set_structured", `Set the root of the processed message to a given value of any type.`).
+	Namespace(benthosFnCtxName).
 	Param("value", "anything", "The value to set it to.").
 	Example(`
 benthos.v0_msg_set_structured({
@@ -193,6 +203,7 @@ benthos.v0_msg_set_structured({
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_as_structured", `Obtain the root of the processed message as a structured value. If the message is not valid JSON or has not already been expanded into a structured form this function will throw an error.`).
+	Namespace(benthosFnCtxName).
 	Example(`let foo = benthos.v0_msg_as_structured().foo;`).
 	FnCtor(func(r *vmRunner) jsFunction {
 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
@@ -201,6 +212,7 @@ var _ = registerVMRunnerFunction("v0_msg_as_structured", `Obtain the root of the
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_exists_meta", `Check that a metadata key exists.`).
+	Namespace(benthosFnCtxName).
 	Param("name", "string", "The metadata key to search for.").
 	Example(`if (benthos.v0_msg_exists_meta("kafka_key")) {}`).
 	FnCtor(func(r *vmRunner) jsFunction {
@@ -219,6 +231,7 @@ var _ = registerVMRunnerFunction("v0_msg_exists_meta", `Check that a metadata ke
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_get_meta", `Get the value of a metadata key from the processed message.`).
+	Namespace(benthosFnCtxName).
 	Param("name", "string", "The metadata key to search for.").
 	Example(`let key = benthos.v0_msg_get_meta("kafka_key");`).
 	FnCtor(func(r *vmRunner) jsFunction {
@@ -237,6 +250,7 @@ var _ = registerVMRunnerFunction("v0_msg_get_meta", `Get the value of a metadata
 	})
 
 var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the processed message to a value.`).
+	Namespace(benthosFnCtxName).
 	Param("name", "string", "The metadata key to set.").
 	Param("value", "anything", "The value to set it to.").
 	Example(`benthos.v0_msg_set_meta("thing", "hello world");`).
@@ -255,6 +269,7 @@ var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the p
 	})
 
 var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
+	Namespace(neosyncFnCtxName).
 	Param("name", "string", "The metadata key to set.").
 	Example(`benthos.hello("kevin");`).
 	FnCtor(func(r *vmRunner) jsFunction {
