@@ -549,6 +549,10 @@ func (s *Service) GetConnectionSchema(
 			return nil, nucleuserrors.NewBadRequest("must provide gcp cloud storage config")
 		}
 
+		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
+		}
 		gcpConfig := config.GcpCloudstorageConfig
 
 		var jobRunId string
@@ -556,15 +560,15 @@ func (s *Service) GetConnectionSchema(
 		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId:
-			jobRunId = "" // todo
+			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
+			if err != nil {
+				return nil, err
+			}
+			jobRunId = runId
 		default:
 			return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
 		}
 
-		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
-		}
 		schemas, err := gcpclient.GetDbSchemaFromPrefix(
 			ctx,
 			gcpConfig.GetBucket(), neosync_gcp.GetWorkflowActivityPrefix(jobRunId, gcpConfig.PathPrefix),
@@ -906,6 +910,37 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 	default:
 		return nil, nucleuserrors.NewBadRequest("this connection config is not currently supported")
 	}
+}
+
+func (s *Service) getLatestJobRunFromGcs(
+	ctx context.Context,
+	client neosync_gcp.ClientInterface,
+	jobId string,
+	bucket string,
+	pathPrefix *string,
+) (string, error) {
+	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
+		JobId: jobId,
+	}))
+	if err != nil {
+		return "", err
+	}
+	jobRuns := jobRunsResp.Msg.GetRecentRuns()
+	for i := len(jobRuns) - 1; i >= 0; i-- {
+		runId := jobRuns[i].GetJobRunId()
+		prefix := neosync_gcp.GetWorkflowActivityPrefix(
+			runId,
+			pathPrefix,
+		)
+		ok, err := client.DoesPrefixContainTables(ctx, bucket, prefix)
+		if err != nil {
+			return "", fmt.Errorf("unable to check if prefix contains tables: %w", err)
+		}
+		if ok {
+			return runId, nil
+		}
+	}
+	return "", fmt.Errorf("unable to find latest job run for job: %s", jobId)
 }
 
 // returns the first job run id for a given job that is in S3

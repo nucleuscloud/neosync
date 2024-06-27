@@ -19,6 +19,7 @@ import (
 
 type ClientInterface interface {
 	GetDbSchemaFromPrefix(ctx context.Context, bucketName string, prefix string) ([]*mgmtv1alpha1.DatabaseColumn, error)
+	DoesPrefixContainTables(ctx context.Context, bucketName string, prefix string) (bool, error)
 }
 
 type Client struct {
@@ -30,6 +31,26 @@ var _ ClientInterface = &Client{}
 
 func NewClient(client *storage.Client, logger *slog.Logger) *Client {
 	return &Client{client: client, logger: logger}
+}
+
+func (c *Client) DoesPrefixContainTables(
+	ctx context.Context,
+	bucketName string,
+	prefix string,
+) (bool, error) {
+	bucket := c.client.Bucket(bucketName)
+	it := bucket.Objects(ctx, &storage.Query{
+		Prefix:    prefix,
+		Delimiter: "/",
+	})
+	_, err := it.Next()
+	if err != nil {
+		if err == iterator.Done {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func (c *Client) GetDbSchemaFromPrefix(
