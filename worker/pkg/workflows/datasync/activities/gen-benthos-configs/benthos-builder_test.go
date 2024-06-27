@@ -24,12 +24,14 @@ import (
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
+
+	// _ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
+	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
@@ -2938,7 +2940,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	require.Equal(
 		t,
 		strings.TrimSpace(`
-- javascript:
+- neosync_javascript:
     code: |4-
         (() => {
 

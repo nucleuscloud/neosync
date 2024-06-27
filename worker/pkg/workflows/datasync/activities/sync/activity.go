@@ -10,12 +10,14 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/gcp"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
+
+	// _ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/mongodb"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"

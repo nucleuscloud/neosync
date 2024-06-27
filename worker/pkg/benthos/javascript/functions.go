@@ -253,3 +253,18 @@ var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the p
 			return nil, nil
 		}
 	})
+
+var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
+	Param("name", "string", "The metadata key to set.").
+	Example(`benthos.hello("kevin");`).
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+			var (
+				name string
+			)
+			if err := parseArgs(call, &name); err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("hello %s", name), nil
+		}
+	})

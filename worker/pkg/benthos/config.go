@@ -143,15 +143,20 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation   *string               `json:"mutation,omitempty" yaml:"mutation,omitempty"`
-	Javascript *JavascriptConfig     `json:"javascript,omitempty" yaml:"javascript,omitempty"`
-	Branch     *BranchConfig         `json:"branch,omitempty" yaml:"branch,omitempty"`
-	Cache      *CacheConfig          `json:"cache,omitempty" yaml:"cache,omitempty"`
-	Mapping    *string               `json:"mapping,omitempty" yaml:"mapping,omitempty"`
-	Redis      *RedisProcessorConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
-	Error      *ErrorProcessorConfig `json:"error,omitempty" yaml:"error,omitempty"`
-	Catch      []*ProcessorConfig    `json:"catch,omitempty" yaml:"catch,omitempty"`
-	While      *WhileProcessorConfig `json:"while,omitempty" yaml:"while,omitempty"`
+	Mutation          *string                  `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Javascript        *JavascriptConfig        `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	NeosyncJavascript *NeosyncJavascriptConfig `json:"neosync_javascript,omitempty" yaml:"neosync_javascript,omitempty"`
+	Branch            *BranchConfig            `json:"branch,omitempty" yaml:"branch,omitempty"`
+	Cache             *CacheConfig             `json:"cache,omitempty" yaml:"cache,omitempty"`
+	Mapping           *string                  `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Redis             *RedisProcessorConfig    `json:"redis,omitempty" yaml:"redis,omitempty"`
+	Error             *ErrorProcessorConfig    `json:"error,omitempty" yaml:"error,omitempty"`
+	Catch             []*ProcessorConfig       `json:"catch,omitempty" yaml:"catch,omitempty"`
+	While             *WhileProcessorConfig    `json:"while,omitempty" yaml:"while,omitempty"`
+}
+
+type NeosyncJavascriptConfig struct {
+	Code string `json:"code" yaml:"code"`
 }
 
 type WhileProcessorConfig struct {
