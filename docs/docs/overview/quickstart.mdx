@@ -32,7 +32,7 @@ Here is the SQL script I ran to create the **Users** table in the public schema.
 
 ```sql
 CREATE TABLE public.users (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT NOT NULL,
