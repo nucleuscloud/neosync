@@ -67,6 +67,7 @@ func (c *Client) GetDbSchemaFromPrefix(
 	prefix string,
 ) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	bucket := c.client.Bucket(bucketName)
+	fmt.Println("looking for prefix: ", fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")))
 	it := bucket.Objects(ctx, &storage.Query{
 		Prefix:    fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")),
 		Delimiter: "/",
@@ -216,7 +217,7 @@ func getSchemaTableFromPrefix(prefix string) (*sqlmanager_shared.SchemaTable, er
 // Returns the prefix that contains the table folders in GCS
 func GetWorkflowActivityPrefix(runId string, prefixPath *string) string {
 	var pp = ""
-	if prefixPath != nil {
+	if prefixPath != nil && *prefixPath != "" {
 		pp = fmt.Sprintf("%s/", strings.TrimSuffix(*prefixPath, "/"))
 	}
 	return fmt.Sprintf("%sworkflows/%s/activities", pp, runId)
