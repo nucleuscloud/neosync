@@ -46,7 +46,7 @@ func (c *Client) DoesPrefixContainTables(
 ) (bool, error) {
 	bucket := c.client.Bucket(bucketName)
 	it := bucket.Objects(ctx, &storage.Query{
-		Prefix:    prefix,
+		Prefix:    fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")),
 		Delimiter: "/",
 	})
 	_, err := it.Next()
@@ -66,7 +66,7 @@ func (c *Client) GetDbSchemaFromPrefix(
 ) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	bucket := c.client.Bucket(bucketName)
 	it := bucket.Objects(ctx, &storage.Query{
-		Prefix:    prefix,
+		Prefix:    fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")),
 		Delimiter: "/",
 	})
 
@@ -111,6 +111,7 @@ func (c *Client) GetRecordStreamFromPrefix(
 	bucket := c.client.Bucket(bucketName)
 	it := bucket.Objects(ctx, &storage.Query{Prefix: prefix})
 
+	c.logger.Info(fmt.Sprintf("Finding objects for %s", prefix))
 	// todo: make more concurrent
 	for {
 		objAttrs, err := it.Next()
@@ -201,9 +202,9 @@ func getSchemaTableFromPrefix(prefix string) (*sqlmanager_shared.SchemaTable, er
 func GetWorkflowActivityPrefix(runId string, prefixPath *string) string {
 	var pp = ""
 	if prefixPath != nil {
-		pp = strings.TrimSuffix(*prefixPath, "/")
+		pp = fmt.Sprintf("%s/", strings.TrimSuffix(*prefixPath, "/"))
 	}
-	return fmt.Sprintf("%s/workflows/%s/activities/", pp, runId)
+	return fmt.Sprintf("%sworkflows/%s/activities", pp, runId)
 }
 
 func GetWorkflowActivityDataPrefix(runId, table string, prefixPath *string) string {
@@ -244,11 +245,15 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 	scanner := bufio.NewScanner(gzipReader)
 	if scanner.Scan() {
 		line := scanner.Bytes()
-		var result map[string][]byte
+		var result map[string]any
 		if err := json.Unmarshal(line, &result); err != nil {
 			return fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		err = onRecord(result)
+		record, err := valToRecord(result)
+		if err != nil {
+			return fmt.Errorf("unable to convert record from map[string]any to map[string][]byte: %w", err)
+		}
+		err = onRecord(record)
 		if err != nil {
 			return err
 		}
@@ -258,4 +263,29 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 	}
 
 	return nil
+}
+
+func valToRecord(input map[string]any) (map[string][]byte, error) {
+	output := make(map[string][]byte)
+	for key, value := range input {
+		var byteValue []byte
+		if str, ok := value.(string); ok {
+			// try converting string directly to []byte
+			// prevents quoted strings
+			byteValue = []byte(str)
+		} else {
+			// if not a string use JSON encoding
+			bits, err := json.Marshal(value)
+			if err != nil {
+				return nil, err
+			}
+			if string(bits) == "null" {
+				byteValue = nil
+			} else {
+				byteValue = bits
+			}
+		}
+		output[key] = byteValue
+	}
+	return output, nil
 }
