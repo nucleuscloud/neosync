@@ -240,12 +240,18 @@ func (s *Service) GetConnectionDataStream(
 		}
 		logger.Info("created AWS S3 client")
 
+		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
+		s3pathpieces := []string{}
+		if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
+			s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
+		}
+
 		var jobRunId string
 		switch id := awsS3StreamCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region)
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
 			if err != nil {
 				return err
 			}
@@ -255,7 +261,15 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		tableName := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
-		path := fmt.Sprintf("workflows/%s/activities/%s/data", jobRunId, tableName)
+		s3pathpieces = append(
+			s3pathpieces,
+			"workflows",
+			jobRunId,
+			"activities",
+			tableName,
+			"data",
+		)
+		path := strings.Join(s3pathpieces, "/")
 		var pageToken *string
 		for {
 			output, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
@@ -443,12 +457,18 @@ func (s *Service) GetConnectionSchema(
 		}
 		logger.Info("created S3 AWS session")
 
+		connAwsConfig := connection.ConnectionConfig.GetAwsS3Config()
+		s3pathpieces := []string{}
+		if connAwsConfig != nil && connAwsConfig.GetPathPrefix() != "" {
+			s3pathpieces = append(s3pathpieces, strings.Trim(connAwsConfig.GetPathPrefix(), "/"))
+		}
+
 		var jobRunId string
 		switch id := awsCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region)
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
 			if err != nil {
 				return nil, err
 			}
@@ -457,7 +477,13 @@ func (s *Service) GetConnectionSchema(
 			return nil, nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
 
-		path := fmt.Sprintf("workflows/%s/activities/", jobRunId)
+		s3pathpieces = append(
+			s3pathpieces,
+			"workflows",
+			jobRunId,
+			"activities/",
+		)
+		path := strings.Join(s3pathpieces, "/")
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		var pageToken *string
@@ -882,6 +908,7 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	s3Client *s3.Client,
 	jobId, bucket string,
 	region *string,
+	s3pathpieces []string,
 ) (string, error) {
 	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
 		JobId: jobId,
@@ -893,7 +920,13 @@ func (s *Service) getLastestJobRunFromAwsS3(
 
 	for i := len(jobRuns) - 1; i >= 0; i-- {
 		runId := jobRuns[i].JobRunId
-		path := fmt.Sprintf("workflows/%s/activities/", runId)
+		s3pathpieces = append(
+			s3pathpieces,
+			"workflows",
+			runId,
+			"activities/",
+		)
+		path := strings.Join(s3pathpieces, "/")
 		output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
 			Bucket:    aws.String(bucket),
 			Prefix:    aws.String(path),
