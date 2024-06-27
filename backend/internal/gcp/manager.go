@@ -8,7 +8,7 @@ import (
 )
 
 type ManagerInterface interface {
-	GetStorageClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error)
+	GetClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error)
 }
 
 type Manager struct{}
@@ -19,7 +19,7 @@ func NewManager() *Manager {
 	return &Manager{}
 }
 
-func (m *Manager) GetStorageClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error) {
+func (m *Manager) GetClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error) {
 	sc, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, err

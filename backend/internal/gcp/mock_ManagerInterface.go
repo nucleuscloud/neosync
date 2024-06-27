@@ -22,12 +22,12 @@ func (_m *MockManagerInterface) EXPECT() *MockManagerInterface_Expecter {
 	return &MockManagerInterface_Expecter{mock: &_m.Mock}
 }
 
-// GetStorageClient provides a mock function with given fields: ctx, logger
-func (_m *MockManagerInterface) GetStorageClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error) {
+// GetClient provides a mock function with given fields: ctx, logger
+func (_m *MockManagerInterface) GetClient(ctx context.Context, logger *slog.Logger) (ClientInterface, error) {
 	ret := _m.Called(ctx, logger)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetStorageClient")
+		panic("no return value specified for GetClient")
 	}
 
 	var r0 ClientInterface
@@ -52,31 +52,31 @@ func (_m *MockManagerInterface) GetStorageClient(ctx context.Context, logger *sl
 	return r0, r1
 }
 
-// MockManagerInterface_GetStorageClient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStorageClient'
-type MockManagerInterface_GetStorageClient_Call struct {
+// MockManagerInterface_GetClient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetClient'
+type MockManagerInterface_GetClient_Call struct {
 	*mock.Call
 }
 
-// GetStorageClient is a helper method to define mock.On call
+// GetClient is a helper method to define mock.On call
 //   - ctx context.Context
 //   - logger *slog.Logger
-func (_e *MockManagerInterface_Expecter) GetStorageClient(ctx interface{}, logger interface{}) *MockManagerInterface_GetStorageClient_Call {
-	return &MockManagerInterface_GetStorageClient_Call{Call: _e.mock.On("GetStorageClient", ctx, logger)}
+func (_e *MockManagerInterface_Expecter) GetClient(ctx interface{}, logger interface{}) *MockManagerInterface_GetClient_Call {
+	return &MockManagerInterface_GetClient_Call{Call: _e.mock.On("GetClient", ctx, logger)}
 }
 
-func (_c *MockManagerInterface_GetStorageClient_Call) Run(run func(ctx context.Context, logger *slog.Logger)) *MockManagerInterface_GetStorageClient_Call {
+func (_c *MockManagerInterface_GetClient_Call) Run(run func(ctx context.Context, logger *slog.Logger)) *MockManagerInterface_GetClient_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(*slog.Logger))
 	})
 	return _c
 }
 
-func (_c *MockManagerInterface_GetStorageClient_Call) Return(_a0 ClientInterface, _a1 error) *MockManagerInterface_GetStorageClient_Call {
+func (_c *MockManagerInterface_GetClient_Call) Return(_a0 ClientInterface, _a1 error) *MockManagerInterface_GetClient_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockManagerInterface_GetStorageClient_Call) RunAndReturn(run func(context.Context, *slog.Logger) (ClientInterface, error)) *MockManagerInterface_GetStorageClient_Call {
+func (_c *MockManagerInterface_GetClient_Call) RunAndReturn(run func(context.Context, *slog.Logger) (ClientInterface, error)) *MockManagerInterface_GetClient_Call {
 	_c.Call.Return(run)
 	return _c
 }

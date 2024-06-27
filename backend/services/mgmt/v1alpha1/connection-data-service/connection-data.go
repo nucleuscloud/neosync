@@ -561,7 +561,7 @@ func (s *Service) GetConnectionSchema(
 			return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
 		}
 
-		gcpclient, err := s.gcpmanager.GetStorageClient(ctx, logger)
+		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
 		}
