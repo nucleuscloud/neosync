@@ -21,7 +21,7 @@ import (
 
 const (
 	neosyncDirName           = ".neosync"
-	cliSettingsFileNameNoExt = ".neosync-cli"
+	cliSettingsFileNameNoExt = "config"
 	cliSettingsFileExt       = "yaml"
 
 	apiKeyEnvVarName = "NEOSYNC_API_KEY" //nolint:gosec
@@ -32,16 +32,15 @@ func Execute() {
 	rootCmd := &cobra.Command{
 		Use:   "neosync",
 		Short: "Terminal UI that interfaces with the Neosync system.",
-		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
 			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), version.Get().GrpcMetadata()))
 		},
 	}
 
-	var cfgFile string
+	var cfgFilePath string
 	cobra.OnInitialize(
-		func() { initConfig(cfgFile) },
+		func() { initConfig(cfgFilePath) },
 		func() {
 			apiKey, err := rootCmd.Flags().GetString(apiKeyFlag)
 			if err != nil {
@@ -61,10 +60,10 @@ func Execute() {
 	rootCmd.SetVersionTemplate(`{{printf "%s\n" .Version}}`)
 
 	rootCmd.PersistentFlags().StringVar(
-		&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.%s)", cliSettingsFileNameNoExt, cliSettingsFileExt),
+		&cfgFilePath, "config", "", fmt.Sprintf("config file (default is $HOME/%s/%s.%s)", neosyncDirName, cliSettingsFileNameNoExt, cliSettingsFileExt),
 	)
-
 	rootCmd.PersistentFlags().String(apiKeyFlag, "", fmt.Sprintf("Neosync API Key. Takes precedence over $%s", apiKeyEnvVarName))
+
 	rootCmd.AddCommand(jobs_cmd.NewCmd())
 	rootCmd.AddCommand(version_cmd.NewCmd())
 	rootCmd.AddCommand(whoami_cmd.NewCmd())
@@ -84,7 +83,9 @@ func initConfig(cfgFilePath string) {
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+		if err != nil {
+			panic(err)
+		}
 
 		fullNeosyncSettingsDir := filepath.Join(home, neosyncDirName)
 		neosyncConfigDir := os.Getenv("NEOSYNC_CONFIG_DIR") // helpful for tools such as direnv and people who want it somewhere interesting
@@ -93,8 +94,12 @@ func initConfig(cfgFilePath string) {
 		viper.AddConfigPath(".")
 		viper.AddConfigPath(fullNeosyncSettingsDir)
 		viper.AddConfigPath(home)
-		viper.AddConfigPath(neosyncConfigDir)
-		viper.AddConfigPath(xdgConfigHome)
+		if neosyncConfigDir != "" {
+			viper.AddConfigPath(neosyncConfigDir)
+		}
+		if xdgConfigHome != "" {
+			viper.AddConfigPath(xdgConfigHome)
+		}
 
 		viper.SetConfigType(cliSettingsFileExt)
 		viper.SetConfigName(cliSettingsFileNameNoExt)
