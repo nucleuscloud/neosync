@@ -76,7 +76,6 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			var subsetByForeignKeyConstraints bool
 			var destinationOptions *mgmtv1alpha1.JobDestinationOptions
 			if tt.JobOptions != nil {
-
 				if tt.JobOptions.SubsetByForeignKeyConstraints {
 					subsetByForeignKeyConstraints = true
 				}
