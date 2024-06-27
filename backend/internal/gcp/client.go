@@ -10,10 +10,12 @@ import (
 	"io"
 	"log/slog"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/storage"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/iterator"
 )
 
@@ -71,6 +73,10 @@ func (c *Client) GetDbSchemaFromPrefix(
 	})
 
 	output := []*mgmtv1alpha1.DatabaseColumn{}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(10)
+	mu := sync.Mutex{}
+
 	for {
 		objAttrs, err := it.Next()
 		if err != nil {
@@ -87,17 +93,26 @@ func (c *Client) GetDbSchemaFromPrefix(
 			return nil, err
 		}
 
-		columns, err := c.getTableColumnsFromFile(ctx, bucket, objAttrs.Prefix)
-		if err != nil {
-			return nil, err
-		}
-		for _, column := range columns {
-			output = append(output, &mgmtv1alpha1.DatabaseColumn{
-				Schema: schematable.Schema,
-				Table:  schematable.Table,
-				Column: column,
-			})
-		}
+		errgrp.Go(func() error {
+			columns, err := c.getTableColumnsFromFile(errctx, bucket, objAttrs.Prefix)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			for _, column := range columns {
+				output = append(output, &mgmtv1alpha1.DatabaseColumn{
+					Schema: schematable.Schema,
+					Table:  schematable.Table,
+					Column: column,
+				})
+			}
+			mu.Unlock()
+			return nil
+		})
+	}
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
 	}
 	return output, nil
 }
@@ -111,8 +126,8 @@ func (c *Client) GetRecordStreamFromPrefix(
 	bucket := c.client.Bucket(bucketName)
 	it := bucket.Objects(ctx, &storage.Query{Prefix: prefix})
 
-	c.logger.Info(fmt.Sprintf("Finding objects for %s", prefix))
-	// todo: make more concurrent
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(10)
 	for {
 		objAttrs, err := it.Next()
 		if err != nil {
@@ -124,19 +139,19 @@ func (c *Client) GetRecordStreamFromPrefix(
 		if objAttrs.Name == "" {
 			continue // encountered folder
 		}
-		reader, err := bucket.Object(objAttrs.Name).NewReader(ctx)
-		if err != nil {
+		errgrp.Go(func() error {
+			reader, err := bucket.Object(objAttrs.Name).NewReader(errctx)
+			if err != nil {
+				return err
+			}
+			err = streamRecordsFromReader(reader, onRecord)
+			if closeErr := reader.Close(); closeErr != nil {
+				c.logger.Warn(fmt.Sprintf("failed to close reader while streaming records from prefix: %s", closeErr.Error()))
+			}
 			return err
-		}
-		err = streamRecordsFromReader(reader, onRecord)
-		if closeErr := reader.Close(); closeErr != nil {
-			c.logger.Warn(fmt.Sprintf("failed to close reader while streaming records from prefix: %s", closeErr.Error()))
-		}
-		if err != nil {
-			return err
-		}
+		})
 	}
-	return nil
+	return errgrp.Wait()
 }
 
 func (c *Client) getTableColumnsFromFile(
