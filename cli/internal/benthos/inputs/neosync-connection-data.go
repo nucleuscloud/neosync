@@ -133,6 +133,7 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 	)
 
 	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
+
 	if g.connectionType == "awsS3" {
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
@@ -146,6 +147,22 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 			Config: &mgmtv1alpha1.ConnectionStreamConfig_AwsS3Config{
 				AwsS3Config: awsS3Cfg,
 			},
+		}
+	} else if g.connectionType == "gcpCloudStorage" {
+		if g.connectionOpts != nil {
+			gcpCfg := &mgmtv1alpha1.GcpCloudStorageStreamConfig{}
+			if g.connectionOpts != nil {
+				if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
+					gcpCfg.Id = &mgmtv1alpha1.GcpCloudStorageStreamConfig_JobRunId{JobRunId: *g.connectionOpts.jobRunId}
+				} else if g.connectionOpts.jobId != nil && *g.connectionOpts.jobId != "" {
+					gcpCfg.Id = &mgmtv1alpha1.GcpCloudStorageStreamConfig_JobId{JobId: *g.connectionOpts.jobId}
+				}
+			}
+			streamCfg = &mgmtv1alpha1.ConnectionStreamConfig{
+				Config: &mgmtv1alpha1.ConnectionStreamConfig_GcpCloudstorageConfig{
+					GcpCloudstorageConfig: gcpCfg,
+				},
+			}
 		}
 	}
 

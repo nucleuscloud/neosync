@@ -20,6 +20,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
@@ -352,10 +353,42 @@ func (s *Service) GetConnectionDataStream(
 			break
 		}
 
-	default:
-		return nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		gcpStreamCfg := req.Msg.GetStreamConfig().GetGcpCloudstorageConfig()
+		if gcpStreamCfg == nil {
+			return nucleuserrors.NewBadRequest("must provide non-nil gcp cloud storage config in request")
+		}
+		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
+		if err != nil {
+			return fmt.Errorf("unable to init gcp storage client: %w", err)
+		}
+		gcpConfig := config.GcpCloudstorageConfig
 
+		var jobRunId string
+		switch id := gcpStreamCfg.Id.(type) {
+		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobId:
+			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
+			if err != nil {
+				return err
+			}
+			jobRunId = runId
+		default:
+			return nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
+		}
+
+		onRecord := func(record map[string][]byte) error {
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: record})
+		}
+		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
+		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
+		if err != nil {
+			return fmt.Errorf("unable to finish sending record stream: %w", err)
+		}
+	default:
+		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
+	}
 	return nil
 }
 
@@ -451,7 +484,7 @@ func (s *Service) GetConnectionSchema(
 		}
 
 		awsS3Config := config.AwsS3Config
-		s3Client, err := s.awsManager.NewS3Client(ctx, config.AwsS3Config)
+		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
 		if err != nil {
 			return nil, err
 		}
@@ -568,8 +601,44 @@ func (s *Service) GetConnectionSchema(
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
 		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		gcpCfg := req.Msg.GetSchemaConfig().GetGcpCloudstorageConfig()
+		if gcpCfg == nil {
+			return nil, nucleuserrors.NewBadRequest("must provide gcp cloud storage config")
+		}
+
+		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
+		}
+		gcpConfig := config.GcpCloudstorageConfig
+
+		var jobRunId string
+		switch id := gcpCfg.Id.(type) {
+		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId:
+			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
+			if err != nil {
+				return nil, err
+			}
+			jobRunId = runId
+		default:
+			return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
+		}
+
+		schemas, err := gcpclient.GetDbSchemaFromPrefix(
+			ctx,
+			gcpConfig.GetBucket(), neosync_gcp.GetWorkflowActivityPrefix(jobRunId, gcpConfig.PathPrefix),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
 	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 }
 
@@ -823,6 +892,18 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 				AwsS3Config: cfg,
 			},
 		}
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+		if opts.JobRunId != nil && *opts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *opts.JobRunId}}
+		} else if opts.JobId != nil && *opts.JobId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *opts.JobId}}
+		}
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: cfg,
+			},
+		}
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MongoConfig{
@@ -899,6 +980,37 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 	default:
 		return nil, nucleuserrors.NewBadRequest("this connection config is not currently supported")
 	}
+}
+
+func (s *Service) getLatestJobRunFromGcs(
+	ctx context.Context,
+	client neosync_gcp.ClientInterface,
+	jobId string,
+	bucket string,
+	pathPrefix *string,
+) (string, error) {
+	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
+		JobId: jobId,
+	}))
+	if err != nil {
+		return "", err
+	}
+	jobRuns := jobRunsResp.Msg.GetRecentRuns()
+	for i := len(jobRuns) - 1; i >= 0; i-- {
+		runId := jobRuns[i].GetJobRunId()
+		prefix := neosync_gcp.GetWorkflowActivityPrefix(
+			runId,
+			pathPrefix,
+		)
+		ok, err := client.DoesPrefixContainTables(ctx, bucket, prefix)
+		if err != nil {
+			return "", fmt.Errorf("unable to check if prefix contains tables: %w", err)
+		}
+		if ok {
+			return runId, nil
+		}
+	}
+	return "", fmt.Errorf("unable to find latest job run for job: %s", jobId)
 }
 
 // returns the first job run id for a given job that is in S3

@@ -42,6 +42,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 
 	"github.com/benthosdev/benthos/v4/public/service"
@@ -49,13 +50,17 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type ConnectionType string
+type DriverType string
+
 const (
 	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 
-	awsS3Connection    ConnectionType = "awsS3"
-	postgresConnection ConnectionType = "postgres"
-	mysqlConnection    ConnectionType = "mysql"
+	awsS3Connection           ConnectionType = "awsS3"
+	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
+	postgresConnection        ConnectionType = "postgres"
+	mysqlConnection           ConnectionType = "mysql"
 
 	batchSize = 20
 )
@@ -66,9 +71,6 @@ var (
 		string(mysqlDriver):    mysqlDriver,
 	}
 )
-
-type ConnectionType string
-type DriverType string
 
 type cmdConfig struct {
 	Source      *sourceConfig      `yaml:"source"`
@@ -241,8 +243,8 @@ func NewCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
-	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with AWS S3 connections. Can use job-run-id instead.")
-	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with AWS S3 connections. Can use job-id instead.")
+	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-run-id instead.")
+	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-id instead.")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
@@ -305,6 +307,9 @@ func sync(
 
 	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("S3 source connection type requires job-id or job-run-id.")
+	}
+	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
 	var token *string
@@ -370,7 +375,29 @@ func sync(
 			return nil
 		}
 		schemaConfig = schemaCfg
+	case gcpCloudStorageConnection:
+		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+		if cmd.Source.ConnectionOpts.JobRunId != nil && *cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *cmd.Source.ConnectionOpts.JobRunId}}
+		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *cmd.Source.ConnectionOpts.JobId}}
+		}
 
+		gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: cfg,
+			},
+		}
+
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, gcpConfig)
+		if err != nil {
+			return err
+		}
+		if len(schemaCfg.Schemas) == 0 {
+			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+			return nil
+		}
+		schemaConfig = schemaCfg
 	case mysqlConnection:
 		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
 		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
@@ -460,7 +487,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 		if destinationDriver != mysqlDriver {
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 	default:
 		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 	}
@@ -1052,6 +1079,9 @@ func parseDriverString(str string) (DriverType, bool) {
 func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
 	if connection.ConnectionConfig.GetAwsS3Config() != nil {
 		return awsS3Connection, nil
+	}
+	if connection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
+		return gcpCloudStorageConnection, nil
 	}
 	if connection.ConnectionConfig.GetMysqlConfig() != nil {
 		return mysqlConnection, nil

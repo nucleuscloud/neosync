@@ -119,6 +119,56 @@ export class AwsS3StreamConfig extends Message<AwsS3StreamConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GcpCloudStorageStreamConfig
+ */
+export class GcpCloudStorageStreamConfig extends Message<GcpCloudStorageStreamConfig> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.GcpCloudStorageStreamConfig.id
+   */
+  id: {
+    /**
+     * @generated from field: string job_id = 1;
+     */
+    value: string;
+    case: "jobId";
+  } | {
+    /**
+     * @generated from field: string job_run_id = 2;
+     */
+    value: string;
+    case: "jobRunId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<GcpCloudStorageStreamConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GcpCloudStorageStreamConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
+    { no: 2, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GcpCloudStorageStreamConfig {
+    return new GcpCloudStorageStreamConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GcpCloudStorageStreamConfig {
+    return new GcpCloudStorageStreamConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GcpCloudStorageStreamConfig {
+    return new GcpCloudStorageStreamConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GcpCloudStorageStreamConfig | PlainMessage<GcpCloudStorageStreamConfig> | undefined, b: GcpCloudStorageStreamConfig | PlainMessage<GcpCloudStorageStreamConfig> | undefined): boolean {
+    return proto3.util.equals(GcpCloudStorageStreamConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.ConnectionStreamConfig
  */
 export class ConnectionStreamConfig extends Message<ConnectionStreamConfig> {
@@ -143,6 +193,12 @@ export class ConnectionStreamConfig extends Message<ConnectionStreamConfig> {
      */
     value: MysqlStreamConfig;
     case: "mysqlConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GcpCloudStorageStreamConfig gcp_cloudstorage_config = 4;
+     */
+    value: GcpCloudStorageStreamConfig;
+    case: "gcpCloudstorageConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionStreamConfig>) {
@@ -156,6 +212,7 @@ export class ConnectionStreamConfig extends Message<ConnectionStreamConfig> {
     { no: 1, name: "pg_config", kind: "message", T: PostgresStreamConfig, oneof: "config" },
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3StreamConfig, oneof: "config" },
     { no: 3, name: "mysql_config", kind: "message", T: MysqlStreamConfig, oneof: "config" },
+    { no: 4, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageStreamConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionStreamConfig {
@@ -415,6 +472,56 @@ export class MongoSchemaConfig extends Message<MongoSchemaConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GcpCloudStorageSchemaConfig
+ */
+export class GcpCloudStorageSchemaConfig extends Message<GcpCloudStorageSchemaConfig> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.GcpCloudStorageSchemaConfig.id
+   */
+  id: {
+    /**
+     * @generated from field: string job_id = 1;
+     */
+    value: string;
+    case: "jobId";
+  } | {
+    /**
+     * @generated from field: string job_run_id = 2;
+     */
+    value: string;
+    case: "jobRunId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<GcpCloudStorageSchemaConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GcpCloudStorageSchemaConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
+    { no: 2, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GcpCloudStorageSchemaConfig {
+    return new GcpCloudStorageSchemaConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GcpCloudStorageSchemaConfig {
+    return new GcpCloudStorageSchemaConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GcpCloudStorageSchemaConfig {
+    return new GcpCloudStorageSchemaConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GcpCloudStorageSchemaConfig | PlainMessage<GcpCloudStorageSchemaConfig> | undefined, b: GcpCloudStorageSchemaConfig | PlainMessage<GcpCloudStorageSchemaConfig> | undefined): boolean {
+    return proto3.util.equals(GcpCloudStorageSchemaConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.ConnectionSchemaConfig
  */
 export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
@@ -445,6 +552,12 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
      */
     value: MongoSchemaConfig;
     case: "mongoConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GcpCloudStorageSchemaConfig gcp_cloudstorage_config = 5;
+     */
+    value: GcpCloudStorageSchemaConfig;
+    case: "gcpCloudstorageConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionSchemaConfig>) {
@@ -459,6 +572,7 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3SchemaConfig, oneof: "config" },
     { no: 3, name: "mysql_config", kind: "message", T: MysqlSchemaConfig, oneof: "config" },
     { no: 4, name: "mongo_config", kind: "message", T: MongoSchemaConfig, oneof: "config" },
+    { no: 5, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageSchemaConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionSchemaConfig {

@@ -24,6 +24,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
+	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -627,6 +628,7 @@ type serviceMocks struct {
 	MongoConnectorMock     *mongoconnect.MockInterface
 	SqlManagerMock         *sqlmanager.MockSqlManagerClient
 	DbMock                 *sqlmanager.MockSqlDatabase
+	GcpManagerMock         *neosync_gcp.MockManagerInterface
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -642,13 +644,14 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockMongoConnector := mongoconnect.NewMockInterface(t)
 	mockSqlDb := sqlmanager.NewMockSqlDatabase(t)
 	mockSqlManager := sqlmanager.NewMockSqlManagerClient(t)
+	mockGcpManager := neosync_gcp.NewMockManagerInterface(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector, mockSqlManager)
+	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector, mockSqlManager, mockGcpManager)
 
 	return &serviceMocks{
 		Service:                service,
@@ -668,6 +671,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		MongoConnectorMock:     mockMongoConnector,
 		SqlManagerMock:         mockSqlManager,
 		DbMock:                 mockSqlDb,
+		GcpManagerMock:         mockGcpManager,
 	}
 }
 
