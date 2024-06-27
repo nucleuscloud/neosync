@@ -342,7 +342,7 @@ func (s *Service) GetConnectionDataStream(
 	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 		gcpStreamCfg := req.Msg.GetStreamConfig().GetGcpCloudstorageConfig()
 		if gcpStreamCfg == nil {
-			return nucleuserrors.NewBadRequest("jobId or jobRunId required for GCP Cloud Storage connections")
+			return nucleuserrors.NewBadRequest("must provide non-nil gcp cloud storage config in request")
 		}
 		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
 		if err != nil {

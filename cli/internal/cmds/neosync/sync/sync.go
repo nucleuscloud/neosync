@@ -243,8 +243,8 @@ func NewCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
-	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with AWS S3 connections. Can use job-run-id instead.")
-	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with AWS S3 connections. Can use job-id instead.")
+	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-run-id instead.")
+	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-id instead.")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
@@ -382,6 +382,7 @@ func sync(
 		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
 			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *cmd.Source.ConnectionOpts.JobId}}
 		}
+
 		gcpConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
 				GcpCloudstorageConfig: cfg,

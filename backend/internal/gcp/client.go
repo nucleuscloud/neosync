@@ -67,7 +67,6 @@ func (c *Client) GetDbSchemaFromPrefix(
 	prefix string,
 ) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	bucket := c.client.Bucket(bucketName)
-	fmt.Println("looking for prefix: ", fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")))
 	it := bucket.Objects(ctx, &storage.Query{
 		Prefix:    fmt.Sprintf("%s/", strings.TrimSuffix(prefix, "/")),
 		Delimiter: "/",
