@@ -8,6 +8,9 @@ type ExpectedOutput struct {
 
 type TestJobOptions struct {
 	SubsetByForeignKeyConstraints bool
+	InitSchema                    bool
+	Truncate                      bool
+	TruncateCascade               bool
 }
 type IntegrationTest struct {
 	Name               string

@@ -25,6 +25,7 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
+	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/virtual-foreign-keys"
 	"github.com/stretchr/testify/require"
@@ -36,12 +37,14 @@ func getAllSyncTests() []*workflow_testdata.IntegrationTest {
 	allTests := []*workflow_testdata.IntegrationTest{}
 	drTests := testdata_doublereference.GetSyncTests()
 	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
+	cdTests := testdata_circulardependencies.GetSyncTests()
 	allTests = append(allTests, drTests...)
 	allTests = append(allTests, vfkTests...)
+	allTests = append(allTests, cdTests...)
 	return allTests
 }
 
-func (s *IntegrationTestSuite) Test_Workflow_Sync() {
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 	tests := getAllSyncTests()
 	for _, tt := range tests {
 		s.T().Run(tt.Name, func(t *testing.T) {
@@ -71,8 +74,21 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync() {
 			}
 
 			var subsetByForeignKeyConstraints bool
-			if tt.JobOptions != nil && tt.JobOptions.SubsetByForeignKeyConstraints {
-				subsetByForeignKeyConstraints = true
+			var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+			if tt.JobOptions != nil {
+				if tt.JobOptions.SubsetByForeignKeyConstraints {
+					subsetByForeignKeyConstraints = true
+				}
+				destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+						PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+							InitTableSchema: tt.JobOptions.InitSchema,
+							TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+								TruncateBeforeInsert: tt.JobOptions.Truncate,
+							},
+						},
+					},
+				}
 			}
 
 			mux := http.NewServeMux()
@@ -93,10 +109,10 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync() {
 									},
 								},
 							},
-
 							Destinations: []*mgmtv1alpha1.JobDestination{
 								{
 									ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+									Options:      destinationOptions,
 								},
 							},
 							Mappings:           tt.JobMappings,

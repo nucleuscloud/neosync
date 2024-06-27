@@ -1,8 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS double_reference;
 SET search_path TO double_reference;
 
-
- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE
 	IF NOT EXISTS "company" (
 		"id" BIGSERIAL NOT NULL,
