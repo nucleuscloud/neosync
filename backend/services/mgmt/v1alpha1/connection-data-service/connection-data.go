@@ -20,6 +20,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
@@ -437,7 +438,7 @@ func (s *Service) GetConnectionSchema(
 		}
 
 		awsS3Config := config.AwsS3Config
-		s3Client, err := s.awsManager.NewS3Client(ctx, config.AwsS3Config)
+		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
 		if err != nil {
 			return nil, err
 		}
@@ -542,8 +543,40 @@ func (s *Service) GetConnectionSchema(
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
 		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		gcpCfg := req.Msg.GetSchemaConfig().GetGcpCloudstorageConfig()
+		if gcpCfg == nil {
+			return nil, nucleuserrors.NewBadRequest("must provide gcp cloud storage config")
+		}
+
+		gcpConfig := config.GcpCloudstorageConfig
+
+		var jobRunId string
+		switch id := gcpCfg.Id.(type) {
+		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId:
+			jobRunId = "" // todo
+		default:
+			return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
+		}
+
+		gcpclient, err := s.gcpmanager.GetStorageClient(ctx, logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to init gcp storage client: %w", err)
+		}
+		schemas, err := gcpclient.GetDbSchemaFromPrefix(
+			ctx,
+			gcpConfig.GetBucket(), neosync_gcp.GetWorkflowActivityPrefix(jobRunId, gcpConfig.PathPrefix),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
 	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 }
 

@@ -46,6 +46,12 @@ message AwsS3SchemaConfig {
   }
 }
 message MongoSchemaConfig {}
+message GcpCloudStorageSchemaConfig {
+  oneof id {
+    string job_id = 1 [(buf.validate.field).string.uuid = true];
+    string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
+  }
+}
 
 message ConnectionSchemaConfig {
   oneof config {
@@ -55,6 +61,7 @@ message ConnectionSchemaConfig {
     AwsS3SchemaConfig aws_s3_config = 2;
     MysqlSchemaConfig mysql_config = 3;
     MongoSchemaConfig mongo_config = 4;
+    GcpCloudStorageSchemaConfig gcp_cloudstorage_config = 5;
   }
 }
 

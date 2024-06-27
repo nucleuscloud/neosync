@@ -5,6 +5,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
+	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -24,6 +25,7 @@ type Service struct {
 	sqlmanager   sql_manager.SqlManagerClient
 
 	mongoconnector mongoconnect.Interface
+	gcpmanager     neosync_gcp.ManagerInterface
 }
 
 type Config struct {
@@ -42,6 +44,7 @@ func New(
 	mysqlquerier mysql_queries.Querier,
 	mongoconnector mongoconnect.Interface,
 	sqlmanager sql_manager.SqlManagerClient,
+	gcpmanager neosync_gcp.ManagerInterface,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
@@ -54,5 +57,6 @@ func New(
 		mysqlquerier:       mysqlquerier,
 		sqlmanager:         sqlmanager,
 		mongoconnector:     mongoconnector,
+		gcpmanager:         gcpmanager,
 	}
 }
