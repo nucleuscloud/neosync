@@ -105,9 +105,18 @@ pipeline:
 		)
 }
 
+// func RegisterNeosyncJavascriptProcessor() error {
+// 	return service.RegisterBatchProcessor(
+// 		"javascript", javascriptProcessorConfig(),
+// 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
+// 			return newJavascriptProcessorFromConfig(conf, mgr)
+// 		})
+
+// }
+
 func init() {
 	err := service.RegisterBatchProcessor(
-		"javascript", javascriptProcessorConfig(),
+		"neosync_javascript", javascriptProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
 			return newJavascriptProcessorFromConfig(conf, mgr)
 		})
