@@ -2882,6 +2882,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "gcp_cloudstorage_config",
+              "description": "",
+              "label": "",
+              "type": "GcpCloudStorageStreamConfig",
+              "longType": "GcpCloudStorageStreamConfig",
+              "fullType": "mgmt.v1alpha1.GcpCloudStorageStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -3177,6 +3189,42 @@
           "name": "GcpCloudStorageSchemaConfig",
           "longName": "GcpCloudStorageSchemaConfig",
           "fullName": "mgmt.v1alpha1.GcpCloudStorageSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GcpCloudStorageStreamConfig",
+          "longName": "GcpCloudStorageStreamConfig",
+          "fullName": "mgmt.v1alpha1.GcpCloudStorageStreamConfig",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,

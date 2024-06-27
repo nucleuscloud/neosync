@@ -20,6 +20,12 @@ import (
 type ClientInterface interface {
 	GetDbSchemaFromPrefix(ctx context.Context, bucketName string, prefix string) ([]*mgmtv1alpha1.DatabaseColumn, error)
 	DoesPrefixContainTables(ctx context.Context, bucketName string, prefix string) (bool, error)
+	GetRecordStreamFromPrefix(
+		ctx context.Context,
+		bucketName string,
+		prefix string,
+		onRecord func(record map[string][]byte) error,
+	) error
 }
 
 type Client struct {
@@ -96,6 +102,42 @@ func (c *Client) GetDbSchemaFromPrefix(
 	return output, nil
 }
 
+func (c *Client) GetRecordStreamFromPrefix(
+	ctx context.Context,
+	bucketName string,
+	prefix string,
+	onRecord func(record map[string][]byte) error,
+) error {
+	bucket := c.client.Bucket(bucketName)
+	it := bucket.Objects(ctx, &storage.Query{Prefix: prefix})
+
+	// todo: make more concurrent
+	for {
+		objAttrs, err := it.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return err
+		}
+		if objAttrs.Name == "" {
+			continue // encountered folder
+		}
+		reader, err := bucket.Object(objAttrs.Name).NewReader(ctx)
+		if err != nil {
+			return err
+		}
+		err = streamRecordsFromReader(reader, onRecord)
+		if closeErr := reader.Close(); closeErr != nil {
+			c.logger.Warn(fmt.Sprintf("failed to close reader while streaming records from prefix: %s", closeErr.Error()))
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *Client) getTableColumnsFromFile(
 	ctx context.Context,
 	bucket *storage.BucketHandle,
@@ -164,6 +206,10 @@ func GetWorkflowActivityPrefix(runId string, prefixPath *string) string {
 	return fmt.Sprintf("%s/workflows/%s/activities/", pp, runId)
 }
 
+func GetWorkflowActivityDataPrefix(runId, table string, prefixPath *string) string {
+	return fmt.Sprintf("%s/%s/data", GetWorkflowActivityPrefix(runId, prefixPath), table)
+}
+
 func getFirstRecordFromReader(reader io.Reader) (map[string]any, error) {
 	var result map[string]any
 
@@ -186,4 +232,30 @@ func getFirstRecordFromReader(reader io.Reader) (map[string]any, error) {
 	}
 
 	return result, nil
+}
+
+func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][]byte) error) error {
+	gzipReader, err := gzip.NewReader(reader)
+	if err != nil {
+		return fmt.Errorf("failed to create gzip reader: %w", err)
+	}
+	defer gzipReader.Close()
+
+	scanner := bufio.NewScanner(gzipReader)
+	if scanner.Scan() {
+		line := scanner.Bytes()
+		var result map[string][]byte
+		if err := json.Unmarshal(line, &result); err != nil {
+			return fmt.Errorf("failed to unmarshal JSON: %w", err)
+		}
+		err = onRecord(result)
+		if err != nil {
+			return err
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("error reading from gzip reader: %w", err)
+	}
+
+	return nil
 }

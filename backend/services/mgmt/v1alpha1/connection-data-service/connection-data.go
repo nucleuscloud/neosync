@@ -339,10 +339,42 @@ func (s *Service) GetConnectionDataStream(
 			break
 		}
 
-	default:
-		return nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		gcpStreamCfg := req.Msg.GetStreamConfig().GetGcpCloudstorageConfig()
+		if gcpStreamCfg == nil {
+			return nucleuserrors.NewBadRequest("jobId or jobRunId required for GCP Cloud Storage connections")
+		}
+		gcpclient, err := s.gcpmanager.GetClient(ctx, logger)
+		if err != nil {
+			return fmt.Errorf("unable to init gcp storage client: %w", err)
+		}
+		gcpConfig := config.GcpCloudstorageConfig
 
+		var jobRunId string
+		switch id := gcpStreamCfg.Id.(type) {
+		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.GcpCloudStorageStreamConfig_JobId:
+			runId, err := s.getLatestJobRunFromGcs(ctx, gcpclient, id.JobId, gcpConfig.GetBucket(), gcpConfig.PathPrefix)
+			if err != nil {
+				return err
+			}
+			jobRunId = runId
+		default:
+			return nucleuserrors.NewNotImplemented(fmt.Sprintf("unsupported GCP Cloud Storage config id: %T", id))
+		}
+
+		onRecord := func(record map[string][]byte) error {
+			return stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: record})
+		}
+		tablePath := neosync_gcp.GetWorkflowActivityDataPrefix(jobRunId, sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table), gcpConfig.PathPrefix)
+		err = gcpclient.GetRecordStreamFromPrefix(ctx, gcpConfig.GetBucket(), tablePath, onRecord)
+		if err != nil {
+			return fmt.Errorf("unable to finish sending record stream: %w", err)
+		}
+	default:
+		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
+	}
 	return nil
 }
 
@@ -832,6 +864,18 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
 				AwsS3Config: cfg,
+			},
+		}
+	case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+		var cfg *mgmtv1alpha1.GcpCloudStorageSchemaConfig
+		if opts.JobRunId != nil && *opts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobRunId{JobRunId: *opts.JobRunId}}
+		} else if opts.JobId != nil && *opts.JobId != "" {
+			cfg = &mgmtv1alpha1.GcpCloudStorageSchemaConfig{Id: &mgmtv1alpha1.GcpCloudStorageSchemaConfig_JobId{JobId: *opts.JobId}}
+		}
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_GcpCloudstorageConfig{
+				GcpCloudstorageConfig: cfg,
 			},
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
