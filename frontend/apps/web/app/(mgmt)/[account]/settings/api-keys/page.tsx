@@ -3,7 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useQuery } from '@connectrpc/connect-query';
 import { getAccountApiKeys } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -30,19 +30,18 @@ function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, refetch } = useQuery(
     getAccountApiKeys,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );
-  const { mutate } = useMutation(getAccountApiKeys);
 
   const columns = useMemo(
     () =>
       getColumns({
         accountName: account?.name ?? '',
         onDeleted() {
-          mutate({ accountId: account?.id ?? '' });
+          refetch();
         },
       }),
     [account?.name ?? '']
