@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
@@ -10,10 +9,17 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
-func init() {
+func getGenerateFirstNameSpec() *bloblang.PluginSpec {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewAnyParam("value").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
+		Param(bloblang.NewInt64Param("seed").Optional())
+	return spec
+}
+
+func init() {
+	spec := getGenerateFirstNameSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_first_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
