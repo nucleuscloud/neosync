@@ -35,4 +35,4 @@ To add a virtual foreign key in Neosync, follow these steps:
 ## Transforming & Subsetting Virtual Foreign Keys
 
 Transforming and subsetting virtual foreign keys behave in the exact same way as foreign keys defined in a database.
-Please refer to [Foreign Keys](foreign-keys.mdx) and [Subsetting](subsetting.mdx)
+Please refer to [Foreign Keys](foreign-keys.md) and [Subsetting](subsetting.md)
