@@ -1,6 +1,7 @@
 import SiteFooter from '@/components/SiteFooter';
 import OnboardingChecklist from '@/components/onboarding-checklist/OnboardingChecklist';
 import AccountProvider from '@/components/providers/account-provider';
+import ConnectProvider from '@/components/providers/connect-provider';
 import { KoalaIdentifier } from '@/components/providers/koala-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
@@ -12,30 +13,31 @@ import { auth } from './api/auth/[...nextauth]/auth';
 interface Props {
   children: ReactNode;
 }
-
 export default async function BaseLayout(props: Props): Promise<ReactElement> {
   const { children } = props;
   const session = await auth();
 
   return (
     <SessionProvider session={session}>
-      <AccountProvider>
-        <Suspense>
-          <PostHogIdentifier />
-        </Suspense>
-        <Suspense>
-          <KoalaIdentifier />
-        </Suspense>
-        <div className="relative flex min-h-screen flex-col">
-          <SiteHeader />
-          <div className="flex-1 container" id="top-level-layout">
-            {children}
+      <ConnectProvider>
+        <AccountProvider>
+          <Suspense>
+            <PostHogIdentifier />
+          </Suspense>
+          <Suspense>
+            <KoalaIdentifier />
+          </Suspense>
+          <div className="relative flex min-h-screen flex-col">
+            <SiteHeader />
+            <div className="flex-1 container" id="top-level-layout">
+              {children}
+            </div>
+            <SiteFooter />
+            <Toaster />
+            <OnboardingChecklist />
           </div>
-          <SiteFooter />
-          <Toaster />
-          <OnboardingChecklist />
-        </div>
-      </AccountProvider>
+        </AccountProvider>
+      </ConnectProvider>
     </SessionProvider>
   );
 }

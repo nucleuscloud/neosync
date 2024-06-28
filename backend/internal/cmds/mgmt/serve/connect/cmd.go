@@ -18,6 +18,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/rs/cors"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -410,9 +411,16 @@ func serve(ctx context.Context) error {
 	}
 	mux.Handle("/", api)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "Connect-Protocol-Version"},
+		AllowCredentials: true,
+	})
+
 	httpServer := http.Server{
 		Addr:              fmt.Sprintf("%s:%d", host, port),
-		Handler:           h2c.NewHandler(mux, &http2.Server{}),
+		Handler:           h2c.NewHandler(c.Handler(mux), &http2.Server{}),
 		ErrorLog:          loglogger,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
