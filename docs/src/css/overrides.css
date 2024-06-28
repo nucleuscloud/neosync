@@ -78,6 +78,12 @@ html[data-theme='dark'] {
   ul {
     @apply list-inside list-disc mb-8;
   }
+  ul ul,
+  ul ol,
+  ol ol,
+  ol ul {
+    @apply ml-6;
+  }
 }
 
 /*
@@ -91,6 +97,11 @@ this is the class for the sidebar categories that section headers
 
 .table-of-contents__link {
   @apply no-underline;
+}
+
+/* must override this because we need to add marging to all base ul and ol's */
+.table-of-contents ul {
+  @apply m-0;
 }
 
 .pagination-nav__link--prev {
@@ -127,10 +138,6 @@ this is the class for the sidebar categories that section headers
 
   .transformer-page-header {
     @apply flex flex-row gap-4 font-bold text-3xl items-center;
-  }
-
-  .heroImage {
-    @apply py-10;
   }
 
   .menu__list-item {
