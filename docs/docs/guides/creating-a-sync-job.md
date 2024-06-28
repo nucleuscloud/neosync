@@ -38,7 +38,7 @@ In order to create a sync job:
 
 ![job-schema](https://assets.nucleuscloud.com/neosync/docs/new-job-sync-schema.png)
 
-6. Lastly, you can configure a [subset](/core-concepts#subset). A subset is a way to filter the data that is being synced to the destination(s). A common use-case is to filter the data to reduce the size or dimensionality of the data. You can subset the data using WHERE filters by typing in the filter in the filter box. At the same time, you'll see your `WHERE` filter being constructed and you can click on the **Validate** button to validate that the subset query will successfully execute against the schema. Click **Next** once you're done.
+6. Lastly, you can configure a [subset](/core-features#subsetting). A subset is a way to filter the data that is being synced to the destination(s). A common use-case is to filter the data to reduce the size or dimensionality of the data. You can subset the data using WHERE filters by typing in the filter in the filter box. At the same time, you'll see your `WHERE` filter being constructed and you can click on the **Validate** button to validate that the subset query will successfully execute against the schema. Click **Next** once you're done.
 
 ![job-subset](https://assets.nucleuscloud.com/neosync/docs/new-sync-job-subset.png)
 

@@ -61,7 +61,7 @@ Example of a config.yaml:
 NEOSYNC_API_URL: 'http://localhost:8080'
 ```
 
-The CLI uses <https://github.com/spf13/viper> for environment management, and has various configuration options that come with it.
+The CLI uses [viper](https://github.com/spf13/viper) for environment management, and has various configuration options that come with it.
 You can find the environment setup method [here](https://github.com/nucleuscloud/neosync/blob/main/cli/internal/cmds/neosync/neosync.go#L80).
 
 ### Full list

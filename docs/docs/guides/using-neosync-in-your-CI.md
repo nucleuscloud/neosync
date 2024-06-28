@@ -11,7 +11,7 @@ slug: /guides/using-neosync-in-ci
 Continuous Integration is a primary usecase for utilizing Neosync. It's often the case that integration or unit tests run in CI that need good data.
 It's easy enough to spin up a Postgres or other kind of database using Github Actions, but the problem becomes hydrating that database with solid data that can be used for testing purposes.
 
-For this reason, we built the [neosync sync](../cli/sync.mdx) command to enable synchronizing a connection configured in Neosync to a locally hosted database, or any other database that may not otherwise be available over the internet easily.
+For this reason, we built the [neosync sync](../cli/sync.md) command to enable synchronizing a connection configured in Neosync to a locally hosted database, or any other database that may not otherwise be available over the internet easily.
 
 Getting the CLI installed into a Github Action is task in itself, however. This is why we are offering a first class way to install the Neosync CLI.
 
