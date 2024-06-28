@@ -6,8 +6,6 @@ hide_title: false
 slug: /core-concepts
 ---
 
-import { HeroImage } from '@site/src/CustomComponents/HeroImage.tsx';
-
 ## Introduction
 
 The best way to learn about Neosync is to understand the core concepts of the platform.
