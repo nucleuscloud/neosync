@@ -30,7 +30,7 @@ Available Commands:
 
 Flags:
       --api-key string   Neosync API Key. Takes precedence over $NEOSYNC_API_KEY
-      --config string    config file (default is $HOME/.neosync-cli.yaml)
+      --config string    config file (default is $HOME/.neosync/neosync.yaml)
   -h, --help             help for neosync
   -v, --version          version for neosync
 
