@@ -78,7 +78,10 @@ html[data-theme='dark'] {
   ul {
     @apply list-inside list-disc mb-8;
   }
-  ul ul, ul ol, ol ol, ol ul {
+  ul ul,
+  ul ol,
+  ol ol,
+  ol ul {
     @apply ml-6;
   }
 }
