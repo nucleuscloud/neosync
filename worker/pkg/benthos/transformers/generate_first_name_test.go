@@ -14,7 +14,7 @@ import (
 
 func Test_GenerateRandomFirstName(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
-	res, err := generateRandomFirstName(randomizer, nil, maxCharacterLimit)
+	res, err := GenerateRandomFirstName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)
@@ -24,7 +24,7 @@ func Test_GenerateRandomFirstName(t *testing.T) {
 func Test_GenerateRandomFirstName_Random_Seed(t *testing.T) {
 	seed := time.Now().UnixNano()
 	randomizer := rand.New(rand.NewSource(seed))
-	res, err := generateRandomFirstName(randomizer, nil, maxCharacterLimit)
+	res, err := GenerateRandomFirstName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err, "failed with seed", "seed", seed)
 	assert.NotEmpty(t, res)
@@ -33,7 +33,7 @@ func Test_GenerateRandomFirstName_Random_Seed(t *testing.T) {
 
 func Test_GenerateRandomFirstName_Clamped(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
-	res, err := generateRandomFirstName(randomizer, shared.Ptr(int64(10)), maxCharacterLimit)
+	res, err := GenerateRandomFirstName(randomizer, shared.Ptr(int64(10)), maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)

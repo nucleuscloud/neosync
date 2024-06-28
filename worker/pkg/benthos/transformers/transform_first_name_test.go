@@ -18,7 +18,7 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	emptyName := ""
 
-	res, err := transformFirstName(randomizer, emptyName, false, maxCharacterLimit)
+	res, err := TransformFirstName(randomizer, emptyName, false, maxCharacterLimit)
 	assert.NoError(t, err)
 	assert.Nil(t, res, "The response should be nil")
 }
@@ -26,7 +26,7 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 func Test_TranformFirstName_Random(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	res, err := transformFirstName(randomizer, "foo", false, maxCharacterLimit)
+	res, err := TransformFirstName(randomizer, "foo", false, maxCharacterLimit)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)
 }
@@ -36,7 +36,7 @@ func Test_TransformFirstName_Preserve_True(t *testing.T) {
 
 	nameLength := int64(len(name))
 
-	res, err := transformFirstName(randomizer, name, true, maxCharacterLimit)
+	res, err := TransformFirstName(randomizer, name, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, nameLength, int64(len(*res)), "The first name output should be the same length as the input")
@@ -55,7 +55,7 @@ func Test_TransformFirstName_Preserve_True_With_Padding(t *testing.T) {
 
 	name := buffer.String()
 
-	res, err := transformFirstName(randomizer, name, true, 500)
+	res, err := TransformFirstName(randomizer, name, true, 500)
 
 	assert.NoError(t, err)
 	assert.Equal(t, int64(len(name)), int64(len(*res)), "The first name output should be the same length as the input")
@@ -65,7 +65,7 @@ func Test_TransformFirstName_Preserve_True_With_Padding(t *testing.T) {
 func Test_TransformFirstName_Preserve_False(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 
-	res, err := transformFirstName(randomizer, name, false, maxCharacterLimit)
+	res, err := TransformFirstName(randomizer, name, false, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.LessOrEqual(t, int64(len(*res)), maxCharacterLimit, "The last name output should be the same length as the input")

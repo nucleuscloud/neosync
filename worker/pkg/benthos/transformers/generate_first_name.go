@@ -28,7 +28,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			output, err := generateRandomFirstName(randomizer, nil, maxLength)
+			output, err := GenerateRandomFirstName(randomizer, nil, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_first_name: %w", err)
 			}
@@ -40,7 +40,7 @@ func init() {
 	}
 }
 
-func generateRandomFirstName(randomizer rng.Rand, minLength *int64, maxLength int64) (string, error) {
+func GenerateRandomFirstName(randomizer rng.Rand, minLength *int64, maxLength int64) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
 		transformers_dataset.FirstNames,

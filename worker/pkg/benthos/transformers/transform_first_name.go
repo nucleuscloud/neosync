@@ -55,7 +55,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := transformFirstName(randomizer, value, preserveLength, maxLength)
+			res, err := TransformFirstName(randomizer, value, preserveLength, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_first_name: %w", err)
 			}
@@ -69,7 +69,7 @@ func init() {
 }
 
 // Generates a random first name which can be of either random length or as long as the input name
-func transformFirstName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
+func TransformFirstName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
@@ -81,13 +81,13 @@ func transformFirstName(randomizer rng.Rand, name string, preserveLength bool, m
 	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
 	if preserveLength {
 		maxValue = int64(len(name))
-		output, err := generateRandomFirstName(randomizer, &maxValue, maxValue)
+		output, err := GenerateRandomFirstName(randomizer, &maxValue, maxValue)
 		if err == nil {
 			return &output, nil
 		}
 	}
 
-	output, err := generateRandomFirstName(randomizer, nil, maxValue)
+	output, err := GenerateRandomFirstName(randomizer, nil, maxValue)
 	if err != nil {
 		return nil, err
 	}

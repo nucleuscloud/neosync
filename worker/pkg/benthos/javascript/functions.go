@@ -8,8 +8,11 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 
 	"github.com/benthosdev/benthos/v4/public/service"
+	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type jsFunction func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error)
@@ -271,7 +274,7 @@ var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the p
 var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
 	Namespace(neosyncFnCtxName).
 	Param("name", "string", "The metadata key to set.").
-	Example(`benthos.hello("kevin");`).
+	Example(`neosync.hello("kevin");`).
 	FnCtor(func(r *vmRunner) jsFunction {
 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
 			var (
@@ -281,5 +284,77 @@ var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
 				return "", err
 			}
 			return fmt.Sprintf("hello %s", name), nil
+		}
+	})
+
+var _ = registerVMRunnerFunction("transformFirstName", `Transforms first name`).
+	Namespace(neosyncFnCtxName).
+	Param("name", "string", "The metadata key to set.").
+	Param("opts", "object", "options config").
+	Example(`neosync.transformFirstName("kevin");`).
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+			var (
+				name string
+				opts map[string]interface{}
+			)
+			if err := parseArgs(call, &name, &opts); err != nil {
+				return "", err
+			}
+			var seed int64
+			if opts != nil && opts["seed"] != nil {
+				seed = opts["seed"].(int64)
+			} else {
+				var err error
+				seed, err = transformer_utils.GenerateCryptoSeed()
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			preserveLength := false
+			if opts != nil && opts["preserveLength"] != nil {
+				preserveLength = opts["preserveLength"].(bool)
+			}
+			maxLength := int64(10000)
+			if opts != nil && opts["maxLength"] != nil {
+				maxLength = opts["maxLength"].(int64)
+			}
+
+			randomizer := rng.New(seed)
+			return transformer.TransformFirstName(randomizer, name, preserveLength, maxLength)
+		}
+	})
+
+var _ = registerVMRunnerFunction("generateFirstName", `Generates first name`).
+	Namespace(neosyncFnCtxName).
+	Param("opts", "object", "options config").
+	Example(`neosync.transformFirstName("kevin");`).
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+			var (
+				opts map[string]interface{}
+			)
+			if err := parseArgs(call, &opts); err != nil {
+				return "", err
+			}
+			var seed int64
+			if opts != nil && opts["seed"] != nil {
+				seed = opts["seed"].(int64)
+			} else {
+				var err error
+				seed, err = transformer_utils.GenerateCryptoSeed()
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			maxLength := int64(10000)
+			if opts != nil && opts["maxLength"] != nil {
+				maxLength = opts["maxLength"].(int64)
+			}
+
+			randomizer := rng.New(seed)
+			return transformer.GenerateRandomFirstName(randomizer, nil, maxLength)
 		}
 	})
