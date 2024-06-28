@@ -34,10 +34,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  GetAccountApiKeyResponse,
   RegenerateAccountApiKeyRequest,
   RegenerateAccountApiKeyResponse,
   getAccountApiKey,
@@ -48,14 +47,13 @@ import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import * as Yup from 'yup';
 
-const FORM_SCHEMA = Yup.object({
+const FormValues = Yup.object({
   expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
   expiresAt: Yup.date().required(),
 });
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type FormValues = Yup.InferType<typeof FormValues>;
 
 export default function RegenerateAccountApiKey({
   params,
@@ -69,9 +67,10 @@ export default function RegenerateAccountApiKey({
     { id },
     { enabled: !!id }
   );
+  const { mutateAsync } = useMutation(getAccountApiKey);
 
   const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+    resolver: yupResolver(FormValues),
     defaultValues: {
       expiresAtSelect: '7',
       expiresAt: startOfDay(addDays(new Date(), 7)),
@@ -94,12 +93,8 @@ export default function RegenerateAccountApiKey({
         };
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
-      router.push(`/${account?.name}/settings/api-keys/${id}`);
-      mutate(
-        `/api/accounts/${account?.id}/api-keys/${id}`,
-        new GetAccountApiKeyResponse({
-          apiKey: updatedApiKey.apiKey,
-        })
+      mutateAsync({ id }).then(() =>
+        router.push(`/${account?.name}/settings/api-keys/${id}`)
       );
       toast({
         title: 'Successfully regenerated api key!',
