@@ -12,7 +12,7 @@ slug: /cli/introduction
 
 This section details Neosync CLI and all of its available commands.
 
-```bash
+```console
 ➜  ~ neosync
 Terminal UI that interfaces with the Neosync system.
 
@@ -30,7 +30,7 @@ Available Commands:
 
 Flags:
       --api-key string   Neosync API Key. Takes precedence over $NEOSYNC_API_KEY
-      --config string    config file (default is $HOME/.neosync-cli.yaml)
+      --config string    config file (default is $HOME/.neosync/neosync.yaml)
   -h, --help             help for neosync
   -v, --version          version for neosync
 
@@ -49,6 +49,21 @@ Neosync API Key. Used if logging in via a system api key.
 
 The url of the Neosync API to direct the request to.
 
+### Persisting CLI Environment Variables
+
+Environment Variables for the CLI may be persisted by setting them in the config file.
+By default this is located at `$HOME/.neosync/config.yaml`.
+The CLI does respect `XDG_CONFIG_HOME` as well as a `NEOSYNC_CONFIG_DIR` may be optionally set to override the default location.
+
+Example of a config.yaml:
+
+```yaml
+NEOSYNC_API_URL: 'http://localhost:8080'
+```
+
+The CLI uses [viper](https://github.com/spf13/viper) for environment management, and has various configuration options that come with it.
+You can find the environment setup method [here](https://github.com/nucleuscloud/neosync/blob/main/cli/internal/cmds/neosync/neosync.go#L80).
+
 ### Full list
 
 For a full list of environment variables and flags available, see the specific command you are running.
@@ -56,7 +71,7 @@ Otherwise, there is a top-level list of all environment variables spread across 
 
 ## Metadata
 
-CLI metadata is appended to the outgoing gRPC context to provide tracking and metadata to the API.
+CLI metadata is appended to the outgoing gRPC context and HTTP Headers to provide tracking and metadata to the API.
 This lets the API know which version the CLI is using when it invokes commands to better track CLI usage over time.
 
 The following metadata is added to all CLI context:
