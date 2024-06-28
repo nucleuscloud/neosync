@@ -79,24 +79,25 @@ func Execute() {
 
 // Hack: This method attempts to migrate the old neosync-cli file to the new default location
 func migrateOldConfig(cfgFilePath string) {
+	if cfgFilePath != "" {
+		return
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return
 	}
 	oldPath := filepath.Join(home, ".neosync-cli.yaml")
-	if (cfgFilePath != "" && cfgFilePath == oldPath) || cfgFilePath == "" {
-		_, err = os.Stat(oldPath)
-		if errors.Is(err, fs.ErrNotExist) {
-			return
-		}
-		err = os.Mkdir(filepath.Join(home, neosyncDirName), 0755)
-		if err != nil {
-			return
-		}
-		err = os.Rename(oldPath, filepath.Join(home, neosyncDirName, fmt.Sprintf("%s.%s", cliSettingsFileNameNoExt, cliSettingsFileExt)))
-		if err != nil {
-			return
-		}
+	_, err = os.Stat(oldPath)
+	if errors.Is(err, fs.ErrNotExist) {
+		return
+	}
+	err = os.Mkdir(filepath.Join(home, neosyncDirName), 0755)
+	if err != nil {
+		return
+	}
+	err = os.Rename(oldPath, filepath.Join(home, neosyncDirName, fmt.Sprintf("%s.%s", cliSettingsFileNameNoExt, cliSettingsFileExt)))
+	if err != nil {
+		return
 	}
 }
 
