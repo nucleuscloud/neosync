@@ -4,7 +4,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { GetAccountApiKeysRequest, getAccountApiKeys } from '@neosync/sdk';
+import { getAccountApiKeys } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement, useMemo } from 'react';
@@ -32,7 +32,7 @@ function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
 
   const { data, isLoading } = useQuery(
     getAccountApiKeys,
-    new GetAccountApiKeysRequest({ accountId: account?.id ?? '' }),
+    { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
   );
   const { mutate } = useMutation(getAccountApiKeys);

@@ -31,15 +31,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountApiKeyResponse,
   RegenerateAccountApiKeyRequest,
   RegenerateAccountApiKeyResponse,
+  getAccountApiKey,
 } from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
@@ -63,7 +64,11 @@ export default function RegenerateAccountApiKey({
   const { toast } = useToast();
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading } = useGetAccountApiKey(account?.id ?? '', id);
+  const { data, isLoading } = useQuery(
+    getAccountApiKey,
+    { id },
+    { enabled: !!id }
+  );
 
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
