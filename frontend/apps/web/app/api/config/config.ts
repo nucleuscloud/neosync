@@ -26,6 +26,10 @@ export function getSystemAppConfig(): SystemAppConfig {
     calendlyUpgradeLink:
       process.env.CALENDLY_UPGRADE_LINK ?? 'https://calendly.com/evis1/30min',
     isGcpCloudStorageConnectionsEnabled: isGcpConnectionsEnabled(),
+    neosyncApiBaseUrl:
+      process.env.NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
+    publicNeosyncApiBaseUrl:
+      process.env.NEXT_PUBLIC_NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
   };
 }
 

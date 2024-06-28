@@ -9,6 +9,7 @@ import SiteHeader from '@/components/site-header/SiteHeader';
 import { Toaster } from '@/components/ui/toaster';
 import { ReactElement, ReactNode, Suspense } from 'react';
 import { auth } from './api/auth/[...nextauth]/auth';
+import { getSystemAppConfig } from './api/config/config';
 
 interface Props {
   children: ReactNode;
@@ -16,10 +17,11 @@ interface Props {
 export default async function BaseLayout(props: Props): Promise<ReactElement> {
   const { children } = props;
   const session = await auth();
+  const { publicNeosyncApiBaseUrl } = getSystemAppConfig();
 
   return (
     <SessionProvider session={session}>
-      <ConnectProvider>
+      <ConnectProvider apiBaseUrl={publicNeosyncApiBaseUrl}>
         <AccountProvider>
           <Suspense>
             <PostHogIdentifier />
