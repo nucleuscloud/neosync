@@ -1,6 +1,6 @@
 ---
 title: Installing
-description: Learn how to trigger a Neosync job with the neosync jobs trigger command.
+description: Learn how to install the Neosync CLI onto your operating system of choice.
 id: installing
 hide_title: false
 slug: /cli/installing
@@ -21,14 +21,20 @@ Homebrew is the simplest way to install nucleus CLI on the Mac. This can also be
 
 The easiest way to install the CLI is by using Homebrew. If you don't have Homebrew installed, follow these [instructions](https://docs.brew.sh/Installation). Next, open a new terminal window and use the following command:
 
-```bash
-➜  brew install nucleuscloud/tap/neosync
+```console
+brew install neosync
+```
+
+You may also install directly from our brew repository:
+
+```console
+brew install nucleuscloud/tap/neosync
 ```
 
 From then on, you can let Homebrew keep Nucleus up to date by running the following command.
 
-```bash
-➜  brew upgrade
+```console
+brew upgrade
 ```
 
 ## MacOS/Linux Direct Download
@@ -39,9 +45,9 @@ After you've downloaded and untarred the tarball, move it into your local bin to
 
 **Note: the version listed below may not be the latest. Refer to the Releases page in the link above to retrieve the latest version of the binary.**
 
-```bash
-➜  tar xzf neosync_0.2.14_darwin_arm64.tar.gz neosync
-➜  mv neosync /usr/local/bin/neosync
+```console
+tar xzf neosync_0.2.14_darwin_arm64.tar.gz neosync
+mv neosync /usr/local/bin/neosync
 ```
 
 ### Verifying your installation
@@ -52,8 +58,9 @@ Once you've successfully installed the CLI, verify your installation by followin
 2. Type in `neosync help` into your terminal and press enter.
 3. If installed successfully, you will see something similar to this help menu
 
-```bash
-➜  ~ neosync
+```console
+neosync
+
 Terminal UI that interfaces with the Neosync system.
 
 Usage:
@@ -98,8 +105,8 @@ Once you've successfully installed the CLI, verify your installation by followin
 2. Type in `neosync help` into your terminal and press enter.
 3. If installed successfully, you will see something similar to this help menu
 
-```bash
-➜  ~ neosync
+```console
+neosync
 Terminal UI that interfaces with the Neosync system.
 
 Usage:
@@ -137,12 +144,12 @@ The container will need further configuration so that Neosync can access configu
 
 See the example below for how to login to the CLI, and then view a list of environments in a Neosync account.
 
-```bash
-➜  docker run -it --rm -p 4242:4242 --mount source=neosynccfg,target=/root/.config/neosync ghcr.io/nucleuscloud/neosync/cli:latest login
+```console
+docker run -it --rm -p 4242:4242 --mount source=neosynccfg,target=/root/.config/.neosync ghcr.io/nucleuscloud/neosync/cli:latest login
 ```
 
-```bash
-➜  docker run -it --rm --mount source=neosynccfg,target=/root/.config/neosync ghcr.io/nucleuscloud/neosync/cli:latest accounts ls
+```console
+docker run -it --rm --mount source=neosynccfg,target=/root/.config/.neosync ghcr.io/nucleuscloud/neosync/cli:latest accounts ls
 ```
 
 The command above will print out a list of environments that are in the account associated with the logged in credentials. Note that the port mapping isn't required here, as that is only necessary during the login flow.

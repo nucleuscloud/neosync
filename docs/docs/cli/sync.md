@@ -29,8 +29,8 @@ The following options can be passed using the `neosync sync` command:
 - `--api-key` - Neosync API Key. Takes precedence over `$NEOSYNC_API_KEY`
 - `--config` - Path to yaml config. Defaults to `neosync.yaml` in current directory.
 - `--connection-id` - Neosync connection id for sync data source. Takes precedence over config.
-- `--job-id` - Neosync job id for sync data source. For AWS S3 jobs only. Takes precedence over config.
-- `--job-run-id` - Neosync job run id for sync data source. For AWS S3 jobs only. Takes precedence over config.
+- `--job-id` - Neosync job id for sync data source. For [AWS S3, GCP Cloud Storage] jobs only. Takes precedence over config.
+- `--job-run-id` - Neosync job run id for sync data source. For [AWS S3, GCP Cloud Storage] jobs only. Takes precedence over config.
 - `--destination-connection-url` - Local destination connection url to sync data to. Takes precedence over config.
 - `--destination-driver` - Destination connection driver (postgres, mysql). Takes precedence over config.
 - `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
