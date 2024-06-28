@@ -129,10 +129,6 @@ this is the class for the sidebar categories that section headers
     @apply flex flex-row gap-4 font-bold text-3xl items-center;
   }
 
-  .heroImage {
-    @apply py-10;
-  }
-
   .menu__list-item {
     @apply text-gray-800 dark:text-gray-300 no-underline;
   }
