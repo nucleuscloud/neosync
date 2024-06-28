@@ -49,7 +49,7 @@ Neosync API Key. Used if logging in via a system api key.
 
 The url of the Neosync API to direct the request to.
 
-### Persisting CLI Enviornment Variables
+### Persisting CLI Environment Variables
 
 Environment Variables for the CLI may be persisted by setting them in the config file.
 By default this is located at `$HOME/.neosync/config.yaml`.
