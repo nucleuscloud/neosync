@@ -8,7 +8,6 @@ outpkg: "{{.PackageName}}"
 inpackage: True
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
-    # config:
     interfaces:
       JwtValidator:
   github.com/nucleuscloud/neosync/backend/internal/auth/client:
@@ -72,9 +71,11 @@ packages:
     interfaces:
       sqlProvider:
       sqlDbtx:
+      BenthosStreamClient:
+      BenthosStreamManagerClient:
   github.com/prometheus/client_golang/api/prometheus/v1:
     config:
-      dir: "internal/mocks/{{.PackagePath}}"
+      dir: "backend/internal/mocks/{{.PackagePath}}"
       inpackage: False
     interfaces:
       API:
@@ -89,3 +90,12 @@ packages:
     interfaces:
       ManagerInterface:
       ClientInterface:
+  github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager:
+    interfaces:
+      ConnectionProvider:
+  go.temporal.io/sdk/client:
+    config:
+      dir: "worker/internal/mocks/{{.PackagePath}}"
+    # interfaces:
+    # this is broken. it uses the wrong package. after running mockery change internal to client in mock
+    # Client:
