@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+const { runNodeJs } = require("@bufbuild/protoplugin");
+const { protocGenEs } = require("../dist/cjs/src/protoc-gen-es-zod.js");
+
+runNodeJs(protocGenEs);
