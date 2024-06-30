@@ -3,30 +3,33 @@
 /* eslint-disable */
 // @ts-nocheck
 
+import { z } from "zod";
+import { ActivityStatus, JobRunStatus, JobStatus, LogLevel, LogWindow } from "./job_pb.js";
+
 /**
  * @generated from enum mgmt.v1alpha1.JobStatus
  */
-export const Zod_JobStatus = [object Object].nativeEnum(JobStatus)
+export const Zod_JobStatus = z.nativeEnum(JobStatus)
 
 /**
  * @generated from enum mgmt.v1alpha1.ActivityStatus
  */
-export const Zod_ActivityStatus = [object Object].nativeEnum(ActivityStatus)
+export const Zod_ActivityStatus = z.nativeEnum(ActivityStatus)
 
 /**
  * An enumeration of job run statuses.
  *
  * @generated from enum mgmt.v1alpha1.JobRunStatus
  */
-export const Zod_JobRunStatus = [object Object].nativeEnum(JobRunStatus)
+export const Zod_JobRunStatus = z.nativeEnum(JobRunStatus)
 
 /**
  * @generated from enum mgmt.v1alpha1.LogWindow
  */
-export const Zod_LogWindow = [object Object].nativeEnum(LogWindow)
+export const Zod_LogWindow = z.nativeEnum(LogWindow)
 
 /**
  * @generated from enum mgmt.v1alpha1.LogLevel
  */
-export const Zod_LogLevel = [object Object].nativeEnum(LogLevel)
+export const Zod_LogLevel = z.nativeEnum(LogLevel)
 

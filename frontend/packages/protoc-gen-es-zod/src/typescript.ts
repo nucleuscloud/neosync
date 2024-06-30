@@ -39,7 +39,7 @@ function generateEnum(schema: Schema, f: GeneratedFile, enumeration: DescEnum) {
   f.print(f.jsDoc(enumeration));
   const zod = f.import('z', 'zod');
 
-  f.print(f.exportDecl("const", "Zod_" + enumeration.name), " = ", `${zod}.nativeEnum(${enumeration.name})`);
+  f.print(f.exportDecl("const", "Zod_" + enumeration.name), " = ", zod, `.nativeEnum(`, enumeration, `)`);
   // f.print(f.exportDecl("enum", enumeration), " {");
   // for (const value of enumeration.values) {
   //   if (enumeration.values.indexOf(value) > 0) {

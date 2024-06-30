@@ -3,8 +3,11 @@
 /* eslint-disable */
 // @ts-nocheck
 
+import { z } from "zod";
+import { UserAccountType } from "./user_account_pb.js";
+
 /**
  * @generated from enum mgmt.v1alpha1.UserAccountType
  */
-export const Zod_UserAccountType = [object Object].nativeEnum(UserAccountType)
+export const Zod_UserAccountType = z.nativeEnum(UserAccountType)
 

@@ -3,8 +3,11 @@
 /* eslint-disable */
 // @ts-nocheck
 
+import { z } from "zod";
+import { RangedMetricName } from "./metrics_pb.js";
+
 /**
  * @generated from enum mgmt.v1alpha1.RangedMetricName
  */
-export const Zod_RangedMetricName = [object Object].nativeEnum(RangedMetricName)
+export const Zod_RangedMetricName = z.nativeEnum(RangedMetricName)
 

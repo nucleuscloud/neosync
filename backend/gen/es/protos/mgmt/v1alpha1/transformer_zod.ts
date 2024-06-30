@@ -3,30 +3,33 @@
 /* eslint-disable */
 // @ts-nocheck
 
+import { z } from "zod";
+import { GenerateEmailType, InvalidEmailAction, SupportedJobType, TransformerDataType, TransformerSource } from "./transformer_pb.js";
+
 /**
  * @generated from enum mgmt.v1alpha1.TransformerSource
  */
-export const Zod_TransformerSource = [object Object].nativeEnum(TransformerSource)
+export const Zod_TransformerSource = z.nativeEnum(TransformerSource)
 
 /**
  * @generated from enum mgmt.v1alpha1.TransformerDataType
  */
-export const Zod_TransformerDataType = [object Object].nativeEnum(TransformerDataType)
+export const Zod_TransformerDataType = z.nativeEnum(TransformerDataType)
 
 /**
  * @generated from enum mgmt.v1alpha1.SupportedJobType
  */
-export const Zod_SupportedJobType = [object Object].nativeEnum(SupportedJobType)
+export const Zod_SupportedJobType = z.nativeEnum(SupportedJobType)
 
 /**
  * @generated from enum mgmt.v1alpha1.GenerateEmailType
  */
-export const Zod_GenerateEmailType = [object Object].nativeEnum(GenerateEmailType)
+export const Zod_GenerateEmailType = z.nativeEnum(GenerateEmailType)
 
 /**
  * Action enumeration that dictates what the transform_email transformer should do in the case that it encounters an email that does not conform to RFC 5322
  *
  * @generated from enum mgmt.v1alpha1.InvalidEmailAction
  */
-export const Zod_InvalidEmailAction = [object Object].nativeEnum(InvalidEmailAction)
+export const Zod_InvalidEmailAction = z.nativeEnum(InvalidEmailAction)
 
