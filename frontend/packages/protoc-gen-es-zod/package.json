@@ -1,0 +1,43 @@
+{
+  "name": "@neosync/protoc-gen-es-zod",
+  "version": "0.1.0",
+  "description": "Protocol Buffers code generator for ECMAScript",
+  "keywords": [
+    "protobuf",
+    "schema",
+    "typescript",
+    "ecmascript",
+    "protoc-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nucleuscloud/neosync.git",
+    "directory": "frontendpackages/protoc-gen-es-zod"
+  },
+  "bin": {
+    "protoc-gen-es-zod": "bin/protoc-gen-es-zod"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "clean": "rm -rf ./dist/cjs/*",
+    "build": "../../node_modules/typescript/bin/tsc --project tsconfig.json --outDir ./dist/cjs"
+  },
+  "preferUnplugged": true,
+  "dependencies": {
+    "@bufbuild/protobuf": "1.10.0",
+    "@bufbuild/protoplugin": "1.10.0"
+  },
+  "peerDependencies": {
+    "@bufbuild/protobuf": "1.10.0"
+  },
+  "peerDependenciesMeta": {
+    "@bufbuild/protobuf": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tsup": "^8.1.0"
+  }
+}
