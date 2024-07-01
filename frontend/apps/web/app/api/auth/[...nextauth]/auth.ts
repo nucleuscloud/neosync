@@ -126,9 +126,7 @@ export const {
     },
     jwt: async ({ token, account }) => {
       // Persist the OAuth access_token and or the user id to the token right after signin
-      console.log('hitting jwt callback...');
       if (account) {
-        console.log('ACCOUNT', account);
         token.idToken = account.id_token;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
