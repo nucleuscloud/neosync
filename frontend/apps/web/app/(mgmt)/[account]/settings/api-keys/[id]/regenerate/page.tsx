@@ -34,7 +34,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   RegenerateAccountApiKeyRequest,
@@ -62,12 +62,11 @@ export default function RegenerateAccountApiKey({
   const { toast } = useToast();
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, refetch } = useQuery(
     getAccountApiKey,
     { id },
     { enabled: !!id }
   );
-  const { mutateAsync } = useMutation(getAccountApiKey);
 
   const form = useForm<FormValues>({
     resolver: yupResolver(FormValues),
@@ -93,7 +92,7 @@ export default function RegenerateAccountApiKey({
         };
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
-      mutateAsync({ id }).then(() =>
+      refetch().then(() =>
         router.push(`/${account?.name}/settings/api-keys/${id}`)
       );
       toast({
