@@ -58,8 +58,12 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 neosyncApi:
-  # -- The URL to the Neosync API instance
+  # -- The internal URL to the Neosync API instance. This is used by the app's backend server to communicate with the Neosync API.
+  # This is legacy and going forward the app will communicate more directly with the API via the clientside.
+  # As such, the publicUrl is important to configure to a publicly routable URL.
   url: http://neosync-api
+  # -- The public URL to the Neosync API instance.
+  publicUrl: http://neosync-api.example.com
 
 # -- next-auth secret that is used to encrypt the session cookie
 nextAuthSecret: 'This is an example'

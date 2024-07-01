@@ -233,3 +233,8 @@ updateStrategy:
 
 # -- Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
+
+cors:
+  # -- List of allowed CORS origins. Should contain the public url to Neosync App
+  allowedOrigins:
+    - http://neosync-app.example.com

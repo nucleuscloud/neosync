@@ -126,7 +126,9 @@ export const {
     },
     jwt: async ({ token, account }) => {
       // Persist the OAuth access_token and or the user id to the token right after signin
+      console.log('hitting jwt callback...');
       if (account) {
+        console.log('ACCOUNT', account);
         token.idToken = account.id_token;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
@@ -148,34 +150,38 @@ export const {
         if (!oauthConfig) {
           throw new Error('unable to find provider to refresh token');
         }
-
-        const response = await fetch(await getTokenUrl(oauthConfig.issuer), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: oauthConfig.clientId,
-            client_secret: oauthConfig.clientSecret ?? '',
-            grant_type: 'refresh_token',
-            refresh_token: (token as any).refreshToken, // eslint-disable-line @typescript-eslint/no-explicit-any
-          }),
-          method: 'POST',
-        });
-        const tokens: TokenSet = await response.json();
-        if (!response.ok) {
-          throw tokens;
-        }
-        token.accessToken = tokens.access_token;
-        // the refresh token may not always be returned. If it's not, don't update
-        if (tokens.refresh_token) {
-          token.refreshToken = tokens.refresh_token;
-        }
-        if (tokens.expires_at) {
-          token.expiresAt = tokens.expires_at;
-        } else if (tokens.expires_in) {
-          token.expiresAt = Math.floor(
-            addSeconds(new Date(), tokens.expires_in).getTime() / 1000
-          );
+        try {
+          const response = await fetch(await getTokenUrl(oauthConfig.issuer), {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              client_id: oauthConfig.clientId,
+              client_secret: oauthConfig.clientSecret ?? '',
+              grant_type: 'refresh_token',
+              refresh_token: (token as any).refreshToken, // eslint-disable-line @typescript-eslint/no-explicit-any
+            }),
+            method: 'POST',
+          });
+          const tokens: TokenSet = await response.json();
+          if (!response.ok) {
+            throw tokens;
+          }
+          token.accessToken = tokens.access_token;
+          // the refresh token may not always be returned. If it's not, don't update
+          if (tokens.refresh_token) {
+            token.refreshToken = tokens.refresh_token;
+          }
+          if (tokens.expires_at) {
+            token.expiresAt = tokens.expires_at;
+          } else if (tokens.expires_in) {
+            token.expiresAt = Math.floor(
+              addSeconds(new Date(), tokens.expires_in).getTime() / 1000
+            );
+          }
+        } catch (err) {
+          console.error('failed to refresh token', err);
+          throw err;
         }
       }
       return token;

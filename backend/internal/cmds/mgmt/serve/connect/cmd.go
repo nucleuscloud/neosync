@@ -411,8 +411,10 @@ func serve(ctx context.Context) error {
 	}
 	mux.Handle("/", api)
 
+	allowedOrigins := viper.GetStringSlice("CORS_ALLOWS_ORIGINS")
+
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "Connect-Protocol-Version"},
 		AllowCredentials: true,
