@@ -16,6 +16,7 @@ interface Props {
   children: ReactNode;
   apiBaseUrl: string;
 }
+
 export default function ConnectProvider(props: Props): ReactElement {
   const { children, apiBaseUrl } = props;
   const { data } = useSession();
@@ -23,14 +24,6 @@ export default function ConnectProvider(props: Props): ReactElement {
   const connectTransport = useMemo(() => {
     return createConnectTransport({
       baseUrl: apiBaseUrl,
-      interceptors: [
-        (next) => async (req) => {
-          if (data?.accessToken) {
-            req.header.set('Authorization', `Bearer ${data.accessToken}`);
-          }
-          return next(req);
-        },
-      ],
     });
   }, [apiBaseUrl, data?.accessToken]);
 
