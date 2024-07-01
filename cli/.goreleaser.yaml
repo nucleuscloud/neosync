@@ -40,6 +40,7 @@ snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
   disable: "{{ .Env.DISABLE_CHANGELOG }}"
+  use: github-native
   sort: desc
   filters:
     exclude:
