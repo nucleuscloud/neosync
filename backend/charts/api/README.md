@@ -27,7 +27,6 @@ A Helm chart for the Neosync Backend API
 | autoscaling.minReplicas | int | `1` | The minimum amount of replicas to have running |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU % utilization to begin a scale up |
 | containerPort | int | `8080` | The container port |
-| cors.allowedOrigins | list | `["http://neosync-app.example.com"]` | List of allowed CORS origins. Should contain the public url to Neosync App |
 | datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | db.disableSsl | bool | `false` | Whether or not to disable SSL when connecting to the database |
 | db.host | string | `nil` | The database hostname |

@@ -27,10 +27,6 @@ stringData:
     NEOSYNC_API_BASE_URL: {{ .Values.neosyncApi.url }}
     {{- end }}
 
-    {{- if .Values.neosyncApi.publicUrl}}
-    NEXT_PUBLIC_NEOSYNC_API_BASE_URL: {{ .Values.neosyncApi.publicUrl }}
-    {{- end }}
-
     NEXTAUTH_SECRET: {{ .Values.nextAuthSecret }}
 
     {{ if .Values.nextAuthUrl }}

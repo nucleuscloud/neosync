@@ -152,8 +152,3 @@ stringData:
     {{- end }} # ends loki check
 
     {{- end }} # ends runLogs.enabled check
-
-
-    {{- if and .Values.cors .Values.cors.allowedOrigins }}
-    CORS_ALLOWED_ORIGINS: {{ join "," .Values.cors.allowedOrigins }}
-    {{- end }}
