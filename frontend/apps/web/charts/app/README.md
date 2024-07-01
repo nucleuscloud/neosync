@@ -36,7 +36,7 @@ A Helm chart for the Neosync App
 | istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
 | koala.key | string | `nil` | Koala Key |
 | nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
-| neosyncApi.url | string | `"http://neosync-api"` | The internal URL to the Neosync API instance. This is used by the app's backend server to communicate with the Neosync API. |
+| neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |
 | neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | nextAuthSecret | string | `"This is an example"` | next-auth secret that is used to encrypt the session cookie |
 | nextAuthUrl | string | `"http://localhost:3000"` | next-auth base url. Should be the public url for the application |
