@@ -6,7 +6,8 @@ const middleware = auth(function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith(PUBLIC_PATHNAME)) {
     const sysConfig = getSystemAppConfig();
     return NextResponse.rewrite(
-      `${sysConfig.neosyncApiBaseUrl}${trimPrefix(request.nextUrl.pathname, PUBLIC_PATHNAME)}${request.nextUrl.search}`
+      `${sysConfig.neosyncApiBaseUrl}${trimPrefix(request.nextUrl.pathname, PUBLIC_PATHNAME)}${request.nextUrl.search}`,
+      { request }
     );
   }
   return NextResponse.next();
