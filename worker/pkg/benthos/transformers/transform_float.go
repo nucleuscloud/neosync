@@ -77,6 +77,44 @@ func init() {
 	}
 }
 
+type Transformer interface {
+}
+
+func NewTransformFloat() *TransformFloat {
+	return &TransformFloat{}
+}
+
+type JsTransformer interface {
+	GetTemplateData() (any, error)
+	Transform(value any, opts map[string]any) (any, error)
+}
+
+func NewFromJs() *TransformFloat {
+	return nil
+}
+
+func NewFromBenthos() *TransformFloat {
+	return nil
+}
+
+type TransformFloat struct {
+	randomizer   rng.Rand
+	maxnumgetter maxNum
+}
+
+func (t *TransformFloat) GetTemplateData() (any, error) {
+	//
+	return nil, nil
+}
+
+func (t *TransformFloat) Transform(value any) (*float64, error) {
+	return nil, nil
+}
+
+func (t *TransformFloat) Generate() (*float64, error) {
+	return nil, nil
+}
+
 func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
 	if value == nil {
 		return nil, nil

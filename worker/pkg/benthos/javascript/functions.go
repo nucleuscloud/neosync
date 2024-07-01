@@ -92,7 +92,105 @@ func registerVMRunnerFunction(name, description string) *jsFunctionDefinition {
 	return fn
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+type Param struct {
+	Name    string
+	TypeStr string
+	What    string
+}
+type TemplateData struct {
+	Name        string
+	Description string
+	Params      []*Param
+}
+
+var f NeosyncTransformer = &TransformFloat{}
+
+type TransformFloatOpts struct {
+	randomizer rng.Rand
+}
+type TransformFloat struct {
+	maxnumgetter any
+}
+
+func NewTransformFloat() *TransformFloat {
+	return &TransformFloat{
+		maxnumgetter: 1,
+	}
+}
+
+func (t *TransformFloat) GetTemplateData() (*TemplateData, error) {
+	return nil, nil
+}
+func (t *TransformFloat) ParseOptions(opts map[string]any) (any, error) {
+	// seed comes from the user opts
+	// var udSeed = 1
+
+	return &TransformFloatOpts{
+		randomizer: rng.New(1),
+	}, nil
+}
+
+func (t *TransformFloat) Transform(value any, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFloatOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+	_ = parsedOpts
+
+	return 1, nil
+}
+
+type NeosyncTransformer interface {
+	GetTemplateData() (*TemplateData, error)
+	ParseOptions(opts map[string]any) (any, error)
+
+	GetJsTemplateData() (*TemplateData, error)
+	GetBenthosTemplateData() (any, error)
+
+	// Get() func(value any, opts TOpts) (any, error)
+	Transform(value any, opts any) (any, error)
+}
+
+type NeosyncGenerator[TOpts any] interface {
+	GetTemplateData() (*TemplateData, error)
+	ParseOptions(opts map[string]any) (TOpts, error)
+	Generate(opts TOpts) (any, error)
+}
+
+func init() {
+	neosyncFns := []NeosyncTransformer{NewTransformFloat()} // generated
+	for _, f := range neosyncFns {
+		templateData, err := f.GetTemplateData()
+		if err != nil {
+			panic(err)
+		}
+
+		def := registerVMRunnerFunction(templateData.Name, templateData.Description)
+		for _, p := range templateData.Params {
+			def = def.Param(p.Name, p.TypeStr, p.What)
+		}
+
+		def.FnCtor(func(r *vmRunner) jsFunction {
+			// transformer := f.Get()
+			return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {
+				var (
+					value any
+					opts  map[string]any
+				)
+				if err := parseArgs(call, &value, &opts); err != nil {
+					return nil, err
+				}
+				// transformer.ParseOpts(opts)
+				goOpts, err := f.ParseOptions(opts)
+				if err != nil {
+					return nil, err
+				}
+				return f.Transform(value, goOpts)
+			}
+		})
+	}
+}
 
 var _ = registerVMRunnerFunction(
 	"v0_fetch",
@@ -289,16 +387,16 @@ var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
 
 var _ = registerVMRunnerFunction("transformFirstName", `Transforms first name`).
 	Namespace(neosyncFnCtxName).
-	Param("name", "string", "The metadata key to set.").
+	Param("value", "any", "The metadata key to set.").
 	Param("opts", "object", "options config").
 	Example(`neosync.transformFirstName("kevin");`).
 	FnCtor(func(r *vmRunner) jsFunction {
 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
 			var (
-				name string
-				opts map[string]interface{}
+				value any
+				opts  map[string]interface{}
 			)
-			if err := parseArgs(call, &name, &opts); err != nil {
+			if err := parseArgs(call, &value, &opts); err != nil {
 				return "", err
 			}
 			var seed int64
@@ -312,17 +410,18 @@ var _ = registerVMRunnerFunction("transformFirstName", `Transforms first name`).
 				}
 			}
 
-			preserveLength := false
+			funcOpts := &transformer.TransformFirstNameOpts{}
+			funcOpts.PreserveLength = false
 			if opts != nil && opts["preserveLength"] != nil {
-				preserveLength = opts["preserveLength"].(bool)
+				funcOpts.PreserveLength = opts["preserveLength"].(bool)
 			}
-			maxLength := int64(10000)
+			funcOpts.MaxLength = int64(10000)
 			if opts != nil && opts["maxLength"] != nil {
-				maxLength = opts["maxLength"].(int64)
+				funcOpts.MaxLength = opts["maxLength"].(int64)
 			}
 
 			randomizer := rng.New(seed)
-			return transformer.TransformFirstName(randomizer, name, preserveLength, maxLength)
+			return transformer.TransformFirstName(randomizer, value, funcOpts)
 		}
 	})
 

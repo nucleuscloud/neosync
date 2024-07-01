@@ -3,97 +3,63 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"go/ast"
 	"go/parser"
 	"go/token"
 	"io/fs"
 	"log"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"text/template"
 )
 
-const functionTemplate = `
-package transformers
-var _ = registerVMRunnerFunction("{{.Name}}", ` + "`{{.Description}}`" + `).
-	Namespace(neosyncFnCtxName).
-	{{range .Params}}Param("{{.Name}}", "{{.Type}}", "{{.Description}}").
-	{{end}}Example(` + "`neosync.{{.Name}}(\"example\");`" + `).
-	FnCtor(func(r *vmRunner) jsFunction {
-		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
-			var (
-				{{range .Params}}{{.GoName}} {{.GoType}}
-				{{end}}
-			)
-			if err := parseArgs(call, &{{.Params | firstGoName}}); err != nil {
-				return "", err
-			}
-			{{range .Params}}
-			{{if .IsOptional}}if opts != nil && opts["{{.GoName}}"] != nil {
-				{{.GoName}} = opts["{{.GoName}}"].({{.GoType}})
-			} else {
-				{{if .HasDefault}}{{.GoName}} = {{.Default}}{{end}}
-			}
-			{{else}}// Handling non-optional parameters
-			{{end}}
-			{{end}}
-			randomizer := rng.New(seed)
-			return transformer.{{.TransformerFunc}}(randomizer, name, preserveLength, maxLength)
-		}
-	})
-`
-
 type ParamInfo struct {
-	Name        string
-	Type        string
-	Description string
-	GoName      string
-	GoType      string
-	IsOptional  bool
-	HasDefault  bool
-	Default     string
+	Name       string
+	Type       string
+	IsOptional bool
+	HasDefault bool
+	Default    string
 }
 
 type FuncInfo struct {
-	Name            string
-	Description     string
-	Params          []ParamInfo
-	TransformerFunc string
+	Name        string
+	Description string
+	Params      []*ParamInfo
+	OrderdArgs  []string
+	Type        string
+	SourceFile  string
 }
 
 func main() {
-	// Create a new FileSet
 	fileSet := token.NewFileSet()
-
-	// Slice to store information about the functions to be generated
-	// funcs := []FuncInfo{}
-	fileNodes := []*ast.File{}
+	transformerFuncs := []*FuncInfo{}
 
 	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && filepath.Ext(path) == ".go" {
+			fmt.Println(path)
 			node, err := parser.ParseFile(fileSet, path, nil, parser.ParseComments)
 			if err != nil {
 				log.Printf("Failed to parse file %s: %v", path, err)
 				return nil
 			}
-			// Iterate over the declarations in the parsed file
-			for _, decl := range node.Decls {
-
-				if fn, isFn := decl.(*ast.FuncDecl); isFn && fn.Doc != nil {
-					for _, comment := range fn.Doc.List {
-						if strings.HasPrefix(comment.Text, "// +javascriptFncBuilder:") {
-							// jsonF, _ := json.MarshalIndent(decl, "", " ")
-							// fmt.Printf("%s \n", string(jsonF))
-							// parts := strings.Split(comment.Text, ":")
-							// if len(parts) < 4 {
-							// 	continue
-							// }
-							// fnType := parts[2]
-							// fnName := parts[3]
-							fileNodes = append(fileNodes, node)
-
+			for _, cgroup := range node.Comments {
+				for _, comment := range cgroup.List {
+					if strings.HasPrefix(comment.Text, "// +javascriptFncBuilder:") {
+						parts := strings.Split(comment.Text, ":")
+						if len(parts) < 3 {
+							continue
 						}
+						transformerFuncs = append(transformerFuncs, &FuncInfo{
+							SourceFile: path,
+							Name:       parts[2],
+							Type:       parts[1],
+						})
+
 					}
 				}
 			}
@@ -109,200 +75,205 @@ func main() {
 	// 	Param(bloblang.NewAnyParam("value").Optional()).
 	// 	Param(bloblang.NewBoolParam("preserve_length").Default(false)).
 	// 	Param(bloblang.NewInt64Param("seed").Optional())
-	// var benthosSpec ast.Expr
-	// for _, node := range fileNodes {
-	// 	ast.Inspect(node, func(n ast.Node) bool {
-	// 		// Check if the node is a function call expression
-	// 		if callExpr, ok := n.(*ast.CallExpr); ok {
-	// 			// jsonF, _ := json.MarshalIndent(callExpr, "", " ")
-	// 			// fmt.Printf("%s \n", string(jsonF))
-	// 			benthosSpec = inspectChainedCalls(callExpr)
-	// 		}
-	// 		return true
-	// 	})
-	// }
-	// jsonF, _ := json.MarshalIndent(benthosSpec, "", " ")
-	// fmt.Printf("%s \n", string(jsonF))
-	// Traverse the AST and look for bloblang.NewPluginSpec calls
-	for _, node := range fileNodes {
-		ast.Inspect(node, func(n ast.Node) bool {
-			// Check if the node is a function call expression
-			if callExpr, ok := n.(*ast.CallExpr); ok {
-				jsonF, _ := json.MarshalIndent(callExpr, "", " ")
-				fmt.Printf("%s \n", string(jsonF))
-				fmt.Println()
-				fmt.Println()
-				fmt.Println()
+	for _, tf := range transformerFuncs {
+		readFile, err := os.Open(tf.SourceFile)
 
-				// Check if the function being called is bloblang.NewPluginSpec
-				if fun, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
-					if pkg, ok := fun.X.(*ast.Ident); ok && fun.Sel.Name == "Param" {
-						jsonF, _ := json.MarshalIndent(callExpr, "", " ")
-						fmt.Printf("%s \n", string(jsonF))
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileScanner := bufio.NewScanner(readFile)
+		fileScanner.Split(bufio.ScanLines)
 
-						fmt.Println("Found call to bloblang.NewPluginSpec")
-						fmt.Println(pkg)
+    foundFunc := false
+		for fileScanner.Scan() {
+			line := fileScanner.Text()
+			line = strings.TrimSpace(line)
+      // parse bloblang spec
+			if strings.HasPrefix(line, "Param(bloblang.") {
+				splitLine := strings.Split(line, ".")
+				fmt.Println("-------")
+				param := &ParamInfo{}
+				for _, piece := range splitLine {
+					piece = strings.TrimSpace(piece)
+					if strings.TrimSpace(piece) == "Param(bloblang" {
+						continue
+					}
+					regex := regexp.MustCompile(`New(\w+)Param`)
+					// Find the substring that matches the pattern
+					matches := regex.FindStringSubmatch(piece)
 
-						// Print details of the call
-						for _, arg := range callExpr.Args {
-							fmt.Printf("Argument: %s\n", arg)
+					if len(matches) > 1 {
+						// matches[1] contains the characters between "New" and "Param"
+						param.Type = matches[1]
+						regex := regexp.MustCompile(`"([^"]*)"`)
+
+						// Find all substrings that match the pattern
+						matches := regex.FindStringSubmatch(piece)
+						if len(matches) > 1 {
+							param.Name = matches[1]
 						}
-
-						// Look for chained method calls
-						inspectChainedCalls(callExpr)
 					}
+
+					if strings.HasPrefix(piece, "Optional()") {
+						param.IsOptional = true
+					}
+					if strings.HasPrefix(piece, "Default") {
+						regex := regexp.MustCompile(`\(([^)]*)\)`)
+						matches := regex.FindStringSubmatch(piece)
+						fmt.Println(matches)
+						param.HasDefault = true
+						if len(matches) > 1 {
+							param.Default = matches[1]
+						}
+					}
+					fmt.Println(piece)
+
+				}
+				tf.Params = append(tf.Params, param)
+			}
+
+			// get function argument info
+      // function definition on single line
+			if strings.HasPrefix(line, fmt.Sprintf("func %s(", tf.Name)) && strings.HasSuffix(line, "error) {") {
+        strings.
+
+
+			}
+
+      // function definition on mulitiple lines
+
+		}
+
+		jsonF, _ := json.MarshalIndent(transformerFuncs, "", " ")
+		fmt.Printf("%s \n", string(jsonF))
+
+		readFile.Close()
+	}
+
+}
+
+const generateFunctionTemplate = `
+// Code generated by Neosync goja_func_generator.go. DO NOT EDIT.
+// source: {{ .SourceFile }}
+
+package {{ .PackageName }}
+var _ = registerVMRunnerFunction("{{.Name}}", ` + "" + `).
+	Namespace({{ .Namespace }}).
+	Param("opts", "object", "options config").
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+			var (
+				opts map[string]interface{}
+			)
+			if err := parseArgs(call, &opts); err != nil {
+				return "", err
+			}
+			var seed int64
+			if opts != nil && opts["seed"] != nil {
+				seed = opts["seed"].(int64)
+			} else {
+				var err error
+				seed, err = transformer_utils.GenerateCryptoSeed()
+				if err != nil {
+					return nil, err
 				}
 			}
-			return true
-		})
-	}
-
-}
-
-func inspectChainedCalls(expr ast.Expr) {
-	switch e := expr.(type) {
-	case *ast.CallExpr:
-		if fun, ok := e.Fun.(*ast.SelectorExpr); ok {
-			fmt.Printf("Method: %s\n", fun.Sel.Name)
-			inspectChainedCalls(fun.X)
+			{{range .Params}}
+			{{if .HasDefault}}
+      {{.Name}} := {{.Default}}
+      if opts != nil && opts["{{.Name}}"] != nil {
+				{{.Name}} = opts["{{.Name}}"].({{.Type}})
+			}
+			{{end}}
+			{{end}}
+			randomizer := rng.New(seed)
+			return transformer.{{.Name}}(randomizer, name, preserveLength, maxLength)
 		}
-	}
-}
+	})
+`
 
-// func inspectChainedCalls(expr ast.Expr) ast.Expr {
-// 	switch e := expr.(type) {
-// 	case *ast.CallExpr:
-// 		if fun, ok := e.Fun.(*ast.SelectorExpr); ok {
-// 			if fun.Sel.Name == "Param" {
-// 				fmt.Println()
-// 				// jsonF, _ := json.MarshalIndent(fun., "", " ")
-// 				// fmt.Printf("%s \n", string(jsonF))
-// 				fmt.Printf("Method: %s\n", fun.Sel.Name)
-// 				return expr
-// 			}
-// 			return inspectChainedCalls(fun.X)
-// 		}
-// 	}
-// 	return expr
-// }
+const transformerFunctionTemplate = `
+// Code generated by Neosync goja_func_generator.go. DO NOT EDIT.
+// source: {{ .SourceFile }}
 
-// extractParams extracts the parameters from the function body and returns a slice of ParamInfo
-func extractParams(fn *ast.FuncDecl) []ParamInfo {
-	params := []ParamInfo{}
-	for _, stmt := range fn.Body.List {
-		if exprStmt, ok := stmt.(*ast.ExprStmt); ok {
-			if callExpr, ok := exprStmt.X.(*ast.CallExpr); ok {
-				for _, arg := range callExpr.Args {
-					if call, ok := arg.(*ast.CallExpr); ok {
-						paramName := getParamName(call)
-						paramType := getParamType(call)
-						paramDefault := getParamDefault(call)
-						isOptional := paramDefault != ""
-						hasDefault := paramDefault != ""
-
-						params = append(params, ParamInfo{
-							Name:        paramName,
-							Type:        paramType,
-							Description: getParamDescription(paramName),
-							GoName:      toCamelCase(paramName),
-							GoType:      toGoType(paramType),
-							IsOptional:  isOptional,
-							HasDefault:  hasDefault,
-							Default:     paramDefault,
-						})
-					}
+package {{ .PackageName }}
+var _ = registerVMRunnerFunction("{{.Name}}", ` + "" + `).
+	Namespace({{ .Namespace }}).
+	Param("value", "any", "").
+	Param("opts", "object", "options config").
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+			var (
+        value {{.ValueType}}
+				opts map[string]interface{}
+			)
+			if err := parseArgs(call, &opts); err != nil {
+				return "", err
+			}
+			var seed int64
+			if opts != nil && opts["seed"] != nil {
+				seed = opts["seed"].(int64)
+			} else {
+				var err error
+				seed, err = transformer_utils.GenerateCryptoSeed()
+				if err != nil {
+					return nil, err
 				}
 			}
+
+			{{range $index, $param := .FunctInfo.Params}}
+      {{if eq $param.Name "value"}}
+        {{continue}}
+      {{end}}
+			{{if $param.HasDefault}}
+      {{$param.Name}} := {{$param.Default}}
+      if opts != nil && opts["{{$param.Name}}"] != nil {
+				{{$param.Name}} = opts["{{$param.Name}}"].({{$param.Type}})
+			}
+      {{else if $param.IsOptional}}
+      var {{$param.Name}} {{$param.Type}}
+      if opts != nil && opts["{{$param.Name}}"] != nil {
+				{{$param.Name}} = opts["{{$param.Name}}"].({{$param.Type}})
+			}
+      {{else}}
+      if _, ok := opts["{{$param.Name}}"]; !ok {
+        return nil, fmt.Errorf("missing required argument. function: %s argument: %s", {{.FunctInfo.Name}}, {{$param.Name}})
+      } 
+      {{$param.Name}} := opts["{{$param.Name}}"] 
+			{{end}}
+      
+			{{end}}
+			randomizer := rng.New(seed)
+			return transformer.{{.FunctInfo.Name}}(randomizer, value, preserveLength, maxLength)
+		}
+	})
+`
+
+type TemplateData struct {
+	SourceFile  string
+	PackageName string
+	Namespace   string
+	FunctInfo   FuncInfo
+	ValueType   *string
+}
+
+func formatTransformGojaFunction(pkgName, namespace string, funcInfo *FuncInfo) (string, error) {
+	data := TemplateData{
+		SourceFile:  funcInfo.SourceFile,
+		PackageName: pkgName,
+		Namespace:   namespace,
+		FunctInfo:   *funcInfo,
+	}
+	for _, p := range funcInfo.Params {
+		if p.Name == "value" {
+			data.ValueType = &p.Type
 		}
 	}
-	return params
-}
-
-// Helper functions to extract parameter information
-func getParamName(call *ast.CallExpr) string {
-	if selExpr, ok := call.Fun.(*ast.SelectorExpr); ok {
-		return selExpr.Sel.Name
+	t := template.Must(template.New("gojaFunc").Parse(transformerFunctionTemplate))
+	var out bytes.Buffer
+	err := t.Execute(&out, data)
+	if err != nil {
+		return "", err
 	}
-	return ""
-}
-
-func getParamType(call *ast.CallExpr) string {
-	if selExpr, ok := call.Fun.(*ast.SelectorExpr); ok {
-		switch selExpr.Sel.Name {
-		case "NewInt64Param":
-			return "int64"
-		case "NewAnyParam":
-			return "any"
-		case "NewBoolParam":
-			return "bool"
-		}
-	}
-	return ""
-}
-
-func getParamDefault(call *ast.CallExpr) string {
-	for _, arg := range call.Args {
-		if basicLit, ok := arg.(*ast.BasicLit); ok {
-			return basicLit.Value
-		}
-	}
-	return ""
-}
-
-func getParamDescription(name string) string {
-	switch name {
-	case "max_length":
-		return "Maximum length"
-	case "value":
-		return "Value to use"
-	case "preserve_length":
-		return "Preserve the length"
-	case "seed":
-		return "Seed for randomness"
-	default:
-		return ""
-	}
-}
-
-func toCamelCase(s string) string {
-	parts := strings.Split(s, "_")
-	for i := 0; i < len(parts); i++ {
-		parts[i] = strings.Title(parts[i])
-	}
-	return strings.Join(parts, "")
-}
-
-func toGoType(t string) string {
-	switch t {
-	case "int64":
-		return "int64"
-	case "any":
-		return "interface{}"
-	case "bool":
-		return "bool"
-	default:
-		return "interface{}"
-	}
-}
-
-func getDescription(fnType string) string {
-	switch fnType {
-	case "transform":
-		return "Transforms first name"
-	case "generate":
-		return "Generates first name"
-	default:
-		return ""
-	}
-}
-
-func getTransformerFunc(fnType string) string {
-	switch fnType {
-	case "transform":
-		return "TransformFirstName"
-	case "generate":
-		return "GenerateRandomFirstName"
-	default:
-		return ""
-	}
+	return out.String(), nil
 }

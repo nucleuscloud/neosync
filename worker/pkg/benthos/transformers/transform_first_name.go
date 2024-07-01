@@ -8,7 +8,8 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
-// +javascriptFncBuilder:transform:transformFirstName
+// +javascriptFncBuilder:transform:TransformFirstName
+
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
@@ -56,7 +57,11 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := TransformFirstName(randomizer, value, preserveLength, maxLength)
+			// res, err := TransformFirstName(randomizer, value, preserveLength, maxLength)
+			res, err := TransformFirstName(randomizer, value, &TransformFirstNameOpts{
+				MaxLength:      maxLength,
+				PreserveLength: preserveLength,
+			})
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_first_name: %w", err)
 			}
@@ -70,18 +75,52 @@ func init() {
 }
 
 // Generates a random first name which can be of either random length or as long as the input name
-func TransformFirstName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
-	if name == "" {
+// func TransformFirstName(randomizer rng.Rand, value string, preserveLength bool, maxLength int64) (*string, error) {
+// 	if value == "" {
+// 		return nil, nil
+// 	}
+
+// 	maxValue := maxLength
+
+// 	// unable to generate a random name of this fixed size
+// 	// we may want to change this to just use the below algorithm and pad so that it is more unique
+// 	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
+// 	if preserveLength {
+// 		maxValue = int64(len(value))
+// 		output, err := GenerateRandomFirstName(randomizer, &maxValue, maxValue)
+// 		if err == nil {
+// 			return &output, nil
+// 		}
+// 	}
+
+// 	output, err := GenerateRandomFirstName(randomizer, nil, maxValue)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+//		// pad the string so that we can get the correct value
+//		if preserveLength && int64(len(output)) != maxValue {
+//			output += transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
+//		}
+//		return &output, nil
+//	}
+type TransformFirstNameOpts struct {
+	PreserveLength bool
+	MaxLength      int64
+}
+
+func TransformFirstName(randomizer rng.Rand, value string, opts *TransformFirstNameOpts) (*string, error) {
+	if value == "" {
 		return nil, nil
 	}
 
-	maxValue := maxLength
+	maxValue := opts.MaxLength
 
 	// unable to generate a random name of this fixed size
 	// we may want to change this to just use the below algorithm and pad so that it is more unique
 	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
-	if preserveLength {
-		maxValue = int64(len(name))
+	if opts.PreserveLength {
+		maxValue = int64(len(value))
 		output, err := GenerateRandomFirstName(randomizer, &maxValue, maxValue)
 		if err == nil {
 			return &output, nil
@@ -94,7 +133,7 @@ func TransformFirstName(randomizer rng.Rand, name string, preserveLength bool, m
 	}
 
 	// pad the string so that we can get the correct value
-	if preserveLength && int64(len(output)) != maxValue {
+	if opts.PreserveLength && int64(len(output)) != maxValue {
 		output += transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
 	}
 	return &output, nil
