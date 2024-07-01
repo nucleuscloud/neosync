@@ -34,14 +34,19 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
-import { useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  RegenerateAccountApiKeyRequest,
-  RegenerateAccountApiKeyResponse,
+  GetAccountApiKeyResponse,
   getAccountApiKey,
+  regenerateAccountApiKey,
 } from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
@@ -62,11 +67,13 @@ export default function RegenerateAccountApiKey({
   const { toast } = useToast();
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading, refetch } = useQuery(
+  const { data, isLoading } = useQuery(
     getAccountApiKey,
     { id },
     { enabled: !!id }
   );
+  const { mutateAsync } = useMutation(regenerateAccountApiKey);
+  const queryclient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: yupResolver(FormValues),
@@ -81,20 +88,24 @@ export default function RegenerateAccountApiKey({
       return;
     }
     try {
-      const updatedApiKey = await regenerateApiKey(
-        values,
-        account?.id ?? '',
-        id
-      );
+      const updatedApiKey = await mutateAsync({
+        id,
+        expiresAt: new Timestamp({
+          seconds: BigInt(values.expiresAt.getTime() / 1000),
+        }),
+      });
       if (updatedApiKey.apiKey?.keyValue && !!window?.sessionStorage) {
         const storeVal: ApiKeyValueSessionStore = {
           keyValue: updatedApiKey.apiKey.keyValue,
         };
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
-      refetch().then(() =>
-        router.push(`/${account?.name}/settings/api-keys/${id}`)
+      const key = createConnectQueryKey(getAccountApiKey, { id });
+      queryclient.setQueryData(
+        key,
+        new GetAccountApiKeyResponse({ apiKey: updatedApiKey.apiKey })
       );
+      router.push(`/${account?.name}/settings/api-keys/${id}`);
       toast({
         title: 'Successfully regenerated api key!',
         variant: 'success',
@@ -254,33 +265,4 @@ export default function RegenerateAccountApiKey({
       </Form>
     </OverviewContainer>
   );
-}
-
-async function regenerateApiKey(
-  formData: FormValues,
-  accountId: string,
-  keyId: string
-): Promise<RegenerateAccountApiKeyResponse> {
-  const body = new RegenerateAccountApiKeyRequest({
-    id: keyId,
-    expiresAt: new Timestamp({
-      seconds: BigInt(formData.expiresAt.getTime() / 1000),
-    }),
-  });
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/api-keys/${keyId}/regenerate`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return RegenerateAccountApiKeyResponse.fromJson(await res.json());
 }
