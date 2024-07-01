@@ -35,6 +35,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.autoscaling.minReplicas | int | `1` | The minimum amount of replicas to have running |
 | api.autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU % utilization to begin a scale up |
 | api.containerPort | int | `8080` | The container port |
+| api.cors.allowedOrigins | list | `["http://neosync-app.example.com"]` | List of allowed CORS origins. Should contain the public url to Neosync App |
 | api.datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | api.db.disableSsl | bool | `false` | Whether or not to disable SSL when connecting to the database |
 | api.db.host | string | `nil` | The database hostname |
@@ -127,7 +128,8 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.istio.enabled | bool | `false` | Whether or not to apply the default istio annotations/labels to the deployment |
 | app.koala.key | string | `nil` | Koala Key |
 | app.nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
-| app.neosyncApi.url | string | `"http://neosync-api"` | The URL to the Neosync API instance |
+| app.neosyncApi.publicUrl | string | `"http://neosync-api.example.com"` | The public URL to the Neosync API instance. |
+| app.neosyncApi.url | string | `"http://neosync-api"` | The internal URL to the Neosync API instance. This is used by the app's backend server to communicate with the Neosync API. This is legacy and going forward the app will communicate more directly with the API via the clientside. As such, the publicUrl is important to configure to a publicly routable URL. |
 | app.neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | app.nextAuthSecret | string | `"This is an example"` | next-auth secret that is used to encrypt the session cookie |
 | app.nextAuthUrl | string | `"http://localhost:3000"` | next-auth base url. Should be the public url for the application |
