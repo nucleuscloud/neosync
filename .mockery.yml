@@ -93,9 +93,3 @@ packages:
   github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager:
     interfaces:
       ConnectionProvider:
-  go.temporal.io/sdk/client:
-    config:
-      dir: "internal/mocks/{{.PackagePath}}"
-    interfaces:
-      # Client: # this is broken. it uses the wrong package. after running mockery change internal to client in mock
-      NamespaceClient:

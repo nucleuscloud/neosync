@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	temporal "go.temporal.io/sdk/client"
+	temporalmocks "go.temporal.io/sdk/mocks"
 )
 
 const (
@@ -221,7 +222,7 @@ func Test_GetJobStatus_Paused(t *testing.T) {
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, mock.Anything).Return(job, nil)
 
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 
 	mockHandle.On("Describe", mock.Anything).Return(&temporal.ScheduleDescription{
 		Schedule: temporal.Schedule{
@@ -253,7 +254,7 @@ func Test_GetJobStatus_Enabled(t *testing.T) {
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 
 	mockHandle.On("Describe", mock.Anything).Return(&temporal.ScheduleDescription{
 		Schedule: temporal.Schedule{
@@ -279,9 +280,8 @@ func Test_GetJobStatus_Enabled(t *testing.T) {
 // GetJobStatuses
 func Test_GetJobStatuses(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
+	mockHandle := new(temporalmocks.ScheduleHandle)
+	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
@@ -319,9 +319,8 @@ var (
 func Test_CreateJob(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
+	mockHandle := new(temporalmocks.ScheduleHandle)
+	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -483,9 +482,8 @@ func Test_CreateJob(t *testing.T) {
 func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
+	// mockHandle := new(temporalmocks.ScheduleHandle)
+	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -634,9 +632,7 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
+	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -785,9 +781,6 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 // CreateJobDestinationConnections
 func Test_CreateJobDestinationConnections(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
@@ -847,9 +840,6 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 
 func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
-	mockScheduleClient := new(MockScheduleClient)
-	mockScheduleClient.Handle = mockHandle
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
@@ -911,7 +901,7 @@ func Test_UpdateJobSchedule(t *testing.T) {
 		CronSchedule: cron,
 		UpdatedByID:  userUuid,
 	}).Return(job, nil)
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
 	mockHandle.On("Update", mock.Anything, mock.Anything).Return(nil)
 
@@ -930,7 +920,7 @@ func Test_UpdateJobSchedule(t *testing.T) {
 // PauseJob
 func Test_PauseJob_Pause(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
@@ -955,7 +945,7 @@ func Test_PauseJob_Pause(t *testing.T) {
 
 func Test_PauseJob_UnPause(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
@@ -1731,7 +1721,7 @@ func Test_SetJobWorkflowOptions(t *testing.T) {
 		},
 		UpdatedByID: userUuid,
 	}).Return(job, nil)
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
 	mockHandle.On("Update", mock.Anything, mock.Anything).Return(nil)
 

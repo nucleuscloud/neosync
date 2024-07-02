@@ -22,13 +22,14 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	temporalmocks "go.temporal.io/sdk/mocks"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetJobRuns
 func Test_GetJobRuns_ByJobId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	temporalClientMock := new(MockTemporalClient)
+	temporalClientMock := new(temporalmocks.Client)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	workflowId := uuid.NewString()
@@ -63,7 +64,7 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 
 func Test_GetJobRuns_ByAccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	temporalClientMock := new(MockTemporalClient)
+	temporalClientMock := new(temporalmocks.Client)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -96,7 +97,7 @@ func Test_GetJobRuns_ByAccountId(t *testing.T) {
 // GetJobRun
 func Test_GetJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	temporalClientMock := new(MockTemporalClient)
+	temporalClientMock := new(temporalmocks.Client)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -130,7 +131,7 @@ func Test_GetJobRun(t *testing.T) {
 // CreateJobRun
 func Test_CreateJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockHandle := new(MockScheduleHandle)
+	mockHandle := new(temporalmocks.ScheduleHandle)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -151,7 +152,7 @@ func Test_CreateJobRun(t *testing.T) {
 // CancelJobRun
 func Test_CancelJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	temporalClientMock := new(MockTemporalClient)
+	temporalClientMock := new(temporalmocks.Client)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	runId := uuid.NewString()
 	workflowId := uuid.NewString()
@@ -180,7 +181,7 @@ func Test_CancelJobRun(t *testing.T) {
 func mockGetVerifiedJobRun(
 	temporalWfManagerMock *clientmanager.MockTemporalClientManagerClient,
 	accountUuid pgtype.UUID,
-	temporalClientMock *MockTemporalClient,
+	temporalClientMock *temporalmocks.Client,
 	workflowsMock []*workflowpb.WorkflowExecutionInfo,
 ) {
 	temporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, nucleusdb.UUIDString(accountUuid), mock.Anything).Return(true, nil)
