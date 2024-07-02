@@ -46,7 +46,11 @@ func (n *NeosyncAwsManager) NewS3Client(ctx context.Context, config *mgmtv1alpha
 	if err != nil {
 		return nil, err
 	}
-	return s3.NewFromConfig(*cfg), nil
+	return s3.NewFromConfig(*cfg, func(o *s3.Options) {
+		if config.GetEndpoint() != "" {
+			o.BaseEndpoint = aws.String(config.GetEndpoint())
+		}
+	}), nil
 }
 
 func (n *NeosyncAwsManager) ListObjectsV2(
@@ -108,28 +112,13 @@ func (n *NeosyncAwsManager) getAwsConfig(ctx context.Context, config *mgmtv1alph
 	if region := config.GetRegion(); region != "" {
 		awsCfg.Region = region
 	}
-	if endpoint := config.GetEndpoint(); endpoint != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           endpoint,
-				SigningRegion: awsCfg.Region,
-			}, nil
-		})
-
-		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithEndpointResolverWithOptions(customResolver))
-		if err != nil {
-			return nil, err
-		}
-		awsCfg = &cfg
-	}
 
 	if role := configCreds.GetRoleArn(); role != "" {
 		if externalId := configCreds.GetRoleExternalId(); externalId != "" {
 			awsCfg.Credentials = aws.NewCredentialsCache(
 				stscreds.NewAssumeRoleProvider(sts.NewFromConfig(*awsCfg), role, func(aro *stscreds.AssumeRoleOptions) {
 					aro.ExternalID = aws.String(externalId)
-					aro.RoleSessionName = "neosync-mgmt-api"
+					aro.RoleSessionName = "neosync-api"
 				}),
 			)
 		}

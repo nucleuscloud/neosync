@@ -482,7 +482,6 @@ func Test_CreateJob(t *testing.T) {
 func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
-	// mockHandle := new(temporalmocks.ScheduleHandle)
 	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
