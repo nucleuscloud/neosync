@@ -92,11 +92,17 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		up := sourceOptions.GetUserPrompt()
 		userPrompt = &up
 	}
+	var userBatchSize *int
+	if sourceOptions.GenerateBatchSize != nil && *sourceOptions.GenerateBatchSize > 0 {
+		ubs := int(*sourceOptions.GenerateBatchSize)
+		userBatchSize = &ubs
+	}
 	sourceResponses := buildBenthosAiGenerateSourceConfigResponses(
 		openaiConfig,
 		mappings,
 		sourceOptions.GetModelName(),
 		userPrompt,
+		userBatchSize,
 	)
 
 	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
@@ -116,6 +122,7 @@ func buildBenthosAiGenerateSourceConfigResponses(
 	mappings []*aiGenerateMappings,
 	model string,
 	userPrompt *string,
+	userBatchSize *int,
 ) []*BenthosConfigResponse {
 	responses := []*BenthosConfigResponse{}
 
@@ -128,7 +135,10 @@ func buildBenthosAiGenerateSourceConfigResponses(
 		}
 		batchSize := tableMapping.Count
 		if tableMapping.Count > 100 {
-			batchSize = tableMapping.Count / 10
+			batchSize = 10
+		}
+		if userBatchSize != nil && *userBatchSize > 0 {
+			batchSize = *userBatchSize
 		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
