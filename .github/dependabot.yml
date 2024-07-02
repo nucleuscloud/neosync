@@ -23,6 +23,7 @@ updates:
       npm-production:
         dependency-type: production
         update-types:
+          - minor
           - patch
 
   - package-ecosystem: "npm"
@@ -38,6 +39,7 @@ updates:
       npm-production:
         dependency-type: production
         update-types:
+          - minor
           - patch
 
   # Maintain dependencies for GitHub Actions
