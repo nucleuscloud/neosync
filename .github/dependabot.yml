@@ -4,6 +4,9 @@ updates:
   - package-ecosystem: "gomod"
     schedule:
       interval: "daily"
+    labels:
+      - dependencies
+    directory: "/"
     groups:
       golang-minor:
         update-types:
@@ -14,6 +17,8 @@ updates:
     directory: "frontend"
     schedule:
       interval: "weekly"
+    labels:
+      - dependencies
     groups:
       npm-development:
         dependency-type: development
@@ -30,6 +35,8 @@ updates:
     directory: "docs"
     schedule:
       interval: "weekly"
+    labels:
+      - dependencies
     groups:
       npm-development:
         dependency-type: development
@@ -47,6 +54,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - dependencies
     groups:
       actions-minor:
         update-types:
