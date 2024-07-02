@@ -1,8 +1,9 @@
 package openaigenerate
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/csv"
 	"fmt"
 	"strings"
 	"sync"
@@ -44,6 +45,9 @@ type generateReader struct {
 	count     int
 	batchsize int
 	model     string
+
+	columns   []string
+	dataTypes []string
 
 	client *azopenai.Client
 
@@ -98,7 +102,7 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 	}
 	conversation := []azopenai.ChatRequestMessageClassification{
 		&azopenai.ChatRequestSystemMessage{
-			Content: ptr(fmt.Sprintf("You generate data in JSON format. Generate %d records in a json array located on the data key", batchsize)),
+			Content: ptr(fmt.Sprintf("You generate CSV data. Generate %d records, don't include the headers", batchsize)),
 		},
 	}
 	prompt := ""
@@ -119,6 +123,9 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 		conversation: conversation,
 
 		log: mgr.Logger(),
+
+		columns:   columns,
+		dataTypes: dataTypes,
 	}, nil
 }
 
@@ -146,11 +153,6 @@ func (b *generateReader) Connect(ctx context.Context) error {
 	return nil
 }
 
-// the expected output from openai
-type completionResponse struct {
-	Data []map[string]any `json:"data"`
-}
-
 func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, service.AckFunc, error) {
 	b.promptMut.Lock()
 	defer b.promptMut.Unlock()
@@ -171,7 +173,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		TopP:             ptr(float32(1.0)),
 		FrequencyPenalty: ptr(float32(0)),
 		N:                ptr(int32(1)),
-		ResponseFormat:   &azopenai.ChatCompletionsJSONResponseFormat{},
+		ResponseFormat:   &azopenai.ChatCompletionsTextResponseFormat{},
 		Messages:         b.conversation,
 	}, &azopenai.GetChatCompletionsOptions{})
 	if err != nil {
@@ -183,13 +185,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	choice := resp.Choices[0]
 	// todo: make this better, if we received a limit, we should pop off some of the asstant messages to shorten the context window
 	if *choice.FinishReason == azopenai.CompletionsFinishReasonTokenLimitReached {
-		return nil, nil, fmt.Errorf("completion limit reached")
-	}
-
-	var dataResponse completionResponse
-	err = json.Unmarshal([]byte(*choice.Message.Content), &dataResponse)
-	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("openai: completion limit reached")
 	}
 
 	b.conversation = append(
@@ -199,9 +195,19 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	)
 
 	messageBatch := service.MessageBatch{}
-	for _, record := range dataResponse.Data {
+	records, err := getCsvRecords(*choice.Message.Content)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to fully process records retrieved from openai: %w", err)
+	}
+
+	for _, record := range records {
+		// convert record into structured record
+		structuredRecord, err := convertCsvToStructuredRecord(record, b.columns, b.dataTypes)
+		if err != nil {
+			return nil, nil, err
+		}
 		msg := service.NewMessage(nil)
-		msg.SetStructured(record)
+		msg.SetStructured(structuredRecord)
 		messageBatch = append(messageBatch, msg)
 	}
 	b.count -= len(messageBatch)
@@ -224,4 +230,33 @@ func emptyAck(ctx context.Context, err error) error {
 
 func ptr[T any](val T) *T {
 	return &val
+}
+
+func convertCsvToStructuredRecord(record, headers, types []string) (map[string]any, error) {
+	if len(record) != len(headers) && len(headers) != len(types) {
+		return nil, fmt.Errorf("error converting csv record to structured record, record headers and types not equivalent in length")
+	}
+	output := map[string]any{}
+	for idx, value := range record {
+		header := headers[idx]
+		valueType := types[idx]
+		convertedValue, err := toStructuredRecordValueType(value, valueType)
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert value to correct type from csv: %w", err)
+		}
+		output[header] = convertedValue
+	}
+
+	return output, nil
+}
+
+func toStructuredRecordValueType(value, dataType string) (any, error) {
+	return value, nil
+}
+
+func getCsvRecords(input string) ([][]string, error) {
+	var buffer bytes.Buffer
+	buffer.WriteString(input)
+	reader := csv.NewReader(&buffer)
+	return reader.ReadAll()
 }
