@@ -686,6 +686,7 @@ type AiGenerateSourceOptions struct {
 	FkSourceConnectionId *string                         `json:"fkSourceConnectionId,omitempty"`
 	ModelName            string                          `json:"modelName"`
 	UserPrompt           *string                         `json:"userPrompt,omitempty"`
+	GenerateBatchSize    *int64                          `json:"generateBatchSize,omitempty"`
 }
 
 type AiGenerateSourceSchemaOption struct {
@@ -871,6 +872,7 @@ func (s *AiGenerateSourceOptions) ToDto() *mgmtv1alpha1.AiGenerateSourceOptions 
 		AiConnectionId:       s.AiConnectionId,
 		ModelName:            s.ModelName,
 		UserPrompt:           s.UserPrompt,
+		GenerateBatchSize:    s.GenerateBatchSize,
 	}
 	dto.Schemas = make([]*mgmtv1alpha1.AiGenerateSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {
@@ -896,6 +898,7 @@ func (s *AiGenerateSourceOptions) FromDto(dto *mgmtv1alpha1.AiGenerateSourceOpti
 	s.AiConnectionId = dto.AiConnectionId
 	s.ModelName = dto.ModelName
 	s.UserPrompt = dto.UserPrompt
+	s.GenerateBatchSize = dto.GenerateBatchSize
 }
 
 func FromDtoAiGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption) []*AiGenerateSourceSchemaOption {
