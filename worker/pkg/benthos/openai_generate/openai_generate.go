@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -251,7 +253,56 @@ func convertCsvToStructuredRecord(record, headers, types []string) (map[string]a
 }
 
 func toStructuredRecordValueType(value, dataType string) (any, error) {
-	return value, nil
+	switch dataType {
+	case "smallint", "integer", "int", "serial":
+		return strconv.ParseInt(value, 10, 32)
+	case "bigint", "bigserial":
+		return strconv.ParseInt(value, 10, 64)
+	case "numeric", "decimal":
+		return strconv.ParseFloat(value, 64)
+	case "real":
+		return strconv.ParseFloat(value, 32)
+	case "double precision":
+		return strconv.ParseFloat(value, 64)
+	case "money":
+		return value, nil // Keeping it as string due to currency formatting
+	case "character varying", "varchar", "character", "char", "text":
+		return value, nil
+	case "date", "timestamp", "timestamp without time zone":
+		return time.Parse("2006-01-02 15:04:05", value) // adjust format as needed
+	case "timestamp with time zone":
+		return time.Parse(time.RFC3339, value)
+	case "time", "time without time zone":
+		return time.Parse("15:04:05", value)
+	case "time with time zone":
+		return time.Parse("15:04:05Z07:00", value)
+	case "interval":
+		return value, nil // Parsing intervals can be complex; keeping it as string
+	case "boolean":
+		return strconv.ParseBool(value)
+	case "uuid":
+		return value, nil // UUIDs are usually handled as strings
+	case "json", "jsonb":
+		return value, nil // JSON is typically handled as a string or a map
+	default:
+		if strings.HasSuffix(dataType, "[]") {
+			return parseBracketedArray(value), nil
+		}
+		return value, nil
+	}
+}
+
+func parseBracketedArray(value string) []any {
+	value = strings.Trim(value, "[]")
+	if value == "" {
+		return []any{}
+	}
+	elements := strings.Split(value, ",")
+	var array []any
+	for _, element := range elements {
+		array = append(array, strings.TrimSpace(element))
+	}
+	return array
 }
 
 func getCsvRecords(input string) ([][]string, error) {
