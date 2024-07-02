@@ -1,3 +1,3 @@
 package transformers
 
-//go:generate go run goja_func_generator.go
+//go:generate go run js_transformer_generator.go

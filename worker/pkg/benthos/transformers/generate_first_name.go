@@ -9,8 +9,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
-// +javascriptFncBuilder:generate:generateRandomFirstName
-
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).

@@ -8,7 +8,7 @@ type Param struct {
 type TemplateData struct {
 	Name        string
 	Description string
-	Params      []*Param
+	// Params      []*Param
 }
 
 type NeosyncTransformer interface {

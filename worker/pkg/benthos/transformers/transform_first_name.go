@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -71,73 +70,72 @@ func init() {
 	}
 }
 
-type TransformFirstNameOpts struct {
-	randomizer     rng.Rand
-	maxLength      int64
-	preserveLength bool
-}
-type TransformFirstName struct {
-}
+// type TransformFirstName struct{}
+// type TransformFirstNameOpts struct {
+// 	randomizer     rng.Rand
+// 	maxLength      int64
+// 	preserveLength bool
+// }
 
-func NewTransformFirstName() *TransformFirstName {
-	return &TransformFirstName{}
-}
+// func NewTransformFirstName() *TransformFirstName {
+// 	return &TransformFirstName{}
+// }
 
-func (t *TransformFirstName) GetJsTemplateData() (*TemplateData, error) {
-	return &TemplateData{
-		Name:        "TransformFirstName",
-		Description: "Takes value and transforms it to a first name",
-		Params: []*Param{
-			{Name: "maxLength", TypeStr: "int64", What: "Max character length of first name"},
-			{Name: "preserveLength", TypeStr: "bool", What: "Whether to keep name length the same as original value"},
-			{Name: "seed", TypeStr: "int64", What: "Randomzer seed"},
-			{Name: "value", TypeStr: "string", What: "'value to transform"},
-		},
-	}, nil
-}
-func (t *TransformFirstName) ParseOptions(opts map[string]any) (any, error) {
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, err
-		}
-	}
+// func (t *TransformFirstName) GetJsTemplateData() (*TemplateData, error) {
+// 	return &TemplateData{
+// 		Name:        "transformFirstName",
+// 		Description: "Takes value and transforms it to a first name",
+// 		// Params: []*Param{
+// 		// 	{Name: "maxLength", TypeStr: "int64", What: "Max character length of first name"},
+// 		// 	{Name: "preserveLength", TypeStr: "bool", What: "Whether to keep name length the same as original value"},
+// 		// 	{Name: "seed", TypeStr: "int64", What: "Randomzer seed"},
+// 		// 	{Name: "value", TypeStr: "string", What: "'value to transform"},
+// 		// },
+// 	}, nil
+// }
+// func (t *TransformFirstName) ParseOptions(opts map[string]any) (any, error) {
+// 	var seed int64
+// 	seedArg, ok := opts["seed"].(int64)
+// 	if ok {
+// 		seed = seedArg
+// 	} else {
+// 		var err error
+// 		seed, err = transformer_utils.GenerateCryptoSeed()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
 
-	preserveLength, ok := opts["preserveLength"].(bool)
-	if !ok {
-		preserveLength = false
-	}
+// 	preserveLength, ok := opts["preserveLength"].(bool)
+// 	if !ok {
+// 		preserveLength = false
+// 	}
 
-	maxLength, ok := opts["maxLength"].(int64)
-	if !ok {
-		maxLength = 10000
-	}
+// 	maxLength, ok := opts["maxLength"].(int64)
+// 	if !ok {
+// 		maxLength = 10000
+// 	}
 
-	return &TransformFirstNameOpts{
-		randomizer:     rng.New(seed),
-		preserveLength: preserveLength,
-		maxLength:      maxLength,
-	}, nil
-}
+// 	return &TransformFirstNameOpts{
+// 		randomizer:     rng.New(seed),
+// 		preserveLength: preserveLength,
+// 		maxLength:      maxLength,
+// 	}, nil
+// }
 
-func (t *TransformFirstName) Transform(value any, opts any) (any, error) {
-	parsedOpts, ok := opts.(*TransformFirstNameOpts)
-	if !ok {
-		return nil, errors.New("invalid parse opts")
-	}
+// func (t *TransformFirstName) Transform(value any, opts any) (any, error) {
+// 	parsedOpts, ok := opts.(*TransformFirstNameOpts)
+// 	if !ok {
+// 		return nil, errors.New("invalid parse opts")
+// 	}
 
-	valueStr, ok := value.(string)
-	if !ok {
-		return nil, errors.New("value is not a string")
-	}
+// 	valueStr, ok := value.(string)
+// 	if !ok {
+// 		return nil, errors.New("value is not a string")
+// 	}
 
-	return transformFirstName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
-}
+// 	return transformFirstName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+// }
 
 // Generates a random first name which can be of either random length or as long as the input name
 func transformFirstName(randomizer rng.Rand, value string, preserveLength bool, maxLength int64) (*string, error) {
