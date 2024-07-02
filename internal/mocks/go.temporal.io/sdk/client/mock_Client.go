@@ -389,6 +389,63 @@ func (_c *MockClient_DescribeTaskQueue_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// DescribeTaskQueueEnhanced provides a mock function with given fields: ctx, options
+func (_m *MockClient) DescribeTaskQueueEnhanced(ctx context.Context, options internal.DescribeTaskQueueEnhancedOptions) (internal.TaskQueueDescription, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeTaskQueueEnhanced")
+	}
+
+	var r0 internal.TaskQueueDescription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, internal.DescribeTaskQueueEnhancedOptions) (internal.TaskQueueDescription, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, internal.DescribeTaskQueueEnhancedOptions) internal.TaskQueueDescription); ok {
+		r0 = rf(ctx, options)
+	} else {
+		r0 = ret.Get(0).(internal.TaskQueueDescription)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, internal.DescribeTaskQueueEnhancedOptions) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClient_DescribeTaskQueueEnhanced_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeTaskQueueEnhanced'
+type MockClient_DescribeTaskQueueEnhanced_Call struct {
+	*mock.Call
+}
+
+// DescribeTaskQueueEnhanced is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options internal.DescribeTaskQueueEnhancedOptions
+func (_e *MockClient_Expecter) DescribeTaskQueueEnhanced(ctx interface{}, options interface{}) *MockClient_DescribeTaskQueueEnhanced_Call {
+	return &MockClient_DescribeTaskQueueEnhanced_Call{Call: _e.mock.On("DescribeTaskQueueEnhanced", ctx, options)}
+}
+
+func (_c *MockClient_DescribeTaskQueueEnhanced_Call) Run(run func(ctx context.Context, options internal.DescribeTaskQueueEnhancedOptions)) *MockClient_DescribeTaskQueueEnhanced_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(internal.DescribeTaskQueueEnhancedOptions))
+	})
+	return _c
+}
+
+func (_c *MockClient_DescribeTaskQueueEnhanced_Call) Return(_a0 internal.TaskQueueDescription, _a1 error) *MockClient_DescribeTaskQueueEnhanced_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClient_DescribeTaskQueueEnhanced_Call) RunAndReturn(run func(context.Context, internal.DescribeTaskQueueEnhancedOptions) (internal.TaskQueueDescription, error)) *MockClient_DescribeTaskQueueEnhanced_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeWorkflowExecution provides a mock function with given fields: ctx, workflowID, runID
 func (_m *MockClient) DescribeWorkflowExecution(ctx context.Context, workflowID string, runID string) (*workflowservice.DescribeWorkflowExecutionResponse, error) {
 	ret := _m.Called(ctx, workflowID, runID)
@@ -692,6 +749,65 @@ func (_c *MockClient_GetWorkerTaskReachability_Call) Return(_a0 *internal.Worker
 }
 
 func (_c *MockClient_GetWorkerTaskReachability_Call) RunAndReturn(run func(context.Context, *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error)) *MockClient_GetWorkerTaskReachability_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetWorkerVersioningRules provides a mock function with given fields: ctx, options
+func (_m *MockClient) GetWorkerVersioningRules(ctx context.Context, options internal.GetWorkerVersioningOptions) (*internal.WorkerVersioningRules, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWorkerVersioningRules")
+	}
+
+	var r0 *internal.WorkerVersioningRules
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, internal.GetWorkerVersioningOptions) (*internal.WorkerVersioningRules, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, internal.GetWorkerVersioningOptions) *internal.WorkerVersioningRules); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*internal.WorkerVersioningRules)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, internal.GetWorkerVersioningOptions) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClient_GetWorkerVersioningRules_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWorkerVersioningRules'
+type MockClient_GetWorkerVersioningRules_Call struct {
+	*mock.Call
+}
+
+// GetWorkerVersioningRules is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options internal.GetWorkerVersioningOptions
+func (_e *MockClient_Expecter) GetWorkerVersioningRules(ctx interface{}, options interface{}) *MockClient_GetWorkerVersioningRules_Call {
+	return &MockClient_GetWorkerVersioningRules_Call{Call: _e.mock.On("GetWorkerVersioningRules", ctx, options)}
+}
+
+func (_c *MockClient_GetWorkerVersioningRules_Call) Run(run func(ctx context.Context, options internal.GetWorkerVersioningOptions)) *MockClient_GetWorkerVersioningRules_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(internal.GetWorkerVersioningOptions))
+	})
+	return _c
+}
+
+func (_c *MockClient_GetWorkerVersioningRules_Call) Return(_a0 *internal.WorkerVersioningRules, _a1 error) *MockClient_GetWorkerVersioningRules_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClient_GetWorkerVersioningRules_Call) RunAndReturn(run func(context.Context, internal.GetWorkerVersioningOptions) (*internal.WorkerVersioningRules, error)) *MockClient_GetWorkerVersioningRules_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1775,12 +1891,68 @@ func (_c *MockClient_UpdateWorkerBuildIdCompatibility_Call) RunAndReturn(run fun
 	return _c
 }
 
-// UpdateWorkflow provides a mock function with given fields: ctx, workflowID, workflowRunID, updateName, args
-func (_m *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, workflowRunID string, updateName string, args ...interface{}) (internal.WorkflowUpdateHandle, error) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, workflowID, workflowRunID, updateName)
-	_ca = append(_ca, args...)
-	ret := _m.Called(_ca...)
+// UpdateWorkerVersioningRules provides a mock function with given fields: ctx, options
+func (_m *MockClient) UpdateWorkerVersioningRules(ctx context.Context, options internal.UpdateWorkerVersioningRulesOptions) (*internal.WorkerVersioningRules, error) {
+	ret := _m.Called(ctx, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateWorkerVersioningRules")
+	}
+
+	var r0 *internal.WorkerVersioningRules
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, internal.UpdateWorkerVersioningRulesOptions) (*internal.WorkerVersioningRules, error)); ok {
+		return rf(ctx, options)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, internal.UpdateWorkerVersioningRulesOptions) *internal.WorkerVersioningRules); ok {
+		r0 = rf(ctx, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*internal.WorkerVersioningRules)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, internal.UpdateWorkerVersioningRulesOptions) error); ok {
+		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClient_UpdateWorkerVersioningRules_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateWorkerVersioningRules'
+type MockClient_UpdateWorkerVersioningRules_Call struct {
+	*mock.Call
+}
+
+// UpdateWorkerVersioningRules is a helper method to define mock.On call
+//   - ctx context.Context
+//   - options internal.UpdateWorkerVersioningRulesOptions
+func (_e *MockClient_Expecter) UpdateWorkerVersioningRules(ctx interface{}, options interface{}) *MockClient_UpdateWorkerVersioningRules_Call {
+	return &MockClient_UpdateWorkerVersioningRules_Call{Call: _e.mock.On("UpdateWorkerVersioningRules", ctx, options)}
+}
+
+func (_c *MockClient_UpdateWorkerVersioningRules_Call) Run(run func(ctx context.Context, options internal.UpdateWorkerVersioningRulesOptions)) *MockClient_UpdateWorkerVersioningRules_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(internal.UpdateWorkerVersioningRulesOptions))
+	})
+	return _c
+}
+
+func (_c *MockClient_UpdateWorkerVersioningRules_Call) Return(_a0 *internal.WorkerVersioningRules, _a1 error) *MockClient_UpdateWorkerVersioningRules_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClient_UpdateWorkerVersioningRules_Call) RunAndReturn(run func(context.Context, internal.UpdateWorkerVersioningRulesOptions) (*internal.WorkerVersioningRules, error)) *MockClient_UpdateWorkerVersioningRules_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateWorkflow provides a mock function with given fields: ctx, options
+func (_m *MockClient) UpdateWorkflow(ctx context.Context, options internal.UpdateWorkflowOptions) (internal.WorkflowUpdateHandle, error) {
+	ret := _m.Called(ctx, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateWorkflow")
@@ -1788,19 +1960,19 @@ func (_m *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, wor
 
 	var r0 internal.WorkflowUpdateHandle
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) (internal.WorkflowUpdateHandle, error)); ok {
-		return rf(ctx, workflowID, workflowRunID, updateName, args...)
+	if rf, ok := ret.Get(0).(func(context.Context, internal.UpdateWorkflowOptions) (internal.WorkflowUpdateHandle, error)); ok {
+		return rf(ctx, options)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, ...interface{}) internal.WorkflowUpdateHandle); ok {
-		r0 = rf(ctx, workflowID, workflowRunID, updateName, args...)
+	if rf, ok := ret.Get(0).(func(context.Context, internal.UpdateWorkflowOptions) internal.WorkflowUpdateHandle); ok {
+		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(internal.WorkflowUpdateHandle)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, ...interface{}) error); ok {
-		r1 = rf(ctx, workflowID, workflowRunID, updateName, args...)
+	if rf, ok := ret.Get(1).(func(context.Context, internal.UpdateWorkflowOptions) error); ok {
+		r1 = rf(ctx, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1815,24 +1987,14 @@ type MockClient_UpdateWorkflow_Call struct {
 
 // UpdateWorkflow is a helper method to define mock.On call
 //   - ctx context.Context
-//   - workflowID string
-//   - workflowRunID string
-//   - updateName string
-//   - args ...interface{}
-func (_e *MockClient_Expecter) UpdateWorkflow(ctx interface{}, workflowID interface{}, workflowRunID interface{}, updateName interface{}, args ...interface{}) *MockClient_UpdateWorkflow_Call {
-	return &MockClient_UpdateWorkflow_Call{Call: _e.mock.On("UpdateWorkflow",
-		append([]interface{}{ctx, workflowID, workflowRunID, updateName}, args...)...)}
+//   - options internal.UpdateWorkflowOptions
+func (_e *MockClient_Expecter) UpdateWorkflow(ctx interface{}, options interface{}) *MockClient_UpdateWorkflow_Call {
+	return &MockClient_UpdateWorkflow_Call{Call: _e.mock.On("UpdateWorkflow", ctx, options)}
 }
 
-func (_c *MockClient_UpdateWorkflow_Call) Run(run func(ctx context.Context, workflowID string, workflowRunID string, updateName string, args ...interface{})) *MockClient_UpdateWorkflow_Call {
+func (_c *MockClient_UpdateWorkflow_Call) Run(run func(ctx context.Context, options internal.UpdateWorkflowOptions)) *MockClient_UpdateWorkflow_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]interface{}, len(args)-4)
-		for i, a := range args[4:] {
-			if a != nil {
-				variadicArgs[i] = a.(interface{})
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), variadicArgs...)
+		run(args[0].(context.Context), args[1].(internal.UpdateWorkflowOptions))
 	})
 	return _c
 }
@@ -1842,66 +2004,7 @@ func (_c *MockClient_UpdateWorkflow_Call) Return(_a0 internal.WorkflowUpdateHand
 	return _c
 }
 
-func (_c *MockClient_UpdateWorkflow_Call) RunAndReturn(run func(context.Context, string, string, string, ...interface{}) (internal.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflow_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateWorkflowWithOptions provides a mock function with given fields: ctx, request
-func (_m *MockClient) UpdateWorkflowWithOptions(ctx context.Context, request *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error) {
-	ret := _m.Called(ctx, request)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateWorkflowWithOptions")
-	}
-
-	var r0 internal.WorkflowUpdateHandle
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error)); ok {
-		return rf(ctx, request)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) internal.WorkflowUpdateHandle); ok {
-		r0 = rf(ctx, request)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(internal.WorkflowUpdateHandle)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) error); ok {
-		r1 = rf(ctx, request)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockClient_UpdateWorkflowWithOptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateWorkflowWithOptions'
-type MockClient_UpdateWorkflowWithOptions_Call struct {
-	*mock.Call
-}
-
-// UpdateWorkflowWithOptions is a helper method to define mock.On call
-//   - ctx context.Context
-//   - request *internal.UpdateWorkflowWithOptionsRequest
-func (_e *MockClient_Expecter) UpdateWorkflowWithOptions(ctx interface{}, request interface{}) *MockClient_UpdateWorkflowWithOptions_Call {
-	return &MockClient_UpdateWorkflowWithOptions_Call{Call: _e.mock.On("UpdateWorkflowWithOptions", ctx, request)}
-}
-
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) Run(run func(ctx context.Context, request *internal.UpdateWorkflowWithOptionsRequest)) *MockClient_UpdateWorkflowWithOptions_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*internal.UpdateWorkflowWithOptionsRequest))
-	})
-	return _c
-}
-
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) Return(_a0 internal.WorkflowUpdateHandle, _a1 error) *MockClient_UpdateWorkflowWithOptions_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockClient_UpdateWorkflowWithOptions_Call) RunAndReturn(run func(context.Context, *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflowWithOptions_Call {
+func (_c *MockClient_UpdateWorkflow_Call) RunAndReturn(run func(context.Context, internal.UpdateWorkflowOptions) (internal.WorkflowUpdateHandle, error)) *MockClient_UpdateWorkflow_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -95,7 +95,7 @@ packages:
       ConnectionProvider:
   go.temporal.io/sdk/client:
     config:
-      dir: "worker/internal/mocks/{{.PackagePath}}"
-    # interfaces:
-    # this is broken. it uses the wrong package. after running mockery change internal to client in mock
-    # Client:
+      dir: "internal/mocks/{{.PackagePath}}"
+    interfaces:
+      # Client: # this is broken. it uses the wrong package. after running mockery change internal to client in mock
+      NamespaceClient:

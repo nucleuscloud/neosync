@@ -6,9 +6,11 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	mockTemporalClient "github.com/nucleuscloud/neosync/internal/mocks/go.temporal.io/sdk/client"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/api/serviceerror"
@@ -363,7 +365,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Temporal_Namespace(
 
 	accountUuid := uuid.New().String()
 
-	mockNsClient := new(MockNamespaceClient)
+	mockNsClient := new(mockTemporalClient.MockNamespaceClient)
 	mgr.nsmap.Store(accountUuid, mockNsClient)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -380,8 +382,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Not_Temporal_Namesp
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()
-
-	mockNsClient := new(MockNamespaceClient)
+	mockNsClient := new(mockTemporalClient.MockNamespaceClient)
 	mgr.nsmap.Store(accountUuid, mockNsClient)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -399,7 +400,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Describe_Error(t *testi
 
 	accountUuid := uuid.New().String()
 
-	mockNsClient := new(MockNamespaceClient)
+	mockNsClient := new(mockTemporalClient.MockNamespaceClient)
 	mgr.nsmap.Store(accountUuid, mockNsClient)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
