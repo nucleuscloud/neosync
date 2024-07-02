@@ -384,7 +384,7 @@ func serve(ctx context.Context) error {
 		roundTripper := promapi.DefaultRoundTripper
 		promApiKey := getPromApiKey()
 		if promApiKey != nil {
-			roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.Secret(*promApiKey), promapi.DefaultRoundTripper)
+			roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.NewInlineSecret(*promApiKey), promapi.DefaultRoundTripper)
 		}
 		promclient, err := promapi.NewClient(promapi.Config{
 			Address:      getPromApiUrl(),
