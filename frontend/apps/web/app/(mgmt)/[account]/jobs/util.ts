@@ -1100,13 +1100,22 @@ function setDefaultSchemaFormValues(
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
   switch (job.source?.options?.config.case) {
     case 'aiGenerate': {
+      const numRows = getSingleTableAiGenerateNumRows(
+        job.source.options.config.value
+      );
+      let genBatchSize = 10;
+      if (job.source.options.config.value.generateBatchSize) {
+        genBatchSize = Number(
+          job.source.options.config.value.generateBatchSize
+        );
+      } else {
+        // batch size has not been set by the user. Set it to our default of 10, or num rows, whichever is lower
+        genBatchSize = Math.min(genBatchSize, numRows);
+      }
+
       const values: SingleTableAiSchemaFormValues = {
-        numRows: getSingleTableAiGenerateNumRows(
-          job.source.options.config.value
-        ),
-        generateBatchSize: job.source.options.config.value.generateBatchSize
-          ? Number(job.source.options.config.value.generateBatchSize)
-          : 0,
+        numRows,
+        generateBatchSize: genBatchSize,
         userPrompt: job.source.options.config.value.userPrompt,
         model: job.source.options.config.value.modelName,
         ...getSingleTableAiSchemaTable(job.source.options.config.value),

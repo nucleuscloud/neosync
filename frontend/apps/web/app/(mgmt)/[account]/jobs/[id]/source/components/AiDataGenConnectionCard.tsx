@@ -533,7 +533,7 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
     };
   }
   let numRows = 0;
-  let batchSize = 0;
+  let genBatchSize = 10;
   let schema = '';
   let table = '';
   let model = '';
@@ -546,9 +546,12 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       job.source.options.config.value.fkSourceConnectionId ?? '';
     model = job.source.options.config.value.modelName;
     userPrompt = job.source.options.config.value.userPrompt ?? '';
-    batchSize = job.source.options.config.value.generateBatchSize
-      ? Number(job.source.options.config.value.generateBatchSize)
-      : 0;
+    if (job.source.options.config.value.generateBatchSize) {
+      genBatchSize = Number(job.source.options.config.value.generateBatchSize);
+    } else {
+      // batch size has not been set by the user. Set it to our default of 10, or num rows, whichever is lower
+      genBatchSize = Math.min(genBatchSize, numRows);
+    }
     numRows = getSingleTableAiGenerateNumRows(job.source.options.config.value);
     const schematable = getSingleTableAiSchemaTable(
       job.source.options.config.value
@@ -568,7 +571,7 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       table,
       model,
       userPrompt,
-      generateBatchSize: batchSize,
+      generateBatchSize: genBatchSize,
     },
   };
 }
