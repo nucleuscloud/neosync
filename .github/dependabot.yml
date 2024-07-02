@@ -9,7 +9,6 @@ updates:
     directory: "/"
     groups:
       golang-minor:
-        dependency-type: all
         update-types:
           - minor
           - patch
@@ -59,7 +58,6 @@ updates:
       - dependencies
     groups:
       actions-minor:
-        dependency-type: all
         update-types:
           - minor
           - patch
