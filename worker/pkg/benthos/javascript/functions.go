@@ -8,11 +8,9 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 
 	"github.com/benthosdev/benthos/v4/public/service"
 	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type jsFunction func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error)
@@ -93,84 +91,86 @@ func registerVMRunnerFunction(name, description string) *jsFunctionDefinition {
 }
 
 // ------------------------------------------------------------------------------
-type Param struct {
-	Name    string
-	TypeStr string
-	What    string
-}
-type TemplateData struct {
-	Name        string
-	Description string
-	Params      []*Param
-}
+// type Param struct {
+// 	Name    string
+// 	TypeStr string
+// 	What    string
+// }
+// type TemplateData struct {
+// 	Name        string
+// 	Description string
+// 	Params      []*Param
+// }
 
-var f NeosyncTransformer = &TransformFloat{}
+// var f NeosyncTransformer = &TransformFloat{}
 
-type TransformFloatOpts struct {
-	randomizer rng.Rand
-}
-type TransformFloat struct {
-	maxnumgetter any
-}
+// type TransformFloatOpts struct {
+// 	randomizer rng.Rand
+// }
+// type TransformFloat struct {
+// 	maxnumgetter any
+// }
 
-func NewTransformFloat() *TransformFloat {
-	return &TransformFloat{
-		maxnumgetter: 1,
-	}
-}
+// func NewTransformFloat() *TransformFloat {
+// 	return &TransformFloat{
+// 		maxnumgetter: 1,
+// 	}
+// }
 
-func (t *TransformFloat) GetTemplateData() (*TemplateData, error) {
-	return nil, nil
-}
-func (t *TransformFloat) ParseOptions(opts map[string]any) (any, error) {
-	// seed comes from the user opts
-	// var udSeed = 1
+// func (t *TransformFloat) GetTemplateData() (*TemplateData, error) {
+// 	return nil, nil
+// }
+// func (t *TransformFloat) ParseOptions(opts map[string]any) (any, error) {
+// 	// seed comes from the user opts
+// 	// var udSeed = 1
 
-	return &TransformFloatOpts{
-		randomizer: rng.New(1),
-	}, nil
-}
+// 	return &TransformFloatOpts{
+// 		randomizer: rng.New(1),
+// 	}, nil
+// }
 
-func (t *TransformFloat) Transform(value any, opts any) (any, error) {
-	parsedOpts, ok := opts.(*TransformFloatOpts)
-	if !ok {
-		return nil, errors.New("invalid parse opts")
-	}
-	_ = parsedOpts
+// func (t *TransformFloat) Transform(value any, opts any) (any, error) {
+// 	parsedOpts, ok := opts.(*TransformFloatOpts)
+// 	if !ok {
+// 		return nil, errors.New("invalid parse opts")
+// 	}
+// 	_ = parsedOpts
 
-	return 1, nil
-}
+// 	return 1, nil
+// }
 
-type NeosyncTransformer interface {
-	GetTemplateData() (*TemplateData, error)
-	ParseOptions(opts map[string]any) (any, error)
+// type NeosyncTransformer interface {
+// 	GetTemplateData() (*TemplateData, error)
+// 	ParseOptions(opts map[string]any) (any, error)
 
-	GetJsTemplateData() (*TemplateData, error)
-	GetBenthosTemplateData() (any, error)
+// 	GetJsTemplateData() (*TemplateData, error)
+// 	GetBenthosTemplateData() (any, error)
 
-	// Get() func(value any, opts TOpts) (any, error)
-	Transform(value any, opts any) (any, error)
-}
+// 	// Get() func(value any, opts TOpts) (any, error)
+// 	Transform(value any, opts any) (any, error)
+// }
 
-type NeosyncGenerator[TOpts any] interface {
-	GetTemplateData() (*TemplateData, error)
-	ParseOptions(opts map[string]any) (TOpts, error)
-	Generate(opts TOpts) (any, error)
-}
+// type NeosyncGenerator[TOpts any] interface {
+// 	GetTemplateData() (*TemplateData, error)
+// 	ParseOptions(opts map[string]any) (TOpts, error)
+// 	Generate(opts TOpts) (any, error)
+// }
 
 func init() {
-	neosyncFns := []NeosyncTransformer{NewTransformFloat()} // generated
+	neosyncFns := []transformer.NeosyncTransformer{transformer.NewTransformFirstName()} // generated
 	for _, f := range neosyncFns {
-		templateData, err := f.GetTemplateData()
+		fmt.Println("--------")
+		templateData, err := f.GetJsTemplateData()
 		if err != nil {
 			panic(err)
 		}
+		fmt.Println(templateData.Name)
 
 		def := registerVMRunnerFunction(templateData.Name, templateData.Description)
 		for _, p := range templateData.Params {
 			def = def.Param(p.Name, p.TypeStr, p.What)
 		}
-
+		def.Namespace(neosyncFnCtxName)
 		def.FnCtor(func(r *vmRunner) jsFunction {
 			// transformer := f.Get()
 			return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {
@@ -385,75 +385,75 @@ var _ = registerVMRunnerFunction("hello", `Prefixes hello to string.`).
 		}
 	})
 
-var _ = registerVMRunnerFunction("transformFirstName", `Transforms first name`).
-	Namespace(neosyncFnCtxName).
-	Param("value", "any", "The metadata key to set.").
-	Param("opts", "object", "options config").
-	Example(`neosync.transformFirstName("kevin");`).
-	FnCtor(func(r *vmRunner) jsFunction {
-		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
-			var (
-				value any
-				opts  map[string]interface{}
-			)
-			if err := parseArgs(call, &value, &opts); err != nil {
-				return "", err
-			}
-			var seed int64
-			if opts != nil && opts["seed"] != nil {
-				seed = opts["seed"].(int64)
-			} else {
-				var err error
-				seed, err = transformer_utils.GenerateCryptoSeed()
-				if err != nil {
-					return nil, err
-				}
-			}
+	// var _ = registerVMRunnerFunction("transformFirstName", `Transforms first name`).
+	// 	Namespace(neosyncFnCtxName).
+	// 	Param("value", "any", "The metadata key to set.").
+	// 	Param("opts", "object", "options config").
+	// 	Example(`neosync.transformFirstName("kevin");`).
+	// 	FnCtor(func(r *vmRunner) jsFunction {
+	// 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+	// 			var (
+	// 				value any
+	// 				opts  map[string]interface{}
+	// 			)
+	// 			if err := parseArgs(call, &value, &opts); err != nil {
+	// 				return "", err
+	// 			}
+	// 			var seed int64
+	// 			if opts != nil && opts["seed"] != nil {
+	// 				seed = opts["seed"].(int64)
+	// 			} else {
+	// 				var err error
+	// 				seed, err = transformer_utils.GenerateCryptoSeed()
+	// 				if err != nil {
+	// 					return nil, err
+	// 				}
+	// 			}
 
-			funcOpts := &transformer.TransformFirstNameOpts{}
-			funcOpts.PreserveLength = false
-			if opts != nil && opts["preserveLength"] != nil {
-				funcOpts.PreserveLength = opts["preserveLength"].(bool)
-			}
-			funcOpts.MaxLength = int64(10000)
-			if opts != nil && opts["maxLength"] != nil {
-				funcOpts.MaxLength = opts["maxLength"].(int64)
-			}
+	// 			funcOpts := &transformer.TransformFirstNameOpts{}
+	// 			funcOpts.PreserveLength = false
+	// 			if opts != nil && opts["preserveLength"] != nil {
+	// 				funcOpts.PreserveLength = opts["preserveLength"].(bool)
+	// 			}
+	// 			funcOpts.MaxLength = int64(10000)
+	// 			if opts != nil && opts["maxLength"] != nil {
+	// 				funcOpts.MaxLength = opts["maxLength"].(int64)
+	// 			}
 
-			randomizer := rng.New(seed)
-			return transformer.TransformFirstName(randomizer, value, funcOpts)
-		}
-	})
+	// 			randomizer := rng.New(seed)
+	// 			return transformer.TransformFirstName(randomizer, value, funcOpts)
+	// 		}
+	// 	})
 
-var _ = registerVMRunnerFunction("generateFirstName", `Generates first name`).
-	Namespace(neosyncFnCtxName).
-	Param("opts", "object", "options config").
-	Example(`neosync.transformFirstName("kevin");`).
-	FnCtor(func(r *vmRunner) jsFunction {
-		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
-			var (
-				opts map[string]interface{}
-			)
-			if err := parseArgs(call, &opts); err != nil {
-				return "", err
-			}
-			var seed int64
-			if opts != nil && opts["seed"] != nil {
-				seed = opts["seed"].(int64)
-			} else {
-				var err error
-				seed, err = transformer_utils.GenerateCryptoSeed()
-				if err != nil {
-					return nil, err
-				}
-			}
+	// var _ = registerVMRunnerFunction("generateFirstName", `Generates first name`).
+	// 	Namespace(neosyncFnCtxName).
+	// 	Param("opts", "object", "options config").
+	// 	Example(`neosync.transformFirstName("kevin");`).
+	// 	FnCtor(func(r *vmRunner) jsFunction {
+	// 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error) {
+	// 			var (
+	// 				opts map[string]interface{}
+	// 			)
+	// 			if err := parseArgs(call, &opts); err != nil {
+	// 				return "", err
+	// 			}
+	// 			var seed int64
+	// 			if opts != nil && opts["seed"] != nil {
+	// 				seed = opts["seed"].(int64)
+	// 			} else {
+	// 				var err error
+	// 				seed, err = transformer_utils.GenerateCryptoSeed()
+	// 				if err != nil {
+	// 					return nil, err
+	// 				}
+	// 			}
 
-			maxLength := int64(10000)
-			if opts != nil && opts["maxLength"] != nil {
-				maxLength = opts["maxLength"].(int64)
-			}
+	// 			maxLength := int64(10000)
+	// 			if opts != nil && opts["maxLength"] != nil {
+	// 				maxLength = opts["maxLength"].(int64)
+	// 			}
 
-			randomizer := rng.New(seed)
-			return transformer.GenerateRandomFirstName(randomizer, nil, maxLength)
-		}
-	})
+	// 			randomizer := rng.New(seed)
+	// 			return transformer.GenerateRandomFirstName(randomizer, nil, maxLength)
+	// 		}
+	// 	})

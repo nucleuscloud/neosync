@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -77,42 +78,39 @@ func init() {
 	}
 }
 
-type Transformer interface {
+type TransformFloatOpts struct {
+	randomizer rng.Rand
+}
+type TransformFloat struct {
+	maxnumgetter any
 }
 
 func NewTransformFloat() *TransformFloat {
-	return &TransformFloat{}
+	return &TransformFloat{
+		maxnumgetter: 1,
+	}
 }
 
-type JsTransformer interface {
-	GetTemplateData() (any, error)
-	Transform(value any, opts map[string]any) (any, error)
-}
-
-func NewFromJs() *TransformFloat {
-	return nil
-}
-
-func NewFromBenthos() *TransformFloat {
-	return nil
-}
-
-type TransformFloat struct {
-	randomizer   rng.Rand
-	maxnumgetter maxNum
-}
-
-func (t *TransformFloat) GetTemplateData() (any, error) {
-	//
+func (t *TransformFloat) GetJsTemplateData() (*TemplateData, error) {
 	return nil, nil
 }
+func (t *TransformFloat) ParseOptions(opts map[string]any) (any, error) {
+	// seed comes from the user opts
+	// var udSeed = 1
 
-func (t *TransformFloat) Transform(value any) (*float64, error) {
-	return nil, nil
+	return &TransformFloatOpts{
+		randomizer: rng.New(1),
+	}, nil
 }
 
-func (t *TransformFloat) Generate() (*float64, error) {
-	return nil, nil
+func (t *TransformFloat) Transform(value any, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFloatOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+	_ = parsedOpts
+
+	return 1, nil
 }
 
 func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
