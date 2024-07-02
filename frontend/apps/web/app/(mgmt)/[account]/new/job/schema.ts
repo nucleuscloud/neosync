@@ -291,7 +291,7 @@ export const SingleTableAiSchemaFormValues = Yup.object({
           context.parent.numRows,
           typeof context.parent.numRows
         );
-        return value < context.parent.numRows;
+        return value <= context.parent.numRows;
       }
     ),
 
@@ -328,7 +328,7 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
         'batch-size-num-rows',
         'batch size must always be smaller than the number of rows',
         function (value, context) {
-          return value < context.parent.numRows;
+          return value <= context.parent.numRows;
         }
       ),
 

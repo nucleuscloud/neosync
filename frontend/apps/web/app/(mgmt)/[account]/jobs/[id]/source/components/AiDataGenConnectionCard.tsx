@@ -463,7 +463,7 @@ export default function AiDataGenConnectionCard({
               <FormLabel>Generate Batch Size</FormLabel>
               <FormDescription>
                 The batch size used when querying the model. Useful for large
-                datasets that exceed AI token limits.
+                datasets or prompts that may exceed AI token limits.
               </FormDescription>
               <FormControl>
                 <Input
@@ -546,13 +546,14 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       job.source.options.config.value.fkSourceConnectionId ?? '';
     model = job.source.options.config.value.modelName;
     userPrompt = job.source.options.config.value.userPrompt ?? '';
+    numRows = getSingleTableAiGenerateNumRows(job.source.options.config.value);
+
     if (job.source.options.config.value.generateBatchSize) {
       genBatchSize = Number(job.source.options.config.value.generateBatchSize);
     } else {
       // batch size has not been set by the user. Set it to our default of 10, or num rows, whichever is lower
       genBatchSize = Math.min(genBatchSize, numRows);
     }
-    numRows = getSingleTableAiGenerateNumRows(job.source.options.config.value);
     const schematable = getSingleTableAiSchemaTable(
       job.source.options.config.value
     );
