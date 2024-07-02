@@ -45,18 +45,7 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  AiGenerateSourceOptions,
-  AiGenerateSourceSchemaOption,
-  DatabaseTable,
-  GenerateSourceTableOption,
-  GetAiGeneratedDataRequest,
-  Job,
-  JobSource,
-  JobSourceOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
-} from '@neosync/sdk';
+import { Job } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -65,6 +54,8 @@ import { KeyedMutator } from 'swr';
 import {
   getSingleTableAiGenerateNumRows,
   getSingleTableAiSchemaTable,
+  sampleEditAiGeneratedRecords,
+  updateSingleTableAiGenerateJobSource,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 
@@ -178,12 +169,12 @@ export default function AiDataGenConnectionCard({
 
   async function onSubmit(values: SingleTableEditAiSourceFormValues) {
     const job = data?.job;
-    if (!job) {
+    if (!job || !account?.id) {
       return;
     }
     try {
       setIsUpdating(true);
-      await updateJobConnection(account?.id ?? '', job, values);
+      await updateSingleTableAiGenerateJobSource(values, account.id, job.id);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -207,7 +198,10 @@ export default function AiDataGenConnectionCard({
     }
     try {
       setIsSampling(true);
-      const output = await sample(form.getValues(), account.id);
+      const output = await sampleEditAiGeneratedRecords(
+        form.getValues(),
+        account.id
+      );
       setaioutput(output);
     } catch (err) {
       toast({
@@ -461,6 +455,32 @@ export default function AiDataGenConnectionCard({
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="schema.generateBatchSize"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Generate Batch Size</FormLabel>
+              <FormDescription>
+                The batch size used when querying the model. Useful for large
+                datasets that exceed AI token limits.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  {...field}
+                  type="number"
+                  onChange={(e) => {
+                    const numberValue = e.target.valueAsNumber;
+                    if (!isNaN(numberValue)) {
+                      field.onChange(numberValue);
+                    }
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {form.formState.errors.root && (
           <Alert variant="destructive">
@@ -506,12 +526,14 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
         model: '',
         schema: '',
         table: '',
-        numRows: 0,
+        numRows: 1,
+        generateBatchSize: 1,
         userPrompt: '',
       },
     };
   }
   let numRows = 0;
+  let batchSize = 0;
   let schema = '';
   let table = '';
   let model = '';
@@ -524,6 +546,9 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       job.source.options.config.value.fkSourceConnectionId ?? '';
     model = job.source.options.config.value.modelName;
     userPrompt = job.source.options.config.value.userPrompt ?? '';
+    batchSize = job.source.options.config.value.generateBatchSize
+      ? Number(job.source.options.config.value.generateBatchSize)
+      : 0;
     numRows = getSingleTableAiGenerateNumRows(job.source.options.config.value);
     const schematable = getSingleTableAiSchemaTable(
       job.source.options.config.value
@@ -543,92 +568,9 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
       table,
       model,
       userPrompt,
+      generateBatchSize: batchSize,
     },
   };
-}
-
-async function sample(
-  schemaform: SingleTableEditAiSourceFormValues,
-  accountId: string
-): Promise<SampleRecord[]> {
-  const body = new GetAiGeneratedDataRequest({
-    aiConnectionId: schemaform.source.sourceId,
-    count: BigInt(10),
-    modelName: schemaform.schema.model,
-    userPrompt: schemaform.schema.userPrompt,
-    dataConnectionId: schemaform.source.fkSourceConnectionId,
-    table: new DatabaseTable({
-      schema: schemaform.schema.schema,
-      table: schemaform.schema.table,
-    }),
-  });
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${schemaform.source.sourceId}/generate`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return (await res.json())?.records ?? [];
-}
-
-async function updateJobConnection(
-  accountId: string,
-  job: Job,
-  values: SingleTableEditAiSourceFormValues
-): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateJobSourceConnectionRequest({
-          id: job.id,
-          mappings: [],
-          source: new JobSource({
-            options: new JobSourceOptions({
-              config: {
-                case: 'aiGenerate',
-                value: new AiGenerateSourceOptions({
-                  aiConnectionId: values.source.sourceId,
-                  fkSourceConnectionId: values.source.fkSourceConnectionId,
-                  modelName: values.schema.model,
-                  userPrompt: values.schema.userPrompt,
-                  schemas: [
-                    new AiGenerateSourceSchemaOption({
-                      schema: values.schema.schema,
-                      tables: [
-                        new GenerateSourceTableOption({
-                          table: values.schema.table,
-                          rowCount: BigInt(values.schema.numRows),
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-              },
-            }),
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }
 
 async function getUpdatedValues(
