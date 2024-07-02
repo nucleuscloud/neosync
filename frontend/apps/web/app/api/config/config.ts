@@ -1,5 +1,7 @@
 import { SystemAppConfig } from '@/app/config/app-config';
 
+export const PUBLIC_PATHNAME = '/api/neosync';
+
 // This will only be hydrated with env vars if invoked on the server
 // Unfortunately, during a standalone build, this method is invoked and the values here are used as environment variables.
 // These aren't provided at build time so will fall back to their defaults.
@@ -26,6 +28,9 @@ export function getSystemAppConfig(): SystemAppConfig {
     calendlyUpgradeLink:
       process.env.CALENDLY_UPGRADE_LINK ?? 'https://calendly.com/evis1/30min',
     isGcpCloudStorageConnectionsEnabled: isGcpConnectionsEnabled(),
+    neosyncApiBaseUrl:
+      process.env.NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
+    publicNeosyncApiBaseUrl: PUBLIC_PATHNAME, // ensures that this always poitns to the same domain
   };
 }
 

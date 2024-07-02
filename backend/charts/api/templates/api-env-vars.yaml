@@ -152,4 +152,3 @@ stringData:
     {{- end }} # ends loki check
 
     {{- end }} # ends runLogs.enabled check
-

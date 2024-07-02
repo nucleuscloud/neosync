@@ -28,12 +28,9 @@ import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import { Timestamp } from '@bufbuild/protobuf';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  CreateAccountApiKeyRequest,
-  CreateAccountApiKeyResponse,
-  GetAccountApiKeyResponse,
-} from '@neosync/sdk';
+import { createAccountApiKey } from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';
@@ -41,10 +38,9 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import * as Yup from 'yup';
 
-const FORM_SCHEMA = Yup.object({
+const FormValues = Yup.object({
   name: Yup.string()
     .required()
     .min(3)
@@ -66,7 +62,7 @@ const FORM_SCHEMA = Yup.object({
   expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
   expiresAt: Yup.date().required(),
 });
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type FormValues = Yup.InferType<typeof FormValues>;
 
 export interface ApiKeyValueSessionStore {
   keyValue: string;
@@ -78,7 +74,7 @@ export default function NewApiKeyForm(): ReactElement {
   const router = useRouter();
   const form = useForm<FormValues>({
     mode: 'onChange',
-    resolver: yupResolver(FORM_SCHEMA),
+    resolver: yupResolver(FormValues),
     defaultValues: {
       name: '',
       expiresAtSelect: '7',
@@ -86,13 +82,20 @@ export default function NewApiKeyForm(): ReactElement {
     },
   });
   const posthog = usePostHog();
+  const { mutateAsync } = useMutation(createAccountApiKey);
 
   async function onSubmit(values: FormValues): Promise<void> {
     if (!account) {
       return;
     }
     try {
-      const apiKey = await createNewApiKey(values, account.id);
+      const apiKey = await mutateAsync({
+        accountId: account.id,
+        expiresAt: new Timestamp({
+          seconds: BigInt(values.expiresAt.getTime() / 1000),
+        }),
+        name: values.name,
+      });
       if (apiKey.apiKey?.id) {
         if (apiKey.apiKey.keyValue && !!window?.sessionStorage) {
           const storeVal: ApiKeyValueSessionStore = {
@@ -104,12 +107,6 @@ export default function NewApiKeyForm(): ReactElement {
           );
         }
         router.push(`/${account?.name}/settings/api-keys/${apiKey.apiKey.id}`);
-        mutate(
-          `/api/api-keys/account/${apiKey.apiKey.id}`,
-          new GetAccountApiKeyResponse({
-            apiKey: apiKey.apiKey,
-          })
-        );
       } else {
         router.push(`/${account?.name}/settings/api-keys`);
       }
@@ -259,30 +256,4 @@ export default function NewApiKeyForm(): ReactElement {
       </form>
     </Form>
   );
-}
-
-async function createNewApiKey(
-  formData: FormValues,
-  accountId: string
-): Promise<CreateAccountApiKeyResponse> {
-  const body = new CreateAccountApiKeyRequest({
-    accountId,
-    name: formData.name,
-    expiresAt: new Timestamp({
-      seconds: BigInt(formData.expiresAt.getTime() / 1000),
-    }),
-  });
-
-  const res = await fetch(`/api/accounts/${accountId}/api-keys`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateAccountApiKeyResponse.fromJson(await res.json());
 }

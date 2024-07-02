@@ -1,10 +1,11 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
-import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
+import { deleteAccountApiKey } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode } from 'react';
 
@@ -17,11 +18,11 @@ interface Props {
 export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   const { id, trigger, onDeleted } = props;
   const { toast } = useToast();
-  const { account } = useAccount();
+  const { mutateAsync } = useMutation(deleteAccountApiKey);
 
   async function onDelete(): Promise<void> {
     try {
-      await removeAccountApiKey(account?.id ?? '', id);
+      await mutateAsync({ id: id });
       toast({
         title: 'Successfully removed api key!',
         variant: 'success',
@@ -55,18 +56,4 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
       onConfirm={async () => onDelete()}
     />
   );
-}
-
-async function removeAccountApiKey(
-  accountId: string,
-  id: string
-): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/api-keys/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

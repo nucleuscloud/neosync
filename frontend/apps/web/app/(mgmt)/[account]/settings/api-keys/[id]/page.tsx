@@ -9,9 +9,9 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { formatDateTime } from '@/util/util';
-import { AccountApiKey } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import { AccountApiKey, getAccountApiKey } from '@neosync/sdk';
 import { InfoCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
@@ -24,7 +24,11 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const router = useRouter();
   const { account } = useAccount();
-  const { data, isLoading } = useGetAccountApiKey(account?.id ?? '', id);
+  const { data, isLoading } = useQuery(
+    getAccountApiKey,
+    { id },
+    { enabled: !!id }
+  );
   const [sessionApiKeyValue] = useSessionStorage<
     ApiKeyValueSessionStore | undefined
   >(id, undefined);
