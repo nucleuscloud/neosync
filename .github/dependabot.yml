@@ -6,6 +6,7 @@ updates:
       interval: "daily"
     groups:
       golang-minor:
+        dependency-type: all
         update-types:
           - minor
           - patch
@@ -49,6 +50,7 @@ updates:
       interval: "weekly"
     groups:
       actions-minor:
+        dependency-type: all
         update-types:
           - minor
           - patch

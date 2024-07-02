@@ -21,6 +21,8 @@ changelog:
     - title: Dependencies
       authors:
         - dependabot
+      labels:
+        - dependencies
     - title: Other Changes
       labels:
         - "*"
