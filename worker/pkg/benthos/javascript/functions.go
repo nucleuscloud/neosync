@@ -10,7 +10,7 @@ import (
 	"github.com/dop251/goja"
 
 	"github.com/benthosdev/benthos/v4/public/service"
-	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
 type jsFunction func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (interface{}, error)
@@ -157,7 +157,7 @@ func registerVMRunnerFunction(name, description string) *jsFunctionDefinition {
 // }
 
 func init() {
-	neosyncFns := []transformer.NeosyncTransformer{transformer.NewTransformFirstName()} // generated
+	neosyncFns := transformers.GetNeosyncTransformers()
 	for _, f := range neosyncFns {
 		templateData, err := f.GetJsTemplateData()
 		if err != nil {
@@ -165,9 +165,6 @@ func init() {
 		}
 
 		def := registerVMRunnerFunction(templateData.Name, templateData.Description)
-		// for _, p := range templateData.Params {
-		// 	def = def.Param(p.Name, p.TypeStr, p.What)
-		// }
 		def.Param("value", "any", "The value to be transformed.")
 		def.Param("opts", "object", "Transformer options config")
 		def.Namespace(neosyncFnCtxName)
