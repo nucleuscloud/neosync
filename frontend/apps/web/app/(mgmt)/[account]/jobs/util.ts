@@ -62,6 +62,8 @@ import {
   UpdateJobDestinationConnectionResponse,
   UpdateJobScheduleRequest,
   UpdateJobScheduleResponse,
+  UpdateJobSourceConnectionRequest,
+  UpdateJobSourceConnectionResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
   WorkflowOptions,
@@ -77,6 +79,7 @@ import {
   SingleTableAiConnectFormValues,
   SingleTableAiSchemaFormValues,
   SingleTableConnectFormValues,
+  SingleTableEditAiSourceFormValues,
   SingleTableSchemaFormValues,
   SubsetFormValues,
   WorkflowSettingsSchema,
@@ -108,30 +111,93 @@ export async function createNewSingleTableAiGenerateJob(
   );
 }
 
+export async function updateSingleTableAiGenerateJobSource(
+  values: SingleTableEditAiSourceFormValues,
+  accountId: string,
+  resourceId: string
+): Promise<UpdateJobSourceConnectionResponse> {
+  return updateJobSourceConnection(
+    new UpdateJobSourceConnectionRequest({
+      id: resourceId,
+      mappings: [],
+      source: toSingleTableEditAiGenerateJobSource(values),
+    }),
+    accountId
+  );
+}
+
+async function updateJobSourceConnection(
+  input: UpdateJobSourceConnectionRequest,
+  accountId: string
+): Promise<UpdateJobSourceConnectionResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${input.id}/source-connection`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+}
+
 export async function sampleAiGeneratedRecords(
   values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>,
   accountId: string
 ): Promise<SampleRecord[]> {
-  const body = new GetAiGeneratedDataRequest({
-    aiConnectionId: values.connect.sourceId,
-    count: BigInt(10),
-    modelName: values.schema.model,
-    userPrompt: values.schema.userPrompt,
-    dataConnectionId: values.connect.fkSourceConnectionId,
-    table: new DatabaseTable({
-      schema: values.schema.schema,
-      table: values.schema.table,
+  return sampleAiRecords(
+    new GetAiGeneratedDataRequest({
+      aiConnectionId: values.connect.sourceId,
+      count: BigInt(10),
+      modelName: values.schema.model,
+      userPrompt: values.schema.userPrompt,
+      dataConnectionId: values.connect.fkSourceConnectionId,
+      table: new DatabaseTable({
+        schema: values.schema.schema,
+        table: values.schema.table,
+      }),
     }),
-  });
+    accountId
+  );
+}
+export async function sampleEditAiGeneratedRecords(
+  values: SingleTableEditAiSourceFormValues,
+  accountId: string
+): Promise<SampleRecord[]> {
+  return sampleAiRecords(
+    new GetAiGeneratedDataRequest({
+      aiConnectionId: values.source.sourceId,
+      count: BigInt(10),
+      modelName: values.schema.model,
+      userPrompt: values.schema.userPrompt,
+      dataConnectionId: values.source.fkSourceConnectionId,
+      table: new DatabaseTable({
+        schema: values.schema.schema,
+        table: values.schema.table,
+      }),
+    }),
+    accountId
+  );
+}
 
+async function sampleAiRecords(
+  input: GetAiGeneratedDataRequest,
+  accountId: string
+): Promise<SampleRecord[]> {
   const res = await fetch(
-    `/api/accounts/${accountId}/connections/${values.connect.sourceId}/generate`,
+    `/api/accounts/${accountId}/connections/${input.aiConnectionId}/generate`,
     {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(input),
     }
   );
   if (!res.ok) {
@@ -177,6 +243,36 @@ function toSingleTableAiGenerateJobSource(
           modelName: values.schema.model,
           fkSourceConnectionId: values.connect.fkSourceConnectionId,
           userPrompt: values.schema.userPrompt,
+          generateBatchSize: BigInt(values.schema.generateBatchSize),
+          schemas: [
+            new AiGenerateSourceSchemaOption({
+              schema: values.schema.schema,
+              tables: [
+                new AiGenerateSourceTableOption({
+                  table: values.schema.table,
+                  rowCount: BigInt(values.schema.numRows),
+                }),
+              ],
+            }),
+          ],
+        }),
+      },
+    }),
+  });
+}
+function toSingleTableEditAiGenerateJobSource(
+  values: SingleTableEditAiSourceFormValues
+): JobSource {
+  return new JobSource({
+    options: new JobSourceOptions({
+      config: {
+        case: 'aiGenerate',
+        value: new AiGenerateSourceOptions({
+          aiConnectionId: values.source.sourceId,
+          modelName: values.schema.model,
+          fkSourceConnectionId: values.source.fkSourceConnectionId,
+          userPrompt: values.schema.userPrompt,
+          generateBatchSize: BigInt(values.schema.generateBatchSize),
           schemas: [
             new AiGenerateSourceSchemaOption({
               schema: values.schema.schema,
@@ -1004,10 +1100,22 @@ function setDefaultSchemaFormValues(
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
   switch (job.source?.options?.config.case) {
     case 'aiGenerate': {
+      const numRows = getSingleTableAiGenerateNumRows(
+        job.source.options.config.value
+      );
+      let genBatchSize = 10;
+      if (job.source.options.config.value.generateBatchSize) {
+        genBatchSize = Number(
+          job.source.options.config.value.generateBatchSize
+        );
+      } else {
+        // batch size has not been set by the user. Set it to our default of 10, or num rows, whichever is lower
+        genBatchSize = Math.min(genBatchSize, numRows);
+      }
+
       const values: SingleTableAiSchemaFormValues = {
-        numRows: getSingleTableAiGenerateNumRows(
-          job.source.options.config.value
-        ),
+        numRows,
+        generateBatchSize: genBatchSize,
         userPrompt: job.source.options.config.value.userPrompt,
         model: job.source.options.config.value.modelName,
         ...getSingleTableAiSchemaTable(job.source.options.config.value),

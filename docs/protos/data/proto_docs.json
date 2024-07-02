@@ -7600,7 +7600,7 @@
           "fields": [
             {
               "name": "ai_connection_id",
-              "description": "",
+              "description": "The connection id that corresponds with an AI-based Neosync connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7612,7 +7612,7 @@
             },
             {
               "name": "schemas",
-              "description": "",
+              "description": "The list of schemas (and their tables) along with any configuration options that will be used to generate data for.",
               "label": "repeated",
               "type": "AiGenerateSourceSchemaOption",
               "longType": "AiGenerateSourceSchemaOption",
@@ -7624,7 +7624,7 @@
             },
             {
               "name": "fk_source_connection_id",
-              "description": "",
+              "description": "An optional connection id that will be used as the basis for the shape of data to be generated.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -7657,6 +7657,18 @@
               "isoneof": true,
               "oneofdecl": "_user_prompt",
               "defaultValue": ""
+            },
+            {
+              "name": "generate_batch_size",
+              "description": "The batch size that will be used to generate X number of records. This is global and will be applied to all tables configured.",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_generate_batch_size",
+              "defaultValue": ""
             }
           ]
         },
@@ -7672,7 +7684,7 @@
           "fields": [
             {
               "name": "schema",
-              "description": "",
+              "description": "The dataabase schema",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7684,7 +7696,7 @@
             },
             {
               "name": "tables",
-              "description": "",
+              "description": "The list of tables (and their configuration) that reside within the schema to receive generated data",
               "label": "repeated",
               "type": "AiGenerateSourceTableOption",
               "longType": "AiGenerateSourceTableOption",
@@ -7708,7 +7720,7 @@
           "fields": [
             {
               "name": "table",
-              "description": "",
+              "description": "The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7720,7 +7732,7 @@
             },
             {
               "name": "row_count",
-              "description": "",
+              "description": "The total number of records to be generated.",
               "label": "",
               "type": "int64",
               "longType": "int64",

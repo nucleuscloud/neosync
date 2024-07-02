@@ -1084,6 +1084,10 @@ func (m *AiGenerateSourceOptions) validate(all bool) error {
 		// no validation rules for UserPrompt
 	}
 
+	if m.GenerateBatchSize != nil {
+		// no validation rules for GenerateBatchSize
+	}
+
 	if len(errors) > 0 {
 		return AiGenerateSourceOptionsMultiError(errors)
 	}

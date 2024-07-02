@@ -116,6 +116,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     formKey,
     {
       numRows: 10,
+      generateBatchSize: 10,
       model: 'gpt-3.5-turbo',
       userPrompt: '',
       schema: '',
@@ -380,6 +381,33 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormLabel>Number of Rows</FormLabel>
                 <FormDescription>
                   The number of rows to generate.
+                </FormDescription>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="number"
+                    onChange={(e) => {
+                      const numberValue = e.target.valueAsNumber;
+                      if (!isNaN(numberValue)) {
+                        field.onChange(numberValue);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="generateBatchSize"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Generate Batch Size</FormLabel>
+                <FormDescription>
+                  The batch size used when querying the model. Useful for large
+                  datasets or prompts that may exceed AI token limits.
                 </FormDescription>
                 <FormControl>
                   <Input

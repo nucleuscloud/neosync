@@ -515,16 +515,22 @@ export class JobDestination extends Message<JobDestination> {
  */
 export class AiGenerateSourceOptions extends Message<AiGenerateSourceOptions> {
   /**
+   * The connection id that corresponds with an AI-based Neosync connection
+   *
    * @generated from field: string ai_connection_id = 1;
    */
   aiConnectionId = "";
 
   /**
+   * The list of schemas (and their tables) along with any configuration options that will be used to generate data for.
+   *
    * @generated from field: repeated mgmt.v1alpha1.AiGenerateSourceSchemaOption schemas = 2;
    */
   schemas: AiGenerateSourceSchemaOption[] = [];
 
   /**
+   * An optional connection id that will be used as the basis for the shape of data to be generated.
+   *
    * @generated from field: optional string fk_source_connection_id = 3;
    */
   fkSourceConnectionId?: string;
@@ -543,6 +549,13 @@ export class AiGenerateSourceOptions extends Message<AiGenerateSourceOptions> {
    */
   userPrompt?: string;
 
+  /**
+   * The batch size that will be used to generate X number of records. This is global and will be applied to all tables configured.
+   *
+   * @generated from field: optional int64 generate_batch_size = 6;
+   */
+  generateBatchSize?: bigint;
+
   constructor(data?: PartialMessage<AiGenerateSourceOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -556,6 +569,7 @@ export class AiGenerateSourceOptions extends Message<AiGenerateSourceOptions> {
     { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "model_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "user_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "generate_batch_size", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AiGenerateSourceOptions {
@@ -580,11 +594,15 @@ export class AiGenerateSourceOptions extends Message<AiGenerateSourceOptions> {
  */
 export class AiGenerateSourceSchemaOption extends Message<AiGenerateSourceSchemaOption> {
   /**
+   * The dataabase schema
+   *
    * @generated from field: string schema = 1;
    */
   schema = "";
 
   /**
+   * The list of tables (and their configuration) that reside within the schema to receive generated data
+   *
    * @generated from field: repeated mgmt.v1alpha1.AiGenerateSourceTableOption tables = 2;
    */
   tables: AiGenerateSourceTableOption[] = [];
@@ -623,11 +641,15 @@ export class AiGenerateSourceSchemaOption extends Message<AiGenerateSourceSchema
  */
 export class AiGenerateSourceTableOption extends Message<AiGenerateSourceTableOption> {
   /**
+   * The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
+   *
    * @generated from field: string table = 1;
    */
   table = "";
 
   /**
+   * The total number of records to be generated.
+   *
    * @generated from field: int64 row_count = 2;
    */
   rowCount = protoInt64.zero;

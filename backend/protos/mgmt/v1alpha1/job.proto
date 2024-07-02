@@ -41,21 +41,33 @@ message JobDestination {
 }
 
 message AiGenerateSourceOptions {
+  // The connection id that corresponds with an AI-based Neosync connection
   string ai_connection_id = 1 [(buf.validate.field).string.uuid = true];
+  // The list of schemas (and their tables) along with any configuration options that will be used to generate data for.
   repeated AiGenerateSourceSchemaOption schemas = 2 [(buf.validate.field).repeated.min_items = 1];
+  // An optional connection id that will be used as the basis for the shape of data to be generated.
   optional string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
   // The name of the model to use
   string model_name = 4 [(buf.validate.field).string.min_len = 1];
   // Optionally provide a user prompt to give more context to the schema
   optional string user_prompt = 5;
+  // The batch size that will be used to generate X number of records. This is global and will be applied to all tables configured.
+  optional int64 generate_batch_size = 6 [
+    (buf.validate.field).int64.gte = 1,
+    (buf.validate.field).int64.lte = 100
+  ];
 }
 
 message AiGenerateSourceSchemaOption {
+  // The dataabase schema
   string schema = 1 [(buf.validate.field).string.min_len = 1];
+  // The list of tables (and their configuration) that reside within the schema to receive generated data
   repeated AiGenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message AiGenerateSourceTableOption {
+  // The table that will be used to. 1. The schema of the table will be injected into the prompt, of which the resulting data will then be inserted.
   string table = 1 [(buf.validate.field).string.min_len = 1];
+  // The total number of records to be generated.
   int64 row_count = 2 [
     (buf.validate.field).int64.gte = 1,
     (buf.validate.field).int64.lte = 1000

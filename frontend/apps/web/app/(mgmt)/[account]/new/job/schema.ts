@@ -271,11 +271,29 @@ export type SingleTableAiConnectFormValues = Yup.InferType<
 export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
-    .min(1)
-    .max(1000)
+    .min(1, 'Must be at least 1')
+    .max(1000, 'Can be no more than 1000')
     .default(10),
   model: Yup.string().required('must provide a model name to use.'),
   userPrompt: Yup.string(),
+  generateBatchSize: Yup.number()
+    .required('Must provide a batch size when generating rows')
+    .min(1, 'Must be at least 1')
+    .max(100, 'Can be no more than 100')
+    .default(10)
+    .test(
+      'batch-size-num-rows',
+      'batch size must always be smaller than the number of rows',
+      function (value, context) {
+        console.log('batch size', value, typeof value);
+        console.log(
+          'numRows',
+          context.parent.numRows,
+          typeof context.parent.numRows
+        );
+        return value <= context.parent.numRows;
+      }
+    ),
 
   schema: Yup.string().required('Must provide a valid schema'),
   table: Yup.string().required('Must provide a valid table'),
@@ -296,11 +314,23 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
   schema: Yup.object({
     numRows: Yup.number()
       .required('Must provide a number of rows to generate')
-      .min(1)
-      .max(1000)
+      .min(1, 'Must be at least 1')
+      .max(1000, 'Can be no more than 1000')
       .default(10),
     model: Yup.string().required('must provide a model name to use.'),
     userPrompt: Yup.string(),
+    generateBatchSize: Yup.number()
+      .required('Must provide a batch size when generating rows')
+      .min(1, 'Must be at least 1')
+      .max(100, 'Can be no more than 100')
+      .default(10)
+      .test(
+        'batch-size-num-rows',
+        'batch size must always be smaller than the number of rows',
+        function (value, context) {
+          return value <= context.parent.numRows;
+        }
+      ),
 
     schema: Yup.string().required('Must provide a valid schema'),
     table: Yup.string().required('Must provide a valid table'),
