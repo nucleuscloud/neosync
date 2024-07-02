@@ -1,11 +1,14 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:transform:transformString
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -47,6 +50,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformString) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformStringOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(*string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformString(valueStr, parsedOpts.preserveLength, parsedOpts.minLength, parsedOpts.maxLength)
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.

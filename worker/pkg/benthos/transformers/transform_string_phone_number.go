@@ -1,10 +1,13 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 )
+
+// +neosyncTransformerBuilder:transform:transformStringPhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -40,6 +43,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformStringPhoneNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(*string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformPhoneNumber(valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
 }
 
 // Generates a random phone number and returns it as a string

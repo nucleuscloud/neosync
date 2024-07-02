@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:transform:transformLastName
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -65,6 +68,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformLastName) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformLastNameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformLastName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name

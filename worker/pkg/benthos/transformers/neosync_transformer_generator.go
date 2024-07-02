@@ -166,14 +166,18 @@ package {{.PackageName}}
 
 import (
 	"fmt"
+	{{- if eq .HasSeedParam true}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	{{ end }}
 )
 
 type {{.StructName}} struct{}
 
 type {{.StructName}}Opts struct {
+	{{- if eq .HasSeedParam true}}
 	randomizer     rng.Rand
+	{{ end }}
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
@@ -248,10 +252,11 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 `
 
 type TemplateData struct {
-	SourceFile  string
-	PackageName string
-	FunctInfo   FuncInfo
-	StructName  string
+	SourceFile   string
+	PackageName  string
+	FunctInfo    FuncInfo
+	StructName   string
+	HasSeedParam bool
 }
 
 func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
@@ -260,6 +265,11 @@ func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
 		PackageName: pkgName,
 		FunctInfo:   *funcInfo,
 		StructName:  capitalizeFirst(funcInfo.Name),
+	}
+	for _, p := range funcInfo.Params {
+		if p.Name == "seed" {
+			data.HasSeedParam = true
+		}
 	}
 	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))
 	var out bytes.Buffer

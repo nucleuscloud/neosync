@@ -12,6 +12,8 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
+// +neosyncTransformerBuilder:transform:transformFloat64
+
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
@@ -78,39 +80,23 @@ func init() {
 	}
 }
 
-type TransformFloatOpts struct {
-	randomizer rng.Rand
-}
-type TransformFloat struct {
-	maxnumgetter any
-}
-
-func NewTransformFloat() *TransformFloat {
-	return &TransformFloat{
-		maxnumgetter: 1,
-	}
-}
-
-func (t *TransformFloat) GetJsTemplateData() (*TemplateData, error) {
-	return nil, nil
-}
-func (t *TransformFloat) ParseOptions(opts map[string]any) (any, error) {
-	// seed comes from the user opts
-	// var udSeed = 1
-
-	return &TransformFloatOpts{
-		randomizer: rng.New(1),
-	}, nil
-}
-
-func (t *TransformFloat) Transform(value any, opts any) (any, error) {
-	parsedOpts, ok := opts.(*TransformFloatOpts)
+func (t *TransformFloat64) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFloat64Opts)
 	if !ok {
 		return nil, errors.New("invalid parse opts")
 	}
-	_ = parsedOpts
 
-	return 1, nil
+	maxnumgetter := newMaxNumCache()
+
+	return transformFloat(
+		parsedOpts.randomizer,
+		maxnumgetter,
+		value,
+		parsedOpts.randomizationRangeMin,
+		parsedOpts.randomizationRangeMax,
+		parsedOpts.precision,
+		parsedOpts.scale,
+	)
 }
 
 func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {

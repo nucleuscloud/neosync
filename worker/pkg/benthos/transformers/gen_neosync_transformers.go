@@ -6,7 +6,12 @@ package transformers
 func GetNeosyncTransformers() []NeosyncTransformer {
 	return []NeosyncTransformer{
 		NewTransformFirstName(),
+		NewTransformFloat64(),
 		NewTransformFullName(),
+		NewTransformInt64PhoneNumber(),
+		NewTransformLastName(),
+		NewTransformString(),
+		NewTransformStringPhoneNumber(),
 	}
 }
 

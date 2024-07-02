@@ -8,12 +8,14 @@ import (
 	"fmt"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type TransformFullName struct{}
 
 type TransformFullNameOpts struct {
 	randomizer     rng.Rand
+	
 	maxLength int64
 	preserveLength bool
 }
