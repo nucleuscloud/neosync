@@ -406,9 +406,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <FormItem>
                 <FormLabel>Batch Size</FormLabel>
                 <FormDescription>
-                  The batch size used when querying the model. Useful for large
-                  datasets or prompts that may exceed AI token limits. Smaller
-                  is generally better.
+                  The batch size used when asking the model to generate records.
+                  Useful for large datasets or prompts that may exceed AI token
+                  limits. Smaller is generally better.
                 </FormDescription>
                 <FormControl>
                   <Input
