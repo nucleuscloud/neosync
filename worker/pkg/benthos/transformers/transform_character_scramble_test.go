@@ -30,7 +30,7 @@ func Test_ScrambleCharacter(t *testing.T) {
 func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 	testStringValue := "he11o world"
 
-	res, err := TransformCharacterScramble(testStringValue, "e11")
+	res, err := transformCharacterScramble(testStringValue, "e11")
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -41,7 +41,7 @@ func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 	testStringValue := "Hello"
 
-	res, err := TransformCharacterScramble(testStringValue, helloWorldRegex)
+	res, err := transformCharacterScramble(testStringValue, helloWorldRegex)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, res, "Result should not be nil")
@@ -55,7 +55,7 @@ func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 	testStringValue := "41323421"
 
-	res, err := TransformCharacterScramble(testStringValue, numberRegex)
+	res, err := transformCharacterScramble(testStringValue, numberRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -66,7 +66,7 @@ func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 	testStringValue := "hello wor23r2ld 221"
 
-	res, err := TransformCharacterScramble(testStringValue, helloWorldRegex)
+	res, err := transformCharacterScramble(testStringValue, helloWorldRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -77,7 +77,7 @@ func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
-	res, err := TransformCharacterScramble(testStringValue, `#\*\(&`)
+	res, err := transformCharacterScramble(testStringValue, `#\*\(&`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -87,7 +87,7 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := TransformCharacterScramble(helloTest, `ello`)
+	res, err := transformCharacterScramble(helloTest, `ello`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -99,7 +99,7 @@ func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := TransformCharacterScramble(helloTest, `123`)
+	res, err := transformCharacterScramble(helloTest, `123`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -110,7 +110,7 @@ func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := TransformCharacterScramble(testStringValue, ``)
+	res, err := transformCharacterScramble(testStringValue, ``)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -124,7 +124,7 @@ func Test_TransformCharacterSubstitutionLettersMatchNumbers(t *testing.T) {
 	testStringValue := "MED-133-R123"
 	complexRegex := `\d+`
 
-	res, err := TransformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -150,7 +150,7 @@ func Test_TransformCharacterSubstitutionLettersSemiComplexRegex(t *testing.T) {
 	testStringValue := "MED-133-L123"
 	complexRegex := `-(.+?)-`
 
-	res, err := TransformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -165,7 +165,7 @@ func Test_TransformCharacterSubstitutionLettersComplexRegex(t *testing.T) {
 	testStringValue := "MED-133-A123"
 	complexRegex := `-(.+?)-`
 
-	res, err := TransformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -207,7 +207,7 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 
 	testEmail := "nick@gmail.com"
 
-	res, err := TransformCharacterScramble(testEmail, emailregex)
+	res, err := transformCharacterScramble(testEmail, emailregex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)

@@ -71,7 +71,7 @@ func buildBenthosGenerateSourceConfigResponses(
 		processors = append(processors, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 
 		if jsCode != "" {
-			processors = append(processors, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
+			processors = append(processors, &neosync_benthos.ProcessorConfig{NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode}})
 		}
 		if len(processors) > 0 {
 			// add catch and error processor

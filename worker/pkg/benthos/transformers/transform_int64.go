@@ -1,11 +1,14 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:transform:transformInt64
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -40,6 +43,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformInt64) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformInt64Opts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueInt, ok := value.(int64)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformInt(&valueInt, parsedOpts.randomizationRangeMin, parsedOpts.randomizationRangeMax)
 }
 
 func transformInt(value *int64, rMin, rMax int64) (*int64, error) {

@@ -14,7 +14,7 @@ import (
 var testValue = int64(8384928322)
 
 func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
-	res, err := TransformInt64PhoneNumber(testValue, true)
+	res, err := transformInt64PhoneNumber(testValue, true)
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
@@ -22,7 +22,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 }
 
 func Test_GenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
-	res, err := TransformInt64PhoneNumber(testValue, false)
+	res, err := transformInt64PhoneNumber(testValue, false)
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
@@ -30,7 +30,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_GenerateIntPhoneNumberPreserveLengthFunction(t *testing.T) {
-	res, err := GenerateIntPhoneNumberPreserveLength(testValue)
+	res, err := generateIntPhoneNumberPreserveLength(testValue)
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(res, 10)

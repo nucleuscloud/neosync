@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:transform:transformInt64PhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -30,7 +33,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformInt64PhoneNumber(value, preserveLength)
+			res, err := transformInt64PhoneNumber(value, preserveLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_int64_phone_number: %w", err)
 			}
@@ -43,14 +46,28 @@ func init() {
 	}
 }
 
+func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformInt64PhoneNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueInt, ok := value.(int64)
+	if !ok {
+		return nil, errors.New("value is not an int64")
+	}
+
+	return transformInt64PhoneNumber(valueInt, parsedOpts.preserveLength)
+}
+
 // generates a random phone number and returns it as an int64
-func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error) {
+func transformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error) {
 	if number == 0 {
 		return nil, nil
 	}
 
 	if preserveLength {
-		res, err := GenerateIntPhoneNumberPreserveLength(number)
+		res, err := generateIntPhoneNumberPreserveLength(number)
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +81,7 @@ func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error
 	}
 }
 
-func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
+func generateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 	ac := transformers_dataset.AreaCodes
 
 	// get a random area code from the areacodes data set

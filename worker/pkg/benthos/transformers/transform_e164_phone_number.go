@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -8,11 +9,13 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:transform:transformE164PhoneNumber
+
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewInt64Param("max_length"))
+		Param(bloblang.NewInt64Param("max_length").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -30,13 +33,13 @@ func init() {
 			return nil, err
 		}
 
-		maxLength, err := args.GetInt64("max_length")
+		maxLength, err := args.GetOptionalInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
 
 		return func() (any, error) {
-			res, err := TransformE164PhoneNumber(value, preserveLength, maxLength)
+			res, err := transformE164PhoneNumber(value, preserveLength, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_e164_phone_number: %w", err)
 			}
@@ -49,8 +52,22 @@ func init() {
 	}
 }
 
+func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformE164PhoneNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformE164PhoneNumber(valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+}
+
 // Generates a random phone number and returns it as a string
-func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64) (*string, error) {
+func transformE164PhoneNumber(phone string, preserveLength bool, maxLength *int64) (*string, error) {
 	var returnValue string
 
 	if phone == "" {
@@ -58,7 +75,7 @@ func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64
 	}
 
 	if preserveLength {
-		res, err := GenerateE164FormatPhoneNumberPreserveLength(phone)
+		res, err := generateE164FormatPhoneNumberPreserveLength(phone)
 		if err != nil {
 			return nil, err
 		}
@@ -67,6 +84,9 @@ func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64
 	} else {
 		minValue := int64(9)
 		maxValue := int64(15)
+		if maxLength != nil && *maxLength != 0 {
+			maxValue = *maxLength
+		}
 
 		res, err := generateInternationalPhoneNumber(minValue, maxValue)
 		if err != nil {
@@ -79,14 +99,14 @@ func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64
 }
 
 // generates a random E164 phone number and returns it as a string
-func GenerateE164FormatPhoneNumberPreserveLength(number string) (string, error) {
+func generateE164FormatPhoneNumberPreserveLength(number string) (string, error) {
 	val := strings.Split(number, "+")
 
 	length := int64(len(val[1]))
 
 	vals, err := transformer_utils.GenerateRandomInt64FixedLength(length)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return fmt.Sprintf("+%d", vals), nil
 }

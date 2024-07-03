@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:transform:transformFloat64
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -75,6 +78,25 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformFloat64) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFloat64Opts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	maxnumgetter := newMaxNumCache()
+
+	return transformFloat(
+		parsedOpts.randomizer,
+		maxnumgetter,
+		value,
+		parsedOpts.randomizationRangeMin,
+		parsedOpts.randomizationRangeMax,
+		parsedOpts.precision,
+		parsedOpts.scale,
+	)
 }
 
 func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {

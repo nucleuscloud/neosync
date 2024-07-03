@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -10,6 +11,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:transform:transformCharacterScramble
+
 const (
 	letterList      = "abcdefghijklmnopqrstuvwxyz"
 	numberList      = "0123456789"
@@ -18,7 +21,8 @@ const (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewAnyParam("value").Optional()).Param(bloblang.NewStringParam("user_provided_regex").Optional())
+		Param(bloblang.NewAnyParam("value").Optional()).
+		Param(bloblang.NewStringParam("user_provided_regex").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -42,7 +46,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformCharacterScramble(value, regex)
+			res, err := transformCharacterScramble(value, regex)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_character_scramble: %w", err)
 			}
@@ -53,6 +57,25 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformCharacterScramble) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformCharacterScrambleOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	regex := ""
+	if parsedOpts.userProvidedRegex != nil && *parsedOpts.userProvidedRegex != "" {
+		regex = *parsedOpts.userProvidedRegex
+	}
+
+	return transformCharacterScramble(valueStr, regex)
 }
 
 /*
@@ -66,7 +89,7 @@ Substituted: Ifmmp Xpsme 234@%^
 Note that this does not work for hex values: 0x00 -> 0x1F
 */
 
-func TransformCharacterScramble(value, regex string) (*string, error) {
+func transformCharacterScramble(value, regex string) (*string, error) {
 	if value == "" {
 		return nil, nil
 	}

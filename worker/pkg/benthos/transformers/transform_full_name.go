@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -8,6 +9,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:transform:transformFullName
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -67,6 +70,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformFullName) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFullNameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformFullName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
 }
 
 func transformFullName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {

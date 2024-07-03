@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:transform:transformFirstName
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -68,9 +71,23 @@ func init() {
 	}
 }
 
+func (t *TransformFirstName) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformFirstNameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	return transformFirstName(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+}
+
 // Generates a random first name which can be of either random length or as long as the input name
-func transformFirstName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
-	if name == "" {
+func transformFirstName(randomizer rng.Rand, value string, preserveLength bool, maxLength int64) (*string, error) {
+	if value == "" {
 		return nil, nil
 	}
 
@@ -80,7 +97,7 @@ func transformFirstName(randomizer rng.Rand, name string, preserveLength bool, m
 	// we may want to change this to just use the below algorithm and pad so that it is more unique
 	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
 	if preserveLength {
-		maxValue = int64(len(name))
+		maxValue = int64(len(value))
 		output, err := generateRandomFirstName(randomizer, &maxValue, maxValue)
 		if err == nil {
 			return &output, nil

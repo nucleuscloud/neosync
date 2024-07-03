@@ -102,7 +102,7 @@ func buildProcessorConfigs(
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
 	if jsCode != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncJavascript: &neosync_benthos.NeosyncJavascriptConfig{Code: jsCode}})
 	}
 	if len(cacheBranches) > 0 {
 		for _, config := range cacheBranches {

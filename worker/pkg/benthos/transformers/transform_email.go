@@ -13,6 +13,8 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
+// +neosyncTransformerBuilder:transform:transformEmail
+
 type InvalidEmailAction string
 
 const (
@@ -130,6 +132,40 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *TransformEmail) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformEmailOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	valueStr, ok := value.(string)
+	if !ok {
+		return nil, errors.New("value is not a string")
+	}
+
+	excludedDomains := []string{}
+	if parsedOpts.excludedDomains != nil {
+		exDomains, ok := parsedOpts.excludedDomains.([]any)
+		if !ok {
+			return nil, errors.New("excludedDomains is not a slice")
+		}
+		exDomainsStrs, err := fromAnyToStringSlice(exDomains)
+		if err != nil {
+			return nil, errors.New("excludedDomains is not a []string")
+		}
+		excludedDomains = exDomainsStrs
+	}
+
+	return transformEmail(parsedOpts.randomizer, valueStr, transformeEmailOptions{
+		PreserveLength:     parsedOpts.preserveLength,
+		PreserveDomain:     parsedOpts.preserveDomain,
+		MaxLength:          parsedOpts.maxLength,
+		ExcludedDomains:    excludedDomains,
+		EmailType:          GenerateEmailType(parsedOpts.emailType),
+		InvalidEmailAction: InvalidEmailAction(parsedOpts.invalidEmailAction),
+	})
 }
 
 func fromAnyToStringSlice(input any) ([]string, error) {

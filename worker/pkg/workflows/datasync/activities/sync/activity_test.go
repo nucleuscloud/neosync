@@ -131,7 +131,7 @@ input:
     count: 1
 pipeline:
   processors:
-    - javascript:
+    - neosync_javascript:
         code: |
           (() => {
           function fn_name(value, input){
@@ -189,7 +189,7 @@ pipeline:
   processors:
     - mutation:
         root.name = this.name.reverse()
-    - javascript:
+    - neosync_javascript:
         code: |
           (() => {
           function fn1(value, input){
