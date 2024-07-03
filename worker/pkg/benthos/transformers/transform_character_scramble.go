@@ -70,7 +70,12 @@ func (t *TransformCharacterScramble) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformCharacterScramble(valueStr, *parsedOpts.userProvidedRegex)
+	regex := ""
+	if parsedOpts.userProvidedRegex != nil && *parsedOpts.userProvidedRegex != "" {
+		regex = *parsedOpts.userProvidedRegex
+	}
+
+	return transformCharacterScramble(valueStr, regex)
 }
 
 /*

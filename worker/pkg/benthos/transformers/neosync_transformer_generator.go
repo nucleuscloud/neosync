@@ -63,7 +63,6 @@ func main() {
 							Type:        parts[1],
 							Description: "",
 						})
-
 					}
 				}
 			}
@@ -80,7 +79,6 @@ func main() {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
 		tf.Params = p
-
 	}
 
 	for _, tf := range transformerFuncs {
@@ -103,12 +101,10 @@ func main() {
 		}
 		outputFile.Close()
 	}
-
 }
 
 func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
 	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?`)
-
 	params := []*ParamInfo{}
 	readFile, err := os.Open(funcInfo.SourceFile)
 	if err != nil {
@@ -222,7 +218,7 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	{{- else }}
 
 	if _, ok := opts["{{$param.Name}}"].({{$param.TypeStr}}); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "{{$param.Name}}")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "{{ $.FunctInfo.Name }}", "{{$param.Name}}")
 	}
 	{{$param.Name}} := opts["{{$param.Name}}"].({{$param.TypeStr}})
 
@@ -271,7 +267,6 @@ func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
 func toCamelCase(snake string) string {
 	var result string
 	upperNext := false
-
 	for i, char := range snake {
 		if char == '_' {
 			upperNext = true
@@ -288,7 +283,6 @@ func toCamelCase(snake string) string {
 			}
 		}
 	}
-
 	return result
 }
 

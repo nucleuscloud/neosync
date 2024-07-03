@@ -1,7 +1,6 @@
 package datasync_workflow
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -266,8 +265,6 @@ func invokeSync(
 	logger log.Logger,
 ) workflow.Future {
 
-	jsonF, _ := json.MarshalIndent(config, "", " ")
-	fmt.Printf("config: %s \n", string(jsonF))
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger.Debug("triggering config sync")
@@ -280,7 +277,6 @@ func invokeSync(
 			return
 		}
 		logger.Info("scheduling Sync for execution.")
-		fmt.Println(string(configbits))
 
 		var result sync_activity.SyncResponse
 		activity := sync_activity.Activity{}

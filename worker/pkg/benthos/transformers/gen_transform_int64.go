@@ -31,13 +31,13 @@ func (t *TransformInt64) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformInt64Opts{}
 
 	if _, ok := opts["randomizationRangeMin"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "randomizationRangeMin")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformInt64", "randomizationRangeMin")
 	}
 	randomizationRangeMin := opts["randomizationRangeMin"].(int64)
 	transformerOpts.randomizationRangeMin = randomizationRangeMin
 
 	if _, ok := opts["randomizationRangeMax"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "randomizationRangeMax")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformInt64", "randomizationRangeMax")
 	}
 	randomizationRangeMax := opts["randomizationRangeMax"].(int64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax

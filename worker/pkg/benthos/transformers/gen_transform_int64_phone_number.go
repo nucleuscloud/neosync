@@ -30,7 +30,7 @@ func (t *TransformInt64PhoneNumber) ParseOptions(opts map[string]any) (any, erro
 	transformerOpts := &TransformInt64PhoneNumberOpts{}
 
 	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "preserveLength")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformInt64PhoneNumber", "preserveLength")
 	}
 	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength

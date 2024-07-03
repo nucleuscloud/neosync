@@ -11,5 +11,9 @@
 	{
 		"folder": "circular-dependencies", 
 		"sql_file": "setup.sql"
+	},
+	{
+		"folder": "javascript-transformers",
+		"sql_file": "create.sql"
 	}
 ]

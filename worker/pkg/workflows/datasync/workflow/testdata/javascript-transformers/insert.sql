@@ -1,0 +1,22 @@
+SET search_path TO javascript;
+INSERT INTO transformers (e164_phone_number, email, measurement, int64, int64_phone_number, string_phone_number, first_name, last_name, full_name, str, character_scramble) VALUES
+('+12345678901', 'user1@example.com', 12.34, 12345678901, 12345678901, '123-456-7890', 'John', 'Doe', 'John Doe', 'example1', 'scramble1'),
+('+12345678902', 'user2@example.com', 23.45, 12345678902, 12345678902, '123-456-7891', 'Jane', 'Smith', 'Jane Smith', 'example2', 'scramble2'),
+('+12345678903', 'user3@example.com', 34.56, 12345678903, 12345678903, '123-456-7892', 'Alice', 'Johnson', 'Alice Johnson', 'example3', 'scramble3'),
+('+12345678904', 'user4@example.com', 45.67, 12345678904, 12345678904, '123-456-7893', 'Bob', 'Brown', 'Bob Brown', 'example4', 'scramble4'),
+('+12345678905', 'user5@example.com', 56.78, 12345678905, 12345678905, '123-456-7894', 'Charlie', 'Davis', 'Charlie Davis', 'example5', 'scramble5'),
+('+12345678906', 'user6@example.com', 67.89, 12345678906, 12345678906, '123-456-7895', 'David', 'Wilson', 'David Wilson', 'example6', 'scramble6'),
+('+12345678907', 'user7@example.com', 78.90, 12345678907, 12345678907, '123-456-7896', 'Eve', 'Garcia', 'Eve Garcia', 'example7', 'scramble7'),
+('+12345678908', 'user8@example.com', 89.01, 12345678908, 12345678908, '123-456-7897', 'Frank', 'Martinez', 'Frank Martinez', 'example8', 'scramble8'),
+('+12345678909', 'user9@example.com', 90.12, 12345678909, 12345678909, '123-456-7898', 'Grace', 'Hernandez', 'Grace Hernandez', 'example9', 'scramble9'),
+('+12345678910', 'user10@example.com', 101.23, 12345678910, 12345678910, '123-456-7899', 'Hank', 'Lopez', 'Hank Lopez', 'example10', 'scramble10'),
+('+12345678911', 'user11@example.com', 111.34, 12345678911, 12345678911, '123-456-7900', 'Ivy', 'Gonzalez', 'Ivy Gonzalez', 'example11', 'scramble11'),
+('+12345678912', 'user12@example.com', 121.45, 12345678912, 12345678912, '123-456-7901', 'Jack', 'Rodriguez', 'Jack Rodriguez', 'example12', 'scramble12'),
+('+12345678913', 'user13@example.com', 131.56, 12345678913, 12345678913, '123-456-7902', 'Karen', 'Perez', 'Karen Perez', 'example13', 'scramble13'),
+('+12345678914', 'user14@example.com', 141.67, 12345678914, 12345678914, '123-456-7903', 'Leo', 'Sanchez', 'Leo Sanchez', 'example14', 'scramble14'),
+('+12345678915', 'user15@example.com', 151.78, 12345678915, 12345678915, '123-456-7904', 'Mia', 'Ramirez', 'Mia Ramirez', 'example15', 'scramble15'),
+('+12345678916', 'user16@example.com', 161.89, 12345678916, 12345678916, '123-456-7905', 'Nick', 'Torres', 'Nick Torres', 'example16', 'scramble16'),
+('+12345678917', 'user17@example.com', 171.90, 12345678917, 12345678917, '123-456-7906', 'Olivia', 'Flores', 'Olivia Flores', 'example17', 'scramble17'),
+('+12345678918', 'user18@example.com', 181.01, 12345678918, 12345678918, '123-456-7907', 'Paul', 'Nguyen', 'Paul Nguyen', 'example18', 'scramble18'),
+('+12345678919', 'user19@example.com', 191.12, 12345678919, 12345678919, '123-456-7908', 'Quinn', 'Kim', 'Quinn Kim', 'example19', 'scramble19'),
+('+12345678920', 'user20@example.com', 201.23, 12345678920, 12345678920, '123-456-7909', 'Ryan', 'Moore', 'Ryan Moore', 'example20', 'scramble20');

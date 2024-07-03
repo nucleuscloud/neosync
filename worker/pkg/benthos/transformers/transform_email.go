@@ -145,9 +145,17 @@ func (t *TransformEmail) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	excludedDomains, ok := parsedOpts.excludedDomains.([]string)
-	if !ok {
-		return nil, errors.New("excludedDomains is not a []string")
+	excludedDomains := []string{}
+	if parsedOpts.excludedDomains != nil {
+		exDomains, ok := parsedOpts.excludedDomains.([]any)
+		if !ok {
+			return nil, errors.New("excludedDomains is not a slice")
+		}
+		exDomainsStrs, err := fromAnyToStringSlice(exDomains)
+		if err != nil {
+			return nil, errors.New("excludedDomains is not a []string")
+		}
+		excludedDomains = exDomainsStrs
 	}
 
 	return transformEmail(parsedOpts.randomizer, valueStr, transformeEmailOptions{

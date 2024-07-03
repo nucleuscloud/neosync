@@ -27,6 +27,7 @@ import (
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/double-reference"
+	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/virtual-foreign-keys"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
@@ -38,9 +39,11 @@ func getAllSyncTests() []*workflow_testdata.IntegrationTest {
 	drTests := testdata_doublereference.GetSyncTests()
 	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
 	cdTests := testdata_circulardependencies.GetSyncTests()
+	javascriptTests := testdata_javascripttransformers.GetSyncTests()
 	allTests = append(allTests, drTests...)
 	allTests = append(allTests, vfkTests...)
 	allTests = append(allTests, cdTests...)
+	allTests = append(allTests, javascriptTests...)
 	return allTests
 }
 

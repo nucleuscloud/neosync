@@ -31,13 +31,13 @@ func (t *TransformStringPhoneNumber) ParseOptions(opts map[string]any) (any, err
 	transformerOpts := &TransformStringPhoneNumberOpts{}
 
 	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "preserveLength")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformStringPhoneNumber", "preserveLength")
 	}
 	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
 	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "maxLength")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformStringPhoneNumber", "maxLength")
 	}
 	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
