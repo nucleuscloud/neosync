@@ -215,7 +215,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		&azopenai.ChatRequestUserMessage{Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%d more records", batchSize))},
 	)
 
-	records, err := getCsvRecords(*choice.Message.Content)
+	records, err := getCsvRecordsFromInput(*choice.Message.Content, b.log)
 	if err != nil {
 		return nil, nil, fmt.Errorf("openai_generate: unable to fully process records retrieved from openai: %w", err)
 	}
@@ -350,10 +350,9 @@ func getCsvReader(input string) *csv.Reader {
 	return csv.NewReader(&buffer)
 }
 
-func getCsvRecords(input string) ([][]string, error) {
+func getCsvRecordsFromInput(input string, logger *service.Logger) ([][]string, error) {
 	reader := getCsvReader(input)
 	reader.FieldsPerRecord = -1
-
 	var headers []string
 	for {
 		row, err := reader.Read()
@@ -361,10 +360,11 @@ func getCsvRecords(input string) ([][]string, error) {
 			if errors.Is(err, io.EOF) {
 				return nil, errors.New("openai_generate: unable to process generated csv record response from openai")
 			}
-			return nil, err
+			return nil, fmt.Errorf("unable to process CSV row to retrieve headers: %w", err)
 		}
 		// handles the case where sometimes the llm returns the csv response wrapped in markdown csv block
 		if len(row) == 1 && row[0] == "```csv" {
+			logger.Debug("encountered opening markdown csv block in ai output, trimming...")
 			continue
 		}
 		headers = row
@@ -373,22 +373,35 @@ func getCsvRecords(input string) ([][]string, error) {
 
 	count := len(headers)
 	records := [][]string{headers}
+	totalProcessed := 0
 	for {
+		totalProcessed += 1
 		row, err := reader.Read()
-		if err != nil && !errors.Is(err, io.EOF) {
-			return nil, err
-		} else if err != nil && errors.Is(err, io.EOF) {
-			return records, nil
+		if err != nil {
+			if errors.Is(err, csv.ErrBareQuote) || errors.Is(err, csv.ErrQuote) {
+				logger.Warnf("encountered malformed csv row, skipping. %s", err.Error())
+				continue
+			} else if errors.Is(err, io.EOF) {
+				// including EOF as line count to inadvertingly account for header line
+				logger.Info(fmt.Sprintf("pulled %d/%d records/lines out of csv output", len(records), totalProcessed))
+				return records, nil
+			} else {
+				logger.Warnf("encountered error when reading csv from openai: %s", err.Error())
+				continue
+			}
 		}
 
 		if len(row) == 1 && row[0] == "```" {
 			// LLM returned the CSV block and we should not parse this.
 			// next read should result in EOF
+			logger.Debug("encountered closing markdown csv block in ai output, trimming...")
 			continue
 		}
 
 		if len(row) == count {
 			records = append(records, row)
+		} else {
+			logger.Warnf("encountered a csv row that did not have the correct number of columns. had: '%d' want: '%d'", len(row), count)
 		}
 	}
 }
