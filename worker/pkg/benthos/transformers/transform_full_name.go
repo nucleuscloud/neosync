@@ -96,9 +96,9 @@ func transformFullName(randomizer rng.Rand, name string, preserveLength bool, ma
 	if preserveLength {
 		firstname, lastname := splitEvenly(name)
 		minFirst := int64(len(firstname))
-		newfirstname, _ := GenerateRandomFirstName(randomizer, &minFirst, minFirst)
+		newfirstname, _ := generateRandomFirstName(randomizer, &minFirst, minFirst)
 		if newfirstname == "" {
-			newfirstname, _ = GenerateRandomFirstName(randomizer, nil, minFirst)
+			newfirstname, _ = generateRandomFirstName(randomizer, nil, minFirst)
 			if int64(len(newfirstname)) != minFirst {
 				newfirstname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newfirstname)))
 			}

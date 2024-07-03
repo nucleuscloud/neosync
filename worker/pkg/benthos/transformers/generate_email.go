@@ -159,7 +159,7 @@ func generateNameForEmail(randomizer rng.Rand, minLength *int64, maxLength int64
 	if maxFirstNameIdx != -1 {
 		maxFirstNameLength := transformers_dataset.FirstNameIndices[maxFirstNameIdx]
 		var err error
-		randomFirstName, err = GenerateRandomFirstName(randomizer, nil, maxFirstNameLength)
+		randomFirstName, err = generateRandomFirstName(randomizer, nil, maxFirstNameLength)
 		if err != nil {
 			return "", err
 		}

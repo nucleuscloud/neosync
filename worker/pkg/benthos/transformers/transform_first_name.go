@@ -98,13 +98,13 @@ func transformFirstName(randomizer rng.Rand, value string, preserveLength bool, 
 	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
 	if preserveLength {
 		maxValue = int64(len(value))
-		output, err := GenerateRandomFirstName(randomizer, &maxValue, maxValue)
+		output, err := generateRandomFirstName(randomizer, &maxValue, maxValue)
 		if err == nil {
 			return &output, nil
 		}
 	}
 
-	output, err := GenerateRandomFirstName(randomizer, nil, maxValue)
+	output, err := generateRandomFirstName(randomizer, nil, maxValue)
 	if err != nil {
 		return nil, err
 	}

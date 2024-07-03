@@ -56,7 +56,7 @@ func generateRandomFullName(randomizer rng.Rand, maxLength int64) (string, error
 
 	maxFirstNameLength := transformers_dataset.FirstNameIndices[maxFirstNameIdx]
 	maxLastNameLength := transformers_dataset.LastNameIndices[maxLastNameIdx]
-	firstname, err := GenerateRandomFirstName(randomizer, nil, maxFirstNameLength)
+	firstname, err := generateRandomFirstName(randomizer, nil, maxFirstNameLength)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random first name with length: %d", maxFirstNameLength)
 	}
