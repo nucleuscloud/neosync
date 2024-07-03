@@ -11,7 +11,6 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/gcp"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 
-	// _ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/mongodb"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"

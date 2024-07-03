@@ -264,7 +264,6 @@ func invokeSync(
 	started, completed *sync.Map,
 	logger log.Logger,
 ) workflow.Future {
-
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger.Debug("triggering config sync")
