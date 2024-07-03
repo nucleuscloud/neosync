@@ -3,6 +3,7 @@ changelog:
     labels:
       - documentation
       - Docs
+      - ignore-for-release
   categories:
     - title: Breaking Changes 🛠
       labels:
@@ -13,14 +14,12 @@ changelog:
         - Semver-Minor
         - enhancement
         - Improvement
-    - title: Bug Fixes
+    - title: Bug Fixes 🐞
       labels:
         - bugs
         - Bugs
         - Regression
     - title: Dependencies
-      authors:
-        - dependabot
       labels:
         - dependencies
     - title: Other Changes
