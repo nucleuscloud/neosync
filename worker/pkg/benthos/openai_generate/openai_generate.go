@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -102,16 +101,17 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 	if err != nil {
 		return nil, err
 	}
+	systemPrompt := buildSystemPrompt(columns, dataTypes)
 	conversation := []azopenai.ChatRequestMessageClassification{
 		&azopenai.ChatRequestSystemMessage{
-			Content: ptr(fmt.Sprintf("You generate CSV data. Generate %d records, don't include the headers", batchsize)),
+			Content: ptr(systemPrompt),
 		},
 	}
 	prompt := ""
 	if userPrompt != nil {
 		prompt = fmt.Sprintf("%s\n", *userPrompt)
 	}
-	prompt += fmt.Sprintf("%s%s", prompt, fmt.Sprintf("Each record looks like this: %s", getColumnPrompt(columns, dataTypes)))
+	prompt += fmt.Sprintf("Generate %d records", batchsize)
 	conversation = append(conversation, &azopenai.ChatRequestUserMessage{
 		Content: azopenai.NewChatRequestUserMessageContent(prompt),
 	})
@@ -131,14 +131,26 @@ func newGenerateReader(conf *service.ParsedConfig, mgr *service.Resources) (*gen
 	}, nil
 }
 
+func buildSystemPrompt(
+	columns, dataTypes []string,
+) string {
+	csvPrompt :=
+		"You generate valid CSV data. When generating records, include the headers, one record per line. Only return the CSV data. Ensure each record has exact number of fields as headers. Separate each record by a newline. Do NOT return anything other than the raw CSV data. Do NOT include the csv markdown wrapper."
+
+	headerPrompt := getColumnPrompt(columns, dataTypes)
+	return fmt.Sprintf("%s %s %s",
+		csvPrompt,
+		headerPrompt,
+		"The data returned should be in the exact order the headers are defined.",
+	)
+}
+
 func getColumnPrompt(columns, dataTypes []string) string {
-	pieces := make([]string, 0, len(columns))
+	pieces := []string{"Headers and their data types as follows:"}
 	for idx := range columns {
-		column := columns[idx]
-		datatype := dataTypes[idx]
-		pieces = append(pieces, fmt.Sprintf("%s is %s", column, datatype))
+		pieces = append(pieces, fmt.Sprintf("%s is %s", columns[idx], dataTypes[idx]))
 	}
-	return strings.Join(pieces, ",")
+	return strings.Join(pieces, " ")
 }
 
 var _ service.BatchInput = &generateReader{}
@@ -199,11 +211,18 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	messageBatch := service.MessageBatch{}
 	records, err := getCsvRecords(*choice.Message.Content)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to fully process records retrieved from openai: %w", err)
+		return nil, nil, fmt.Errorf("openai_generate: unable to fully process records retrieved from openai: %w", err)
+	}
+	if len(records) == 0 {
+		b.log.Warn("openai_generate: no records were returned from message")
+		return messageBatch, emptyAck, nil
+	}
+	if len(records) == 1 {
+		b.log.Warn("openai_generate: only headers were returned from message")
+		return messageBatch, emptyAck, nil
 	}
 
-	for _, record := range records {
-		// convert record into structured record
+	for _, record := range records[1:] {
 		structuredRecord, err := convertCsvToStructuredRecord(record, b.columns, b.dataTypes)
 		if err != nil {
 			return nil, nil, err
@@ -269,13 +288,21 @@ func toStructuredRecordValueType(value, dataType string) (any, error) {
 	case "character varying", "varchar", "character", "char", "text":
 		return value, nil
 	case "date", "timestamp", "timestamp without time zone":
-		return time.Parse("2006-01-02 15:04:05", value) // adjust format as needed
+		//nolint:gocritic
+		// return time.Parse("2006-01-02 15:04:05", value) // adjust format as needed
+		return value, nil
 	case "timestamp with time zone":
-		return time.Parse(time.RFC3339, value)
+		//nolint:gocritic
+		// return time.Parse(time.RFC3339, value)
+		return value, nil
 	case "time", "time without time zone":
-		return time.Parse("15:04:05", value)
+		//nolint:gocritic
+		// return time.Parse("15:04:05", value)
+		return value, nil
 	case "time with time zone":
-		return time.Parse("15:04:05Z07:00", value)
+		//nolint:gocritic
+		// return time.Parse("15:04:05Z07:00", value)
+		return value, nil
 	case "interval":
 		return value, nil // Parsing intervals can be complex; keeping it as string
 	case "boolean":
