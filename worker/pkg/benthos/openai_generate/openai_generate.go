@@ -43,9 +43,11 @@ func RegisterOpenaiGenerate(env *service.Environment) error {
 }
 
 type generateReader struct {
-	apiUrl    string
-	apikey    string
-	count     int
+	apiUrl string
+	apikey string
+	// The number of records to generate. This is progressively decremented as the reads progress
+	count int
+	// The number of records to generate per batch
 	batchsize int
 	model     string
 
@@ -184,6 +186,7 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	if b.count < batchSize {
 		batchSize = b.count
 	}
+	b.log.Infof("Starting batch read with batch size %d", batchSize)
 
 	resp, err := b.client.GetChatCompletions(ctx, azopenai.ChatCompletionsOptions{
 		Temperature:      ptr(float32(1.0)),
@@ -231,6 +234,10 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	messageBatch := service.MessageBatch{}
 	// skipping the first record as it returns the headers
 	for _, record := range records[1:] {
+		if b.count == 0 {
+			b.log.Infof("stopping openai_generate as we've reached a count of 0 even though we had more records to process")
+			break
+		}
 		structuredRecord, err := convertCsvToStructuredRecord(record, b.columns, b.dataTypes)
 		if err != nil {
 			b.log.Errorf("unable to convert csv record to structured record: %s", err.Error())
@@ -239,11 +246,11 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		msg := service.NewMessage(nil)
 		msg.SetStructured(structuredRecord)
 		messageBatch = append(messageBatch, msg)
+		b.count -= 1
 	}
 	if len(messageBatch) == 0 {
 		return nil, nil, errors.New("openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details.")
 	}
-	b.count -= len(messageBatch)
 	return messageBatch, emptyAck, nil
 }
 
@@ -286,48 +293,48 @@ func convertCsvToStructuredRecord(record, headers, types []string) (map[string]a
 func toStructuredRecordValueType(value, dataType string) (any, error) {
 	switch dataType {
 	case "smallint", "integer", "int", "serial":
-		return strconv.ParseInt(value, 10, 32)
+		return strconv.ParseInt(strings.TrimSpace(value), 10, 32)
 	case "bigint", "bigserial":
-		return strconv.ParseInt(value, 10, 64)
+		return strconv.ParseInt(strings.TrimSpace(value), 10, 64)
 	case "numeric", "decimal":
-		return strconv.ParseFloat(value, 64)
+		return strconv.ParseFloat(strings.TrimSpace(value), 64)
 	case "real":
-		return strconv.ParseFloat(value, 32)
+		return strconv.ParseFloat(strings.TrimSpace(value), 32)
 	case "double precision":
-		return strconv.ParseFloat(value, 64)
+		return strconv.ParseFloat(strings.TrimSpace(value), 64)
 	case "money":
-		return value, nil // Keeping it as string due to currency formatting
+		return strings.TrimSpace(value), nil // Keeping it as string due to currency formatting
 	case "character varying", "varchar", "character", "char", "text":
 		return value, nil
 	case "date", "timestamp", "timestamp without time zone":
 		//nolint:gocritic
 		// return time.Parse("2006-01-02 15:04:05", value) // adjust format as needed
-		return value, nil
+		return strings.TrimSpace(value), nil
 	case "timestamp with time zone":
 		//nolint:gocritic
 		// return time.Parse(time.RFC3339, value)
-		return value, nil
+		return strings.TrimSpace(value), nil
 	case "time", "time without time zone":
 		//nolint:gocritic
 		// return time.Parse("15:04:05", value)
-		return value, nil
+		return strings.TrimSpace(value), nil
 	case "time with time zone":
 		//nolint:gocritic
 		// return time.Parse("15:04:05Z07:00", value)
-		return value, nil
+		return strings.TrimSpace(value), nil
 	case "interval":
-		return value, nil // Parsing intervals can be complex; keeping it as string
+		return strings.TrimSpace(value), nil // Parsing intervals can be complex; keeping it as string
 	case "boolean":
-		return strconv.ParseBool(value)
+		return strconv.ParseBool(strings.TrimSpace(value))
 	case "uuid":
-		return value, nil // UUIDs are usually handled as strings
+		return strings.TrimSpace(value), nil // UUIDs are usually handled as strings
 	case "json", "jsonb":
-		return value, nil // JSON is typically handled as a string or a map
+		return strings.TrimSpace(value), nil // JSON is typically handled as a string or a map
 	default:
 		if strings.HasSuffix(dataType, "[]") {
-			return parseBracketedArray(value), nil
+			return parseBracketedArray(strings.TrimSpace(value)), nil
 		}
-		return value, nil
+		return strings.TrimSpace(value), nil
 	}
 }
 
