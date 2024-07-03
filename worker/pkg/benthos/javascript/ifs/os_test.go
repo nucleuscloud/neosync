@@ -26,11 +26,11 @@ func (t testFS) Remove(name string) error {
 }
 
 func TestOSAccess(t *testing.T) {
-	var fs FS = testFS{}
+	var fss FS = testFS{}
 
-	require.False(t, IsOS(fs))
+	require.False(t, IsOS(fss))
 
-	fs = OS()
+	fss = OS()
 
-	require.True(t, IsOS(fs))
+	require.True(t, IsOS(fss))
 }

@@ -13,7 +13,7 @@ type TransformE164PhoneNumber struct{}
 
 type TransformE164PhoneNumberOpts struct {
 	preserveLength bool
-	maxLength int64
+	maxLength *int64
 }
 
 func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
@@ -36,10 +36,10 @@ func (t *TransformE164PhoneNumber) ParseOptions(opts map[string]any) (any, error
 	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
-	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformE164PhoneNumber", "maxLength")
+	var maxLength *int64
+	if arg, ok := opts["maxLength"].(int64); ok {
+		maxLength = &arg
 	}
-	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
 	return transformerOpts, nil

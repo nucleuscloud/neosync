@@ -13,6 +13,10 @@ type asHTTP struct {
 	f fs.FS
 }
 
+type asHTTPFile struct {
+	file fs.File
+}
+
 // ToHTTP converts an fs.FS into an http.FileSystem in a way that doesn't
 // modify the root path.
 func ToHTTP(f fs.FS) *asHTTP {
@@ -33,10 +37,6 @@ func (f asHTTPFile) ReadDir(count int) ([]fs.DirEntry, error) {
 		return nil, errMissingReadDir
 	}
 	return d.ReadDir(count)
-}
-
-type asHTTPFile struct {
-	file fs.File
 }
 
 func (f asHTTPFile) Close() error               { return f.file.Close() }

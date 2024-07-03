@@ -51,7 +51,7 @@ func setFunction(vr *vmRunner, namespace, name string, function jsFunction) erro
 		targetObj = targetObjValue.ToObject(vr.vm)
 	}
 	if targetObj == nil {
-		if err := vr.vm.GlobalObject().Set(namespace, map[string]interface{}{}); err != nil {
+		if err := vr.vm.GlobalObject().Set(namespace, map[string]any{}); err != nil {
 			return fmt.Errorf("failed to set global %s object: %w", namespace, err)
 		}
 		targetObj = vr.vm.GlobalObject().Get(namespace).ToObject(vr.vm)

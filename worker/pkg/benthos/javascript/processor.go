@@ -53,9 +53,9 @@ This processor is implemented using the [github.com/dop251/goja](https://github.
 		Footnotes(`
 ## Runtime
 
-In order to optimise code execution JS runtimes are created on demand (in order to support parallel execution) and are reused across invocations. Therefore, it is important to understand that global state created by your programs will outlive individual invocations. In order for your programs to avoid failing after the first invocation ensure that you do not define variables at the global scope.
+In order to optimize code execution JS runtimes are created on demand (in order to support parallel execution) and are reused across invocations. Therefore, it is important to understand that global state created by your programs will outlive individual invocations. In order for your programs to avoid failing after the first invocation ensure that you do not define variables at the global scope.
 
-Although technically possible, it is recommended that you do not rely on the global state for maintaining state across invocations as the pooling nature of the runtimes will prevent deterministic behaviour. We aim to support deterministic strategies for mutating global state in the future.
+Although technically possible, it is recommended that you do not rely on the global state for maintaining state across invocations as the pooling nature of the runtimes will prevent deterministic behavior. We aim to support deterministic strategies for mutating global state in the future.
 
 ## Functions
 `+description.String()+`
