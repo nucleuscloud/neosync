@@ -11,7 +11,7 @@ import (
 var testE164Phone = "+13782983927"
 
 func Test_TransformE164NumberPreserveLengthTrue(t *testing.T) {
-	res, err := TransformE164PhoneNumber(testE164Phone, true, maxCharacterLimit)
+	res, err := transformE164PhoneNumber(testE164Phone, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(*res), validateE164(testE164Phone), "The expected value should be a valid e164 number.")
@@ -19,7 +19,7 @@ func Test_TransformE164NumberPreserveLengthTrue(t *testing.T) {
 }
 
 func Test_TransformE164NumberPreserveLengthFalse(t *testing.T) {
-	res, err := TransformE164PhoneNumber(testE164Phone, false, maxCharacterLimit)
+	res, err := transformE164PhoneNumber(testE164Phone, false, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 9+1, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
@@ -27,7 +27,7 @@ func Test_TransformE164NumberPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_GenerateE164FormatPhoneNumberPreserveLength(t *testing.T) {
-	res, err := GenerateE164FormatPhoneNumberPreserveLength(testE164Phone)
+	res, err := generateE164FormatPhoneNumberPreserveLength(testE164Phone)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(res), validateE164(testE164Phone), "The expected value should be a valid e164 number.")

@@ -5,9 +5,13 @@ package transformers
 
 func GetNeosyncTransformers() []NeosyncTransformer {
 	return []NeosyncTransformer{
+		NewTransformCharacterScramble(),
+		NewTransformE164PhoneNumber(),
+		NewTransformEmail(),
 		NewTransformFirstName(),
 		NewTransformFloat64(),
 		NewTransformFullName(),
+		NewTransformInt64(),
 		NewTransformInt64PhoneNumber(),
 		NewTransformLastName(),
 		NewTransformString(),

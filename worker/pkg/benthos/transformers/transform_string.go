@@ -13,9 +13,9 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewInt64Param("min_length")).
-		Param(bloblang.NewInt64Param("max_length"))
+		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
+		Param(bloblang.NewInt64Param("min_length").Default(1)).
+		Param(bloblang.NewInt64Param("max_length").Default(20))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.GetOptionalString("value")
@@ -58,12 +58,12 @@ func (t *TransformString) Transform(value, opts any) (any, error) {
 		return nil, errors.New("invalid parse opts")
 	}
 
-	valueStr, ok := value.(*string)
+	valueStr, ok := value.(string)
 	if !ok {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformString(valueStr, parsedOpts.preserveLength, parsedOpts.minLength, parsedOpts.maxLength)
+	return transformString(&valueStr, parsedOpts.preserveLength, parsedOpts.minLength, parsedOpts.maxLength)
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.

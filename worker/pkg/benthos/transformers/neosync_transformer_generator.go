@@ -107,6 +107,8 @@ func main() {
 }
 
 func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
+	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?`)
+
 	params := []*ParamInfo{}
 	readFile, err := os.Open(funcInfo.SourceFile)
 	if err != nil {
@@ -120,38 +122,17 @@ func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
 		line = strings.TrimSpace(line)
 		// parse bloblang spec
 		if strings.HasPrefix(line, "Param(bloblang.") {
-			splitLine := strings.Split(line, ".")
-			param := &ParamInfo{}
-			for _, piece := range splitLine {
-				piece = strings.TrimSpace(piece)
-				if strings.TrimSpace(piece) == "Param(bloblang" {
-					continue
+			matches := paramRegex.FindStringSubmatch(line)
+			if len(matches) > 0 {
+				param := &ParamInfo{
+					TypeStr:    lowercaseFirst(matches[1]),
+					Name:       toCamelCase(matches[2]),
+					IsOptional: strings.Contains(line, ".Optional()"),
+					HasDefault: matches[3] != "",
+					Default:    matches[3],
 				}
-				regex := regexp.MustCompile(`New(\w+)Param`)
-				matches := regex.FindStringSubmatch(piece)
-
-				if len(matches) > 1 {
-					param.TypeStr = lowercaseFirst(matches[1])
-					regex := regexp.MustCompile(`"([^"]*)"`)
-
-					matches := regex.FindStringSubmatch(piece)
-					if len(matches) > 1 {
-						param.Name = toCamelCase(matches[1])
-					}
-				}
-				if strings.HasPrefix(piece, "Optional()") {
-					param.IsOptional = true
-				}
-				if strings.HasPrefix(piece, "Default") {
-					regex := regexp.MustCompile(`\(([^)]*)\)`)
-					matches := regex.FindStringSubmatch(piece)
-					param.HasDefault = true
-					if len(matches) > 1 {
-						param.Default = matches[1]
-					}
-				}
+				params = append(params, param)
 			}
-			params = append(params, param)
 		}
 	}
 	readFile.Close()
@@ -165,7 +146,9 @@ const codeTemplate = `
 package {{.PackageName}}
 
 import (
+	{{- if eq .ImportFmt true}}
 	"fmt"
+	{{ end }}
 	{{- if eq .HasSeedParam true}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -256,6 +239,7 @@ type TemplateData struct {
 	PackageName  string
 	FunctInfo    FuncInfo
 	StructName   string
+	ImportFmt    bool
 	HasSeedParam bool
 }
 
@@ -269,6 +253,10 @@ func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
 	for _, p := range funcInfo.Params {
 		if p.Name == "seed" {
 			data.HasSeedParam = true
+			data.ImportFmt = true
+		}
+		if !p.IsOptional && !p.HasDefault {
+			data.ImportFmt = true
 		}
 	}
 	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))

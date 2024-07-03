@@ -5,7 +5,6 @@
 package transformers
 
 import (
-	"fmt"
 )
 
 type TransformString struct{}
@@ -30,22 +29,22 @@ func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformStringOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
-	if _, ok := opts["minLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "minLength")
+	minLength, ok := opts["minLength"].(int64)
+	if !ok {
+		minLength = 1
 	}
-	minLength := opts["minLength"].(int64)
 	transformerOpts.minLength = minLength
 
-	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. argument: %s", "maxLength")
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 20
 	}
-	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
 	return transformerOpts, nil

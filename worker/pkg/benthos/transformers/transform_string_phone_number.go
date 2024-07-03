@@ -51,12 +51,12 @@ func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("invalid parse opts")
 	}
 
-	valueStr, ok := value.(*string)
+	valueStr, ok := value.(string)
 	if !ok {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformPhoneNumber(valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformPhoneNumber(&valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
 }
 
 // Generates a random phone number and returns it as a string
