@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"sync"
@@ -156,6 +158,8 @@ func getColumnPrompt(columns, dataTypes []string) string {
 var _ service.BatchInput = &generateReader{}
 
 func (b *generateReader) Connect(ctx context.Context) error {
+	b.promptMut.Lock()
+	defer b.promptMut.Unlock()
 	if b.client != nil {
 		return nil
 	}
@@ -197,39 +201,47 @@ func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		return nil, nil, fmt.Errorf("received no choices back from openai")
 	}
 	choice := resp.Choices[0]
-	// todo: make this better, if we received a limit, we should pop off some of the asstant messages to shorten the context window
-	if *choice.FinishReason == azopenai.CompletionsFinishReasonTokenLimitReached {
-		return nil, nil, fmt.Errorf("openai: completion limit reached")
+	switch *choice.FinishReason {
+	case azopenai.CompletionsFinishReasonTokenLimitReached:
+		b.log.Warn("openai_generate: hit token limit reached, trimmed conversation")
+		b.conversation = trimNonSystemMessages(b.conversation, 1)
+	case azopenai.CompletionsFinishReasonContentFiltered:
+		return nil, nil, errors.New("openai: generation stopped due to openai content being filtered due to moderation policies")
+	default:
 	}
-
 	b.conversation = append(
 		b.conversation,
 		&azopenai.ChatRequestAssistantMessage{Content: choice.Message.Content},
 		&azopenai.ChatRequestUserMessage{Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%d more records", batchSize))},
 	)
 
-	messageBatch := service.MessageBatch{}
 	records, err := getCsvRecords(*choice.Message.Content)
 	if err != nil {
 		return nil, nil, fmt.Errorf("openai_generate: unable to fully process records retrieved from openai: %w", err)
 	}
 	if len(records) == 0 {
 		b.log.Warn("openai_generate: no records were returned from message")
-		return messageBatch, emptyAck, nil
+		return nil, nil, service.ErrEndOfInput
 	}
 	if len(records) == 1 {
 		b.log.Warn("openai_generate: only headers were returned from message")
-		return messageBatch, emptyAck, nil
+		return nil, nil, service.ErrEndOfInput
 	}
 
+	messageBatch := service.MessageBatch{}
+	// skipping the first record as it returns the headers
 	for _, record := range records[1:] {
 		structuredRecord, err := convertCsvToStructuredRecord(record, b.columns, b.dataTypes)
 		if err != nil {
-			return nil, nil, err
+			b.log.Errorf("unable to convert csv record to structured record: %s", err.Error())
+			continue
 		}
 		msg := service.NewMessage(nil)
 		msg.SetStructured(structuredRecord)
 		messageBatch = append(messageBatch, msg)
+	}
+	if len(messageBatch) == 0 {
+		return nil, nil, errors.New("openai_generate: received response from openai but was unable to successfully process records to a structured format. see logs for more details.")
 	}
 	b.count -= len(messageBatch)
 	return messageBatch, emptyAck, nil
@@ -332,9 +344,88 @@ func parseBracketedArray(value string) []any {
 	return array
 }
 
-func getCsvRecords(input string) ([][]string, error) {
+func getCsvReader(input string) *csv.Reader {
 	var buffer bytes.Buffer
 	buffer.WriteString(input)
-	reader := csv.NewReader(&buffer)
-	return reader.ReadAll()
+	return csv.NewReader(&buffer)
+}
+
+func getCsvRecords(input string) ([][]string, error) {
+	reader := getCsvReader(input)
+	reader.FieldsPerRecord = -1
+
+	var headers []string
+	for {
+		row, err := reader.Read()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil, errors.New("openai_generate: unable to process generated csv record response from openai")
+			}
+			return nil, err
+		}
+		// handles the case where sometimes the llm returns the csv response wrapped in markdown csv block
+		if len(row) == 1 && row[0] == "```csv" {
+			continue
+		}
+		headers = row
+		break
+	}
+
+	count := len(headers)
+	records := [][]string{headers}
+	for {
+		row, err := reader.Read()
+		if err != nil && !errors.Is(err, io.EOF) {
+			return nil, err
+		} else if err != nil && errors.Is(err, io.EOF) {
+			return records, nil
+		}
+
+		if len(row) == 1 && row[0] == "```" {
+			// LLM returned the CSV block and we should not parse this.
+			// next read should result in EOF
+			continue
+		}
+
+		if len(row) == count {
+			records = append(records, row)
+		}
+	}
+}
+
+func trimNonSystemMessages(messages []azopenai.ChatRequestMessageClassification, count int) []azopenai.ChatRequestMessageClassification {
+	if len(messages) <= count {
+		return messages[:0] // Return an empty slice
+	}
+
+	nonSystemIdx := findFirstNonSystemIdx(messages)
+	if nonSystemIdx == -1 {
+		// No non-system messages found, return the original messages
+		return messages
+	}
+
+	// Calculate the end index for trimming
+	endIdx := nonSystemIdx + count
+	if endIdx >= len(messages) {
+		endIdx = len(messages)
+	}
+
+	// Return the trimmed slice
+	return append(messages[:nonSystemIdx], messages[endIdx:]...)
+}
+
+func findFirstNonSystemIdx(messages []azopenai.ChatRequestMessageClassification) int {
+	if len(messages) == 0 {
+		return -1
+	}
+	for idx := range messages {
+		msg := messages[idx]
+		switch msg.(type) {
+		case *azopenai.ChatRequestSystemMessage:
+			continue
+		default:
+			return idx
+		}
+	}
+	return -1
 }
