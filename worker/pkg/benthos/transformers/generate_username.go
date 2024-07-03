@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -9,6 +10,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateUsername
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -38,6 +41,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateUsername) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateUsernameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateUsername(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 
 // Generates a username with a lowercase first initial and titlecase lastname

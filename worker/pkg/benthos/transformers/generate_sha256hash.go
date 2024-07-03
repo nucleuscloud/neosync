@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// +neosyncTransformerBuilder:generate:generateSHA256Hash
+
 func init() {
 	spec := bloblang.NewPluginSpec()
 
@@ -24,6 +26,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateSHA256Hash) Generate(opts any) (any, error) {
+	return generateRandomSHA256Hash(uuid.NewString())
 }
 
 func generateRandomSHA256Hash(input string) (string, error) {

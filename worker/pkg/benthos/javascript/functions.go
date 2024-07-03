@@ -91,8 +91,9 @@ func registerVMRunnerFunction(name, description string) *jsFunctionDefinition {
 }
 
 func init() {
-	neosyncFns := transformers.GetNeosyncTransformers()
-	for _, f := range neosyncFns {
+	// registers neosync transformers
+	neosyncTransformers := transformers.GetNeosyncTransformers()
+	for _, f := range neosyncTransformers {
 		templateData, err := f.GetJsTemplateData()
 		if err != nil {
 			panic(err)
@@ -116,6 +117,34 @@ func init() {
 					return nil, err
 				}
 				return f.Transform(value, goOpts)
+			}
+		})
+	}
+
+	// registers neosync generators
+	neosyncGenerators := transformers.GetNeosyncGenerators()
+	for _, f := range neosyncGenerators {
+		templateData, err := f.GetJsTemplateData()
+		if err != nil {
+			panic(err)
+		}
+
+		def := registerVMRunnerFunction(templateData.Name, templateData.Description)
+		def.Param("opts", "object", "Transformer options config")
+		def.Namespace(neosyncFnCtxName)
+		def.FnCtor(func(r *vmRunner) jsFunction {
+			return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {
+				var (
+					opts map[string]any
+				)
+				if err := parseArgs(call, &opts); err != nil {
+					return nil, err
+				}
+				goOpts, err := f.ParseOptions(opts)
+				if err != nil {
+					return nil, err
+				}
+				return f.Generate(goOpts)
 			}
 		})
 	}

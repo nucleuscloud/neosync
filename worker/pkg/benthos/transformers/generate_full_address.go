@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
@@ -9,8 +10,11 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:generate:generateFullAddress
+
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_full_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -29,6 +33,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateFullAddress) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateFullAddressOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomFullAddress(parsedOpts.maxLength)
 }
 
 /* Generates a random full address from the US including street address, city, state and zipcode */

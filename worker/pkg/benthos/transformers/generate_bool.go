@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"math/rand"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateBool
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -26,6 +29,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateBool) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateBoolOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomizerBool(parsedOpts.randomizer), nil
 }
 
 // Generates a random bool value and returns it as a bool type.

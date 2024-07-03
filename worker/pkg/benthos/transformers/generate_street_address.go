@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
@@ -8,6 +9,8 @@ import (
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:generate:generateStreetAddress
 
 type Address struct {
 	Address1 string `json:"address1"`
@@ -18,7 +21,8 @@ type Address struct {
 }
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -37,6 +41,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateStreetAddress) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateStreetAddressOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomStreetAddress(parsedOpts.maxLength)
 }
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/

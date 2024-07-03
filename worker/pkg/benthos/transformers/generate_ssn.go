@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateSSN
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -26,6 +29,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateSSN) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateSSNOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomSSN(parsedOpts.randomizer), nil
 }
 
 /*

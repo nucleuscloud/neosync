@@ -7,6 +7,8 @@ import (
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 )
 
+// +neosyncTransformerBuilder:generate:generateZipcode
+
 func init() {
 	spec := bloblang.NewPluginSpec()
 
@@ -18,6 +20,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateZipcode) Generate(opts any) (any, error) {
+	return generateRandomZipcode(), nil
 }
 
 // Generates a randomly selected zip code that exists in the United States.

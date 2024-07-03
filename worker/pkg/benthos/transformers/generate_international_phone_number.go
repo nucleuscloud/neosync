@@ -9,6 +9,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:generate:generateInternationalPhoneNumber
+
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("min")).
@@ -37,6 +39,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateInternationalPhoneNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateInternationalPhoneNumber(parsedOpts.min, parsedOpts.max)
 }
 
 /*  Generates a random phone number in e164 format in the length interval [min, max] with the min length == 9 and the max length == 15.

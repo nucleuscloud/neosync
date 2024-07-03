@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateLastName
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -38,6 +41,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateLastName) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateLastNameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomLastName(parsedOpts.randomizer, nil, parsedOpts.maxLength)
 }
 
 func generateRandomLastName(randomizer rng.Rand, minLength *int64, maxLength int64) (string, error) {

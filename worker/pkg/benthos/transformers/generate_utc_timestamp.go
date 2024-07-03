@@ -9,6 +9,8 @@ import (
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 )
 
+// +neosyncTransformerBuilder:generate:generateUTCTimestamp
+
 func init() {
 	spec := bloblang.NewPluginSpec()
 
@@ -24,6 +26,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateUTCTimestamp) Generate(opts any) (any, error) {
+	return generateRandomUTCTimestamp()
 }
 
 func generateRandomUTCTimestamp() (time.Time, error) {

@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:generate:generateInt64
 
 /*
 Integers can either be either put into non-numeric data types (varchar, text, integer) or numeric data types
@@ -59,6 +62,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateInt64) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateInt64Opts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomInt64(parsedOpts.randomizeSign, parsedOpts.min, parsedOpts.max)
 }
 
 /*

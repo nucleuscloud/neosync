@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:generate:generateCardNumber
 
 const defaultCCLength = 16
 const defaultIIN = 400000
@@ -33,6 +36,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateCardNumber) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateCardNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateCardNumber(parsedOpts.validLuhn)
 }
 
 // Generates a 16 digit card number that can pass a luhn check if the validLuhn param is set to true. Otherwise will generate a random 16 digit card number.
