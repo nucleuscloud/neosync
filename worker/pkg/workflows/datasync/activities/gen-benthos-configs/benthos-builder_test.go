@@ -3050,7 +3050,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		t,
 		strings.TrimSpace(`
 - mutation: root."email" = generate_email(max_length:40,email_type:"uuidv4")
-- javascript:
+- neosync_javascript:
     code: |4-
         (() => {
 
@@ -3298,7 +3298,7 @@ const output = { ...input };
 output["address"] = fn_address(input["address"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res[0].Javascript.Code,
+		res[0].NeosyncJavascript.Code,
 	)
 }
 
@@ -3338,7 +3338,7 @@ const output = { ...input };
 output["test"] = fn_test();
 benthos.v0_msg_set_structured(output);
 })();`,
-		res[0].Javascript.Code,
+		res[0].NeosyncJavascript.Code,
 	)
 }
 
@@ -3386,7 +3386,7 @@ const output = { ...input };
 output["name"] = fn_name(input["name"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res[0].Javascript.Code,
+		res[0].NeosyncJavascript.Code,
 	)
 }
 
@@ -3448,7 +3448,7 @@ output["name"] = fn_name(input["name"], input);
 output["age"] = fn_age(input["age"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res[0].Javascript.Code,
+		res[0].NeosyncJavascript.Code,
 	)
 }
 
@@ -3510,7 +3510,7 @@ output["name"] = fn_name(input["name"], input);
 output["test"] = fn_test();
 benthos.v0_msg_set_structured(output);
 })();`,
-		res[0].Javascript.Code,
+		res[0].NeosyncJavascript.Code,
 	)
 }
 
