@@ -13,7 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
-// +neosyncTransformerBuilder:generate:generateFloat
+// +neosyncTransformerBuilder:generate:generateFloat64
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -68,8 +68,8 @@ func init() {
 	}
 }
 
-func (t *GenerateFloat) Generate(opts any) (any, error) {
-	parsedOpts, ok := opts.(*GenerateFloatOpts)
+func (t *GenerateFloat64) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateFloat64Opts)
 	if !ok {
 		return nil, errors.New("invalid parse opts")
 	}

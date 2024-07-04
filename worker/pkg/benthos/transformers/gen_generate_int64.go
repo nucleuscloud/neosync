@@ -36,10 +36,10 @@ func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateInt64) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateInt64Opts{}
 
-	if _, ok := opts["randomizeSign"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInt64", "randomizeSign")
+	randomizeSign, ok := opts["randomizeSign"].(bool)
+	if !ok {
+		randomizeSign = false
 	}
-	randomizeSign := opts["randomizeSign"].(bool)
 	transformerOpts.randomizeSign = randomizeSign
 
 	if _, ok := opts["min"].(int64); !ok {

@@ -29,7 +29,7 @@ So we will need to understand what type of column the user is trying to insert t
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("randomize_sign")).
+		Param(bloblang.NewBoolParam("randomize_sign").Default(false)).
 		Param(bloblang.NewInt64Param("min")).
 		Param(bloblang.NewInt64Param("max")).
 		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))

@@ -12,9 +12,9 @@ import (
 	
 )
 
-type GenerateFloat struct{}
+type GenerateFloat64 struct{}
 
-type GenerateFloatOpts struct {
+type GenerateFloat64Opts struct {
 	randomizer     rng.Rand
 	
 	randomizeSign bool
@@ -24,19 +24,19 @@ type GenerateFloatOpts struct {
 	scale *int64
 }
 
-func NewGenerateFloat() *GenerateFloat {
-	return &GenerateFloat{}
+func NewGenerateFloat64() *GenerateFloat64 {
+	return &GenerateFloat64{}
 }
 
-func (t *GenerateFloat) GetJsTemplateData() (*TemplateData, error) {
+func (t *GenerateFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
-		Name: "generateFloat",
+		Name: "generateFloat64",
 		Description: "",
 	}, nil
 }
 
-func (t *GenerateFloat) ParseOptions(opts map[string]any) (any, error) {
-	transformerOpts := &GenerateFloatOpts{}
+func (t *GenerateFloat64) ParseOptions(opts map[string]any) (any, error) {
+	transformerOpts := &GenerateFloat64Opts{}
 
 	randomizeSign, ok := opts["randomizeSign"].(bool)
 	if !ok {
@@ -45,13 +45,13 @@ func (t *GenerateFloat) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts.randomizeSign = randomizeSign
 
 	if _, ok := opts["min"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat", "min")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "min")
 	}
 	min := opts["min"].(float64)
 	transformerOpts.min = min
 
 	if _, ok := opts["max"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat", "max")
+		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "max")
 	}
 	max := opts["max"].(float64)
 	transformerOpts.max = max
