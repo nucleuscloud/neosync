@@ -1111,6 +1111,65 @@ func Test_GetRunConfigs_HumanResources(t *testing.T) {
 	}
 }
 
+func Test_GetRunConfigs_SingleTable_WithFks(t *testing.T) {
+	emptyWhere := ""
+	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"public.countries": {
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
+		},
+		"public.departments": {
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
+		},
+		"public.dependents": {
+			{Columns: []string{"employee_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.employees": {
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
+		},
+		"public.locations": {
+			{Columns: []string{"country_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
+		},
+	}
+	primaryKeyMap := map[string][]string{
+		"public.regions":     {"region_id"},
+		"public.countries":   {"country_id"},
+		"public.locations":   {"location_id"},
+		"public.jobs":        {"job_id"},
+		"public.departments": {"department_id"},
+		"public.employees":   {"employee_id"},
+		"public.dependents":  {"dependent_id"},
+	}
+	tablesColMap := map[string][]string{
+		"public.employees": {
+			"employee_id",
+			"email",
+			"name",
+			"job_id",
+			"manager_id",
+			"department_id",
+		},
+	}
+
+	expect := []*RunConfig{
+		{Table: "public.employees", RunType: RunTypeInsert, PrimaryKeys: []string{"employee_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"employee_id", "email", "name", "job_id", "manager_id", "department_id"}, InsertColumns: []string{"employee_id", "email", "name", "job_id", "department_id"}, DependsOn: []*DependsOn{}},
+		{Table: "public.employees", RunType: RunTypeUpdate, PrimaryKeys: []string{"employee_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"employee_id", "manager_id"}, InsertColumns: []string{"manager_id"}, DependsOn: []*DependsOn{{Table: "public.employees", Columns: []string{"employee_id"}}}},
+	}
+
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
+	require.NoError(t, err)
+	for _, e := range expect {
+		acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+		require.NotNil(t, acutalConfig)
+		require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+		require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+		require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+		require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+		require.Equal(t, e.WhereClause, e.WhereClause)
+	}
+}
+
 func Test_GetRunConfigs_Complex_CircularDependency(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
