@@ -102,6 +102,18 @@ Create a `values.yaml` file.
 This is a very minimal install that basically configures the database and temporal, and redis.
 There are a number of other options which you'll need to consult the values files for the chart for more information.
 
+Each helmchart has a README that contains the full values spec.
+
+These can be found in the Github repo, and are also available via ArtifactHub.
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync)](https://artifacthub.io/packages/search?repo=neosync)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-api)](https://artifacthub.io/packages/search?repo=neosync-api)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-app)](https://artifacthub.io/packages/search?repo=neosync-app)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-worker)](https://artifacthub.io/packages/search?repo=neosync-worker)
+
 ```
 api:
   db:
