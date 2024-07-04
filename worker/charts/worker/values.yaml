@@ -87,7 +87,7 @@ temporal:
   # -- If not provided, falls back to hardcoded default value
   namespace:
   # -- If not provided, falls back to hardcoded default value
-  taskQueue:
+  taskQueue: sync-job
   certificate:
     # -- The location of the certificate key file
     keyFilePath:

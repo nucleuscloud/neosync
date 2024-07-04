@@ -189,7 +189,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |
 | worker.temporal.certificate.keyFilePath | string | `nil` | The location of the certificate key file |
 | worker.temporal.namespace | string | `nil` | If not provided, falls back to hardcoded default value |
-| worker.temporal.taskQueue | string | `nil` | If not provided, falls back to hardcoded default value |
+| worker.temporal.taskQueue | string | `"sync-job"` | If not provided, falls back to hardcoded default value |
 | worker.temporal.url | string | `"temporal.temporal:7233"` | The default value based on how Temporal manifests are by default configured. Change this based on your temporal configuration |
 | worker.terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | worker.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
