@@ -169,6 +169,11 @@ spec:
           #   - configMapRef:
           #       name: dev-config
           # {{- end }}
+
+      {{- if .Values.sidecarContainers }}
+      {{- toYaml .Values.sidecarContainers | nindent 8 }}
+      {{- end }}
+
   {{- if .Values.updateStrategy }}
   strategy:
     {{- toYaml .Values.updateStrategy | nindent 4 }}

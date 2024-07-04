@@ -87,6 +87,8 @@ auth:
   providerId:
   # -- The display name of the provider
   providerName:
+  # -- Whether or not to trust the external host (most likely want this to be true if running behind a load balancer)
+  trustHost: true
 
 # check out the ingress.yaml file to see what ither values are available for configuration on this object.
 ingress:
@@ -133,3 +135,6 @@ updateStrategy:
 
 # -- Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
+
+# -- Provide sidecars that will be appended directly to the deployment next to the user-container
+sidecarContainers: []

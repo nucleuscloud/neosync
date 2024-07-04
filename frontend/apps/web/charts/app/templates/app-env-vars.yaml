@@ -79,6 +79,8 @@ stringData:
 
     AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
 
+    AUTH_TRUST_HOST: {{ .Values.auth.trustHost | default "true" | quote }}
+
     NEOSYNC_ANALYTICS_ENABLED: {{ .Values.analytics.enabled | default "true" | quote }}
 
     {{ if and .Values.posthog .Values.posthog.key }}

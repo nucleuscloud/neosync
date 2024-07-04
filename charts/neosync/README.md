@@ -91,6 +91,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | api.servicePort | int | `80` | The K8s service port |
 | api.shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| api.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | api.temporal.certificate.certContents | string | `nil` | The full contents of the certificate. Provide this or the certFilePath, not both. |
 | api.temporal.certificate.certFilePath | string | `nil` | The location of the certificate file |
 | api.temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |
@@ -112,6 +113,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.auth.providerId | string | `nil` | The ID of the provider for your OIDC client. This can be anything |
 | app.auth.providerName | string | `nil` | The display name of the provider |
 | app.auth.scope | string | `nil` | The scopes that should be requested. Standard are "openid email profile offline_access" |
+| app.auth.trustHost | bool | `true` | Whether or not to trust the external host (most likely want this to be true if running behind a load balancer) |
 | app.containerPort | int | `3000` | The container port |
 | app.datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | app.disableGcpCloudStorageConnections | bool | `false` | Feature flag that will disable GCP Cloud Storage Connections from being visible. Note: This only disables the new connections form and is a temporary flag until authentication in the multi-tenant environment is better understood. |
@@ -143,6 +145,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | app.servicePort | int | `80` | The K8s service port |
 | app.shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| app.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | app.terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | app.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
 | app.updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
@@ -184,6 +187,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | worker.servicePort | int | `80` | The K8s service port |
 | worker.shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| worker.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | worker.temporal.certificate.certContents | string | `nil` | The full contents of the certificate. Provide this or the certFilePath, not both. |
 | worker.temporal.certificate.certFilePath | string | `nil` | The location of the certificate file |
 | worker.temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |

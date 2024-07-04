@@ -50,6 +50,7 @@ A Helm chart for the Neosync Temporal Worker
 | serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | servicePort | int | `80` | The K8s service port |
 | shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | temporal.certificate.certContents | string | `nil` | The full contents of the certificate. Provide this or the certFilePath, not both. |
 | temporal.certificate.certFilePath | string | `nil` | The location of the certificate file |
 | temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |

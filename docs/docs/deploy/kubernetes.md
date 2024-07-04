@@ -102,6 +102,18 @@ Create a `values.yaml` file.
 This is a very minimal install that basically configures the database and temporal, and redis.
 There are a number of other options which you'll need to consult the values files for the chart for more information.
 
+Each helm chart has a README that contains the full values spec.
+
+These can be found in the Github repo, and are also available via ArtifactHub.
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync)](https://artifacthub.io/packages/search?repo=neosync)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-api)](https://artifacthub.io/packages/search?repo=neosync-api)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-app)](https://artifacthub.io/packages/search?repo=neosync-app)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync-worker)](https://artifacthub.io/packages/search?repo=neosync-worker)
+
 ```
 api:
   db:
@@ -111,21 +123,24 @@ api:
     username: <user>
     password: <password>
   migrations:
+    # The values here should largely be the same as the API. The only different might be the username/password if you intend to separate the roles for the service and migration users.
     db:
       host: <db-host>
-      name: <db-name>
+      name: <db-name> # should be the same as the api.db.name value
       port: 5432
       username: <user>
       password: <password>
 
   temporal:
     url: <temporal-url>
-    namespace: <temporal-namespace>
+    defaultNamespace: <temporal-namespace>
+    defaultSyncJobQueue: <temporal-queue>
 
 worker:
   temporal:
     url: <temporal-url>
     namespace: <temporal-namespace>
+    taskQueue: <temporal-queue> # if provided a defaultSyncJobQueue for the API, this should be set to the same value
 
   # required if intending transform primary/foreign keys
   redis:
