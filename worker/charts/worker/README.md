@@ -56,7 +56,7 @@ A Helm chart for the Neosync Temporal Worker
 | temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |
 | temporal.certificate.keyFilePath | string | `nil` | The location of the certificate key file |
 | temporal.namespace | string | `nil` | If not provided, falls back to hardcoded default value |
-| temporal.taskQueue | string | `"sync-job"` | If not provided, falls back to hardcoded default value |
+| temporal.taskQueue | string | `nil` | If not provided, falls back to hardcoded default value |
 | temporal.url | string | `"temporal.temporal:7233"` | The default value based on how Temporal manifests are by default configured. Change this based on your temporal configuration |
 | terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | tolerations | list | `[]` | Any tolerations that should be applied to the deployment |

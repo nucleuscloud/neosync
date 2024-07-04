@@ -113,6 +113,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.auth.providerId | string | `nil` | The ID of the provider for your OIDC client. This can be anything |
 | app.auth.providerName | string | `nil` | The display name of the provider |
 | app.auth.scope | string | `nil` | The scopes that should be requested. Standard are "openid email profile offline_access" |
+| app.auth.trustHost | bool | `true` | Whether or not to trust the external host (most likely want this to be true if running behind a load balancer) |
 | app.containerPort | int | `3000` | The container port |
 | app.datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
 | app.disableGcpCloudStorageConnections | bool | `false` | Feature flag that will disable GCP Cloud Storage Connections from being visible. Note: This only disables the new connections form and is a temporary flag until authentication in the multi-tenant environment is better understood. |
@@ -192,7 +193,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | worker.temporal.certificate.keyContents | string | `nil` | The full contents of the key. Provide this or the keyFilePath, not both. |
 | worker.temporal.certificate.keyFilePath | string | `nil` | The location of the certificate key file |
 | worker.temporal.namespace | string | `nil` | If not provided, falls back to hardcoded default value |
-| worker.temporal.taskQueue | string | `"sync-job"` | If not provided, falls back to hardcoded default value |
+| worker.temporal.taskQueue | string | `nil` | If not provided, falls back to hardcoded default value |
 | worker.temporal.url | string | `"temporal.temporal:7233"` | The default value based on how Temporal manifests are by default configured. Change this based on your temporal configuration |
 | worker.terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | worker.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
