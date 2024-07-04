@@ -94,7 +94,7 @@ func serve(ctx context.Context) error {
 
 	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
 	if taskQueue == "" {
-		return errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+		taskQueue = "sync-job"
 	}
 
 	certificates, err := getTemporalAuthCertificate()
