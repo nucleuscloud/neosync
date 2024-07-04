@@ -52,6 +52,7 @@ A Helm chart for the Neosync App
 | serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | servicePort | int | `80` | The K8s service port |
 | shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
 | updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |

@@ -144,6 +144,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |
 | app.servicePort | int | `80` | The K8s service port |
 | app.shutdownTimeoutSeconds | string | `nil` | Not currently used |
+| app.sidecarContainers | list | `[]` | Provide sidecars that will be appended directly to the deployment next to the user-container |
 | app.terminationGracePeriodSeconds | string | `nil` | The amount of time in seconds to wait for the pod to shut down when a termination event has occurred. |
 | app.tolerations | list | `[]` | Any tolerations that should be applied to the deployment |
 | app.updateStrategy | string | `nil` | The strategy to use when rolling out new replicas |
