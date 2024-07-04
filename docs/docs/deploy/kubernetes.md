@@ -102,7 +102,7 @@ Create a `values.yaml` file.
 This is a very minimal install that basically configures the database and temporal, and redis.
 There are a number of other options which you'll need to consult the values files for the chart for more information.
 
-Each helmchart has a README that contains the full values spec.
+Each helm chart has a README that contains the full values spec.
 
 These can be found in the Github repo, and are also available via ArtifactHub.
 
