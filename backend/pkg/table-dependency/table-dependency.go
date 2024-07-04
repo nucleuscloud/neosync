@@ -65,13 +65,16 @@ func GetRunConfigs(
 		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
 		for _, constraint := range constraints {
-			if _, exists := foreignKeyColsMap[table][constraint.ForeignKey.Table]; !exists {
-				foreignKeyColsMap[table][constraint.ForeignKey.Table] = &ConstraintColumns{
-					NullableColumns:    []string{},
-					NonNullableColumns: []string{},
-				}
-			}
 			for idx, col := range constraint.ForeignKey.Columns {
+				if !checkTableHasCols([]string{table, constraint.ForeignKey.Table}, tableColumnsMap) {
+					continue
+				}
+				if _, exists := foreignKeyColsMap[table][constraint.ForeignKey.Table]; !exists {
+					foreignKeyColsMap[table][constraint.ForeignKey.Table] = &ConstraintColumns{
+						NullableColumns:    []string{},
+						NonNullableColumns: []string{},
+					}
+				}
 				notNullable := constraint.NotNullable[idx]
 				if notNullable {
 					foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns, col)
@@ -79,9 +82,7 @@ func GetRunConfigs(
 					foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns, col)
 				}
 				foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], col)
-				if checkTableHasCols([]string{table, constraint.ForeignKey.Table}, tableColumnsMap) {
-					filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
-				}
+				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
 			}
 		}
 	}
