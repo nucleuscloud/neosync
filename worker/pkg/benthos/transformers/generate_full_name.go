@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateFullName
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -38,6 +41,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateFullName) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateFullNameOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomFullName(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 
 /* Generates a random full name */

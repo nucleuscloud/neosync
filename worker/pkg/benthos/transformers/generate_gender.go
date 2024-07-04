@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateGender
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -39,6 +42,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateGender) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateGenderOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomGender(parsedOpts.randomizer, parsedOpts.abbreviate, parsedOpts.maxLength), nil
 }
 
 var genders = []string{"undefined", "nonbinary", "female", "male"}

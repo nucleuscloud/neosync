@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
@@ -9,8 +10,11 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:generate:generateCity
+
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -29,6 +33,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateCity) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateCityOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomCity(parsedOpts.maxLength)
 }
 
 // Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength. If not, it randomly generates a string that len(string) == maxLength

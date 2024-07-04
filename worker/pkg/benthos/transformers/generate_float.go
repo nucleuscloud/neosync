@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -11,6 +12,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
+
+// +neosyncTransformerBuilder:generate:generateFloat64
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -63,6 +66,22 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateFloat64) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateFloat64Opts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateRandomFloat64(
+		parsedOpts.randomizer,
+		parsedOpts.randomizeSign,
+		parsedOpts.min,
+		parsedOpts.max,
+		parsedOpts.precision,
+		parsedOpts.scale,
+	)
 }
 
 /* Generates a random float64 value within the interval [min, max]*/

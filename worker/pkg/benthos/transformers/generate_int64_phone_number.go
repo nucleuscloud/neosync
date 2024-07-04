@@ -8,6 +8,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
+// +neosyncTransformerBuilder:generate:generateInt64PhoneNumber
+
 var defaultPhoneNumberLength = int64(10)
 
 func init() {
@@ -26,6 +28,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateInt64PhoneNumber) Generate(opts any) (any, error) {
+	return generateRandomInt64PhoneNumber()
 }
 
 /* Generates a random 10 digit phone number with a valid US area code and returns it as an int64. */

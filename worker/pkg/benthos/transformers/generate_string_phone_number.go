@@ -1,11 +1,14 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:generate:generateStringPhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -34,6 +37,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateStringPhoneNumber) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateStringPhoneNumberOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateStringPhoneNumber(parsedOpts.min, parsedOpts.max)
 }
 
 /*  Generates a string phone number in the length interval [min, max] with the min length == 9 and the max length == 15.

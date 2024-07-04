@@ -1,11 +1,14 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
+
+// +neosyncTransformerBuilder:generate:generateRandomString
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -35,4 +38,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateRandomString) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateRandomStringOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return transformer_utils.GenerateRandomStringWithInclusiveBounds(parsedOpts.min, parsedOpts.max)
 }

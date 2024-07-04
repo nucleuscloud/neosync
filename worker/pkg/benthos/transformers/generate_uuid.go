@@ -1,12 +1,15 @@
 package transformers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/google/uuid"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 )
+
+// +neosyncTransformerBuilder:generate:generateUUID
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -26,6 +29,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (t *GenerateUUID) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateUUIDOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+
+	return generateUuid(parsedOpts.includeHyphens), nil
 }
 
 func generateUuid(includeHyphens bool) string {
