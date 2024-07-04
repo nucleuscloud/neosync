@@ -120,12 +120,14 @@ api:
 
   temporal:
     url: <temporal-url>
-    namespace: <temporal-namespace>
+    defaultNamespace: <temporal-namespace>
+    defaultSyncJobQueue: <temporal-queue>
 
 worker:
   temporal:
     url: <temporal-url>
     namespace: <temporal-namespace>
+    taskQueue: <temporal-queue>
 
   # required if intending transform primary/foreign keys
   redis:
