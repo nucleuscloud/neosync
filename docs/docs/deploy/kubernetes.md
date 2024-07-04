@@ -123,9 +123,10 @@ api:
     username: <user>
     password: <password>
   migrations:
+    # The values here should largely be the same as the API. The only different might be the username/password if you intend to separate the roles for the service and migration users.
     db:
       host: <db-host>
-      name: <db-name>
+      name: <db-name> # should be the same as the api.db.name value
       port: 5432
       username: <user>
       password: <password>
@@ -139,7 +140,7 @@ worker:
   temporal:
     url: <temporal-url>
     namespace: <temporal-namespace>
-    taskQueue: <temporal-queue>
+    taskQueue: <temporal-queue> # if provided a defaultSyncJobQueue for the API, this should be set to the same value
 
   # required if intending transform primary/foreign keys
   redis:
