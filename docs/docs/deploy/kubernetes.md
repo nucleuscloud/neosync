@@ -111,11 +111,12 @@ api:
     username: <user>
     password: <password>
   migrations:
-    host: <db-host>
-    name: <db-name>
-    port: 5432
-    username: <user>
-    password: <password>
+    db:
+      host: <db-host>
+      name: <db-name>
+      port: 5432
+      username: <user>
+      password: <password>
 
   temporal:
     url: <temporal-url>
