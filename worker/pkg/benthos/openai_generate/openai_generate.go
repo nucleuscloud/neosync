@@ -273,7 +273,7 @@ func ptr[T any](val T) *T {
 }
 
 func convertCsvToStructuredRecord(record, headers, types []string) (map[string]any, error) {
-	if len(record) != len(headers) && len(headers) != len(types) {
+	if len(record) != len(headers) && len(headers) != len(types) && len(record) != len(types) {
 		return nil, fmt.Errorf("error converting csv record to structured record, record headers and types not equivalent in length")
 	}
 	output := map[string]any{}
