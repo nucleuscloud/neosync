@@ -142,3 +142,6 @@ updateStrategy:
 
 # -- Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
+
+# -- Provide sidecars that will be appended directly to the deployment next to the user-container
+sidecarContainers: []
