@@ -8,12 +8,13 @@ import type {
 import { LongType, ScalarType } from '@bufbuild/protobuf';
 import type {
   GeneratedFile,
+  ImportSymbol,
   Printable,
   Schema,
 } from '@bufbuild/protoplugin/ecmascript';
 import { localName, reifyWkt } from '@bufbuild/protoplugin/ecmascript';
 import { getNonEditionRuntime } from './editions';
-import { generateFieldInfo, getFieldInfoLiteral } from './javascript';
+import { getFieldInfoLiteral } from './javascript';
 import { getFieldTypeInfo, getFieldZeroValueExpression } from './utils';
 
 export function generateTs(schema: Schema) {
@@ -23,9 +24,9 @@ export function generateTs(schema: Schema) {
     for (const enumeration of file.enums) {
       generateEnum(schema, f, enumeration);
     }
-    // for (const message of file.messages) {
-    //   generateMessage(schema, f, message);
-    // }
+    for (const message of file.messages) {
+      generateMessage(schema, f, message);
+    }
     // for (const extension of file.extensions) {
     //   generateExtension(schema, f, extension);
     // }
@@ -44,73 +45,144 @@ function generateEnum(schema: Schema, f: GeneratedFile, enumeration: DescEnum) {
 
 // prettier-ignore
 function generateMessage(schema: Schema, f: GeneratedFile, message: DescMessage) {
-  const protoN = getNonEditionRuntime(schema, message.file);
-  const {
-    PartialMessage,
-    FieldList,
-    Message,
-    PlainMessage,
-    BinaryReadOptions,
-    JsonReadOptions,
-    JsonValue
-  } = schema.runtime;
-  f.print(f.jsDoc(message));
-  f.print(f.exportDecl("class", message), " extends ", Message, "<", message, "> {");
-  for (const member of message.members) {
-    switch (member.kind) {
-      case "oneof":
-        generateOneof(schema, f, member);
-        break;
-      default:
-        generateField(schema, f, member);
-        break;
+    const zod = f.import('z', 'zod');
+
+    f.print(f.jsDoc(message));
+    f.print(
+      f.exportDecl('const', 'Zod_' + message.name),
+      ' = ',
+      zod,
+      `.object({`
+    );
+
+    for (const field of message.fields) {
+      // todo: handle repeated fields
+      const fieldType = getZodType(zod, field); // Helper function to determine the zod type
+      f.print(`  ${localName(field)}: `, ...fieldType, `,`);
     }
+
+    f.print('});');
     f.print();
-  }
-  f.print("  constructor(data?: ", PartialMessage, "<", message, ">) {");
-  f.print("    super();");
-  f.print("    ", protoN, ".util.initPartial(data, this);");
-  f.print("  }");
-  f.print();
-  generateWktMethods(schema, f, message);
-  f.print("  static readonly runtime: typeof ", protoN, " = ", protoN, ";");
-  f.print('  static readonly typeName = ', f.string(message.typeName), ';');
-  f.print("  static readonly fields: ", FieldList, " = ", protoN, ".util.newFieldList(() => [");
-  for (const field of message.fields) {
-    generateFieldInfo(schema, f, field);
-  }
-  f.print("  ]);")
-  // In case we start supporting options, we have to surface them here
-  //f.print("  static readonly options: { readonly [extensionName: string]: ", rt.JsonValue, " } = {};")
-  f.print();
-  generateWktStaticMethods(schema, f, message);
-  f.print("  static fromBinary(bytes: Uint8Array, options?: Partial<", BinaryReadOptions, ">): ", message, " {")
-  f.print("    return new ", message, "().fromBinary(bytes, options);")
-  f.print("  }")
-  f.print()
-  f.print("  static fromJson(jsonValue: ", JsonValue, ", options?: Partial<", JsonReadOptions, ">): ", message, " {")
-  f.print("    return new ", message, "().fromJson(jsonValue, options);")
-  f.print("  }")
-  f.print()
-  f.print("  static fromJsonString(jsonString: string, options?: Partial<", JsonReadOptions, ">): ", message, " {")
-  f.print("    return new ", message, "().fromJsonString(jsonString, options);")
-  f.print("  }")
-  f.print()
-  f.print("  static equals(a: ", message, " | ", PlainMessage, "<", message, "> | undefined, b: ", message, " | ", PlainMessage, "<", message, "> | undefined): boolean {")
-  f.print("    return ", protoN, ".util.equals(", message, ", a, b);")
-  f.print("  }")
-  f.print("}")
-  f.print()
-  for (const nestedEnum of message.nestedEnums) {
-    generateEnum(schema, f, nestedEnum);
-  }
-  for (const nestedMessage of message.nestedMessages) {
-    generateMessage(schema, f, nestedMessage);
-  }
-  for (const nestedExtension of message.nestedExtensions) {
-    generateExtension(schema, f, nestedExtension);
+  // const protoN = getNonEditionRuntime(schema, message.file);
+  // const {
+  //   PartialMessage,
+  //   FieldList,
+  //   Message,
+  //   PlainMessage,
+  //   BinaryReadOptions,
+  //   JsonReadOptions,
+  //   JsonValue
+  // } = schema.runtime;
+  // f.print(f.jsDoc(message));
+  // f.print(f.exportDecl("class", message), " extends ", Message, "<", message, "> {");
+  // for (const member of message.members) {
+  //   switch (member.kind) {
+  //     case "oneof":
+  //       generateOneof(schema, f, member);
+  //       break;
+  //     default:
+  //       generateField(schema, f, member);
+  //       break;
+  //   }
+  //   f.print();
+  // }
+  // f.print("  constructor(data?: ", PartialMessage, "<", message, ">) {");
+  // f.print("    super();");
+  // f.print("    ", protoN, ".util.initPartial(data, this);");
+  // f.print("  }");
+  // f.print();
+  // generateWktMethods(schema, f, message);
+  // f.print("  static readonly runtime: typeof ", protoN, " = ", protoN, ";");
+  // f.print('  static readonly typeName = ', f.string(message.typeName), ';');
+  // f.print("  static readonly fields: ", FieldList, " = ", protoN, ".util.newFieldList(() => [");
+  // for (const field of message.fields) {
+  //   generateFieldInfo(schema, f, field);
+  // }
+  // f.print("  ]);")
+  // // In case we start supporting options, we have to surface them here
+  // //f.print("  static readonly options: { readonly [extensionName: string]: ", rt.JsonValue, " } = {};")
+  // f.print();
+  // generateWktStaticMethods(schema, f, message);
+  // f.print("  static fromBinary(bytes: Uint8Array, options?: Partial<", BinaryReadOptions, ">): ", message, " {")
+  // f.print("    return new ", message, "().fromBinary(bytes, options);")
+  // f.print("  }")
+  // f.print()
+  // f.print("  static fromJson(jsonValue: ", JsonValue, ", options?: Partial<", JsonReadOptions, ">): ", message, " {")
+  // f.print("    return new ", message, "().fromJson(jsonValue, options);")
+  // f.print("  }")
+  // f.print()
+  // f.print("  static fromJsonString(jsonString: string, options?: Partial<", JsonReadOptions, ">): ", message, " {")
+  // f.print("    return new ", message, "().fromJsonString(jsonString, options);")
+  // f.print("  }")
+  // f.print()
+  // f.print("  static equals(a: ", message, " | ", PlainMessage, "<", message, "> | undefined, b: ", message, " | ", PlainMessage, "<", message, "> | undefined): boolean {")
+  // f.print("    return ", protoN, ".util.equals(", message, ", a, b);")
+  // f.print("  }")
+  // f.print("}")
+  // f.print()
+  // for (const nestedEnum of message.nestedEnums) {
+  //   generateEnum(schema, f, nestedEnum);
+  // }
+  // for (const nestedMessage of message.nestedMessages) {
+  //   generateMessage(schema, f, nestedMessage);
+  // }
+  // for (const nestedExtension of message.nestedExtensions) {
+  //   generateExtension(schema, f, nestedExtension);
+  // }
+}
+
+// nick code
+
+// Helper function to map proto field types to zod types
+function getZodType(zod: ImportSymbol, field: DescField): Printable[] {
+  switch (field.fieldKind) {
+    case 'scalar':
+      return [zod, '.', `${getZodScalarType(field.scalar)}()`];
+    case 'enum':
+      return [`Zod_`, field.enum.name];
+    // todo: dedupe message properties and write nested z.object() directly
+    // for oneOf messages, they should be lazily evaluated
+    case 'message':
+      return [`Zod_`, field.message.name]; // todo: need to figure out how to order these correctly
+    // return [`lazy(() => new `, field.message, '())']; // Handle nested messages lazily
+    case 'map': // todo
+      // return `${zod}.map(${getZodScalarType(field.mapKey)}, ${getZodType(field.mapValue)})`;
+      // case 'repeated':
+      //   return `${zod}.array(${getZodType(field.repeated)})`;
+      return [zod, '.', `any()`];
+    default:
+      return [zod, '.', `any()`];
   }
 }
+
+// Helper function to map scalar types to zod types
+function getZodScalarType(scalar: ScalarType): string {
+  switch (scalar) {
+    case ScalarType.DOUBLE:
+    case ScalarType.FLOAT:
+    case ScalarType.INT64:
+    case ScalarType.UINT64:
+    case ScalarType.INT32:
+    case ScalarType.FIXED64:
+    case ScalarType.FIXED32:
+    case ScalarType.UINT32:
+    case ScalarType.SFIXED32:
+    case ScalarType.SFIXED64:
+    case ScalarType.SINT32:
+    case ScalarType.SINT64:
+      return 'number';
+    case ScalarType.BOOL:
+      return 'boolean';
+    case ScalarType.STRING:
+      return 'string';
+    case ScalarType.BYTES:
+      return 'any'; // Zod does not have a direct mapping for bytes, you can customize as needed
+    default:
+      return 'any'; // Default to 'any' for unsupported or complex types
+  }
+}
+
+// end nice code
 
 // prettier-ignore
 function generateOneof(schema: Schema, f: GeneratedFile, oneof: DescOneof) {
