@@ -35,26 +35,10 @@ export function generateTs(schema: Schema) {
 
 // prettier-ignore
 function generateEnum(schema: Schema, f: GeneratedFile, enumeration: DescEnum) {
-  const protoN = getNonEditionRuntime(schema, enumeration.file);
-  f.print(f.jsDoc(enumeration));
   const zod = f.import('z', 'zod');
 
+  f.print(f.jsDoc(enumeration));
   f.print(f.exportDecl("const", "Zod_" + enumeration.name), " = ", zod, `.nativeEnum(`, enumeration, `)`);
-  // f.print(f.exportDecl("enum", enumeration), " {");
-  // for (const value of enumeration.values) {
-  //   if (enumeration.values.indexOf(value) > 0) {
-  //     f.print();
-  //   }
-  //   f.print(f.jsDoc(value, "  "));
-  //   f.print("  ", localName(value), " = ", value.number, ",");
-  // }
-  // f.print("}");
-  // f.print("// Retrieve enum metadata with: ", enumeration.file.syntax, ".getEnumType(", enumeration, ")");
-  // f.print(protoN, `.util.setEnumType(`, enumeration, `, "`, enumeration.typeName, `", [`);
-  // for (const value of enumeration.values) {
-  //   f.print("  { no: ", value.number, ', name: "', value.name, '" },');
-  // }
-  // f.print("]);");
   f.print();
 }
 
