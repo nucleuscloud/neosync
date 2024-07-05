@@ -120,12 +120,12 @@ function generateMessage(schema: Schema, f: GeneratedFile, message: DescMessage)
   // f.print("  }")
   // f.print("}")
   // f.print()
-  // for (const nestedEnum of message.nestedEnums) {
-  //   generateEnum(schema, f, nestedEnum);
-  // }
-  // for (const nestedMessage of message.nestedMessages) {
-  //   generateMessage(schema, f, nestedMessage);
-  // }
+  for (const nestedEnum of message.nestedEnums) {
+    generateEnum(schema, f, nestedEnum);
+  }
+  for (const nestedMessage of message.nestedMessages) {
+    generateMessage(schema, f, nestedMessage);
+  }
   // for (const nestedExtension of message.nestedExtensions) {
   //   generateExtension(schema, f, nestedExtension);
   // }
