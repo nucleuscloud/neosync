@@ -19,13 +19,23 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./zod": {
+      "import": {
+        "types": "./dist/zod/index.d.ts",
+        "default": "./dist/zod/index.js"
+      },
+      "require": {
+        "types": "./dist/zod/index.d.cts",
+        "default": "./dist/zod/index.cjs"
+      }
     }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts src/zod.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/zod.ts --format esm,cjs --dts --watch",
     "lint": "eslint 'src/**/*.{js,ts,tsx}'",
     "typecheck": "tsc --noEmit"
   },
@@ -38,6 +48,9 @@
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
     "@connectrpc/connect": "^1.4.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.23.8"
   },
   "repository": {
     "type": "git",
