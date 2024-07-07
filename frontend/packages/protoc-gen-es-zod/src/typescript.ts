@@ -55,10 +55,18 @@ function generateMessage(schema: Schema, f: GeneratedFile, message: DescMessage)
       `.object({`
     );
 
-    for (const field of message.fields) {
+    for (const member of message.members) {
       // todo: handle repeated fields
-      const fieldType = getZodType(zod, field); // Helper function to determine the zod type
-      f.print(`  ${localName(field)}: `, ...fieldType, `,`);
+      if (member.kind === 'oneof') {
+        // todo: handle oneof generation
+        // for (const field of message.fields) {
+        //   const fieldType = getZodType(zod, field); // Helper function to determine the zod type
+        //   f.print(`  ${localName(member)}: `, ...fieldType, `,`);
+        // }
+      } else {
+        const fieldType = getZodType(f, zod, member); // Helper function to determine the zod type
+        f.print(`  ${localName(member)}: `, ...fieldType, `,`);
+      }
     }
 
     f.print('});');
@@ -134,32 +142,52 @@ function generateMessage(schema: Schema, f: GeneratedFile, message: DescMessage)
 // nick code
 
 // Helper function to map proto field types to zod types
-function getZodType(zod: ImportSymbol, field: DescField): Printable[] {
+function getZodType(
+  f: GeneratedFile,
+  zod: ImportSymbol,
+  field: DescField
+): Printable[] {
+  // todo: all protos are optional, but when a proto is marked as optional, should we do something more specific?
   switch (field.fieldKind) {
-    case 'scalar':
-      return [zod, '.', `${getZodScalarType(field.scalar)}()`];
-    case 'enum':
-      return [`Zod_`, field.enum.name];
-    // todo: dedupe message properties and write nested z.object() directly
-    // for oneOf messages, they should be lazily evaluated
-    case 'message':
-      return [`Zod_`, field.message.name]; // todo: need to figure out how to order these correctly
-    // return [`lazy(() => new `, field.message, '())']; // Handle nested messages lazily
-    case 'map': // todo
-      // return `${zod}.map(${getZodScalarType(field.mapKey)}, ${getZodType(field.mapValue)})`;
-      // case 'repeated':
-      //   return `${zod}.array(${getZodType(field.repeated)})`;
-      return [zod, '.', `any()`];
+    case 'scalar': {
+      const output = getZodScalarType(zod, field.scalar);
+      if (field.repeated) {
+        output.push(`.array()`);
+      }
+      return output;
+    }
+    case 'enum': {
+      const output = [zod, '.lazy(() => ', `Zod_`, field.enum.name];
+      if (field.repeated) {
+        output.push('.array()');
+      }
+      output.push(')');
+      return output;
+    }
+    case 'message': {
+      const output = [zod, '.lazy(() => ', `Zod_`, field.message.name];
+      if (field.repeated) {
+        output.push('.array()');
+      }
+      output.push(')');
+      return output;
+    }
+    case 'map':
+      return [
+        zod,
+        `.map(`,
+        zod,
+        `.${getZodMapKeyType(field.mapKey)}, `,
+        ...getZodMapValueType(zod, field.mapValue),
+        `)`,
+      ];
     default:
       return [zod, '.', `any()`];
   }
 }
 
-// Helper function to map scalar types to zod types
-function getZodScalarType(scalar: ScalarType): string {
-  switch (scalar) {
-    case ScalarType.DOUBLE:
-    case ScalarType.FLOAT:
+function getZodMapKeyType(key: DescField['mapKey']): string {
+  switch (key) {
     case ScalarType.INT64:
     case ScalarType.UINT64:
     case ScalarType.INT32:
@@ -175,10 +203,54 @@ function getZodScalarType(scalar: ScalarType): string {
       return 'boolean';
     case ScalarType.STRING:
       return 'string';
-    case ScalarType.BYTES:
-      return 'any'; // Zod does not have a direct mapping for bytes, you can customize as needed
     default:
       return 'any'; // Default to 'any' for unsupported or complex types
+  }
+}
+
+function getZodMapValueType(
+  zod: ImportSymbol,
+  value: DescField['mapValue']
+): Printable[] {
+  switch (value?.kind) {
+    case 'enum': {
+      return [zod, '.lazy(() => ', `Zod_`, value.enum.name, ')'];
+    }
+    case 'message': {
+      return [zod, '.lazy(() => ', `Zod_`, value.message.name, ')'];
+    }
+    case 'scalar': {
+      return [...getZodScalarType(zod, value.scalar)];
+    }
+  }
+  return [zod, '.any()'];
+}
+
+// Helper function to map scalar types to zod types
+function getZodScalarType(zod: ImportSymbol, scalar: ScalarType): Printable[] {
+  switch (scalar) {
+    case ScalarType.DOUBLE:
+    case ScalarType.FLOAT:
+    case ScalarType.INT32:
+    case ScalarType.FIXED32:
+    case ScalarType.UINT32:
+    case ScalarType.SFIXED32:
+    case ScalarType.SINT32:
+      return [zod, '.', 'number()', '.', 'int()'];
+    case ScalarType.FIXED64:
+    case ScalarType.INT64:
+    case ScalarType.SFIXED64:
+    case ScalarType.SINT64:
+    case ScalarType.UINT64:
+      return [zod, '.', 'bigint()'];
+    case ScalarType.BOOL:
+      return [zod, '.', 'boolean()'];
+    case ScalarType.STRING:
+      return [zod, '.', 'string()'];
+    case ScalarType.BYTES:
+      return [zod, '.', 'any()']; // Zod does not have a direct mapping for bytes, you can customize as needed
+    default:
+      return [zod, '.', 'any()']; // Default to 'any' for unsupported or complex types
   }
 }
 
