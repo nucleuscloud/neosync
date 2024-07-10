@@ -31,20 +31,23 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { useQuery } from '@connectrpc/connect-query';
-import { AccountInvite, getTeamAccountInvites } from '@neosync/sdk';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  AccountInvite,
+  deleteAccountApiKey,
+  getTeamAccountInvites,
+} from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import InviteUserForm, { buildInviteLink } from './InviteUserForm';
 
 interface ColumnProps {
   onDeleted(id: string): void;
-  accountId: string;
 }
 
 function getColumns(
   props: ColumnProps
 ): ColumnDef<PlainMessage<AccountInvite>>[] {
-  const { onDeleted, accountId } = props;
+  const { onDeleted } = props;
   return [
     {
       accessorKey: 'email',
@@ -84,7 +87,6 @@ function getColumns(
           <div className="flex flex-row gap-2">
             <CopyInviteButton token={row.original.token} />
             <DeleteInviteButton
-              accountId={accountId}
               onDeleted={onDeleted}
               inviteId={row.original.id}
             />
@@ -136,10 +138,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const columns = React.useMemo(
-    () => getColumns({ accountId, onDeleted }),
-    [accountId]
-  );
+  const columns = React.useMemo(() => getColumns({ onDeleted }), []);
 
   const table = useReactTable({
     data,
@@ -230,19 +229,15 @@ function DataTable(props: DataTableProps): React.ReactElement {
 interface DeleteInviteButtonProps {
   inviteId: string;
   onDeleted(id: string): void;
-  accountId: string;
 }
 
-function DeleteInviteButton({
-  inviteId,
-  onDeleted,
-  accountId,
-}: DeleteInviteButtonProps) {
+function DeleteInviteButton({ inviteId, onDeleted }: DeleteInviteButtonProps) {
   const { toast } = useToast();
+  const { mutateAsync } = useMutation(deleteAccountApiKey);
 
   async function onRemove(): Promise<void> {
     try {
-      await deleteAccountInvite(accountId, inviteId);
+      await mutateAsync({ id: inviteId });
       toast({
         title: 'Invite deleted successfully!',
       });
@@ -287,21 +282,4 @@ function CopyInviteButton({ token }: CopyInviteButtonProps) {
       onHoverText="Copy the invite link"
     />
   );
-}
-
-async function deleteAccountInvite(
-  accountId: string,
-  inviteId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/users/accounts/${accountId}/invites?id=${inviteId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }
