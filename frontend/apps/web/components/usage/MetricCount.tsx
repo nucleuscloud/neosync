@@ -1,8 +1,5 @@
-import {
-  MetricIdentifierType,
-  useGetMetricCount,
-} from '@/libs/hooks/useGetMetricCount';
-import { RangedMetricName } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import { getMetricCount, RangedMetricName } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useAccount } from '../providers/account-provider';
 import {
@@ -13,7 +10,12 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
-import { UsagePeriod, dateToNeoDate, periodToDateRange } from './util';
+import {
+  dateToNeoDate,
+  MetricIdentifierType,
+  periodToDateRange,
+  UsagePeriod,
+} from './util';
 
 interface Props {
   period: UsagePeriod;
@@ -26,13 +28,25 @@ export default function MetricCount(props: Props): ReactElement {
   const { period, metric, identifier, idtype } = props;
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);
-  const { data: metricCountData, isLoading } = useGetMetricCount(
-    account?.id ?? '',
-    dateToNeoDate(start),
-    dateToNeoDate(end),
-    metric,
-    idtype,
-    identifier
+  const { data: metricCountData, isLoading } = useQuery(
+    getMetricCount,
+    {
+      metric,
+      startDay: dateToNeoDate(start),
+      endDay: dateToNeoDate(end),
+      identifier:
+        idtype === 'accountId'
+          ? { case: 'accountId', value: identifier }
+          : idtype === 'jobId'
+            ? { case: 'jobId', value: identifier }
+            : idtype === 'runId'
+              ? { case: 'runId', value: identifier }
+              : undefined,
+    },
+    {
+      enabled:
+        !!metric && !!account?.id && !!identifier && !!idtype && !!period,
+    }
   );
 
   if (isLoading) {
