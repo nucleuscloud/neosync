@@ -13,16 +13,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountTemporalConfig } from '@/libs/hooks/useGetAccountTemporalConfig';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   AccountTemporalConfig,
+  getAccountTemporalConfig,
   GetAccountTemporalConfigResponse,
+  setAccountTemporalConfig,
   SetAccountTemporalConfigRequest,
   SetAccountTemporalConfigResponse,
 } from '@neosync/sdk';
+import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -42,15 +49,16 @@ export default function Temporal(): ReactElement {
     useGetSystemAppConfig();
   const {
     data: tcData,
-    mutate: mutateTcData,
     isLoading: isTemporalConfigLoading,
-  } = useGetAccountTemporalConfig(
-    !isSystemAppConfigDataLoading &&
-      !!account?.id &&
-      !systemAppConfigData?.isNeosyncCloud
-      ? account.id
-      : ''
+    refetch,
+  } = useQuery(
+    getAccountTemporalConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
   );
+  const { mutateAsync } = useMutation(setAccountTemporalConfig);
+  const queryclient = useQueryClient();
+
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues: {
@@ -70,11 +78,20 @@ export default function Temporal(): ReactElement {
       return;
     }
     try {
-      const updateResp = await setTemporalConfig(account.id, values);
-      mutateTcData(
-        new GetAccountTemporalConfigResponse({
-          config: updateResp.config,
-        })
+      const updatedResp = await mutateAsync({
+        accountId: account.id,
+        config: new AccountTemporalConfig({
+          namespace: values.namespace,
+          syncJobQueueName: values.syncJobName,
+          url: values.temporalUrl,
+        }),
+      });
+      const key = createConnectQueryKey(getAccountTemporalConfig, {
+        accountId: account.id,
+      });
+      queryclient.setQueryData(
+        key,
+        new GetAccountTemporalConfigResponse({ config: updatedResp.config })
       );
       toast({
         title: 'Successfully updated temporal config',
