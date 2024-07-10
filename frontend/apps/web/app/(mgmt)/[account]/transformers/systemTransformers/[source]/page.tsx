@@ -17,13 +17,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
 import {
   getTransformerDataTypesString,
   getTransformerSourceString,
 } from '@/util/util';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
-import { TransformerSource } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import { getSystemTransformerBySource, TransformerSource } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -41,8 +41,11 @@ export default function ViewSystemTransformers({
   params,
 }: PageProps): ReactElement {
   const sourceParam = getTransformerSource(params?.source ?? '');
-  const { data: systemTransformerData, isLoading } =
-    useGetSystemTransformerBySource(sourceParam);
+  const { data: systemTransformerData, isLoading } = useQuery(
+    getSystemTransformerBySource,
+    { source: sourceParam },
+    { enabled: !!sourceParam }
+  );
   const { account } = useAccount();
   const systemTransformer = systemTransformerData?.transformer;
 
