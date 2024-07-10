@@ -47,11 +47,7 @@ export default function Temporal(): ReactElement {
   const { account } = useAccount();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
-  const {
-    data: tcData,
-    isLoading: isTemporalConfigLoading,
-    refetch,
-  } = useQuery(
+  const { data: tcData, isLoading: isTemporalConfigLoading } = useQuery(
     getAccountTemporalConfig,
     { accountId: account?.id ?? '' },
     { enabled: !!account?.id }
