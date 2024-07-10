@@ -35,10 +35,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountMembers } from '@/libs/hooks/useGetAccountMembers';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { AccountUser } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import { AccountUser, getTeamAccountMembers } from '@neosync/sdk';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 
 interface ColumnProps {
@@ -95,7 +95,11 @@ interface Props {
 
 export default function MembersTable(props: Props) {
   const { accountId } = props;
-  const { data, isLoading, mutate } = useGetAccountMembers(accountId || '');
+  const { data, isLoading, refetch } = useQuery(
+    getTeamAccountMembers,
+    { accountId: accountId },
+    { enabled: !!accountId }
+  );
   if (isLoading) {
     return <SkeletonTable />;
   }
@@ -103,7 +107,7 @@ export default function MembersTable(props: Props) {
     <DataTable
       data={data?.users || []}
       accountId={accountId}
-      onDeleted={() => mutate()}
+      onDeleted={() => refetch()}
     />
   );
 }

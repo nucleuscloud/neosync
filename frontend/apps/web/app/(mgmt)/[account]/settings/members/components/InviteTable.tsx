@@ -28,11 +28,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountInvites } from '@/libs/hooks/useGetAccountInvites';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { AccountInvite } from '@neosync/sdk';
+import { useQuery } from '@connectrpc/connect-query';
+import { AccountInvite, getTeamAccountInvites } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import InviteUserForm, { buildInviteLink } from './InviteUserForm';
 
@@ -101,7 +101,11 @@ interface Props {
 
 export function InvitesTable(props: Props) {
   const { accountId } = props;
-  const { data, isLoading, mutate } = useGetAccountInvites(accountId);
+  const { data, isLoading, refetch } = useQuery(
+    getTeamAccountInvites,
+    { accountId: accountId },
+    { enabled: !!accountId }
+  );
   if (isLoading) {
     return <SkeletonTable />;
   }
@@ -110,8 +114,8 @@ export function InvitesTable(props: Props) {
     <DataTable
       data={data?.invites || []}
       accountId={accountId}
-      onDeleted={() => mutate()}
-      onSubmit={() => mutate()}
+      onDeleted={() => refetch()}
+      onSubmit={() => refetch()}
     />
   );
 }
