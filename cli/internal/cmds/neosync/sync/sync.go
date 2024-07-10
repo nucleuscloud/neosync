@@ -265,7 +265,6 @@ func sync(
 	cmd *cmdConfig,
 ) error {
 	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportCaller:    false,
 		ReportTimestamp: true,
 	})
 	logger.Info("Starting sync")
