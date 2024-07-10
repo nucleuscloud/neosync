@@ -24,17 +24,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectTrigger } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  CreateUserDefinedTransformerRequest,
-  CreateUserDefinedTransformerResponse,
+  createUserDefinedTransformer,
+  getSystemTransformers,
   SystemTransformer,
   TransformerConfig,
   TransformerSource,
@@ -61,7 +61,7 @@ function getTransformerSource(sourceStr: string): TransformerSource {
 export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
-  const { data, isLoading } = useGetSystemTransformers();
+  const { data, isLoading } = useQuery(getSystemTransformers);
   const transformers = data?.transformers ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
@@ -85,6 +85,7 @@ export default function NewTransformer(): ReactElement {
   });
 
   const router = useRouter();
+  const { mutateAsync } = useMutation(createUserDefinedTransformer);
 
   async function onSubmit(
     values: CreateUserDefinedTransformerSchema
@@ -93,7 +94,15 @@ export default function NewTransformer(): ReactElement {
       return;
     }
     try {
-      const transformer = await createNewTransformer(account.id, values);
+      const transformer = await mutateAsync({
+        accountId: account.id,
+        name: values.name,
+        description: values.description,
+        source: values.source,
+        transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
+          values.config
+        ),
+      });
       posthog.capture('New Transformer Created', {
         source: values.source,
         sourceName: transformers.find((t) => t.source === values.source)?.name,
@@ -267,35 +276,4 @@ export default function NewTransformer(): ReactElement {
       </Form>
     </OverviewContainer>
   );
-}
-
-async function createNewTransformer(
-  accountId: string,
-  formData: CreateUserDefinedTransformerSchema
-): Promise<CreateUserDefinedTransformerResponse> {
-  const body = new CreateUserDefinedTransformerRequest({
-    accountId: accountId,
-    name: formData.name,
-    description: formData.description,
-    source: formData.source,
-    transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
-      formData.config
-    ),
-  });
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateUserDefinedTransformerResponse.fromJson(await res.json());
 }
