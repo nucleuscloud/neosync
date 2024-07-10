@@ -26,8 +26,6 @@ import {
   getAccountTemporalConfig,
   GetAccountTemporalConfigResponse,
   setAccountTemporalConfig,
-  SetAccountTemporalConfigRequest,
-  SetAccountTemporalConfigResponse,
 } from '@neosync/sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
@@ -175,38 +173,11 @@ export default function Temporal(): ReactElement {
               )}
             />
           </div>
-          <div className=" flex justify-end">
+          <div className="flex justify-end">
             <Button type="submit">Submit</Button>
           </div>
         </form>
       </Form>
     </div>
   );
-}
-
-async function setTemporalConfig(
-  accountId: string,
-  values: FormValues
-): Promise<SetAccountTemporalConfigResponse> {
-  const res = await fetch(`/api/users/accounts/${accountId}/temporal-config`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new SetAccountTemporalConfigRequest({
-        accountId,
-        config: new AccountTemporalConfig({
-          namespace: values.namespace,
-          syncJobQueueName: values.syncJobName,
-          url: values.temporalUrl,
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetAccountTemporalConfigResponse.fromJson(await res.json());
 }
