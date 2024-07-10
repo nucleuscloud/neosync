@@ -12,7 +12,9 @@ import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
+import { validateUserJavascriptCode } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
@@ -21,10 +23,7 @@ import {
   CreateUserDefinedTransformerSchema,
   UpdateUserDefinedTransformer,
 } from '../schema';
-import {
-  IsUserJavascriptCodeValid,
-  ValidCode,
-} from './UserDefinedTransformJavascriptForm';
+import { ValidCode } from './UserDefinedTransformJavascriptForm';
 
 interface Props {
   isDisabled?: boolean;
@@ -53,7 +52,10 @@ export default function UserDefinedGenerateJavascriptForm(
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
 
-  const account = useAccount();
+  const { account } = useAccount();
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -62,10 +64,10 @@ export default function UserDefinedGenerateJavascriptForm(
     setIsValidatingCode(true);
 
     try {
-      const res = await IsUserJavascriptCodeValid(
-        userCode,
-        account.account?.id ?? ''
-      );
+      const res = await validateUserJsCodeAsync({
+        accountId: account.id,
+        code: userCode,
+      });
       setIsValidatingCode(false);
       if (res.valid === true) {
         setIsCodeValid('valid');

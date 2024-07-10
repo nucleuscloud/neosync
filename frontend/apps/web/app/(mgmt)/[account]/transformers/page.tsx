@@ -6,8 +6,11 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
+import { useQuery } from '@connectrpc/connect-query';
+import {
+  getSystemTransformers,
+  getUserDefinedTransformers,
+} from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
@@ -54,13 +57,19 @@ interface TransformersTableProps {
 
 function TransformersTable(props: TransformersTableProps): ReactElement {
   const { defaultTab } = props;
-  const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
+  const { data, isLoading: isSystemTransformersLoading } = useQuery(
+    getSystemTransformers
+  );
   const { account } = useAccount();
   const {
     data: udTransformers,
     isLoading: userDefinedTransformersLoading,
-    mutate: userDefinedTransformerMutate,
-  } = useGetUserDefinedTransformers(account?.id ?? '');
+    refetch: userDefinedTransformerRefetch,
+  } = useQuery(
+    getUserDefinedTransformers,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
 
   const systemTransformers = data?.transformers ?? [];
   const userDefinedTransformers = udTransformers?.transformers ?? [];
@@ -78,14 +87,14 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
     () =>
       getUserDefinedTransformerColumns({
         onTransformerDeleted() {
-          userDefinedTransformerMutate();
+          userDefinedTransformerRefetch();
         },
         accountName: account?.name ?? '',
       }),
     [account?.name]
   );
 
-  if (transformersIsLoading || userDefinedTransformersLoading) {
+  if (isSystemTransformersLoading || userDefinedTransformersLoading) {
     return <SkeletonTable />;
   }
 

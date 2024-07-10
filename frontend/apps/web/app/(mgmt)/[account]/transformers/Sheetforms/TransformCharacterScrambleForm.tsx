@@ -16,15 +16,16 @@ import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformCharacterScramble } from '@neosync/sdk';
+import {
+  TransformCharacterScramble,
+  validateUserRegexCode,
+} from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  ValidRegex,
-  ValidateUserRegex,
-} from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformCharacterScrambleForm';
+import { ValidRegex } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformCharacterScrambleForm';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformCharacterScramble> {}
@@ -46,7 +47,10 @@ export default function TransformCharacterScrambleForm(
 
   const [isValidating, setIsValidating] = useState(false);
   const [status, setStatus] = useState<ValidRegex>('null');
-  const account = useAccount();
+  const { account } = useAccount();
+  const { mutateAsync: validateUserRegexCodeAsync } = useMutation(
+    validateUserRegexCode
+  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -55,10 +59,10 @@ export default function TransformCharacterScrambleForm(
     setIsValidating(true);
 
     try {
-      const res = await ValidateUserRegex(
-        form.getValues('userProvidedRegex') ?? '',
-        account.account?.id ?? ''
-      );
+      const res = await validateUserRegexCodeAsync({
+        accountId: account.id,
+        userProvidedRegex: form.getValues('userProvidedRegex') ?? '',
+      });
       if (res.valid === true) {
         setStatus('valid');
       } else {

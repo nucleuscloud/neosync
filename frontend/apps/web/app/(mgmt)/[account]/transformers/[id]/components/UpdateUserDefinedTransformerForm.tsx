@@ -23,10 +23,10 @@ import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  UpdateUserDefinedTransformerRequest,
-  UpdateUserDefinedTransformerResponse,
+  updateUserDefinedTransformer,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import NextLink from 'next/link';
@@ -55,17 +55,21 @@ export default function UpdateUserDefinedTransformerForm(
     },
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });
+  const { mutateAsync } = useMutation(updateUserDefinedTransformer);
 
   async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
-    if (!account) {
+    if (!account || !currentTransformer) {
       return;
     }
     try {
-      const transformer = await updateCustomTransformer(
-        account?.id ?? '',
-        currentTransformer?.id ?? '',
-        values
-      );
+      const transformer = await mutateAsync({
+        transformerId: currentTransformer.id,
+        description: values.description,
+        name: values.name,
+        transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
+          values.config
+        ),
+      });
       toast({
         title: 'Successfully updated transformer!',
         variant: 'success',
@@ -160,35 +164,4 @@ export default function UpdateUserDefinedTransformerForm(
       </form>
     </Form>
   );
-}
-
-async function updateCustomTransformer(
-  accountId: string,
-  transformerId: string,
-  formData: UpdateUserDefinedTransformer
-): Promise<UpdateUserDefinedTransformerResponse> {
-  const body = new UpdateUserDefinedTransformerRequest({
-    transformerId: transformerId,
-    name: formData.name,
-    description: formData.description,
-    transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
-      formData.config
-    ),
-  });
-
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateUserDefinedTransformerResponse.fromJson(await res.json());
 }

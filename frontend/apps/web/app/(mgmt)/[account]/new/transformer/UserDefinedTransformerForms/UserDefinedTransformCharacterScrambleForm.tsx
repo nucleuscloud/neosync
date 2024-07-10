@@ -12,13 +12,11 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  ValidateUserRegexCodeRequest,
-  ValidateUserRegexCodeResponse,
-} from '@neosync/sdk';
+import { validateUserRegexCode } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 
 import { Button } from '@/components/ui/button';
+import { useMutation } from '@connectrpc/connect-query';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
@@ -47,7 +45,10 @@ export default function UserDefinedTransformCharacterScrambleForm(
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
   const [isRegexValid, setIsRegexValid] = useState<ValidRegex>('null');
 
-  const account = useAccount();
+  const { account } = useAccount();
+  const { mutateAsync: validateUserRegexCodeAsync } = useMutation(
+    validateUserRegexCode
+  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -56,7 +57,10 @@ export default function UserDefinedTransformCharacterScrambleForm(
     setIsValidatingRegex(true);
 
     try {
-      const res = await ValidateUserRegex(userRegex, account.account?.id ?? '');
+      const res = await validateUserRegexCodeAsync({
+        accountId: account.id,
+        userProvidedRegex: userRegex,
+      });
       setIsValidatingRegex(false);
       if (res.valid === true) {
         setIsRegexValid('valid');
@@ -127,29 +131,4 @@ export default function UserDefinedTransformCharacterScrambleForm(
       />
     </div>
   );
-}
-
-export async function ValidateUserRegex(
-  regex: string,
-  accountId: string
-): Promise<ValidateUserRegexCodeResponse> {
-  const body = new ValidateUserRegexCodeRequest({
-    userProvidedRegex: regex,
-    accountId: accountId,
-  });
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined/validate-regex`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return ValidateUserRegexCodeResponse.fromJson(await res.json());
 }

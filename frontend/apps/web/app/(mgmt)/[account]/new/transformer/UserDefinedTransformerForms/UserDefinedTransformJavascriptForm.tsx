@@ -12,8 +12,10 @@ import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
 import {
+  validateUserJavascriptCode,
   ValidateUserJavascriptCodeRequest,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
@@ -54,7 +56,10 @@ export default function UserDefinedTransformJavascriptForm(
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
 
-  const account = useAccount();
+  const { account } = useAccount();
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -63,10 +68,10 @@ export default function UserDefinedTransformJavascriptForm(
     setIsValidatingCode(true);
 
     try {
-      const res = await IsUserJavascriptCodeValid(
-        userCode,
-        account.account?.id ?? ''
-      );
+      const res = await validateUserJsCodeAsync({
+        accountId: account.id,
+        code: userCode,
+      });
       setIsValidatingCode(false);
       if (res.valid === true) {
         setIsCodeValid('valid');
