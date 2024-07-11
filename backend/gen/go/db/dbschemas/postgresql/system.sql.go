@@ -110,50 +110,27 @@ WITH relevant_schemas_tables AS (
     WHERE n.nspname = $1
     AND c.relname = ANY($2::TEXT[])
 ),
-custom_sequences AS (
-    SELECT
-        seq.oid AS sequence_oid,
-        seq.relname AS sequence_name,
-        nsp.nspname AS schema_name
-    FROM
-        pg_catalog.pg_class seq
-    JOIN
-        pg_catalog.pg_namespace nsp ON seq.relnamespace = nsp.oid
-    WHERE
-        seq.relkind = 'S'
-),
 columns_with_custom_sequences AS (
-    SELECT
-        att.attrelid AS table_oid,
-        cls.relname AS table_name,
-        nsp.nspname AS schema_name,
-        att.attname AS column_name,
-        seqs.sequence_name,
-        seqs.schema_name AS sequence_schema_name
-    FROM
-        pg_catalog.pg_attribute att
-    JOIN
-        pg_catalog.pg_class cls ON att.attrelid = cls.oid
-    JOIN
-        pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
-    JOIN
-        pg_catalog.pg_attrdef ad ON att.attrelid = ad.adrelid AND att.attnum = ad.adnum
-    JOIN
-        custom_sequences seqs ON pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) LIKE '%' || seqs.sequence_name || '%'
-    WHERE
-        att.attnum > 0
-        AND NOT att.attisdropped
-        AND att.attidentity = ''
-        AND NOT EXISTS (
-            SELECT 1
-            FROM pg_catalog.pg_depend dep
-            WHERE dep.objid = seqs.sequence_oid
-            AND dep.refobjid = att.attrelid
-            AND dep.refobjsubid = att.attnum
-            AND dep.classid = 'pg_catalog.pg_class'::regclass
-            AND dep.refclassid = 'pg_catalog.pg_class'::regclass
-            AND dep.deptype = 'a'
-        )
+  SELECT
+		at.attrelid AS table_oid,
+		sn.nspname AS sequence_schema_name,
+		s.relname AS sequence_name,
+		st.nspname AS schema_name,
+		t.relname AS table_name,
+		at.attname AS column_name
+	FROM
+		pg_catalog.pg_class s
+		JOIN pg_catalog.pg_namespace sn ON sn.oid = s.relnamespace
+		JOIN pg_catalog.pg_depend d ON d.refobjid = s.oid
+		JOIN pg_catalog.pg_attrdef a ON d.objid = a.oid
+		JOIN pg_catalog.pg_attribute at ON at.attrelid = a.adrelid
+			AND at.attnum = a.adnum
+		JOIN pg_catalog.pg_class t ON t.oid = a.adrelid
+		JOIN pg_catalog.pg_namespace st ON st.oid = t.relnamespace
+	WHERE
+		s.relkind = 'S'
+		AND d.classid = 'pg_attrdef'::regclass
+		AND d.refclassid = 'pg_class'::regclass
 )
 SELECT
     rst.schema_name,

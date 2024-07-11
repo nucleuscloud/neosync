@@ -318,11 +318,12 @@ func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
 	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
 	require.NoError(s.T(), err)
 	require.NotNil(s.T(), resp)
-	require.NotEmpty(s.T(), resp.GetStatements())
-	require.NotEmpty(s.T(), resp.Sequences)
-	require.NotEmpty(s.T(), resp.Functions)
-	require.NotEmpty(s.T(), resp.Composites)
-	require.NotEmpty(s.T(), resp.Enums)
+	require.NotEmptyf(s.T(), resp.GetStatements(), "statements")
+	require.NotEmptyf(s.T(), resp.Sequences, "sequences")
+	require.NotEmptyf(s.T(), resp.Functions, "functions")
+	require.NotEmptyf(s.T(), resp.Composites, "composites")
+	require.NotEmptyf(s.T(), resp.Enums, "enums")
+
 	require.NotEmpty(s.T(), resp.Domains)
 }
 
