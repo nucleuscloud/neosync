@@ -38,7 +38,6 @@ type model struct {
 
 var (
 	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
-	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
