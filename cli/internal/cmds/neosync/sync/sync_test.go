@@ -1,8 +1,10 @@
 package sync_cmd
 
 import (
+	"os"
 	"testing"
 
+	charmlog "github.com/charmbracelet/log"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
 )
@@ -101,9 +103,13 @@ func Test_groupConfigsByDependency(t *testing.T) {
 		},
 	}
 
+	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+		ReportTimestamp: true,
+	})
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			groups := groupConfigsByDependency(tt.configs, nil)
+			groups := groupConfigsByDependency(tt.configs, logger)
 			require.Len(t, groups, len(tt.expect))
 			for i, group := range groups {
 				require.Equal(t, len(group), len(tt.expect[i]))
@@ -127,7 +133,10 @@ func Test_groupConfigsByDependency_Error(t *testing.T) {
 		{Name: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}, Table: "public.b", Columns: []string{"id", "c_id"}},
 		{Name: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, Table: "public.c", Columns: []string{"id", "a_id"}},
 	}
-	groups := groupConfigsByDependency(configs, nil)
+	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+		ReportTimestamp: true,
+	})
+	groups := groupConfigsByDependency(configs, logger)
 	require.Nil(t, groups)
 }
 
