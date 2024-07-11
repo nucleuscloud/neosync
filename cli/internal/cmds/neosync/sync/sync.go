@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"slices"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	charmlog "github.com/charmbracelet/log"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -264,6 +264,10 @@ func sync(
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
+	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+		ReportTimestamp: true,
+	})
+	logger.Info("Starting sync")
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
@@ -319,7 +323,7 @@ func sync(
 		} else {
 			accessToken, err := userconfig.GetAccessToken()
 			if err != nil {
-				fmt.Println("Unable to retrieve access token. Please use neosync login command and try again.") //nolint:forbidigo
+				logger.Error("Unable to retrieve access token. Please use neosync login command and try again.")
 				return err
 			}
 			token = &accessToken
@@ -327,7 +331,7 @@ func sync(
 			if accountId == nil || *accountId == "" {
 				aId, err := userconfig.GetAccountId()
 				if err != nil {
-					fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") //nolint:forbidigo
+					logger.Error("Unable to retrieve account id. Please use account switch command to set account.")
 					return err
 				}
 				accountId = &aId
@@ -348,9 +352,7 @@ func sync(
 		return err
 	}
 
-	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) //nolint:forbidigo
-	fmt.Println(printlog.Render("Retrieving connection schema..."))                    //nolint:forbidigo
-
+	logger.Info("Retrieving connection schema...")
 	var schemaConfig *schemaConfig
 	switch connectionType {
 	case awsS3Connection:
@@ -366,12 +368,12 @@ func sync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config)
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config, logger)
 		if err != nil {
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+			logger.Warn("No tables found.")
 			return nil
 		}
 		schemaConfig = schemaCfg
@@ -389,45 +391,45 @@ func sync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, gcpConfig)
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, gcpConfig, logger)
 		if err != nil {
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+			logger.Warn("No tables found.")
 			return nil
 		}
 		schemaConfig = schemaCfg
 	case mysqlConnection:
-		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
+		logger.Info("Building schema and table constraints...")
 		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
 				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
 			},
 		}
-		schemaCfg, err := getConnectionSchemaConfig(ctx, connectiondataclient, connection, cmd, mysqlCfg)
+		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, mysqlCfg)
 		if err != nil {
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+			logger.Warn("No tables found.")
 			return nil
 		}
 		schemaConfig = schemaCfg
 
 	case postgresConnection:
-		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
+		logger.Info("Building schema and table constraints...")
 		postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
 				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
 			},
 		}
-		schemaCfg, err := getConnectionSchemaConfig(ctx, connectiondataclient, connection, cmd, postgresConfig)
+		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, postgresConfig)
 		if err != nil {
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+			logger.Warn("No tables found.")
 			return nil
 		}
 		schemaConfig = schemaCfg
@@ -436,18 +438,18 @@ func sync(
 		return fmt.Errorf("this connection type is not currently supported")
 	}
 
-	syncConfigs := buildSyncConfigs(schemaConfig)
+	syncConfigs := buildSyncConfigs(schemaConfig, logger)
 	if syncConfigs == nil {
 		return nil
 	}
-	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
-	err = runDestinationInitStatements(ctx, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
+	logger.Info("Running table init statements...")
+	err = runDestinationInitStatements(ctx, logger, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
 	if err != nil {
 		return err
 	}
 
 	syncConfigCount := len(syncConfigs)
-	fmt.Println(printlog.Render(fmt.Sprintf("Generating %d sync configs... \n", syncConfigCount))) //nolint:forbidigo
+	logger.Infof("Generating %d sync configs...", syncConfigCount)
 	configs := []*benthosConfigResponse{}
 	for _, cfg := range syncConfigs {
 		benthosConfig := generateBenthosConfig(cmd, connectionType, serverconfig.GetApiBaseUrl(), cfg, token)
@@ -455,7 +457,7 @@ func sync(
 	}
 
 	// order configs in run order by dependency
-	groupedConfigs := groupConfigsByDependency(configs)
+	groupedConfigs := groupConfigsByDependency(configs, logger)
 	if groupedConfigs == nil {
 		return nil
 	}
@@ -465,12 +467,12 @@ func sync(
 		// Plain mode don't render the TUI
 		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
 	} else {
+		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
 		// TUI mode, discard log output
-		log.SetOutput(io.Discard)
+		logger.SetOutput(io.Discard)
 	}
-	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) //nolint:forbidigo
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs), opts...).Run(); err != nil {
-		fmt.Println("Error syncing data:", err) //nolint:forbidigo
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
+		logger.Error("Error syncing data:", err)
 		os.Exit(1)
 	}
 
@@ -494,7 +496,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 	return nil
 }
 
-func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
+func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.Logger) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -510,7 +512,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.Stop(ctx)
 					if err != nil {
-						fmt.Println(err.Error()) //nolint:forbidigo
+						logger.Error(err.Error())
 					}
 				}
 				return
@@ -539,7 +541,14 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, cmd *cmdConfig, syncConfigs []*tabledependency.RunConfig, schemaConfig *schemaConfig) error {
+func runDestinationInitStatements(
+	ctx context.Context,
+	logger *charmlog.Logger,
+	sqlmanagerclient sqlmanager.SqlManagerClient,
+	cmd *cmdConfig,
+	syncConfigs []*tabledependency.RunConfig,
+	schemaConfig *schemaConfig,
+) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
 	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
@@ -549,13 +558,13 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 	if cmd.Destination.InitSchema {
 		if len(schemaConfig.InitSchemaStatements) != 0 {
 			for _, block := range schemaConfig.InitSchemaStatements {
-				fmt.Println(printlog.Render(fmt.Sprintf("[%s] found %d statements to execute during schema initialization \n", block.Label, len(block.Statements)))) //nolint:forbidigo
+				logger.Infof("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements))
 				if len(block.Statements) == 0 {
 					continue
 				}
 				err = db.Db.BatchExec(ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
 				if err != nil {
-					fmt.Println("Error creating tables:", err) //nolint:forbidigo
+					logger.Error("Error creating tables:", err)
 					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 				}
 			}
@@ -575,7 +584,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 
 			err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
 			if err != nil {
-				fmt.Println("Error creating tables:", err) //nolint:forbidigo
+				logger.Error("Error creating tables:", err)
 				return err
 			}
 		}
@@ -591,7 +600,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 			}
 			err = db.Db.BatchExec(ctx, batchSize, truncateCascadeStmts, &sql_manager.BatchExecOpts{})
 			if err != nil {
-				fmt.Println("Error truncate cascade tables:", err) //nolint:forbidigo
+				logger.Error("Error truncate cascade tables:", err)
 				return err
 			}
 		} else if cmd.Destination.TruncateBeforeInsert {
@@ -602,7 +611,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 			orderedTruncateStatement := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
-				fmt.Println("Error truncating tables:", err) //nolint:forbidigo
+				logger.Error("Error truncating tables:", err)
 				return err
 			}
 		}
@@ -618,7 +627,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 		disableFkChecks := sql_manager.DisableForeignKeyChecks
 		err = db.Db.BatchExec(ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
 		if err != nil {
-			fmt.Println("Error truncating tables:", err) //nolint:forbidigo
+			logger.Error("Error truncating tables:", err)
 			return err
 		}
 	}
@@ -627,6 +636,7 @@ func runDestinationInitStatements(ctx context.Context, sqlmanagerclient sqlmanag
 
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
+	logger *charmlog.Logger,
 ) []*tabledependency.RunConfig {
 	tableColMap := getTableColMap(schemaConfig.Schemas)
 	if len(tableColMap) == 0 {
@@ -639,7 +649,7 @@ func buildSyncConfigs(
 
 	runConfigs, err := tabledependency.GetRunConfigs(schemaConfig.TableConstraints, map[string]string{}, primaryKeysMap, tableColMap)
 	if err != nil {
-		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
+		logger.Error(err.Error())
 		return nil
 	}
 
@@ -661,9 +671,15 @@ func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]s
 	return dependencyMap
 }
 
-func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
+func getTableInitStatementMap(
+	ctx context.Context,
+	logger *charmlog.Logger,
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	connectionId string,
+	opts *destinationConfig,
+) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
-		fmt.Println(printlog.Render("Creating init statements...")) //nolint:forbidigo
+		logger.Info("Creating init statements...")
 		truncateBeforeInsert := opts.TruncateBeforeInsert
 		if opts.Driver == postgresDriver && truncateBeforeInsert {
 			// postgres truncate must be ordered properly
@@ -809,7 +825,7 @@ func generateBenthosConfig(
 		Columns:   syncConfig.InsertColumns,
 	}
 }
-func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConfigResponse {
+func groupConfigsByDependency(configs []*benthosConfigResponse, logger *charmlog.Logger) [][]*benthosConfigResponse {
 	groupedConfigs := [][]*benthosConfigResponse{}
 	configMap := map[string]*benthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols
@@ -825,7 +841,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 		}
 	}
 	if len(rootConfigs) == 0 {
-		fmt.Println(bold.Render("No root configs found. There must be one config with no dependencies.")) //nolint:forbidigo
+		logger.Info("No root configs found. There must be one config with no dependencies.")
 		return nil
 	}
 	groupedConfigs = append(groupedConfigs, rootConfigs)
@@ -834,7 +850,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	for len(configMap) > 0 {
 		// prevents looping forever
 		if prevTableLen == len(configMap) {
-			fmt.Println(bold.Render("Unable to order configs by dependency. No path found.")) //nolint:forbidigo
+			logger.Info("Unable to order configs by dependency. No path found.")
 			return nil
 		}
 		prevTableLen = len(configMap)
@@ -881,6 +897,7 @@ type schemaConfig struct {
 
 func getConnectionSchemaConfig(
 	ctx context.Context,
+	logger *charmlog.Logger,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
@@ -916,7 +933,7 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		initStatementsResp, err := getTableInitStatementMap(errctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
+		initStatementsResp, err := getTableInitStatementMap(errctx, logger, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
 		if err != nil {
 			return err
 		}
@@ -965,6 +982,7 @@ func getDestinationSchemaConfig(
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
+	logger *charmlog.Logger,
 ) (*schemaConfig, error) {
 	schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		ConnectionId: connection.Id,
@@ -976,7 +994,7 @@ func getDestinationSchemaConfig(
 
 	tableColMap := getTableColMap(schemaResp.Msg.GetSchemas())
 	if len(tableColMap) == 0 {
-		fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
+		logger.Info("No tables found.")
 		return nil, nil
 	}
 
@@ -989,7 +1007,7 @@ func getDestinationSchemaConfig(
 		schemas = append(schemas, s)
 	}
 
-	fmt.Println(printlog.Render("Building table constraints...")) //nolint:forbidigo
+	logger.Info("Building table constraints...")
 	tableConstraints, err := getDestinationTableConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err

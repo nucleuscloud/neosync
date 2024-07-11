@@ -3,7 +3,6 @@ package sync_cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	syncmap "sync"
 	"time"
@@ -21,10 +20,12 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	charmlog "github.com/charmbracelet/log"
 )
 
 type model struct {
 	ctx              context.Context
+	logger           *charmlog.Logger
 	groupedConfigs   [][]*benthosConfigResponse
 	tableSynced      int
 	index            int
@@ -37,7 +38,6 @@ type model struct {
 
 var (
 	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
-	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
@@ -47,7 +47,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *model {
+func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -56,6 +56,7 @@ func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *m
 		tableSynced:      0,
 		spinner:          s,
 		totalConfigCount: getConfigCount(groupedConfigs),
+		logger:           logger,
 	}
 }
 
@@ -80,7 +81,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.totalConfigCount == m.tableSynced {
 			m.done = true
-			log.Printf("Done! Completed %d tables.", m.tableSynced)
+			m.logger.Infof("Done! Completed %d tables.", m.tableSynced)
 			return m, tea.Sequence(
 				tea.Println(strings.Join(successStrs, " \n")),
 				tea.Quit,
@@ -139,15 +140,15 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 			cfg := cfg
 			errgrp.Go(func() error {
 				start := time.Now()
-				log.Printf("Syncing table %s \n", cfg.Name)
-				err := syncData(errctx, cfg)
+				m.logger.Infof("Syncing table %s", cfg.Name)
+				err := syncData(errctx, cfg, m.logger)
 				if err != nil {
-					fmt.Printf("Error syncing table: %s \n", err.Error()) //nolint:forbidigo
+					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
 				}
 				duration := time.Since(start)
 				messageMap.Store(cfg.Name, duration)
-				log.Printf("Finished syncing table %s %s \n", cfg.Name, duration.String())
+				m.logger.Infof("Finished syncing table %s %s", cfg.Name, duration.String())
 				return nil
 			})
 		}
