@@ -111,23 +111,26 @@ WITH relevant_schemas_tables AS (
     AND c.relname = ANY($2::TEXT[])
 ),
 columns_with_custom_sequences AS (
-SELECT
-  a.attrelid AS table_oid,
-  tns.nspname AS schema_name,
-  t.relname AS table_name,
-  a.attname AS column_name,
-  sns.nspname AS sequence_schema_name,
-  s.relname AS sequence_name
-FROM
-  pg_catalog.pg_namespace tns
-  JOIN pg_catalog.pg_class t ON tns.oid = t.relnamespace
-    AND t.relkind IN ('p', 'r')
-  JOIN pg_catalog.pg_attribute a ON t.oid = a.attrelid
-    AND NOT a.attisdropped
-  JOIN pg_catalog.pg_depend d ON t.oid = d.refobjid
-    AND d.refobjsubid = a.attnum
-  JOIN pg_catalog.pg_class s ON d.objid = s.oid and s.relkind = 'S'
-  JOIN pg_catalog.pg_namespace sns ON s.relnamespace = sns.oid
+  SELECT
+		at.attrelid AS table_oid,
+		sn.nspname AS sequence_schema_name,
+		s.relname AS sequence_name,
+		st.nspname AS schema_name,
+		t.relname AS table_name,
+		at.attname AS column_name
+	FROM
+		pg_catalog.pg_class s
+		JOIN pg_catalog.pg_namespace sn ON sn.oid = s.relnamespace
+		JOIN pg_catalog.pg_depend d ON d.refobjid = s.oid
+		JOIN pg_catalog.pg_attrdef a ON d.objid = a.oid
+		JOIN pg_catalog.pg_attribute at ON at.attrelid = a.adrelid
+			AND at.attnum = a.adnum
+		JOIN pg_catalog.pg_class t ON t.oid = a.adrelid
+		JOIN pg_catalog.pg_namespace st ON st.oid = t.relnamespace
+	WHERE
+		s.relkind = 'S'
+		AND d.classid = 'pg_attrdef'::regclass
+		AND d.refclassid = 'pg_class'::regclass
 )
 SELECT
     rst.schema_name,
