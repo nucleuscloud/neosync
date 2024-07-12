@@ -5,10 +5,8 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { getTransformerDataTypesString } from '@/util/util';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import {
-  getUserDefinedTransformerById,
-  GetUserDefinedTransformerByIdResponse,
-} from '@neosync/sdk';
+import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
+import { getUserDefinedTransformerById } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';

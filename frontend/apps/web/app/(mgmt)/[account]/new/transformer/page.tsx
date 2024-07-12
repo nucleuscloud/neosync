@@ -33,12 +33,14 @@ import {
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  createUserDefinedTransformer,
-  getSystemTransformers,
   SystemTransformer,
   TransformerConfig,
   TransformerSource,
 } from '@neosync/sdk';
+import {
+  createUserDefinedTransformer,
+  getSystemTransformers,
+} from '@neosync/sdk/connectquery';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';

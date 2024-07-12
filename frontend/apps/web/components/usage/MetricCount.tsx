@@ -1,5 +1,6 @@
 import { useQuery } from '@connectrpc/connect-query';
-import { getMetricCount, RangedMetricName } from '@neosync/sdk';
+import { RangedMetricName } from '@neosync/sdk';
+import { getMetricCount } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useAccount } from '../providers/account-provider';
 import {

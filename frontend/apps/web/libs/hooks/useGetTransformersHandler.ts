@@ -3,7 +3,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import {
   getSystemTransformers,
   getUserDefinedTransformers,
-} from '@neosync/sdk';
+} from '@neosync/sdk/connectquery';
 import { useMemo } from 'react';
 
 export function useGetTransformersHandler(accountId: string): {

@@ -10,7 +10,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import {
   getSystemTransformers,
   getUserDefinedTransformers,
-} from '@neosync/sdk';
+} from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';

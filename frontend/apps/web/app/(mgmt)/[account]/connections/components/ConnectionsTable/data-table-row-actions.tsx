@@ -16,7 +16,8 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
-import { Connection, ConnectionConfig, deleteConnection } from '@neosync/sdk';
+import { Connection, ConnectionConfig } from '@neosync/sdk';
+import { deleteConnection } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { getConnectionType } from '../../util';
 

@@ -38,11 +38,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { AccountUser } from '@neosync/sdk';
 import {
-  AccountUser,
   getTeamAccountMembers,
   removeTeamAccountMember,
-} from '@neosync/sdk';
+} from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 
 interface ColumnProps {

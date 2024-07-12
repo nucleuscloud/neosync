@@ -32,11 +32,11 @@ import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { AccountInvite } from '@neosync/sdk';
 import {
-  AccountInvite,
   deleteAccountApiKey,
   getTeamAccountInvites,
-} from '@neosync/sdk';
+} from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
 import InviteUserForm, { buildInviteLink } from './InviteUserForm';
 

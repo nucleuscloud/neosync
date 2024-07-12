@@ -9,11 +9,8 @@ import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
-import {
-  ConnectionConfig,
-  getConnection,
-  GetConnectionResponse,
-} from '@neosync/sdk';
+import { ConnectionConfig, GetConnectionResponse } from '@neosync/sdk';
+import { getConnection } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import RemoveConnectionButton from './components/RemoveConnectionButton';

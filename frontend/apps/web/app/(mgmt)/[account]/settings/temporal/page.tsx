@@ -23,10 +23,12 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   AccountTemporalConfig,
-  getAccountTemporalConfig,
   GetAccountTemporalConfigResponse,
-  setAccountTemporalConfig,
 } from '@neosync/sdk';
+import {
+  getAccountTemporalConfig,
+  setAccountTemporalConfig,
+} from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { ReactElement } from 'react';

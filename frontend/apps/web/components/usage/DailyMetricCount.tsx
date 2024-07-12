@@ -1,10 +1,6 @@
 import { useQuery } from '@connectrpc/connect-query';
-import {
-  DayResult,
-  getDailyMetricCount,
-  Date as NeosyncDate,
-  RangedMetricName,
-} from '@neosync/sdk';
+import { DayResult, Date as NeosyncDate, RangedMetricName } from '@neosync/sdk';
+import { getDailyMetricCount } from '@neosync/sdk/connectquery';
 import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';

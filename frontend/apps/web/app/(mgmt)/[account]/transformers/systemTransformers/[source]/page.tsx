@@ -23,7 +23,8 @@ import {
 } from '@/util/util';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { useQuery } from '@connectrpc/connect-query';
-import { getSystemTransformerBySource, TransformerSource } from '@neosync/sdk';
+import { TransformerSource } from '@neosync/sdk';
+import { getSystemTransformerBySource } from '@neosync/sdk/connectquery';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
