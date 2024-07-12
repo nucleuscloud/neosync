@@ -2,7 +2,7 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -26,10 +26,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { getErrorMessage } from '@/util/util';
 import { MongoDbFormValues } from '@/yup-validations/connections';
-import { useMutation } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
@@ -39,14 +42,16 @@ import {
 import {
   checkConnectionConfig,
   createConnection,
+  getAccountOnboardingConfig,
   getConnection,
+  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import { buildConnectionConfigMongo } from '../../../connections/util';
 
 export default function MongoDBForm(): ReactElement {
@@ -54,8 +59,15 @@ export default function MongoDBForm(): ReactElement {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
-  const { data: onboardingData, mutate: mutateOnboardingData } =
-    useGetAccountOnboardingConfig(account?.id ?? '');
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
+  );
 
   const form = useForm<MongoDbFormValues>({
     resolver: yupResolver(MongoDbFormValues),
@@ -146,17 +158,24 @@ export default function MongoDBForm(): ReactElement {
 
       // updates the onboarding data
       try {
-        const resp = await setOnboardingConfig(account.id, {
-          hasCreatedSourceConnection:
-            onboardingData?.config?.hasCreatedSourceConnection ?? true,
-          hasCreatedDestinationConnection:
-            onboardingData?.config?.hasCreatedDestinationConnection ??
-            onboardingData?.config?.hasCreatedSourceConnection ??
-            false,
-          hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? false,
-          hasInvitedMembers: onboardingData?.config?.hasInvitedMembers ?? false,
+        const resp = await setOnboardingConfigAsync({
+          accountId: account.id,
+          config: buildAccountOnboardingConfig({
+            hasCreatedSourceConnection:
+              onboardingData?.config?.hasCreatedSourceConnection ?? true,
+            hasCreatedDestinationConnection:
+              onboardingData?.config?.hasCreatedDestinationConnection ??
+              onboardingData?.config?.hasCreatedSourceConnection ??
+              false,
+            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? false,
+            hasInvitedMembers:
+              onboardingData?.config?.hasInvitedMembers ?? false,
+          }),
         });
-        mutateOnboardingData(
+        queryclient.setQueryData(
+          createConnectQueryKey(getAccountOnboardingConfig, {
+            accountId: account.id,
+          }),
           new GetAccountOnboardingConfigResponse({
             config: resp.config,
           })
@@ -172,8 +191,10 @@ export default function MongoDBForm(): ReactElement {
       if (returnTo) {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
-        mutate(
-          `$/{account?.name}/connections/${newConnection.connection.id}`,
+        queryclient.setQueryData(
+          createConnectQueryKey(getConnection, {
+            id: newConnection.connection.id,
+          }),
           new GetConnectionResponse({
             connection: newConnection.connection,
           })

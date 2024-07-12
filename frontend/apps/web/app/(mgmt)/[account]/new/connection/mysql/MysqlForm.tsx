@@ -4,7 +4,7 @@ import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import {
@@ -36,27 +36,34 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlFormValues,
 } from '@/yup-validations/connections';
-import { useMutation } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   GetAccountOnboardingConfigResponse,
+  GetConnectionResponse,
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
   createConnection,
+  getAccountOnboardingConfig,
   getConnection,
+  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -70,9 +77,6 @@ export default function MysqlForm() {
   const searchParams = useSearchParams();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
-  );
 
   // used to know which tab - host or url that the user is on when we submit the form
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
@@ -116,6 +120,15 @@ export default function MysqlForm() {
     checkConnectionConfig
   );
   const { mutateAsync: getMysqlConnection } = useMutation(getConnection);
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
+  );
 
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {
@@ -140,14 +153,20 @@ export default function MysqlForm() {
       // updates the onboarding data
       if (onboardingData?.config?.hasCreatedSourceConnection) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData.config.hasCreatedSourceConnection,
-            hasCreatedDestinationConnection: true,
-            hasCreatedJob: onboardingData.config.hasCreatedJob,
-            hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection:
+                onboardingData.config.hasCreatedSourceConnection,
+              hasCreatedDestinationConnection: true,
+              hasCreatedJob: onboardingData.config.hasCreatedJob,
+              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -160,15 +179,21 @@ export default function MysqlForm() {
         }
       } else {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection: true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection: true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -185,6 +210,14 @@ export default function MysqlForm() {
       if (returnTo) {
         router.push(returnTo);
       } else if (connection.connection?.id) {
+        queryclient.setQueryData(
+          createConnectQueryKey(getConnection, {
+            id: connection.connection.id,
+          }),
+          new GetConnectionResponse({
+            connection: connection.connection,
+          })
+        );
         router.push(
           `/${account?.name}/connections/${connection.connection.id}`
         );
