@@ -1,4 +1,5 @@
 import {
+  AWSFormValues,
   ClientTlsFormValues,
   GcpCloudStorageFormValues,
   MongoDbFormValues,
@@ -8,6 +9,8 @@ import {
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import {
+  AwsS3ConnectionConfig,
+  AwsS3Credentials,
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
   ClientTlsConfig,
@@ -88,6 +91,31 @@ export async function isConnectionNameAvailable(
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
+export function buildConnectionConfigAwsS3(
+  values: AWSFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'awsS3Config',
+      value: new AwsS3ConnectionConfig({
+        bucket: values.s3.bucket,
+        pathPrefix: values.s3.pathPrefix,
+        region: values.s3.region,
+        endpoint: values.s3.endpoint,
+        credentials: new AwsS3Credentials({
+          profile: values.s3.credentials?.profile,
+          accessKeyId: values.s3.credentials?.accessKeyId,
+          secretAccessKey: values.s3.credentials?.secretAccessKey,
+          fromEc2Role: values.s3.credentials?.fromEc2Role,
+          roleArn: values.s3.credentials?.roleArn,
+          roleExternalId: values.s3.credentials?.roleExternalId,
+          sessionToken: values.s3.credentials?.sessionToken,
+        }),
+      }),
+    },
+  });
+}
+
 export function buildConnectionConfigGcpCloudStorage(
   values: GcpCloudStorageFormValues
 ): ConnectionConfig {
@@ -107,26 +135,6 @@ export async function createMysqlConnection(
     new CreateConnectionRequest({
       name: values.connectionName,
       accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updateMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
       connectionConfig: new ConnectionConfig({
         config: {
           case: 'mysqlConfig',
@@ -239,26 +247,6 @@ export async function createPostgresConnection(
     new CreateConnectionRequest({
       name: values.connectionName,
       accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updatePostgresConnection(
-  values: PostgresFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
       connectionConfig: new ConnectionConfig({
         config: {
           case: 'pgConfig',

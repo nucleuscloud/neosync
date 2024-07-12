@@ -20,18 +20,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
+import { createConnection, getConnection } from '@neosync/sdk/connectquery';
 import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -39,7 +40,7 @@ import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { mutate } from 'swr';
-import { createGcpCloudStorageConnection } from '../../../connections/util';
+import { buildConnectionConfigGcpCloudStorage } from '../../../connections/util';
 
 export default function GcpCloudStorageForm(): ReactElement {
   const searchParams = useSearchParams();
@@ -66,6 +67,10 @@ export default function GcpCloudStorageForm(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const posthog = usePostHog();
   const { toast } = useToast();
+  const { mutateAsync: createGcpCloudStorageConnection } =
+    useMutation(createConnection);
+  const { mutateAsync: getGcpCloudStorageConnection } =
+    useMutation(getConnection);
 
   async function onSubmit(values: GcpCloudStorageFormValues) {
     if (!account || isSubmitting) {
@@ -73,10 +78,11 @@ export default function GcpCloudStorageForm(): ReactElement {
     }
     setIsSubmitting(true);
     try {
-      const newConnection = await createGcpCloudStorageConnection(
-        values,
-        account.id
-      );
+      const newConnection = await createGcpCloudStorageConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigGcpCloudStorage(values),
+      });
       posthog.capture('New Connection Created', { type: 'gcp-cloud-storage' });
       toast({
         title: 'Successfully created connection!',
@@ -139,7 +145,9 @@ export default function GcpCloudStorageForm(): ReactElement {
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getGcpCloudStorageConnection({
+          id: sourceConnId,
+        });
         if (
           connData.connection?.connectionConfig?.config.case !==
           'gcpCloudstorageConfig'

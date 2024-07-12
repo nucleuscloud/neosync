@@ -22,15 +22,13 @@ import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  AwsS3ConnectionConfig,
-  AwsS3Credentials,
-  ConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import { updateConnection } from '@neosync/sdk/connectquery';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
+import { buildConnectionConfigAwsS3 } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -62,26 +60,7 @@ export default function AwsS3Form(props: Props) {
         new UpdateConnectionRequest({
           id: connectionId,
           name: values.connectionName,
-          connectionConfig: new ConnectionConfig({
-            config: {
-              case: 'awsS3Config',
-              value: new AwsS3ConnectionConfig({
-                bucket: values.s3.bucket,
-                pathPrefix: values.s3.pathPrefix,
-                region: values.s3.region,
-                endpoint: values.s3.endpoint,
-                credentials: new AwsS3Credentials({
-                  profile: values.s3.credentials?.profile,
-                  accessKeyId: values.s3.credentials?.accessKeyId,
-                  secretAccessKey: values.s3.credentials?.secretAccessKey,
-                  fromEc2Role: values.s3.credentials?.fromEc2Role,
-                  roleArn: values.s3.credentials?.roleArn,
-                  roleExternalId: values.s3.credentials?.roleExternalId,
-                  sessionToken: values.s3.credentials?.sessionToken,
-                }),
-              }),
-            },
-          }),
+          connectionConfig: buildConnectionConfigAwsS3(values),
         })
       );
       onSaved(connectionResp);

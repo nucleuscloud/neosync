@@ -22,21 +22,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  AwsS3ConnectionConfig,
-  AwsS3Credentials,
-  ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
-  GetAccountOnboardingConfigResponse,
-} from '@neosync/sdk';
+import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
+import { createConnection, getConnection } from '@neosync/sdk/connectquery';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
+import { buildConnectionConfigAwsS3 } from '../../../connections/util';
 
 export default function AwsS3Form() {
   const searchParams = useSearchParams();
@@ -57,17 +52,19 @@ export default function AwsS3Form() {
     context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
+  const { mutateAsync: createAwsS3Connection } = useMutation(createConnection);
+  const { mutateAsync: getAwsS3Connection } = useMutation(getConnection);
 
   async function onSubmit(values: AWSFormValues) {
     if (!account) {
       return;
     }
     try {
-      const connection = await createAwsS3Connection(
-        values.s3,
-        values.connectionName,
-        account.id
-      );
+      const connection = await createAwsS3Connection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigAwsS3(values),
+      });
 
       // updates the onboarding data
       if (
@@ -138,7 +135,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const connData = await getConnection(account.id, sourceConnId);
+          const connData = await getAwsS3Connection({ id: sourceConnId });
 
           if (
             connData &&
@@ -414,48 +411,4 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       </form>
     </Form>
   );
-}
-
-async function createAwsS3Connection(
-  s3: AWSFormValues['s3'],
-  name: string,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateConnectionRequest({
-        accountId,
-        name: name,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'awsS3Config',
-            value: new AwsS3ConnectionConfig({
-              bucket: s3.bucket,
-              pathPrefix: s3.pathPrefix,
-              region: s3.region,
-              endpoint: s3.endpoint,
-              credentials: new AwsS3Credentials({
-                profile: s3.credentials?.profile,
-                accessKeyId: s3.credentials?.accessKeyId,
-                secretAccessKey: s3.credentials?.secretAccessKey,
-                fromEc2Role: s3.credentials?.fromEc2Role,
-                roleArn: s3.credentials?.roleArn,
-                roleExternalId: s3.credentials?.roleExternalId,
-                sessionToken: s3.credentials?.sessionToken,
-              }),
-            }),
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
 }

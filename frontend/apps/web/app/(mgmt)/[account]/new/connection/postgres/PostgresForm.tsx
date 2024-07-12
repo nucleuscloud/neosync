@@ -38,27 +38,29 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   POSTGRES_FORM_SCHEMA,
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   GetAccountOnboardingConfigResponse,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  createConnection,
+  getConnection,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  checkPostgresConnection,
-  createPostgresConnection,
-} from '../../../connections/util';
+import { buildConnectionConfigPostgres } from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -106,6 +108,12 @@ export default function PostgresForm() {
     },
     context: { accountId: account?.id ?? '', activeTab: activeTab },
   });
+  const { mutateAsync: createPostgresConnection } =
+    useMutation(createConnection);
+  const { mutateAsync: checkPostgresConnection } = useMutation(
+    checkConnectionConfig
+  );
+  const { mutateAsync: getPostgresConnection } = useMutation(getConnection);
 
   const router = useRouter();
   const [validationResponse, setValidationResponse] = useState<
@@ -123,14 +131,15 @@ export default function PostgresForm() {
     }
 
     try {
-      const connection = await createPostgresConnection(
-        {
+      const connection = await createPostgresConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigPostgres({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
           db: values.db,
-        },
-        account.id
-      );
+        }),
+      });
       posthog.capture('New Connection Created', { type: 'postgres' });
       toast({
         title: 'Successfully created connection!',
@@ -211,7 +220,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getPostgresConnection({ id: sourceConnId });
         if (connData.connection?.connectionConfig?.config.case !== 'pgConfig') {
           return;
         }
@@ -740,14 +749,13 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               setIsValidating(true);
               try {
                 const values = form.getValues();
-                const res = await checkPostgresConnection(
-                  {
+                const res = await checkPostgresConnection({
+                  connectionConfig: buildConnectionConfigPostgres({
                     ...values,
                     url: activeTab === 'url' ? values.url : undefined,
                     db: values.db,
-                  },
-                  account?.id ?? ''
-                );
+                  }),
+                });
                 setValidationResponse(res);
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {

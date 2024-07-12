@@ -27,25 +27,27 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import { MongoDbFormValues } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  createConnection,
+  getConnection,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
-import {
-  checkMongoConnection,
-  createMongoConnection,
-} from '../../../connections/util';
+import { buildConnectionConfigMongo } from '../../../connections/util';
 
 export default function MongoDBForm(): ReactElement {
   const searchParams = useSearchParams();
@@ -81,6 +83,12 @@ export default function MongoDBForm(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
   const { toast } = useToast();
+  const { mutateAsync: createMongoDbConnection } =
+    useMutation(createConnection);
+  const { mutateAsync: checkMongoDbConnection } = useMutation(
+    checkConnectionConfig
+  );
+  const { mutateAsync: getMongoDbConnection } = useMutation(getConnection);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +97,7 @@ export default function MongoDBForm(): ReactElement {
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getMongoDbConnection({ id: sourceConnId });
         if (
           connData.connection?.connectionConfig?.config.case !== 'mongoConfig'
         ) {
@@ -125,7 +133,11 @@ export default function MongoDBForm(): ReactElement {
     }
     setIsSubmitting(true);
     try {
-      const newConnection = await createMongoConnection(values, account.id);
+      const newConnection = await createMongoDbConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigMongo(values),
+      });
       posthog.capture('New Connection Created', { type: 'mongodb' });
       toast({
         title: 'Successfully created connection!',
@@ -189,10 +201,9 @@ export default function MongoDBForm(): ReactElement {
     }
     setIsValidating(true);
     try {
-      const res = await checkMongoConnection(
-        form.getValues(),
-        account?.id ?? ''
-      );
+      const res = await checkMongoDbConnection({
+        connectionConfig: buildConnectionConfigMongo(form.getValues()),
+      });
       setValidationResponse(res);
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {

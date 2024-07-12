@@ -37,17 +37,22 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlFormValues,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   GetAccountOnboardingConfigResponse,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  createConnection,
+  getConnection,
+} from '@neosync/sdk/connectquery';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
@@ -56,10 +61,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  checkMysqlConnection,
-  createMysqlConnection,
-} from '../../../connections/util';
+import { buildConnectionConfigMysql } from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -109,20 +111,26 @@ export default function MysqlForm() {
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const posthog = usePostHog();
+  const { mutateAsync: createMysqlConnection } = useMutation(createConnection);
+  const { mutateAsync: checkMysqlConnection } = useMutation(
+    checkConnectionConfig
+  );
+  const { mutateAsync: getMysqlConnection } = useMutation(getConnection);
 
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {
       return;
     }
     try {
-      const connection = await createMysqlConnection(
-        {
+      const connection = await createMysqlConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigMysql({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
           db: values.db,
-        },
-        account.id
-      );
+        }),
+      });
       posthog.capture('New Connection Created', { type: 'mysql' });
       toast({
         title: 'Successfully created connection!',
@@ -203,7 +211,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       setIsLoading(true);
 
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getMysqlConnection({ id: sourceConnId });
         if (
           connData.connection?.connectionConfig?.config.case !== 'mysqlConfig'
         ) {
@@ -655,11 +663,15 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             disabled={!form.formState.isValid}
             onClick={async () => {
               setIsValidating(true);
+              const values = form.getValues();
               try {
-                const res = await checkMysqlConnection(
-                  form.getValues(),
-                  account?.id ?? ''
-                );
+                const res = await checkMysqlConnection({
+                  connectionConfig: buildConnectionConfigMysql({
+                    ...values,
+                    url: activeTab === 'url' ? values.url : undefined,
+                    db: values.db,
+                  }),
+                });
                 setIsValidating(false);
                 setValidationResponse(res);
               } catch (err) {
