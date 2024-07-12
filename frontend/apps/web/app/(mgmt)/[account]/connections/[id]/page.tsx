@@ -7,9 +7,14 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
-import { ConnectionConfig, GetConnectionResponse } from '@neosync/sdk';
+import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
+import {
+  ConnectionConfig,
+  getConnection,
+  GetConnectionResponse,
+} from '@neosync/sdk';
+import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
@@ -17,7 +22,13 @@ import { getConnectionComponentDetails } from './components/connection-component
 export default function ConnectionPage({ params }: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const { data, isLoading, mutate } = useGetConnection(account?.id ?? '', id);
+
+  const { data, isLoading } = useQuery(
+    getConnection,
+    { id: id },
+    { enabled: !!id }
+  );
+  const queryclient = useQueryClient();
   const { toast } = useToast();
   if (!id) {
     return <Error statusCode={404} />;
@@ -35,10 +46,10 @@ export default function ConnectionPage({ params }: PageProps) {
   const connectionComponent = getConnectionComponentDetails({
     connection: data?.connection!,
     onSaved: (resp) => {
-      mutate(
-        new GetConnectionResponse({
-          connection: resp.connection,
-        })
+      const key = createConnectQueryKey(getConnection, { id });
+      queryclient.setQueryData(
+        key,
+        new GetConnectionResponse({ connection: resp.connection })
       );
       toast({
         title: 'Successfully updated connection!',

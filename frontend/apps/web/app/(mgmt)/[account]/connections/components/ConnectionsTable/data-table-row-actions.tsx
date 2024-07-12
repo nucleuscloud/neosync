@@ -15,9 +15,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { Connection, ConnectionConfig } from '@neosync/sdk';
+import { useMutation } from '@connectrpc/connect-query';
+import { Connection, ConnectionConfig, deleteConnection } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { getConnectionType, removeConnection } from '../../util';
+import { getConnectionType } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -32,10 +33,11 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const { account } = useAccount();
   const { toast } = useToast();
+  const { mutateAsync } = useMutation(deleteConnection);
 
   async function onDelete(): Promise<void> {
     try {
-      await removeConnection(account?.id ?? '', connection.id);
+      await mutateAsync({ id: connection.id });
       toast({
         title: 'Connection removed successfully!',
         variant: 'success',

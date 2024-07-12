@@ -492,20 +492,3 @@ async function updateConnection(
   }
   return UpdateConnectionResponse.fromJson(await res.json());
 }
-
-export async function removeConnection(
-  accountId: string,
-  connectionId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
