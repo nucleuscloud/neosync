@@ -18,11 +18,13 @@ import {
   EditConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UpdateConnectionResponse } from '@neosync/sdk';
+import { updateConnection } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { updateGcpCloudStorageConnection } from '../../util';
+import { buildConnectionConfigGcpCloudStorage } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -44,6 +46,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
       accountId: account?.id ?? '',
     },
   });
+  const { mutateAsync } = useMutation(updateConnection);
 
   async function onSubmit(values: GcpCloudStorageFormValues): Promise<void> {
     if (!account) {
@@ -51,11 +54,11 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
     }
 
     try {
-      const connectionResp = await updateGcpCloudStorageConnection(
-        values,
-        account.id,
-        connectionId
-      );
+      const connectionResp = await mutateAsync({
+        id: connectionId,
+        name: values.connectionName,
+        connectionConfig: buildConnectionConfigGcpCloudStorage(values),
+      });
       onSaved(connectionResp);
     } catch (err) {
       console.error(err);

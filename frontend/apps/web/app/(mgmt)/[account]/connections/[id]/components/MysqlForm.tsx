@@ -37,18 +37,20 @@ import {
   MYSQL_CONNECTION_PROTOCOLS,
   MysqlFormValues,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
+import { updateConnection } from '@neosync/sdk/connectquery';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { checkMysqlConnection, updateMysqlConnection } from '../../util';
+import { buildConnectionConfigMysql, checkMysqlConnection } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -75,23 +77,23 @@ export default function MysqlForm(props: Props) {
       activeTab: activeTab,
     },
   });
+  const { mutateAsync } = useMutation(updateConnection);
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
-
   const [isValidating, setIsValidating] = useState<boolean>(false);
 
   async function onSubmit(values: MysqlFormValues) {
     try {
-      const connection = await updateMysqlConnection(
-        {
+      const connection = await mutateAsync({
+        id: connectionId,
+        name: values.connectionName,
+        connectionConfig: buildConnectionConfigMysql({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
           db: values.db,
-        },
-        account?.id ?? '',
-        connectionId
-      );
+        }),
+      });
       onSaved(connection);
     } catch (err) {
       console.error(err);

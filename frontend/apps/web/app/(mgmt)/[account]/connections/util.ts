@@ -3,6 +3,7 @@ import {
   GcpCloudStorageFormValues,
   MongoDbFormValues,
   MysqlFormValues,
+  OpenAiFormValues,
   PostgresFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
@@ -18,6 +19,7 @@ import {
   MongoConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
+  OpenAiConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
   SSHAuthentication,
@@ -86,43 +88,15 @@ export async function isConnectionNameAvailable(
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
-export async function createGcpCloudStorageConnection(
-  values: GcpCloudStorageFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'gcpCloudstorageConfig',
-          value: buildGcpCloudStorageConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updateGcpCloudStorageConnection(
-  values: GcpCloudStorageFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'gcpCloudstorageConfig',
-          value: buildGcpCloudStorageConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigGcpCloudStorage(
+  values: GcpCloudStorageFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'gcpCloudstorageConfig',
+      value: buildGcpCloudStorageConnectionConfig(values),
+    },
+  });
 }
 
 export async function createMysqlConnection(
@@ -179,6 +153,42 @@ export async function checkMysqlConnection(
     }),
     accountId
   );
+}
+
+export function buildConnectionConfigPostgres(
+  values: PostgresFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'pgConfig',
+      value: buildPostgresConnectionConfig(values),
+    },
+  });
+}
+
+export function buildConnectionConfigOpenAi(
+  values: OpenAiFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'openaiConfig',
+      value: new OpenAiConnectionConfig({
+        apiUrl: values.sdk.url,
+        apiKey: values.sdk.apiKey,
+      }),
+    },
+  });
+}
+
+export function buildConnectionConfigMysql(
+  values: MysqlFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'mysqlConfig',
+      value: buildMysqlConnectionConfig(values),
+    },
+  });
 }
 
 function buildGcpCloudStorageConnectionConfig(
@@ -361,60 +371,15 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
   return tunnel;
 }
 
-export async function createMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updateMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function checkMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigMongo(
+  values: MongoDbFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'mongoConfig',
+      value: buildMongoConnectionConfig(values),
+    },
+  });
 }
 
 function buildMongoConnectionConfig(

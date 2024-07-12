@@ -39,15 +39,20 @@ import {
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
+import { updateConnection } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { checkPostgresConnection, updatePostgresConnection } from '../../util';
+import {
+  buildConnectionConfigPostgres,
+  checkPostgresConnection,
+} from '../../util';
 
 interface Props {
   connectionId: string;
@@ -80,18 +85,19 @@ export default function PostgresForm(props: Props): ReactElement {
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
+  const { mutateAsync } = useMutation(updateConnection);
 
   async function onSubmit(values: PostgresFormValues) {
     try {
-      const connection = await updatePostgresConnection(
-        {
+      const connection = await mutateAsync({
+        id: connectionId,
+        name: values.connectionName,
+        connectionConfig: buildConnectionConfigPostgres({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
           db: values.db,
-        },
-        account?.id ?? '',
-        connectionId
-      );
+        }),
+      });
       onSaved(connection);
     } catch (err) {
       console.error(err);
