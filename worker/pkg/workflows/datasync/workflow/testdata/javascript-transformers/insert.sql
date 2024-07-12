@@ -1,22 +1,20 @@
 SET search_path TO javascript;
-INSERT INTO transformers (e164_phone_number, email, measurement, int64, int64_phone_number, string_phone_number, first_name, last_name, full_name, str, character_scramble) VALUES
-('+12345678901', 'user1@example.com', 12.34, 12345678901, 12345678901, '123-456-7890', 'John', 'Doe', 'John Doe', 'example1', 'scramble1'),
-('+12345678902', 'user2@example.com', 23.45, 12345678902, 12345678902, '123-456-7891', 'Jane', 'Smith', 'Jane Smith', 'example2', 'scramble2'),
-('+12345678903', 'user3@example.com', 34.56, 12345678903, 12345678903, '123-456-7892', 'Alice', 'Johnson', 'Alice Johnson', 'example3', 'scramble3'),
-('+12345678904', 'user4@example.com', 45.67, 12345678904, 12345678904, '123-456-7893', 'Bob', 'Brown', 'Bob Brown', 'example4', 'scramble4'),
-('+12345678905', 'user5@example.com', 56.78, 12345678905, 12345678905, '123-456-7894', 'Charlie', 'Davis', 'Charlie Davis', 'example5', 'scramble5'),
-('+12345678906', 'user6@example.com', 67.89, 12345678906, 12345678906, '123-456-7895', 'David', 'Wilson', 'David Wilson', 'example6', 'scramble6'),
-('+12345678907', 'user7@example.com', 78.90, 12345678907, 12345678907, '123-456-7896', 'Eve', 'Garcia', 'Eve Garcia', 'example7', 'scramble7'),
-('+12345678908', 'user8@example.com', 89.01, 12345678908, 12345678908, '123-456-7897', 'Frank', 'Martinez', 'Frank Martinez', 'example8', 'scramble8'),
-('+12345678909', 'user9@example.com', 90.12, 12345678909, 12345678909, '123-456-7898', 'Grace', 'Hernandez', 'Grace Hernandez', 'example9', 'scramble9'),
-('+12345678910', 'user10@example.com', 101.23, 12345678910, 12345678910, '123-456-7899', 'Hank', 'Lopez', 'Hank Lopez', 'example10', 'scramble10'),
-('+12345678911', 'user11@example.com', 111.34, 12345678911, 12345678911, '123-456-7900', 'Ivy', 'Gonzalez', 'Ivy Gonzalez', 'example11', 'scramble11'),
-('+12345678912', 'user12@example.com', 121.45, 12345678912, 12345678912, '123-456-7901', 'Jack', 'Rodriguez', 'Jack Rodriguez', 'example12', 'scramble12'),
-('+12345678913', 'user13@example.com', 131.56, 12345678913, 12345678913, '123-456-7902', 'Karen', 'Perez', 'Karen Perez', 'example13', 'scramble13'),
-('+12345678914', 'user14@example.com', 141.67, 12345678914, 12345678914, '123-456-7903', 'Leo', 'Sanchez', 'Leo Sanchez', 'example14', 'scramble14'),
-('+12345678915', 'user15@example.com', 151.78, 12345678915, 12345678915, '123-456-7904', 'Mia', 'Ramirez', 'Mia Ramirez', 'example15', 'scramble15'),
-('+12345678916', 'user16@example.com', 161.89, 12345678916, 12345678916, '123-456-7905', 'Nick', 'Torres', 'Nick Torres', 'example16', 'scramble16'),
-('+12345678917', 'user17@example.com', 171.90, 12345678917, 12345678917, '123-456-7906', 'Olivia', 'Flores', 'Olivia Flores', 'example17', 'scramble17'),
-('+12345678918', 'user18@example.com', 181.01, 12345678918, 12345678918, '123-456-7907', 'Paul', 'Nguyen', 'Paul Nguyen', 'example18', 'scramble18'),
-('+12345678919', 'user19@example.com', 191.12, 12345678919, 12345678919, '123-456-7908', 'Quinn', 'Kim', 'Quinn Kim', 'example19', 'scramble19'),
-('+12345678920', 'user20@example.com', 201.23, 12345678920, 12345678920, '123-456-7909', 'Ryan', 'Moore', 'Ryan Moore', 'example20', 'scramble20');
+INSERT INTO transformers (
+    e164_phone_number, email, measurement, int64, int64_phone_number, string_phone_number,
+    first_name, last_name, full_name, str, character_scramble, bool, card_number, categorical,
+    city, full_address, gender, international_phone, sha256, ssn, state, street_address,
+    unix_time, username, utc_timestamp, uuid, zipcode
+) VALUES
+    ('+12345678901', 'user1@example.com', 1.1, 1000001, 12345678901, '123-456-7890', 'John', 'Doe', 'John Doe', 'Sample string 1', 'abcd1234', true, '1234567812345678', 'Category1', 'City1', '123 Main St, City1', 'Male', '+12345678901', 'sha256_1', '123-45-6789', 'State1', '123 Main St', 1617281823, 'user1', 1617281823000, 'uuid_1', 12345),
+    ('+12345678902', 'user2@example.com', 2.2, 1000002, 12345678902, '123-456-7891', 'Jane', 'Smith', 'Jane Smith', 'Sample string 2', 'abcd1235', false, '1234567812345679', 'Category2', 'City2', '456 Main St, City2', 'Female', '+12345678902', 'sha256_2', '123-45-6790', 'State2', '456 Main St', 1617281824, 'user2', 1617281824000, 'uuid_2', 12346),
+    ('+12345678903', 'user3@example.com', 3.3, 1000003, 12345678903, '123-456-7892', 'Alice', 'Johnson', 'Alice Johnson', 'Sample string 3', 'abcd1236', true, '1234567812345680', 'Category3', 'City3', '789 Main St, City3', 'Female', '+12345678903', 'sha256_3', '123-45-6791', 'State3', '789 Main St', 1617281825, 'user3', 1617281825000, 'uuid_3', 12347),
+    ('+12345678904', 'user4@example.com', 4.4, 1000004, 12345678904, '123-456-7893', 'Bob', 'Brown', 'Bob Brown', 'Sample string 4', 'abcd1237', false, '1234567812345681', 'Category4', 'City4', '101 Main St, City4', 'Male', '+12345678904', 'sha256_4', '123-45-6792', 'State4', '101 Main St', 1617281826, 'user4', 1617281826000, 'uuid_4', 12348),
+    ('+12345678905', 'user5@example.com', 5.5, 1000005, 12345678905, '123-456-7894', 'Charlie', 'Davis', 'Charlie Davis', 'Sample string 5', 'abcd1238', true, '1234567812345682', 'Category5', 'City5', '202 Main St, City5', 'Male', '+12345678905', 'sha256_5', '123-45-6793', 'State5', '202 Main St', 1617281827, 'user5', 1617281827000, 'uuid_5', 12349),
+    ('+12345678906', 'user6@example.com', 6.6, 1000006, 12345678906, '123-456-7895', 'David', 'Wilson', 'David Wilson', 'Sample string 6', 'abcd1239', false, '1234567812345683', 'Category6', 'City6', '303 Main St, City6', 'Male', '+12345678906', 'sha256_6', '123-45-6794', 'State6', '303 Main St', 1617281828, 'user6', 1617281828000, 'uuid_6', 12350),
+    ('+12345678907', 'user7@example.com', 7.7, 1000007, 12345678907, '123-456-7896', 'Eve', 'Martinez', 'Eve Martinez', 'Sample string 7', 'abcd1240', true, '1234567812345684', 'Category7', 'City7', '404 Main St, City7', 'Female', '+12345678907', 'sha256_7', '123-45-6795', 'State7', '404 Main St', 1617281829, 'user7', 1617281829000, 'uuid_7', 12351),
+    ('+12345678908', 'user8@example.com', 8.8, 1000008, 12345678908, '123-456-7897', 'Frank', 'Lopez', 'Frank Lopez', 'Sample string 8', 'abcd1241', false, '1234567812345685', 'Category8', 'City8', '505 Main St, City8', 'Male', '+12345678908', 'sha256_8', '123-45-6796', 'State8', '505 Main St', 1617281830, 'user8', 1617281830000, 'uuid_8', 12352),
+    ('+12345678909', 'user9@example.com', 9.9, 1000009, 12345678909, '123-456-7898', 'Grace', 'Garcia', 'Grace Garcia', 'Sample string 9', 'abcd1242', true, '1234567812345686', 'Category9', 'City9', '606 Main St, City9', 'Female', '+12345678909', 'sha256_9', '123-45-6797', 'State9', '606 Main St', 1617281831, 'user9', 1617281831000, 'uuid_9', 12353),
+    ('+12345678910', 'user10@example.com', 10.0, 1000010, 12345678910, '123-456-7899', 'Hank', 'Moore', 'Hank Moore', 'Sample string 10', 'abcd1243', false, '1234567812345687', 'Category10', 'City10', '707 Main St, City10', 'Male', '+12345678910', 'sha256_10', '123-45-6798', 'State10', '707 Main St', 1617281832, 'user10', 1617281832000, 'uuid_10', 12354),
+    ('+12345678911', 'user11@example.com', 11.1, 1000011, 12345678911, '123-456-7800', 'Ivy', 'Taylor', 'Ivy Taylor', 'Sample string 11', 'abcd1244', true, '1234567812345688', 'Category11', 'City11', '808 Main St, City11', 'Female', '+12345678911', 'sha256_11', '123-45-6799', 'State11', '808 Main St', 1617281833, 'user11', 1617281833000, 'uuid_11', 12355),
+    ('+12345678912', 'user12@example.com', 12.2, 1000012, 12345678912, '123-456-7801', 'Jack', 'Anderson', 'Jack Anderson', 'Sample string 12', 'abcd1245', false, '1234567812345689', 'Category12', 'City12', '909 Main St, City12', 'Male', '+12345678912', 'sha256_12', '123-45-6800', 'State12', '909 Main St', 1617281834, 'user12', 1617281834000, 'uuid_12', 12356),
+    ('+12345678913', 'user13@example.com', 13.3, 1000013, 12345678913, '123-456-7802', 'Kate', 'Thomas', 'Kate Thomas', 'Sample string 13', 'abcd1246', true, '1234567812345690', 'Category13', 'City13', '1010 Main St, City13', 'Female', '+12345678913', 'sha256_13', '123-45-6801', 'State13', '1010 Main St', 1617281835, 'user13', 1617281835000, 'uuid_13', 12357);

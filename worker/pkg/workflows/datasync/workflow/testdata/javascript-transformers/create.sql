@@ -13,5 +13,21 @@ CREATE TABLE transformers (
     last_name VARCHAR(255),
     full_name VARCHAR(255),
     str VARCHAR (255),
-    character_scramble VARCHAR (255)
+    character_scramble VARCHAR (255),
+    bool BOOLEAN,
+    card_number VARCHAR(255),
+    categorical VARCHAR(255),
+    city VARCHAR(255),
+    full_address VARCHAR(255),
+    gender VARCHAR(255),
+    international_phone VARCHAR(255),
+    sha256 VARCHAR(255),
+    ssn VARCHAR(255),
+    state VARCHAR(255),
+    street_address VARCHAR(255),
+    unix_time BIGINT,
+    username VARCHAR(255),
+    utc_timestamp BIGINT,
+    uuid VARCHAR(255),
+    zipcode BIGINT
 );
