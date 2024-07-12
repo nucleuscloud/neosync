@@ -4,7 +4,7 @@ import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -21,12 +21,24 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
-import { useMutation } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
-import { createConnection, getConnection } from '@neosync/sdk/connectquery';
+import {
+  GetAccountOnboardingConfigResponse,
+  GetConnectionResponse,
+} from '@neosync/sdk';
+import {
+  createConnection,
+  getAccountOnboardingConfig,
+  getConnection,
+  setAccountOnboardingConfig,
+} from '@neosync/sdk/connectquery';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -38,8 +50,15 @@ export default function AwsS3Form() {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
+
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
   );
   const form = useForm<AWSFormValues>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
@@ -72,14 +91,20 @@ export default function AwsS3Form() {
         !onboardingData?.config.hasCreatedDestinationConnection
       ) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData.config.hasCreatedSourceConnection,
-            hasCreatedDestinationConnection: true,
-            hasCreatedJob: onboardingData.config.hasCreatedJob,
-            hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection:
+                onboardingData.config.hasCreatedSourceConnection,
+              hasCreatedDestinationConnection: true,
+              hasCreatedJob: onboardingData.config.hasCreatedJob,
+              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -92,15 +117,21 @@ export default function AwsS3Form() {
         }
       } else {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection: true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection: true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -117,6 +148,14 @@ export default function AwsS3Form() {
       if (returnTo) {
         router.push(returnTo);
       } else if (connection.connection?.id) {
+        queryclient.setQueryData(
+          createConnectQueryKey(getConnection, {
+            id: connection.connection.id,
+          }),
+          new GetConnectionResponse({
+            connection: connection.connection,
+          })
+        );
         router.push(
           `/${account?.name}/connections/${connection.connection.id}`
         );

@@ -273,3 +273,14 @@ export async function setOnboardingConfig(
   }
   return SetAccountOnboardingConfigResponse.fromJson(await res.json());
 }
+
+export function buildAccountOnboardingConfig(
+  values: OnboardingValues
+): AccountOnboardingConfig {
+  return new AccountOnboardingConfig({
+    hasCreatedSourceConnection: values.hasCreatedSourceConnection,
+    hasCreatedDestinationConnection: values.hasCreatedDestinationConnection,
+    hasCreatedJob: values.hasCreatedJob,
+    hasInvitedMembers: values.hasInvitedMembers,
+  });
+}
