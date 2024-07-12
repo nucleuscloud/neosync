@@ -5,7 +5,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import {
   AccountOnboardingConfig,
   GetAccountOnboardingConfigResponse,
@@ -14,11 +18,16 @@ import {
   UserAccountType,
 } from '@neosync/sdk';
 import {
+  getAccountOnboardingConfig,
+  setAccountOnboardingConfig,
+} from '@neosync/sdk/connectquery';
+import {
   ArrowRightIcon,
   ChevronDownIcon,
   CircleIcon,
   RocketIcon,
 } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import NextLink from 'next/link';
 import { ReactElement, useEffect, useState } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -63,8 +72,20 @@ const STEPS_METADATA: Record<
 
 export default function OnboardingChecklist(): ReactElement {
   const { account } = useAccount();
-  const { data, isLoading, isValidating, mutate, error } =
-    useGetAccountOnboardingConfig(account?.id ?? '');
+  const {
+    data,
+    isLoading,
+    isFetching: isValidating,
+    error,
+  } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [showGuide, setShowGuide] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -116,13 +137,19 @@ export default function OnboardingChecklist(): ReactElement {
     }
     setIsSubmitting(true);
     try {
-      const resp = await setOnboardingConfig(account.id, {
-        hasCreatedDestinationConnection: true,
-        hasCreatedSourceConnection: true,
-        hasCreatedJob: true,
-        hasInvitedMembers: true,
+      const resp = await setOnboardingConfigAsync({
+        accountId: account.id,
+        config: buildAccountOnboardingConfig({
+          hasCreatedDestinationConnection: true,
+          hasCreatedSourceConnection: true,
+          hasCreatedJob: true,
+          hasInvitedMembers: true,
+        }),
       });
-      mutate(
+      queryclient.setQueryData(
+        createConnectQueryKey(getAccountOnboardingConfig, {
+          accountId: account.id,
+        }),
         new GetAccountOnboardingConfigResponse({
           config: resp.config,
         })
