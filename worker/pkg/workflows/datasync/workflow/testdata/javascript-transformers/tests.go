@@ -14,7 +14,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     getJsTransformerJobmappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 13},
 			},
 		},
 		{
@@ -24,7 +24,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     getJsGeneratorJobmappings(),
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"javascript.transformers": &workflow_testdata.ExpectedOutput{RowCount: 13},
 			},
 		},
 	}
@@ -43,6 +43,22 @@ func getJsGeneratorJobmappings() []*mgmtv1alpha1.JobMapping {
 		"last_name":           getJavascriptTransformerConfig("return neosync.generateLastName({ maxLength: 25});"),
 		"full_name":           getJavascriptTransformerConfig("return neosync.generateFullName({ maxLength: 25});"),
 		"character_scramble":  getJavascriptTransformerConfig("return neosync.generateCity({ maxLength: 100});"),
+		"bool":                getJavascriptTransformerConfig("return neosync.generateBool({});"),
+		"card_number":         getJavascriptTransformerConfig("return neosync.generateCardNumber({ validLuhn: true });"),
+		"categorical":         getJavascriptTransformerConfig("return neosync.generateCategorical({ categories: ['dog', 'cat', 'horse']});"),
+		"city":                getJavascriptTransformerConfig("return neosync.generateCity({ maxLength: 100 });"),
+		"full_address":        getJavascriptTransformerConfig("return neosync.generateFullAddress({ maxLength: 100 });"),
+		"gender":              getJavascriptTransformerConfig("return neosync.generateGender({});"),
+		"international_phone": getJavascriptTransformerConfig("return neosync.generateInternationalPhoneNumber({ min: 1, max: 50});"),
+		"sha256":              getJavascriptTransformerConfig("return neosync.generateSHA256({});"),
+		"ssn":                 getJavascriptTransformerConfig("return neosync.generateSSN({});"),
+		"state":               getJavascriptTransformerConfig("return neosync.generateState({});"),
+		"street_address":      getJavascriptTransformerConfig("return neosync.generateStreetAddress({ maxLength: 100 });"),
+		"unix_time":           getJavascriptTransformerConfig("return neosync.generateUnixTimestamp({});"),
+		"username":            getJavascriptTransformerConfig("return neosync.generateUsername({ maxLength: 100 });"),
+		"utc_timestamp":       getJavascriptTransformerConfig("return neosync.generateUTCTimestamp({});"),
+		"uuid":                getJavascriptTransformerConfig("return neosync.generateUuid({});"),
+		"zipcode":             getJavascriptTransformerConfig("return neosync.generateZipcode({});"),
 	}
 	jobmappings := GetDefaultSyncJobMappings()
 	updatedJobmappings := []*mgmtv1alpha1.JobMapping{}
