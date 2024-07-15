@@ -45,14 +45,14 @@ import {
   CheckConnectionConfigResponse,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import { updateConnection } from '@neosync/sdk/connectquery';
+import {
+  checkConnectionConfig,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  buildConnectionConfigPostgres,
-  checkPostgresConnection,
-} from '../../util';
+import { buildConnectionConfigPostgres } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -85,11 +85,15 @@ export default function PostgresForm(props: Props): ReactElement {
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync: updatePostgresConnection } =
+    useMutation(updateConnection);
+  const { mutateAsync: checkPostgresConnection } = useMutation(
+    checkConnectionConfig
+  );
 
   async function onSubmit(values: PostgresFormValues) {
     try {
-      const connection = await mutateAsync({
+      const connection = await updatePostgresConnection({
         id: connectionId,
         name: values.connectionName,
         connectionConfig: buildConnectionConfigPostgres({
@@ -552,14 +556,13 @@ export default function PostgresForm(props: Props): ReactElement {
               setIsValidating(true);
               try {
                 const values = form.getValues();
-                const res = await checkPostgresConnection(
-                  {
+                const res = await checkPostgresConnection({
+                  connectionConfig: buildConnectionConfigPostgres({
                     ...values,
                     url: activeTab === 'url' ? values.url : undefined,
                     db: values.db,
-                  },
-                  account?.id ?? ''
-                );
+                  }),
+                });
                 setValidationResponse(res);
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {

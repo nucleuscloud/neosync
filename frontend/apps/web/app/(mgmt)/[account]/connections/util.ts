@@ -127,25 +127,6 @@ export function buildConnectionConfigGcpCloudStorage(
   });
 }
 
-export async function createMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
 export async function checkMysqlConnection(
   values: MysqlFormValues,
   accountId: string
@@ -237,42 +218,6 @@ function buildMysqlConnectionConfig(
     };
   }
   return mysqlconfig;
-}
-
-export async function createPostgresConnection(
-  values: PostgresFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function checkPostgresConnection(
-  values: PostgresFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
 }
 
 function buildPostgresConnectionConfig(
@@ -403,7 +348,7 @@ async function checkConnection(
   return CheckConnectionConfigResponse.fromJson(await res.json());
 }
 
-export function buildCheckConnectionKey(accountId: string): string {
+function buildCheckConnectionKey(accountId: string): string {
   return `/api/accounts/${accountId}/connections/check`;
 }
 
