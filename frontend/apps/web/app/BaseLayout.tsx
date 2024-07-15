@@ -4,6 +4,7 @@ import AccountProvider from '@/components/providers/account-provider';
 import ConnectProvider from '@/components/providers/connect-provider';
 import { KoalaIdentifier } from '@/components/providers/koala-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
+import TanstackQueryProvider from '@/components/providers/query-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import SiteHeader from '@/components/site-header/SiteHeader';
 import { Toaster } from '@/components/ui/toaster';
@@ -21,25 +22,27 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
 
   return (
     <ConnectProvider apiBaseUrl={publicNeosyncApiBaseUrl}>
-      <SessionProvider session={session}>
-        <AccountProvider>
-          <Suspense>
-            <PostHogIdentifier />
-          </Suspense>
-          <Suspense>
-            <KoalaIdentifier />
-          </Suspense>
-          <div className="relative flex min-h-screen flex-col">
-            <SiteHeader />
-            <div className="flex-1 container" id="top-level-layout">
-              {children}
+      <TanstackQueryProvider>
+        <SessionProvider session={session}>
+          <AccountProvider>
+            <Suspense>
+              <PostHogIdentifier />
+            </Suspense>
+            <Suspense>
+              <KoalaIdentifier />
+            </Suspense>
+            <div className="relative flex min-h-screen flex-col">
+              <SiteHeader />
+              <div className="flex-1 container" id="top-level-layout">
+                {children}
+              </div>
+              <SiteFooter />
+              <Toaster />
+              <OnboardingChecklist />
             </div>
-            <SiteFooter />
-            <Toaster />
-            <OnboardingChecklist />
-          </div>
-        </AccountProvider>
-      </SessionProvider>
+          </AccountProvider>
+        </SessionProvider>
+      </TanstackQueryProvider>
     </ConnectProvider>
   );
 }
