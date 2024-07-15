@@ -3,8 +3,6 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"go/parser"
 	"go/token"
@@ -12,26 +10,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
+
+	transformers "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
-
-type ParamInfo struct {
-	Name        string
-	TypeStr     string
-	IsOptional  bool
-	HasDefault  bool
-	Default     string
-	Description string
-}
-
-type FuncInfo struct {
-	Name        string
-	Description string
-	Params      []*ParamInfo
-	Type        string
-	SourceFile  string
-}
 
 func main() {
 	args := os.Args
@@ -41,7 +23,7 @@ func main() {
 
 	// packageName := args[1]
 	fileSet := token.NewFileSet()
-	transformerFuncs := []*FuncInfo{}
+	transformerFuncs := []*transformers.BenthosSpec{}
 
 	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && filepath.Ext(path) == ".go" {
@@ -57,7 +39,7 @@ func main() {
 						if len(parts) < 3 {
 							continue
 						}
-						transformerFuncs = append(transformerFuncs, &FuncInfo{
+						transformerFuncs = append(transformerFuncs, &transformers.BenthosSpec{
 							SourceFile: path,
 							Name:       parts[2],
 							Type:       parts[1],
@@ -73,16 +55,12 @@ func main() {
 	}
 
 	for _, tf := range transformerFuncs {
-		p, err := parseBloblangSpec(tf)
+		parsedSpec, err := transformers.ParseBloblangSpec(tf)
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
-		tf.Params = p
-		if tf.Name == "generateUUID" {
-			jsonF, _ := json.MarshalIndent(tf, "", " ")
-			fmt.Printf("%s \n", string(jsonF))
-
-		}
+		tf.Params = parsedSpec.Params
+		tf.Description = parsedSpec.SpecDescription
 	}
 
 	// for _, tf := range transformerFuncs {
@@ -105,93 +83,6 @@ func main() {
 	// 	}
 	// 	outputFile.Close()
 	// }
-}
-
-// func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
-// 	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?`)
-// 	params := []*ParamInfo{}
-// 	readFile, err := os.Open(funcInfo.SourceFile)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	fileScanner := bufio.NewScanner(readFile)
-// 	fileScanner.Split(bufio.ScanLines)
-
-// 	for fileScanner.Scan() {
-// 		line := fileScanner.Text()
-// 		line = strings.TrimSpace(line)
-// 		// parse bloblang spec
-// 		if strings.HasPrefix(line, "Param(bloblang.") {
-// 			matches := paramRegex.FindStringSubmatch(line)
-// 			if len(matches) > 0 {
-// 				param := &ParamInfo{
-// 					TypeStr:    lowercaseFirst(matches[1]),
-// 					Name:       toCamelCase(matches[2]),
-// 					IsOptional: strings.Contains(line, ".Optional()"),
-// 					HasDefault: matches[3] != "",
-// 					Default:    matches[3],
-// 				}
-// 				params = append(params, param)
-// 			}
-// 		}
-// 	}
-// 	readFile.Close()
-// 	return params, nil
-// }
-
-func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
-	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?(?:\.Description\("([^"]*)"\))?`)
-	specDescriptionRegex := regexp.MustCompile(`\.Description\("([^"]*)"\)`)
-	params := []*ParamInfo{}
-	readFile, err := os.Open(funcInfo.SourceFile)
-	if err != nil {
-		return nil, err
-	}
-	defer readFile.Close()
-
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-
-	var benthosSpec string
-	start := false
-	for fileScanner.Scan() {
-		line := fileScanner.Text()
-		if strings.Contains(line, "bloblang.NewPluginSpec") {
-			start = true
-			benthosSpec += strings.TrimSpace(fileScanner.Text())
-		} else if start {
-			if strings.Contains(line, ":=") {
-				break
-			}
-			benthosSpec += strings.TrimSpace(fileScanner.Text())
-		}
-	}
-
-	parsedSpec := strings.Split(benthosSpec, ".Param")
-	for _, line := range parsedSpec {
-		if strings.Contains(line, "bloblang.NewPluginSpec()") {
-			if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(specMatches) > 0 {
-				funcInfo.Description = specMatches[1]
-			}
-		}
-		// parse param level description
-		if strings.HasPrefix(line, "(") {
-			matches := paramRegex.FindStringSubmatch(line)
-			if len(matches) > 0 {
-				param := &ParamInfo{
-					TypeStr:     lowercaseFirst(matches[1]),
-					Name:        toCamelCase(matches[2]),
-					IsOptional:  strings.Contains(line, ".Optional()"),
-					HasDefault:  matches[3] != "",
-					Default:     matches[3],
-					Description: matches[4],
-				}
-				params = append(params, param)
-			}
-		}
-	}
-
-	return params, nil
 }
 
 // const codeTemplate = `
@@ -322,39 +213,3 @@ func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
 // 	}
 // 	return out.String(), nil
 // }
-
-func toCamelCase(snake string) string {
-	var result string
-	upperNext := false
-	for i, char := range snake {
-		if char == '_' {
-			upperNext = true
-		} else {
-			if upperNext {
-				result += strings.ToUpper(string(char))
-				upperNext = false
-			} else {
-				if i == 0 {
-					result += strings.ToLower(string(char))
-				} else {
-					result += string(char)
-				}
-			}
-		}
-	}
-	return result
-}
-
-func capitalizeFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToUpper(string(s[0])) + s[1:]
-}
-
-func lowercaseFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToLower(string(s[0])) + s[1:]
-}
