@@ -12,11 +12,11 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { validateUserRegexCode } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@connectrpc/connect-query';
+import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {

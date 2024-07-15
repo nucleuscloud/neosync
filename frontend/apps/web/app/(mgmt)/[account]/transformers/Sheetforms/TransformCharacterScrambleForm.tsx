@@ -18,10 +18,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  TransformCharacterScramble,
-  validateUserRegexCode,
-} from '@neosync/sdk';
+import { TransformCharacterScramble } from '@neosync/sdk';
+import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
