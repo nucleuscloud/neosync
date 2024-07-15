@@ -34,18 +34,20 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import {
-  GetConnectionSchemaMapResponse,
   getConnectionSchema,
+  GetConnectionSchemaMapResponse,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Job } from '@neosync/sdk';
+import {
+  getConnections,
+  getConnectionTableConstraints,
+  getJob,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -71,15 +73,19 @@ export default function AiDataGenConnectionCard({
 
   const {
     data,
-    mutate,
+    refetch: mutate,
     isLoading: isJobLoading,
-  } = useGetJob(account?.id ?? '', jobId);
+  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
 
   const {
-    isLoading: isConnectionsLoading,
-    isValidating: isConnectionsValidating,
     data: connectionsData,
-  } = useGetConnections(account?.id ?? '');
+    isLoading: isConnectionsLoading,
+    isFetching: isConnectionsValidating,
+  } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm<SingleTableEditAiSourceFormValues>({
@@ -97,8 +103,12 @@ export default function AiDataGenConnectionCard({
     mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId);
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(account?.id ?? '', fkSourceConnectionId);
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: fkSourceConnectionId },
+      { enabled: !!fkSourceConnectionId }
+    );
 
   const schemaConstraintHandler = useMemo(
     () =>

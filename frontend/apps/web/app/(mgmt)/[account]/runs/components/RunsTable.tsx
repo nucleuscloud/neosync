@@ -59,11 +59,10 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
         onDeleted() {
           mutate();
         },
-        accountId: account?.id ?? '',
         accountName: account?.name ?? '',
         jobNameMap: jobNameMap,
       }),
-    [account?.id ?? '', account?.name ?? '', jobNameMap]
+    [account?.name ?? '', jobNameMap]
   );
 
   if (isLoading) {

@@ -1,5 +1,4 @@
 'use client';
-import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,13 +18,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Job } from '@neosync/sdk';
+import { updateJobSchedule } from '@neosync/sdk/connectquery';
 import cron from 'cron-validate';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { updateJobSchedule } from '../../util';
 
 export const DEFAULT_CRON_STRING = '0 0 1 1 *';
 
@@ -64,15 +64,15 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
     values: { cronSchedule: job?.cronSchedule },
   });
-  const { account } = useAccount();
+  const { mutateAsync: updateJobScheduleAsync } =
+    useMutation(updateJobSchedule);
 
   async function onSubmit(values: ScheduleFormValues) {
     try {
-      const resp = await updateJobSchedule(
-        account?.id ?? '',
-        job.id,
-        values.cronSchedule
-      );
+      const resp = await updateJobScheduleAsync({
+        id: job.id,
+        cronSchedule: values.cronSchedule,
+      });
       toast({
         title: 'Successfully updated job schedule!',
         variant: 'success',
