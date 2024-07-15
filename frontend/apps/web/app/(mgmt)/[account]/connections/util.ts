@@ -11,12 +11,8 @@ import {
 import {
   AwsS3ConnectionConfig,
   AwsS3Credentials,
-  CheckConnectionConfigRequest,
-  CheckConnectionConfigResponse,
   ClientTlsConfig,
   ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
   GcpCloudStorageConnectionConfig,
   IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
@@ -30,8 +26,6 @@ import {
   SSHPrivateKey,
   SSHTunnel,
   SqlConnectionOptions,
-  UpdateConnectionRequest,
-  UpdateConnectionResponse,
 } from '@neosync/sdk';
 
 export type ConnectionType =
@@ -125,23 +119,6 @@ export function buildConnectionConfigGcpCloudStorage(
       value: buildGcpCloudStorageConnectionConfig(values),
     },
   });
-}
-
-export async function checkMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
 }
 
 export function buildConnectionConfigPostgres(
@@ -328,65 +305,4 @@ function buildMongoConnectionConfig(
   });
 
   return mongoconfig;
-}
-
-async function checkConnection(
-  input: CheckConnectionConfigRequest,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(buildCheckConnectionKey(accountId), {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
-}
-
-function buildCheckConnectionKey(accountId: string): string {
-  return `/api/accounts/${accountId}/connections/check`;
-}
-
-async function createConnection(
-  input: CreateConnectionRequest,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
-}
-
-async function updateConnection(
-  input: UpdateConnectionRequest,
-  accountId: string
-): Promise<UpdateConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${input.id}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
 }

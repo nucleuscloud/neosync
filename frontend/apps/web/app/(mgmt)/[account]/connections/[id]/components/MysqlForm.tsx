@@ -43,14 +43,17 @@ import {
   CheckConnectionConfigResponse,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import { updateConnection } from '@neosync/sdk/connectquery';
+import {
+  checkConnectionConfig,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { buildConnectionConfigMysql, checkMysqlConnection } from '../../util';
+import { buildConnectionConfigMysql } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -77,7 +80,10 @@ export default function MysqlForm(props: Props) {
       activeTab: activeTab,
     },
   });
-  const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync: createMysqlConnection } = useMutation(updateConnection);
+  const { mutateAsync: checkMysqlConnection } = useMutation(
+    checkConnectionConfig
+  );
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -85,7 +91,7 @@ export default function MysqlForm(props: Props) {
 
   async function onSubmit(values: MysqlFormValues) {
     try {
-      const connection = await mutateAsync({
+      const connection = await createMysqlConnection({
         id: connectionId,
         name: values.connectionName,
         connectionConfig: buildConnectionConfigMysql({
@@ -467,14 +473,13 @@ export default function MysqlForm(props: Props) {
               setIsValidating(true);
               try {
                 const values = form.getValues();
-                const res = await checkMysqlConnection(
-                  {
+                const res = await checkMysqlConnection({
+                  connectionConfig: buildConnectionConfigMysql({
                     ...values,
                     url: activeTab === 'url' ? values.url : undefined,
                     db: values.db,
-                  },
-                  account?.id ?? ''
-                );
+                  }),
+                });
 
                 setIsValidating(false);
                 setValidationResponse(res);
