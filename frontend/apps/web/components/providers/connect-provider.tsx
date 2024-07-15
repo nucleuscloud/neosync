@@ -8,7 +8,6 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 import { ReactElement, ReactNode, useMemo } from 'react';
 import { useToast } from '../ui/use-toast';
 
@@ -19,13 +18,12 @@ interface Props {
 
 export default function ConnectProvider(props: Props): ReactElement {
   const { children, apiBaseUrl } = props;
-  const { data } = useSession();
   const { toast } = useToast();
   const connectTransport = useMemo(() => {
     return createConnectTransport({
       baseUrl: apiBaseUrl,
     });
-  }, [apiBaseUrl, data?.accessToken]);
+  }, [apiBaseUrl]);
 
   const queryClient = useMemo(
     () =>

@@ -20,8 +20,8 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
   const { publicNeosyncApiBaseUrl } = getSystemAppConfig();
 
   return (
-    <SessionProvider session={session}>
-      <ConnectProvider apiBaseUrl={publicNeosyncApiBaseUrl}>
+    <ConnectProvider apiBaseUrl={publicNeosyncApiBaseUrl}>
+      <SessionProvider session={session}>
         <AccountProvider>
           <Suspense>
             <PostHogIdentifier />
@@ -39,7 +39,7 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
             <OnboardingChecklist />
           </div>
         </AccountProvider>
-      </ConnectProvider>
-    </SessionProvider>
+      </SessionProvider>
+    </ConnectProvider>
   );
 }
