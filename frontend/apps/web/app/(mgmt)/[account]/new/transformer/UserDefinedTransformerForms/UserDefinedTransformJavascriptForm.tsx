@@ -15,10 +15,10 @@ import { Button } from '@/components/ui/button';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
 import {
-  validateUserJavascriptCode,
   ValidateUserJavascriptCodeRequest,
   ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
+import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
