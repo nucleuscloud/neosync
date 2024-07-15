@@ -290,11 +290,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   useEffect(() => {
+    if (!connectFormValues.fkSourceConnectionId || !account?.id) {
+      return;
+    }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables]);
+  }, [selectedTables, connectFormValues.fkSourceConnectionId, account?.id]);
 
   useEffect(() => {
     if (isSchemaMapLoading || selectedTables.size > 0) {

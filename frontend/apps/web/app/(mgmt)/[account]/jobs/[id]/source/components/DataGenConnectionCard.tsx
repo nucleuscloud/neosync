@@ -197,11 +197,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 
   useEffect(() => {
+    if (!fkSourceConnectionId || !account?.id) {
+      return;
+    }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables]);
+  }, [selectedTables, fkSourceConnectionId, account?.id]);
 
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;

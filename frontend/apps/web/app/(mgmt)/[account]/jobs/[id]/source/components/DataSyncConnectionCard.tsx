@@ -325,11 +325,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 
   useEffect(() => {
+    if (!account?.id || !sourceConnectionId) {
+      return;
+    }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables]);
+  }, [selectedTables, account?.id, sourceConnectionId]);
 
   async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
     appendVfk(vfk);
