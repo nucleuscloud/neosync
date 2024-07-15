@@ -42,7 +42,7 @@ import JobRunLogs from './components/JobRunLogs';
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
   const accountId = account?.id || '';
-  const id = params?.id ?? '';
+  const id = decodeURIComponent(params?.id ?? '');
   const router = useRouter();
   const { toast } = useToast();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
