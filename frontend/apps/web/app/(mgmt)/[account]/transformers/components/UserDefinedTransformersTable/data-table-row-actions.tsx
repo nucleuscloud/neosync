@@ -12,7 +12,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
 import { UserDefinedTransformer } from '@neosync/sdk';
+import { deleteUserDefinedTransformer } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
@@ -30,10 +32,13 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const { toast } = useToast();
   const { account } = useAccount();
+  const { mutateAsync: removeTransformer } = useMutation(
+    deleteUserDefinedTransformer
+  );
 
   async function onDelete(): Promise<void> {
     try {
-      await removeTransformer(account?.id ?? '', transformer.id);
+      await removeTransformer({ transformerId: transformer.id });
       toast({
         title: 'Transformer removed successfully!',
         variant: 'success',
@@ -85,21 +90,4 @@ export function DataTableRowActions<TData>({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-async function removeTransformer(
-  accountId: string,
-  transformerId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined?transformerId=${transformerId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

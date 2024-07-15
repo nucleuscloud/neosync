@@ -16,7 +16,11 @@ export default function UpdateUserDefinedTransformerPage({
 }: PageProps) {
   const id = params?.id ?? '';
 
-  const { data, isLoading } = useQuery(getUserDefinedTransformerById);
+  const { data, isLoading } = useQuery(
+    getUserDefinedTransformerById,
+    { transformerId: id },
+    { enabled: !!id }
+  );
   const queryclient = useQueryClient();
 
   if (isLoading) {
