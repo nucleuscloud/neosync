@@ -29,6 +29,7 @@ func (t *GenerateGender) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateGender",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

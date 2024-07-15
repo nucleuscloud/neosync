@@ -3,7 +3,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"go/parser"
@@ -12,26 +11,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"text/template"
+
+	transformers "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
-
-type ParamInfo struct {
-	Name       string
-	TypeStr    string
-	IsOptional bool
-	HasDefault bool
-	Default    string
-}
-
-type FuncInfo struct {
-	Name        string
-	Description string
-	Params      []*ParamInfo
-	Type        string
-	SourceFile  string
-}
 
 func main() {
 	args := os.Args
@@ -41,7 +25,7 @@ func main() {
 
 	packageName := args[1]
 	fileSet := token.NewFileSet()
-	transformerFuncs := []*FuncInfo{}
+	transformerFuncs := []*transformers.BenthosSpec{}
 
 	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && filepath.Ext(path) == ".go" {
@@ -57,11 +41,12 @@ func main() {
 						if len(parts) < 3 {
 							continue
 						}
-						transformerFuncs = append(transformerFuncs, &FuncInfo{
+						transformerFuncs = append(transformerFuncs, &transformers.BenthosSpec{
 							SourceFile:  path,
 							Name:        parts[2],
 							Type:        parts[1],
 							Description: "",
+							Example:     "",
 						})
 					}
 				}
@@ -74,11 +59,12 @@ func main() {
 	}
 
 	for _, tf := range transformerFuncs {
-		p, err := parseBloblangSpec(tf)
+		p, err := transformers.ParseBloblangSpec(tf)
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
-		tf.Params = p
+		tf.Params = p.Params
+		tf.Description = p.SpecDescription
 	}
 
 	for _, tf := range transformerFuncs {
@@ -101,38 +87,6 @@ func main() {
 		}
 		outputFile.Close()
 	}
-}
-
-func parseBloblangSpec(funcInfo *FuncInfo) ([]*ParamInfo, error) {
-	paramRegex := regexp.MustCompile(`bloblang\.New(\w+)Param\("(\w+)"\)(?:\.Optional\(\))?(?:\.Default\(([^()]*(?:\([^()]*\))?[^()]*)\))?`)
-	params := []*ParamInfo{}
-	readFile, err := os.Open(funcInfo.SourceFile)
-	if err != nil {
-		return nil, err
-	}
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-
-	for fileScanner.Scan() {
-		line := fileScanner.Text()
-		line = strings.TrimSpace(line)
-		// parse bloblang spec
-		if strings.HasPrefix(line, "Param(bloblang.") {
-			matches := paramRegex.FindStringSubmatch(line)
-			if len(matches) > 0 {
-				param := &ParamInfo{
-					TypeStr:    lowercaseFirst(matches[1]),
-					Name:       toCamelCase(matches[2]),
-					IsOptional: strings.Contains(line, ".Optional()"),
-					HasDefault: matches[3] != "",
-					Default:    matches[3],
-				}
-				params = append(params, param)
-			}
-		}
-	}
-	readFile.Close()
-	return params, nil
 }
 
 const codeTemplate = `
@@ -176,6 +130,7 @@ func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "{{.FunctInfo.Name}}",
 		Description: "{{.FunctInfo.Description}}",
+		Example: "{{.FunctInfo.Example}}",
 	}, nil
 }
 
@@ -233,13 +188,13 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 type TemplateData struct {
 	SourceFile   string
 	PackageName  string
-	FunctInfo    FuncInfo
+	FunctInfo    transformers.BenthosSpec
 	StructName   string
 	ImportFmt    bool
 	HasSeedParam bool
 }
 
-func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
+func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, error) {
 	data := TemplateData{
 		SourceFile:  funcInfo.SourceFile,
 		PackageName: pkgName,
@@ -264,38 +219,9 @@ func generateCode(pkgName string, funcInfo *FuncInfo) (string, error) {
 	return out.String(), nil
 }
 
-func toCamelCase(snake string) string {
-	var result string
-	upperNext := false
-	for i, char := range snake {
-		if char == '_' {
-			upperNext = true
-		} else {
-			if upperNext {
-				result += strings.ToUpper(string(char))
-				upperNext = false
-			} else {
-				if i == 0 {
-					result += strings.ToLower(string(char))
-				} else {
-					result += string(char)
-				}
-			}
-		}
-	}
-	return result
-}
-
 func capitalizeFirst(s string) string {
 	if len(s) == 0 {
 		return s
 	}
 	return strings.ToUpper(string(s[0])) + s[1:]
-}
-
-func lowercaseFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToLower(string(s[0])) + s[1:]
 }

@@ -102,6 +102,7 @@ func init() {
 		def := registerVMRunnerFunction(templateData.Name, templateData.Description)
 		def.Param("value", "any", "The value to be transformed.")
 		def.Param("opts", "object", "Transformer options config")
+		def.Example(templateData.Example)
 		def.Namespace(neosyncFnCtxName)
 		def.FnCtor(func(r *vmRunner) jsFunction {
 			return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {

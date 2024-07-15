@@ -20,6 +20,7 @@ func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

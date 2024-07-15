@@ -23,6 +23,7 @@ func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

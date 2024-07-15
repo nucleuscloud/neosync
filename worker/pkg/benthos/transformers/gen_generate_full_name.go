@@ -28,6 +28,7 @@ func (t *GenerateFullName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullName",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

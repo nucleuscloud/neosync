@@ -24,6 +24,7 @@ func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, e
 	return &TemplateData{
 		Name: "generateInternationalPhoneNumber",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

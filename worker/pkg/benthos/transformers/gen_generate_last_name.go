@@ -28,6 +28,7 @@ func (t *GenerateLastName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateLastName",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

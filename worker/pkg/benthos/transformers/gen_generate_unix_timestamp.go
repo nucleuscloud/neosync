@@ -20,6 +20,7 @@ func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUnixTimestamp",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

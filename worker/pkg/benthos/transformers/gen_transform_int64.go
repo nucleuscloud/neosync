@@ -24,6 +24,7 @@ func (t *TransformInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

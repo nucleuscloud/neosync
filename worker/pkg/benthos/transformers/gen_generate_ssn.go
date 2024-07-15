@@ -27,6 +27,7 @@ func (t *GenerateSSN) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSSN",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

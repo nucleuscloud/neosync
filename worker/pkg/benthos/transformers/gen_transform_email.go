@@ -34,6 +34,7 @@ func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformEmail",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

@@ -29,6 +29,7 @@ func (t *GenerateEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateEmail",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

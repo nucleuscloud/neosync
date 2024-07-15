@@ -41,6 +41,7 @@ type BenthosSpecParam struct {
 type BenthosSpec struct {
 	Name        string
 	Description string
+	Example     string
 	Params      []*BenthosSpecParam
 	Type        string
 	SourceFile  string
@@ -107,13 +108,6 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		Params:          params,
 		SpecDescription: specDescription,
 	}, nil
-}
-
-func capitalizeFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
 func lowercaseFirst(s string) string {

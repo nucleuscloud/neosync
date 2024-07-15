@@ -27,6 +27,7 @@ func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateBool",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

@@ -29,6 +29,7 @@ func (t *TransformLastName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformLastName",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

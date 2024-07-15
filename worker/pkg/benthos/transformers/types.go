@@ -3,6 +3,7 @@ package transformers
 type TemplateData struct {
 	Name        string
 	Description string
+	Example     string
 }
 
 type NeosyncTransformer interface {
