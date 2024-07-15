@@ -40,24 +40,26 @@ import {
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { getErrorMessage } from '@/util/util';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Job } from '@neosync/sdk';
+import { GetConnectionResponse, Job } from '@neosync/sdk';
 import {
+  getAiGeneratedData,
+  getConnection,
   getConnections,
   getConnectionTableConstraints,
   getJob,
+  updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { KeyedMutator } from 'swr';
 import {
+  getSampleEditAiGeneratedRecordsRequest,
   getSingleTableAiGenerateNumRows,
   getSingleTableAiSchemaTable,
-  sampleEditAiGeneratedRecords,
-  updateSingleTableAiGenerateJobSource,
+  toSingleTableEditAiGenerateJobSource,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 
@@ -88,6 +90,8 @@ export default function AiDataGenConnectionCard({
   );
   const connections = connectionsData?.connections ?? [];
 
+  const { mutateAsync: sampleRecords } = useMutation(getAiGeneratedData);
+
   const form = useForm<SingleTableEditAiSourceFormValues>({
     resolver: yupResolver(SingleTableEditAiSourceFormValues),
     values: getJobSource(data?.job),
@@ -109,6 +113,11 @@ export default function AiDataGenConnectionCard({
       { connectionId: fkSourceConnectionId },
       { enabled: !!fkSourceConnectionId }
     );
+
+  const { mutateAsync: updateSourceConnection } = useMutation(
+    updateJobSourceConnection
+  );
+  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
 
   const schemaConstraintHandler = useMemo(
     () =>
@@ -184,7 +193,11 @@ export default function AiDataGenConnectionCard({
     }
     try {
       setIsUpdating(true);
-      await updateSingleTableAiGenerateJobSource(values, account.id, job.id);
+      await updateSourceConnection({
+        id: job.id,
+        mappings: [],
+        source: toSingleTableEditAiGenerateJobSource(values),
+      });
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -208,11 +221,10 @@ export default function AiDataGenConnectionCard({
     }
     try {
       setIsSampling(true);
-      const output = await sampleEditAiGeneratedRecords(
-        form.getValues(),
-        account.id
+      const output = await sampleRecords(
+        getSampleEditAiGeneratedRecordsRequest(form.getValues())
       );
-      setaioutput(output);
+      setaioutput(output.records);
     } catch (err) {
       toast({
         title: 'Unable to generate sample data',
@@ -250,6 +262,7 @@ export default function AiDataGenConnectionCard({
         account?.id ?? '',
         value,
         form.getValues(),
+        (id) => getConnectionAsync({ id }),
         mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
@@ -592,20 +605,21 @@ async function getUpdatedValues(
   accountId: string,
   connectionId: string,
   originalValues: SingleTableEditAiSourceFormValues,
-  mutateConnectionSchemaRes:
-    | KeyedMutator<unknown>
-    | KeyedMutator<GetConnectionSchemaMapResponse>
+  getConnectionById: (id: string) => Promise<GetConnectionResponse>,
+  mutateConnectionSchemaResponse: (
+    schemaRes: GetConnectionSchemaMapResponse
+  ) => void
 ): Promise<SingleTableEditAiSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
     getConnectionSchema(accountId, connectionId),
-    getConnection(accountId, connectionId),
+    getConnectionById(connectionId),
   ]);
 
   if (!schemaRes || !connRes) {
     return originalValues;
   }
 
-  mutateConnectionSchemaRes(schemaRes);
+  mutateConnectionSchemaResponse(schemaRes);
   let schema = originalValues.schema.schema;
   let table = originalValues.schema.table;
   if (

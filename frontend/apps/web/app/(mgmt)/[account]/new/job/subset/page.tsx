@@ -33,6 +33,7 @@ import {
   JobMapping,
 } from '@neosync/sdk';
 import {
+  createJob,
   getAccountOnboardingConfig,
   getConnections,
   getConnectionTableConstraints,
@@ -48,7 +49,7 @@ import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import {
   clearNewJobSession,
-  createNewSyncJob,
+  getCreateNewSyncJobRequest,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
@@ -131,6 +132,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       { enabled: !!schemaFormValues.connectionId }
     );
 
+  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+
   const fkConstraints = tableConstraints?.foreignKeyConstraints;
   const [rootTables, setRootTables] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -173,14 +176,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     try {
       const connMap = new Map(connections.map((c) => [c.id, c]));
       const job = await createNewSyncJob(
-        {
-          define: defineFormValues,
-          connect: connectFormValues,
-          schema: schemaFormValues,
-          subset: values,
-        },
-        account.id,
-        (id) => connMap.get(id)
+        getCreateNewSyncJobRequest(
+          {
+            define: defineFormValues,
+            connect: connectFormValues,
+            schema: schemaFormValues,
+            subset: values,
+          },
+          account.id,
+          (id) => connMap.get(id)
+        )
       );
       posthog.capture('New Job Flow Complete', {
         jobType: 'data-sync',

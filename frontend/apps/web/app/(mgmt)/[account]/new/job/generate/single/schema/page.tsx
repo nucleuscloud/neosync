@@ -3,7 +3,7 @@
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
-  createNewSingleTableGenerateJob,
+  getCreateNewSingleTableGenerateJobRequest,
   getNewJobSessionKeys,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
@@ -43,6 +43,7 @@ import {
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
+  createJob,
   getAccountOnboardingConfig,
   getConnections,
   getConnectionTableConstraints,
@@ -137,6 +138,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectFormValues.fkSourceConnectionId
   );
 
+  const { mutateAsync: createJobAsync } = useMutation(createJob);
+
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver<SingleTableSchemaFormValues>(
@@ -162,14 +165,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     try {
       const connMap = new Map(connections.map((c) => [c.id, c]));
-      const job = await createNewSingleTableGenerateJob(
-        {
-          define: defineFormValues,
-          connect: connectFormValues,
-          schema: values,
-        },
-        account.id,
-        (id) => connMap.get(id)
+      const job = await createJobAsync(
+        getCreateNewSingleTableGenerateJobRequest(
+          {
+            define: defineFormValues,
+            connect: connectFormValues,
+            schema: values,
+          },
+          account.id,
+          (id) => connMap.get(id)
+        )
       );
       posthog.capture('New Job Created', {
         jobType: 'generate',

@@ -3,9 +3,9 @@
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
   clearNewJobSession,
-  createNewSingleTableAiGenerateJob,
+  getCreateNewSingleTableAiGenerateJobRequest,
   getNewJobSessionKeys,
-  sampleAiGeneratedRecords,
+  getSampleAiGeneratedRecordsRequest,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import ButtonText from '@/components/ButtonText';
 import { Action } from '@/components/DualListBox/DualListBox';
@@ -44,7 +44,9 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GetAccountOnboardingConfigResponse } from '@neosync/sdk';
 import {
+  createJob,
   getAccountOnboardingConfig,
+  getAiGeneratedData,
   getConnections,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
@@ -97,6 +99,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
+
+  const { mutateAsync: createJobAsync } = useMutation(createJob);
+  const { mutateAsync: sampleRecords } = useMutation(getAiGeneratedData);
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
@@ -162,14 +167,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     try {
       const connMap = new Map(connections.map((c) => [c.id, c]));
-      const job = await createNewSingleTableAiGenerateJob(
-        {
-          define: defineFormValues,
-          connect: connectFormValues,
-          schema: values,
-        },
-        account.id,
-        (id) => connMap.get(id)
+      const job = await createJobAsync(
+        getCreateNewSingleTableAiGenerateJobRequest(
+          {
+            define: defineFormValues,
+            connect: connectFormValues,
+            schema: values,
+          },
+          account.id,
+          (id) => connMap.get(id)
+        )
       );
       posthog.capture('New Job Created', { jobType: 'ai-generate' });
       toast({
@@ -261,14 +268,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     try {
       setIsSampling(true);
-      const output = await sampleAiGeneratedRecords(
-        {
+      const output = await sampleRecords(
+        getSampleAiGeneratedRecordsRequest({
           connect: connectFormValues,
           schema: form.getValues(),
-        },
-        account.id
+        })
       );
-      setaioutput(output);
+      setaioutput(output.records);
     } catch (err) {
       toast({
         title: 'Unable to generate sample data',

@@ -39,6 +39,7 @@ import {
   VirtualForeignKey,
 } from '@neosync/sdk';
 import {
+  createJob,
   getAccountOnboardingConfig,
   getConnection,
   getConnections,
@@ -55,7 +56,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
-  createNewSyncJob,
+  getCreateNewSyncJobRequest,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
@@ -146,6 +147,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       { enabled: !!connectFormValues.sourceId }
     );
 
+  const { mutateAsync: createNewSyncJob } = useMutation(createJob);
+
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SchemaFormValues),
     values: getFormValues(connectFormValues.sourceId, schemaFormData),
@@ -166,14 +169,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       try {
         const connMap = new Map(connections.map((c) => [c.id, c]));
         const job = await createNewSyncJob(
-          {
-            define: defineFormValues,
-            connect: connectFormValues,
-            schema: values,
-            // subset: {},
-          },
-          account.id,
-          (id) => connMap.get(id)
+          getCreateNewSyncJobRequest(
+            {
+              define: defineFormValues,
+              connect: connectFormValues,
+              schema: values,
+              // subset: {},
+            },
+            account.id,
+            (id) => connMap.get(id)
+          )
         );
         posthog.capture('New Job Flow Complete', {
           jobType: 'data-sync',

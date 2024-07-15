@@ -40,10 +40,11 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  GetConnectionResponse,
   Job,
   JobMapping,
   JobMappingTransformer,
@@ -59,13 +60,13 @@ import {
   VirtualForeignKey,
 } from '@neosync/sdk';
 import {
+  getConnection,
   getConnectionTableConstraints,
   getConnections,
   getJob,
 } from '@neosync/sdk/connectquery';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
@@ -138,6 +139,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       { connectionId: sourceConnectionId },
       { enabled: !!sourceConnectionId }
     );
+  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
 
   const schemaConstraintHandler = useMemo(() => {
     const virtualForeignKeys = data?.job?.virtualForeignKeys ?? [];
@@ -200,6 +202,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         account?.id ?? '',
         value,
         form.getValues(),
+        (id) => getConnectionAsync({ id }),
         mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
@@ -722,13 +725,14 @@ async function getUpdatedValues(
   accountId: string,
   connectionId: string,
   originalValues: SourceFormValues,
-  mutateConnectionSchemaRes:
-    | KeyedMutator<unknown>
-    | KeyedMutator<GetConnectionSchemaMapResponse>
+  getConnectionById: (id: string) => Promise<GetConnectionResponse>,
+  mutateConnectionSchemaResponse: (
+    schemaRes: GetConnectionSchemaMapResponse
+  ) => void
 ): Promise<SourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
     getConnectionSchema(accountId, connectionId),
-    getConnection(accountId, connectionId),
+    getConnectionById(connectionId),
   ]);
 
   if (!schemaRes || !connRes) {
@@ -752,7 +756,7 @@ async function getUpdatedValues(
     mappings,
     connectionId: connectionId || '',
   };
-  mutateConnectionSchemaRes(schemaRes);
+  mutateConnectionSchemaResponse(schemaRes);
 
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':
