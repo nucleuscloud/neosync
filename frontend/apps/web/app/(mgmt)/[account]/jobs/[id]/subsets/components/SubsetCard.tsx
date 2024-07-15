@@ -14,12 +14,16 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
+import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GetJobResponse, JobSourceOptions } from '@neosync/sdk';
+import {
+  getConnectionTableConstraints,
+  getJob,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { setJobSubsets } from '../../../util';
@@ -34,17 +38,18 @@ export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
   const { toast } = useToast();
   const { account } = useAccount();
-  const {
-    data,
-    mutate: mutateJob,
-    isLoading: isJobLoading,
-  } = useGetJob(account?.id ?? '', jobId);
+  const { data, isLoading: isJobLoading } = useQuery(
+    getJob,
+    { id: jobId },
+    { enabled: !!jobId }
+  );
+  const queryclient = useQueryClient();
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      sourceConnectionId ?? ''
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: sourceConnectionId },
+      { enabled: !!sourceConnectionId }
     );
 
   const fkConstraints = tableConstraints?.foreignKeyConstraints;
@@ -116,10 +121,9 @@ export default function SubsetCard(props: Props): ReactElement {
         title: 'Successfully updated database subsets',
         variant: 'success',
       });
-      mutateJob(
-        new GetJobResponse({
-          job: updatedJobRes.job,
-        })
+      queryclient.setQueryData(
+        createConnectQueryKey(getJob, { id: updatedJobRes.job?.id }),
+        new GetJobResponse({ job: updatedJobRes.job })
       );
     } catch (err) {
       console.error(err);
