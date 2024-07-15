@@ -4,8 +4,8 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import {
-  SchemaTable,
   getAllFormErrors,
+  SchemaTable,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -16,10 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -27,6 +24,7 @@ import {
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -38,6 +36,10 @@ import {
   VirtualForeignConstraint,
   VirtualForeignKey,
 } from '@neosync/sdk';
+import {
+  getConnections,
+  getConnectionTableConstraints,
+} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -114,13 +116,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isLoading: isSchemaMapLoading,
     isValidating: isSchemaMapValidating,
   } = useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
-  const { data: connectionsData } = useGetConnections(account?.id ?? '');
+  const { data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      connectFormValues.sourceId
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: connectFormValues.sourceId },
+      { enabled: !!connectFormValues.sourceId }
     );
 
   const form = useForm<SchemaFormValues>({

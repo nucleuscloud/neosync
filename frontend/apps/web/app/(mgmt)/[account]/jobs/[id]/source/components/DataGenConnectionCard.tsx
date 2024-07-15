@@ -31,7 +31,6 @@ import {
   getConnectionSchema,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -53,7 +52,11 @@ import {
   UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
-import { getConnections, getJob } from '@neosync/sdk/connectquery';
+import {
+  getConnectionTableConstraints,
+  getConnections,
+  getJob,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -105,10 +108,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId ?? '');
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      fkSourceConnectionId ?? ''
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: fkSourceConnectionId },
+      { enabled: !!fkSourceConnectionId }
     );
 
   const schemaConstraintHandler = useMemo(

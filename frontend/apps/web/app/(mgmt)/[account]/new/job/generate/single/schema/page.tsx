@@ -9,8 +9,8 @@ import {
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
-  SchemaTable,
   getAllFormErrors,
+  SchemaTable,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -31,16 +31,19 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountOnboardingConfigResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
+import {
+  getConnections,
+  getConnectionTableConstraints,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -78,7 +81,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
-  const { data: connectionsData } = useGetConnections(account?.id ?? '');
+  const { data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
@@ -225,10 +232,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      connectFormValues.fkSourceConnectionId
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: connectFormValues.fkSourceConnectionId },
+      { enabled: !!connectFormValues.fkSourceConnectionId }
     );
 
   const schemaConstraintHandler = useMemo(
