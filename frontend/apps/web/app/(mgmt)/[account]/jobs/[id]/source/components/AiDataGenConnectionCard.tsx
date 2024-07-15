@@ -56,6 +56,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
+  fromStructToRecord,
   getSampleEditAiGeneratedRecordsRequest,
   getSingleTableAiGenerateNumRows,
   getSingleTableAiSchemaTable,
@@ -224,7 +225,7 @@ export default function AiDataGenConnectionCard({
       const output = await sampleRecords(
         getSampleEditAiGeneratedRecordsRequest(form.getValues())
       );
-      setaioutput(output.records);
+      setaioutput(output.records.map((r) => fromStructToRecord(r)));
     } catch (err) {
       toast({
         title: 'Unable to generate sample data',

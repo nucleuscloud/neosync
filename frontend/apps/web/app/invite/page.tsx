@@ -7,7 +7,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
 import { getErrorMessage } from '@/util/util';
-import { AcceptTeamAccountInviteResponse } from '@neosync/sdk';
+import { useMutation } from '@connectrpc/connect-query';
+import { acceptTeamAccountInvite } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -25,6 +26,9 @@ export default function InvitePage(): ReactElement {
   const { toast } = useToast();
   const { data: systemData, isLoading: isSystemDataLoading } =
     useGetSystemAppConfig();
+  const { mutateAsync: acceptTeamInvite } = useMutation(
+    acceptTeamAccountInvite
+  );
 
   useEffect(() => {
     if (isSystemDataLoading) {
@@ -52,7 +56,7 @@ export default function InvitePage(): ReactElement {
       isFirstRender.current
     ) {
       isFirstRender.current = false;
-      acceptTeamInvite(token)
+      acceptTeamInvite({ token })
         .then((res) => {
           if (res.account) {
             setAccount(res.account);
@@ -87,17 +91,4 @@ export default function InvitePage(): ReactElement {
       </Card>
     </div>
   );
-}
-
-async function acceptTeamInvite(
-  token: string
-): Promise<AcceptTeamAccountInviteResponse> {
-  const res = await fetch(`/api/users/accept-invite?token=${token}`, {
-    method: 'POST',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return AcceptTeamAccountInviteResponse.fromJson(await res.json());
 }

@@ -1,7 +1,6 @@
 import {
   Connection,
   GetJobRunEventsResponse,
-  GetJobRunLogsStreamResponse,
   GetJobRunResponse,
   JobRunStatus,
 } from '@neosync/sdk';
@@ -127,13 +126,4 @@ export function onJobRunsAutoRefreshInterval(
 
 export function onJobRunsPaused(interval: JobRunsAutoRefreshInterval): boolean {
   return interval === 'off';
-}
-
-export function refreshLogsWhenRunNotComplete(
-  data: GetJobRunLogsStreamResponse
-): number {
-  return data.logLine.includes('context canceled') ||
-    data.logLine.includes('workflow completed')
-    ? 0
-    : TEN_SECONDS;
 }

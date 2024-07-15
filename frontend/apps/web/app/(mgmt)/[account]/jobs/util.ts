@@ -8,6 +8,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { Struct, Value } from '@bufbuild/protobuf';
 import {
   ActivityOptions,
   AiGenerateSourceOptions,
@@ -141,6 +142,29 @@ export function getCreateNewSingleTableGenerateJobRequest(
     workflowOptions: toWorkflowOptions(values.define.workflowSettings),
     syncOptions: toSyncOptions(values),
   });
+}
+
+export function fromStructToRecord(struct: Struct): Record<string, unknown> {
+  return Object.entries(struct.fields).reduce(
+    (output, [key, value]) => {
+      output[key] = handleValue(value);
+      return output;
+    },
+    {} as Record<string, unknown>
+  );
+}
+
+function handleValue(value: Value): unknown {
+  switch (value.kind.case) {
+    case 'structValue': {
+      return fromStructToRecord(value.kind.value);
+    }
+    case 'listValue': {
+      return value.kind.value.values.map((val) => handleValue(val));
+    }
+    default:
+      return value.kind.value;
+  }
 }
 
 function toSingleTableAiGenerateJobSource(

@@ -3,6 +3,7 @@
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
   clearNewJobSession,
+  fromStructToRecord,
   getCreateNewSingleTableAiGenerateJobRequest,
   getNewJobSessionKeys,
   getSampleAiGeneratedRecordsRequest,
@@ -274,7 +275,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           schema: form.getValues(),
         })
       );
-      setaioutput(output.records);
+      setaioutput(output.records.map((r) => fromStructToRecord(r)));
     } catch (err) {
       toast({
         title: 'Unable to generate sample data',
