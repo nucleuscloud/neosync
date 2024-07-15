@@ -4,10 +4,9 @@ import {
   JobRunsAutoRefreshInterval,
   onJobRunsAutoRefreshInterval,
   onJobRunsPaused,
-  useGetJobRuns,
-} from '@/libs/hooks/useGetJobRuns';
+} from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
-import { getJobs } from '@neosync/sdk/connectquery';
+import { getJobRuns, getJobs } from '@neosync/sdk/connectquery';
 import { ReactElement, useMemo, useState } from 'react';
 import { getColumns } from './JobRunsTable/columns';
 import { DataTable } from './JobRunsTable/data-table';
@@ -27,11 +26,21 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
   const { account } = useAccount();
   const [refreshInterval, setAutoRefreshInterval] =
     useState<JobRunsAutoRefreshInterval>('1m');
-  const { isLoading, data, mutate, isValidating } = useGetJobRuns(
-    account?.id ?? '',
+  const {
+    isLoading,
+    data,
+    refetch: mutate,
+    isFetching: isValidating,
+  } = useQuery(
+    getJobRuns,
+    { id: { case: 'accountId', value: account?.id ?? '' } },
     {
-      refreshIntervalFn: () => onJobRunsAutoRefreshInterval(refreshInterval),
-      isPaused: () => onJobRunsPaused(refreshInterval),
+      enabled() {
+        return !!account?.id && !onJobRunsPaused(refreshInterval);
+      },
+      refetchInterval() {
+        return onJobRunsAutoRefreshInterval(refreshInterval);
+      },
     }
   );
 

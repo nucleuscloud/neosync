@@ -1,4 +1,10 @@
-import { Connection } from '@neosync/sdk';
+import {
+  Connection,
+  GetJobRunEventsResponse,
+  GetJobRunLogsStreamResponse,
+  GetJobRunResponse,
+  JobRunStatus,
+} from '@neosync/sdk';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -71,4 +77,63 @@ export function splitConnections(connections: Connection[]): {
     mongodb,
     gcpcs,
   };
+}
+
+const TEN_SECONDS = 10 * 1000;
+
+export function refreshJobRunWhenJobRunning(data: GetJobRunResponse): number {
+  const { jobRun } = data;
+  if (!jobRun || !jobRun.status) {
+    return 0;
+  }
+  return shouldRefreshJobRun(jobRun.status) ? TEN_SECONDS : 0;
+}
+
+function shouldRefreshJobRun(status?: JobRunStatus): boolean {
+  return (
+    status === JobRunStatus.RUNNING ||
+    status === JobRunStatus.PENDING ||
+    status === JobRunStatus.ERROR
+  );
+}
+
+export function refreshEventsWhenEventsIncomplete(
+  data: GetJobRunEventsResponse
+): number {
+  const { isRunComplete } = data;
+  return isRunComplete ? 0 : TEN_SECONDS;
+}
+
+export type JobRunsAutoRefreshInterval = 'off' | '10s' | '30s' | '1m' | '5m';
+
+export function onJobRunsAutoRefreshInterval(
+  interval: JobRunsAutoRefreshInterval
+): number {
+  switch (interval) {
+    case 'off':
+      return 0;
+    case '10s':
+      return 10 * 1000;
+    case '30s':
+      return 30 * 1000;
+    case '1m':
+      return 1 * 60 * 1000;
+    case '5m':
+      return 5 * 60 * 1000;
+    default:
+      return 0;
+  }
+}
+
+export function onJobRunsPaused(interval: JobRunsAutoRefreshInterval): boolean {
+  return interval === 'off';
+}
+
+export function refreshLogsWhenRunNotComplete(
+  data: GetJobRunLogsStreamResponse
+): number {
+  return data.logLine.includes('context canceled') ||
+    data.logLine.includes('workflow completed')
+    ? 0
+    : TEN_SECONDS;
 }
