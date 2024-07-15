@@ -40,17 +40,10 @@ import {
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  GenerateSourceOptions,
-  GenerateSourceSchemaOption,
-  GenerateSourceTableOption,
   GetConnectionResponse,
   Job,
   JobMapping,
   JobMappingTransformer,
-  JobSource,
-  JobSourceOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
@@ -58,11 +51,15 @@ import {
   getConnectionTableConstraints,
   getConnections,
   getJob,
+  updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { getSingleTableGenerateNumRows } from '../../../util';
+import {
+  getSingleTableGenerateNumRows,
+  toSingleTableEditGenerateJobSource,
+} from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
 
@@ -195,6 +192,10 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     [isConnectionsValidating]
   );
 
+  const { mutateAsync: updateJobSrcConnection } = useMutation(
+    updateJobSourceConnection
+  );
+
   useEffect(() => {
     const validateJobMappings = async () => {
       await validateMappings();
@@ -212,7 +213,21 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       return;
     }
     try {
-      await updateJobConnection(account?.id ?? '', job, values);
+      await updateJobSrcConnection({
+        id: job.id,
+        mappings: values.mappings.map((m) => {
+          return new JobMapping({
+            schema: m.schema,
+            table: m.table,
+            column: m.column,
+            transformer:
+              convertJobMappingTransformerFormToJobMappingTransformer(
+                m.transformer
+              ),
+          });
+        }),
+        source: toSingleTableEditGenerateJobSource(values),
+      });
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -459,69 +474,6 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
     mappings: mappings,
     numRows: numRows,
   };
-}
-
-async function updateJobConnection(
-  accountId: string,
-  job: Job,
-  values: SingleTableEditSourceFormValues
-): Promise<UpdateJobSourceConnectionResponse> {
-  const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
-  const table = values.mappings.length > 0 ? values.mappings[0].table : null;
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateJobSourceConnectionRequest({
-          id: job.id,
-          mappings: values.mappings.map((m) => {
-            return new JobMapping({
-              schema: m.schema,
-              table: m.table,
-              column: m.column,
-              transformer:
-                convertJobMappingTransformerFormToJobMappingTransformer(
-                  m.transformer
-                ),
-            });
-          }),
-          source: new JobSource({
-            options: new JobSourceOptions({
-              config: {
-                case: 'generate',
-                value: new GenerateSourceOptions({
-                  fkSourceConnectionId: values.source.fkSourceConnectionId,
-                  schemas:
-                    schema && table
-                      ? [
-                          new GenerateSourceSchemaOption({
-                            schema: schema,
-                            tables: [
-                              new GenerateSourceTableOption({
-                                table: table,
-                                rowCount: BigInt(values.numRows),
-                              }),
-                            ],
-                          }),
-                        ]
-                      : [],
-                }),
-              },
-            }),
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }
 
 async function getUpdatedValues(

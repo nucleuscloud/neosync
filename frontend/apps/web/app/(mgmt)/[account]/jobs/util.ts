@@ -64,6 +64,7 @@ import {
   SingleTableAiSchemaFormValues,
   SingleTableConnectFormValues,
   SingleTableEditAiSourceFormValues,
+  SingleTableEditSourceFormValues,
   SingleTableSchemaFormValues,
   SubsetFormValues,
   WorkflowSettingsSchema,
@@ -257,6 +258,37 @@ function toSingleTableGenerateJobSource(
         }),
       },
     },
+  });
+}
+
+export function toSingleTableEditGenerateJobSource(
+  values: SingleTableEditSourceFormValues
+): JobSource {
+  const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
+  const table = values.mappings.length > 0 ? values.mappings[0].table : null;
+  return new JobSource({
+    options: new JobSourceOptions({
+      config: {
+        case: 'generate',
+        value: new GenerateSourceOptions({
+          fkSourceConnectionId: values.source.fkSourceConnectionId,
+          schemas:
+            schema && table
+              ? [
+                  new GenerateSourceSchemaOption({
+                    schema: schema,
+                    tables: [
+                      new GenerateSourceTableOption({
+                        table: table,
+                        rowCount: BigInt(values.numRows),
+                      }),
+                    ],
+                  }),
+                ]
+              : [],
+        }),
+      },
+    }),
   });
 }
 
