@@ -1,6 +1,5 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,7 +39,6 @@ export default function EditItem(props: Props): ReactElement {
     GetTableRowCountResponse | undefined
   >();
   const [calculatingRowCount, setCalculatingRowCount] = useState(false);
-  const { account } = useAccount();
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [rowCountError, setRowCountError] = useState<string>();
