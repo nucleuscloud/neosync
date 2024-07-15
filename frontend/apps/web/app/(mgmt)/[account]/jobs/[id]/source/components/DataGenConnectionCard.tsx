@@ -26,21 +26,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import {
   GetConnectionSchemaMapResponse,
   getConnectionSchema,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GenerateSourceOptions,
@@ -55,6 +53,7 @@ import {
   UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
+import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -79,12 +78,15 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const {
     data,
-    mutate,
+    refetch: mutate,
     isLoading: isJobLoading,
-  } = useGetJob(account?.id ?? '', jobId);
-
-  const { data: connectionsData, isValidating: isConnectionsValidating } =
-    useGetConnections(account?.id ?? '');
+  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
+  const { data: connectionsData, isFetching: isConnectionsValidating } =
+    useQuery(
+      getConnections,
+      { accountId: account?.id },
+      { enabled: !!account?.id }
+    );
 
   const connections = connectionsData?.connections ?? [];
 

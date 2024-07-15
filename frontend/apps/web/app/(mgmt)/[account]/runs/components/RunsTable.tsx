@@ -6,7 +6,8 @@ import {
   onJobRunsPaused,
   useGetJobRuns,
 } from '@/libs/hooks/useGetJobRuns';
-import { useGetJobs } from '@/libs/hooks/useGetJobs';
+import { useQuery } from '@connectrpc/connect-query';
+import { getJobs } from '@neosync/sdk/connectquery';
 import { ReactElement, useMemo, useState } from 'react';
 import { getColumns } from './JobRunsTable/columns';
 import { DataTable } from './JobRunsTable/data-table';
@@ -36,10 +37,10 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
 
   const {
     data: jobsData,
-    mutate: jobsMutate,
+    refetch: jobsMutate,
     isLoading: isJobsLoading,
-    isValidating: isJobsValidating,
-  } = useGetJobs(account?.id ?? '');
+    isFetching: isJobsValidating,
+  } = useQuery(getJobs, { accountId: account?.id }, { enabled: !!account?.id });
 
   const jobs = jobsData?.jobs ?? [];
 

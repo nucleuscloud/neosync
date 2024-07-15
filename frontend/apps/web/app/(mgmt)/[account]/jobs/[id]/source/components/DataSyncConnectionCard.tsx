@@ -25,16 +25,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import {
   ConnectionSchemaMap,
   GetConnectionSchemaMapResponse,
   getConnectionSchema,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -44,6 +40,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -61,6 +58,11 @@ import {
   VirtualForeignConstraint,
   VirtualForeignKey,
 } from '@neosync/sdk';
+import {
+  getConnectionTableConstraints,
+  getConnections,
+  getJob,
+} from '@neosync/sdk/connectquery';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
@@ -98,9 +100,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { account } = useAccount();
   const {
     data,
-    mutate,
+    refetch: mutate,
     isLoading: isJobDataLoading,
-  } = useGetJob(account?.id ?? '', jobId);
+  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
   const {
@@ -110,8 +112,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+  const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
@@ -127,10 +132,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   });
   const formVirtualForeignKeys = form.watch('virtualForeignKeys');
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      sourceConnectionId ?? ''
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: sourceConnectionId },
+      { enabled: !!sourceConnectionId }
     );
 
   const schemaConstraintHandler = useMemo(() => {
