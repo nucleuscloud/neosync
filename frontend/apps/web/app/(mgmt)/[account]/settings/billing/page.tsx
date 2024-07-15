@@ -2,7 +2,6 @@
 import { useAccount } from '@/components/providers/account-provider';
 import {
   CreateNewTeamDialog,
-  createTeamAccount,
   CreateTeamFormValues,
 } from '@/components/site-header/AccountSwitcher';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { getErrorMessage, toTitleCase } from '@/util/util';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccountType } from '@neosync/sdk';
+import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
@@ -70,10 +70,12 @@ export default function Billing(): ReactElement {
     useGetSystemAppConfig();
   const { toast } = useToast();
   const [showNewTeamDialog, setShowNewTeamDialog] = useState<boolean>(false);
-  const { mutate } = useGetUserAccounts();
+  const { refetch: mutate } = useQuery(getUserAccounts);
+  const { mutateAsync: createTeamAccountAsync } =
+    useMutation(createTeamAccount);
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
     try {
-      await createTeamAccount(values.name);
+      await createTeamAccountAsync({ name: values.name });
       setShowNewTeamDialog(false);
       mutate();
       toast({
