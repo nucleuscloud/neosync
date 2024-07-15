@@ -13,7 +13,6 @@ import {
   SchemaTable,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -29,22 +28,28 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountOnboardingConfigResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
+  getAccountOnboardingConfig,
   getConnections,
   getConnectionTableConstraints,
+  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -66,8 +71,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
   const { toast } = useToast();
   const posthog = usePostHog();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfig } = useMutation(
+    setAccountOnboardingConfig
   );
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
@@ -174,16 +185,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
-            hasCreatedJob: true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfig({
+            accountId: account.id,
+            config: {
+              hasCreatedSourceConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+              hasCreatedJob: true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            },
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })

@@ -13,8 +13,6 @@ import {
 import {
   AccountOnboardingConfig,
   GetAccountOnboardingConfigResponse,
-  SetAccountOnboardingConfigRequest,
-  SetAccountOnboardingConfigResponse,
   UserAccountType,
 } from '@neosync/sdk';
 import {
@@ -267,38 +265,6 @@ function isChecklistComplete(progress: number): boolean {
 
 function isBoolean(input: unknown): input is boolean {
   return typeof input === 'boolean';
-}
-
-export async function setOnboardingConfig(
-  accountId: string,
-  values: OnboardingValues
-): Promise<SetAccountOnboardingConfigResponse> {
-  const res = await fetch(
-    `/api/users/accounts/${accountId}/onboarding-config`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetAccountOnboardingConfigRequest({
-          accountId,
-          config: new AccountOnboardingConfig({
-            hasCreatedSourceConnection: values.hasCreatedSourceConnection,
-            hasCreatedDestinationConnection:
-              values.hasCreatedDestinationConnection,
-            hasCreatedJob: values.hasCreatedJob,
-            hasInvitedMembers: values.hasInvitedMembers,
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetAccountOnboardingConfigResponse.fromJson(await res.json());
 }
 
 export function buildAccountOnboardingConfig(

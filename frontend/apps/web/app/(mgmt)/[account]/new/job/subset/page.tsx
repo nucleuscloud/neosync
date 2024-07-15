@@ -11,7 +11,6 @@ import {
   buildTableRowData,
   GetColumnsForSqlAutocomplete,
 } from '@/components/jobs/subsets/utils';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -19,11 +18,14 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
-import { useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ConnectionConfig,
@@ -31,10 +33,13 @@ import {
   JobMapping,
 } from '@neosync/sdk';
 import {
+  getAccountOnboardingConfig,
   getConnections,
   getConnectionTableConstraints,
+  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
@@ -57,9 +62,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
   const posthog = usePostHog();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
   );
+  const queryclient = useQueryClient();
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -73,6 +81,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
+
+  const { mutateAsync: setOnboardingConfig } = useMutation(
+    setAccountOnboardingConfig
+  );
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
   const sessionKeys = getNewJobSessionKeys(sessionPrefix);
@@ -182,16 +194,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
-            hasCreatedJob: true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfig({
+            accountId: account.id,
+            config: {
+              hasCreatedSourceConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+              hasCreatedJob: true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            },
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
