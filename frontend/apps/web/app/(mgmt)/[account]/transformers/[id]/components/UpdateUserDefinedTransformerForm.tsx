@@ -25,10 +25,8 @@ import {
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  updateUserDefinedTransformer,
-  UserDefinedTransformer,
-} from '@neosync/sdk';
+import { UserDefinedTransformer } from '@neosync/sdk';
+import { updateUserDefinedTransformer } from '@neosync/sdk/connectquery';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
