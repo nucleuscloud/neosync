@@ -1,4 +1,4 @@
-package testdata_doublereference
+package postgres_doublereference
 
 import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 

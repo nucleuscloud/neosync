@@ -1,4 +1,4 @@
-package testdata_circulardependencies
+package postgres_circulardependencies
 
 import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 

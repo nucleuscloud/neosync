@@ -1,4 +1,4 @@
-package testdata_virtualforeignkeys
+package postgres_virtualforeignkeys
 
 import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"

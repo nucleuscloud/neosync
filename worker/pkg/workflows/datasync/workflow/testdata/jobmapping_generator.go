@@ -171,7 +171,14 @@ func main() {
 		return
 	}
 	for _, input := range inputs {
-		goPkgName := strings.ReplaceAll(fmt.Sprintf("%s_%s", goPkg, input.Folder), "-", "")
+		folderSplit := strings.Split(input.Folder, "/")
+		var goPkgName string
+		if len(folderSplit) == 1 {
+			goPkgName = strings.ReplaceAll(fmt.Sprintf("%s_%s", goPkg, input.Folder), "-", "")
+		} else if len(folderSplit) > 1 {
+			lastTwo := folderSplit[len(folderSplit)-2:]
+			goPkgName = strings.ReplaceAll(strings.Join(lastTwo, "_"), "-", "")
+		}
 		sqlFile, err := os.Open(fmt.Sprintf("%s/%s", input.Folder, input.SqlFile))
 		if err != nil {
 			fmt.Println("failed to open file: %s", err)

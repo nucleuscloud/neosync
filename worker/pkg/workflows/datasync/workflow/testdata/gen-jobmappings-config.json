@@ -1,19 +1,24 @@
 
 [
 	{
-		"folder": "double-reference",
+		"folder": "postgres/double-reference",
 		"sql_file":    "source-create.sql"
 	},
 	{
-		"folder": "virtual-foreign-keys",
+		"folder": "postgres/virtual-foreign-keys",
 		"sql_file":    "source-setup.sql"
 	},
 	{
-		"folder": "circular-dependencies", 
+		"folder": "postgres/circular-dependencies", 
 		"sql_file": "setup.sql"
 	},
 	{
 		"folder": "javascript-transformers",
 		"sql_file": "create.sql"
+	},
+	{
+		"folder": "mysql/multiple-dbs",
+		"sql_file": "create.sql"
 	}
+
 ]
