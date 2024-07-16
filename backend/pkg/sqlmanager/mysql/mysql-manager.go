@@ -87,8 +87,9 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 	}, nil
 }
 
-func (m *MysqlManager) getForeignKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.ForeignKeyConstraintsRow, error) {
-	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
+// Key is schema.table value is list of tables that key depends on
+func (m *MysqlManager) getForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
+	fksBySchema := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas)) // groupped by schema
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range schemas {
 		idx := idx
@@ -98,7 +99,7 @@ func (m *MysqlManager) getForeignKeyConstraints(ctx context.Context, schemas []s
 			if err != nil {
 				return err
 			}
-			holder[idx] = constraints
+			fksBySchema[idx] = constraints
 			return nil
 		})
 	}
@@ -107,59 +108,35 @@ func (m *MysqlManager) getForeignKeyConstraints(ctx context.Context, schemas []s
 		return nil, err
 	}
 
-	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	result := []*sqlmanager_shared.ForeignKeyConstraintsRow{}
-	for _, row := range output {
-		result = append(result, &sqlmanager_shared.ForeignKeyConstraintsRow{
-			SchemaName:        row.SchemaName,
-			TableName:         row.TableName,
-			ColumnName:        row.ColumnName,
-			IsNullable:        sqlmanager_shared.ConvertNullableTextToBool(row.IsNullable),
-			ConstraintName:    row.ConstraintName,
-			ForeignSchemaName: row.ForeignSchemaName,
-			ForeignTableName:  row.ForeignTableName,
-			ForeignColumnName: row.ForeignColumnName,
-		})
-	}
-	return result, nil
-}
-
-// Key is schema.table value is list of tables that key depends on
-func (m *MysqlManager) getForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
-	fkConstraints, err := m.getForeignKeyConstraints(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-	groupedFks := map[string][]*sqlmanager_shared.ForeignKeyConstraintsRow{} //  grouped by constraint name
-	for _, row := range fkConstraints {
-		groupedFks[row.ConstraintName] = append(groupedFks[row.ConstraintName], row)
-	}
 	constraints := map[string][]*sqlmanager_shared.ForeignConstraint{}
-	for _, fks := range groupedFks {
-		cols := []string{}
-		notNullable := []bool{}
-		fkCols := []string{}
-		for _, fk := range fks {
-			cols = append(cols, fk.ColumnName)
-			notNullable = append(notNullable, !fk.IsNullable)
-			fkCols = append(fkCols, fk.ForeignColumnName)
+	for _, fksSchema := range fksBySchema {
+		groupedFks := map[string][]*mysql_queries.GetForeignKeyConstraintsRow{} //  grouped by constraint name
+		for _, row := range fksSchema {
+			groupedFks[row.ConstraintName] = append(groupedFks[row.ConstraintName], row)
 		}
-		row := fks[0]
-		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
-		constraints[tableName] = append(constraints[tableName], &sqlmanager_shared.ForeignConstraint{
-			Columns:     cols,
-			NotNullable: notNullable,
-			ForeignKey: &sqlmanager_shared.ForeignKey{
-				Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-				Columns: fkCols,
-			},
-		})
+		for _, fks := range groupedFks {
+			cols := []string{}
+			notNullable := []bool{}
+			fkCols := []string{}
+			for _, fk := range fks {
+				cols = append(cols, fk.ColumnName)
+				notNullable = append(notNullable, !sqlmanager_shared.ConvertNullableTextToBool(fk.IsNullable))
+				fkCols = append(fkCols, fk.ForeignColumnName)
+			}
+			row := fks[0]
+			tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
+			constraints[tableName] = append(constraints[tableName], &sqlmanager_shared.ForeignConstraint{
+				Columns:     cols,
+				NotNullable: notNullable,
+				ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
+					Columns: fkCols,
+				},
+			})
+		}
 	}
 
-	return constraints, err
+	return constraints, nil
 }
 
 func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {

@@ -103,6 +103,7 @@ FROM
 JOIN information_schema.key_column_usage kcu
 	ON
 	kcu.constraint_name = rc.constraint_name
+	AND kcu.constraint_schema = rc.constraint_schema
 JOIN information_schema.columns as c
 	ON
 	c.table_schema = kcu.table_schema
