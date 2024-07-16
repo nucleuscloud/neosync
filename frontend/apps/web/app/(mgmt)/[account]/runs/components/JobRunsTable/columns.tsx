@@ -12,7 +12,6 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 interface GetColumnsProps {
   onDeleted(id: string): void;
-  accountId: string;
   accountName: string;
   jobNameMap: Record<string, string>;
 }
@@ -20,7 +19,7 @@ interface GetColumnsProps {
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<JobRun>>[] {
-  const { onDeleted, accountId, accountName, jobNameMap } = props;
+  const { onDeleted, accountName, jobNameMap } = props;
   return [
     {
       accessorKey: 'status',
@@ -132,7 +131,6 @@ export function getColumns(
         <DataTableRowActions
           row={row}
           onDeleted={() => onDeleted(row.original.id)}
-          accountId={accountId}
         />
       ),
     },

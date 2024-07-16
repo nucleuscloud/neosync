@@ -4,7 +4,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@connectrpc/connect-query';
-import { getAccountApiKeys } from '@neosync/sdk';
+import { getAccountApiKeys } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement, useMemo } from 'react';

@@ -14,17 +14,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
 import ResourceId from '@/components/ResourceId';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import {
   refreshEventsWhenEventsIncomplete,
-  useGetJobRunEvents,
-} from '@/libs/hooks/useGetJobRunEvents';
-import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
+  refreshJobRunWhenJobRunning,
+} from '@/libs/utils';
 import { formatDateTime, getErrorMessage } from '@/util/util';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  cancelJobRun,
+  deleteJobRun,
+  getJobRun,
+  getJobRunEvents,
+  terminateJobRun,
+} from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -35,29 +42,54 @@ import JobRunLogs from './components/JobRunLogs';
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
   const accountId = account?.id || '';
-  const id = params?.id ?? '';
+  const id = decodeURIComponent(params?.id ?? '');
   const router = useRouter();
   const { toast } = useToast();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
-  const { data, isLoading, mutate } = useGetJobRun(id, accountId, {
-    refreshIntervalFn: refreshWhenJobRunning,
-  });
+  const {
+    data,
+    isLoading,
+    refetch: mutate,
+  } = useQuery(
+    getJobRun,
+    { jobRunId: id, accountId: accountId },
+    {
+      enabled: !!id && !!accountId,
+      refetchInterval(query) {
+        return query.state.data
+          ? refreshJobRunWhenJobRunning(query.state.data)
+          : 0;
+      },
+    }
+  );
+  const jobRun = data?.jobRun;
 
   const {
     data: eventData,
     isLoading: eventsIsLoading,
-    isValidating,
-    mutate: eventMutate,
-  } = useGetJobRunEvents(id, accountId, {
-    refreshIntervalFn: refreshEventsWhenEventsIncomplete,
-  });
+    isFetching: isValidating,
+    refetch: eventMutate,
+  } = useQuery(
+    getJobRunEvents,
+    { jobRunId: id, accountId: accountId },
+    {
+      enabled: !!id && !!accountId,
+      refetchInterval(query) {
+        return query.state.data
+          ? refreshEventsWhenEventsIncomplete(query.state.data)
+          : 0;
+      },
+    }
+  );
 
-  const jobRun = data?.jobRun;
+  const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
+  const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
+  const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJobRun(id, accountId);
+      await removeJobRunAsync({ accountId: accountId, jobRunId: id });
       toast({
         title: 'Job run removed successfully!',
       });
@@ -74,7 +106,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onCancel(): Promise<void> {
     try {
-      await cancelJobRun(id, accountId);
+      await cancelJobRunAsync({ accountId, jobRunId: id });
       toast({
         title: 'Job run canceled successfully!',
       });
@@ -92,7 +124,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onTerminate(): Promise<void> {
     try {
-      await terminateJobRun(id, accountId);
+      await terminateJobRunAsync({ accountId, jobRunId: id });
       toast({
         title: 'Job run terminated successfully!',
       });
@@ -317,52 +349,4 @@ function ButtonLink(props: ButtonProps): ReactElement {
       />
     </Button>
   );
-}
-
-async function removeJobRun(
-  jobRunId: string,
-  accountId: string
-): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/runs/${jobRunId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-async function cancelJobRun(
-  jobRunId: string,
-  accountId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/runs/${jobRunId}/cancel`,
-    {
-      method: 'PUT',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-async function terminateJobRun(
-  jobRunId: string,
-  accountId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/runs/${jobRunId}/terminate`,
-    {
-      method: 'PUT',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

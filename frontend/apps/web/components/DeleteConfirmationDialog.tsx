@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
 
@@ -48,8 +49,10 @@ export default function DeleteConfirmationDialog(props: Props): ReactElement {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
-        <DialogHeader>{headerText}</DialogHeader>
-        <DialogDescription>{description}</DialogDescription>
+        <DialogTitle className="flex gap-2 flex-col">
+          <DialogHeader>{headerText}</DialogHeader>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogTitle>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="secondary">

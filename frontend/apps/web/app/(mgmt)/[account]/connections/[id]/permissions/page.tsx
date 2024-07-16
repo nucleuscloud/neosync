@@ -1,5 +1,4 @@
 'use client';
-'use client';
 import { CloneConnectionButton } from '@/components/CloneConnectionButton';
 import ResourceId from '@/components/ResourceId';
 import Spinner from '@/components/Spinner';
@@ -8,55 +7,83 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import PermissionsDataTable from '@/components/permissions/PermissionsDataTable';
 import { TestConnectionResult } from '@/components/permissions/PermissionsDialog';
-import { getPermissionColumns } from '@/components/permissions/columns';
+import {
+  getPermissionColumns,
+  PermissionConnectionType,
+} from '@/components/permissions/columns';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { toast, useToast } from '@/components/ui/use-toast';
-import { useGetConnection } from '@/libs/hooks/useGetConnection';
-import { useTestProgressConnection } from '@/libs/hooks/useTestPostgresConnection';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
+import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import {
-  CheckConnectionConfigResponse,
   ConnectionConfig,
   ConnectionRolePrivilege,
   GetConnectionResponse,
-  PostgresConnectionConfig,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  getConnection,
+} from '@neosync/sdk/connectquery';
 import { UpdateIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
 import { useMemo } from 'react';
-import { KeyedMutator } from 'swr';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
+
+function getPermissionColumnType(
+  connConfig: ConnectionConfig
+): PermissionConnectionType {
+  switch (connConfig.config.case) {
+    case 'mongoConfig':
+      return 'mongodb';
+    case 'mysqlConfig':
+      return 'mysql';
+    case 'pgConfig':
+      return 'postgres';
+    default: // trash
+      return 'postgres';
+  }
+}
 
 export default function PermissionsPage({ params }: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const { data, isLoading, mutate } = useGetConnection(account?.id ?? '', id);
-
-  const {
-    data: validationRes,
-    isLoading: isLoadingValidation,
-    mutate: mutateValidation,
-    isValidating: isValidating,
-  } = useTestProgressConnection(
-    account?.id ?? '',
-    data?.connection?.connectionConfig?.config.case === 'pgConfig'
-      ? data.connection.connectionConfig.config.value
-      : new PostgresConnectionConfig({})
+  const { data, isLoading } = useQuery(
+    getConnection,
+    { id },
+    { enabled: !!id }
   );
+  const queryclient = useQueryClient();
+  const {
+    data: connData,
+    isLoading: isCheckConnLoading,
+    isFetching,
+    refetch: refetchCheckConnectionConfig,
+  } = useQuery(checkConnectionConfig, {
+    connectionConfig: data?.connection?.connectionConfig,
+  });
 
   const { toast } = useToast();
-  const columns = useMemo(() => getPermissionColumns('postgres'), []);
+  const columns = useMemo(
+    () =>
+      getPermissionColumns(
+        getPermissionColumnType(
+          data?.connection?.connectionConfig ?? new ConnectionConfig()
+        )
+      ),
+    [isLoading]
+  );
 
   if (!id) {
     return <Error statusCode={404} />;
   }
-  if (isLoading || isLoadingValidation) {
+  if (isLoading || isCheckConnLoading) {
     return (
       <div className="mt-10">
         <SkeletonForm />
@@ -70,7 +97,8 @@ export default function PermissionsPage({ params }: PageProps) {
   const connectionComponent = getConnectionComponentDetails({
     connection: data?.connection!,
     onSaved: (resp) => {
-      mutate(
+      queryclient.setQueryData(
+        createConnectQueryKey(getConnection, { id: resp.connection?.id }),
         new GetConnectionResponse({
           connection: resp.connection,
         })
@@ -132,12 +160,14 @@ export default function PermissionsPage({ params }: PageProps) {
           <SubNav items={subnav} />
           <div>
             <PermissionsPageContainer
-              data={validationRes?.privileges ?? []}
-              isDbConnected={validationRes?.isConnected ?? false}
+              data={connData?.privileges ?? []}
+              isDbConnected={connData?.isConnected ?? false}
               connectionName={data?.connection?.name ?? ''}
               columns={columns}
-              mutateValidation={mutateValidation}
-              isMutating={isValidating}
+              recheck={async () => {
+                await refetchCheckConnectionConfig();
+              }}
+              isRechecking={isFetching}
             />
           </div>
         </div>
@@ -151,10 +181,8 @@ interface PermissionsPageContainerProps {
   data: ConnectionRolePrivilege[];
   isDbConnected: boolean;
   columns: ColumnDef<PlainMessage<ConnectionRolePrivilege>>[];
-  mutateValidation:
-    | KeyedMutator<unknown>
-    | KeyedMutator<CheckConnectionConfigResponse>;
-  isMutating: boolean;
+  recheck(): Promise<void>;
+  isRechecking: boolean;
 }
 
 function PermissionsPageContainer(props: PermissionsPageContainerProps) {
@@ -163,23 +191,23 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
     connectionName,
     isDbConnected,
     columns,
-    mutateValidation,
-    isMutating,
+    recheck,
+    isRechecking,
   } = props;
 
-  const handleMutate = async () => {
-    if (isMutating) {
+  async function handleMutate() {
+    if (isRechecking) {
       return;
     }
     try {
-      await mutateValidation();
+      await recheck();
     } catch (error) {
       toast({
         title: 'Unable to update Permissions table!',
         variant: 'destructive',
       });
     }
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -200,7 +228,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
         }
         TestConnectionButton={
           <Button type="button" variant="outline" onClick={handleMutate}>
-            {isMutating ? <Spinner /> : <UpdateIcon />}
+            {isRechecking ? <Spinner /> : <UpdateIcon />}
           </Button>
         }
         data={data}

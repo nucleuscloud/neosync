@@ -14,12 +14,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { convertNanosecondsToMinutes, getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Job } from '@neosync/sdk';
+import { setJobWorkflowOptions } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { WorkflowSettingsSchema } from '../../../new/job/schema';
-import { updateJobWorkflowOptions } from '../../util';
+import { toWorkflowOptions } from '../../util';
 
 interface Props {
   job: Job;
@@ -41,13 +43,19 @@ export default function WorkflowSettingsCard({
     },
   });
   const { account } = useAccount();
+  const { mutateAsync: updateJobWorkflowOptions } = useMutation(
+    setJobWorkflowOptions
+  );
 
   async function onSubmit(values: WorkflowSettingsSchema) {
     if (!account?.id) {
       return;
     }
     try {
-      const resp = await updateJobWorkflowOptions(account.id, job.id, values);
+      const resp = await updateJobWorkflowOptions({
+        id: job.id,
+        worfklowOptions: toWorkflowOptions(values),
+      });
       toast({
         title: 'Successfully updated job workflow options!',
         variant: 'success',

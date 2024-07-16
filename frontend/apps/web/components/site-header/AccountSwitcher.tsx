@@ -7,16 +7,13 @@ import {
 import { ReactElement } from 'react';
 
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  CreateTeamAccountRequest,
-  CreateTeamAccountResponse,
-  UserAccountType,
-} from '@neosync/sdk';
+import { UserAccountType } from '@neosync/sdk';
+import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import Link from 'next/link';
 import { useState } from 'react';
 import { UseFormReturn, useForm } from 'react-hook-form';
@@ -72,7 +69,7 @@ interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement {
   const { account, setAccount } = useAccount();
-  const { data, mutate, isLoading } = useGetUserAccounts();
+  const { data, refetch: mutate, isLoading } = useQuery(getUserAccounts);
   const [open, setOpen] = useState(false);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
@@ -83,6 +80,8 @@ export default function AccountSwitcher(_: Props): ReactElement {
       name: '',
     },
   });
+  const { mutateAsync: createTeamAccountAsync } =
+    useMutation(createTeamAccount);
 
   const accounts = data?.accounts ?? [];
   const personalAccounts =
@@ -91,9 +90,11 @@ export default function AccountSwitcher(_: Props): ReactElement {
     accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
 
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
-    // add acount type here
+    // todo: add acount type here
     try {
-      await createTeamAccount(values.name);
+      await createTeamAccountAsync({
+        name: values.name,
+      });
       setShowNewTeamDialog(false);
       mutate();
       toast({
@@ -325,25 +326,4 @@ function UpgradeDialog({ upgradeHref }: UpgradeDialog) {
       </DialogContent>
     </div>
   );
-}
-
-export async function createTeamAccount(
-  teamName: string
-): Promise<CreateTeamAccountResponse | undefined> {
-  const res = await fetch(`/api/users/accounts`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateTeamAccountRequest({
-        name: teamName,
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateTeamAccountResponse.fromJson(await res.json());
 }

@@ -25,16 +25,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import {
   ConnectionSchemaMap,
   GetConnectionSchemaMapResponse,
   getConnectionSchema,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -44,9 +40,11 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  GetConnectionResponse,
   Job,
   JobMapping,
   JobMappingTransformer,
@@ -55,15 +53,19 @@ import {
   MongoDBSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
 } from '@neosync/sdk';
+import {
+  getConnection,
+  getConnectionTableConstraints,
+  getConnections,
+  getJob,
+  updateJobSourceConnection,
+} from '@neosync/sdk/connectquery';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
@@ -72,12 +74,12 @@ interface Props {
   jobId: string;
 }
 
-const FORM_SCHEMA = SourceFormValues.concat(
+const DataSyncSourceFormValues = SourceFormValues.concat(
   Yup.object({
     destinationIds: Yup.array().of(Yup.string().required()),
   })
 ).concat(SchemaFormValues);
-type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type DataSyncSourceFormValues = Yup.InferType<typeof DataSyncSourceFormValues>;
 
 function getConnectionIdFromSource(
   js: JobSource | undefined
@@ -98,9 +100,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { account } = useAccount();
   const {
     data,
-    mutate,
+    refetch: mutate,
     isLoading: isJobDataLoading,
-  } = useGetJob(account?.id ?? '', jobId);
+  } = useQuery(getJob, { id: jobId }, { enabled: !!jobId });
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
   const {
@@ -110,9 +112,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+  const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
+
+  const { mutateAsync: updateJobSrcConnection } = useMutation(
+    updateJobSourceConnection
+  );
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
     ValidateJobMappingsResponse | undefined
@@ -120,21 +129,31 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const [isValidatingMappings, setIsValidatingMappings] = useState(false);
 
-  const form = useForm<SourceFormValues>({
-    resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
+  const form = useForm<DataSyncSourceFormValues>({
+    resolver: yupResolver<DataSyncSourceFormValues>(DataSyncSourceFormValues),
     values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
   });
-  const formVirtualForeignKeys = form.watch('virtualForeignKeys');
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      sourceConnectionId ?? ''
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: sourceConnectionId },
+      { enabled: !!sourceConnectionId }
     );
+  const { mutateAsync: getConnectionAsync } = useMutation(getConnection);
+
+  const {
+    append: appendVfk,
+    remove: removeVfk,
+    fields: formVirtualForeignKeys,
+  } = useFieldArray({
+    control: form.control,
+    name: 'virtualForeignKeys',
+  });
 
   const schemaConstraintHandler = useMemo(() => {
-    const virtualForeignKeys = data?.job?.virtualForeignKeys ?? [];
+    const virtualForeignKeys = Array.from(data?.job?.virtualForeignKeys ?? []);
     formVirtualForeignKeys?.forEach((v) => {
       virtualForeignKeys.push(
         new VirtualForeignConstraint({
@@ -161,20 +180,19 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     isSchemaMapValidating,
     isTableConstraintsValidating,
     isJobDataLoading,
-    formVirtualForeignKeys,
+    formVirtualForeignKeys, // this is kinda dangerous
   ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
-  const { append, remove, update, fields } = useFieldArray<SourceFormValues>({
+  const {
+    append,
+    remove,
+    update,
+    fields: formMappings,
+  } = useFieldArray({
     control: form.control,
     name: 'mappings',
   });
-
-  const { append: appendVfk, remove: removeVfk } =
-    useFieldArray<SourceFormValues>({
-      control: form.control,
-      name: 'virtualForeignKeys',
-    });
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -194,6 +212,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         account?.id ?? '',
         value,
         form.getValues(),
+        (id) => getConnectionAsync({ id }),
         mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
@@ -207,14 +226,43 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  async function onSubmit(values: SourceFormValues) {
+  async function onSubmit(values: DataSyncSourceFormValues) {
     const connection = connections.find((c) => c.id === values.sourceId);
     const job = data?.job;
     if (!job || !connection) {
       return;
     }
     try {
-      await updateJobConnection(account?.id ?? '', job, values, connection);
+      await updateJobSrcConnection({
+        id: job.id,
+        mappings: values.mappings.map((m) => {
+          return new JobMapping({
+            schema: m.schema,
+            table: m.table,
+            column: m.column,
+            transformer:
+              convertJobMappingTransformerFormToJobMappingTransformer(
+                m.transformer
+              ),
+          });
+        }),
+        virtualForeignKeys:
+          values.virtualForeignKeys?.map((v) => {
+            return new VirtualForeignConstraint({
+              schema: v.schema,
+              table: v.table,
+              columns: v.columns,
+              foreignKey: new VirtualForeignKey({
+                schema: v.foreignKey.schema,
+                table: v.foreignKey.table,
+                columns: v.foreignKey.columns,
+              }),
+            });
+          }) || [],
+        source: new JobSource({
+          options: toJobSourceOptions(values, job, connection, values.sourceId),
+        }),
+      });
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -229,7 +277,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       });
     }
   }
-  const formMappings = form.watch('mappings');
+
   async function validateMappings() {
     try {
       setIsValidatingMappings(true);
@@ -278,17 +326,20 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     connectionSchemaDataMap?.schemaMap ?? {},
     selectedTables,
     setSelectedTables,
-    fields,
+    formMappings,
     remove,
     append
   );
 
   useEffect(() => {
+    if (!account?.id || !sourceConnectionId) {
+      return;
+    }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables]);
+  }, [selectedTables, account?.id, sourceConnectionId]);
 
   async function addVirtualForeignKey(vfk: VirtualForeignConstraintFormValues) {
     appendVfk(vfk);
@@ -312,6 +363,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -468,67 +520,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-async function updateJobConnection(
-  accountId: string,
-  job: Job,
-  values: SourceFormValues,
-  connection: Connection
-): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateJobSourceConnectionRequest({
-          id: job.id,
-          mappings: values.mappings.map((m) => {
-            return new JobMapping({
-              schema: m.schema,
-              table: m.table,
-              column: m.column,
-              transformer:
-                convertJobMappingTransformerFormToJobMappingTransformer(
-                  m.transformer
-                ),
-            });
-          }),
-          virtualForeignKeys:
-            values.virtualForeignKeys?.map((v) => {
-              return new VirtualForeignConstraint({
-                schema: v.schema,
-                table: v.table,
-                columns: v.columns,
-                foreignKey: new VirtualForeignKey({
-                  schema: v.foreignKey.schema,
-                  table: v.foreignKey.table,
-                  columns: v.foreignKey.columns,
-                }),
-              });
-            }) || [],
-          source: new JobSource({
-            options: toJobSourceOptions(
-              values,
-              job,
-              connection,
-              values.sourceId
-            ),
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
-}
-
 function toJobSourceOptions(
-  values: SourceFormValues,
+  values: DataSyncSourceFormValues,
   job: Job,
   connection: Connection,
   newSourceId: string
@@ -600,7 +593,7 @@ function getExistingMongoSourceConnectionOptions(
 function getJobSource(
   job?: Job,
   connSchemaMap?: ConnectionSchemaMap
-): SourceFormValues {
+): DataSyncSourceFormValues {
   if (!job || !connSchemaMap) {
     return {
       sourceId: '',
@@ -715,14 +708,15 @@ function getJobSource(
 async function getUpdatedValues(
   accountId: string,
   connectionId: string,
-  originalValues: SourceFormValues,
-  mutateConnectionSchemaRes:
-    | KeyedMutator<unknown>
-    | KeyedMutator<GetConnectionSchemaMapResponse>
-): Promise<SourceFormValues> {
+  originalValues: DataSyncSourceFormValues,
+  getConnectionById: (id: string) => Promise<GetConnectionResponse>,
+  mutateConnectionSchemaResponse: (
+    schemaRes: GetConnectionSchemaMapResponse
+  ) => void
+): Promise<DataSyncSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
     getConnectionSchema(accountId, connectionId),
-    getConnection(accountId, connectionId),
+    getConnectionById(connectionId),
   ]);
 
   if (!schemaRes || !connRes) {
@@ -746,7 +740,7 @@ async function getUpdatedValues(
     mappings,
     connectionId: connectionId || '',
   };
-  mutateConnectionSchemaRes(schemaRes);
+  mutateConnectionSchemaResponse(schemaRes);
 
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':

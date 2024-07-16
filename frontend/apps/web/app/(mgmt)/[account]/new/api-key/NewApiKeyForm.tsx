@@ -30,7 +30,7 @@ import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import { Timestamp } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { createAccountApiKey } from '@neosync/sdk';
+import { createAccountApiKey } from '@neosync/sdk/connectquery';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';

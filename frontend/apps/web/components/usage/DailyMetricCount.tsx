@@ -1,6 +1,6 @@
-import { useGetDailyMetricCount } from '@/libs/hooks/useGetDailyMetricCount';
-import { MetricIdentifierType } from '@/libs/hooks/useGetMetricCount';
+import { useQuery } from '@connectrpc/connect-query';
 import { DayResult, Date as NeosyncDate, RangedMetricName } from '@neosync/sdk';
+import { getDailyMetricCount } from '@neosync/sdk/connectquery';
 import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
@@ -23,10 +23,11 @@ import {
 } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 import {
-  UsagePeriod,
   dateToNeoDate,
+  MetricIdentifierType,
   periodToDateRange,
   shortNumberFormatter,
+  UsagePeriod,
 } from './util';
 
 interface Props {
@@ -40,13 +41,25 @@ export default function DailyMetricCount(props: Props): ReactElement {
   const { period, metric, idtype, identifier } = props;
   const { account } = useAccount();
   const [start, end] = periodToDateRange(period);
-  const { data: metricCountData, isLoading } = useGetDailyMetricCount(
-    account?.id ?? '',
-    dateToNeoDate(start),
-    dateToNeoDate(end),
-    metric,
-    idtype,
-    identifier
+  const { data: metricCountData, isLoading } = useQuery(
+    getDailyMetricCount,
+    {
+      metric,
+      start: dateToNeoDate(start),
+      end: dateToNeoDate(end),
+      identifier:
+        idtype === 'accountId'
+          ? { case: 'accountId', value: identifier }
+          : idtype === 'jobId'
+            ? { case: 'jobId', value: identifier }
+            : idtype === 'runId'
+              ? { case: 'runId', value: identifier }
+              : undefined,
+    },
+    {
+      enabled:
+        !!metric && !!account?.id && !!identifier && !!idtype && !!period,
+    }
   );
   const { resolvedTheme } = useTheme();
   const tickColor = resolvedTheme === 'dark' ? 'white' : 'black';

@@ -1,6 +1,6 @@
 'use client';
 import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
-import { createJobConnections } from '@/app/(mgmt)/[account]/jobs/util';
+import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -23,12 +23,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { DestinationFormValues } from '@/yup-validations/jobs';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection } from '@neosync/sdk';
+import { Connection, JobDestination } from '@neosync/sdk';
+import {
+  createJobDestinationConnections,
+  getConnections,
+  getJob,
+} from '@neosync/sdk/connectquery';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
@@ -46,9 +50,15 @@ export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
   const { toast } = useToast();
   const router = useRouter();
-  const { data, isLoading } = useGetJob(account?.id ?? '', id);
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+  const { mutateAsync: createJobConnections } = useMutation(
+    createJobDestinationConnections
+  );
 
   const [currConnection, setCurrConnection] = useState<
     Connection | undefined
@@ -78,12 +88,18 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onSubmit(values: FormValues) {
     try {
-      const job = await createJobConnections(
-        id,
-        values.destinations,
-        connections,
-        account?.id ?? ''
-      );
+      const job = await createJobConnections({
+        jobId: id,
+        destinations: values.destinations.map((d) => {
+          return new JobDestination({
+            connectionId: d.connectionId,
+            options: toJobDestinationOptions(
+              d,
+              connections.find((c) => c.id === d.connectionId)
+            ),
+          });
+        }),
+      });
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}/destinations`);
       } else {

@@ -24,15 +24,20 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MongoDbFormValues } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { checkMongoConnection, updateMongoConnection } from '../../util';
+import { buildConnectionConfigMongo } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -60,6 +65,10 @@ export default function MongoDbForm(props: Props): ReactElement {
   >();
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
+  const { mutateAsync: updateConnectionAsync } = useMutation(updateConnection);
+  const { mutateAsync: checkConnectionConfigAsync } = useMutation(
+    checkConnectionConfig
+  );
 
   async function onValidationClick(): Promise<void> {
     if (isValidating) {
@@ -67,10 +76,9 @@ export default function MongoDbForm(props: Props): ReactElement {
     }
     setIsValidating(true);
     try {
-      const res = await checkMongoConnection(
-        form.getValues(),
-        account?.id ?? ''
-      );
+      const res = await checkConnectionConfigAsync({
+        connectionConfig: buildConnectionConfigMongo(form.getValues()),
+      });
       setValidationResponse(res);
       setOpenPermissionDialog(!!res.isConnected);
     } catch (err) {
@@ -91,11 +99,11 @@ export default function MongoDbForm(props: Props): ReactElement {
     }
 
     try {
-      const connectionResp = await updateMongoConnection(
-        values,
-        account.id,
-        connectionId
-      );
+      const connectionResp = await updateConnectionAsync({
+        id: connectionId,
+        name: values.connectionName,
+        connectionConfig: buildConnectionConfigMongo(values),
+      });
       onSaved(connectionResp);
     } catch (err) {
       console.error(err);

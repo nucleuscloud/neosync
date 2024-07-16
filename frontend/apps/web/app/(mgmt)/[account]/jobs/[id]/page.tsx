@@ -1,8 +1,6 @@
 'use client';
 import { PageProps } from '@/components/types';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 
-import { useAccount } from '@/components/providers/account-provider';
 import {
   Accordion,
   AccordionContent,
@@ -10,8 +8,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
+import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
 import { GetJobResponse } from '@neosync/sdk';
+import { getJob, getJobStatus } from '@neosync/sdk/connectquery';
+import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
 import ActivitySyncOptionsCard from './components/ActivitySyncOptionsCard';
 import JobNextRuns from './components/NextRuns';
@@ -22,9 +22,9 @@ import JobIdSkeletonForm from './JobIdSkeletonForm';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { account } = useAccount();
-  const { data, isLoading, mutate } = useGetJob(account?.id ?? '', id);
-  const { data: jobStatus } = useGetJobStatus(account?.id ?? '', id);
+  const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data: jobStatus } = useQuery(getJobStatus, { jobId: id });
+  const queryclient = useQueryClient();
 
   if (isLoading) {
     return (
@@ -51,7 +51,12 @@ export default function Page({ params }: PageProps): ReactElement {
           <div className="flex-grow basis-3/4">
             <JobScheduleCard
               job={data.job}
-              mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
+              mutate={(newjob) => {
+                queryclient.setQueryData(
+                  createConnectQueryKey(getJob, { id }),
+                  new GetJobResponse({ job: newjob })
+                );
+              }}
             />
           </div>
           <div className="flex-grow basis-1/4 overflow-y-auto rounded-xl border border-card-border">
@@ -71,17 +76,23 @@ export default function Page({ params }: PageProps): ReactElement {
                 <div>
                   <WorkflowSettingsCard
                     job={data.job}
-                    mutate={(newjob) =>
-                      mutate(new GetJobResponse({ job: newjob }))
-                    }
+                    mutate={(newjob) => {
+                      queryclient.setQueryData(
+                        createConnectQueryKey(getJob, { id }),
+                        new GetJobResponse({ job: newjob })
+                      );
+                    }}
                   />
                 </div>
                 <div>
                   <ActivitySyncOptionsCard
                     job={data.job}
-                    mutate={(newjob) =>
-                      mutate(new GetJobResponse({ job: newjob }))
-                    }
+                    mutate={(newjob) => {
+                      queryclient.setQueryData(
+                        createConnectQueryKey(getJob, { id }),
+                        new GetJobResponse({ job: newjob })
+                      );
+                    }}
                   />
                 </div>
               </div>

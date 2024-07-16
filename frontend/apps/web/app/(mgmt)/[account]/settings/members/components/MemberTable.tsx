@@ -35,10 +35,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountMembers } from '@/libs/hooks/useGetAccountMembers';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { AccountUser } from '@neosync/sdk';
+import {
+  getTeamAccountMembers,
+  removeTeamAccountMember,
+} from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 
 interface ColumnProps {
@@ -95,7 +99,11 @@ interface Props {
 
 export default function MembersTable(props: Props) {
   const { accountId } = props;
-  const { data, isLoading, mutate } = useGetAccountMembers(accountId || '');
+  const { data, isLoading, refetch } = useQuery(
+    getTeamAccountMembers,
+    { accountId: accountId },
+    { enabled: !!accountId }
+  );
   if (isLoading) {
     return <SkeletonTable />;
   }
@@ -103,7 +111,7 @@ export default function MembersTable(props: Props) {
     <DataTable
       data={data?.users || []}
       accountId={accountId}
-      onDeleted={() => mutate()}
+      onDeleted={() => refetch()}
     />
   );
 }
@@ -251,10 +259,11 @@ function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const user = row.original as AccountUser;
   const { toast } = useToast();
+  const { mutateAsync } = useMutation(removeTeamAccountMember);
 
   async function onRemove(): Promise<void> {
     try {
-      await removeUserFromTeamAccount(accountId, user.id);
+      await mutateAsync({ accountId: accountId, userId: user.id });
       toast({
         title: 'User removed successfully!',
       });
@@ -293,21 +302,4 @@ function DataTableRowActions<TData>({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-async function removeUserFromTeamAccount(
-  accountId: string,
-  userId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/users/accounts/${accountId}/members?id=${userId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

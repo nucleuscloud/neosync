@@ -4,7 +4,7 @@ import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -37,28 +37,36 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   POSTGRES_FORM_SCHEMA,
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   GetAccountOnboardingConfigResponse,
 } from '@neosync/sdk';
+import {
+  checkConnectionConfig,
+  createConnection,
+  getAccountOnboardingConfig,
+  getConnection,
+  setAccountOnboardingConfig,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  checkPostgresConnection,
-  createPostgresConnection,
-} from '../../../connections/util';
+import { buildConnectionConfigPostgres } from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
 
@@ -67,9 +75,16 @@ export default function PostgresForm() {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
   );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
+  );
+
   // used to know which tab - host or url that the user is on when we submit the form
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
 
@@ -106,6 +121,12 @@ export default function PostgresForm() {
     },
     context: { accountId: account?.id ?? '', activeTab: activeTab },
   });
+  const { mutateAsync: createPostgresConnection } =
+    useMutation(createConnection);
+  const { mutateAsync: checkPostgresConnection } = useMutation(
+    checkConnectionConfig
+  );
+  const { mutateAsync: getPostgresConnection } = useMutation(getConnection);
 
   const router = useRouter();
   const [validationResponse, setValidationResponse] = useState<
@@ -123,14 +144,15 @@ export default function PostgresForm() {
     }
 
     try {
-      const connection = await createPostgresConnection(
-        {
+      const connection = await createPostgresConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigPostgres({
           ...values,
           url: activeTab === 'url' ? values.url : undefined,
           db: values.db,
-        },
-        account.id
-      );
+        }),
+      });
       posthog.capture('New Connection Created', { type: 'postgres' });
       toast({
         title: 'Successfully created connection!',
@@ -140,14 +162,20 @@ export default function PostgresForm() {
       // updates the onboarding data
       if (onboardingData?.config?.hasCreatedSourceConnection) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData.config.hasCreatedSourceConnection,
-            hasCreatedDestinationConnection: true,
-            hasCreatedJob: onboardingData.config.hasCreatedJob,
-            hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection:
+                onboardingData.config.hasCreatedSourceConnection,
+              hasCreatedDestinationConnection: true,
+              hasCreatedJob: onboardingData.config.hasCreatedJob,
+              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -160,15 +188,21 @@ export default function PostgresForm() {
         }
       } else {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection: true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfigAsync({
+            accountId: account.id,
+            config: buildAccountOnboardingConfig({
+              hasCreatedSourceConnection: true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            }),
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -211,7 +245,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getPostgresConnection({ id: sourceConnId });
         if (connData.connection?.connectionConfig?.config.case !== 'pgConfig') {
           return;
         }
@@ -740,14 +774,13 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               setIsValidating(true);
               try {
                 const values = form.getValues();
-                const res = await checkPostgresConnection(
-                  {
+                const res = await checkPostgresConnection({
+                  connectionConfig: buildConnectionConfigPostgres({
                     ...values,
                     url: activeTab === 'url' ? values.url : undefined,
                     db: values.db,
-                  },
-                  account?.id ?? ''
-                );
+                  }),
+                });
                 setValidationResponse(res);
                 setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {

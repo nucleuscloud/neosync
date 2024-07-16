@@ -1,6 +1,6 @@
 'use client';
-import { useAccount } from '@/components/providers/account-provider';
-import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useQuery } from '@connectrpc/connect-query';
+import { getJob } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { isAiDataGenJob, isDataGenJob } from '../../util';
 import AiDataGenConnectionCard from './AiDataGenConnectionCard';
@@ -13,8 +13,11 @@ interface Props {
 }
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
-  const { account } = useAccount();
-  const { data, isLoading } = useGetJob(account?.id ?? '', jobId);
+  const { data, isLoading } = useQuery(
+    getJob,
+    { id: jobId },
+    { enabled: !!jobId }
+  );
 
   if (isLoading) {
     return <SchemaPageSkeleton />;
