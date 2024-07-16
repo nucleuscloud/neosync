@@ -252,6 +252,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           connectionName: connData.connection?.name + '-copy',
           db: dbConfig,
           url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
+          options: {
+            maxConnectionLimit:
+              config.connectionOptions?.maxConnectionLimit ?? 80,
+          },
           tunnel: {
             host: config.tunnel?.host ?? '',
             port: config.tunnel?.port ?? 22,
