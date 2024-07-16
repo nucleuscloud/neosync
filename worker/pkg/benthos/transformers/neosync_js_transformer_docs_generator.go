@@ -87,9 +87,26 @@ func main() {
 }
 
 const exampleTemplate = `{{- if eq .BenthosSpec.Type "transform" -}}
-const newValue = {{.BenthosSpec.Name}}(value, {});
+const newValue = {{.BenthosSpec.Name}}(value, {
+{{- range $i, $param := .BenthosSpec.Params}}
+{{- if eq $param.Name "value" }}{{ continue }}{{- end }}
+	{{- if $param.HasDefault }} 
+	{{$param.Name}}: {{$param.Default}},
+	{{- else }} 
+		{{- if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{- end}}
+	{{- end}}
+{{- end }}
+});
 {{- else if eq .BenthosSpec.Type "generate" -}}
-const newValue = {{.BenthosSpec.Name}}({});
+const newValue = {{.BenthosSpec.Name}}({
+	{{- range $i, $param := .BenthosSpec.Params}}
+	{{- if $param.HasDefault }} 
+	{{$param.Name}}: {{$param.Default}},
+	{{- else }} 
+	{{- if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{- end}}
+	{{- end}}
+{{- end }}
+});
 {{- end -}}
 `
 
