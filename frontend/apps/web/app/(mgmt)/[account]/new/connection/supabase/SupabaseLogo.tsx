@@ -14,7 +14,7 @@ export const SupabaseLogo = () => {
       <path
         d="M16.3623 28.2829C15.6276 29.2081 14.1379 28.7012 14.1202 27.5197L13.8613 10.2402H25.48C27.5845 10.2402 28.7582 12.6709 27.4496 14.3191L16.3623 28.2829Z"
         fill="url(#paint1_linear_3396_390)"
-        fill-opacity="0.2"
+        fillOpacity="0.2"
       />
       <path
         d="M11.6374 0.477868C12.3721 -0.447473 13.8618 0.0595473 13.8795 1.24097L13.993 18.5204H2.51967C0.415142 18.5204 -0.75859 16.0898 0.550066 14.4416L11.6374 0.477868Z"
@@ -29,8 +29,8 @@ export const SupabaseLogo = () => {
           y2="18.4024"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#249361" />
-          <stop offset="1" stop-color="#3ECF8E" />
+          <stop stopColor="#249361" />
+          <stop offset="1" stopColor="#3ECF8E" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_3396_390"
@@ -41,7 +41,7 @@ export const SupabaseLogo = () => {
           gradientUnits="userSpaceOnUse"
         >
           <stop />
-          <stop offset="1" stop-opacity="0" />
+          <stop offset="1" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>
