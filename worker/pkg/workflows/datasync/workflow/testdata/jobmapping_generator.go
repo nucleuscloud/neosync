@@ -19,6 +19,7 @@ import (
 type Input struct {
 	Folder  string `json:"folder"`
 	SqlFile string `json:"sql_file"`
+	Driver  string `json:"driver"`
 }
 
 type Column struct {
@@ -39,7 +40,7 @@ type JobMapping struct {
 	Config      string
 }
 
-func parseSQLSchema(sql string) ([]*Table, error) {
+func parsePostegresSchema(sql string) ([]*Table, error) {
 	tree, err := pgquery.Parse(sql)
 	if err != nil {
 		return nil, err
@@ -192,7 +193,7 @@ func main() {
 		sqlContent := string(byteValue)
 		sqlFile.Close()
 
-		tables, err := parseSQLSchema(sqlContent)
+		tables, err := parsePostegresSchema(sqlContent)
 		if err != nil {
 			fmt.Println("Error parsing SQL schema:", err)
 			return
