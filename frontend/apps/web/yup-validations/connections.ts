@@ -97,16 +97,44 @@ export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 export const MysqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
-    protocol: Yup.string().required(),
+    host: Yup.string().when('$activeTab', {
+      is: 'host', // Only require if activeTab is 'host'
+      then: (schema) => schema.required('The host name is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    name: Yup.string().when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database name is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    user: Yup.string().when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database user is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    pass: Yup.string().when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database password is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    port: Yup.number()
+      .integer()
+      .positive()
+      .when('$activeTab', {
+        is: 'host',
+        then: (schema) => schema.required('A database port is required.'),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    protocol: Yup.string().when('$activeTab', {
+      is: 'host',
+      then: (schema) => schema.required('The database protocol is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   }).required(),
   url: Yup.string().when('$activeTab', {
     is: 'url', // Only require if activeTab is 'url'
     then: (schema) => schema.required('The connection url is required'),
+    otherwise: (schema) => schema.notRequired(),
   }),
   tunnel: SshTunnelFormValues,
   options: SQL_OPTIONS_FORM_SCHEMA,
@@ -118,22 +146,22 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().when('$activeTab', {
-      is: 'parameters', // Only require if activeTab is 'parameters'
+      is: 'host', // Only require if activeTab is 'host'
       then: (schema) => schema.required('The host name is required.'),
       otherwise: (schema) => schema.notRequired(),
     }),
     name: Yup.string().when('$activeTab', {
-      is: 'parameters',
+      is: 'host',
       then: (schema) => schema.required('The database name is required'),
       otherwise: (schema) => schema.notRequired(),
     }),
     user: Yup.string().when('$activeTab', {
-      is: 'parameters',
+      is: 'host',
       then: (schema) => schema.required('The database user is required'),
       otherwise: (schema) => schema.notRequired(),
     }),
     pass: Yup.string().when('$activeTab', {
-      is: 'parameters',
+      is: 'host',
       then: (schema) => schema.required('The database password is required'),
       otherwise: (schema) => schema.notRequired(),
     }),
@@ -141,7 +169,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
       .integer()
       .positive()
       .when('$activeTab', {
-        is: 'parameters',
+        is: 'host',
         then: (schema) => schema.required('The database port is required'),
         otherwise: (schema) => schema.notRequired(),
       }),

@@ -67,6 +67,7 @@ export default function MysqlForm(props: Props) {
   );
 
   const form = useForm<MysqlFormValues>({
+    mode: 'onChange',
     resolver: yupResolver(MysqlFormValues),
     values: defaultValues,
     context: {
