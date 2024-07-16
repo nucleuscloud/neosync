@@ -65,6 +65,7 @@ export default function PostgresForm(props: Props): ReactElement {
   );
 
   const form = useForm<PostgresFormValues>({
+    mode: 'onChange',
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     values: defaultValues,
     context: {
