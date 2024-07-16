@@ -24,6 +24,16 @@ This container comes pre-packaged with all of the tools needed for developing Ne
 
 ### Setup
 
+#### Buf Login
+
+Neosync uses Buf to generate code from our proto files. This is possible to do unauthenticated, but if done often (more than 10 requests in an hour), you will be rate limited. To combat this, you must login to the [BSR](https://buf.build) and create a user token.
+
+Afterwards, drop your token in the `backend/.env.dev.secrets` file.
+
+```console
+echo "BUF_TOKEN=<token>" >> ./backend/.env.dev.secrets
+```
+
 The docker compose environment runs almost entirely by itself. However, the Golang services (backend, worker), must be built on the host system.
 
 This can be done easily from the root by simply running `make dbuild`. This will build the project for Docker (Linux). It builds the entire project so it may take some time.
