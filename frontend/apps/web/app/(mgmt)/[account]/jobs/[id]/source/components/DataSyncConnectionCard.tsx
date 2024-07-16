@@ -153,7 +153,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   });
 
   const schemaConstraintHandler = useMemo(() => {
-    const virtualForeignKeys = data?.job?.virtualForeignKeys ?? [];
+    const virtualForeignKeys = Array.from(data?.job?.virtualForeignKeys ?? []);
     formVirtualForeignKeys?.forEach((v) => {
       virtualForeignKeys.push(
         new VirtualForeignConstraint({
@@ -180,7 +180,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     isSchemaMapValidating,
     isTableConstraintsValidating,
     isJobDataLoading,
-    formVirtualForeignKeys,
+    formVirtualForeignKeys, // this is kinda dangerous
   ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
