@@ -17,6 +17,8 @@ changelog:
         - Feature
     - title: Bug Fixes 🐞
       labels:
+        - bug
+        - Bug
         - bugs
         - Bugs
         - Regression
