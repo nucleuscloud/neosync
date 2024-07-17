@@ -94,7 +94,7 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col md:flex-row gap-12">
               <div className="flex flex-col gap-2">
                 <FormLabel>Source</FormLabel>
                 <FormDescription>The primary key</FormDescription>
@@ -136,79 +136,80 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                     setValue={setTargetTable}
                     text="table"
                   />
-                  <div className="flex flex-col gap-3">
-                    {targetColumns.map((col, index) => (
-                      <StringSelect
-                        key={index}
-                        value={col}
-                        values={getTargetColumnOptions(schema, targetTable)}
-                        badgeValueMap={getColumnDataTypeMap(
-                          schema,
-                          targetTable
-                        )}
-                        setValue={(value) => updateTargetColumn(index, value)}
-                        text="column"
-                      />
-                    ))}
-                  </div>
-                  <div className="flex flex-row gap-2">
+                  <div className="flex flex-row items-start gap-4">
+                    <div className="flex flex-col gap-3">
+                      {targetColumns.map((col, index) => (
+                        <StringSelect
+                          key={index}
+                          value={col}
+                          values={getTargetColumnOptions(schema, targetTable)}
+                          badgeValueMap={getColumnDataTypeMap(
+                            schema,
+                            targetTable
+                          )}
+                          setValue={(value) => updateTargetColumn(index, value)}
+                          text="column"
+                        />
+                      ))}
+                    </div>
                     <Button
                       type="button"
-                      variant="outline"
-                      onClick={addCompositeColumns}
-                    >
-                      +
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={removeLastCompositeColumn}
-                    >
-                      -
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    key="virtualforeignkey"
-                    className="w-[90px]"
-                    onClick={() => {
-                      if (
-                        !sourceTable ||
-                        sourceColumns.includes('') ||
-                        !targetTable ||
-                        targetColumns.includes('')
-                      ) {
-                        toast({
-                          title: 'Unable to add virtual foreign key',
-                          description: 'Missing required field',
-                          variant: 'destructive',
+                      key="virtualforeignkey"
+                      className="w-[90px]"
+                      onClick={() => {
+                        if (
+                          !sourceTable ||
+                          sourceColumns.includes('') ||
+                          !targetTable ||
+                          targetColumns.includes('')
+                        ) {
+                          toast({
+                            title: 'Unable to add virtual foreign key',
+                            description: 'Missing required field',
+                            variant: 'destructive',
+                          });
+                          return;
+                        }
+                        const source = splitSchemaTable(sourceTable);
+                        const target = splitSchemaTable(targetTable);
+                        addVirtualForeignKey({
+                          schema: target.schema,
+                          table: target.table,
+                          columns: targetColumns,
+                          foreignKey: {
+                            schema: source.schema,
+                            table: source.table,
+                            columns: sourceColumns,
+                          },
                         });
-                        return;
-                      }
-                      const source = splitSchemaTable(sourceTable);
-                      const target = splitSchemaTable(targetTable);
-                      addVirtualForeignKey({
-                        schema: target.schema,
-                        table: target.table,
-                        columns: targetColumns,
-                        foreignKey: {
-                          schema: source.schema,
-                          table: source.table,
-                          columns: sourceColumns,
-                        },
-                      });
-                      setSourceTable(undefined);
-                      setSourceColumns(['']);
-                      setTargetTable(undefined);
-                      setTargetColumns(['']);
-                    }}
-                  >
-                    Add
-                  </Button>
+                        setSourceTable(undefined);
+                        setSourceColumns(['']);
+                        setTargetTable(undefined);
+                        setTargetColumns(['']);
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
+                <div className="flex justify-end"></div>
               </div>
+            </div>
+            <div className="flex flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addCompositeColumns}
+              >
+                +
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={removeLastCompositeColumn}
+              >
+                -
+              </Button>
             </div>
           </div>
         </CardContent>
