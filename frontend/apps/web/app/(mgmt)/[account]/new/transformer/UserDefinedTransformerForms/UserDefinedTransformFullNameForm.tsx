@@ -10,8 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 interface Props {
   isDisabled?: boolean;
@@ -21,7 +21,8 @@ export default function UserDefinedTransformFullNameForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
   const { isDisabled } = props;
   return (

@@ -40,6 +40,7 @@ import {
 import {
   createUserDefinedTransformer,
   getSystemTransformers,
+  isTransformerNameAvailable,
 } from '@neosync/sdk/connectquery';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -48,8 +49,8 @@ import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
-  CREATE_USER_DEFINED_TRANSFORMER_SCHEMA,
-  CreateUserDefinedTransformerSchema,
+  CreateUserDefinedTransformerFormContext,
+  CreateUserDefinedTransformerFormValues,
 } from './schema';
 
 function getTransformerSource(sourceStr: string): TransformerSource {
@@ -70,12 +71,18 @@ export default function NewTransformer(): ReactElement {
   const transformerSource = getTransformerSource(
     transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
   );
+  const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
+    isTransformerNameAvailable
+  );
 
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
   const posthog = usePostHog();
 
-  const form = useForm<CreateUserDefinedTransformerSchema>({
-    resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
+  const form = useForm<
+    CreateUserDefinedTransformerFormValues,
+    CreateUserDefinedTransformerFormContext
+  >({
+    resolver: yupResolver(CreateUserDefinedTransformerFormValues),
     mode: 'onChange',
     defaultValues: {
       name: '',
@@ -83,14 +90,17 @@ export default function NewTransformer(): ReactElement {
       config: convertTransformerConfigToForm(new TransformerConfig()),
       description: '',
     },
-    context: { accountId: account?.id ?? '' },
+    context: {
+      accountId: account?.id ?? '',
+      isTransformerNameAvailable: isTransformerNameAvailableAsync,
+    },
   });
 
   const router = useRouter();
   const { mutateAsync } = useMutation(createUserDefinedTransformer);
 
   async function onSubmit(
-    values: CreateUserDefinedTransformerSchema
+    values: CreateUserDefinedTransformerFormValues
   ): Promise<void> {
     if (!account) {
       return;

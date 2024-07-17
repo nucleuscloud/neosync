@@ -1,8 +1,8 @@
 'use client';
 import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
-  UPDATE_USER_DEFINED_TRANSFORMER,
-  UpdateUserDefinedTransformer,
+  EditUserDefinedTransformerFormContext,
+  UpdateUserDefinedTransformerFormValues,
 } from '@/app/(mgmt)/[account]/new/transformer/schema';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,10 @@ import {
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserDefinedTransformer } from '@neosync/sdk';
-import { updateUserDefinedTransformer } from '@neosync/sdk/connectquery';
+import {
+  isTransformerNameAvailable,
+  updateUserDefinedTransformer,
+} from '@neosync/sdk/connectquery';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -41,21 +44,33 @@ export default function UpdateUserDefinedTransformerForm(
 ): ReactElement {
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
+  const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
+    isTransformerNameAvailable
+  );
 
-  const form = useForm<UpdateUserDefinedTransformer>({
+  const form = useForm<
+    UpdateUserDefinedTransformerFormValues,
+    EditUserDefinedTransformerFormContext
+  >({
     mode: 'onChange',
-    resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),
+    resolver: yupResolver(UpdateUserDefinedTransformerFormValues),
     values: {
       name: currentTransformer?.name ?? '',
       description: currentTransformer?.description ?? '',
       id: currentTransformer?.id ?? '',
       config: convertTransformerConfigToForm(currentTransformer.config),
     },
-    context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
+    context: {
+      name: currentTransformer?.name,
+      accountId: account?.id ?? '',
+      isTransformerNameAvailable: isTransformerNameAvailableAsync,
+    },
   });
   const { mutateAsync } = useMutation(updateUserDefinedTransformer);
 
-  async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
+  async function onSubmit(
+    values: UpdateUserDefinedTransformerFormValues
+  ): Promise<void> {
     if (!account || !currentTransformer) {
       return;
     }
