@@ -11,20 +11,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getRefreshIntervalFn<T>(
-  fn?: (data: T) => number
-): ((data: T | undefined) => number) | undefined {
-  if (!fn) {
-    return undefined;
-  }
-  return (data) => {
-    if (!data) {
-      return 0;
-    }
-    return fn(data);
-  };
-}
-
 export function getSingleOrUndefined(
   item: string | string[] | undefined
 ): string | undefined {
