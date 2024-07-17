@@ -21,7 +21,10 @@ import {
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UpdateConnectionResponse } from '@neosync/sdk';
-import { updateConnection } from '@neosync/sdk/connectquery';
+import {
+  isConnectionNameAvailable,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { buildConnectionConfigGcpCloudStorage } from '../../util';
@@ -36,7 +39,9 @@ interface Props {
 export default function GcpCloudStorageForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
-
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
   const form = useForm<GcpCloudStorageFormValues, EditConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
     mode: 'onChange',
@@ -44,6 +49,7 @@ export default function GcpCloudStorageForm(props: Props): ReactElement {
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
   const { mutateAsync } = useMutation(updateConnection);

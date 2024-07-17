@@ -248,18 +248,30 @@ export interface CreateConnectionFormContext {
   >;
 }
 
+type ActiveConnectionTab = 'url' | 'host';
+
 export interface MysqlCreateConnectionFormContext
   extends CreateConnectionFormContext {
-  activeTab: 'url' | 'host';
+  activeTab: ActiveConnectionTab;
 }
 
 export interface PostgresCreateConnectionFormContext
   extends CreateConnectionFormContext {
-  activeTab: 'url' | 'host';
+  activeTab: ActiveConnectionTab;
 }
 
 export interface EditConnectionFormContext extends CreateConnectionFormContext {
   originalConnectionName: string;
+}
+
+export interface PostgresEditConnectionFormContext
+  extends EditConnectionFormContext {
+  activeTab: ActiveConnectionTab;
+}
+
+export interface MysqlEditConnectionFormContext
+  extends EditConnectionFormContext {
+  activeTab: ActiveConnectionTab;
 }
 
 export const OpenAiFormValues = Yup.object({

@@ -35,6 +35,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
+  MysqlEditConnectionFormContext,
   MysqlFormValues,
 } from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
@@ -45,6 +46,7 @@ import {
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
+  isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
 import {
@@ -67,11 +69,14 @@ export default function MysqlForm(props: Props) {
   const { account } = useAccount();
 
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<string>(
+  const [activeTab, setActiveTab] = useState<'host' | 'url'>(
     defaultValues.url ? 'url' : 'host'
   );
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
 
-  const form = useForm<MysqlFormValues>({
+  const form = useForm<MysqlFormValues, MysqlEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(MysqlFormValues),
     values: defaultValues,
@@ -79,6 +84,7 @@ export default function MysqlForm(props: Props) {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
       activeTab: activeTab,
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
   const { mutateAsync: createMysqlConnection } = useMutation(updateConnection);
@@ -145,7 +151,7 @@ export default function MysqlForm(props: Props) {
 
         <RadioGroup
           defaultValue="url"
-          onValueChange={(e) => setActiveTab(e)}
+          onValueChange={(e) => setActiveTab(e as 'host' | 'url')}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">

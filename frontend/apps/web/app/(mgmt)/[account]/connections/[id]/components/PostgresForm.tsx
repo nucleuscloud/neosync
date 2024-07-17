@@ -36,6 +36,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import {
   POSTGRES_FORM_SCHEMA,
+  PostgresEditConnectionFormContext,
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
@@ -47,6 +48,7 @@ import {
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
+  isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -65,11 +67,14 @@ export default function PostgresForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<string>(
+  const [activeTab, setActiveTab] = useState<'host' | 'url'>(
     defaultValues.url ? 'url' : 'host'
   );
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
 
-  const form = useForm<PostgresFormValues>({
+  const form = useForm<PostgresFormValues, PostgresEditConnectionFormContext>({
     mode: 'onChange',
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     values: defaultValues,
@@ -77,7 +82,8 @@ export default function PostgresForm(props: Props): ReactElement {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
       activeTab: activeTab,
-    }, // used when validating a new connection name
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
@@ -147,7 +153,7 @@ export default function PostgresForm(props: Props): ReactElement {
 
         <RadioGroup
           defaultValue="url"
-          onValueChange={(e) => setActiveTab(e)}
+          onValueChange={(e) => setActiveTab(e as 'host' | 'url')}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
