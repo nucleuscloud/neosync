@@ -27,8 +27,8 @@ export default function JobRunLogs({
   const {
     data: logsData,
     isLoading: isLogsLoading,
-    isValidating: isLogsValidating,
-    mutate: logsMutate,
+    isFetching: isLogsValidating,
+    refetch: logsMutate,
     error: logsError,
   } = useGetJobRunLogs(runId, accountId, selectedLogLevel, {
     refreshIntervalFn: refreshLogsWhenRunNotComplete,
