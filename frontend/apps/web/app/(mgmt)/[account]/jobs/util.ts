@@ -23,7 +23,6 @@ import {
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
   GetAiGeneratedDataRequest,
-  IsJobNameAvailableResponse,
   Job,
   JobDestination,
   JobDestinationOptions,
@@ -603,26 +602,6 @@ function toMysqlSourceSchemaOptions(
     {} as Record<string, MysqlSourceSchemaOption>
   );
   return Object.values(schemaMap);
-}
-
-export async function isJobNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsJobNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/is-job-name-available?name=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsJobNameAvailableResponse.fromJson(await res.json());
 }
 
 export function toActivityOptions(

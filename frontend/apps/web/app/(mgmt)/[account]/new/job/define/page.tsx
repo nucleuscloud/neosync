@@ -22,7 +22,11 @@ import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { DefineFormValues, NewJobType } from '../schema';
+import {
+  DefineFormValues,
+  DefineFormValuesContext,
+  NewJobType,
+} from '../schema';
 
 import {
   Accordion,
@@ -33,6 +37,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { getSingleOrUndefined } from '@/libs/utils';
+import { useMutation } from '@connectrpc/connect-query';
+import { isJobNameAvailable } from '@neosync/sdk/connectquery';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
@@ -73,12 +79,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, []);
 
-  const form = useForm<DefineFormValues>({
+  const { mutateAsync: isJobNameAvailableAsync } =
+    useMutation(isJobNameAvailable);
+  const form = useForm<DefineFormValues, DefineFormValuesContext>({
     mode: 'onChange',
     resolver: yupResolver<DefineFormValues>(DefineFormValues),
     defaultValues,
     context: {
       accountId: account?.id ?? '',
+      isJobNameAvailable: isJobNameAvailableAsync,
     },
   });
 
