@@ -36,8 +36,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.schema = "genbenthosconfigs_querybuilder"
 
-	pgcontainer, err := testpg.RunContainer(s.ctx,
-		testcontainers.WithImage("postgres:15"),
+	pgcontainer, err := testpg.Run(
+		s.ctx,
+		"postgres:15",
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(5*time.Second),
