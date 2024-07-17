@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -53,6 +52,7 @@ import {
   getConnections,
   getJob,
   updateJobSourceConnection,
+  validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -61,6 +61,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import {
   getSingleTableGenerateNumRows,
   toSingleTableEditGenerateJobSource,
+  validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
@@ -216,6 +217,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     validateJobMappings();
   }, [selectedTables, fkSourceConnectionId, account?.id]);
 
+  const { mutateAsync: validateJobMappingsAsync } =
+    useMutation(validateJobMappings);
+
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
   }
@@ -262,7 +266,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       const res = await validateJobMapping(
         fkSourceConnectionId || '',
         fields,
-        account?.id || ''
+        account?.id || '',
+        [],
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {

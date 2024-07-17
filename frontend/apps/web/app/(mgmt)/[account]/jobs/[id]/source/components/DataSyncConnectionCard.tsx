@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
@@ -64,11 +63,13 @@ import {
   getConnections,
   getJob,
   updateJobSourceConnection,
+  validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { validateJobMapping } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
 
@@ -215,6 +216,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     );
   }, [isJobDataLoading, isSchemaDataMapLoading]);
 
+  const { mutateAsync: validateJobMappingsAsync } =
+    useMutation(validateJobMappings);
+
   async function onSourceChange(value: string): Promise<void> {
     try {
       const newValues = await getUpdatedValues(
@@ -307,7 +311,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         sourceConnectionId || '',
         formMappings,
         account?.id || '',
-        formVirtualForeignKeys
+        formVirtualForeignKeys,
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {
@@ -330,7 +335,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         sourceConnectionId || '',
         formMappings,
         account?.id || '',
-        vfks
+        vfks,
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {
