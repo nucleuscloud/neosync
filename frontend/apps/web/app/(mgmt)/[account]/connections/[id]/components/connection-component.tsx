@@ -136,15 +136,15 @@ export function getConnectionComponentDetails(
                 user: value.tunnel?.user ?? '',
                 passphrase:
                   value.tunnel && value.tunnel.authentication
-                    ? getPassphraseFromSshAuthentication(
+                    ? (getPassphraseFromSshAuthentication(
                         value.tunnel.authentication
-                      ) ?? ''
+                      ) ?? '')
                     : '',
                 privateKey:
                   value.tunnel && value.tunnel.authentication
-                    ? getPrivateKeyFromSshAuthentication(
+                    ? (getPrivateKeyFromSshAuthentication(
                         value.tunnel.authentication
-                      ) ?? ''
+                      ) ?? '')
                     : '',
               },
             }}
@@ -221,15 +221,15 @@ export function getConnectionComponentDetails(
                 user: mysqlValue.tunnel?.user ?? '',
                 passphrase:
                   mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? getPassphraseFromSshAuthentication(
+                    ? (getPassphraseFromSshAuthentication(
                         mysqlValue.tunnel.authentication
-                      ) ?? ''
+                      ) ?? '')
                     : '',
                 privateKey:
                   mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                    ? getPrivateKeyFromSshAuthentication(
+                    ? (getPrivateKeyFromSshAuthentication(
                         mysqlValue.tunnel.authentication
-                      ) ?? ''
+                      ) ?? '')
                     : '',
               },
             }}
