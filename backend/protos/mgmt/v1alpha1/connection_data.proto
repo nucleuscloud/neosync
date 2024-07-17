@@ -101,6 +101,16 @@ message GetConnectionSchemaResponse {
   repeated DatabaseColumn schemas = 1;
 }
 
+message GetConnectionSchemaMapRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  ConnectionSchemaConfig schema_config = 2;
+}
+
+message GetConnectionSchemaMapResponse {
+  // Returns the database columns separated by the fully qualified <schema>.<table>
+  map<string, GetConnectionSchemaResponse> schema_map = 1;
+}
+
 message GetConnectionForeignConstraintsRequest {
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -242,6 +252,8 @@ service ConnectionDataService {
   rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
   // Returns the schema for a specific connection. Used mostly for SQL-based connections
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
+  // Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+  rpc GetConnectionSchemaMap(GetConnectionSchemaMapRequest) returns (GetConnectionSchemaMapResponse) {}
   // For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
   rpc GetConnectionTableConstraints(GetConnectionTableConstraintsRequest) returns (GetConnectionTableConstraintsResponse) {}
   // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.

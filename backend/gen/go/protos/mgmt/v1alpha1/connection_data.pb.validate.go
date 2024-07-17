@@ -2289,6 +2289,289 @@ var _ interface {
 	ErrorName() string
 } = GetConnectionSchemaResponseValidationError{}
 
+// Validate checks the field values on GetConnectionSchemaMapRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetConnectionSchemaMapRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionSchemaMapRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetConnectionSchemaMapRequestMultiError, or nil if none found.
+func (m *GetConnectionSchemaMapRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionSchemaMapRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if all {
+		switch v := interface{}(m.GetSchemaConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetConnectionSchemaMapRequestValidationError{
+					field:  "SchemaConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetConnectionSchemaMapRequestValidationError{
+					field:  "SchemaConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSchemaConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetConnectionSchemaMapRequestValidationError{
+				field:  "SchemaConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionSchemaMapRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionSchemaMapRequestMultiError is an error wrapping multiple
+// validation errors returned by GetConnectionSchemaMapRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetConnectionSchemaMapRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionSchemaMapRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionSchemaMapRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionSchemaMapRequestValidationError is the validation error
+// returned by GetConnectionSchemaMapRequest.Validate if the designated
+// constraints aren't met.
+type GetConnectionSchemaMapRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionSchemaMapRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionSchemaMapRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionSchemaMapRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionSchemaMapRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionSchemaMapRequestValidationError) ErrorName() string {
+	return "GetConnectionSchemaMapRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionSchemaMapRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionSchemaMapRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionSchemaMapRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionSchemaMapRequestValidationError{}
+
+// Validate checks the field values on GetConnectionSchemaMapResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetConnectionSchemaMapResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionSchemaMapResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetConnectionSchemaMapResponseMultiError, or nil if none found.
+func (m *GetConnectionSchemaMapResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionSchemaMapResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	{
+		sorted_keys := make([]string, len(m.GetSchemaMap()))
+		i := 0
+		for key := range m.GetSchemaMap() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetSchemaMap()[key]
+			_ = val
+
+			// no validation rules for SchemaMap[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionSchemaMapResponseValidationError{
+							field:  fmt.Sprintf("SchemaMap[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionSchemaMapResponseValidationError{
+							field:  fmt.Sprintf("SchemaMap[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionSchemaMapResponseValidationError{
+						field:  fmt.Sprintf("SchemaMap[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionSchemaMapResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionSchemaMapResponseMultiError is an error wrapping multiple
+// validation errors returned by GetConnectionSchemaMapResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GetConnectionSchemaMapResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionSchemaMapResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionSchemaMapResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionSchemaMapResponseValidationError is the validation error
+// returned by GetConnectionSchemaMapResponse.Validate if the designated
+// constraints aren't met.
+type GetConnectionSchemaMapResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionSchemaMapResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionSchemaMapResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionSchemaMapResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionSchemaMapResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionSchemaMapResponseValidationError) ErrorName() string {
+	return "GetConnectionSchemaMapResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionSchemaMapResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionSchemaMapResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionSchemaMapResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionSchemaMapResponseValidationError{}
+
 // Validate checks the field values on GetConnectionForeignConstraintsRequest
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

@@ -392,6 +392,32 @@ func (s *Service) GetConnectionDataStream(
 	return nil
 }
 
+func (s *Service) GetConnectionSchemaMap(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaMapRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaMapResponse], error) {
+	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+		ConnectionId: req.Msg.GetConnectionId(),
+		SchemaConfig: req.Msg.GetSchemaConfig(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	outputMap := map[string]*mgmtv1alpha1.GetConnectionSchemaResponse{}
+	for _, dbcol := range schemaResp.Msg.GetSchemas() {
+		schematableKey := sqlmanager_shared.SchemaTable{Schema: dbcol.Schema, Table: dbcol.Table}.String()
+		resp, ok := outputMap[schematableKey]
+		if !ok {
+			resp = &mgmtv1alpha1.GetConnectionSchemaResponse{}
+		}
+		resp.Schemas = append(resp.Schemas, dbcol)
+		outputMap[schematableKey] = resp
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaMapResponse{
+		SchemaMap: outputMap,
+	}), nil
+}
+
 func (s *Service) GetConnectionSchema(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest],
