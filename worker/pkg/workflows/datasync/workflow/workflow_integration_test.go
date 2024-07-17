@@ -53,8 +53,9 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 	for _, tt := range tests {
 		s.T().Run(tt.Name, func(t *testing.T) {
 			s.T().Logf("running integration test: %s \n", tt.Name)
-			s.SetupSourceDb(tt.Folder, tt.SourceFilePaths)
-			s.SetupTargetDb(tt.Folder, tt.TargetFilePaths)
+			// setup
+			s.RunPostgresSqlFiles(s.postgres.sourcePool, tt.Folder, tt.SourceFilePaths)
+			s.RunPostgresSqlFiles(s.postgres.targetPool, tt.Folder, tt.TargetFilePaths)
 
 			schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
 			subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
@@ -137,7 +138,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 										PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 											ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-												Url: s.sourceDsn,
+												Url: s.postgres.sourceDsn,
 											},
 										},
 									},
@@ -154,7 +155,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 										PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 											ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-												Url: s.targetDsn,
+												Url: s.postgres.targetDsn,
 											},
 										},
 									},
@@ -169,7 +170,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			executeWorkflow(s.T(), srv, s.redisUrl, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
 			for table, expected := range tt.Expected {
-				rows, err := s.targetPgPool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
+				rows, err := s.postgres.targetPool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
 				require.NoError(s.T(), err)
 				count := 0
 				for rows.Next() {
@@ -178,15 +179,19 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 				require.Equalf(s.T(), expected.RowCount, count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
 			}
 
-			s.TearDownTestByFolder(tt.Folder)
+			// tear down
+			s.RunPostgresSqlFiles(s.postgres.sourcePool, tt.Folder, []string{"teardown.sql"})
+			s.RunPostgresSqlFiles(s.postgres.targetPool, tt.Folder, []string{"teardown.sql"})
 		})
 	}
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
-	testFolder := "virtual-foreign-keys"
-	s.SetupSourceDb(testFolder, []string{"source-setup.sql"})
-	s.SetupTargetDb(testFolder, []string{"target-setup.sql"})
+	testFolder := "postgres/virtual-foreign-keys"
+	// setup
+	s.RunPostgresSqlFiles(s.postgres.sourcePool, testFolder, []string{"source-setup.sql"})
+	s.RunPostgresSqlFiles(s.postgres.targetPool, testFolder, []string{"target-setup.sql"})
+
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
 	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
 
@@ -243,7 +248,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.sourceDsn,
+										Url: s.postgres.sourceDsn,
 									},
 								},
 							},
@@ -260,7 +265,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.targetDsn,
+										Url: s.postgres.targetDsn,
 									},
 								},
 							},
@@ -276,7 +281,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
-		rows, err := s.targetPgPool.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
+		rows, err := s.postgres.targetPool.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
 		require.NoError(s.T(), err)
 		count := 0
 		for rows.Next() {
@@ -286,33 +291,35 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		require.NoError(s.T(), err)
 	}
 
-	rows := s.sourcePgPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows := s.postgres.sourcePool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	var rowCount int
 	err := rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.sourcePgPool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
+	rows = s.postgres.sourcePool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
-	rows = s.targetPgPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 0, rowCount)
 
-	rows = s.targetPgPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
+	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.targetPgPool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
+	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
-	s.TearDownTestByFolder(testFolder)
+	// tear down
+	s.RunPostgresSqlFiles(s.postgres.sourcePool, testFolder, []string{"teardown.sql"})
+	s.RunPostgresSqlFiles(s.postgres.targetPool, testFolder, []string{"teardown.sql"})
 }
 
 func executeWorkflow(

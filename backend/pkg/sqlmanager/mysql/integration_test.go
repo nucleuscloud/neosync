@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -31,34 +32,26 @@ type IntegrationTestSuite struct {
 	ctx context.Context
 
 	mysqlcontainer *testmysql.MySQLContainer
-
-	schema string
-}
-
-func (s *IntegrationTestSuite) buildTable(tableName string) string {
-	return fmt.Sprintf("%s.%s", s.schema, tableName)
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
-	s.schema = "sqlmanagerpostgres"
 
 	mysqlcontainer, err := testmysql.Run(s.ctx,
 		"mysql:8.0.36",
 		testmysql.WithDatabase("foo"),
 		testmysql.WithUsername("root"),
 		testmysql.WithPassword("password"),
-		// WaitingFor: wait.ForLog("port: 3306  MySQL Community Server"),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server"),
-			// WithOccurrence(2).WithStartupTimeout(5*time.Second),
+			wait.ForLog("port: 3306  MySQL Community Server").
+				WithOccurrence(1).WithStartupTimeout(10*time.Second),
 		),
 	)
 	if err != nil {
 		panic(err)
 	}
 	s.mysqlcontainer = mysqlcontainer
-	connstr, err := mysqlcontainer.ConnectionString(s.ctx)
+	connstr, err := mysqlcontainer.ConnectionString(s.ctx, "multiStatements=true")
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +68,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.teardownSql = string(teardownSql)
 
-	pool, err := sql.Open(sqlmanager_shared.MysqlDriver, fmt.Sprintf("%s?multiStatements=true", connstr))
+	pool, err := sql.Open(sqlmanager_shared.MysqlDriver, connstr)
 	if err != nil {
 		panic(err)
 	}

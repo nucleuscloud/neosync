@@ -9,7 +9,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:               "Virtual Foreign Keys sync",
-			Folder:             "virtual-foreign-keys",
+			Folder:             "postgres/virtual-foreign-keys",
 			SourceFilePaths:    []string{"source-setup.sql"},
 			TargetFilePaths:    []string{"target-setup.sql"},
 			JobMappings:        GetDefaultSyncJobMappings(),
@@ -26,7 +26,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "Virtual Foreign Keys subset",
-			Folder:          "virtual-foreign-keys",
+			Folder:          "postgres/virtual-foreign-keys",
 			SourceFilePaths: []string{"source-setup.sql"},
 			TargetFilePaths: []string{"target-setup.sql"},
 			SubsetMap: map[string]string{
