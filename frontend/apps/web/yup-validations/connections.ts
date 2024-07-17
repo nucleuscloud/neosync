@@ -1,5 +1,11 @@
-import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/connections/util';
 import { getErrorMessage } from '@/util/util';
+import { PartialMessage } from '@bufbuild/protobuf';
+import {
+  ConnectError,
+  IsConnectionNameAvailableRequest,
+  IsConnectionNameAvailableResponse,
+} from '@neosync/sdk';
+import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 
 /* This is the standard regular expression we assign to all or most "name" fields on the backend. */
@@ -38,11 +44,24 @@ const connectionNameSchema = Yup.string()
       }
 
       try {
-        const res = await isConnectionNameAvailable(value, accountId);
-        if (!res.isAvailable) {
-          return context.createError({
-            message: 'This Connection Name is already taken.',
+        const isConnectionNameAvailable:
+          | UseMutateAsyncFunction<
+              IsConnectionNameAvailableResponse,
+              ConnectError,
+              PartialMessage<IsConnectionNameAvailableRequest>,
+              unknown
+            >
+          | undefined = context?.options?.context?.isConnectionNameAvailable;
+        if (isConnectionNameAvailable) {
+          const res = await isConnectionNameAvailable({
+            accountId: accountId,
+            connectionName: value,
           });
+          if (!res.isAvailable) {
+            return context.createError({
+              message: 'This Connection Name is already taken.',
+            });
+          }
         }
         return true;
       } catch (error) {
@@ -221,7 +240,24 @@ export type GcpCloudStorageFormValues = Yup.InferType<
 
 export interface CreateConnectionFormContext {
   accountId: string;
+  isConnectionNameAvailable: UseMutateAsyncFunction<
+    IsConnectionNameAvailableResponse,
+    ConnectError,
+    PartialMessage<IsConnectionNameAvailableRequest>,
+    unknown
+  >;
 }
+
+export interface MysqlCreateConnectionFormContext
+  extends CreateConnectionFormContext {
+  activeTab: 'url' | 'host';
+}
+
+export interface PostgresCreateConnectionFormContext
+  extends CreateConnectionFormContext {
+  activeTab: 'url' | 'host';
+}
+
 export interface EditConnectionFormContext extends CreateConnectionFormContext {
   originalConnectionName: string;
 }

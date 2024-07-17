@@ -27,7 +27,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { MongoDbFormValues } from '@/yup-validations/connections';
+import {
+  CreateConnectionFormContext,
+  MongoDbFormValues,
+} from '@/yup-validations/connections';
 import {
   createConnectQueryKey,
   useMutation,
@@ -44,6 +47,7 @@ import {
   createConnection,
   getAccountOnboardingConfig,
   getConnection,
+  isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -68,8 +72,10 @@ export default function MongoDBForm(): ReactElement {
   const { mutateAsync: setOnboardingConfigAsync } = useMutation(
     setAccountOnboardingConfig
   );
-
-  const form = useForm<MongoDbFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<MongoDbFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(MongoDbFormValues),
     mode: 'onChange',
     defaultValues: {
@@ -82,7 +88,10 @@ export default function MongoDBForm(): ReactElement {
         clientKey: '',
       },
     },
-    context: { accountId: account?.id ?? '' },
+    context: {
+      accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
 
   const router = useRouter();

@@ -40,6 +40,7 @@ import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   POSTGRES_FORM_SCHEMA,
+  PostgresCreateConnectionFormContext,
   PostgresFormValues,
   SSL_MODES,
 } from '@/yup-validations/connections';
@@ -58,6 +59,7 @@ import {
   createConnection,
   getAccountOnboardingConfig,
   getConnection,
+  isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -84,43 +86,52 @@ export default function PostgresForm() {
   const { mutateAsync: setOnboardingConfigAsync } = useMutation(
     setAccountOnboardingConfig
   );
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
 
   // used to know which tab - host or url that the user is on when we submit the form
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
 
-  const form = useForm<PostgresFormValues>({
-    resolver: yupResolver(POSTGRES_FORM_SCHEMA),
-    mode: 'onChange',
-    defaultValues: {
-      connectionName: '',
-      db: {
-        host: 'localhost',
-        name: 'postgres',
-        user: 'postgres',
-        pass: 'postgres',
-        port: 5432,
-        sslMode: 'disable',
+  const form = useForm<PostgresFormValues, PostgresCreateConnectionFormContext>(
+    {
+      resolver: yupResolver(POSTGRES_FORM_SCHEMA),
+      mode: 'onChange',
+      defaultValues: {
+        connectionName: '',
+        db: {
+          host: 'localhost',
+          name: 'postgres',
+          user: 'postgres',
+          pass: 'postgres',
+          port: 5432,
+          sslMode: 'disable',
+        },
+        url: '',
+        options: {
+          maxConnectionLimit: 80,
+        },
+        tunnel: {
+          host: '',
+          port: 22,
+          knownHostPublicKey: '',
+          user: '',
+          passphrase: '',
+          privateKey: '',
+        },
+        clientTls: {
+          rootCert: '',
+          clientCert: '',
+          clientKey: '',
+        },
       },
-      url: '',
-      options: {
-        maxConnectionLimit: 80,
+      context: {
+        accountId: account?.id ?? '',
+        activeTab: activeTab,
+        isConnectionNameAvailable: isConnectionNameAvailableAsync,
       },
-      tunnel: {
-        host: '',
-        port: 22,
-        knownHostPublicKey: '',
-        user: '',
-        passphrase: '',
-        privateKey: '',
-      },
-      clientTls: {
-        rootCert: '',
-        clientCert: '',
-        clientKey: '',
-      },
-    },
-    context: { accountId: account?.id ?? '', activeTab: activeTab },
-  });
+    }
+  );
   const { mutateAsync: createPostgresConnection } =
     useMutation(createConnection);
   const { mutateAsync: checkPostgresConnection } = useMutation(
