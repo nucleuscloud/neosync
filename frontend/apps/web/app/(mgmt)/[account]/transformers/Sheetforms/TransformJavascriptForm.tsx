@@ -28,6 +28,9 @@ interface Props extends TransformerFormProps<TransformJavascript> {}
 
 export default function TransformJavascriptForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
 
   const { account } = useAccount();
   const form = useForm({
@@ -36,15 +39,15 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     defaultValues: {
       code: existingConfig?.code ?? '',
     },
-    context: { accountId: account?.id },
+    context: {
+      accountId: account?.id,
+      isUserJavascriptCodeValid: validateUserJavascriptCode,
+    },
   });
 
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [codeStatus, setCodeStatus] = useState<ValidCode>('null');
   const { resolvedTheme } = useTheme();
-  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
-  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {

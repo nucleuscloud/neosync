@@ -5,11 +5,12 @@ import {
   IsTransformerNameAvailableRequest,
   IsTransformerNameAvailableResponse,
   TransformerConfig,
+  ValidateUserJavascriptCodeRequest,
+  ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 import { tryBigInt } from '../../transformers/Sheetforms/util';
-import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
 const bigIntValidator = Yup.mixed<bigint>().test(
   'is-bigint',
@@ -424,15 +425,26 @@ const JavascriptConfig = Yup.object().shape({
           });
         }
         try {
-          // todo: pass in via form context
-          const res = await IsUserJavascriptCodeValid(value, accountId);
-          if (res.valid === true) {
-            return true;
-          } else {
-            return context.createError({
-              message: 'Javascript is not valid',
+          const isUserJavascriptCodeValid:
+            | UseMutateAsyncFunction<
+                ValidateUserJavascriptCodeResponse,
+                ConnectError,
+                PartialMessage<ValidateUserJavascriptCodeRequest>,
+                unknown
+              >
+            | undefined = context?.options?.context?.isUserJavascriptCodeValid;
+          if (isUserJavascriptCodeValid) {
+            const res = await isUserJavascriptCodeValid({
+              accountId,
+              code: value,
             });
+            if (!res.valid) {
+              return context.createError({
+                message: 'Javascript is not valid',
+              });
+            }
           }
+          return true;
         } catch (error) {
           return context.createError({
             message: 'Unable to verify Javascript code.',
