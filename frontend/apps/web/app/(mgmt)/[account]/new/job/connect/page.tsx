@@ -20,10 +20,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
+import { getConnections } from '@neosync/sdk/connectquery';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -63,9 +64,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     destinations: [{ connectionId: '', destinationOptions: {} }],
   });
 
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
-
+  const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm<ConnectFormValues>({

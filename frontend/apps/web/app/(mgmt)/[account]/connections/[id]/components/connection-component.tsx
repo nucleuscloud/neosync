@@ -179,66 +179,66 @@ export function getConnectionComponentDetails(
             port: mysqlConfig.port,
             protocol: mysqlConfig.protocol,
           };
-
+          break;
         case 'url':
           mysqlConfig = mysqlValue.connectionConfig.value;
-
+          break;
         default:
           mysqlConfig = mysqlValue.connectionConfig.value;
           mysqldbConfig = mysqldbConfig;
-
-          return {
-            name: connection.name,
-            summary: (
-              <div>
-                <p>No summary found.</p>
-              </div>
-            ),
-            header: (
-              <PageHeader
-                header="Mysql"
-                leftIcon={<ConnectionIcon connectionType="mysql" />}
-                extraHeading={extraPageHeading}
-                subHeadings={subHeading}
-              />
-            ),
-            body: (
-              <MysqlForm
-                connectionId={connection.id}
-                defaultValues={{
-                  connectionName: connection.name,
-                  db: mysqldbConfig,
-                  url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
-                  options: {
-                    maxConnectionLimit:
-                      mysqlValue.connectionOptions?.maxConnectionLimit,
-                  },
-                  tunnel: {
-                    host: mysqlValue.tunnel?.host ?? '',
-                    port: mysqlValue.tunnel?.port ?? 22,
-                    knownHostPublicKey:
-                      mysqlValue.tunnel?.knownHostPublicKey ?? '',
-                    user: mysqlValue.tunnel?.user ?? '',
-                    passphrase:
-                      mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                        ? getPassphraseFromSshAuthentication(
-                            mysqlValue.tunnel.authentication
-                          ) ?? ''
-                        : '',
-                    privateKey:
-                      mysqlValue.tunnel && mysqlValue.tunnel.authentication
-                        ? getPrivateKeyFromSshAuthentication(
-                            mysqlValue.tunnel.authentication
-                          ) ?? ''
-                        : '',
-                  },
-                }}
-                onSaved={(resp) => onSaved(resp)}
-                onSaveFailed={onSaveFailed}
-              />
-            ),
-          };
       }
+
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="Mysql"
+            leftIcon={<ConnectionIcon connectionType="mysql" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <MysqlForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              db: mysqldbConfig,
+              url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
+              options: {
+                maxConnectionLimit:
+                  mysqlValue.connectionOptions?.maxConnectionLimit,
+              },
+              tunnel: {
+                host: mysqlValue.tunnel?.host ?? '',
+                port: mysqlValue.tunnel?.port ?? 22,
+                knownHostPublicKey: mysqlValue.tunnel?.knownHostPublicKey ?? '',
+                user: mysqlValue.tunnel?.user ?? '',
+                passphrase:
+                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
+                    ? getPassphraseFromSshAuthentication(
+                        mysqlValue.tunnel.authentication
+                      ) ?? ''
+                    : '',
+                privateKey:
+                  mysqlValue.tunnel && mysqlValue.tunnel.authentication
+                    ? getPrivateKeyFromSshAuthentication(
+                        mysqlValue.tunnel.authentication
+                      ) ?? ''
+                    : '',
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+
     case 'awsS3Config':
       return {
         name: connection.name,

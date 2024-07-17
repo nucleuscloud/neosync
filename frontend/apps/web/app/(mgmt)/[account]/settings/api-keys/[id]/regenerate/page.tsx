@@ -40,11 +40,11 @@ import {
   useQuery,
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { GetAccountApiKeyResponse } from '@neosync/sdk';
 import {
-  GetAccountApiKeyResponse,
   getAccountApiKey,
   regenerateAccountApiKey,
-} from '@neosync/sdk';
+} from '@neosync/sdk/connectquery';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';

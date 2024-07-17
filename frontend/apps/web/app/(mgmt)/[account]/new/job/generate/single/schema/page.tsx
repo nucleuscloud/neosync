@@ -3,17 +3,16 @@
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
-  createNewSingleTableGenerateJob,
+  getCreateNewSingleTableGenerateJobRequest,
   getNewJobSessionKeys,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
-  SchemaTable,
   getAllFormErrors,
+  SchemaTable,
 } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -29,19 +28,29 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetConnectionTableConstraints } from '@/libs/hooks/useGetConnectionTableConstraints';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountOnboardingConfigResponse,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
+import {
+  createJob,
+  getAccountOnboardingConfig,
+  getConnections,
+  getConnectionSchemaMap,
+  getConnectionTableConstraints,
+  setAccountOnboardingConfig,
+} from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
@@ -63,8 +72,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
   const { toast } = useToast();
   const posthog = usePostHog();
-  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
-    account?.id ?? ''
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfig } = useMutation(
+    setAccountOnboardingConfig
   );
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
@@ -78,7 +93,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
-  const { data: connectionsData } = useGetConnections(account?.id ?? '');
+  const { data: connectionsData } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const connections = connectionsData?.connections ?? [];
 
   const sessionPrefix = getSingleOrUndefined(searchParams?.sessionId) ?? '';
@@ -113,11 +132,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaMapLoading,
-    isValidating: isSchemaMapValidating,
-  } = useGetConnectionSchemaMap(
-    account?.id ?? '',
-    connectFormValues.fkSourceConnectionId
+    isFetching: isSchemaMapValidating,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: connectFormValues.fkSourceConnectionId },
+    { enabled: !!connectFormValues.fkSourceConnectionId }
   );
+
+  const { mutateAsync: createJobAsync } = useMutation(createJob);
 
   const form = useForm({
     mode: 'onChange',
@@ -144,14 +166,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     try {
       const connMap = new Map(connections.map((c) => [c.id, c]));
-      const job = await createNewSingleTableGenerateJob(
-        {
-          define: defineFormValues,
-          connect: connectFormValues,
-          schema: values,
-        },
-        account.id,
-        (id) => connMap.get(id)
+      const job = await createJobAsync(
+        getCreateNewSingleTableGenerateJobRequest(
+          {
+            define: defineFormValues,
+            connect: connectFormValues,
+            schema: values,
+          },
+          account.id,
+          (id) => connMap.get(id)
+        )
       );
       posthog.capture('New Job Created', {
         jobType: 'generate',
@@ -167,16 +191,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
         try {
-          const resp = await setOnboardingConfig(account.id, {
-            hasCreatedSourceConnection:
-              onboardingData?.config?.hasCreatedSourceConnection ?? true,
-            hasCreatedDestinationConnection:
-              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
-            hasCreatedJob: true,
-            hasInvitedMembers:
-              onboardingData?.config?.hasInvitedMembers ?? true,
+          const resp = await setOnboardingConfig({
+            accountId: account.id,
+            config: {
+              hasCreatedSourceConnection:
+                onboardingData?.config?.hasCreatedSourceConnection ?? true,
+              hasCreatedDestinationConnection:
+                onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+              hasCreatedJob: true,
+              hasInvitedMembers:
+                onboardingData?.config?.hasInvitedMembers ?? true,
+            },
           });
-          mutate(
+          queryclient.setQueryData(
+            createConnectQueryKey(getAccountOnboardingConfig, {
+              accountId: account.id,
+            }),
             new GetAccountOnboardingConfigResponse({
               config: resp.config,
             })
@@ -225,10 +255,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const { data: tableConstraints, isValidating: isTableConstraintsValidating } =
-    useGetConnectionTableConstraints(
-      account?.id ?? '',
-      connectFormValues.fkSourceConnectionId
+  const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
+    useQuery(
+      getConnectionTableConstraints,
+      { connectionId: connectFormValues.fkSourceConnectionId },
+      { enabled: !!connectFormValues.fkSourceConnectionId }
     );
 
   const schemaConstraintHandler = useMemo(
@@ -260,11 +291,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   useEffect(() => {
+    if (!connectFormValues.fkSourceConnectionId || !account?.id) {
+      return;
+    }
     const validateJobMappings = async () => {
       await validateMappings();
     };
     validateJobMappings();
-  }, [selectedTables]);
+  }, [selectedTables, connectFormValues.fkSourceConnectionId, account?.id]);
 
   useEffect(() => {
     if (isSchemaMapLoading || selectedTables.size > 0) {

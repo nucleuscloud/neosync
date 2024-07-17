@@ -1,6 +1,5 @@
 'use client';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
-import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -21,14 +20,22 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DestinationFormValues } from '@/yup-validations/jobs';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection, JobDestination } from '@neosync/sdk';
+import {
+  Connection,
+  JobDestination,
+  JobDestinationOptions,
+} from '@neosync/sdk';
+import {
+  deleteJobDestinationConnection,
+  updateJobDestinationConnection,
+} from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import {
-  deleteJobConnection,
   getDefaultDestinationFormValues,
-  setJobConnection,
+  toJobDestinationOptions,
 } from '../../../util';
 
 interface Props {
@@ -51,7 +58,12 @@ export default function DestinationConnectionCard({
   jobSourceId,
 }: Props): ReactElement {
   const { toast } = useToast();
-  const { account } = useAccount();
+  const { mutateAsync: setJobDestConnection } = useMutation(
+    updateJobDestinationConnection
+  );
+  const { mutateAsync: removeJobDestConnection } = useMutation(
+    deleteJobDestinationConnection
+  );
 
   const form = useForm({
     resolver: yupResolver<DestinationFormValues>(DestinationFormValues),
@@ -61,13 +73,14 @@ export default function DestinationConnectionCard({
   async function onSubmit(values: DestinationFormValues) {
     try {
       const connection = connections.find((c) => c.id === values.connectionId);
-      await setJobConnection(
-        account?.id ?? '',
+      await setJobDestConnection({
         jobId,
-        values,
-        destination.id,
-        connection
-      );
+        connectionId: values.connectionId,
+        destinationId: destination.id,
+        options: new JobDestinationOptions(
+          toJobDestinationOptions(values, connection)
+        ),
+      });
       mutate();
       toast({
         title: 'Successfully updated job destination!',
@@ -85,7 +98,9 @@ export default function DestinationConnectionCard({
 
   async function onDelete() {
     try {
-      await deleteJobConnection(account?.id ?? '', jobId, destination.id);
+      await removeJobDestConnection({
+        destinationId: destination.id,
+      });
       mutate();
       toast({
         title: 'Successfully deleted job destination!',

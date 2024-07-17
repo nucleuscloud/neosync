@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { Transformer } from '@/shared/transformers';
 import {
@@ -36,6 +35,7 @@ import {
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  GetConnectionSchemaResponse,
   JobMappingTransformer,
   Passthrough,
   SystemTransformer,
@@ -57,7 +57,7 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 interface Props {
   data: JobMappingFormValues[];
-  schema: ConnectionSchemaMap;
+  schema: Record<string, GetConnectionSchemaResponse>;
   isSchemaDataReloading: boolean;
   constraintHandler: SchemaConstraintHandler;
   isJobMappingsValidating?: boolean;

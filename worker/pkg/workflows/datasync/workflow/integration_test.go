@@ -44,8 +44,9 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	pgcontainer, err := testpg.RunContainer(s.ctx,
-		testcontainers.WithImage("postgres:15"),
+	pgcontainer, err := testpg.Run(
+		s.ctx,
+		"postgres:15",
 		postgres.WithDatabase("postgres"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
@@ -101,8 +102,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.querier = pg_queries.New()
 
 	// redis
-	redisContainer, err := redis.RunContainer(s.ctx,
-		testcontainers.WithImage("docker.io/redis:7"),
+	redisContainer, err := redis.Run(
+		s.ctx,
+		"docker.io/redis:7",
 		redis.WithSnapshotting(10, 1),
 		redis.WithLogLevel(redis.LogLevelVerbose),
 	)

@@ -3,7 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -19,27 +19,36 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
   GcpCloudStorageFormValues,
 } from '@/yup-validations/connections';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
+import {
+  createConnection,
+  getAccountOnboardingConfig,
+  getConnection,
+  setAccountOnboardingConfig,
+} from '@neosync/sdk/connectquery';
+import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import { mutate } from 'swr';
-import { createGcpCloudStorageConnection } from '../../../connections/util';
+import { buildConnectionConfigGcpCloudStorage } from '../../../connections/util';
 
 export default function GcpCloudStorageForm(): ReactElement {
   const searchParams = useSearchParams();
@@ -48,8 +57,6 @@ export default function GcpCloudStorageForm(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>();
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
-  const { data: onboardingData, mutate: mutateOnboardingData } =
-    useGetAccountOnboardingConfig(account?.id ?? '');
   const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
     mode: 'onChange',
@@ -66,6 +73,19 @@ export default function GcpCloudStorageForm(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const posthog = usePostHog();
   const { toast } = useToast();
+  const { mutateAsync: createGcpCloudStorageConnection } =
+    useMutation(createConnection);
+  const { mutateAsync: getGcpCloudStorageConnection } =
+    useMutation(getConnection);
+  const { data: onboardingData } = useQuery(
+    getAccountOnboardingConfig,
+    { accountId: account?.id ?? '' },
+    { enabled: !!account?.id }
+  );
+  const queryclient = useQueryClient();
+  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
+    setAccountOnboardingConfig
+  );
 
   async function onSubmit(values: GcpCloudStorageFormValues) {
     if (!account || isSubmitting) {
@@ -73,10 +93,11 @@ export default function GcpCloudStorageForm(): ReactElement {
     }
     setIsSubmitting(true);
     try {
-      const newConnection = await createGcpCloudStorageConnection(
-        values,
-        account.id
-      );
+      const newConnection = await createGcpCloudStorageConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigGcpCloudStorage(values),
+      });
       posthog.capture('New Connection Created', { type: 'gcp-cloud-storage' });
       toast({
         title: 'Successfully created connection!',
@@ -85,15 +106,22 @@ export default function GcpCloudStorageForm(): ReactElement {
 
       // updates the onboarding data
       try {
-        const resp = await setOnboardingConfig(account.id, {
-          hasCreatedSourceConnection:
-            onboardingData?.config?.hasCreatedSourceConnection ?? false, // gcp cloud storage is only a destination
-          hasCreatedDestinationConnection:
-            onboardingData?.config?.hasCreatedDestinationConnection ?? true,
-          hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? false,
-          hasInvitedMembers: onboardingData?.config?.hasInvitedMembers ?? false,
+        const resp = await setOnboardingConfigAsync({
+          accountId: account.id,
+          config: buildAccountOnboardingConfig({
+            hasCreatedSourceConnection:
+              onboardingData?.config?.hasCreatedSourceConnection ?? false, // gcp cloud storage is only a destination
+            hasCreatedDestinationConnection:
+              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? false,
+            hasInvitedMembers:
+              onboardingData?.config?.hasInvitedMembers ?? false,
+          }),
         });
-        mutateOnboardingData(
+        queryclient.setQueryData(
+          createConnectQueryKey(getAccountOnboardingConfig, {
+            accountId: account.id,
+          }),
           new GetAccountOnboardingConfigResponse({
             config: resp.config,
           })
@@ -109,8 +137,10 @@ export default function GcpCloudStorageForm(): ReactElement {
       if (returnTo) {
         router.push(returnTo);
       } else if (newConnection.connection?.id) {
-        mutate(
-          `$/{account?.name}/connections/${newConnection.connection.id}`,
+        queryclient.setQueryData(
+          createConnectQueryKey(getConnection, {
+            id: newConnection.connection.id,
+          }),
           new GetConnectionResponse({
             connection: newConnection.connection,
           })
@@ -139,7 +169,9 @@ export default function GcpCloudStorageForm(): ReactElement {
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getGcpCloudStorageConnection({
+          id: sourceConnId,
+        });
         if (
           connData.connection?.connectionConfig?.config.case !==
           'gcpCloudstorageConfig'

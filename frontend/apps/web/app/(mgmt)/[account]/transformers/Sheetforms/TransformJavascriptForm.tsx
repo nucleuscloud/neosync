@@ -12,17 +12,16 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Editor } from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
+import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  IsUserJavascriptCodeValid,
-  ValidCode,
-} from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
+import { ValidCode } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformJavascript> {}
@@ -30,19 +29,22 @@ interface Props extends TransformerFormProps<TransformJavascript> {}
 export default function TransformJavascriptForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
 
-  const account = useAccount();
+  const { account } = useAccount();
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformJavascriptConfig),
     defaultValues: {
       code: existingConfig?.code ?? '',
     },
-    context: { accountId: account.account?.id },
+    context: { accountId: account?.id },
   });
 
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [codeStatus, setCodeStatus] = useState<ValidCode>('null');
   const { resolvedTheme } = useTheme();
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -51,10 +53,10 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     setIsValidatingCode(true);
 
     try {
-      const res = await IsUserJavascriptCodeValid(
-        form.getValues('code') ?? '',
-        account.account?.id ?? ''
-      );
+      const res = await validateUserJsCodeAsync({
+        accountId: account.id,
+        code: form.getValues('code') ?? '',
+      });
       if (res.valid === true) {
         setCodeStatus('valid');
       } else {

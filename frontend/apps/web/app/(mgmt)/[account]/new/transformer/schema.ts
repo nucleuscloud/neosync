@@ -420,6 +420,7 @@ const JavascriptConfig = Yup.object().shape({
           });
         }
         try {
+          // todo: pass in via form context
           const res = await IsUserJavascriptCodeValid(value, accountId);
           if (res.valid === true) {
             return true;
@@ -601,6 +602,7 @@ export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
 export type UpdateUserDefinedTransformer = Yup.InferType<
   typeof UPDATE_USER_DEFINED_TRANSFORMER
 >;
+
 async function isTransformerNameAvailable(
   name: string,
   accountId: string

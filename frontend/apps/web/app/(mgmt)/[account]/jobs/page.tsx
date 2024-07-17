@@ -5,9 +5,9 @@ import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
-import { useGetJobStatuses } from '@/libs/hooks/useGetJobStatuses';
-import { useGetJobs } from '@/libs/hooks/useGetJobs';
+import { useQuery } from '@connectrpc/connect-query';
 import { JobStatus } from '@neosync/sdk';
+import { getJobs, getJobStatuses } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { usePostHog } from 'posthog-js/react';
@@ -33,8 +33,16 @@ interface JobTableProps {}
 function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
-  const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
-  const { data: statusData } = useGetJobStatuses(account?.id ?? '');
+  const {
+    isLoading,
+    data,
+    refetch: mutate,
+  } = useQuery(getJobs, { accountId: account?.id }, { enabled: !!account?.id });
+  const { data: statusData } = useQuery(
+    getJobStatuses,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
   const columns = useMemo(
     () =>
       getColumns({

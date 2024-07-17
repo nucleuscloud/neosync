@@ -31,14 +31,18 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <>
-            <Suspense>
-              <KoalaScriptProvider />
-            </Suspense>
-            <Suspense>
-              <PostHogPageview />
-            </Suspense>
             <PHProvider>
-              <BaseLayout>{children}</BaseLayout>
+              <BaseLayout>
+                <>
+                  <Suspense>
+                    <KoalaScriptProvider />
+                  </Suspense>
+                  <Suspense>
+                    <PostHogPageview />
+                  </Suspense>
+                  {children}
+                </>
+              </BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>

@@ -3810,6 +3810,102 @@
           ]
         },
         {
+          "name": "GetConnectionSchemaMapRequest",
+          "longName": "GetConnectionSchemaMapRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionSchemaMapRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_config",
+              "description": "",
+              "label": "",
+              "type": "ConnectionSchemaConfig",
+              "longType": "ConnectionSchemaConfig",
+              "fullType": "mgmt.v1alpha1.ConnectionSchemaConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionSchemaMapResponse",
+          "longName": "GetConnectionSchemaMapResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionSchemaMapResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema_map",
+              "description": "Returns the database columns separated by the fully qualified \u003cschema\u003e.\u003ctable\u003e",
+              "label": "repeated",
+              "type": "SchemaMapEntry",
+              "longType": "GetConnectionSchemaMapResponse.SchemaMapEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionSchemaMapResponse.SchemaMapEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SchemaMapEntry",
+          "longName": "GetConnectionSchemaMapResponse.SchemaMapEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionSchemaMapResponse.SchemaMapEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "GetConnectionSchemaResponse",
+              "longType": "GetConnectionSchemaResponse",
+              "fullType": "mgmt.v1alpha1.GetConnectionSchemaResponse",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionSchemaRequest",
           "longName": "GetConnectionSchemaRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionSchemaRequest",
@@ -4458,6 +4554,18 @@
               "responseType": "GetConnectionSchemaResponse",
               "responseLongType": "GetConnectionSchemaResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionSchemaMap",
+              "description": "Returns the schema in map format. The keys are the full qualified table in the format \u003cschema\u003e.\u003ctable\u003e",
+              "requestType": "GetConnectionSchemaMapRequest",
+              "requestLongType": "GetConnectionSchemaMapRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionSchemaMapRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionSchemaMapResponse",
+              "responseLongType": "GetConnectionSchemaMapResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaMapResponse",
               "responseStreaming": false
             },
             {

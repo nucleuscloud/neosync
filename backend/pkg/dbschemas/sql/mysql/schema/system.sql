@@ -30,6 +30,7 @@ create table information_schema.key_column_usage (
 );
 
 create table information_schema.referential_constraints (
+  constraint_schema text not null,
   constraint_name text not null,
   update_rule text not null,
   delete_rule text not null

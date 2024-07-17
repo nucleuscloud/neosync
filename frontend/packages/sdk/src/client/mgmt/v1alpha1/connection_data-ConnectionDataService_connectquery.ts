@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodKind } from "@bufbuild/protobuf";
-import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse, GetTableRowCountRequest, GetTableRowCountResponse } from "./connection_data_pb.js";
+import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaMapRequest, GetConnectionSchemaMapResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse, GetTableRowCountRequest, GetTableRowCountResponse } from "./connection_data_pb.js";
 
 /**
  * Returns the schema for a specific connection. Used mostly for SQL-based connections
@@ -17,6 +17,22 @@ export const getConnectionSchema = {
   kind: MethodKind.Unary,
   I: GetConnectionSchemaRequest,
   O: GetConnectionSchemaResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.ConnectionDataService"
+  }
+} as const;
+
+/**
+ * Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+ *
+ * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap
+ */
+export const getConnectionSchemaMap = {
+  localName: "getConnectionSchemaMap",
+  name: "GetConnectionSchemaMap",
+  kind: MethodKind.Unary,
+  I: GetConnectionSchemaMapRequest,
+  O: GetConnectionSchemaMapResponse,
   service: {
     typeName: "mgmt.v1alpha1.ConnectionDataService"
   }

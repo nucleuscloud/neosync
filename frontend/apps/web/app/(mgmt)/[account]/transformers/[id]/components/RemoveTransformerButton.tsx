@@ -4,6 +4,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
+import { deleteUserDefinedTransformer } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -17,10 +19,11 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   const router = useRouter();
   const { toast } = useToast();
   const { account } = useAccount();
+  const { mutateAsync } = useMutation(deleteUserDefinedTransformer);
 
   async function deleteTransformer(): Promise<void> {
     try {
-      await removeTransformer(account?.id ?? '', transformerID);
+      await mutateAsync({ transformerId: transformerID });
       toast({
         title: 'Successfully removed transformer!',
         variant: 'success',
@@ -47,21 +50,4 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
       onConfirm={async () => deleteTransformer()}
     />
   );
-}
-
-async function removeTransformer(
-  accountId: string,
-  transformerId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined?transformerId=${transformerId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

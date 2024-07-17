@@ -15,27 +15,20 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  buildGetConnectionRouteKey,
-  getConnection,
-} from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import { OpenAiFormValues } from '@/yup-validations/connections';
+import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
-  GetConnectionResponse,
-  OpenAiConnectionConfig,
-} from '@neosync/sdk';
+import { GetConnectionResponse } from '@neosync/sdk';
+import { createConnection, getConnection } from '@neosync/sdk/connectquery';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
+import { buildConnectionConfigOpenAi } from '../../../connections/util';
 
 interface Props {}
 
@@ -48,6 +41,9 @@ export default function OpenAiForm(props: Props): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const posthog = usePostHog();
+  const { mutateAsync: createOpenAiConnection } = useMutation(createConnection);
+  const queryclient = useQueryClient();
+  const { mutateAsync: getOpenAiConnection } = useMutation(getConnection);
 
   const form = useForm<OpenAiFormValues>({
     resolver: yupResolver(OpenAiFormValues),
@@ -68,21 +64,22 @@ export default function OpenAiForm(props: Props): ReactElement {
     }
 
     try {
-      const connectionResp = await createOpenAiConnection(account.id, values);
+      const connectionResp = await createOpenAiConnection({
+        name: values.connectionName,
+        accountId: account.id,
+        connectionConfig: buildConnectionConfigOpenAi(values),
+      });
       toast({
         title: 'Successfully created OpenAI Connection!',
         variant: 'success',
       });
-
-      mutate(
-        buildGetConnectionRouteKey(
-          account.id,
-          connectionResp.connection?.id ?? ''
-        ),
-        new GetConnectionResponse({
-          connection: connectionResp.connection,
-        })
+      queryclient.setQueryData(
+        createConnectQueryKey(getConnection, {
+          id: connectionResp.connection?.id,
+        }),
+        new GetConnectionResponse({ connection: connectionResp.connection })
       );
+
       posthog.capture('New Connection Created', { type: 'openai' });
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
@@ -112,7 +109,9 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       }
       setIsLoading(true);
       try {
-        const connData = await getConnection(account.id, sourceConnId);
+        const connData = await getOpenAiConnection({
+          id: sourceConnId,
+        });
 
         if (
           connData &&
@@ -228,36 +227,4 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       </form>
     </Form>
   );
-}
-
-async function createOpenAiConnection(
-  accountId: string,
-  values: OpenAiFormValues
-): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateConnectionRequest({
-        accountId,
-        name: values.connectionName,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'openaiConfig',
-            value: new OpenAiConnectionConfig({
-              apiUrl: values.sdk.url,
-              apiKey: values.sdk.apiKey,
-            }),
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
 }

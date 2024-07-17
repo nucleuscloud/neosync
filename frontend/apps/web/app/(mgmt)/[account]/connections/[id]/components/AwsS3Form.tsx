@@ -19,16 +19,16 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  AwsS3ConnectionConfig,
-  AwsS3Credentials,
-  ConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
+import { updateConnection } from '@neosync/sdk/connectquery';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
+import { buildConnectionConfigAwsS3 } from '../../util';
 
 interface Props {
   connectionId: string;
@@ -52,14 +52,16 @@ export default function AwsS3Form(props: Props) {
       accountId: account?.id ?? '',
     },
   });
+  const { mutateAsync } = useMutation(updateConnection);
 
   async function onSubmit(values: AWSFormValues) {
     try {
-      const connectionResp = await updateAwsS3Connection(
-        values.s3,
-        values.connectionName,
-        connectionId,
-        account?.id ?? ''
+      const connectionResp = await mutateAsync(
+        new UpdateConnectionRequest({
+          id: connectionId,
+          name: values.connectionName,
+          connectionConfig: buildConnectionConfigAwsS3(values),
+        })
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -292,52 +294,4 @@ export default function AwsS3Form(props: Props) {
       </form>
     </Form>
   );
-}
-
-async function updateAwsS3Connection(
-  s3: AWSFormValues['s3'],
-  connectionName: string,
-  connectionId: string,
-  accountId: string
-): Promise<UpdateConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateConnectionRequest({
-          id: connectionId,
-          name: connectionName,
-          connectionConfig: new ConnectionConfig({
-            config: {
-              case: 'awsS3Config',
-              value: new AwsS3ConnectionConfig({
-                bucket: s3.bucket,
-                pathPrefix: s3.pathPrefix,
-                region: s3.region,
-                endpoint: s3.endpoint,
-                credentials: new AwsS3Credentials({
-                  profile: s3.credentials?.profile,
-                  accessKeyId: s3.credentials?.accessKeyId,
-                  secretAccessKey: s3.credentials?.secretAccessKey,
-                  fromEc2Role: s3.credentials?.fromEc2Role,
-                  roleArn: s3.credentials?.roleArn,
-                  roleExternalId: s3.credentials?.roleExternalId,
-                  sessionToken: s3.credentials?.sessionToken,
-                }),
-              }),
-            },
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
 }

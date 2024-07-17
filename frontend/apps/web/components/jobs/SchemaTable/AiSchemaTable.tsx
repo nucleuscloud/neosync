@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { getSchemaColumns } from './AiSchemaColumns';
@@ -26,7 +26,7 @@ export interface AiSchemaTableRecord {
 
 interface Props {
   data: AiSchemaTableRecord[];
-  schema: ConnectionSchemaMap;
+  schema: Record<string, GetConnectionSchemaResponse>;
   isSchemaDataReloading: boolean;
   constraintHandler: SchemaConstraintHandler;
 
@@ -70,7 +70,10 @@ export function AiSchemaTable(props: Props): ReactElement {
           </CardHeader>
           <CardContent>
             <DualListBox
-              options={getDualListBoxOptions(schema, data)}
+              options={getDualListBoxOptions(
+                new Set(Object.keys(schema)),
+                data
+              )}
               selected={selectedTables}
               onChange={onSelectedTableToggle}
               mode={'single'}
@@ -84,10 +87,9 @@ export function AiSchemaTable(props: Props): ReactElement {
 }
 
 function getDualListBoxOptions(
-  schema: ConnectionSchemaMap,
+  tables: Set<string>,
   formValues: { schema: string; table: string; column: string }[]
 ): Option[] {
-  const tables = new Set(Object.keys(schema));
   formValues.forEach((jm) => tables.add(`${jm.schema}.${jm.table}`));
   return Array.from(tables).map((table): Option => ({ value: table }));
 }

@@ -5,8 +5,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useQuery } from '@connectrpc/connect-query';
+import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -20,9 +20,16 @@ import DestinationConnectionCard from './components/DestinationConnectionCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const { data, isLoading, mutate } = useGetJob(account?.id ?? '', id);
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+  const {
+    data,
+    isLoading,
+    refetch: mutate,
+  } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
+    getConnections,
+    { accountId: account?.id },
+    { enabled: !!account?.id }
+  );
 
   const connections = connectionsData?.connections ?? [];
   const destinationIds = new Set(

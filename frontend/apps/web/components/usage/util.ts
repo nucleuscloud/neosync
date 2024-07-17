@@ -1,6 +1,8 @@
 import { Date as NeosyncDate } from '@neosync/sdk';
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
 
+export type MetricIdentifierType = 'accountId' | 'jobId' | 'runId';
+
 export function shortNumberFormatter(
   formatter: Intl.NumberFormat,
   value: number

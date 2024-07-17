@@ -1,23 +1,24 @@
 import {
+  AWSFormValues,
   ClientTlsFormValues,
   GcpCloudStorageFormValues,
   MongoDbFormValues,
   MysqlFormValues,
+  OpenAiFormValues,
   PostgresFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
 import {
-  CheckConnectionConfigRequest,
-  CheckConnectionConfigResponse,
+  AwsS3ConnectionConfig,
+  AwsS3Credentials,
   ClientTlsConfig,
   ConnectionConfig,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
   GcpCloudStorageConnectionConfig,
   IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
+  OpenAiConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
   SSHAuthentication,
@@ -25,8 +26,6 @@ import {
   SSHPrivateKey,
   SSHTunnel,
   SqlConnectionOptions,
-  UpdateConnectionRequest,
-  UpdateConnectionResponse,
 } from '@neosync/sdk';
 
 export type ConnectionType =
@@ -86,99 +85,76 @@ export async function isConnectionNameAvailable(
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
-export async function createGcpCloudStorageConnection(
-  values: GcpCloudStorageFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'gcpCloudstorageConfig',
-          value: buildGcpCloudStorageConnectionConfig(values),
-        },
+export function buildConnectionConfigAwsS3(
+  values: AWSFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'awsS3Config',
+      value: new AwsS3ConnectionConfig({
+        bucket: values.s3.bucket,
+        pathPrefix: values.s3.pathPrefix,
+        region: values.s3.region,
+        endpoint: values.s3.endpoint,
+        credentials: new AwsS3Credentials({
+          profile: values.s3.credentials?.profile,
+          accessKeyId: values.s3.credentials?.accessKeyId,
+          secretAccessKey: values.s3.credentials?.secretAccessKey,
+          fromEc2Role: values.s3.credentials?.fromEc2Role,
+          roleArn: values.s3.credentials?.roleArn,
+          roleExternalId: values.s3.credentials?.roleExternalId,
+          sessionToken: values.s3.credentials?.sessionToken,
+        }),
       }),
-    }),
-    accountId
-  );
+    },
+  });
 }
 
-export async function updateGcpCloudStorageConnection(
-  values: GcpCloudStorageFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'gcpCloudstorageConfig',
-          value: buildGcpCloudStorageConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigGcpCloudStorage(
+  values: GcpCloudStorageFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'gcpCloudstorageConfig',
+      value: buildGcpCloudStorageConnectionConfig(values),
+    },
+  });
 }
 
-export async function createMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigPostgres(
+  values: PostgresFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'pgConfig',
+      value: buildPostgresConnectionConfig(values),
+    },
+  });
 }
 
-export async function updateMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
+export function buildConnectionConfigOpenAi(
+  values: OpenAiFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'openaiConfig',
+      value: new OpenAiConnectionConfig({
+        apiUrl: values.sdk.url,
+        apiKey: values.sdk.apiKey,
       }),
-    }),
-    accountId
-  );
+    },
+  });
 }
 
-export async function checkMysqlConnection(
-  values: MysqlFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mysqlConfig',
-          value: buildMysqlConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigMysql(
+  values: MysqlFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'mysqlConfig',
+      value: buildMysqlConnectionConfig(values),
+    },
+  });
 }
 
 function buildGcpCloudStorageConnectionConfig(
@@ -219,62 +195,6 @@ function buildMysqlConnectionConfig(
     };
   }
   return mysqlconfig;
-}
-
-export async function createPostgresConnection(
-  values: PostgresFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updatePostgresConnection(
-  values: PostgresFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function checkPostgresConnection(
-  values: PostgresFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'pgConfig',
-          value: buildPostgresConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
 }
 
 function buildPostgresConnectionConfig(
@@ -361,60 +281,15 @@ function getTunnelConfig(values?: SshTunnelFormValues): SSHTunnel | undefined {
   return tunnel;
 }
 
-export async function createMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  return createConnection(
-    new CreateConnectionRequest({
-      name: values.connectionName,
-      accountId: accountId,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function updateMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateConnectionResponse> {
-  return updateConnection(
-    new UpdateConnectionRequest({
-      id: resourceId,
-      name: values.connectionName,
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
-}
-
-export async function checkMongoConnection(
-  values: MongoDbFormValues,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  return checkConnection(
-    new CheckConnectionConfigRequest({
-      connectionConfig: new ConnectionConfig({
-        config: {
-          case: 'mongoConfig',
-          value: buildMongoConnectionConfig(values),
-        },
-      }),
-    }),
-    accountId
-  );
+export function buildConnectionConfigMongo(
+  values: MongoDbFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'mongoConfig',
+      value: buildMongoConnectionConfig(values),
+    },
+  });
 }
 
 function buildMongoConnectionConfig(
@@ -430,82 +305,4 @@ function buildMongoConnectionConfig(
   });
 
   return mongoconfig;
-}
-
-async function checkConnection(
-  input: CheckConnectionConfigRequest,
-  accountId: string
-): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(buildCheckConnectionKey(accountId), {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
-}
-
-export function buildCheckConnectionKey(accountId: string): string {
-  return `/api/accounts/${accountId}/connections/check`;
-}
-
-async function createConnection(
-  input: CreateConnectionRequest,
-  accountId: string
-): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/connections`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateConnectionResponse.fromJson(await res.json());
-}
-
-async function updateConnection(
-  input: UpdateConnectionRequest,
-  accountId: string
-): Promise<UpdateConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${input.id}`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateConnectionResponse.fromJson(await res.json());
-}
-
-export async function removeConnection(
-  accountId: string,
-  connectionId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
 }

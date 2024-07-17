@@ -8,6 +8,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { Struct, Value } from '@bufbuild/protobuf';
 import {
   ActivityOptions,
   AiGenerateSourceOptions,
@@ -15,10 +16,7 @@ import {
   AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
   Connection,
-  CreateJobDestinationConnectionsRequest,
-  CreateJobDestinationConnectionsResponse,
   CreateJobRequest,
-  CreateJobResponse,
   DatabaseTable,
   GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
@@ -43,8 +41,6 @@ import {
   MysqlSourceSchemaSubset,
   MysqlSourceTableOption,
   MysqlTruncateTableConfig,
-  PauseJobRequest,
-  PauseJobResponse,
   PostgresDestinationConnectionOptions,
   PostgresOnConflictConfig,
   PostgresSourceConnectionOptions,
@@ -53,22 +49,10 @@ import {
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
   RetryPolicy,
-  SetJobSourceSqlConnectionSubsetsRequest,
-  SetJobSourceSqlConnectionSubsetsResponse,
-  SetJobSyncOptionsRequest,
-  SetJobWorkflowOptionsRequest,
-  SetJobWorkflowOptionsResponse,
-  UpdateJobDestinationConnectionRequest,
-  UpdateJobDestinationConnectionResponse,
-  UpdateJobScheduleRequest,
-  UpdateJobScheduleResponse,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
   WorkflowOptions,
 } from '@neosync/sdk';
-import { SampleRecord } from '../new/job/aigenerate/single/schema/types';
 import {
   ActivityOptionsSchema,
   ConnectFormValues,
@@ -80,6 +64,7 @@ import {
   SingleTableAiSchemaFormValues,
   SingleTableConnectFormValues,
   SingleTableEditAiSourceFormValues,
+  SingleTableEditSourceFormValues,
   SingleTableSchemaFormValues,
   SubsetFormValues,
   WorkflowSettingsSchema,
@@ -87,148 +72,100 @@ import {
 
 type GetConnectionById = (id: string) => Connection | undefined;
 
-export async function createNewSingleTableAiGenerateJob(
+export function getCreateNewSingleTableAiGenerateJobRequest(
   values: CreateSingleTableAiGenerateJobFormValues,
   accountId: string,
   getConnectionById: GetConnectionById
-): Promise<CreateJobResponse> {
-  return createJob(
-    new CreateJobRequest({
-      accountId,
-      jobName: values.define.jobName,
-      cronSchedule: values.define.cronSchedule,
-      initiateJobRun: values.define.initiateJobRun,
-      mappings: [],
-      source: toSingleTableAiGenerateJobSource(values),
-      destinations: toSingleTableGenerateJobDestinations(
-        values,
-        getConnectionById
-      ),
-      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
-      syncOptions: toSyncOptions(values),
+): CreateJobRequest {
+  return new CreateJobRequest({
+    accountId,
+    jobName: values.define.jobName,
+    cronSchedule: values.define.cronSchedule,
+    initiateJobRun: values.define.initiateJobRun,
+    mappings: [],
+    source: toSingleTableAiGenerateJobSource(values),
+    destinations: toSingleTableGenerateJobDestinations(
+      values,
+      getConnectionById
+    ),
+    workflowOptions: toWorkflowOptions(values.define.workflowSettings),
+    syncOptions: toSyncOptions(values),
+  });
+}
+
+export function getSampleAiGeneratedRecordsRequest(
+  values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>
+): GetAiGeneratedDataRequest {
+  return new GetAiGeneratedDataRequest({
+    aiConnectionId: values.connect.sourceId,
+    count: BigInt(10),
+    modelName: values.schema.model,
+    userPrompt: values.schema.userPrompt,
+    dataConnectionId: values.connect.fkSourceConnectionId,
+    table: new DatabaseTable({
+      schema: values.schema.schema,
+      table: values.schema.table,
     }),
-    accountId
-  );
+  });
 }
-
-export async function updateSingleTableAiGenerateJobSource(
-  values: SingleTableEditAiSourceFormValues,
-  accountId: string,
-  resourceId: string
-): Promise<UpdateJobSourceConnectionResponse> {
-  return updateJobSourceConnection(
-    new UpdateJobSourceConnectionRequest({
-      id: resourceId,
-      mappings: [],
-      source: toSingleTableEditAiGenerateJobSource(values),
+export function getSampleEditAiGeneratedRecordsRequest(
+  values: SingleTableEditAiSourceFormValues
+): GetAiGeneratedDataRequest {
+  return new GetAiGeneratedDataRequest({
+    aiConnectionId: values.source.sourceId,
+    count: BigInt(10),
+    modelName: values.schema.model,
+    userPrompt: values.schema.userPrompt,
+    dataConnectionId: values.source.fkSourceConnectionId,
+    table: new DatabaseTable({
+      schema: values.schema.schema,
+      table: values.schema.table,
     }),
-    accountId
-  );
+  });
 }
 
-async function updateJobSourceConnection(
-  input: UpdateJobSourceConnectionRequest,
-  accountId: string
-): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${input.id}/source-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
-}
-
-export async function sampleAiGeneratedRecords(
-  values: Pick<CreateSingleTableAiGenerateJobFormValues, 'connect' | 'schema'>,
-  accountId: string
-): Promise<SampleRecord[]> {
-  return sampleAiRecords(
-    new GetAiGeneratedDataRequest({
-      aiConnectionId: values.connect.sourceId,
-      count: BigInt(10),
-      modelName: values.schema.model,
-      userPrompt: values.schema.userPrompt,
-      dataConnectionId: values.connect.fkSourceConnectionId,
-      table: new DatabaseTable({
-        schema: values.schema.schema,
-        table: values.schema.table,
-      }),
-    }),
-    accountId
-  );
-}
-export async function sampleEditAiGeneratedRecords(
-  values: SingleTableEditAiSourceFormValues,
-  accountId: string
-): Promise<SampleRecord[]> {
-  return sampleAiRecords(
-    new GetAiGeneratedDataRequest({
-      aiConnectionId: values.source.sourceId,
-      count: BigInt(10),
-      modelName: values.schema.model,
-      userPrompt: values.schema.userPrompt,
-      dataConnectionId: values.source.fkSourceConnectionId,
-      table: new DatabaseTable({
-        schema: values.schema.schema,
-        table: values.schema.table,
-      }),
-    }),
-    accountId
-  );
-}
-
-async function sampleAiRecords(
-  input: GetAiGeneratedDataRequest,
-  accountId: string
-): Promise<SampleRecord[]> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${input.aiConnectionId}/generate`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return (await res.json())?.records ?? [];
-}
-
-export async function createNewSingleTableGenerateJob(
+export function getCreateNewSingleTableGenerateJobRequest(
   values: CreateSingleTableGenerateJobFormValues,
   accountId: string,
   getConnectionById: GetConnectionById
-): Promise<CreateJobResponse> {
-  return createJob(
-    new CreateJobRequest({
-      accountId,
-      jobName: values.define.jobName,
-      cronSchedule: values.define.cronSchedule,
-      initiateJobRun: values.define.initiateJobRun,
-      mappings: toSingleGenerateJobMappings(values),
-      source: toSingleTableGenerateJobSource(values),
-      destinations: toSingleTableGenerateJobDestinations(
-        values,
-        getConnectionById
-      ),
-      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
-      syncOptions: toSyncOptions(values),
-    }),
-    accountId
+): CreateJobRequest {
+  return new CreateJobRequest({
+    accountId,
+    jobName: values.define.jobName,
+    cronSchedule: values.define.cronSchedule,
+    initiateJobRun: values.define.initiateJobRun,
+    mappings: toSingleGenerateJobMappings(values),
+    source: toSingleTableGenerateJobSource(values),
+    destinations: toSingleTableGenerateJobDestinations(
+      values,
+      getConnectionById
+    ),
+    workflowOptions: toWorkflowOptions(values.define.workflowSettings),
+    syncOptions: toSyncOptions(values),
+  });
+}
+
+export function fromStructToRecord(struct: Struct): Record<string, unknown> {
+  return Object.entries(struct.fields).reduce(
+    (output, [key, value]) => {
+      output[key] = handleValue(value);
+      return output;
+    },
+    {} as Record<string, unknown>
   );
+}
+
+function handleValue(value: Value): unknown {
+  switch (value.kind.case) {
+    case 'structValue': {
+      return fromStructToRecord(value.kind.value);
+    }
+    case 'listValue': {
+      return value.kind.value.values.map((val) => handleValue(val));
+    }
+    default:
+      return value.kind.value;
+  }
 }
 
 function toSingleTableAiGenerateJobSource(
@@ -260,7 +197,7 @@ function toSingleTableAiGenerateJobSource(
     }),
   });
 }
-function toSingleTableEditAiGenerateJobSource(
+export function toSingleTableEditAiGenerateJobSource(
   values: SingleTableEditAiSourceFormValues
 ): JobSource {
   return new JobSource({
@@ -324,29 +261,57 @@ function toSingleTableGenerateJobSource(
   });
 }
 
-export async function createNewSyncJob(
+export function toSingleTableEditGenerateJobSource(
+  values: SingleTableEditSourceFormValues
+): JobSource {
+  const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
+  const table = values.mappings.length > 0 ? values.mappings[0].table : null;
+  return new JobSource({
+    options: new JobSourceOptions({
+      config: {
+        case: 'generate',
+        value: new GenerateSourceOptions({
+          fkSourceConnectionId: values.source.fkSourceConnectionId,
+          schemas:
+            schema && table
+              ? [
+                  new GenerateSourceSchemaOption({
+                    schema: schema,
+                    tables: [
+                      new GenerateSourceTableOption({
+                        table: table,
+                        rowCount: BigInt(values.numRows),
+                      }),
+                    ],
+                  }),
+                ]
+              : [],
+        }),
+      },
+    }),
+  });
+}
+
+export function getCreateNewSyncJobRequest(
   values: CreateJobFormValues,
   accountId: string,
   getConnectionById: GetConnectionById
-): Promise<CreateJobResponse> {
-  return createJob(
-    new CreateJobRequest({
-      accountId,
-      jobName: values.define.jobName,
-      cronSchedule: values.define.cronSchedule,
-      initiateJobRun: values.define.initiateJobRun,
-      mappings: toSyncJobMappings(values),
-      virtualForeignKeys: toSyncVirtualForeignKeys(values),
-      source: toJobSource(values, getConnectionById),
-      destinations: toSyncJobDestinations(values, getConnectionById),
-      workflowOptions: toWorkflowOptions(values.define.workflowSettings),
-      syncOptions: toSyncOptions(values),
-    }),
-    accountId
-  );
+): CreateJobRequest {
+  return new CreateJobRequest({
+    accountId,
+    jobName: values.define.jobName,
+    cronSchedule: values.define.cronSchedule,
+    initiateJobRun: values.define.initiateJobRun,
+    mappings: toSyncJobMappings(values),
+    virtualForeignKeys: toSyncVirtualForeignKeys(values),
+    source: toJobSource(values, getConnectionById),
+    destinations: toSyncJobDestinations(values, getConnectionById),
+    workflowOptions: toWorkflowOptions(values.define.workflowSettings),
+    syncOptions: toSyncOptions(values),
+  });
 }
 
-function toWorkflowOptions(
+export function toWorkflowOptions(
   values?: WorkflowSettingsSchema
 ): WorkflowOptions | undefined {
   if (values?.runTimeout) {
@@ -406,7 +371,7 @@ function toSyncJobDestinations(
   });
 }
 
-function toJobDestinationOptions(
+export function toJobDestinationOptions(
   values: DestinationFormValues,
   connection?: Connection
 ): JobDestinationOptions {
@@ -640,38 +605,6 @@ function toMysqlSourceSchemaOptions(
   return Object.values(schemaMap);
 }
 
-async function createJob(
-  input: CreateJobRequest,
-  accountId: string
-): Promise<CreateJobResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobResponse.fromJson(await res.json());
-}
-
-export async function removeJob(
-  accountId: string,
-  jobId: string
-): Promise<void> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
 export async function isJobNameAvailable(
   name: string,
   accountId: string
@@ -692,273 +625,46 @@ export async function isJobNameAvailable(
   return IsJobNameAvailableResponse.fromJson(await res.json());
 }
 
-export async function triggerJobRun(
-  accountId: string,
-  jobId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/create-run`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ jobId }),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-export async function createJobConnections(
-  jobId: string,
-  values: DestinationFormValues[],
-  connections: Connection[],
-  accountId: string
-): Promise<CreateJobDestinationConnectionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connections`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new CreateJobDestinationConnectionsRequest({
-          jobId: jobId,
-          destinations: values.map((d) => {
-            return new JobDestination({
-              connectionId: d.connectionId,
-              options: toJobDestinationOptions(
-                d,
-                connections.find((c) => c.id === d.connectionId)
-              ),
-            });
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobDestinationConnectionsResponse.fromJson(await res.json());
-}
-
-export async function updateJobSyncActivityOptions(
-  accountId: string,
-  jobId: string,
+export function toActivityOptions(
   values: ActivityOptionsSchema
-): Promise<SetJobWorkflowOptionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/syncoptions`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobSyncOptionsRequest({
-          id: jobId,
-          syncOptions: new ActivityOptions({
-            startToCloseTimeout:
-              values.startToCloseTimeout !== undefined &&
-              values.startToCloseTimeout > 0
-                ? convertMinutesToNanoseconds(values.startToCloseTimeout)
-                : undefined,
-            scheduleToCloseTimeout:
-              values.scheduleToCloseTimeout !== undefined &&
-              values.scheduleToCloseTimeout > 0
-                ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
-                : undefined,
-            retryPolicy: new RetryPolicy({
-              maximumAttempts: values.retryPolicy?.maximumAttempts,
-            }),
-          }),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
-}
-
-export async function pauseJob(
-  accountId: string,
-  jobId: string,
-  isPaused: boolean
-): Promise<PauseJobResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/pause`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new PauseJobRequest({
-        id: jobId,
-        pause: isPaused,
-      })
-    ),
+): ActivityOptions {
+  return new ActivityOptions({
+    startToCloseTimeout:
+      values.startToCloseTimeout !== undefined && values.startToCloseTimeout > 0
+        ? convertMinutesToNanoseconds(values.startToCloseTimeout)
+        : undefined,
+    scheduleToCloseTimeout:
+      values.scheduleToCloseTimeout !== undefined &&
+      values.scheduleToCloseTimeout > 0
+        ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
+        : undefined,
+    retryPolicy: new RetryPolicy({
+      maximumAttempts: values.retryPolicy?.maximumAttempts,
+    }),
   });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return PauseJobResponse.fromJson(await res.json());
 }
 
-export async function updateJobSchedule(
-  accountId: string,
-  jobId: string,
-  cronSchedule?: string
-): Promise<UpdateJobScheduleResponse> {
-  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/schedule`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateJobScheduleRequest({
-        id: jobId,
-        cronSchedule: cronSchedule,
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobScheduleResponse.fromJson(await res.json());
-}
-
-export async function updateJobWorkflowOptions(
-  accountId: string,
-  jobId: string,
-  values: WorkflowSettingsSchema
-): Promise<SetJobWorkflowOptionsResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/workflowoptions`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobWorkflowOptionsRequest({
-          id: jobId,
-          worfklowOptions: toWorkflowOptions(values),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobWorkflowOptionsResponse.fromJson(await res.json());
-}
-
-export async function deleteJobConnection(
-  accountId: string,
-  jobId: string,
-  destinationId: string
-): Promise<void> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection/${destinationId}`,
-    {
-      method: 'DELETE',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
-
-export async function setJobConnection(
-  accountId: string,
-  jobId: string,
-  values: DestinationFormValues,
-  destinationId: string,
-  connection?: Connection
-): Promise<UpdateJobDestinationConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new UpdateJobDestinationConnectionRequest({
-          jobId: jobId,
-          connectionId: values.connectionId,
-          destinationId: destinationId,
-          options: new JobDestinationOptions(
-            toJobDestinationOptions(values, connection)
-          ),
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
-}
-
-export async function setJobSubsets(
-  accountId: string,
-  jobId: string,
+export function toJobSourceSqlSubsetSchemas(
   values: SubsetFormValues,
   dbType: string
-): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
-  const schemas =
-    dbType == 'mysql'
-      ? new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'mysqlSubset',
-            value: new MysqlSourceSchemaSubset({
-              mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
-            }),
-          },
-        })
-      : new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'postgresSubset',
-            value: new PostgresSourceSchemaSubset({
-              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
-            }),
-          },
-        });
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
-    {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(
-        new SetJobSourceSqlConnectionSubsetsRequest({
-          id: jobId,
-          subsetByForeignKeyConstraints:
-            values.subsetOptions.subsetByForeignKeyConstraints,
-          schemas,
-        })
-      ),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
+): JobSourceSqlSubetSchemas {
+  return dbType == 'mysql'
+    ? new JobSourceSqlSubetSchemas({
+        schemas: {
+          case: 'mysqlSubset',
+          value: new MysqlSourceSchemaSubset({
+            mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
+          }),
+        },
+      })
+    : new JobSourceSqlSubetSchemas({
+        schemas: {
+          case: 'postgresSubset',
+          value: new PostgresSourceSchemaSubset({
+            postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
+          }),
+        },
+      });
 }
 
 export function setDefaultNewJobFormValues(

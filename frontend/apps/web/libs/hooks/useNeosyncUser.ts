@@ -1,19 +1,16 @@
 'use client';
-import useSWR, { KeyedMutator } from 'swr';
 
-import { JsonValue } from '@bufbuild/protobuf';
 import { SetUserResponse } from '@neosync/sdk';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { fetcher } from '../fetcher';
-import { HookReply } from './types';
-import { useGenericErrorToast } from './useGenericErrorToast';
 import { useGetSystemAppConfig } from './useGetSystemAppConfig';
 
 /**
  * Neosync user data.
  * This hook should be called at least once in the app to ensure that the user record is set.
  */
-export function useNeosyncUser(): HookReply<SetUserResponse> {
+export function useNeosyncUser(): UseQueryResult<SetUserResponse> {
   const { data: systemAppConfigData, isLoading: systemAppConfigLoading } =
     useGetSystemAppConfig();
   const { status } = useSession({
@@ -24,39 +21,16 @@ export function useNeosyncUser(): HookReply<SetUserResponse> {
       console.error('the request is unauthenticated!');
     },
   });
-  const isReady =
-    !systemAppConfigLoading &&
-    isReadyStatus(systemAppConfigData?.isAuthEnabled ?? false, status);
-  const {
-    data,
-    error,
-    mutate,
-    isLoading: isDataLoading,
-    isValidating,
-  } = useSWR<JsonValue, Error>(
-    isReady ? `/api/users/whoami` : null,
-    fetcher,
-    {}
-  );
-  useGenericErrorToast(error);
-
-  const isLoading = !isReady || isDataLoading;
-  if (isLoading) {
-    return {
-      data: undefined,
-      isValidating,
-      error: undefined,
-      isLoading: true,
-      mutate: mutate as KeyedMutator<unknown>,
-    };
-  }
-  return {
-    data: data ? SetUserResponse.fromJson(data) : undefined,
-    isValidating,
-    error: error,
-    isLoading: false,
-    mutate: mutate as unknown as KeyedMutator<SetUserResponse>,
-  };
+  return useQuery({
+    queryKey: ['/api/users/whoami'],
+    queryFn: (ctx) => fetcher(ctx.queryKey.join('/')),
+    enabled() {
+      return (
+        !systemAppConfigLoading &&
+        isReadyStatus(systemAppConfigData?.isAuthEnabled ?? false, status)
+      );
+    },
+  });
 }
 
 function isReadyStatus(isAuthEnabled: boolean, status: string): boolean {

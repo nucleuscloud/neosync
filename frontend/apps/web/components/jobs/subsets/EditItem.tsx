@@ -1,6 +1,5 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
-import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +9,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import { CheckSqlQueryResponse, GetTableRowCountResponse } from '@neosync/sdk';
+import { checkSqlQuery, getTableRowCount } from '@neosync/sdk/connectquery';
 import { editor } from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useRef, useState } from 'react';
@@ -38,7 +39,6 @@ export default function EditItem(props: Props): ReactElement {
     GetTableRowCountResponse | undefined
   >();
   const [calculatingRowCount, setCalculatingRowCount] = useState(false);
-  const { account } = useAccount();
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [rowCountError, setRowCountError] = useState<string>();
@@ -104,16 +104,18 @@ export default function EditItem(props: Props): ReactElement {
     setValidateResp(undefined);
   }, [item]);
 
+  const { mutateAsync: validateSql } = useMutation(checkSqlQuery);
+  const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
+
   async function onValidate(): Promise<void> {
-    const pgSting = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
+    const pgString = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
     const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
 
     try {
-      const resp = await validateSql(
-        account?.id ?? '',
-        connectionId,
-        dbType == 'mysql' ? mysqlString : pgSting
-      );
+      const resp = await validateSql({
+        id: connectionId,
+        query: dbType === 'mysql' ? mysqlString : pgString,
+      });
       setValidateResp(resp);
     } catch (err) {
       setValidateResp(
@@ -129,13 +131,12 @@ export default function EditItem(props: Props): ReactElement {
     try {
       setTableRowCountResp(undefined);
       setCalculatingRowCount(true);
-      const resp = await getTableRowCount(
-        account?.id ?? '',
-        connectionId,
-        item?.schema ?? '',
-        item?.table ?? '',
-        item?.where
-      );
+      const resp = await getRowCountByTable({
+        connectionId: connectionId,
+        schema: item?.schema,
+        table: item?.table,
+        whereClause: item?.where,
+      });
       setTableRowCountResp(resp);
       setRowCountError('');
     } catch (err) {
@@ -316,54 +317,6 @@ export default function EditItem(props: Props): ReactElement {
       />
     </div>
   );
-}
-
-async function validateSql(
-  accountId: string,
-  connectionId: string,
-  query: string
-): Promise<CheckSqlQueryResponse> {
-  const queryParams = new URLSearchParams({
-    query,
-  });
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}/check-query?${queryParams.toString()}`,
-    {
-      method: 'GET',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckSqlQueryResponse.fromJson(await res.json());
-}
-
-async function getTableRowCount(
-  accountId: string,
-  connectionId: string,
-  schema: string,
-  table: string,
-  where?: string
-): Promise<GetTableRowCountResponse> {
-  const queryParams = new URLSearchParams({
-    schema,
-    table,
-  });
-  if (where) {
-    queryParams.set('where', where);
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}/get-table-row-count?${queryParams.toString()}`,
-    {
-      method: 'GET',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return GetTableRowCountResponse.fromJson(await res.json());
 }
 
 function shouldTriggerAutocomplete(text: string): boolean {

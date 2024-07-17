@@ -1,8 +1,7 @@
 import { JsonValue } from '@bufbuild/protobuf';
 import { GetJobRunLogsStreamResponse, LogLevel } from '@neosync/sdk';
-import { getRefreshIntervalFn } from '../utils';
-import { HookReply } from './types';
-import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { fetcher } from '../fetcher';
 
 interface GetJobRunLogsOptions {
   refreshIntervalFn?(data: JsonValue): number;
@@ -13,26 +12,37 @@ export function useGetJobRunLogs(
   accountId: string,
   loglevel: LogLevel,
   opts: GetJobRunLogsOptions = {}
-): HookReply<GetJobRunLogsStreamResponse[]> {
+): UseQueryResult<GetJobRunLogsStreamResponse[]> {
   const { refreshIntervalFn } = opts;
   const query = new URLSearchParams({
     loglevel: loglevel.toString(),
   });
-  return useNucleusAuthenticatedFetch<GetJobRunLogsStreamResponse[], JsonValue>(
-    `/api/accounts/${accountId}/runs/${runId}/logs?${query.toString()}`,
-    !!runId || !!accountId,
-    {
-      refreshInterval: getRefreshIntervalFn(refreshIntervalFn),
+  return useQuery({
+    queryKey: [
+      '/api/accounts',
+      accountId,
+      'runs',
+      runId,
+      'logs',
+      '?',
+      query.toString(),
+    ],
+    queryFn: (ctx) => fetcher(ctx.queryKey.join('/')),
+    refetchInterval(query) {
+      return query.state.data && refreshIntervalFn
+        ? refreshIntervalFn(query.state.data as JsonValue)
+        : 0;
     },
-    (data) => {
+    select(data) {
       const dataArr = Array.isArray(data) ? data : [data];
       return dataArr.map((d) =>
         d instanceof GetJobRunLogsStreamResponse
           ? d
           : GetJobRunLogsStreamResponse.fromJson(d)
       );
-    }
-  );
+    },
+    enabled: !!runId && !!accountId && !!loglevel,
+  });
 }
 
 const TEN_SECONDS = 5 * 1000;

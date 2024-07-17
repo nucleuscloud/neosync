@@ -15,10 +15,12 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import { useMutation } from '@connectrpc/connect-query';
+import { deleteJob } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { getJobCloneUrlFromJob } from '../../[id]/components/JobCloneButton';
-import { removeJob, setDefaultNewJobFormValues } from '../../util';
+import { setDefaultNewJobFormValues } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -32,12 +34,13 @@ export function DataTableRowActions<TData>({
   const job = row.original as Job;
   const router = useRouter();
   const { account } = useAccount();
+  const { mutateAsync: removeJob } = useMutation(deleteJob);
 
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJob(account?.id ?? '', job.id);
+      await removeJob({ id: job.id });
       toast({
         title: 'Job removed successfully!',
         variant: 'success',
