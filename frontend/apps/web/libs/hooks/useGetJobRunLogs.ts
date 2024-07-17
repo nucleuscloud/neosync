@@ -41,6 +41,7 @@ export function useGetJobRunLogs(
           : GetJobRunLogsStreamResponse.fromJson(d)
       );
     },
+    enabled: !!runId && !!accountId && !!loglevel,
   });
 }
 

@@ -1,9 +1,9 @@
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
   ForeignKey,
+  GetConnectionSchemaResponse,
   PrimaryConstraint,
   TransformerDataType,
   UniqueConstraints,
@@ -46,7 +46,7 @@ interface ColDetails {
 }
 
 export function getSchemaConstraintHandler(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
   uniqueConstraints: Record<string, UniqueConstraints>,
@@ -217,7 +217,7 @@ function mysqlTypeToTransformerDataType(
 }
 
 function buildColDetailsMap(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   primaryConstraints: Record<string, PrimaryConstraint>,
   foreignConstraints: Record<string, ForeignConstraintTables>,
   uniqueConstraints: Record<string, UniqueConstraints>,
@@ -225,7 +225,7 @@ function buildColDetailsMap(
 ): Record<string, ColDetails> {
   const colmap: Record<string, ColDetails> = {};
   //<schema.table: dbCols>
-  Object.entries(schema).forEach(([key, dbcols]) => {
+  Object.entries(schema).forEach(([key, schemaResp]) => {
     const tablePkeys = primaryConstraints[key] ?? new PrimaryConstraint();
     const primaryCols = new Set(tablePkeys.columns);
     const foreignFkeys =
@@ -270,7 +270,7 @@ function buildColDetailsMap(
       });
     });
 
-    dbcols.forEach((dbcol) => {
+    schemaResp.schemas.forEach((dbcol) => {
       const fk: ForeignKey | undefined = fkconstraintsMap[dbcol.column];
       const vfk: VirtualForeignKey | undefined = virtualFkMap[dbcol.column];
       colmap[fromDbCol(dbcol)] = {

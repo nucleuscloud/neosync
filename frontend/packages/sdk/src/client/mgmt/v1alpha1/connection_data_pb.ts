@@ -769,6 +769,88 @@ export class GetConnectionSchemaResponse extends Message<GetConnectionSchemaResp
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetConnectionSchemaMapRequest
+ */
+export class GetConnectionSchemaMapRequest extends Message<GetConnectionSchemaMapRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.ConnectionSchemaConfig schema_config = 2;
+   */
+  schemaConfig?: ConnectionSchemaConfig;
+
+  constructor(data?: PartialMessage<GetConnectionSchemaMapRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionSchemaMapRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema_config", kind: "message", T: ConnectionSchemaConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionSchemaMapRequest {
+    return new GetConnectionSchemaMapRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionSchemaMapRequest {
+    return new GetConnectionSchemaMapRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionSchemaMapRequest {
+    return new GetConnectionSchemaMapRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionSchemaMapRequest | PlainMessage<GetConnectionSchemaMapRequest> | undefined, b: GetConnectionSchemaMapRequest | PlainMessage<GetConnectionSchemaMapRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionSchemaMapRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionSchemaMapResponse
+ */
+export class GetConnectionSchemaMapResponse extends Message<GetConnectionSchemaMapResponse> {
+  /**
+   * Returns the database columns separated by the fully qualified <schema>.<table>
+   *
+   * @generated from field: map<string, mgmt.v1alpha1.GetConnectionSchemaResponse> schema_map = 1;
+   */
+  schemaMap: { [key: string]: GetConnectionSchemaResponse } = {};
+
+  constructor(data?: PartialMessage<GetConnectionSchemaMapResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionSchemaMapResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema_map", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: GetConnectionSchemaResponse} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionSchemaMapResponse {
+    return new GetConnectionSchemaMapResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionSchemaMapResponse {
+    return new GetConnectionSchemaMapResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionSchemaMapResponse {
+    return new GetConnectionSchemaMapResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionSchemaMapResponse | PlainMessage<GetConnectionSchemaMapResponse> | undefined, b: GetConnectionSchemaMapResponse | PlainMessage<GetConnectionSchemaMapResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionSchemaMapResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
  */
 export class GetConnectionForeignConstraintsRequest extends Message<GetConnectionForeignConstraintsRequest> {

@@ -14,7 +14,6 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -43,6 +42,7 @@ import {
   getAccountOnboardingConfig,
   getConnection,
   getConnections,
+  getConnectionSchemaMap,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
@@ -131,8 +131,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaMapLoading,
-    isValidating: isSchemaMapValidating,
-  } = useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
+    isFetching: isSchemaMapValidating,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: connectFormValues.sourceId },
+    { enabled: !!connectFormValues.sourceId }
+  );
   const { data: connectionsData } = useQuery(
     getConnections,
     { accountId: account?.id },

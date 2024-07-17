@@ -34,24 +34,26 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  getConnectionSchema,
-  GetConnectionSchemaMapResponse,
-  useGetConnectionSchemaMap,
-} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetConnectionResponse, Job } from '@neosync/sdk';
+import {
+  ConnectError,
+  GetConnectionResponse,
+  GetConnectionSchemaMapResponse,
+  Job,
+} from '@neosync/sdk';
 import {
   getAiGeneratedData,
   getConnection,
   getConnections,
+  getConnectionSchemaMap,
   getConnectionTableConstraints,
   getJob,
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { QueryObserverResult } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -104,9 +106,13 @@ export default function AiDataGenConnectionCard({
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
-    isValidating: isSchemaMapValidating,
-    mutate: mutateGetConnectionSchemaMap,
-  } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId);
+    isFetching: isSchemaMapValidating,
+    refetch: refetchConnectionSchemaMap,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: fkSourceConnectionId },
+    { enabled: !!fkSourceConnectionId }
+  );
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
@@ -172,9 +178,11 @@ export default function AiDataGenConnectionCard({
       const tableSchema =
         connectionSchemaDataMap.schemaMap[`${formSchema}.${formTable}`];
       if (tableSchema) {
-        tdata.push(...tableSchema);
+        tdata.push(...tableSchema.schemas);
         cols.push(
-          ...getAiSampleTableColumns(tableSchema.map((dbcol) => dbcol.column))
+          ...getAiSampleTableColumns(
+            tableSchema.schemas.map((dbcol) => dbcol.column)
+          )
         );
       }
     }
@@ -260,11 +268,10 @@ export default function AiDataGenConnectionCard({
   async function onTableConstraintSourceChange(value: string): Promise<void> {
     try {
       const newValues = await getUpdatedValues(
-        account?.id ?? '',
         value,
         form.getValues(),
         (id) => getConnectionAsync({ id }),
-        mutateGetConnectionSchemaMap
+        () => refetchConnectionSchemaMap()
       );
       form.reset(newValues);
       if (newValues.schema.schema && newValues.schema.table) {
@@ -603,28 +610,26 @@ function getJobSource(job?: Job): SingleTableEditAiSourceFormValues {
 }
 
 async function getUpdatedValues(
-  accountId: string,
   connectionId: string,
   originalValues: SingleTableEditAiSourceFormValues,
   getConnectionById: (id: string) => Promise<GetConnectionResponse>,
-  mutateConnectionSchemaResponse: (
-    schemaRes: GetConnectionSchemaMapResponse
-  ) => void
+  refetchConnectionSchemaMap: () => Promise<
+    QueryObserverResult<GetConnectionSchemaMapResponse, ConnectError>
+  >
 ): Promise<SingleTableEditAiSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
-    getConnectionSchema(accountId, connectionId),
+    refetchConnectionSchemaMap(),
     getConnectionById(connectionId),
   ]);
 
-  if (!schemaRes || !connRes) {
+  if (!schemaRes || !schemaRes.data || !connRes) {
     return originalValues;
   }
 
-  mutateConnectionSchemaResponse(schemaRes);
   let schema = originalValues.schema.schema;
   let table = originalValues.schema.table;
   if (
-    !schemaRes.schemaMap[
+    !schemaRes.data.schemaMap[
       `${originalValues.schema.schema}.${originalValues.schema.table}`
     ]
   ) {
