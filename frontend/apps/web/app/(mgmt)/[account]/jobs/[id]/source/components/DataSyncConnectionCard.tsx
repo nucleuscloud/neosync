@@ -37,7 +37,6 @@ import {
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  ConnectError,
   Connection,
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
@@ -62,7 +61,6 @@ import {
   getJob,
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
-import { QueryObserverResult } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -108,11 +106,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
     isFetching: isSchemaMapValidating,
-    refetch: refetchConnectionSchemaMap,
   } = useQuery(
     getConnectionSchemaMap,
     { connectionId: sourceConnectionId },
     { enabled: !!sourceConnectionId }
+  );
+  const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
+    getConnectionSchemaMap
   );
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
@@ -215,7 +215,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         value,
         form.getValues(),
         (id) => getConnectionAsync({ id }),
-        refetchConnectionSchemaMap
+        (id) => getConnectionSchemaMapAsync({ connectionId: id })
       );
       form.reset(newValues);
     } catch (err) {
@@ -711,21 +711,21 @@ async function getUpdatedValues(
   connectionId: string,
   originalValues: DataSyncSourceFormValues,
   getConnectionById: (id: string) => Promise<GetConnectionResponse>,
-  refetchConnectionSchemaMap: () => Promise<
-    QueryObserverResult<GetConnectionSchemaMapResponse, ConnectError>
-  >
+  getConnectionSchemaMapAsync: (
+    id: string
+  ) => Promise<GetConnectionSchemaMapResponse>
 ): Promise<DataSyncSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
-    refetchConnectionSchemaMap(),
+    getConnectionSchemaMapAsync(connectionId),
     getConnectionById(connectionId),
   ]);
 
-  if (!schemaRes || !schemaRes.data || !connRes) {
+  if (!schemaRes || !connRes) {
     return originalValues;
   }
 
   const sameKeys = new Set(
-    Object.values(schemaRes.data.schemaMap).flatMap((dbcols) =>
+    Object.values(schemaRes.schemaMap).flatMap((dbcols) =>
       dbcols.schemas.map(
         (dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`
       )

@@ -38,7 +38,6 @@ import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  ConnectError,
   GetConnectionResponse,
   GetConnectionSchemaMapResponse,
   Job,
@@ -53,7 +52,6 @@ import {
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { QueryObserverResult } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -107,11 +105,13 @@ export default function AiDataGenConnectionCard({
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
     isFetching: isSchemaMapValidating,
-    refetch: refetchConnectionSchemaMap,
   } = useQuery(
     getConnectionSchemaMap,
     { connectionId: fkSourceConnectionId },
     { enabled: !!fkSourceConnectionId }
+  );
+  const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
+    getConnectionSchemaMap
   );
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
@@ -271,7 +271,7 @@ export default function AiDataGenConnectionCard({
         value,
         form.getValues(),
         (id) => getConnectionAsync({ id }),
-        () => refetchConnectionSchemaMap()
+        (id) => getConnectionSchemaMapAsync({ connectionId: id })
       );
       form.reset(newValues);
       if (newValues.schema.schema && newValues.schema.table) {
@@ -613,23 +613,23 @@ async function getUpdatedValues(
   connectionId: string,
   originalValues: SingleTableEditAiSourceFormValues,
   getConnectionById: (id: string) => Promise<GetConnectionResponse>,
-  refetchConnectionSchemaMap: () => Promise<
-    QueryObserverResult<GetConnectionSchemaMapResponse, ConnectError>
-  >
+  getConnectionSchemaMapAsync: (
+    id: string
+  ) => Promise<GetConnectionSchemaMapResponse>
 ): Promise<SingleTableEditAiSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
-    refetchConnectionSchemaMap(),
+    getConnectionSchemaMapAsync(connectionId),
     getConnectionById(connectionId),
   ]);
 
-  if (!schemaRes || !schemaRes.data || !connRes) {
+  if (!schemaRes || !connRes) {
     return originalValues;
   }
 
   let schema = originalValues.schema.schema;
   let table = originalValues.schema.table;
   if (
-    !schemaRes.data.schemaMap[
+    !schemaRes.schemaMap[
       `${originalValues.schema.schema}.${originalValues.schema.table}`
     ]
   ) {
