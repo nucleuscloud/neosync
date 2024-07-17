@@ -30,8 +30,8 @@ import {
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 
 interface Props {
@@ -42,7 +42,8 @@ export default function UserDefinedTransformEmailForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
   const { isDisabled } = props;
 

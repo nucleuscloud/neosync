@@ -29,22 +29,24 @@ interface Props extends TransformerFormProps<GenerateJavascript> {}
 export default function GenerateJavascriptForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
   const { account } = useAccount();
-
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformJavascriptConfig),
     defaultValues: {
       code: existingConfig?.code ?? '',
     },
-    context: { accountId: account?.id },
+    context: {
+      accountId: account?.id,
+      isUserJavascriptCodeValid: validateUserJavascriptCode,
+    },
   });
 
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [codeStatus, setCodeStatus] = useState<ValidCode>('null');
   const { resolvedTheme } = useTheme();
-  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
-    validateUserJavascriptCode
-  );
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {

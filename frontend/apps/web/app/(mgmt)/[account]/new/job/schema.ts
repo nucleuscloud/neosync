@@ -5,10 +5,16 @@ import {
   SchemaFormValues,
   SourceFormValues,
 } from '@/yup-validations/jobs';
-import { Connection } from '@neosync/sdk';
+import { PartialMessage } from '@bufbuild/protobuf';
+import {
+  ConnectError,
+  Connection,
+  IsJobNameAvailableRequest,
+  IsJobNameAvailableResponse,
+} from '@neosync/sdk';
+import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import cron from 'cron-validate';
 import * as Yup from 'yup';
-import { isJobNameAvailable } from '../../jobs/util';
 
 export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
 
@@ -76,8 +82,23 @@ export const DefineFormValues = Yup.object({
         if (!accountId) {
           return false;
         }
-        const res = await isJobNameAvailable(value, accountId);
-        return res.isAvailable;
+        const isJobNameAvailable:
+          | UseMutateAsyncFunction<
+              IsJobNameAvailableResponse,
+              ConnectError,
+              PartialMessage<IsJobNameAvailableRequest>,
+              unknown
+            >
+          | undefined = context?.options?.context?.isJobNameAvailable;
+        if (isJobNameAvailable) {
+          const res = await isJobNameAvailable({ accountId, name: value });
+          if (!res.isAvailable) {
+            return context.createError({
+              message: 'This Job Name is already taken.',
+            });
+          }
+        }
+        return true;
       }
     ),
   cronSchedule: Yup.string()
@@ -400,3 +421,13 @@ export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
 export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
 >;
+
+export interface DefineFormValuesContext {
+  accountId: string;
+  isJobNameAvailable: UseMutateAsyncFunction<
+    IsJobNameAvailableResponse,
+    ConnectError,
+    PartialMessage<IsJobNameAvailableRequest>,
+    unknown
+  >;
+}

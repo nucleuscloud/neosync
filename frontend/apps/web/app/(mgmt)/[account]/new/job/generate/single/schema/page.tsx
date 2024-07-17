@@ -5,6 +5,7 @@ import {
   clearNewJobSession,
   getCreateNewSingleTableGenerateJobRequest,
   getNewJobSessionKeys,
+  validateJobMapping,
 } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -28,7 +29,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -48,6 +48,7 @@ import {
   getConnectionSchemaMap,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
+  validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -160,6 +161,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setIsClient(true);
   }, []);
 
+  const { mutateAsync: validateJobMappingsAsync } =
+    useMutation(validateJobMappings);
+
   async function onSubmit(values: SingleTableSchemaFormValues) {
     if (!account) {
       return;
@@ -241,7 +245,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const res = await validateJobMapping(
         connectFormValues.fkSourceConnectionId,
         formMappings,
-        account?.id || ''
+        account?.id || '',
+        [],
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {

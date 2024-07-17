@@ -16,11 +16,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { OpenAiFormValues } from '@/yup-validations/connections';
+import {
+  CreateConnectionFormContext,
+  OpenAiFormValues,
+} from '@/yup-validations/connections';
 import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GetConnectionResponse } from '@neosync/sdk';
-import { createConnection, getConnection } from '@neosync/sdk/connectquery';
+import {
+  createConnection,
+  getConnection,
+  isConnectionNameAvailable,
+} from '@neosync/sdk/connectquery';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import NextLink from 'next/link';
@@ -44,8 +51,10 @@ export default function OpenAiForm(props: Props): ReactElement {
   const { mutateAsync: createOpenAiConnection } = useMutation(createConnection);
   const queryclient = useQueryClient();
   const { mutateAsync: getOpenAiConnection } = useMutation(getConnection);
-
-  const form = useForm<OpenAiFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<OpenAiFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(OpenAiFormValues),
     mode: 'onChange',
     defaultValues: {
@@ -55,7 +64,10 @@ export default function OpenAiForm(props: Props): ReactElement {
         apiKey: '',
       },
     },
-    context: { accountId: account?.id ?? '' },
+    context: {
+      accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
 
   async function onSubmit(values: OpenAiFormValues): Promise<void> {

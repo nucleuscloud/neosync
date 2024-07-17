@@ -20,8 +20,8 @@ import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 import { ValidCode } from './UserDefinedTransformJavascriptForm';
 
@@ -35,7 +35,8 @@ export default function UserDefinedGenerateJavascriptForm(
   const { isDisabled } = props;
 
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
 
   const options = {

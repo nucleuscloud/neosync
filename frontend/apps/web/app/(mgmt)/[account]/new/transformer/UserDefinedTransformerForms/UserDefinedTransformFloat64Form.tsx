@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { ReactElement, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 
 interface Props {
@@ -23,7 +23,8 @@ export default function UserDefinedTransformFloat64Form(
   props: Props
 ): ReactElement {
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
   const { isDisabled } = props;
 

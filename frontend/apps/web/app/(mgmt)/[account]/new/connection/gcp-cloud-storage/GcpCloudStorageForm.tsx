@@ -39,6 +39,7 @@ import {
   createConnection,
   getAccountOnboardingConfig,
   getConnection,
+  isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
@@ -57,6 +58,9 @@ export default function GcpCloudStorageForm(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>();
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
   const form = useForm<GcpCloudStorageFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(GcpCloudStorageFormValues),
     mode: 'onChange',
@@ -67,7 +71,10 @@ export default function GcpCloudStorageForm(): ReactElement {
         pathPrefix: '',
       },
     },
-    context: { accountId: account?.id ?? '' },
+    context: {
+      accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -39,6 +39,7 @@ import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
+  MysqlCreateConnectionFormContext,
   MysqlFormValues,
 } from '@/yup-validations/connections';
 import {
@@ -57,6 +58,7 @@ import {
   createConnection,
   getAccountOnboardingConfig,
   getConnection,
+  isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import {
@@ -80,8 +82,10 @@ export default function MysqlForm() {
 
   // used to know which tab - host or url that the user is on when we submit the form
   const [activeTab, setActiveTab] = useState<ActiveTab>('url');
-
-  const form = useForm<MysqlFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<MysqlFormValues, MysqlCreateConnectionFormContext>({
     resolver: yupResolver(MysqlFormValues),
     defaultValues: {
       connectionName: '',
@@ -106,7 +110,11 @@ export default function MysqlForm() {
         privateKey: '',
       },
     },
-    context: { accountId: account?.id ?? '', activeTab: activeTab },
+    context: {
+      accountId: account?.id ?? '',
+      activeTab: activeTab,
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
   const router = useRouter();
   const [validationResponse, setValidationResponse] = useState<

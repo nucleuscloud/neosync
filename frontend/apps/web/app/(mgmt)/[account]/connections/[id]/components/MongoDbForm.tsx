@@ -23,7 +23,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MongoDbFormValues } from '@/yup-validations/connections';
+import {
+  EditConnectionFormContext,
+  MongoDbFormValues,
+} from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -32,6 +35,7 @@ import {
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
+  isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -49,14 +53,18 @@ interface Props {
 export default function MongoDbForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
 
-  const form = useForm<MongoDbFormValues>({
+  const form = useForm<MongoDbFormValues, EditConnectionFormContext>({
     resolver: yupResolver(MongoDbFormValues),
     mode: 'onChange',
     values: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
   const [isValidating, setIsValidating] = useState<boolean>(false);

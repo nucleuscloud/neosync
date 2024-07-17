@@ -4,7 +4,9 @@ import {
 } from '@/util/util';
 import {
   DestinationFormValues,
+  JobMappingFormValues,
   SchemaFormValues,
+  VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -23,7 +25,6 @@ import {
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
   GetAiGeneratedDataRequest,
-  IsJobNameAvailableResponse,
   Job,
   JobDestination,
   JobDestinationOptions,
@@ -49,6 +50,9 @@ import {
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
   RetryPolicy,
+  TransformerConfig,
+  ValidateJobMappingsRequest,
+  ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
   WorkflowOptions,
@@ -605,26 +609,6 @@ function toMysqlSourceSchemaOptions(
   return Object.values(schemaMap);
 }
 
-export async function isJobNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsJobNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/jobs/is-job-name-available?name=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsJobNameAvailableResponse.fromJson(await res.json());
-}
-
 export function toActivityOptions(
   values: ActivityOptionsSchema
 ): ActivityOptions {
@@ -1028,4 +1012,54 @@ function collectStringLeafs(obj: any): string[] {
 export function clearNewJobSession(storage: Storage, sessionId: string): void {
   const keys = collectStringLeafs(getNewJobSessionKeys(sessionId));
   keys.forEach((key) => storage.removeItem(key));
+}
+
+export async function validateJobMapping(
+  connectionId: string,
+  formMappings: JobMappingFormValues[],
+  accountId: string,
+  virtualForeignKeys: VirtualForeignConstraintFormValues[],
+  validate: (
+    req: ValidateJobMappingsRequest
+  ) => Promise<ValidateJobMappingsResponse>
+): Promise<ValidateJobMappingsResponse> {
+  const body = new ValidateJobMappingsRequest({
+    accountId,
+    mappings: formMappings.map((m) => {
+      return new JobMapping({
+        schema: m.schema,
+        table: m.table,
+        column: m.column,
+        transformer:
+          m.transformer.source != 0
+            ? convertJobMappingTransformerFormToJobMappingTransformer(
+                m.transformer
+              )
+            : new JobMappingTransformer({
+                source: 1,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: {},
+                  },
+                }),
+              }),
+      });
+    }),
+    virtualForeignKeys: virtualForeignKeys.map((v) => {
+      return new VirtualForeignConstraint({
+        schema: v.schema,
+        table: v.table,
+        columns: v.columns,
+        foreignKey: new VirtualForeignKey({
+          schema: v.foreignKey.schema,
+          table: v.foreignKey.table,
+          columns: v.foreignKey.columns,
+        }),
+      });
+    }),
+    connectionId: connectionId,
+  });
+
+  return validate(body);
 }

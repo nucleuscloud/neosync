@@ -20,8 +20,8 @@ import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 interface Props {
   isDisabled?: boolean;
@@ -35,7 +35,8 @@ export default function UserDefinedTransformCharacterScrambleForm(
   const { isDisabled } = props;
 
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
 
   const [userRegex, setRegex] = useState<string>(

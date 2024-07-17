@@ -21,7 +21,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
+import {
+  AWSFormValues,
+  AWS_FORM_SCHEMA,
+  CreateConnectionFormContext,
+} from '@/yup-validations/connections';
 import {
   createConnectQueryKey,
   useMutation,
@@ -36,6 +40,7 @@ import {
   createConnection,
   getAccountOnboardingConfig,
   getConnection,
+  isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
@@ -60,7 +65,10 @@ export default function AwsS3Form() {
   const { mutateAsync: setOnboardingConfigAsync } = useMutation(
     setAccountOnboardingConfig
   );
-  const form = useForm<AWSFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<AWSFormValues, CreateConnectionFormContext>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
@@ -68,7 +76,10 @@ export default function AwsS3Form() {
         bucket: '',
       },
     },
-    context: { accountId: account?.id ?? '' },
+    context: {
+      accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
+    },
   });
   const router = useRouter();
   const { mutateAsync: createAwsS3Connection } = useMutation(createConnection);

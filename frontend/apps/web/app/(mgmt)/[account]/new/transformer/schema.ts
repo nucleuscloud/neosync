@@ -1,11 +1,16 @@
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { PartialMessage } from '@bufbuild/protobuf';
 import {
+  ConnectError,
+  IsTransformerNameAvailableRequest,
   IsTransformerNameAvailableResponse,
   TransformerConfig,
+  ValidateUserJavascriptCodeRequest,
+  ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
+import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 import { tryBigInt } from '../../transformers/Sheetforms/util';
-import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
 const bigIntValidator = Yup.mixed<bigint>().test(
   'is-bigint',
@@ -420,15 +425,26 @@ const JavascriptConfig = Yup.object().shape({
           });
         }
         try {
-          // todo: pass in via form context
-          const res = await IsUserJavascriptCodeValid(value, accountId);
-          if (res.valid === true) {
-            return true;
-          } else {
-            return context.createError({
-              message: 'Javascript is not valid',
+          const isUserJavascriptCodeValid:
+            | UseMutateAsyncFunction<
+                ValidateUserJavascriptCodeResponse,
+                ConnectError,
+                PartialMessage<ValidateUserJavascriptCodeRequest>,
+                unknown
+              >
+            | undefined = context?.options?.context?.isUserJavascriptCodeValid;
+          if (isUserJavascriptCodeValid) {
+            const res = await isUserJavascriptCodeValid({
+              accountId,
+              code: value,
             });
+            if (!res.valid) {
+              return context.createError({
+                message: 'Javascript is not valid',
+              });
+            }
           }
+          return true;
         } catch (error) {
           return context.createError({
             message: 'Unable to verify Javascript code.',
@@ -566,11 +582,24 @@ const transformerNameSchema = Yup.string()
       }
 
       try {
-        const res = await isTransformerNameAvailable(value, accountId);
-        if (!res.isAvailable) {
-          return context.createError({
-            message: 'This Transformer Name is already taken.',
+        const isTransformerNameAvailable:
+          | UseMutateAsyncFunction<
+              IsTransformerNameAvailableResponse,
+              ConnectError,
+              PartialMessage<IsTransformerNameAvailableRequest>,
+              unknown
+            >
+          | undefined = context?.options?.context?.isTransformerNameAvailable;
+        if (isTransformerNameAvailable) {
+          const res = await isTransformerNameAvailable({
+            accountId,
+            transformerName: value,
           });
+          if (!res.isAvailable) {
+            return context.createError({
+              message: 'This Transformer Name is already taken.',
+            });
+          }
         }
         return true;
       } catch (error) {
@@ -581,44 +610,39 @@ const transformerNameSchema = Yup.string()
     }
   );
 
-export const CREATE_USER_DEFINED_TRANSFORMER_SCHEMA = Yup.object({
+export const CreateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   source: Yup.number(),
   description: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 
-export type CreateUserDefinedTransformerSchema = Yup.InferType<
-  typeof CREATE_USER_DEFINED_TRANSFORMER_SCHEMA
+export type CreateUserDefinedTransformerFormValues = Yup.InferType<
+  typeof CreateUserDefinedTransformerFormValues
 >;
 
-export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
+export interface CreateUserDefinedTransformerFormContext {
+  accountId: string;
+  isTransformerNameAvailable: UseMutateAsyncFunction<
+    IsTransformerNameAvailableResponse,
+    ConnectError,
+    PartialMessage<IsTransformerNameAvailableRequest>,
+    unknown
+  >;
+}
+
+export const UpdateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
   description: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 
-export type UpdateUserDefinedTransformer = Yup.InferType<
-  typeof UPDATE_USER_DEFINED_TRANSFORMER
+export type UpdateUserDefinedTransformerFormValues = Yup.InferType<
+  typeof UpdateUserDefinedTransformerFormValues
 >;
 
-async function isTransformerNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsTransformerNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/is-transformer-name-available?transformerName=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsTransformerNameAvailableResponse.fromJson(await res.json());
+export interface EditUserDefinedTransformerFormContext
+  extends CreateUserDefinedTransformerFormContext {
+  name: string;
 }

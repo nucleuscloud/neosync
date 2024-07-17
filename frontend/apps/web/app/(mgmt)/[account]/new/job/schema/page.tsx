@@ -14,7 +14,6 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
-import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -45,6 +44,7 @@ import {
   getConnectionSchemaMap,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
+  validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -58,6 +58,7 @@ import {
   clearNewJobSession,
   getCreateNewSyncJobRequest,
   getNewJobSessionKeys,
+  validateJobMapping,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
@@ -164,6 +165,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
+  const { mutateAsync: validateJobMappingsAsync } =
+    useMutation(validateJobMappings);
 
   async function onSubmit(values: SchemaFormValues) {
     if (!account || !connectionData?.connection) {
@@ -253,7 +256,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const res = await validateJobMapping(
         connectFormValues.sourceId,
         formMappings,
-        account?.id || ''
+        account?.id || '',
+        [],
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {
@@ -276,7 +281,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         connectFormValues.sourceId,
         formMappings,
         account?.id || '',
-        vfks
+        vfks,
+        validateJobMappingsAsync
       );
       setValidateMappingsResponse(res);
     } catch (error) {

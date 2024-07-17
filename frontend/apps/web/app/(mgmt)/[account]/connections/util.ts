@@ -14,7 +14,6 @@ import {
   ClientTlsConfig,
   ConnectionConfig,
   GcpCloudStorageConnectionConfig,
-  IsConnectionNameAvailableResponse,
   MongoConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
@@ -63,26 +62,6 @@ export function getConnectionType(
     default:
       return null;
   }
-}
-
-export async function isConnectionNameAvailable(
-  name: string,
-  accountId: string
-): Promise<IsConnectionNameAvailableResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/is-connection-name-available?connectionName=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
 export function buildConnectionConfigAwsS3(

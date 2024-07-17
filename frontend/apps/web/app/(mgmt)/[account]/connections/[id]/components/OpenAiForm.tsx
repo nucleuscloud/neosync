@@ -15,11 +15,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { OpenAiFormValues } from '@/yup-validations/connections';
+import {
+  EditConnectionFormContext,
+  OpenAiFormValues,
+} from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UpdateConnectionResponse } from '@neosync/sdk';
-import { updateConnection } from '@neosync/sdk/connectquery';
+import {
+  isConnectionNameAvailable,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { buildConnectionConfigOpenAi } from '../../util';
@@ -34,14 +40,17 @@ interface Props {
 export default function OpenAiForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
-
-  const form = useForm<OpenAiFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<OpenAiFormValues, EditConnectionFormContext>({
     resolver: yupResolver(OpenAiFormValues),
     mode: 'onChange',
     values: defaultValues,
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
   const { mutateAsync } = useMutation(updateConnection);

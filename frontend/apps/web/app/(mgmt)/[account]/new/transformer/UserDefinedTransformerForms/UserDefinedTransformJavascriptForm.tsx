@@ -14,18 +14,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
-import {
-  ValidateUserJavascriptCodeRequest,
-  ValidateUserJavascriptCodeResponse,
-} from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
+  CreateUserDefinedTransformerFormValues,
+  UpdateUserDefinedTransformerFormValues,
 } from '../schema';
 
 interface Props {
@@ -38,7 +34,8 @@ export default function UserDefinedTransformJavascriptForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+    | UpdateUserDefinedTransformerFormValues
+    | CreateUserDefinedTransformerFormValues
   >();
 
   const { isDisabled } = props;
@@ -159,29 +156,4 @@ export default function UserDefinedTransformJavascriptForm(
       />
     </div>
   );
-}
-
-export async function IsUserJavascriptCodeValid(
-  code: string,
-  accountId: string
-): Promise<ValidateUserJavascriptCodeResponse> {
-  const body = new ValidateUserJavascriptCodeRequest({
-    code: code,
-    accountId: accountId,
-  });
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined/validate-code`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return ValidateUserJavascriptCodeResponse.fromJson(await res.json());
 }

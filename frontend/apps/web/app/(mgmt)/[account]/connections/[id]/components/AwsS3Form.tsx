@@ -18,14 +18,21 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
+import {
+  AWSFormValues,
+  AWS_FORM_SCHEMA,
+  EditConnectionFormContext,
+} from '@/yup-validations/connections';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
-import { updateConnection } from '@neosync/sdk/connectquery';
+import {
+  isConnectionNameAvailable,
+  updateConnection,
+} from '@neosync/sdk/connectquery';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { buildConnectionConfigAwsS3 } from '../../util';
@@ -40,7 +47,10 @@ interface Props {
 export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
-  const form = useForm<AWSFormValues>({
+  const { mutateAsync: isConnectionNameAvailableAsync } = useMutation(
+    isConnectionNameAvailable
+  );
+  const form = useForm<AWSFormValues, EditConnectionFormContext>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
@@ -50,6 +60,7 @@ export default function AwsS3Form(props: Props) {
     context: {
       originalConnectionName: defaultValues.connectionName,
       accountId: account?.id ?? '',
+      isConnectionNameAvailable: isConnectionNameAvailableAsync,
     },
   });
   const { mutateAsync } = useMutation(updateConnection);
