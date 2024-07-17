@@ -8,15 +8,13 @@ on:
       - opened
       - labeled
       - unlabeled
-permissions:
-  pull-requests: write
 jobs:
   check_labels:
     runs-on: ubuntu-latest
-
+    permissions:
+      pull-requests: write
     env:
       HAS_LABELS: ${{ github.event.pull_request.labels[0] != null }}
-
     steps:
       - name: Add a comment to the PR if no labels
         if: env.HAS_LABELS == 'false'
