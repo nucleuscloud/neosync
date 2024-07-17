@@ -88,8 +88,8 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
           </div>
           <CardDescription>
             Select the source table and columns, as well as the target table and
-            columns, to create a virtual foreign key. <br /> Add additional
-            columns to create a composite virtual foreign key.
+            columns, to create a virtual foreign key. Add additional columns to
+            create a composite virtual foreign key.
           </CardDescription>
         </CardHeader>
         <CardContent>

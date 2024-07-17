@@ -42,11 +42,13 @@ export function StringSelect(props: Props): ReactElement {
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className=" p-0">
+      <PopoverContent className="p-0 ml-20">
         <Command>
           <CommandInput placeholder={`Search ${text}...`} />
           <CommandList>
-            <CommandEmpty>No tables found.</CommandEmpty>
+            <CommandEmpty className="text-sm text-gray-500 p-4">
+              No tables found.
+            </CommandEmpty>
             <CommandGroup>
               {values.map((v) => (
                 <CommandItem
