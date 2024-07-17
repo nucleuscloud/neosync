@@ -2,11 +2,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -45,34 +43,35 @@ export function StringSelect(props: Props): ReactElement {
       <PopoverContent className="p-0 ml-20">
         <Command>
           <CommandInput placeholder={`Search ${text}...`} />
-          <CommandList>
-            <CommandEmpty className="text-sm text-gray-500 p-4">
-              No tables found.
-            </CommandEmpty>
-            <CommandGroup>
-              {values.map((v) => (
-                <CommandItem
-                  key={v}
-                  value={v}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? '' : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <CheckIcon
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === v ? 'opacity-100' : 'opacity-0'
+          <CommandGroup>
+            {values.length > 0 ? (
+              <>
+                {values.map((v) => (
+                  <CommandItem
+                    key={v}
+                    value={v}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue === value ? '' : currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        value === v ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    <p className="mr-2">{v}</p>
+                    {badgeValueMap && (
+                      <Badge variant="secondary">{badgeValueMap[v]}</Badge>
                     )}
-                  />
-                  <p className="mr-2">{v}</p>
-                  {badgeValueMap && (
-                    <Badge variant="secondary">{badgeValueMap[v]}</Badge>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
+                  </CommandItem>
+                ))}{' '}
+              </>
+            ) : (
+              <div className="text-sm text-gray-500 p-4">No {text} found.</div>
+            )}
+          </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>
