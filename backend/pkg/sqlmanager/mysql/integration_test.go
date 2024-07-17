@@ -81,16 +81,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.pool = pool
 	s.querier = mysql_queries.New()
-	// s.close = func() {
-	// 	if pool != nil {
-	// 		pool.Close()
-	// 	}
-	// }
+	s.close = func() {
+		if pool != nil {
+			pool.Close()
+		}
+	}
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	fmt.Println("setup test")
 	_, err := s.pool.ExecContext(s.ctx, s.setupSql)
 	if err != nil {
 		panic(err)
@@ -98,7 +97,6 @@ func (s *IntegrationTestSuite) SetupTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	fmt.Println("teardown test")
 	_, err := s.pool.ExecContext(s.ctx, s.teardownSql)
 	if err != nil {
 		panic(err)
@@ -106,7 +104,6 @@ func (s *IntegrationTestSuite) TearDownTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	fmt.Println("tear down suite")
 	if s.pool != nil {
 		s.close()
 	}
