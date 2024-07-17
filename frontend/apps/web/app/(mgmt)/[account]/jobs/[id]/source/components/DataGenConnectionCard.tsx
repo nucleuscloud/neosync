@@ -26,21 +26,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  GetConnectionSchemaMapResponse,
-  getConnectionSchema,
-  useGetConnectionSchemaMap,
-} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetConnectionResponse,
+  GetConnectionSchemaMapResponse,
   Job,
   JobMapping,
   JobMappingTransformer,
@@ -48,12 +48,14 @@ import {
 } from '@neosync/sdk';
 import {
   getConnection,
+  getConnectionSchemaMap,
   getConnectionTableConstraints,
   getConnections,
   getJob,
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import {
@@ -102,9 +104,17 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
-    isValidating: isSchemaMapValidating,
-    mutate: mutateGetConnectionSchemaMap,
-  } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId ?? '');
+    isFetching: isSchemaMapValidating,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: fkSourceConnectionId },
+    { enabled: !!fkSourceConnectionId }
+  );
+  const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
+    getConnectionSchemaMap
+  );
+
+  const queryclient = useQueryClient();
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
@@ -164,11 +174,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     });
     const toAdd: SingleTableEditSourceFormValues['mappings'] = [];
     Object.entries(existingCols).forEach(([key, currcols]) => {
-      const dbcols = connSchemaMap[key];
-      if (!dbcols) {
+      const schemaResp = connSchemaMap[key];
+      if (!schemaResp) {
         return;
       }
-      dbcols.forEach((dbcol) => {
+      schemaResp.schemas.forEach((dbcol) => {
         if (!currcols.has(dbcol.column)) {
           toAdd.push({
             schema: dbcol.schema,
@@ -278,11 +288,24 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   async function onTableConstraintSourceChange(value: string): Promise<void> {
     try {
       const newValues = await getUpdatedValues(
-        account?.id ?? '',
         value,
         form.getValues(),
-        (id) => getConnectionAsync({ id }),
-        mutateGetConnectionSchemaMap
+        async (id) => {
+          const resp = await getConnectionAsync({ id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnection, { id }),
+            resp
+          );
+          return resp;
+        },
+        async (id) => {
+          const resp = await getConnectionSchemaMapAsync({ connectionId: id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            resp
+          );
+          return resp;
+        }
       );
       form.reset(newValues);
       const newMapping =
@@ -480,16 +503,15 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
 }
 
 async function getUpdatedValues(
-  accountId: string,
   connectionId: string,
   originalValues: SingleTableEditSourceFormValues,
   getConnectionById: (id: string) => Promise<GetConnectionResponse>,
-  mutateConnectionSchemaResponse: (
-    schemaRes: GetConnectionSchemaMapResponse
-  ) => void
+  getConnectionSchemaMapAsync: (
+    id: string
+  ) => Promise<GetConnectionSchemaMapResponse>
 ): Promise<SingleTableEditSourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
-    getConnectionSchema(accountId, connectionId),
+    getConnectionSchemaMapAsync(connectionId),
     getConnectionById(connectionId),
   ]);
 
@@ -499,7 +521,9 @@ async function getUpdatedValues(
 
   const sameKeys = new Set(
     Object.values(schemaRes.schemaMap).flatMap((dbcols) =>
-      dbcols.map((dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`)
+      dbcols.schemas.map(
+        (dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`
+      )
     )
   );
 
@@ -507,7 +531,6 @@ async function getUpdatedValues(
     sameKeys.has(`${mapping.schema}.${mapping.table}.${mapping.column}`)
   );
 
-  mutateConnectionSchemaResponse(schemaRes);
   return {
     ...originalValues,
     source: {

@@ -1,10 +1,13 @@
 import { Action } from '@/components/DualListBox/DualListBox';
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import {
   JobMappingFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { JobMappingTransformer, JobSource } from '@neosync/sdk';
+import {
+  GetConnectionSchemaResponse,
+  JobMappingTransformer,
+  JobSource,
+} from '@neosync/sdk';
 
 export function getConnectionIdFromSource(
   js: JobSource | undefined
@@ -53,7 +56,7 @@ function getSetDelta(
 }
 
 export function getOnSelectedTableToggle(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   selectedTables: Set<string>,
   setSelectedTables: (newitems: Set<string>) => void,
   fields: { schema: string; table: string }[],
@@ -77,11 +80,11 @@ export function getOnSelectedTableToggle(
     });
 
     added.forEach((item) => {
-      const dbcols = schema[item];
-      if (!dbcols) {
+      const schemaResp = schema[item];
+      if (!schemaResp) {
         return;
       }
-      dbcols.forEach((dbcol) => {
+      schemaResp.schemas.forEach((dbcol) => {
         toAdd.push({
           schema: dbcol.schema,
           table: dbcol.table,

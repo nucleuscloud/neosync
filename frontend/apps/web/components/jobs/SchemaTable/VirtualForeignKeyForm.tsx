@@ -9,15 +9,15 @@ import {
 
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { toast } from '@/components/ui/use-toast';
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { VirtualForeignConstraintFormValues } from '@/yup-validations/jobs';
+import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { GoWorkflow } from 'react-icons/go';
 import { StringSelect } from './StringSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
 
 interface Props {
-  schema: ConnectionSchemaMap;
+  schema: Record<string, GetConnectionSchemaResponse>;
   virtualForeignKey?: VirtualForeignConstraintFormValues;
   selectedTables: Set<string>;
   addVirtualForeignKey: (vfk: VirtualForeignConstraintFormValues) => void;
@@ -218,7 +218,7 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
 }
 
 function getColumnDataTypeMap(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   table?: string
 ): Record<string, string> {
   const results: Record<string, string> = {};
@@ -226,14 +226,17 @@ function getColumnDataTypeMap(
     return results;
   }
   const columns = schema[table];
-  columns.forEach((c) => {
+  if (!columns) {
+    return results;
+  }
+  columns.schemas.forEach((c) => {
     results[c.column] = c.dataType;
   });
   return results;
 }
 
 function getSourceColumnOptions(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   constraintHandler: SchemaConstraintHandler,
   table?: string
 ): string[] {
@@ -241,8 +244,11 @@ function getSourceColumnOptions(
     return [];
   }
   const columns = new Set<string>();
-  const cols = schema[table];
-  cols.forEach((c) => {
+  const schemaResp = schema[table];
+  if (!schemaResp) {
+    return [];
+  }
+  schemaResp.schemas.forEach((c) => {
     const colkey = {
       schema: c.schema,
       table: c.table,
@@ -264,7 +270,7 @@ function getSourceColumnOptions(
 }
 
 function getTargetColumnOptions(
-  schema: ConnectionSchemaMap,
+  schema: Record<string, GetConnectionSchemaResponse>,
   table?: string
 ): string[] {
   if (!table) {
@@ -272,7 +278,10 @@ function getTargetColumnOptions(
   }
   const columns = new Set<string>();
   const cols = schema[table];
-  cols.forEach((c) => {
+  if (!cols) {
+    return [];
+  }
+  cols.schemas.forEach((c) => {
     columns.add(c.column);
   });
   return Array.from(columns);

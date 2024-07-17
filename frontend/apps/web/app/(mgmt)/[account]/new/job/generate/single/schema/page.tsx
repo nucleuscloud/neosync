@@ -28,7 +28,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { validateJobMapping } from '@/libs/requests/validateJobMappings';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -46,6 +45,7 @@ import {
   createJob,
   getAccountOnboardingConfig,
   getConnections,
+  getConnectionSchemaMap,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
@@ -132,10 +132,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaMapLoading,
-    isValidating: isSchemaMapValidating,
-  } = useGetConnectionSchemaMap(
-    account?.id ?? '',
-    connectFormValues.fkSourceConnectionId
+    isFetching: isSchemaMapValidating,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: connectFormValues.fkSourceConnectionId },
+    { enabled: !!connectFormValues.fkSourceConnectionId }
   );
 
   const { mutateAsync: createJobAsync } = useMutation(createJob);

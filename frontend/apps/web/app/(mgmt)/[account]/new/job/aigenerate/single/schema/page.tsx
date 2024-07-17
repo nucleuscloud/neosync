@@ -34,7 +34,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -49,6 +48,7 @@ import {
   getAccountOnboardingConfig,
   getAiGeneratedData,
   getConnections,
+  getConnectionSchemaMap,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
@@ -129,10 +129,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaMapLoading,
-    isValidating: isSchemaMapValidating,
-  } = useGetConnectionSchemaMap(
-    account?.id ?? '',
-    connectFormValues.fkSourceConnectionId
+    isFetching: isSchemaMapValidating,
+  } = useQuery(
+    getConnectionSchemaMap,
+    { connectionId: connectFormValues.fkSourceConnectionId },
+    { enabled: !!connectFormValues.fkSourceConnectionId }
   );
 
   const formKey = sessionKeys.aigenerate.schema;
@@ -315,9 +316,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const tableSchema =
         connectionSchemaDataMap.schemaMap[`${formSchema}.${formTable}`];
       if (tableSchema) {
-        tdata.push(...tableSchema);
+        tdata.push(...tableSchema.schemas);
         cols.push(
-          ...getAiSampleTableColumns(tableSchema.map((dbcol) => dbcol.column))
+          ...getAiSampleTableColumns(
+            tableSchema.schemas.map((dbcol) => dbcol.column)
+          )
         );
       }
     }

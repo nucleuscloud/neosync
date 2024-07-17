@@ -15,14 +15,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import {
   JobMappingFormValues,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
-import { ValidateJobMappingsResponse } from '@neosync/sdk';
+import {
+  GetConnectionSchemaResponse,
+  ValidateJobMappingsResponse,
+} from '@neosync/sdk';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { FieldErrors } from 'react-hook-form';
@@ -40,7 +42,7 @@ interface Props {
   addVirtualForeignKey?: (vfk: VirtualForeignConstraintFormValues) => void;
   removeVirtualForeignKey?: (index: number) => void;
   jobType: JobType;
-  schema: ConnectionSchemaMap;
+  schema: Record<string, GetConnectionSchemaResponse>;
   isSchemaDataReloading: boolean;
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
@@ -86,7 +88,7 @@ export function SchemaTable(props: Props): ReactElement {
 
   // it is imperative that this is stable to not cause infinite re-renders of the listbox(s)
   const dualListBoxOpts = useMemo(
-    () => getDualListBoxOptions(schema, data),
+    () => getDualListBoxOptions(new Set(Object.keys(schema)), data),
     [schema, data]
   );
 
@@ -167,10 +169,9 @@ export function SchemaTable(props: Props): ReactElement {
 }
 
 function getDualListBoxOptions(
-  schema: ConnectionSchemaMap,
+  tables: Set<string>,
   jobmappings: JobMappingFormValues[]
 ): Option[] {
-  const tables = new Set(Object.keys(schema));
   jobmappings.forEach((jm) => tables.add(`${jm.schema}.${jm.table}`));
   return Array.from(tables).map((table): Option => ({ value: table }));
 }
