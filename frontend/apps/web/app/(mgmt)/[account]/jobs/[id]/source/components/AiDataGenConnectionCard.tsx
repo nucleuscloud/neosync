@@ -35,7 +35,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetConnectionResponse,
@@ -52,6 +56,7 @@ import {
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -113,6 +118,7 @@ export default function AiDataGenConnectionCard({
   const { mutateAsync: getConnectionSchemaMapAsync } = useMutation(
     getConnectionSchemaMap
   );
+  const queryclient = useQueryClient();
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
@@ -270,8 +276,22 @@ export default function AiDataGenConnectionCard({
       const newValues = await getUpdatedValues(
         value,
         form.getValues(),
-        (id) => getConnectionAsync({ id }),
-        (id) => getConnectionSchemaMapAsync({ connectionId: id })
+        async (id) => {
+          const resp = await getConnectionAsync({ id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnection, { id }),
+            resp
+          );
+          return resp;
+        },
+        async (id) => {
+          const resp = await getConnectionSchemaMapAsync({ connectionId: id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            resp
+          );
+          return resp;
+        }
       );
       form.reset(newValues);
       if (newValues.schema.schema && newValues.schema.table) {

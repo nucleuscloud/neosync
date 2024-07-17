@@ -34,7 +34,11 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
+import {
+  createConnectQueryKey,
+  useMutation,
+  useQuery,
+} from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
@@ -61,6 +65,7 @@ import {
   getJob,
   updateJobSourceConnection,
 } from '@neosync/sdk/connectquery';
+import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -125,6 +130,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { mutateAsync: updateJobSrcConnection } = useMutation(
     updateJobSourceConnection
   );
+  const queryclient = useQueryClient();
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
     ValidateJobMappingsResponse | undefined
@@ -214,8 +220,22 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const newValues = await getUpdatedValues(
         value,
         form.getValues(),
-        (id) => getConnectionAsync({ id }),
-        (id) => getConnectionSchemaMapAsync({ connectionId: id })
+        async (id) => {
+          const resp = await getConnectionAsync({ id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnection, { id }),
+            resp
+          );
+          return resp;
+        },
+        async (id) => {
+          const resp = await getConnectionSchemaMapAsync({ connectionId: id });
+          queryclient.setQueryData(
+            createConnectQueryKey(getConnectionSchemaMap, { connectionId: id }),
+            resp
+          );
+          return resp;
+        }
       );
       form.reset(newValues);
     } catch (err) {
