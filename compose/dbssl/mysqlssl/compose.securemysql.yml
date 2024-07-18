@@ -1,0 +1,31 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-secure
+    environment:
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - ../certs:/certs:ro
+    ports:
+      - "3356:3306"
+    networks:
+      - neosync-network
+    command:
+      [
+        "--ssl-ca=/certs/root.crt",
+        "--ssl-cert=/certs/server.crt",
+        "--ssl-key=/certs/server.key",
+        "--require_secure_transport=ON",
+      ]
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  neosync-network:
+    name: neosync-network
+    external: true

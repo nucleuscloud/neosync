@@ -1,13 +1,13 @@
 services:
   postgres:
     image: postgres:15
-    container_name: postgres
+    container_name: postgres-secure
     environment:
       POSTGRES_DB: mydb
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
     volumes:
-      - ./certs:/certs
+      - ../certs:/certs
     ports:
       - "5555:5432"
     user: postgres
