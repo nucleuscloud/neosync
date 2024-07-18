@@ -577,7 +577,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           )}
         />
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="bastion">
+          <AccordionItem value="clienttls">
             <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">

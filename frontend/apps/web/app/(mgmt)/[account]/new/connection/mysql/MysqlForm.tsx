@@ -109,6 +109,11 @@ export default function MysqlForm() {
         passphrase: '',
         privateKey: '',
       },
+      clientTls: {
+        rootCert: '',
+        clientCert: '',
+        clientKey: '',
+      },
     },
     context: {
       accountId: account?.id ?? '',
@@ -576,6 +581,73 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </FormItem>
           )}
         />
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="clienttls">
+            <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 p-2">
+              <div className="text-sm">
+                Configuring this section allows Neosync to connect to the
+                database using SSL/TLS. The verification mode may be configured
+                using the SSL Field, or by specifying the option in the mysql
+                url.
+              </div>
+              <FormField
+                control={form.control}
+                name="clientTls.rootCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Root Certificate</FormLabel>
+                    <FormDescription>
+                      {`The public key certificate of the CA that issued the
+                      server's certificate. Root certificates are used to
+                      authenticate the server to the client. They ensure that
+                      the server the client is connecting to is trusted.`}
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Certificate</FormLabel>
+                    <FormDescription>
+                      A public key certificate issued to the client by a trusted
+                      Certificate Authority (CA).
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Key</FormLabel>
+                    <FormDescription>
+                      A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>

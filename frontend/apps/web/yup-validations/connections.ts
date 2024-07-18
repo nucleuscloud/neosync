@@ -157,6 +157,7 @@ export const MysqlFormValues = Yup.object({
   }),
   tunnel: SshTunnelFormValues,
   options: SQL_OPTIONS_FORM_SCHEMA,
+  clientTls: ClientTlsFormValues,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;

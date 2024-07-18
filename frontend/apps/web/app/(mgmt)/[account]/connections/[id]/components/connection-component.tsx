@@ -214,6 +214,17 @@ export function getConnectionComponentDetails(
                 maxConnectionLimit:
                   mysqlValue.connectionOptions?.maxConnectionLimit,
               },
+              clientTls: {
+                rootCert: mysqlValue.clientTls?.rootCert
+                  ? mysqlValue.clientTls.rootCert
+                  : '',
+                clientCert: mysqlValue.clientTls?.clientCert
+                  ? mysqlValue.clientTls.clientCert
+                  : '',
+                clientKey: mysqlValue.clientTls?.clientKey
+                  ? mysqlValue.clientTls.clientKey
+                  : '',
+              },
               tunnel: {
                 host: mysqlValue.tunnel?.host ?? '',
                 port: mysqlValue.tunnel?.port ?? 22,
