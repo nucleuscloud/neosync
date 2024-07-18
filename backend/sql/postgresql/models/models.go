@@ -75,6 +75,10 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 		if c.MysqlConfig.ConnectionOptions != nil {
 			connectionOptions = c.MysqlConfig.ConnectionOptions.ToDto()
 		}
+		var clientTls *mgmtv1alpha1.ClientTlsConfig
+		if c.MysqlConfig.ClientTls != nil {
+			clientTls = c.MysqlConfig.ClientTls.ToDto()
+		}
 		if c.MysqlConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
@@ -91,6 +95,7 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}, nil
@@ -101,7 +106,9 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 							Url: *c.MysqlConfig.Url,
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}, nil
@@ -191,6 +198,13 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if config.MysqlConfig.ConnectionOptions != nil {
 			c.MysqlConfig.ConnectionOptions = &ConnectionOptions{}
 			c.MysqlConfig.ConnectionOptions.FromDto(config.MysqlConfig.ConnectionOptions)
+		}
+		if config.MysqlConfig.GetClientTls() != nil {
+			c.MysqlConfig.ClientTls = &ClientTls{
+				RootCert:   config.MysqlConfig.GetClientTls().RootCert,
+				ClientCert: config.MysqlConfig.GetClientTls().ClientCert,
+				ClientKey:  config.MysqlConfig.GetClientTls().ClientKey,
+			}
 		}
 		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
@@ -450,6 +464,7 @@ type MysqlConnectionConfig struct {
 	Url               *string            `json:"url,omitempty"`
 	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
+	ClientTls         *ClientTls         `json:"clientTls,omitempty"`
 }
 
 type MysqlConnection struct {
