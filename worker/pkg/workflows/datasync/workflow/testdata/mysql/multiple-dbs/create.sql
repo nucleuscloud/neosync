@@ -1,4 +1,3 @@
-CREATE DATABASE IF NOT EXISTS `m_db_1`;
 CREATE TABLE IF NOT EXISTS `m_db_1`.`container_status` (
 	`id` int NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY (`id`));
@@ -18,7 +17,6 @@ FOREIGN KEY (`container_status_id`)
 REFERENCES `container_status` (`id`);
 
 
-CREATE DATABASE IF NOT EXISTS `m_db_2`;
 USE `m_db_2`;
 CREATE TABLE IF NOT EXISTS `container_status` (
 	`id` int NOT NULL AUTO_INCREMENT,

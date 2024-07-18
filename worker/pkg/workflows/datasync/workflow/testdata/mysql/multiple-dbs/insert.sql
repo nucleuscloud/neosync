@@ -15,7 +15,7 @@ INSERT INTO `m_db_1`.`container` (`code`, `container_status_id`) VALUES
 
 
 INSERT INTO `m_db_2`.`container_status` (`id`) VALUES
-(NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);
+(NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);
 
 -- Insert 10 rows into container table
 INSERT INTO `m_db_2`.`container` (`code`, `container_status_id`) VALUES
@@ -25,7 +25,5 @@ INSERT INTO `m_db_2`.`container` (`code`, `container_status_id`) VALUES
 ('code4', 8),
 ('code5', 3),
 ('code6', 6),
-('code7', 9),
-('code8', 7),
-('code9', 2),
-('code10', 9);
+('code7', 4),
+('code8', 7);

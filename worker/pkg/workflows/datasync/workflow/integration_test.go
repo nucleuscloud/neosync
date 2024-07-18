@@ -24,17 +24,16 @@ import (
 )
 
 type PostgresTestContainer struct {
-	pool          *pgxpool.Pool
-	testcontainer *testpg.PostgresContainer
+	pool      *pgxpool.Pool
+	container *testpg.PostgresContainer
+	url       string
 }
 type PostgresTest struct {
-	container *PostgresTestContainer
+	pool          *pgxpool.Pool
+	testcontainer *testpg.PostgresContainer
 
-	sourcePool *pgxpool.Pool
-	targetPool *pgxpool.Pool
-
-	sourceDsn string
-	targetDsn string
+	source *PostgresTestContainer
+	target *PostgresTestContainer
 
 	databases []string
 }
@@ -42,7 +41,7 @@ type PostgresTest struct {
 type MysqlTestContainer struct {
 	pool      *sql.DB
 	container *testmysql.MySQLContainer
-	dsn       string
+	url       string
 	close     func()
 }
 
@@ -77,9 +76,7 @@ func (s *IntegrationTestSuite) SetupPostgres() {
 		panic(err)
 	}
 	s.postgres = &PostgresTest{
-		container: &PostgresTestContainer{
-			testcontainer: pgcontainer,
-		},
+		testcontainer: pgcontainer,
 	}
 	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
 	if err != nil {
@@ -91,11 +88,11 @@ func (s *IntegrationTestSuite) SetupPostgres() {
 	if err != nil {
 		panic(err)
 	}
-	s.postgres.container.pool = pool
+	s.postgres.pool = pool
 
 	s.T().Logf("creating databases. %+v \n", s.postgres.databases)
 	for _, db := range s.postgres.databases {
-		_, err = s.postgres.container.pool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
+		_, err = s.postgres.pool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
 		if err != nil {
 			panic(err)
 		}
@@ -105,23 +102,27 @@ func (s *IntegrationTestSuite) SetupPostgres() {
 	if err != nil {
 		panic(err)
 	}
-	s.postgres.sourceDsn = srcUrl
-	sourceConn, err := pgxpool.New(s.ctx, s.postgres.sourceDsn)
+	s.postgres.source = &PostgresTestContainer{
+		url: srcUrl,
+	}
+	sourceConn, err := pgxpool.New(s.ctx, s.postgres.source.url)
 	if err != nil {
 		panic(err)
 	}
-	s.postgres.sourcePool = sourceConn
+	s.postgres.source.pool = sourceConn
 
 	targetUrl, err := getDbPgUrl(connstr, "datasync_target", "disable")
 	if err != nil {
 		panic(err)
 	}
-	s.postgres.targetDsn = targetUrl
-	targetConn, err := pgxpool.New(s.ctx, s.postgres.targetDsn)
+	s.postgres.target = &PostgresTestContainer{
+		url: targetUrl,
+	}
+	targetConn, err := pgxpool.New(s.ctx, s.postgres.target.url)
 	if err != nil {
 		panic(err)
 	}
-	s.postgres.targetPool = targetConn
+	s.postgres.target.pool = targetConn
 }
 
 func (s *IntegrationTestSuite) SetupMysql() {
@@ -167,9 +168,19 @@ func createMysqlTestContainer(
 	if err != nil {
 		panic(err)
 	}
+	containerPort, err := container.MappedPort(ctx, "3306/tcp")
+	if err != nil {
+		return nil, err
+	}
+	containerHost, err := container.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
 	return &MysqlTestContainer{
 		pool:      pool,
-		dsn:       connstr,
+		url:       connUrl,
 		container: container,
 		close: func() {
 			if pool != nil {
@@ -205,11 +216,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
 	s.T().Logf("running postgres sql file. folder: %s \n", testFolder)
 	for _, file := range files {
-		sql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
 		if err != nil {
 			panic(err)
 		}
-		_, err = pool.Exec(s.ctx, string(sql))
+		_, err = pool.Exec(s.ctx, string(sqlStr))
 		if err != nil {
 			panic(err)
 		}
@@ -219,12 +230,12 @@ func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolde
 func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string, files []string) {
 	s.T().Logf("running mysql sql file. folder: %s \n", testFolder)
 	for _, file := range files {
-		sql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
 		if err != nil {
 			panic(err)
 		}
 
-		_, err = pool.ExecContext(s.ctx, string(sql))
+		_, err = pool.ExecContext(s.ctx, string(sqlStr))
 		if err != nil {
 			panic(err)
 		}
@@ -235,22 +246,22 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
 	// postgres
 	for _, db := range s.postgres.databases {
-		_, err := s.postgres.container.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
+		_, err := s.postgres.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
 		if err != nil {
 			panic(err)
 		}
 	}
-	if s.postgres.sourcePool != nil {
-		s.postgres.sourcePool.Close()
+	if s.postgres.source.pool != nil {
+		s.postgres.source.pool.Close()
 	}
-	if s.postgres.targetPool != nil {
-		s.postgres.targetPool.Close()
+	if s.postgres.target.pool != nil {
+		s.postgres.target.pool.Close()
 	}
-	if s.postgres.container.pool != nil {
-		s.postgres.container.pool.Close()
+	if s.postgres.pool != nil {
+		s.postgres.pool.Close()
 	}
-	if s.postgres.container.testcontainer != nil {
-		err := s.postgres.container.testcontainer.Terminate(s.ctx)
+	if s.postgres.testcontainer != nil {
+		err := s.postgres.testcontainer.Terminate(s.ctx)
 		if err != nil {
 			panic(err)
 		}

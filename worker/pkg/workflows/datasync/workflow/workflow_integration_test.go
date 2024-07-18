@@ -24,6 +24,7 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
+	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
@@ -35,7 +36,7 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-func getAllSyncTests() []*workflow_testdata.IntegrationTest {
+func getAllPostgresSyncTests() []*workflow_testdata.IntegrationTest {
 	allTests := []*workflow_testdata.IntegrationTest{}
 	drTests := testdata_doublereference.GetSyncTests()
 	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
@@ -49,13 +50,13 @@ func getAllSyncTests() []*workflow_testdata.IntegrationTest {
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
-	tests := getAllSyncTests()
+	tests := getAllPostgresSyncTests()
 	for _, tt := range tests {
 		s.T().Run(tt.Name, func(t *testing.T) {
 			s.T().Logf("running integration test: %s \n", tt.Name)
 			// setup
-			s.RunPostgresSqlFiles(s.postgres.sourcePool, tt.Folder, tt.SourceFilePaths)
-			s.RunPostgresSqlFiles(s.postgres.targetPool, tt.Folder, tt.TargetFilePaths)
+			s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, tt.SourceFilePaths)
+			s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, tt.TargetFilePaths)
 
 			schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
 			subsetMap := map[string]*mgmtv1alpha1.PostgresSourceSchemaOption{}
@@ -138,7 +139,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 										PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 											ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-												Url: s.postgres.sourceDsn,
+												Url: s.postgres.source.url,
 											},
 										},
 									},
@@ -155,7 +156,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 									Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 										PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 											ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-												Url: s.postgres.targetDsn,
+												Url: s.postgres.target.url,
 											},
 										},
 									},
@@ -170,7 +171,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			executeWorkflow(s.T(), srv, s.redisUrl, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
 			for table, expected := range tt.Expected {
-				rows, err := s.postgres.targetPool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
+				rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
 				require.NoError(s.T(), err)
 				count := 0
 				for rows.Next() {
@@ -180,8 +181,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			}
 
 			// tear down
-			s.RunPostgresSqlFiles(s.postgres.sourcePool, tt.Folder, []string{"teardown.sql"})
-			s.RunPostgresSqlFiles(s.postgres.targetPool, tt.Folder, []string{"teardown.sql"})
+			s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, []string{"teardown.sql"})
+			s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, []string{"teardown.sql"})
 		})
 	}
 }
@@ -189,8 +190,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	testFolder := "postgres/virtual-foreign-keys"
 	// setup
-	s.RunPostgresSqlFiles(s.postgres.sourcePool, testFolder, []string{"source-setup.sql"})
-	s.RunPostgresSqlFiles(s.postgres.targetPool, testFolder, []string{"target-setup.sql"})
+	s.RunPostgresSqlFiles(s.postgres.source.pool, testFolder, []string{"source-setup.sql"})
+	s.RunPostgresSqlFiles(s.postgres.target.pool, testFolder, []string{"target-setup.sql"})
 
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
 	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
@@ -248,7 +249,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.sourceDsn,
+										Url: s.postgres.source.url,
 									},
 								},
 							},
@@ -265,7 +266,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.targetDsn,
+										Url: s.postgres.target.url,
 									},
 								},
 							},
@@ -281,7 +282,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
-		rows, err := s.postgres.targetPool.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
+		rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
 		require.NoError(s.T(), err)
 		count := 0
 		for rows.Next() {
@@ -291,35 +292,180 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		require.NoError(s.T(), err)
 	}
 
-	rows := s.postgres.sourcePool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows := s.postgres.source.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	var rowCount int
 	err := rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.sourcePool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
+	rows = s.postgres.source.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
-	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 0, rowCount)
 
-	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
+	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.targetPool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
+	rows = s.postgres.target.pool.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
 	// tear down
-	s.RunPostgresSqlFiles(s.postgres.sourcePool, testFolder, []string{"teardown.sql"})
-	s.RunPostgresSqlFiles(s.postgres.targetPool, testFolder, []string{"teardown.sql"})
+	s.RunPostgresSqlFiles(s.postgres.source.pool, testFolder, []string{"teardown.sql"})
+	s.RunPostgresSqlFiles(s.postgres.target.pool, testFolder, []string{"teardown.sql"})
+}
+
+func getAllMysqlSyncTests() []*workflow_testdata.IntegrationTest {
+	allTests := []*workflow_testdata.IntegrationTest{}
+	mdTests := mysql_multipledbs.GetSyncTests()
+	allTests = append(allTests, mdTests...)
+	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
+	tests := getAllMysqlSyncTests()
+	for _, tt := range tests {
+		s.T().Run(tt.Name, func(t *testing.T) {
+			s.T().Logf("running integration test: %s \n", tt.Name)
+			// setup
+			s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, tt.SourceFilePaths)
+			s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, tt.TargetFilePaths)
+
+			schemas := []*mgmtv1alpha1.MysqlSourceSchemaOption{}
+			subsetMap := map[string]*mgmtv1alpha1.MysqlSourceSchemaOption{}
+			for table, where := range tt.SubsetMap {
+				schema, table := sqlmanager_shared.SplitTableKey(table)
+				if _, exists := subsetMap[schema]; !exists {
+					subsetMap[schema] = &mgmtv1alpha1.MysqlSourceSchemaOption{
+						Schema: schema,
+						Tables: []*mgmtv1alpha1.MysqlSourceTableOption{},
+					}
+				}
+				w := where
+				subsetMap[schema].Tables = append(subsetMap[schema].Tables, &mgmtv1alpha1.MysqlSourceTableOption{
+					Table:       table,
+					WhereClause: &w,
+				})
+			}
+
+			for _, s := range subsetMap {
+				schemas = append(schemas, s)
+			}
+
+			var subsetByForeignKeyConstraints bool
+			var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+			if tt.JobOptions != nil {
+				if tt.JobOptions.SubsetByForeignKeyConstraints {
+					subsetByForeignKeyConstraints = true
+				}
+				destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+						MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+							InitTableSchema: tt.JobOptions.InitSchema,
+							TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
+								TruncateBeforeInsert: tt.JobOptions.Truncate,
+							},
+						},
+					},
+				}
+			}
+
+			mux := http.NewServeMux()
+			mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+				mgmtv1alpha1connect.JobServiceGetJobProcedure,
+				func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+					return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+						Job: &mgmtv1alpha1.Job{
+							Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+							Source: &mgmtv1alpha1.JobSource{
+								Options: &mgmtv1alpha1.JobSourceOptions{
+									Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+										Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+											ConnectionId:                  "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+											Schemas:                       schemas,
+											SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+										},
+									},
+								},
+							},
+							Destinations: []*mgmtv1alpha1.JobDestination{
+								{
+									ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+									Options:      destinationOptions,
+								},
+							},
+							Mappings:           tt.JobMappings,
+							VirtualForeignKeys: tt.VirtualForeignKeys,
+						}}), nil
+				},
+			))
+
+			mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+				mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+				func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+					if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+						return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+							Connection: &mgmtv1alpha1.Connection{
+								Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+								Name: "source",
+								ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+									Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+										MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+											ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+												Url: s.mysql.source.url,
+											},
+										},
+									},
+								},
+							},
+						}), nil
+					}
+					if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+						return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+							Connection: &mgmtv1alpha1.Connection{
+								Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+								Name: "target",
+								ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+									Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+										MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+											ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+												Url: s.mysql.target.url,
+											},
+										},
+									},
+								},
+							},
+						}), nil
+					}
+					return nil, nil
+				},
+			))
+			srv := startHTTPServer(s.T(), mux)
+			executeWorkflow(s.T(), srv, s.redisUrl, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
+
+			for table, expected := range tt.Expected {
+				rows, err := s.mysql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
+				require.NoError(s.T(), err)
+				count := 0
+				for rows.Next() {
+					count++
+				}
+				require.Equalf(s.T(), expected.RowCount, count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+			}
+
+			// tear down
+			s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, []string{"teardown.sql"})
+			s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, []string{"teardown.sql"})
+		})
+	}
 }
 
 func executeWorkflow(

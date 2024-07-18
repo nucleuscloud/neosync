@@ -5,37 +5,19 @@ import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/d
 func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
-			Name:            "Circular Dependency sync + init schema",
-			Folder:          "circular-dependencies",
-			SourceFilePaths: []string{"setup.sql"},
-			TargetFilePaths: []string{"schema-create.sql"},
+			Name:            "multiple databases sync + init schema",
+			Folder:          "mysql/multiple-dbs",
+			SourceFilePaths: []string{"create-dbs.sql", "create.sql", "insert.sql"},
+			TargetFilePaths: []string{"create-dbs.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
 			JobOptions: &workflow_testdata.TestJobOptions{
 				InitSchema: true,
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"circular_dependencies.addresses": &workflow_testdata.ExpectedOutput{RowCount: 8},
-				"circular_dependencies.customers": &workflow_testdata.ExpectedOutput{RowCount: 10},
-				"circular_dependencies.orders":    &workflow_testdata.ExpectedOutput{RowCount: 10},
-			},
-		},
-		{
-			Name:            "Circular Dependency subset + truncate",
-			Folder:          "circular-dependencies",
-			SourceFilePaths: []string{"setup.sql"},
-			TargetFilePaths: []string{"setup.sql"},
-			SubsetMap: map[string]string{
-				"circular_dependencies.orders": "id = 'f216a6f8-3bcd-46d8-8b99-e3b31dd5e6f3'",
-			},
-			JobOptions: &workflow_testdata.TestJobOptions{
-				SubsetByForeignKeyConstraints: true,
-				Truncate:                      true,
-			},
-			JobMappings: GetDefaultSyncJobMappings(),
-			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"circular_dependencies.addresses": &workflow_testdata.ExpectedOutput{RowCount: 1},
-				"circular_dependencies.customers": &workflow_testdata.ExpectedOutput{RowCount: 1},
-				"circular_dependencies.orders":    &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"m_db_1.container":        &workflow_testdata.ExpectedOutput{RowCount: 10},
+				"m_db_1.container_status": &workflow_testdata.ExpectedOutput{RowCount: 10},
+				"m_db_2.container":        &workflow_testdata.ExpectedOutput{RowCount: 8},
+				"m_db_2.container_status": &workflow_testdata.ExpectedOutput{RowCount: 8},
 			},
 		},
 	}
