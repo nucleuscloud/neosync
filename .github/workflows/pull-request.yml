@@ -12,7 +12,7 @@ jobs:
   check_labels:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      issues: write
     env:
       HAS_LABELS: ${{ github.event.pull_request.labels[0] != null }}
     steps:
