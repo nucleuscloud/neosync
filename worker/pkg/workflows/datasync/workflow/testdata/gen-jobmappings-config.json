@@ -25,5 +25,4 @@
 		"sql_file": "create.sql",
 		"driver": "mysql"
 	}
-
 ]

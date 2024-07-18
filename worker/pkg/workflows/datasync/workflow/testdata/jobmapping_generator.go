@@ -14,6 +14,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
+	"github.com/xwb1989/sqlparser"
 )
 
 type Input struct {
@@ -40,7 +41,7 @@ type JobMapping struct {
 	Config      string
 }
 
-func parsePostegresSchema(sql string) ([]*Table, error) {
+func parsePostegresStatements(sql string) ([]*Table, error) {
 	tree, err := pgquery.Parse(sql)
 	if err != nil {
 		return nil, err
@@ -72,6 +73,51 @@ func parsePostegresSchema(sql string) ([]*Table, error) {
 	}
 	if schema == "" {
 		return nil, fmt.Errorf("unable to determine schema")
+	}
+	return tables, nil
+}
+
+// todo parser breaks when there are foreign key constraints defined in the create table statements
+// work around for now is to use alter table statements to add foreign key constraints to tables
+func parseMysqlStatements(sql string) ([]*Table, error) {
+	var tables []*Table
+	var currentSchema string
+
+	r := strings.NewReader(sql)
+
+	tokens := sqlparser.NewTokenizer(r)
+	for {
+		parsedStmt, err := sqlparser.ParseNext(tokens)
+		if err == io.EOF {
+			break
+		}
+		switch stmt := parsedStmt.(type) {
+		case *sqlparser.DBDDL:
+			currentSchema = stmt.DBName
+		case *sqlparser.DDL:
+			switch stmt.Action {
+			case sqlparser.CreateStr:
+				if stmt.TableSpec != nil {
+					s := stmt.NewName.Qualifier.String()
+					if s == "" {
+						s = currentSchema
+					}
+					table := &Table{
+						Schema: s,
+						Name:   stmt.NewName.Name.String(),
+					}
+					for _, col := range stmt.TableSpec.Columns {
+						column := &Column{
+							Name: col.Name.String(),
+						}
+						table.Columns = append(table.Columns, column)
+					}
+					tables = append(tables, table)
+				}
+			}
+		case *sqlparser.Use:
+			currentSchema = stmt.DBName.String()
+		}
 	}
 	return tables, nil
 }
@@ -193,10 +239,21 @@ func main() {
 		sqlContent := string(byteValue)
 		sqlFile.Close()
 
-		tables, err := parsePostegresSchema(sqlContent)
-		if err != nil {
-			fmt.Println("Error parsing SQL schema:", err)
-			return
+		var tables []*Table
+		if input.Driver == "postgres" {
+			t, err := parsePostegresStatements(sqlContent)
+			if err != nil {
+				fmt.Println("Error parsing postgres SQL schema:", err)
+				return
+			}
+			tables = t
+		} else if input.Driver == "mysql" {
+			t, err := parseMysqlStatements(sqlContent)
+			if err != nil {
+				fmt.Println("Error parsing mysql SQL schema:", err)
+				return
+			}
+			tables = t
 		}
 
 		jobMapping := generateJobMapping(tables)
