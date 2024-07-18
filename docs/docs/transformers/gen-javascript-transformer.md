@@ -47,8 +47,11 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformCharacterScramble(value, {userProvidedRegex: "",
+
+const newValue = transformCharacterScramble(value, { 
+	userProvidedRegex: "", 
 });
+
 ```
 <br/>
 
@@ -77,8 +80,12 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformE164PhoneNumber(value, {
+
+const newValue = transformE164PhoneNumber(value, { 
+	preserveLength: false,  
+	maxLength: 1, 
 });
+
 ```
 <br/>
 
@@ -104,23 +111,27 @@ Description: Value that will be transformed
 | email | any |  | false | 
 | preserveLength | bool | false | true | 
 | preserveDomain | bool | false | true | 
-| excludedDomains | any | []any{} | true | 
+| excludedDomains | any | [] | true | 
 | maxLength | int64 | 10000 | true | 
 | seed | int64 |  | false | 
-| emailType | string | GenerateEmailType_UuidV4.String() | true | 
-| invalidEmailAction | string | InvalidEmailAction_Reject.String() | true | 
+| emailType | string | 'uuidv4' | true | 
+| invalidEmailAction | string | 'reject' | true | 
 <br/>
 **Example**
 
 ```javascript
+
 const newValue = transformEmail(value, { 
+	email: "",  
 	preserveLength: false, 
 	preserveDomain: false, 
-	excludedDomains: []any{}, 
+	excludedDomains: [], 
 	maxLength: 10000, 
-	emailType: GenerateEmailType_UuidV4.String(), 
-	invalidEmailAction: InvalidEmailAction_Reject.String(),
+	seed: 1,  
+	emailType: 'uuidv4', 
+	invalidEmailAction: 'reject',
 });
+
 ```
 <br/>
 
@@ -150,10 +161,13 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
+
 const newValue = transformFirstName(value, { 
 	maxLength: 10000, 
-	preserveLength: false,
+	preserveLength: false, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -185,8 +199,15 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformFloat64(value, {
+
+const newValue = transformFloat64(value, { 
+	randomizationRangeMin: 1.12,  
+	randomizationRangeMax: 1.12,  
+	precision: 1,  
+	scale: 1,  
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -216,10 +237,13 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
+
 const newValue = transformFullName(value, { 
 	maxLength: 10000, 
-	preserveLength: false,
+	preserveLength: false, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -248,8 +272,12 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformInt64(value, {
+
+const newValue = transformInt64(value, { 
+	randomizationRangeMin: 1,  
+	randomizationRangeMax: 1, 
 });
+
 ```
 <br/>
 
@@ -277,8 +305,11 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformInt64PhoneNumber(value, {
+
+const newValue = transformInt64PhoneNumber(value, { 
+	preserveLength: false, 
 });
+
 ```
 <br/>
 
@@ -308,10 +339,13 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
+
 const newValue = transformLastName(value, { 
 	maxLength: 10000, 
-	preserveLength: false,
+	preserveLength: false, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -341,11 +375,13 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
+
 const newValue = transformString(value, { 
 	preserveLength: false, 
 	minLength: 1, 
 	maxLength: 20,
 });
+
 ```
 <br/>
 
@@ -374,8 +410,12 @@ Description: Value that will be transformed
 **Example**
 
 ```javascript
-const newValue = transformStringPhoneNumber(value, {
+
+const newValue = transformStringPhoneNumber(value, { 
+	preserveLength: false,  
+	maxLength: 1, 
 });
+
 ```
 <br/>
 
@@ -409,8 +449,11 @@ source: generate_bool.go
 **Example**
 
 ```javascript
-const newValue = generateBool({
+
+const newValue = generateBool({ 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -435,8 +478,11 @@ source: generate_card_number.go
 **Example**
 
 ```javascript
-const newValue = generateCardNumber({
+
+const newValue = generateCardNumber({ 
+	validLuhn: false, 
 });
+
 ```
 <br/>
 
@@ -461,8 +507,11 @@ source: generate_categorical.go
 **Example**
 
 ```javascript
-const newValue = generateCategorical({categories: "",
+
+const newValue = generateCategorical({ 
+	categories: "", 
 });
+
 ```
 <br/>
 
@@ -487,8 +536,11 @@ source: generate_city.go
 **Example**
 
 ```javascript
-const newValue = generateCity({
+
+const newValue = generateCity({ 
+	maxLength: 1, 
 });
+
 ```
 <br/>
 
@@ -508,17 +560,20 @@ source: generate_email.go
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 100000 | true | 
-| emailType | string | GenerateEmailType_UuidV4.String() | true | 
+| emailType | string | 'uuidv4' | true | 
 | seed | int64 |  | false | 
 <br/>
 
 **Example**
 
 ```javascript
+
 const newValue = generateEmail({ 
 	maxLength: 100000, 
-	emailType: GenerateEmailType_UuidV4.String(),
+	emailType: 'uuidv4', 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -544,9 +599,12 @@ source: generate_first_name.go
 **Example**
 
 ```javascript
+
 const newValue = generateFirstName({ 
-	maxLength: 10000,
+	maxLength: 10000, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -576,9 +634,16 @@ source: generate_float.go
 **Example**
 
 ```javascript
+
 const newValue = generateFloat64({ 
-	randomizeSign: false,
+	randomizeSign: false, 
+	min: 1.12,  
+	max: 1.12,  
+	precision: 1,  
+	scale: 1,  
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -603,8 +668,11 @@ source: generate_full_address.go
 **Example**
 
 ```javascript
-const newValue = generateFullAddress({
+
+const newValue = generateFullAddress({ 
+	maxLength: 1, 
 });
+
 ```
 <br/>
 
@@ -630,9 +698,12 @@ source: generate_full_name.go
 **Example**
 
 ```javascript
+
 const newValue = generateFullName({ 
-	maxLength: 10000,
+	maxLength: 10000, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -659,10 +730,13 @@ source: generate_gender.go
 **Example**
 
 ```javascript
+
 const newValue = generateGender({ 
 	abbreviate: false, 
-	maxLength: 10000,
+	maxLength: 10000, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -690,9 +764,14 @@ source: generate_int64.go
 **Example**
 
 ```javascript
+
 const newValue = generateInt64({ 
-	randomizeSign: false,
+	randomizeSign: false, 
+	min: 1,  
+	max: 1,  
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -716,8 +795,9 @@ source: generate_int64_phone_number.go
 **Example**
 
 ```javascript
-const newValue = generateInt64PhoneNumber({
-});
+
+const newValue = generateInt64PhoneNumber({});
+
 ```
 <br/>
 
@@ -743,8 +823,12 @@ source: generate_international_phone_number.go
 **Example**
 
 ```javascript
-const newValue = generateInternationalPhoneNumber({
+
+const newValue = generateInternationalPhoneNumber({ 
+	min: 1,  
+	max: 1, 
 });
+
 ```
 <br/>
 
@@ -770,9 +854,12 @@ source: generate_last_name.go
 **Example**
 
 ```javascript
+
 const newValue = generateLastName({ 
-	maxLength: 10000,
+	maxLength: 10000, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -798,8 +885,12 @@ source: generate_random_string.go
 **Example**
 
 ```javascript
-const newValue = generateRandomString({
+
+const newValue = generateRandomString({ 
+	min: 1,  
+	max: 1, 
 });
+
 ```
 <br/>
 
@@ -823,8 +914,9 @@ source: generate_sha256hash.go
 **Example**
 
 ```javascript
-const newValue = generateSHA256Hash({
-});
+
+const newValue = generateSHA256Hash({});
+
 ```
 <br/>
 
@@ -849,8 +941,11 @@ source: generate_ssn.go
 **Example**
 
 ```javascript
-const newValue = generateSSN({
+
+const newValue = generateSSN({ 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -874,8 +969,9 @@ source: generate_state.go
 **Example**
 
 ```javascript
-const newValue = generateState({
-});
+
+const newValue = generateState({});
+
 ```
 <br/>
 
@@ -900,8 +996,11 @@ source: generate_street_address.go
 **Example**
 
 ```javascript
-const newValue = generateStreetAddress({
+
+const newValue = generateStreetAddress({ 
+	maxLength: 1, 
 });
+
 ```
 <br/>
 
@@ -927,8 +1026,12 @@ source: generate_string_phone_number.go
 **Example**
 
 ```javascript
-const newValue = generateStringPhoneNumber({
+
+const newValue = generateStringPhoneNumber({ 
+	min: 1,  
+	max: 1, 
 });
+
 ```
 <br/>
 
@@ -952,8 +1055,9 @@ source: generate_unix_timestamp.go
 **Example**
 
 ```javascript
-const newValue = generateUnixTimestamp({
-});
+
+const newValue = generateUnixTimestamp({});
+
 ```
 <br/>
 
@@ -979,9 +1083,12 @@ source: generate_username.go
 **Example**
 
 ```javascript
+
 const newValue = generateUsername({ 
-	maxLength: 10000,
+	maxLength: 10000, 
+	seed: 1, 
 });
+
 ```
 <br/>
 
@@ -1005,8 +1112,9 @@ source: generate_utc_timestamp.go
 **Example**
 
 ```javascript
-const newValue = generateUTCTimestamp({
-});
+
+const newValue = generateUTCTimestamp({});
+
 ```
 <br/>
 
@@ -1031,9 +1139,11 @@ Generates UUID
 **Example**
 
 ```javascript
+
 const newValue = generateUUID({ 
 	includeHyphens: true,
 });
+
 ```
 <br/>
 
@@ -1057,7 +1167,8 @@ source: generate_zipcode.go
 **Example**
 
 ```javascript
-const newValue = generateZipcode({
-});
+
+const newValue = generateZipcode({});
+
 ```
 <br/>

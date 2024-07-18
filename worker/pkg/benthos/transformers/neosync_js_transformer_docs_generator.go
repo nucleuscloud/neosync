@@ -55,7 +55,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
-		tf.Params = parsedSpec.Params
+		tf.Params = sanitizeParamDefaults(parsedSpec.Params)
 		tf.Description = parsedSpec.SpecDescription
 		exampleStr, err := generateExample(tf)
 		if err != nil {
@@ -86,28 +86,70 @@ func main() {
 
 }
 
+// makes defualts docs friendly
+func sanitizeParamDefaults(params []*transformers.BenthosSpecParam) []*transformers.BenthosSpecParam {
+	newParams := []*transformers.BenthosSpecParam{}
+	for _, p := range params {
+		var newDefault string
+		if p.HasDefault && p.Default == "GenerateEmailType_UuidV4.String()" {
+			newDefault = "'uuidv4'"
+		} else if p.HasDefault && p.Default == "InvalidEmailAction_Reject.String()" {
+			newDefault = "'reject'"
+		} else if p.HasDefault && p.Default == "[]any{}" {
+			newDefault = "[]"
+		} else {
+			newDefault = p.Default
+		}
+		newParams = append(newParams, &transformers.BenthosSpecParam{
+			Name:        p.Name,
+			TypeStr:     p.TypeStr,
+			IsOptional:  p.IsOptional,
+			HasDefault:  p.HasDefault,
+			Default:     newDefault,
+			Description: p.Description,
+		})
+	}
+	return newParams
+}
+
 const exampleTemplate = `{{- if eq .BenthosSpec.Type "transform" -}}
+{{if eq (len .BenthosSpec.Params) 0}}
+const newValue = {{.BenthosSpec.Name}}(value, {});
+{{- else }}
 const newValue = {{.BenthosSpec.Name}}(value, {
-{{- range $i, $param := .BenthosSpec.Params}}
-{{- if eq $param.Name "value" }}{{ continue }}{{- end }}
-	{{- if $param.HasDefault }} 
+{{- range $i, $param := .BenthosSpec.Params -}}
+{{- if eq $param.Name "value" -}}{{ continue }}{{- end -}}
+	{{ if $param.HasDefault }} 
 	{{$param.Name}}: {{$param.Default}},
 	{{- else }} 
-		{{- if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{- end}}
-	{{- end}}
+	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
+	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
+	{{ if eq $param.TypeStr "float64"}}{{$param.Name}}: 1.12, {{ end -}}
+	{{ if eq $param.TypeStr "bool"}}{{$param.Name}}: false, {{ end -}}
+	{{ if eq $param.TypeStr "any"}}{{$param.Name}}: "", {{ end -}}
+	{{ end }}
 {{- end }}
 });
+{{- end }}
 {{- else if eq .BenthosSpec.Type "generate" -}}
+{{if eq (len .BenthosSpec.Params) 0}}
+const newValue = {{.BenthosSpec.Name}}({});
+{{- else }}
 const newValue = {{.BenthosSpec.Name}}({
-	{{- range $i, $param := .BenthosSpec.Params}}
-	{{- if $param.HasDefault }} 
+	{{- range $i, $param := .BenthosSpec.Params -}}
+	{{ if $param.HasDefault }} 
 	{{$param.Name}}: {{$param.Default}},
 	{{- else }} 
-	{{- if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{- end}}
-	{{- end}}
+	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
+	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
+	{{ if eq $param.TypeStr "float64"}}{{$param.Name}}: 1.12, {{ end -}}
+	{{ if eq $param.TypeStr "bool"}}{{$param.Name}}: false, {{ end -}}
+	{{ if eq $param.TypeStr "any"}}{{$param.Name}}: "", {{ end -}}
+	{{ end }}
 {{- end }}
 });
 {{- end -}}
+{{ end }}
 `
 
 type ExampleTemplateData struct {
