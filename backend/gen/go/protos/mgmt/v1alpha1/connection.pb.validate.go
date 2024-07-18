@@ -3915,6 +3915,35 @@ func (m *MysqlConnectionConfig) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetClientTls()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MysqlConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MysqlConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetClientTls()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MysqlConnectionConfigValidationError{
+				field:  "ClientTls",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.ConnectionConfig.(type) {
 	case *MysqlConnectionConfig_Url:
 		if v == nil {

@@ -313,6 +313,16 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
 		}
 		query.Add("multiStatements", "true")
+		if config.MysqlConfig.GetClientTls() != nil {
+			filenames := clienttls.GetClientTlsFileNames(config.MysqlConfig.GetClientTls())
+			if filenames.RootCert != nil {
+				query.Add("ssl-ca", *filenames.RootCert)
+			}
+			if filenames.ClientCert != nil && filenames.ClientKey != nil {
+				query.Add("ssl-cert", *filenames.ClientCert)
+				query.Add("ssl-key", *filenames.ClientKey)
+			}
+		}
 		return &GeneralDbConnectConfig{
 			Driver:      mysqlDriver,
 			Host:        cc.Connection.Host,
@@ -367,6 +377,16 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 		query := u.Query()
 		if connectionTimeout != nil {
 			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
+		}
+		if config.MysqlConfig.GetClientTls() != nil {
+			filenames := clienttls.GetClientTlsFileNames(config.MysqlConfig.GetClientTls())
+			if filenames.RootCert != nil {
+				query.Add("ssl-ca", *filenames.RootCert)
+			}
+			if filenames.ClientCert != nil && filenames.ClientKey != nil {
+				query.Add("ssl-cert", *filenames.ClientCert)
+				query.Add("ssl-key", *filenames.ClientKey)
+			}
 		}
 		query.Add("multiStatements", "true")
 
