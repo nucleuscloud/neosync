@@ -9,13 +9,13 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	_ "github.com/benthosdev/benthos/v4/public/components/aws"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	_ "github.com/benthosdev/benthos/v4/public/components/pure"
-	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
-	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	_ "github.com/warpstreamlabs/bento/public/components/aws"
+	_ "github.com/warpstreamlabs/bento/public/components/io"
+	_ "github.com/warpstreamlabs/bento/public/components/pure"
+	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
+	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"

@@ -3,8 +3,8 @@ package transformers
 import (
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateSHA256Hash(t *testing.T) {

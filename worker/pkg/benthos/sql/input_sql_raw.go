@@ -7,10 +7,10 @@ import (
 	"sync"
 
 	"github.com/Jeffail/shutdown"
-	"github.com/benthosdev/benthos/v4/public/bloblang"
-	"github.com/benthosdev/benthos/v4/public/service"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func sqlRawInputSpec() *service.ConfigSpec {
