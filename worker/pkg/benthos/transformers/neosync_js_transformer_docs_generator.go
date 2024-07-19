@@ -18,6 +18,13 @@ import (
 )
 
 func main() {
+	args := os.Args
+	if len(args) < 1 {
+		panic("must provide necessary args")
+	}
+
+	docsPath := args[1]
+
 	fileSet := token.NewFileSet()
 	transformerFuncs := []*transformers.BenthosSpec{}
 
@@ -70,8 +77,8 @@ func main() {
 		fmt.Println("Error writing to output file:", err)
 		return
 	}
-	output := "../../../../docs/docs/transformers/gen-javascript-transformer.md"
-	outputFile, err := os.Create(output)
+
+	outputFile, err := os.Create(docsPath)
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
 		return
