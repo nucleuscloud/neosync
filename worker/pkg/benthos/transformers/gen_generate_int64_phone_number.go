@@ -20,6 +20,7 @@ func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64PhoneNumber",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

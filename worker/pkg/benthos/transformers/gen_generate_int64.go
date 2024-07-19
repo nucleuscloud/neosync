@@ -30,6 +30,7 @@ func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

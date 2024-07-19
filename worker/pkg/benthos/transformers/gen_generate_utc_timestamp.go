@@ -20,6 +20,7 @@ func (t *GenerateUTCTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUTCTimestamp",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

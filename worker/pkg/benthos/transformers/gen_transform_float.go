@@ -31,6 +31,7 @@ func (t *TransformFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFloat64",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

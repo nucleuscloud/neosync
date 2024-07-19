@@ -24,6 +24,7 @@ func (t *GenerateRandomString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateRandomString",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

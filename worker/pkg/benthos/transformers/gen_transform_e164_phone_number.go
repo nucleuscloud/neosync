@@ -24,6 +24,7 @@ func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformE164PhoneNumber",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

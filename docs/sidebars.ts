@@ -276,6 +276,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'transformers/javascript',
+      label: 'Javascript',
+    },
+    {
+      type: 'doc',
       id: 'transformers/user-defined',
       label: 'User Defined',
     },

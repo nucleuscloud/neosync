@@ -23,6 +23,7 @@ func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64PhoneNumber",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

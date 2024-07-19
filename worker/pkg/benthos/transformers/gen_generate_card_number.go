@@ -23,6 +23,7 @@ func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

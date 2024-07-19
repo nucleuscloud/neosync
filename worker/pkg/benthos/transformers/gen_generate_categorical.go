@@ -23,6 +23,7 @@ func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCategorical",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

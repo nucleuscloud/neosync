@@ -92,7 +92,10 @@
     "circref",
     "subsetimg",
     "FERPA",
-    "ferpa"
+    "ferpa",
+    "uuidv",
+    "Luhn",
+    "lastname"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],

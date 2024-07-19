@@ -21,6 +21,7 @@ func (t *TransformCharacterScramble) GetJsTemplateData() (*TemplateData, error) 
 	return &TemplateData{
 		Name: "transformCharacterScramble",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

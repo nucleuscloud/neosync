@@ -29,6 +29,7 @@ func (t *TransformFullName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFullName",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

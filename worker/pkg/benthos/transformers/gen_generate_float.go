@@ -32,6 +32,7 @@ func (t *GenerateFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFloat64",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

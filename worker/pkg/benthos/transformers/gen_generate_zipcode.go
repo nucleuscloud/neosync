@@ -20,6 +20,7 @@ func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateZipcode",
 		Description: "",
+		Example: "",
 	}, nil
 }
 

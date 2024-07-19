@@ -23,6 +23,7 @@ func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullAddress",
 		Description: "",
+		Example: "",
 	}, nil
 }
 
