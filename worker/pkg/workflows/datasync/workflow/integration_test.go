@@ -24,9 +24,8 @@ import (
 )
 
 type PostgresTestContainer struct {
-	pool      *pgxpool.Pool
-	container *testpg.PostgresContainer
-	url       string
+	pool *pgxpool.Pool
+	url  string
 }
 type PostgresTest struct {
 	pool          *pgxpool.Pool
