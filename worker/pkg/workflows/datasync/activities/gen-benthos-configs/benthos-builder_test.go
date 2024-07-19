@@ -3257,7 +3257,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
-	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`)
+	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(value:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`)
 }
 
 const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
