@@ -199,9 +199,7 @@ export default function DocSidebarItemCategory({
           }
           aria-current={isCurrentPage ? 'page' : undefined}
           aria-expanded={collapsible ? !collapsed : undefined}
-          href={
-            collapsible ? (hrefWithSSRFallback ?? '#') : hrefWithSSRFallback
-          }
+          href={collapsible ? hrefWithSSRFallback ?? '#' : hrefWithSSRFallback}
           {...props}
         >
           <div className="flex flex-row items-center gap-4">
