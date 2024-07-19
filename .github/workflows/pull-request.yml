@@ -1,4 +1,4 @@
-name: Check PR Labels
+name: Ensure PR Has Labels
 
 on:
   pull_request:
@@ -11,24 +11,10 @@ on:
 jobs:
   check_labels:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    env:
-      HAS_LABELS: ${{ github.event.pull_request.labels[0] != null }}
     steps:
-      - name: Add a comment to the PR if no labels
-        if: env.HAS_LABELS == 'false'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Your pull request does not have any labels. Please add at least one label to pass the checks.'
-            })
-
       - name: Fail the job if no labels are found
-        if: env.HAS_LABELS == 'false'
-        run: exit 1
+        if:  ${{ github.event.pull_request.labels[0] != null }}
+        run: |
+          echo "No labels found: please add at least one label to the PR"
+          exit 1
         shell: bash
