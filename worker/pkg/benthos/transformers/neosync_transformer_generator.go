@@ -154,7 +154,7 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizer = rng.New(seed)
 
-	{{- continue }}
+	{{- continue }}&
 	{{ end }}
 	{{- if $param.HasDefault }}
 
@@ -178,7 +178,7 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	{{$param.Name}} := opts["{{$param.Name}}"].({{$param.TypeStr}})
 
 	{{- end }}
-	transformerOpts.{{$param.Name}} = {{$param.Name}}
+	transformerOpts.{{$param.Name}} = &{{$param.Name}}
 	{{- end }}
 
 	return transformerOpts, nil
