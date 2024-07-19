@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateBool

@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateRandomEmailShort(t *testing.T) {

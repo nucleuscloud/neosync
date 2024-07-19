@@ -17,8 +17,8 @@ import (
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
 
-	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript/ifs"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 const (

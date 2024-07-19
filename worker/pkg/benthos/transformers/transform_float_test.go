@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_TransformFloat64InRange(t *testing.T) {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateRandomInt(t *testing.T) {

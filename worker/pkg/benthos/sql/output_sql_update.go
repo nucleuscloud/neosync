@@ -7,12 +7,12 @@ import (
 	"sync"
 
 	"github.com/Jeffail/shutdown"
-	"github.com/benthosdev/benthos/v4/public/bloblang"
-	"github.com/benthosdev/benthos/v4/public/service"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
+	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type SqlDbtx interface {

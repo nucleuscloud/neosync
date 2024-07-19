@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_ProcessUTCTimestamp(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 
 	"github.com/dop251/goja"
 
-	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type jsFunction func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error)

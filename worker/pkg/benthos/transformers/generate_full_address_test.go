@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 var faMaxLength = int64(40)

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateUuidPreserveHyphhensTrue(t *testing.T) {

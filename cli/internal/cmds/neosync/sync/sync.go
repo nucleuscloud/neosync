@@ -35,17 +35,17 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
-	_ "github.com/benthosdev/benthos/v4/public/components/aws"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	_ "github.com/benthosdev/benthos/v4/public/components/pure"
-	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
-	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	_ "github.com/warpstreamlabs/bento/public/components/aws"
+	_ "github.com/warpstreamlabs/bento/public/components/io"
+	_ "github.com/warpstreamlabs/bento/public/components/pure"
+	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
+	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 
-	"github.com/benthosdev/benthos/v4/public/service"
+	"github.com/warpstreamlabs/bento/public/service"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

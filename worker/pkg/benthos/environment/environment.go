@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/service"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/warpstreamlabs/bento/public/service"
 	"go.opentelemetry.io/otel/metric"
 )
 
