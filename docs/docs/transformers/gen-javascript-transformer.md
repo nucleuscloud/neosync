@@ -43,7 +43,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| userProvidedRegex | string |  | false | <br/>
+| userProvidedRegex | string |  | false | A custom regular expression. This regex is used to manipulate input data during the transformation process.<br/>
+
 **Example**
 
 ```javascript
@@ -74,8 +75,9 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | 
-| maxLength | int64 |  | false | <br/>
+| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 |  | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.<br/>
+
 **Example**
 
 ```javascript
@@ -107,20 +109,19 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| email | any |  | false | 
-| preserveLength | bool | false | true | 
-| preserveDomain | bool | false | true | 
-| excludedDomains | any | [] | true | 
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | false | 
-| emailType | string | 'uuidv4' | true | 
-| invalidEmailAction | string | 'reject' | true | <br/>
+| preserveLength | bool | false | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveDomain | bool | false | true | A boolean indicating whether the domain part of the email should be preserved.
+| excludedDomains | any | [] | true | A list of domains that should be excluded from the transformation
+| maxLength | int64 | 10000 | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.
+| emailType | string | 'uuidv4' | true | Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.
+| invalidEmailAction | string | 'reject' | true | Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`.<br/>
+
 **Example**
 
 ```javascript
 
 const newValue = neosync.transformEmail(value, { 
-	email: "",  
 	preserveLength: false, 
 	preserveDomain: false, 
 	excludedDomains: [], 
@@ -152,9 +153,10 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| preserveLength | bool | false | true | 
-| seed | int64 |  | false | <br/>
+| maxLength | int64 | 10000 | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
+
 **Example**
 
 ```javascript
@@ -187,11 +189,12 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizationRangeMin | float64 |  | true | 
-| randomizationRangeMax | float64 |  | true | 
-| precision | int64 |  | false | 
-| scale | int64 |  | false | 
-| seed | int64 |  | false | <br/>
+| randomizationRangeMin | float64 |  | true | Specifies the minimum value for the range of the float.
+| randomizationRangeMax | float64 |  | true | Specifies the maximum value for the randomization range of the float.
+| precision | int64 |  | false | An optional parameter that defines the number of significant digits for the float.
+| scale | int64 |  | false | An optional parameter that defines the number of decimal places for the float.
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
+
 **Example**
 
 ```javascript
@@ -227,8 +230,9 @@ Description: Value that will be transformed
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | true | 
-| preserveLength | bool | false | true | 
-| seed | int64 |  | false | <br/>
+| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
+
 **Example**
 
 ```javascript
@@ -261,8 +265,9 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizationRangeMin | int64 |  | true | 
-| randomizationRangeMax | int64 |  | true | <br/>
+| randomizationRangeMin | int64 |  | true | Specifies the minimum value for the range of the int.
+| randomizationRangeMax | int64 |  | true | Specifies the maximum value for the range of the int.<br/>
+
 **Example**
 
 ```javascript
@@ -294,7 +299,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | <br/>
+| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.<br/>
+
 **Example**
 
 ```javascript
@@ -325,9 +331,10 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| preserveLength | bool | false | true | 
-| seed | int64 |  | false | <br/>
+| maxLength | int64 | 10000 | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
+
 **Example**
 
 ```javascript
@@ -360,9 +367,10 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool | false | true | 
-| minLength | int64 | 1 | true | 
-| maxLength | int64 | 20 | true | <br/>
+| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| minLength | int64 | 1 | true | Specifies the minimum length of the transformed value.
+| maxLength | int64 | 20 | true | Specifies the maximum length of the transformed value.<br/>
+
 **Example**
 
 ```javascript
@@ -395,8 +403,9 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | 
-| maxLength | int64 |  | true | <br/>
+| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 |  | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.<br/>
+
 **Example**
 
 ```javascript

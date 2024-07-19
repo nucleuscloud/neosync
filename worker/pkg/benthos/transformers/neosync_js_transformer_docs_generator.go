@@ -229,6 +229,7 @@ Description: Value that will be transformed
 | {{$param.Name}} | {{$param.TypeStr}} | {{$param.Default}} | {{ if $param.IsOptional -}} false {{- else -}} true {{- end }} | {{$param.Description}}
 {{- end -}}
 <br/>
+
 **Example**
 
 ` + "```javascript" + `
