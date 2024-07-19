@@ -178,7 +178,10 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	{{$param.Name}} := opts["{{$param.Name}}"].({{$param.TypeStr}})
 
 	{{- end }}
+	{{- else if $param.IsOptional }}
 	transformerOpts.{{$param.Name}} = &{{$param.Name}}
+	{{- else -}}
+	transformerOpts.{{$param.Name}} = {{$param.Name}}
 	{{- end }}
 
 	return transformerOpts, nil
