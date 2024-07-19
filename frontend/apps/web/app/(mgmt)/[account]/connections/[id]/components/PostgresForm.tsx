@@ -354,7 +354,7 @@ export default function PostgresForm(props: Props): ReactElement {
           )}
         />
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="bastion">
+          <AccordionItem value="clienttls">
             <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">

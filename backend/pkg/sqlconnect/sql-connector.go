@@ -170,6 +170,12 @@ func GetConnectionDetails(
 		if config.MysqlConfig.ConnectionOptions != nil {
 			maxConnLimit = config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
 		}
+		if config.MysqlConfig.GetClientTls() != nil {
+			_, err := handleClientTlsConfig(config.MysqlConfig.GetClientTls())
+			if err != nil {
+				return nil, err
+			}
+		}
 		if config.MysqlConfig.Tunnel != nil {
 			destination, err := getEndpointFromMysqlConnectionConfig(config)
 			if err != nil {

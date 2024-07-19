@@ -153,6 +153,7 @@ function buildMysqlConnectionConfig(
       ...values.options,
     }),
     tunnel: getTunnelConfig(values.tunnel),
+    clientTls: getClientTlsConfig(values.clientTls),
   });
 
   if (values.url) {
