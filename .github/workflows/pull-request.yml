@@ -14,8 +14,12 @@ jobs:
   check_labels:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if PR has labels
+        run: |
+          echo "Labels: ${{ toJSON(github.event.pull_request.labels) }}"
+
       - name: Ensure PR has at least one label
-        if: ${{ github.event.pull_request.labels[0] == null }}
+        if: ${{ github.event.pull_request.labels == '' || github.event.pull_request.labels == '[]' }}
         run: |
           echo "No labels found: please add at least one label to the PR"
           exit 1
