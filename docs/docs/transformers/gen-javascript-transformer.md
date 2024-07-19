@@ -12,7 +12,7 @@ description: Learn about Neosync's javascript transformer
 # Neosync Javascript Transformer Functions
 
 Learn about Neosync's Javascript transformer and generator functions, which provide a wide range of capabilities for data transformation and
-generation within the Javascript environment. Explore detailed descriptions and examples to effectively utilize these functions in your jobs.
+generation within the Javascript Transformer and Generator. Explore detailed descriptions and examples to effectively utilize these functions in your jobs.
 
 ## Transformers
 
