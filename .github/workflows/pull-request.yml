@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ensure PR has at least one label
-        if: ${{ github.event.pull_request.labels == '' || github.event.pull_request.labels == '[]' }}
+        if: ${{ github.event.pull_request.labels[0] == null }}
         run: |
           echo "No labels found: please add at least one label to the PR"
           exit 1
