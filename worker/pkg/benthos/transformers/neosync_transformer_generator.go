@@ -154,7 +154,7 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizer = rng.New(seed)
 
-	{{- continue }}&
+	{{- continue }}
 	{{ end }}
 	{{- if $param.HasDefault }}
 
@@ -162,7 +162,6 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	if !ok {
 		{{$param.Name}} = {{$param.Default}}
 	}
-	transformerOpts.{{$param.Name}} = &{{$param.Name}}
 
 	{{- else if $param.IsOptional }}
 
@@ -170,7 +169,6 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 	if arg, ok := opts["{{$param.Name}}"].({{$param.TypeStr}}); ok {
 		{{$param.Name}} = &arg
 	}
-	transformerOpts.{{$param.Name}} = {{$param.Name}}
 
 	{{- else }}
 
@@ -178,9 +176,9 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "{{ $.FunctInfo.Name }}", "{{$param.Name}}")
 	}
 	{{$param.Name}} := opts["{{$param.Name}}"].({{$param.TypeStr}})
-	transformerOpts.{{$param.Name}} = {{$param.Name}}
 
 	{{- end }}
+	transformerOpts.{{$param.Name}} = {{$param.Name}}
 	{{- end }}
 
 	return transformerOpts, nil

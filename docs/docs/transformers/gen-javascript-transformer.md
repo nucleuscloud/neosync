@@ -109,13 +109,13 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool | false | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
-| preserveDomain | bool | false | true | A boolean indicating whether the domain part of the email should be preserved.
-| excludedDomains | any | [] | true | A list of domains that should be excluded from the transformation
-| maxLength | int64 | 10000 | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| preserveLength | bool | false | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveDomain | bool | false | false | A boolean indicating whether the domain part of the email should be preserved.
+| excludedDomains | any | [] | false | A list of domains that should be excluded from the transformation
+| maxLength | int64 | 10000 | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.
-| emailType | string | 'uuidv4' | true | Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.
-| invalidEmailAction | string | 'reject' | true | Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`.<br/>
+| emailType | string | 'uuidv4' | false | Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.
+| invalidEmailAction | string | 'reject' | false | Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`.<br/>
 
 **Example**
 
@@ -153,8 +153,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
-| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
 **Example**
@@ -229,8 +229,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 10000 | false | 
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
 **Example**
@@ -331,8 +331,8 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
-| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | seed | int64 |  | false | An optional seed value used for generating deterministic transformations.<br/>
 
 **Example**
@@ -367,9 +367,9 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool | false | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| minLength | int64 | 1 | true | Specifies the minimum length of the transformed value.
-| maxLength | int64 | 20 | true | Specifies the maximum length of the transformed value.<br/>
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| minLength | int64 | 1 | false | Specifies the minimum length of the transformed value.
+| maxLength | int64 | 20 | false | Specifies the maximum length of the transformed value.<br/>
 
 **Example**
 
@@ -442,7 +442,7 @@ source: generate_bool.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 |  | true | 
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -450,7 +450,7 @@ source: generate_bool.go
 ```javascript
 
 const newValue = neosync.generateBool({ 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -471,7 +471,7 @@ source: generate_card_number.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| validLuhn | bool |  | true | 
+| validLuhn | bool |  | true | A boolean indicating whether the generated value should pass the Luhn algorithm check.
 <br/>
 
 **Example**
@@ -500,7 +500,7 @@ source: generate_categorical.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| categories | string |  | true | 
+| categories | string |  | true | A list of comma-separated string values to randomly select from.
 <br/>
 
 **Example**
@@ -529,7 +529,7 @@ source: generate_city.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | 
+| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 <br/>
 
 **Example**
@@ -558,9 +558,9 @@ source: generate_email.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 100000 | true | 
-| emailType | string | 'uuidv4' | true | 
-| seed | int64 |  | false | 
+| maxLength | int64 | 100000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| emailType | string | 'uuidv4' | false | Specifies the type of email type to generate, with options including `uuidv4`, `fullname`, or `any`.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -591,8 +591,8 @@ source: generate_first_name.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | true | 
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -601,7 +601,7 @@ source: generate_first_name.go
 
 const newValue = neosync.generateFirstName({ 
 	maxLength: 10000, 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -622,12 +622,12 @@ source: generate_float.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizeSign | bool | false | true | 
-| min | float64 |  | true | 
-| max | float64 |  | true | 
-| precision | int64 |  | false | 
-| scale | int64 |  | false | 
-| seed | int64 |  | true | 
+| randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
+| min | float64 |  | true | Specifies the minimum value for the generated float.
+| max | float64 |  | true | Specifies the maximum value for the generated float
+| precision | int64 |  | false | An optional parameter that defines the number of significant digits for the generated float.
+| scale | int64 |  | false | An optional parameter that defines the number of decimal places for the generated float.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -640,7 +640,7 @@ const newValue = neosync.generateFloat64({
 	max: 1.12,  
 	precision: 1,  
 	scale: 1,  
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -661,7 +661,7 @@ source: generate_full_address.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | 
+| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 <br/>
 
 **Example**
@@ -690,8 +690,8 @@ source: generate_full_name.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | true | 
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -700,7 +700,7 @@ source: generate_full_name.go
 
 const newValue = neosync.generateFullName({ 
 	maxLength: 10000, 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -721,9 +721,9 @@ source: generate_gender.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| abbreviate | bool | false | true | 
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | true | 
+| abbreviate | bool | false | false | Shortens length of generated value to 1.
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -733,7 +733,7 @@ source: generate_gender.go
 const newValue = neosync.generateGender({ 
 	abbreviate: false, 
 	maxLength: 10000, 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -754,10 +754,10 @@ source: generate_int64.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| randomizeSign | bool | false | true | 
-| min | int64 |  | true | 
-| max | int64 |  | true | 
-| seed | int64 |  | true | 
+| randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
+| min | int64 |  | true | Specifies the minimum value for the generated int.
+| max | int64 |  | true | Specifies the maximum value for the generated int.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -768,7 +768,7 @@ const newValue = neosync.generateInt64({
 	randomizeSign: false, 
 	min: 1,  
 	max: 1,  
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -815,8 +815,8 @@ source: generate_international_phone_number.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | 
-| max | int64 |  | true | 
+| min | int64 |  | true | Specifies the minimum value for the generated phone number.
+| max | int64 |  | true | Specifies the maximum value for the generated phone number.
 <br/>
 
 **Example**
@@ -846,8 +846,8 @@ source: generate_last_name.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | true | 
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -856,7 +856,7 @@ source: generate_last_name.go
 
 const newValue = neosync.generateLastName({ 
 	maxLength: 10000, 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -877,8 +877,8 @@ source: generate_random_string.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | 
-| max | int64 |  | true | 
+| min | int64 |  | true | Specifies the minimum length for the generated string.
+| max | int64 |  | true | Specifies the maximum length for the generated string.
 <br/>
 
 **Example**
@@ -934,7 +934,7 @@ source: generate_ssn.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 |  | true | 
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -942,7 +942,7 @@ source: generate_ssn.go
 ```javascript
 
 const newValue = neosync.generateSSN({ 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -989,7 +989,7 @@ source: generate_street_address.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 |  | true | 
+| maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 <br/>
 
 **Example**
@@ -1018,8 +1018,8 @@ source: generate_string_phone_number.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| min | int64 |  | true | 
-| max | int64 |  | true | 
+| min | int64 |  | true | Specifies the minimum length for the generated phone number.
+| max | int64 |  | true | Specifies the maximum length for the generated phone number.
 <br/>
 
 **Example**
@@ -1075,8 +1075,8 @@ source: generate_username.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| maxLength | int64 | 10000 | true | 
-| seed | int64 |  | true | 
+| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 | Unix timestamp in nanoseconds | false | 
 <br/>
 
 **Example**
@@ -1085,7 +1085,7 @@ source: generate_username.go
 
 const newValue = neosync.generateUsername({ 
 	maxLength: 10000, 
-	seed: 1, 
+	seed: 1,
 });
 
 ```
@@ -1132,7 +1132,7 @@ Generates UUID
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| includeHyphens | bool | true | true | Determines whether the generated UUID should include hyphens. If set to true, the UUID will be formatted with hyphens (e.g., d853d251-e135-4fe4-a4eb-0aea6bfaf645). If set to false, the hyphens will be omitted (e.g., d853d251e1354fe4a4eb0aea6bfaf645).
+| includeHyphens | bool | true | false | Determines whether the generated UUID should include hyphens. If set to true, the UUID will be formatted with hyphens (e.g., d853d251-e135-4fe4-a4eb-0aea6bfaf645). If set to false, the hyphens will be omitted (e.g., d853d251e1354fe4a4eb0aea6bfaf645).
 <br/>
 
 **Example**

@@ -107,13 +107,15 @@ func sanitizeParamDefaults(params []*transformers.BenthosSpecParam) []*transform
 			newDefault = "'reject'"
 		} else if p.HasDefault && p.Default == "[]any{}" {
 			newDefault = "[]"
+		} else if p.HasDefault && p.Default == "time.Now().UnixNano()" {
+			newDefault = "Unix timestamp in nanoseconds"
 		} else {
 			newDefault = p.Default
 		}
 		newParams = append(newParams, &transformers.BenthosSpecParam{
 			Name:        p.Name,
 			TypeStr:     p.TypeStr,
-			IsOptional:  p.IsOptional,
+			IsOptional:  p.IsOptional || p.HasDefault,
 			HasDefault:  p.HasDefault,
 			Default:     newDefault,
 			Description: p.Description,
@@ -130,7 +132,11 @@ const newValue = neosync.{{.BenthosSpec.Name}}(value, {
 {{- range $i, $param := .BenthosSpec.Params -}}
 {{- if eq $param.Name "value" -}}{{ continue }}{{- end -}}
 	{{ if $param.HasDefault }} 
+	{{ if eq $param.Name "seed" -}} 
+	{{$param.Name}}: 1,
+	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
+	{{- end }}
 	{{- else }} 
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
@@ -148,7 +154,11 @@ const newValue = neosync.{{.BenthosSpec.Name}}({});
 const newValue = neosync.{{.BenthosSpec.Name}}({
 	{{- range $i, $param := .BenthosSpec.Params -}}
 	{{ if $param.HasDefault }} 
+	{{ if eq $param.Name "seed" -}} 
+	{{$param.Name}}: 1,
+	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
+	{{- end }}
 	{{- else }} 
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
