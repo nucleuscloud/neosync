@@ -312,7 +312,7 @@ func Test_Bloblang_transform_email(t *testing.T) {
 
 	sliceString := string(sliceBytes)
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d,seed:1711240985047220000)`, email, sliceString, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d,seed:1711240985047220000)`, email, sliceString, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
@@ -330,7 +330,7 @@ func Test_Bloblang_transform_email(t *testing.T) {
 // the case where the input value is null
 func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 	nilEmail := ""
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d)`, nilEmail, []string{}, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d)`, nilEmail, []string{}, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
@@ -340,7 +340,7 @@ func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 
 func Test_TransformEmailTransformerWithEmptyValuePassNull(t *testing.T) {
 	nilEmail := ""
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:null,max_length:%d)`, nilEmail, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:null,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
@@ -351,7 +351,7 @@ func Test_TransformEmailTransformerWithEmptyValuePassNull(t *testing.T) {
 func Test_TransformEmailTransformerWithEmptyValueNilDomains(t *testing.T) {
 	nilEmail := "evis@gmail.com"
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[],max_length:%d)`, nilEmail, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:[],max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
@@ -362,7 +362,7 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomains(t *testing.T) {
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsNoSliceDomains(t *testing.T) {
 	nilEmail := "evis@gmail.com"
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:joiej,max_length:%d)`, nilEmail, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:joiej,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
@@ -373,7 +373,7 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsNoSliceDomains(t *tes
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerDomains(t *testing.T) {
 	nilEmail := "evis@gmail.com"
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:132412,max_length:%d)`, nilEmail, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:132412,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	_, err := bloblang.Parse(mapping)
 	require.Error(t, err, "The excluded domains must be strings")
 }
@@ -381,13 +381,13 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerDomains(t *tes
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerSliceDomains(t *testing.T) {
 	nilEmail := "evis@gmail.com"
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[132,412],max_length:%d)`, nilEmail, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true,excluded_domains:[132,412],max_length:%d)`, nilEmail, maxEmailCharLimit)
 	_, err := bloblang.Parse(mapping)
 	require.Error(t, err, "The excluded domains must be strings")
 }
 
 func Test_TransformEmailTransformer_InvalidEmailArg(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,invalid_email_action:"passthrough")`, "nick@neosync.dev")
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,invalid_email_action:"passthrough")`, "nick@neosync.dev")
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err, "failed to parse the email transformer")
 
