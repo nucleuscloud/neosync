@@ -29,10 +29,10 @@ So we will need to understand what type of column the user is trying to insert t
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("randomize_sign").Default(false)).
-		Param(bloblang.NewInt64Param("min")).
-		Param(bloblang.NewInt64Param("max")).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
+		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated int.")).
+		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated int.")).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		randomizeSign, err := args.GetBool("randomize_sign")

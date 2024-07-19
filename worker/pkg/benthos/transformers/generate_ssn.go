@@ -13,7 +13,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_ssn", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		seed, err := args.GetInt64("seed")
