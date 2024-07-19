@@ -1,4 +1,4 @@
-package testdata_doublereference
+package postgres_doublereference
 
 import workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 
@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Double reference sync",
-			Folder:          "double-reference",
+			Folder:          "postgres/double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
@@ -19,7 +19,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "Double reference subset",
-			Folder:          "double-reference",
+			Folder:          "postgres/double-reference",
 			SourceFilePaths: []string{"source-create.sql", "insert.sql"},
 			TargetFilePaths: []string{"source-create.sql"},
 			SubsetMap: map[string]string{

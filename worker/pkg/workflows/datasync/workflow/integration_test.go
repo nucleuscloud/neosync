@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,40 +11,57 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgxpool"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
+	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+type PostgresTestContainer struct {
+	pool *pgxpool.Pool
+	url  string
+}
+type PostgresTest struct {
+	pool          *pgxpool.Pool
+	testcontainer *testpg.PostgresContainer
+
+	source *PostgresTestContainer
+	target *PostgresTestContainer
+
+	databases []string
+}
+
+type MysqlTestContainer struct {
+	pool      *sql.DB
+	container *testmysql.MySQLContainer
+	url       string
+	close     func()
+}
+
+type MysqlTest struct {
+	source *MysqlTestContainer
+	target *MysqlTestContainer
+}
+
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	pgpool       *pgxpool.Pool
-	sourcePgPool *pgxpool.Pool
-	targetPgPool *pgxpool.Pool
-
-	sourceDsn string
-	targetDsn string
-
-	querier pg_queries.Querier
-
 	ctx context.Context
 
-	pgcontainer *testpg.PostgresContainer
-	databases   []string
+	mysql    *MysqlTest
+	postgres *PostgresTest
 
 	redisUrl       string
 	rediscontainer *redis.RedisContainer
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
-	s.ctx = context.Background()
-
+func (s *IntegrationTestSuite) SetupPostgres() {
 	pgcontainer, err := testpg.Run(
 		s.ctx,
 		"postgres:15",
@@ -56,22 +74,24 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	if err != nil {
 		panic(err)
 	}
-	s.pgcontainer = pgcontainer
+	s.postgres = &PostgresTest{
+		testcontainer: pgcontainer,
+	}
 	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
 
-	s.databases = []string{"datasync_source", "datasync_target"}
+	s.postgres.databases = []string{"datasync_source", "datasync_target"}
 	pool, err := pgxpool.New(s.ctx, connstr)
 	if err != nil {
 		panic(err)
 	}
+	s.postgres.pool = pool
 
-	s.T().Logf("creating databases. %+v \n", s.databases)
-	s.pgpool = pool
-	for _, db := range s.databases {
-		_, err = s.pgpool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
+	s.T().Logf("creating databases. %+v \n", s.postgres.databases)
+	for _, db := range s.postgres.databases {
+		_, err = s.postgres.pool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
 		if err != nil {
 			panic(err)
 		}
@@ -81,25 +101,99 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	if err != nil {
 		panic(err)
 	}
-	s.sourceDsn = srcUrl
-	sourceConn, err := pgxpool.New(s.ctx, s.sourceDsn)
+	s.postgres.source = &PostgresTestContainer{
+		url: srcUrl,
+	}
+	sourceConn, err := pgxpool.New(s.ctx, s.postgres.source.url)
 	if err != nil {
 		panic(err)
 	}
-	s.sourcePgPool = sourceConn
+	s.postgres.source.pool = sourceConn
 
 	targetUrl, err := getDbPgUrl(connstr, "datasync_target", "disable")
 	if err != nil {
 		panic(err)
 	}
-	s.targetDsn = targetUrl
-	targetConn, err := pgxpool.New(s.ctx, s.targetDsn)
+	s.postgres.target = &PostgresTestContainer{
+		url: targetUrl,
+	}
+	targetConn, err := pgxpool.New(s.ctx, s.postgres.target.url)
 	if err != nil {
 		panic(err)
 	}
-	s.targetPgPool = targetConn
+	s.postgres.target.pool = targetConn
+}
 
-	s.querier = pg_queries.New()
+func (s *IntegrationTestSuite) SetupMysql() {
+	s.ctx = context.Background()
+
+	s.mysql = &MysqlTest{}
+
+	sourcecontainer, err := createMysqlTestContainer(s.ctx, "datasync", "root", "pass-source")
+	if err != nil {
+		panic(err)
+	}
+	s.mysql.source = sourcecontainer
+
+	targetcontainer, err := createMysqlTestContainer(s.ctx, "datasync", "root", "pass-target")
+	if err != nil {
+		panic(err)
+	}
+	s.mysql.target = targetcontainer
+}
+
+func createMysqlTestContainer(
+	ctx context.Context,
+	database, username, password string,
+) (*MysqlTestContainer, error) {
+	container, err := testmysql.Run(ctx,
+		"mysql:8.0.36",
+		testmysql.WithDatabase(database),
+		testmysql.WithUsername(username),
+		testmysql.WithPassword(password),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("port: 3306  MySQL Community Server").
+				WithOccurrence(1).WithStartupTimeout(10*time.Second),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	connstr, err := container.ConnectionString(ctx, "multiStatements=true")
+	if err != nil {
+		panic(err)
+	}
+	pool, err := sql.Open(sqlmanager_shared.MysqlDriver, connstr)
+	if err != nil {
+		panic(err)
+	}
+	containerPort, err := container.MappedPort(ctx, "3306/tcp")
+	if err != nil {
+		return nil, err
+	}
+	containerHost, err := container.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
+	return &MysqlTestContainer{
+		pool:      pool,
+		url:       connUrl,
+		container: container,
+		close: func() {
+			if pool != nil {
+				pool.Close()
+			}
+		},
+	}, nil
+}
+
+func (s *IntegrationTestSuite) SetupSuite() {
+	s.ctx = context.Background()
+
+	s.SetupPostgres()
+	s.SetupMysql()
 
 	// redis
 	redisContainer, err := redis.Run(
@@ -118,93 +212,77 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 }
 
-func (s *IntegrationTestSuite) SetupSourceDb(testFolder string, files []string) {
-	s.T().Logf("setting up source db. folder: %s \n", testFolder)
+func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
+	s.T().Logf("running postgres sql file. folder: %s \n", testFolder)
 	for _, file := range files {
-		setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
 		if err != nil {
 			panic(err)
 		}
-		_, err = s.sourcePgPool.Exec(s.ctx, string(setupSourceSql))
+		_, err = pool.Exec(s.ctx, string(sqlStr))
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func (s *IntegrationTestSuite) SetupTargetDb(testFolder string, files []string) {
-	s.T().Logf("setting up target db. folder: %s \n", testFolder)
+func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string, files []string) {
+	s.T().Logf("running mysql sql file. folder: %s \n", testFolder)
 	for _, file := range files {
-		setupTargetSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
 		if err != nil {
 			panic(err)
 		}
-		_, err = s.targetPgPool.Exec(s.ctx, string(setupTargetSql))
+
+		_, err = pool.ExecContext(s.ctx, string(sqlStr))
 		if err != nil {
 			panic(err)
 		}
-	}
-}
-
-func (s *IntegrationTestSuite) SetupTestByFolder(testFolder string) {
-	s.T().Logf("setting up test. folder: %s \n", testFolder)
-	setupSourceSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/source-setup.sql", testFolder))
-	if err != nil {
-		panic(err)
-	}
-	_, err = s.sourcePgPool.Exec(s.ctx, string(setupSourceSql))
-	if err != nil {
-		panic(err)
-	}
-	setupTargetSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/target-setup.sql", testFolder))
-	if err != nil {
-		panic(err)
-	}
-	_, err = s.targetPgPool.Exec(s.ctx, string(setupTargetSql))
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s *IntegrationTestSuite) TearDownTestByFolder(testFolder string) {
-	s.T().Logf("tearing down test. folder: %s \n", testFolder)
-	teardownSql, err := os.ReadFile(fmt.Sprintf("./testdata/%s/teardown.sql", testFolder))
-	if err != nil {
-		panic(err)
-	}
-	_, err = s.targetPgPool.Exec(s.ctx, string(teardownSql))
-	if err != nil {
-		panic(err)
-	}
-	_, err = s.sourcePgPool.Exec(s.ctx, string(teardownSql))
-	if err != nil {
-		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
-	for _, db := range s.databases {
-		_, err := s.pgpool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
+	// postgres
+	for _, db := range s.postgres.databases {
+		_, err := s.postgres.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
 		if err != nil {
 			panic(err)
 		}
 	}
-	if s.sourcePgPool != nil {
-		s.sourcePgPool.Close()
+	if s.postgres.source.pool != nil {
+		s.postgres.source.pool.Close()
 	}
-	if s.targetPgPool != nil {
-		s.targetPgPool.Close()
+	if s.postgres.target.pool != nil {
+		s.postgres.target.pool.Close()
 	}
-	if s.pgpool != nil {
-		s.pgpool.Close()
+	if s.postgres.pool != nil {
+		s.postgres.pool.Close()
 	}
-	if s.pgcontainer != nil {
-		err := s.pgcontainer.Terminate(s.ctx)
+	if s.postgres.testcontainer != nil {
+		err := s.postgres.testcontainer.Terminate(s.ctx)
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	// mysql
+	s.mysql.source.close()
+	s.mysql.target.close()
+	if s.mysql.source.container != nil {
+		err := s.mysql.source.container.Terminate(s.ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	if s.mysql.target.container != nil {
+		err := s.mysql.target.container.Terminate(s.ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// redis
 	if s.rediscontainer != nil {
 		if err := s.rediscontainer.Terminate(s.ctx); err != nil {
 			panic(err)

@@ -46,6 +46,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.32.0
+	github.com/testcontainers/testcontainers-go/modules/mysql v0.32.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.32.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.32.0
 	github.com/toqueteos/webbrowser v1.2.0

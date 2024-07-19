@@ -106,6 +106,134 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},
 		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "bool",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "card_number",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "categorical",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "city",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "full_address",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "gender",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "international_phone",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "sha256",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "ssn",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "state",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "street_address",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "unix_time",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "username",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "utc_timestamp",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "uuid",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "javascript",
+			Table:  "transformers",
+			Column: "zipcode",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
 	} 
 }
 

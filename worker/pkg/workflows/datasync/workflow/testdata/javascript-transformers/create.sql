@@ -27,7 +27,7 @@ CREATE TABLE transformers (
     street_address VARCHAR(255),
     unix_time BIGINT,
     username VARCHAR(255),
-    utc_timestamp BIGINT,
+    utc_timestamp VARCHAR(255),
     uuid VARCHAR(255),
     zipcode BIGINT
 );
