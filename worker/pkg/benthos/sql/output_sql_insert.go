@@ -205,12 +205,17 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
+	var executor *service.MessageBatchBloblangExecutor
+	if s.argsMapping != nil {
+		executor = batch.BloblangExecutor(s.argsMapping)
+	}
+
 	rows := [][]interface{}{} //nolint:gofmt
 	for i := range batch {
 		if s.argsMapping == nil {
 			continue
 		}
-		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
+		resMsg, err := executor.Query(i)
 		if err != nil {
 			return err
 		}

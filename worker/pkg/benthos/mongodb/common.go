@@ -332,7 +332,8 @@ func (w writeMaps) extractFromMessage(operation Operation, i int, batch service.
 }
 
 func extJSONFromMap(b service.MessageBatch, i int, m *bloblang.Executor) (any, error) {
-	msg, err := b.BloblangQuery(i, m)
+	executor := b.BloblangExecutor(m)
+	msg, err := executor.Query(i)
 	if err != nil {
 		return nil, err
 	}
