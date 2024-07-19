@@ -5921,6 +5921,8 @@ func (m *GenerateState) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for StateCode
+
 	if len(errors) > 0 {
 		return GenerateStateMultiError(errors)
 	}

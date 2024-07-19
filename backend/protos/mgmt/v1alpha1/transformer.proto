@@ -301,7 +301,9 @@ message GenerateSha256Hash {}
 
 message GenerateSSN {}
 
-message GenerateState {}
+message GenerateState {
+  bool state_code = 1;
+}
 
 message GenerateStreetAddress {}
 
