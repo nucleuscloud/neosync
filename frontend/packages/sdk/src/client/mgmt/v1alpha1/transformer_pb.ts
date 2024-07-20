@@ -2231,6 +2231,11 @@ export class GenerateSSN extends Message<GenerateSSN> {
  * @generated from message mgmt.v1alpha1.GenerateState
  */
 export class GenerateState extends Message<GenerateState> {
+  /**
+   * @generated from field: bool state_code = 1;
+   */
+  stateCode = false;
+
   constructor(data?: PartialMessage<GenerateState>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2239,6 +2244,7 @@ export class GenerateState extends Message<GenerateState> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateState";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "state_code", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateState {

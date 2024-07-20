@@ -476,22 +476,26 @@ Here are some examples of what an output street address value may look like.
 
 ### Generate State\{#generate-state}
 
-The generate state transformer generates a randomly selected US state 2-letter state code. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+The generate state transformer generates a randomly selected US state in either 2-letter state code format or the full state name. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
 If you'd rather not get back a real state value, you can use the [Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
 
 **Configurations**
 
-There are no configurations for the state transformer.
+Here the configurations for the Generate State Transformer:
+
+| Name       | Description                                                                     | Default | Example Output |
+| ---------- | ------------------------------------------------------------------------------- | ------- | -------------- |
+| State Code | Defines if the transformer returns a 2-letter state code or the full state name | false   | CA             |
 
 **Examples**
 
 Here are some examples of what an output state value may look like.
 
-| Example Output |
-| -------------- |
-| RI             |
-| AL             |
+| State Code | Example Output |
+| ---------- | -------------- |
+| True       | CA             |
+| False      | California     |
 
 ### Generate Street Address\{#generate-street-address}
 

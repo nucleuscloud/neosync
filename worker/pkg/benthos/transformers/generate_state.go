@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"errors"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -10,11 +11,17 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code"))
 
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+
+		code, err := args.GetBool("state_code")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			return generateRandomState(), nil
+			return generateRandomState(code), nil
 		}, nil
 	})
 	if err != nil {
@@ -23,14 +30,26 @@ func init() {
 }
 
 func (t *GenerateState) Generate(opts any) (any, error) {
-	return generateRandomState(), nil
+	parsedOpts, ok := opts.(*GenerateStateOpts)
+	if !ok {
+		return nil, errors.New("invalid parse opts")
+	}
+	return generateRandomState(parsedOpts.stateCode), nil
 }
 
-// Generates a randomly selected state that exists in the United States and returns the two-letter state code.
-func generateRandomState() string {
-	addresses := transformers_dataset.Addresses
+// Generates a randomly selected state that exists in the United States
+func generateRandomState(state_code bool) string {
+
+	stateData := transformers_dataset.States
 
 	//nolint:gosec
-	randomIndex := rand.Intn(len(addresses))
-	return addresses[randomIndex].State
+	randomIndex := rand.Intn(len(stateData))
+
+	gender := stateData[randomIndex].FullName
+
+	if state_code {
+		gender = stateData[randomIndex].Code
+	}
+
+	return gender
 }

@@ -5556,10 +5556,23 @@
           "fullName": "mgmt.v1alpha1.GenerateState",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
+          "hasFields": true,
           "hasOneofs": false,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "state_code",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateStreetAddress",

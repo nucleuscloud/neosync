@@ -954,13 +954,16 @@ source: generate_state.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| stateCode | bool |  | true | 
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateState({});
+const newValue = neosync.generateState({ 
+	stateCode: false, 
+});
 
 ```
 <br/>

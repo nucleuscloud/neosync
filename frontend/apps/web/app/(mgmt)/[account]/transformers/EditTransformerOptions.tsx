@@ -32,6 +32,7 @@ import {
   GenerateGender,
   GenerateInt64,
   GenerateJavascript,
+  GenerateState,
   GenerateString,
   GenerateStringPhoneNumber,
   GenerateUuid,
@@ -67,6 +68,7 @@ import GenerateIntForm from './Sheetforms/GenerateInt64Form';
 import GenerateInternationalPhoneNumberForm from './Sheetforms/GenerateInternationalPhoneNumberForm';
 import GenerateJavascriptForm from './Sheetforms/GenerateJavascriptForm';
 import GenerateStringForm from './Sheetforms/GenerateRandomStringForm';
+import GenerateStateForm from './Sheetforms/GenerateStateForm';
 import GenerateStringPhoneNumberForm from './Sheetforms/GenerateStringPhoneNumberForm';
 import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
 import TransformCharacterScrambleForm from './Sheetforms/TransformCharacterScrambleForm';
@@ -340,6 +342,32 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   config: new TransformerConfig({
                     config: {
                       case: 'generateStringPhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
+      );
+    case TransformerSource.GENERATE_STATE:
+      return (
+        <GenerateStateForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateState({
+              ...(valueConfig.value as PlainMessage<GenerateState>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateStateConfig',
                       value: newconfig,
                     },
                   }),
