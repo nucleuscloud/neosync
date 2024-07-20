@@ -23,7 +23,7 @@ func NewGenerateInternationalPhoneNumber() *GenerateInternationalPhoneNumber {
 func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInternationalPhoneNumber",
-		Description: "",
+		Description: "Generates a Generate phone number in e164 format.",
 		Example: "",
 	}, nil
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 func Test_SqlRawInputEmptyShutdown(t *testing.T) {

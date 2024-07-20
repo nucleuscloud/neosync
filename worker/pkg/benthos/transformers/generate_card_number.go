@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateCardNumber
@@ -16,7 +16,8 @@ const defaultIIN = 400000
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("valid_luhn"))
+		Description("Generates a card number.").
+		Param(bloblang.NewBoolParam("valid_luhn").Description("A boolean indicating whether the generated value should pass the Luhn algorithm check."))
 
 	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		luhn, err := args.GetBool("valid_luhn")

@@ -27,7 +27,7 @@ func NewGenerateUsername() *GenerateUsername {
 func (t *GenerateUsername) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUsername",
-		Description: "",
+		Description: "Randomly generates a username",
 		Example: "",
 	}, nil
 }

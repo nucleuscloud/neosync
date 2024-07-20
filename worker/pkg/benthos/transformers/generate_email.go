@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateEmail
@@ -32,9 +32,10 @@ func isValidEmailType(emailType string) bool {
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("max_length").Default(100000)).
-		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String())).
-		Param(bloblang.NewInt64Param("seed").Optional())
+		Description("Generates a new randomized email address.").
+		Param(bloblang.NewInt64Param("max_length").Default(100000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()).Description("Specifies the type of email type to generate, with options including `uuidv4`, `fullname`, or `any`.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")

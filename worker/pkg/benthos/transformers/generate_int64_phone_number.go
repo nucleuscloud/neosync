@@ -3,9 +3,9 @@ package transformers
 import (
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateInt64PhoneNumber
@@ -13,7 +13,7 @@ import (
 var defaultPhoneNumberLength = int64(10)
 
 func init() {
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Description("Generates a new phone number of type int64 with a default length of 10.")
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {

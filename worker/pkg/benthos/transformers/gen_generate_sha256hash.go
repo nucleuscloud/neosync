@@ -19,7 +19,7 @@ func NewGenerateSHA256Hash() *GenerateSHA256Hash {
 func (t *GenerateSHA256Hash) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSHA256Hash",
-		Description: "",
+		Description: "SHA256 hashes a randomly generated value.",
 		Example: "",
 	}, nil
 }

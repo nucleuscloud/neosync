@@ -22,7 +22,7 @@ func NewTransformString() *TransformString {
 func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",
-		Description: "",
+		Description: "Transforms an existing string value.",
 		Example: "",
 	}, nil
 }

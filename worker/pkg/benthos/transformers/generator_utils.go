@@ -91,13 +91,22 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		if strings.HasPrefix(line, "(") {
 			matches := paramRegex.FindStringSubmatch(line)
 			if len(matches) > 0 {
+				defaultVal := matches[3]
+				description := matches[4]
+				// seed hack
+				if strings.Contains(line, "Default(time.Now().UnixNano())") {
+					defaultVal = "time.Now().UnixNano()"
+					if specMatches := specDescriptionRegex.FindStringSubmatch(line); len(specMatches) > 0 {
+						description = specMatches[1]
+					}
+				}
 				param := &BenthosSpecParam{
 					TypeStr:     lowercaseFirst(matches[1]),
 					Name:        toCamelCase(matches[2]),
 					IsOptional:  strings.Contains(line, ".Optional()"),
-					HasDefault:  matches[3] != "",
-					Default:     matches[3],
-					Description: matches[4],
+					HasDefault:  defaultVal != "",
+					Default:     defaultVal,
+					Description: description,
 				}
 				params = append(params, param)
 			}

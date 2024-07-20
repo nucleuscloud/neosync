@@ -20,7 +20,7 @@ func NewGenerateUUID() *GenerateUUID {
 func (t *GenerateUUID) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUUID",
-		Description: "Generates UUID",
+		Description: "Generates a new UUIDv4 id.",
 		Example: "",
 	}, nil
 }

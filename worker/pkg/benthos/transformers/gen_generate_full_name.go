@@ -27,7 +27,7 @@ func NewGenerateFullName() *GenerateFullName {
 func (t *GenerateFullName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullName",
-		Description: "",
+		Description: "Generates a new full name consisting of a first and last name.",
 		Example: "",
 	}, nil
 }

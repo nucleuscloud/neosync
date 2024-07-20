@@ -3,14 +3,14 @@ package transformers
 import (
 	"math/rand"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateZipcode
 
 func init() {
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Description("Randomly selects a zip code from a list of predefined US zipcodes.")
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {

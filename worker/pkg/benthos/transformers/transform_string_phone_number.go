@@ -4,16 +4,17 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformStringPhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Transforms an existing phone number that is typed as a string.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewInt64Param("max_length"))
+		Param(bloblang.NewBoolParam("preserve_length").Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters."))
 
 	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.GetOptionalString("value")

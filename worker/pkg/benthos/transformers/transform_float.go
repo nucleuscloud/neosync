@@ -7,21 +7,22 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformFloat64
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Transforms an existing float value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewFloat64Param("randomization_range_min")).
-		Param(bloblang.NewFloat64Param("randomization_range_max")).
-		Param(bloblang.NewInt64Param("precision").Optional()).
-		Param(bloblang.NewInt64Param("scale").Optional()).
-		Param(bloblang.NewInt64Param("seed").Optional())
+		Param(bloblang.NewFloat64Param("randomization_range_min").Description("Specifies the minimum value for the range of the float.")).
+		Param(bloblang.NewFloat64Param("randomization_range_max").Description("Specifies the maximum value for the randomization range of the float.")).
+		Param(bloblang.NewInt64Param("precision").Optional().Description("An optional parameter that defines the number of significant digits for the float.")).
+		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the float.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))
 
 	err := bloblang.RegisterFunctionV2("transform_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.Get("value")

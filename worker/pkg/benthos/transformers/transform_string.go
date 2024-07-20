@@ -4,18 +4,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformString
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Transforms an existing string value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
-		Param(bloblang.NewInt64Param("min_length").Default(1)).
-		Param(bloblang.NewInt64Param("max_length").Default(20))
+		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("min_length").Default(1).Description("Specifies the minimum length of the transformed value.")).
+		Param(bloblang.NewInt64Param("max_length").Default(20).Description("Specifies the maximum length of the transformed value."))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.GetOptionalString("value")

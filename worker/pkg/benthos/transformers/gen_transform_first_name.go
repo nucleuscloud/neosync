@@ -28,7 +28,7 @@ func NewTransformFirstName() *TransformFirstName {
 func (t *TransformFirstName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFirstName",
-		Description: "",
+		Description: "Transforms an existing first name",
 		Example: "",
 	}, nil
 }

@@ -23,7 +23,7 @@ func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
 func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformE164PhoneNumber",
-		Description: "",
+		Description: "Transforms an existing E164 formatted phone number.",
 		Example: "",
 	}, nil
 }

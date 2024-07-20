@@ -62,6 +62,9 @@ func main() {
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
+		// fmt.Println(tf.Name)
+		// jsonF, _ := json.MarshalIndent(parsedSpec.Params, "", " ")
+		// fmt.Printf("%s \n", string(jsonF))
 		tf.Params = sanitizeParamDefaults(parsedSpec.Params)
 		tf.Description = parsedSpec.SpecDescription
 		exampleStr, err := generateExample(tf)
@@ -93,7 +96,7 @@ func main() {
 
 }
 
-// makes defualts docs friendly
+// makes defaults docs friendly
 func sanitizeParamDefaults(params []*transformers.BenthosSpecParam) []*transformers.BenthosSpecParam {
 	newParams := []*transformers.BenthosSpecParam{}
 	for _, p := range params {
@@ -104,13 +107,15 @@ func sanitizeParamDefaults(params []*transformers.BenthosSpecParam) []*transform
 			newDefault = "'reject'"
 		} else if p.HasDefault && p.Default == "[]any{}" {
 			newDefault = "[]"
+		} else if p.HasDefault && p.Default == "time.Now().UnixNano()" {
+			newDefault = "Unix timestamp in nanoseconds"
 		} else {
 			newDefault = p.Default
 		}
 		newParams = append(newParams, &transformers.BenthosSpecParam{
 			Name:        p.Name,
 			TypeStr:     p.TypeStr,
-			IsOptional:  p.IsOptional,
+			IsOptional:  p.IsOptional || p.HasDefault,
 			HasDefault:  p.HasDefault,
 			Default:     newDefault,
 			Description: p.Description,
@@ -127,7 +132,11 @@ const newValue = neosync.{{.BenthosSpec.Name}}(value, {
 {{- range $i, $param := .BenthosSpec.Params -}}
 {{- if eq $param.Name "value" -}}{{ continue }}{{- end -}}
 	{{ if $param.HasDefault }} 
+	{{ if eq $param.Name "seed" -}} 
+	{{$param.Name}}: 1,
+	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
+	{{- end }}
 	{{- else }} 
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
@@ -145,7 +154,11 @@ const newValue = neosync.{{.BenthosSpec.Name}}({});
 const newValue = neosync.{{.BenthosSpec.Name}}({
 	{{- range $i, $param := .BenthosSpec.Params -}}
 	{{ if $param.HasDefault }} 
+	{{ if eq $param.Name "seed" -}} 
+	{{$param.Name}}: 1,
+	{{- else -}}
 	{{$param.Name}}: {{$param.Default}},
+	{{- end }}
 	{{- else }} 
 	{{ if eq $param.TypeStr "string"}}{{$param.Name}}: "", {{ end -}}
 	{{ if eq $param.TypeStr "int64"}}{{$param.Name}}: 1, {{ end -}}
@@ -229,6 +242,7 @@ Description: Value that will be transformed
 | {{$param.Name}} | {{$param.TypeStr}} | {{$param.Default}} | {{ if $param.IsOptional -}} false {{- else -}} true {{- end }} | {{$param.Description}}
 {{- end -}}
 <br/>
+
 **Example**
 
 ` + "```javascript" + `

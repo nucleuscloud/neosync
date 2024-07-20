@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateInternationalPhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("min")).
-		Param(bloblang.NewInt64Param("max"))
+		Description("Generates a Generate phone number in e164 format.").
+		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated phone number.")).
+		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated phone number."))
 
 	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		min, err := args.GetInt64("min")
