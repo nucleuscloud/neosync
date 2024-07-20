@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/stretchr/testify/require"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 var email = "evis@gmail.com"

@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateSHA256Hash

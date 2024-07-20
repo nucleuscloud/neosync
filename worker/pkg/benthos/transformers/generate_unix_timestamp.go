@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateUnixTimestamp

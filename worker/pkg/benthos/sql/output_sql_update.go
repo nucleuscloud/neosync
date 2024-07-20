@@ -7,12 +7,12 @@ import (
 	"sync"
 
 	"github.com/Jeffail/shutdown"
-	"github.com/benthosdev/benthos/v4/public/bloblang"
-	"github.com/benthosdev/benthos/v4/public/service"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
+	"github.com/warpstreamlabs/bento/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 type SqlDbtx interface {
@@ -222,11 +222,16 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return nil
 	}
 
+	var executor *service.MessageBatchBloblangExecutor
+	if s.argsMapping != nil {
+		executor = batch.BloblangExecutor(s.argsMapping)
+	}
+
 	for i := range batch {
 		if s.argsMapping == nil {
 			continue
 		}
-		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
+		resMsg, err := executor.Query(i)
 		if err != nil {
 			return err
 		}

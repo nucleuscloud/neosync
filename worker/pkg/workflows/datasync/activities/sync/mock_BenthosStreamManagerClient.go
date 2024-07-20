@@ -3,7 +3,7 @@
 package sync_activity
 
 import (
-	service "github.com/benthosdev/benthos/v4/public/service"
+	service "github.com/warpstreamlabs/bento/public/service"
 	mock "github.com/stretchr/testify/mock"
 )
 

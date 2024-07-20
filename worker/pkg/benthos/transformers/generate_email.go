@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateEmail

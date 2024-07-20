@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateStreetAddress

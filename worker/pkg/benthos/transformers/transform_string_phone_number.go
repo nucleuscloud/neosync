@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformStringPhoneNumber

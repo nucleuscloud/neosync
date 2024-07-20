@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 var maxGenderCharLimit = int64(6)

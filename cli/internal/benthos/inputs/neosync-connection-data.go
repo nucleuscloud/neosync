@@ -5,13 +5,13 @@ import (
 	"sync"
 
 	"connectrpc.com/connect"
-	"github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	"github.com/warpstreamlabs/bento/public/service"
 )
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().

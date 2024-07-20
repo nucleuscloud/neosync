@@ -7,10 +7,10 @@ import (
 	"net/mail"
 	"strings"
 
-	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:transform:transformEmail

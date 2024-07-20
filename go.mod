@@ -17,12 +17,11 @@ require (
 	github.com/auth0/go-auth0 v1.8.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.1
 	github.com/aws/aws-sdk-go-v2 v1.30.3
-	github.com/aws/aws-sdk-go-v2/config v1.27.26
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.26
+	github.com/aws/aws-sdk-go-v2/config v1.27.27
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3
 	github.com/aws/smithy-go v1.20.3
-	github.com/benthosdev/benthos/v4 v4.27.0
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.26.6
 	github.com/charmbracelet/lipgloss v0.12.1
@@ -40,7 +39,7 @@ require (
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/common v0.55.0
-	github.com/redis/go-redis/v9 v9.5.4
+	github.com/redis/go-redis/v9 v9.6.0
 	github.com/rodaine/table v1.2.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -50,6 +49,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.32.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.32.0
 	github.com/toqueteos/webbrowser v1.2.0
+	github.com/warpstreamlabs/bento v1.1.0
 	github.com/wasilibs/go-pgquery v0.0.0-20240319230125-b9b2e95c69a7
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 	github.com/zeebo/assert v1.3.1
@@ -150,7 +150,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.50.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.29.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.22.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.22.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -223,6 +223,7 @@ require (
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -362,7 +363,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/sijms/go-ora/v2 v2.8.7 // indirect
+	github.com/sijms/go-ora/v2 v2.8.19 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/snowflakedb/gosnowflake v1.7.2 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
