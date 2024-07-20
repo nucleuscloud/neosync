@@ -42,7 +42,6 @@ func generateRandomState(state_code bool) string {
 
 	//nolint:gosec
 	randomIndex := rand.Intn(len(stateData))
-
 	gender := stateData[randomIndex].FullName
 
 	if state_code {
