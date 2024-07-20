@@ -12,7 +12,8 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("categories"))
+		Description("Randomly selects a value from a defined set of categorical values.").
+		Param(bloblang.NewStringParam("categories").Description("A list of comma-separated string values to randomly select from."))
 
 	err := bloblang.RegisterFunctionV2("generate_categorical", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		// get stringified categories

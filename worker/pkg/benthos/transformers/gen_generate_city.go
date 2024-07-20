@@ -22,7 +22,7 @@ func NewGenerateCity() *GenerateCity {
 func (t *GenerateCity) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCity",
-		Description: "",
+		Description: "Randomly selects a city from a list of predefined US cities.",
 		Example: "",
 	}, nil
 }

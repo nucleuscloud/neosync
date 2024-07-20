@@ -27,7 +27,7 @@ func NewGenerateLastName() *GenerateLastName {
 func (t *GenerateLastName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateLastName",
-		Description: "",
+		Description: "Generates a random last name.",
 		Example: "",
 	}, nil
 }

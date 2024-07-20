@@ -28,7 +28,7 @@ func NewGenerateEmail() *GenerateEmail {
 func (t *GenerateEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateEmail",
-		Description: "",
+		Description: "Generates a new randomized email address.",
 		Example: "",
 	}, nil
 }

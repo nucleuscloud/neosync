@@ -21,8 +21,9 @@ const (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Transforms an existing string value by scrambling the characters while maintaining the format.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewStringParam("user_provided_regex").Optional())
+		Param(bloblang.NewStringParam("user_provided_regex").Optional().Description("A custom regular expression. This regex is used to manipulate input data during the transformation process."))
 
 	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")

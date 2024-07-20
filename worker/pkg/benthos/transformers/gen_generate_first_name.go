@@ -27,7 +27,7 @@ func NewGenerateFirstName() *GenerateFirstName {
 func (t *GenerateFirstName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFirstName",
-		Description: "",
+		Description: "Generates a random first name.",
 		Example: "",
 	}, nil
 }

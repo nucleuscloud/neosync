@@ -22,7 +22,7 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",
-		Description: "",
+		Description: "Generates a card number.",
 		Example: "",
 	}, nil
 }

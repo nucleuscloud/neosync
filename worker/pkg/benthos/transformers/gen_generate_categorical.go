@@ -22,7 +22,7 @@ func NewGenerateCategorical() *GenerateCategorical {
 func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCategorical",
-		Description: "",
+		Description: "Randomly selects a value from a defined set of categorical values.",
 		Example: "",
 	}, nil
 }

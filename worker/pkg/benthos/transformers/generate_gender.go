@@ -13,9 +13,10 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("abbreviate").Default(false)).
-		Param(bloblang.NewInt64Param("max_length").Default(10000)).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Description("Randomly generates one of the following genders: female, male, undefined, nonbinary.").
+		Param(bloblang.NewBoolParam("abbreviate").Default(false).Description("Shortens length of generated value to 1.")).
+		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		shouldAbbreviate, err := args.GetBool("abbreviate")

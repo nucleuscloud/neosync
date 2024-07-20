@@ -28,7 +28,7 @@ func NewTransformLastName() *TransformLastName {
 func (t *TransformLastName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformLastName",
-		Description: "",
+		Description: "Transforms an existing last name.",
 		Example: "",
 	}, nil
 }

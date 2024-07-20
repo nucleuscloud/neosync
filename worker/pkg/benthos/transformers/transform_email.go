@@ -37,17 +37,18 @@ func isValidInvalidEmailAction(action string) bool {
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewAnyParam("email").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
-		Param(bloblang.NewBoolParam("preserve_domain").Default(false)).
-		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{})).
-		Param(bloblang.NewInt64Param("max_length").Default(10000)).
-		Param(bloblang.NewInt64Param("seed").Optional()).
-		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String())).
-		Param(bloblang.NewStringParam("invalid_email_action").Default(InvalidEmailAction_Reject.String()))
+		Description("Transforms an existing email address.").
+		Param(bloblang.NewAnyParam("value").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewBoolParam("preserve_domain").Default(false).Description("A boolean indicating whether the domain part of the email should be preserved.")).
+		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{}).Description("A list of domains that should be excluded from the transformation")).
+		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations.")).
+		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()).Description("Specifies the type of email to transform, with options including `uuidv4`, `fullname`, or `any`.")).
+		Param(bloblang.NewStringParam("invalid_email_action").Default(InvalidEmailAction_Reject.String()).Description("Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`."))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		emailPtr, err := args.GetOptionalString("email")
+		emailPtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
 		}

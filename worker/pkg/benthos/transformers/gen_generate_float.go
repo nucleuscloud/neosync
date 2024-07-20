@@ -31,7 +31,7 @@ func NewGenerateFloat64() *GenerateFloat64 {
 func (t *GenerateFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFloat64",
-		Description: "",
+		Description: "Generates a random float64 value.",
 		Example: "",
 	}, nil
 }

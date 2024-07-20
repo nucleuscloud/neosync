@@ -26,7 +26,7 @@ func NewGenerateSSN() *GenerateSSN {
 func (t *GenerateSSN) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSSN",
-		Description: "",
+		Description: "Generates a completely random social security numbers including the hyphens in the format xxx-xx-xxxx.",
 		Example: "",
 	}, nil
 }

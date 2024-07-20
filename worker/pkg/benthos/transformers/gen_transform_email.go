@@ -17,7 +17,6 @@ type TransformEmail struct{}
 type TransformEmailOpts struct {
 	randomizer     rng.Rand
 	
-	email *any
 	preserveLength bool
 	preserveDomain bool
 	excludedDomains any
@@ -33,19 +32,13 @@ func NewTransformEmail() *TransformEmail {
 func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformEmail",
-		Description: "",
+		Description: "Transforms an existing email address.",
 		Example: "",
 	}, nil
 }
 
 func (t *TransformEmail) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformEmailOpts{}
-
-	var email *any
-	if arg, ok := opts["email"].(any); ok {
-		email = &arg
-	}
-	transformerOpts.email = email
 
 	preserveLength, ok := opts["preserveLength"].(bool)
 	if !ok {

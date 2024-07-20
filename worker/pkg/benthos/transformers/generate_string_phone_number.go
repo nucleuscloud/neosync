@@ -12,8 +12,9 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("min")).
-		Param(bloblang.NewInt64Param("max"))
+		Description("Generates a Generate phone number and returns it as a string.").
+		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum length for the generated phone number.")).
+		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum length for the generated phone number."))
 
 	err := bloblang.RegisterFunctionV2("generate_string_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		min, err := args.GetInt64("min")

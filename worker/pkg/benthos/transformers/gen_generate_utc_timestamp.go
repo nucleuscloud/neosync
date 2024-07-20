@@ -19,7 +19,7 @@ func NewGenerateUTCTimestamp() *GenerateUTCTimestamp {
 func (t *GenerateUTCTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUTCTimestamp",
-		Description: "",
+		Description: "Randomly generates a UTC timestamp.",
 		Example: "",
 	}, nil
 }

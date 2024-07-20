@@ -12,7 +12,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateUUID
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Generates UUID").
+	spec := bloblang.NewPluginSpec().Description("Generates a new UUIDv4 id.").
 		Param(bloblang.NewBoolParam("include_hyphens").
 			Default(true).
 			Description("Determines whether the generated UUID should include hyphens. If set to true, the UUID will be formatted with hyphens (e.g., d853d251-e135-4fe4-a4eb-0aea6bfaf645). If set to false, the hyphens will be omitted (e.g., d853d251e1354fe4a4eb0aea6bfaf645)."))
