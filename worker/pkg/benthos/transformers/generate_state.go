@@ -13,7 +13,6 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code"))
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		code, err := args.GetBool("state_code")
 		if err != nil {
 			return nil, err
