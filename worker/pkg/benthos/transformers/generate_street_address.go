@@ -22,6 +22,7 @@ type Address struct {
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Randomly generates a street address.").
 		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters."))
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

@@ -16,6 +16,7 @@ const defaultIIN = 400000
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Generates a card number.").
 		Param(bloblang.NewBoolParam("valid_luhn").Description("A boolean indicating whether the generated value should pass the Luhn algorithm check."))
 
 	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

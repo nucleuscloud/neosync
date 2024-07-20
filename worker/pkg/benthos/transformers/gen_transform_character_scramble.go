@@ -20,7 +20,7 @@ func NewTransformCharacterScramble() *TransformCharacterScramble {
 func (t *TransformCharacterScramble) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformCharacterScramble",
-		Description: "",
+		Description: "Transforms an existing string value by scrambling the characters while maintaining the format.",
 		Example: "",
 	}, nil
 }

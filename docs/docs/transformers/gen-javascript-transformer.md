@@ -31,7 +31,7 @@ source: transform_character_scramble.go
 
 ### transformCharacterScramble
 
-
+Transforms an existing string value by scrambling the characters while maintaining the format.
 
 **Parameters**
 
@@ -63,7 +63,7 @@ source: transform_e164_phone_number.go
 
 ### transformE164PhoneNumber
 
-
+Transforms an existing E164 formatted phone number.
 
 **Parameters**
 
@@ -97,7 +97,7 @@ source: transform_email.go
 
 ### transformEmail
 
-
+Transforms an existing email address.
 
 **Parameters**
 
@@ -141,7 +141,7 @@ source: transform_first_name.go
 
 ### transformFirstName
 
-
+Transforms an existing first name
 
 **Parameters**
 
@@ -177,7 +177,7 @@ source: transform_float.go
 
 ### transformFloat64
 
-
+Transforms an existing float value.
 
 **Parameters**
 
@@ -217,7 +217,7 @@ source: transform_full_name.go
 
 ### transformFullName
 
-
+Transforms an existing full name.
 
 **Parameters**
 
@@ -253,7 +253,7 @@ source: transform_int64.go
 
 ### transformInt64
 
-
+Transforms an existing integer value.
 
 **Parameters**
 
@@ -287,7 +287,7 @@ source: transform_int64_phone_number.go
 
 ### transformInt64PhoneNumber
 
-
+Transforms an existing phone number that is typed as an integer
 
 **Parameters**
 
@@ -319,7 +319,7 @@ source: transform_lastname.go
 
 ### transformLastName
 
-
+Transforms an existing last name.
 
 **Parameters**
 
@@ -355,7 +355,7 @@ source: transform_string.go
 
 ### transformString
 
-
+Transforms an existing string value.
 
 **Parameters**
 
@@ -391,7 +391,7 @@ source: transform_string_phone_number.go
 
 ### transformStringPhoneNumber
 
-
+Transforms an existing phone number that is typed as a string.
 
 **Parameters**
 
@@ -434,7 +434,7 @@ source: generate_bool.go
 
 ### generateBool
 
-
+Generates a boolean value at random.
 
 **Parameters**
 
@@ -463,7 +463,7 @@ source: generate_card_number.go
 
 ### generateCardNumber
 
-
+Generates a card number.
 
 **Parameters**
 
@@ -492,7 +492,7 @@ source: generate_categorical.go
 
 ### generateCategorical
 
-
+Randomly selects a value from a defined set of categorical values.
 
 **Parameters**
 
@@ -521,7 +521,7 @@ source: generate_city.go
 
 ### generateCity
 
-
+Randomly selects a city from a list of predefined US cities.
 
 **Parameters**
 
@@ -550,7 +550,7 @@ source: generate_email.go
 
 ### generateEmail
 
-
+Generates a new randomized email address.
 
 **Parameters**
 
@@ -583,7 +583,7 @@ source: generate_first_name.go
 
 ### generateFirstName
 
-
+Generates a random first name.
 
 **Parameters**
 
@@ -614,7 +614,7 @@ source: generate_float.go
 
 ### generateFloat64
 
-
+Generates a random float64 value.
 
 **Parameters**
 
@@ -653,7 +653,7 @@ source: generate_full_address.go
 
 ### generateFullAddress
 
-
+Randomly generates a street address.
 
 **Parameters**
 
@@ -682,7 +682,7 @@ source: generate_full_name.go
 
 ### generateFullName
 
-
+Generates a new full name consisting of a first and last name.
 
 **Parameters**
 
@@ -713,7 +713,7 @@ source: generate_gender.go
 
 ### generateGender
 
-
+Randomly generates one of the following genders: female, male, undefined, nonbinary.
 
 **Parameters**
 
@@ -746,7 +746,7 @@ source: generate_int64.go
 
 ### generateInt64
 
-
+Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.
 
 **Parameters**
 
@@ -781,7 +781,7 @@ source: generate_int64_phone_number.go
 
 ### generateInt64PhoneNumber
 
-
+Generates a new phone number of type int64 with a default length of 10.
 
 **Parameters**
 
@@ -807,7 +807,7 @@ source: generate_international_phone_number.go
 
 ### generateInternationalPhoneNumber
 
-
+Generates a Generate phone number in e164 format.
 
 **Parameters**
 
@@ -838,7 +838,7 @@ source: generate_last_name.go
 
 ### generateLastName
 
-
+Generates a random last name.
 
 **Parameters**
 
@@ -869,7 +869,7 @@ source: generate_random_string.go
 
 ### generateRandomString
 
-
+Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.
 
 **Parameters**
 
@@ -900,7 +900,7 @@ source: generate_sha256hash.go
 
 ### generateSHA256Hash
 
-
+SHA256 hashes a randomly generated value.
 
 **Parameters**
 
@@ -926,7 +926,7 @@ source: generate_ssn.go
 
 ### generateSSN
 
-
+Generates a completely random social security numbers including the hyphens in the format xxx-xx-xxxx.
 
 **Parameters**
 
@@ -955,7 +955,7 @@ source: generate_state.go
 
 ### generateState
 
-
+Randomly selects a US state and returns the two-character state code.
 
 **Parameters**
 
@@ -981,7 +981,7 @@ source: generate_street_address.go
 
 ### generateStreetAddress
 
-
+Randomly generates a street address.
 
 **Parameters**
 
@@ -1010,7 +1010,7 @@ source: generate_string_phone_number.go
 
 ### generateStringPhoneNumber
 
-
+Generates a Generate phone number and returns it as a string.
 
 **Parameters**
 
@@ -1041,7 +1041,7 @@ source: generate_unix_timestamp.go
 
 ### generateUnixTimestamp
 
-
+Randomly generates a Unix timestamp.
 
 **Parameters**
 
@@ -1067,7 +1067,7 @@ source: generate_username.go
 
 ### generateUsername
 
-
+Randomly generates a username
 
 **Parameters**
 
@@ -1098,7 +1098,7 @@ source: generate_utc_timestamp.go
 
 ### generateUTCTimestamp
 
-
+Randomly generates a UTC timestamp.
 
 **Parameters**
 
@@ -1124,7 +1124,7 @@ source: generate_uuid.go
 
 ### generateUUID
 
-Generates UUID
+Generates a new UUIDv4 id.
 
 **Parameters**
 
@@ -1153,7 +1153,7 @@ source: generate_zipcode.go
 
 ### generateZipcode
 
-
+Randomly selects a zip code from a list of predefined US zipcodes.
 
 **Parameters**
 

@@ -17,6 +17,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Generates a random float64 value.").
 		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
 		Param(bloblang.NewFloat64Param("min").Description("Specifies the minimum value for the generated float.")).
 		Param(bloblang.NewFloat64Param("max").Description("Specifies the maximum value for the generated float")).

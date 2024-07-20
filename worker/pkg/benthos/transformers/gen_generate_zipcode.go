@@ -19,7 +19,7 @@ func NewGenerateZipcode() *GenerateZipcode {
 func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateZipcode",
-		Description: "",
+		Description: "Randomly selects a zip code from a list of predefined US zipcodes.",
 		Example: "",
 	}, nil
 }

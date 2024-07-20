@@ -23,7 +23,7 @@ func NewTransformInt64() *TransformInt64 {
 func (t *TransformInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64",
-		Description: "",
+		Description: "Transforms an existing integer value.",
 		Example: "",
 	}, nil
 }

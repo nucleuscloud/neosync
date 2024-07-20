@@ -26,7 +26,7 @@ func NewGenerateBool() *GenerateBool {
 func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateBool",
-		Description: "",
+		Description: "Generates a boolean value at random.",
 		Example: "",
 	}, nil
 }

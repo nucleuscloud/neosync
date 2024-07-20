@@ -10,7 +10,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateZipcode
 
 func init() {
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Description("Randomly selects a zip code from a list of predefined US zipcodes.")
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {

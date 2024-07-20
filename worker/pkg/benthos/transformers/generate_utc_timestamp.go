@@ -12,7 +12,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateUTCTimestamp
 
 func init() {
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Description("Randomly generates a UTC timestamp.")
 
 	err := bloblang.RegisterFunctionV2("generate_utctimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {

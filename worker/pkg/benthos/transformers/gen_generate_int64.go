@@ -29,7 +29,7 @@ func NewGenerateInt64() *GenerateInt64 {
 func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64",
-		Description: "",
+		Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.",
 		Example: "",
 	}, nil
 }

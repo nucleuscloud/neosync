@@ -32,7 +32,7 @@ func NewTransformEmail() *TransformEmail {
 func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformEmail",
-		Description: "",
+		Description: "Transforms an existing email address.",
 		Example: "",
 	}, nil
 }

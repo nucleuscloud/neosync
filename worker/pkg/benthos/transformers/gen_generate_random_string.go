@@ -23,7 +23,7 @@ func NewGenerateRandomString() *GenerateRandomString {
 func (t *GenerateRandomString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateRandomString",
-		Description: "",
+		Description: "Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.",
 		Example: "",
 	}, nil
 }

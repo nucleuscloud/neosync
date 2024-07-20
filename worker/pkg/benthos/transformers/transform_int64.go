@@ -12,6 +12,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
+		Description("Transforms an existing integer value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewInt64Param("randomization_range_min").Description("Specifies the minimum value for the range of the int.")).
 		Param(bloblang.NewInt64Param("randomization_range_max").Description("Specifies the maximum value for the range of the int."))

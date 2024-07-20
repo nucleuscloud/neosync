@@ -23,7 +23,7 @@ func NewTransformStringPhoneNumber() *TransformStringPhoneNumber {
 func (t *TransformStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformStringPhoneNumber",
-		Description: "",
+		Description: "Transforms an existing phone number that is typed as a string.",
 		Example: "",
 	}, nil
 }
