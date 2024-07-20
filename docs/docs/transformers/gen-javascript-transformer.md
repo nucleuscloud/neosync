@@ -442,7 +442,7 @@ source: generate_bool.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -592,7 +592,7 @@ source: generate_first_name.go
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -627,7 +627,7 @@ source: generate_float.go
 | max | float64 |  | true | Specifies the maximum value for the generated float
 | precision | int64 |  | false | An optional parameter that defines the number of significant digits for the generated float.
 | scale | int64 |  | false | An optional parameter that defines the number of decimal places for the generated float.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -691,7 +691,7 @@ source: generate_full_name.go
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -723,7 +723,7 @@ source: generate_gender.go
 | -------- | ---- | ------- | -------- | ----------- |
 | abbreviate | bool | false | false | Shortens length of generated value to 1.
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -757,7 +757,7 @@ source: generate_int64.go
 | randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
 | min | int64 |  | true | Specifies the minimum value for the generated int.
 | max | int64 |  | true | Specifies the maximum value for the generated int.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -847,7 +847,7 @@ source: generate_last_name.go
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -934,7 +934,7 @@ source: generate_ssn.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -1076,7 +1076,7 @@ source: generate_username.go
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | 
+| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
