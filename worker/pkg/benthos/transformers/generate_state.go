@@ -12,7 +12,6 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code"))
-
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		code, err := args.GetBool("state_code")
@@ -39,7 +38,6 @@ func (t *GenerateState) Generate(opts any) (any, error) {
 
 // Generates a randomly selected state that exists in the United States
 func generateRandomState(state_code bool) string {
-
 	stateData := transformers_dataset.States
 
 	//nolint:gosec

@@ -215,6 +215,7 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 	errgrp.SetLimit(10)
 	mu := sync.Mutex{}
 	// Iterate through each day in the range
+	//nolint:gocritic
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		d := d
 		errgrp.Go(func() error {
