@@ -40,7 +40,7 @@ func (t *GenerateState) Generate(opts any) (any, error) {
 func generateRandomState(state_code bool) string {
 	stateData := transformers_dataset.States
 
-	//nolint:gosec
+	//nolint:all
 	randomIndex := rand.Intn(len(stateData))
 	gender := stateData[randomIndex].FullName
 
