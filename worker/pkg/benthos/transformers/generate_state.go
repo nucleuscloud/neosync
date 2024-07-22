@@ -11,15 +11,21 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code").Optional()).Description("Randomly selects a US state and either returns the two character state code or the full state name.")
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		code, err := args.GetBool("state_code")
+
+		codePtr, err := args.GetOptionalBool("state_code")
 		if err != nil {
 			return nil, err
 		}
 
+		defaultCode := false
+		if codePtr != nil {
+			defaultCode = *codePtr
+		}
+
 		return func() (any, error) {
-			return generateRandomState(code), nil
+			return generateRandomState(defaultCode), nil
 		}, nil
 	})
 	if err != nil {
