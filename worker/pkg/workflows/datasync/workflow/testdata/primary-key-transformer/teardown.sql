@@ -1,0 +1,1 @@
+DROP SCHEMA IF EXISTS primary_key CASCADE;
