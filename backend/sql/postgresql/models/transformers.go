@@ -112,7 +112,7 @@ type GenerateSha256HashConfig struct{}
 type GenerateSsnConfig struct{}
 
 type GenerateStateConfig struct {
-	StateCode bool `json:"stateCode"`
+	GenerateFullName bool `json:"generateFullName"`
 }
 
 type GenerateStreetAddressConfig struct{}
@@ -280,7 +280,7 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateSsn = &GenerateSsnConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStateConfig:
 		t.GenerateState = &GenerateStateConfig{
-			StateCode: tr.GetGenerateStateConfig().StateCode,
+			GenerateFullName: tr.GetGenerateStateConfig().GenerateFullName,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
 		t.GenerateStreetAddress = &GenerateStreetAddressConfig{}
@@ -520,7 +520,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 				GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-					StateCode: t.GenerateState.StateCode,
+					GenerateFullName: t.GenerateState.GenerateFullName,
 				},
 			},
 		}

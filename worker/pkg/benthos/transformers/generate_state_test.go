@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GenerateState(t *testing.T) {
-	res := generateRandomState(true)
+	res := generateRandomState(false)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 
@@ -25,7 +25,7 @@ func Test_GenerateState(t *testing.T) {
 }
 
 func Test_GenerateStateCodeLength(t *testing.T) {
-	res := generateRandomState(true)
+	res := generateRandomState(false)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 
@@ -42,7 +42,7 @@ func Test_GenerateStateCodeLength(t *testing.T) {
 }
 
 func Test_GenerateStateCodeFullName(t *testing.T) {
-	res := generateRandomState(false)
+	res := generateRandomState(true)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 
@@ -59,7 +59,7 @@ func Test_GenerateStateCodeFullName(t *testing.T) {
 }
 
 func Test_StateTransformer(t *testing.T) {
-	mapping := `root = generate_state(state_code:true)`
+	mapping := `root = generate_state(generate_full_name:false)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the state transformer")
 

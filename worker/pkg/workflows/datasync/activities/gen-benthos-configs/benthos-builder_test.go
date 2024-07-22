@@ -3977,7 +3977,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-						StateCode: true,
+						GenerateFullName: false,
 					},
 				},
 			},

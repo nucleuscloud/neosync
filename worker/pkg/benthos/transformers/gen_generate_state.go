@@ -5,14 +5,12 @@
 package transformers
 
 import (
-	"fmt"
-	
 )
 
 type GenerateState struct{}
 
 type GenerateStateOpts struct {
-	stateCode bool
+	generateFullName bool
 }
 
 func NewGenerateState() *GenerateState {
@@ -22,7 +20,7 @@ func NewGenerateState() *GenerateState {
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
-		Description: "Randomly selects a US state and returns the two-character state code.",
+		Description: "",
 		Example: "",
 	}, nil
 }
@@ -30,11 +28,11 @@ func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateState) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateStateOpts{}
 
-	if _, ok := opts["stateCode"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateState", "stateCode")
+	generateFullName, ok := opts["generateFullName"].(bool)
+	if !ok {
+		generateFullName = false
 	}
-	stateCode := opts["stateCode"].(bool)
-	transformerOpts.stateCode = stateCode
+	transformerOpts.generateFullName = generateFullName
 
 	return transformerOpts, nil
 }

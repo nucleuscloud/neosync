@@ -272,7 +272,7 @@ var (
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-						StateCode: false,
+						GenerateFullName: false,
 					},
 				},
 			},

@@ -5561,8 +5561,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "state_code",
-              "description": "",
+              "name": "generate_full_name",
+              "description": "An option to return the full state name of the randomly selected state or return the default of a 2-letter state code.",
               "label": "",
               "type": "bool",
               "longType": "bool",

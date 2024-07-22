@@ -11,21 +11,16 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("state_code").Optional()).Description("Randomly selects a US state and either returns the two character state code or the full state name.")
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("Randomly selects a US state and either returns the two character state code or the full state name."))
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		codePtr, err := args.GetOptionalBool("state_code")
+		generateFullName, err := args.GetBool("state_code")
 		if err != nil {
 			return nil, err
 		}
 
-		defaultCode := false
-		if codePtr != nil {
-			defaultCode = *codePtr
-		}
-
 		return func() (any, error) {
-			return generateRandomState(defaultCode), nil
+			return generateRandomState(generateFullName), nil
 		}, nil
 	})
 	if err != nil {
@@ -38,20 +33,24 @@ func (t *GenerateState) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, errors.New("invalid parse opts")
 	}
-	return generateRandomState(parsedOpts.stateCode), nil
+	return generateRandomState(parsedOpts.generateFullName), nil
 }
 
-// Generates a randomly selected state that exists in the United States
-func generateRandomState(state_code bool) string {
+/*
+Generates a randomly selected state that exists in the United States.
+
+By default, it returns the 2-letter state code i.e. California will return CA. However, this is configurable using the Generate Full Name parameter which, when set to true, will return the full name of the state starting with a capitalized letter.
+*/
+func generateRandomState(generateFullName bool) string {
 	stateData := transformers_dataset.States
 
 	//nolint:all
 	randomIndex := rand.Intn(len(stateData))
-	gender := stateData[randomIndex].FullName
+	state := stateData[randomIndex].Code
 
-	if state_code {
-		gender = stateData[randomIndex].Code
+	if generateFullName {
+		state = stateData[randomIndex].FullName
 	}
 
-	return gender
+	return state
 }
