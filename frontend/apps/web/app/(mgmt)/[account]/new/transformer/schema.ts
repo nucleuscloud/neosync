@@ -412,7 +412,9 @@ const userDefinedTransformerConfig = Yup.object().shape({
 });
 
 const generateStateConfig = Yup.object().shape({
-  stateCode: Yup.boolean().default(false).required('This field is required'),
+  generateFullName: Yup.boolean()
+    .default(false)
+    .required('This field is required'),
 });
 
 const JavascriptConfig = Yup.object().shape({

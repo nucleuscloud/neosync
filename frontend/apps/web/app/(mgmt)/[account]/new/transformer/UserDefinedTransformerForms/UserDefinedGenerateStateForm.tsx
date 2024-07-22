@@ -33,15 +33,15 @@ export default function UserDefinedGenerateStateForm(
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`config.value.stateCode`}
+        name={`config.value.generateFullName`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>State Code</FormLabel>
+              <FormLabel>Generate Full Name</FormLabel>
               <FormDescription>
-                Returns the 2-letter state code by default. Set to false to
-                return the full state name.
+                Set to true to return the full state name with a capitalized
+                first letter. Returns the 2-letter state code by default.
               </FormDescription>
             </div>
             <div className="flex flex-col ">

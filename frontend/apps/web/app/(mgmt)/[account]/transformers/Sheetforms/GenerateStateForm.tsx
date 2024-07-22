@@ -25,7 +25,7 @@ export default function GenerateStateForm(props: Props): ReactElement {
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateStateConfig),
     defaultValues: {
-      stateCode: existingConfig?.stateCode ?? false,
+      generateFullName: existingConfig?.generateFullName ?? false,
     },
   });
 
@@ -34,14 +34,14 @@ export default function GenerateStateForm(props: Props): ReactElement {
       <Form {...form}>
         <FormField
           control={form.control}
-          name={`stateCode`}
+          name={`generateFullName`}
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>State Code</FormLabel>
+                <FormLabel>Generate Full Name</FormLabel>
                 <FormDescription>
-                  Returns the 2-letter state code by default. Set to false to
-                  return the full state name.
+                  Set to true to return the full state name with a capitalized
+                  first letter. Returns the 2-letter state code by default.
                 </FormDescription>
               </div>
               <FormControl>

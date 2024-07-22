@@ -14,7 +14,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("Randomly selects a US state and either returns the two character state code or the full state name."))
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		generateFullName, err := args.GetBool("state_code")
+		generateFullName, err := args.GetBool("generate_full_name")
 		if err != nil {
 			return nil, err
 		}
