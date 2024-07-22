@@ -3976,7 +3976,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
-					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
+					GenerateStateConfig: &mgmtv1alpha1.GenerateState{
+						GenerateFullName: false,
+					},
 				},
 			},
 		},

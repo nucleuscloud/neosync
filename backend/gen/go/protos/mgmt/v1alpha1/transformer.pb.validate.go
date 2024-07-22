@@ -5921,6 +5921,8 @@ func (m *GenerateState) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for GenerateFullName
+
 	if len(errors) > 0 {
 		return GenerateStateMultiError(errors)
 	}

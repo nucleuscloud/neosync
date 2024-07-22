@@ -955,7 +955,7 @@ source: generate_state.go
 
 ### generateState
 
-Randomly selects a US state and returns the two-character state code.
+
 
 **Parameters**
 
@@ -963,13 +963,16 @@ Randomly selects a US state and returns the two-character state code.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| generateFullName | bool | false | false | Randomly selects a US state and either returns the two character state code or the full state name.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateState({});
+const newValue = neosync.generateState({ 
+	generateFullName: false,
+});
 
 ```
 <br/>

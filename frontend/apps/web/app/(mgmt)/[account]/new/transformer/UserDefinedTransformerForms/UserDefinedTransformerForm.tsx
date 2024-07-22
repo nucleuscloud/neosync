@@ -8,6 +8,7 @@ import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
 import UserDefinedGenerateJavascriptForm from './UserDefinedGenerateJavascriptForm';
+import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
@@ -54,6 +55,8 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       return (
         <UserDefinedGenerateStringPhoneNumberNumberForm isDisabled={disabled} />
       );
+    case TransformerSource.GENERATE_STATE:
+      return <UserDefinedGenerateStateForm isDisabled={disabled} />;
     case TransformerSource.GENERATE_UUID:
       return <UserDefinedGenerateUuidForm isDisabled={disabled} />;
     case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:

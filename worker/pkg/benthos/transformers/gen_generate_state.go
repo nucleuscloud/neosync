@@ -10,6 +10,7 @@ import (
 type GenerateState struct{}
 
 type GenerateStateOpts struct {
+	generateFullName bool
 }
 
 func NewGenerateState() *GenerateState {
@@ -19,13 +20,19 @@ func NewGenerateState() *GenerateState {
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
-		Description: "Randomly selects a US state and returns the two-character state code.",
+		Description: "",
 		Example: "",
 	}, nil
 }
 
 func (t *GenerateState) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateStateOpts{}
+
+	generateFullName, ok := opts["generateFullName"].(bool)
+	if !ok {
+		generateFullName = false
+	}
+	transformerOpts.generateFullName = generateFullName
 
 	return transformerOpts, nil
 }
