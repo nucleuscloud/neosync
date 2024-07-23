@@ -70,7 +70,6 @@ type dynamodbInput struct {
 	readMu    sync.Mutex
 
 	table            string
-	tableKey         []types.KeySchemaElement
 	lastEvaluatedKey map[string]types.AttributeValue
 	done             bool
 }
@@ -97,7 +96,6 @@ func (d *dynamodbInput) Connect(ctx context.Context) error {
 		return fmt.Errorf("dynamodb table %q must be active to read", d.table)
 	}
 
-	d.tableKey = tableOutput.Table.KeySchema
 	d.client = client
 	return nil
 }
@@ -148,7 +146,6 @@ func (d *dynamodbInput) Close(ctx context.Context) error {
 		return nil
 	}
 	d.client = nil
-	d.tableKey = nil
 	return nil
 }
 
