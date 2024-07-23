@@ -125,8 +125,13 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 	}
 	batch := service.MessageBatch{}
 	for _, item := range result.Items {
+		if item == nil {
+			continue
+		}
+
+		resMap := attributeValueMapToStandardJSON(item)
 		msg := service.NewMessage(nil)
-		msg.SetStructured(item)
+		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
 	d.lastEvaluatedKey = result.LastEvaluatedKey
@@ -231,5 +236,128 @@ func awsSessionFields() []*service.ConfigField {
 				Default("").Advanced()).
 			Advanced().
 			Description("Optional manual configuration of AWS credentials to use. More information can be found [in this document](/docs/guides/cloud/aws)."),
+	}
+}
+
+func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) map[string]any {
+	standardJSON := make(map[string]any)
+	for k, v := range item {
+		standardJSON[k] = attributeValueToStandardValue(v)
+	}
+	return standardJSON
+}
+
+// attributeValueToStandardValue converts a DynamoDB AttributeValue to a standard value
+func attributeValueToStandardValue(v types.AttributeValue) any {
+	switch t := v.(type) {
+	case *types.AttributeValueMemberB:
+		return t.Value
+	case *types.AttributeValueMemberBOOL:
+		return t.Value
+	case *types.AttributeValueMemberBS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return lAny
+	case *types.AttributeValueMemberL:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = attributeValueToStandardValue(v)
+		}
+		return lAny
+	case *types.AttributeValueMemberM:
+		mAny := make(map[string]any, len(t.Value))
+		for k, v := range t.Value {
+			mAny[k] = attributeValueToStandardValue(v)
+		}
+		return mAny
+	case *types.AttributeValueMemberN:
+		return t.Value
+	case *types.AttributeValueMemberNS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return lAny
+	case *types.AttributeValueMemberNULL:
+		return nil
+	case *types.AttributeValueMemberS:
+		return t.Value
+	case *types.AttributeValueMemberSS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return lAny
+	}
+	return nil
+}
+
+func attributeValueToObjForm(v types.AttributeValue) map[string]any {
+	switch t := v.(type) {
+	case *types.AttributeValueMemberB:
+		return map[string]any{
+			"B": t.Value,
+		}
+	case *types.AttributeValueMemberBOOL:
+		return map[string]any{
+			"BOOL": t.Value,
+		}
+	case *types.AttributeValueMemberBS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return map[string]any{
+			"BS": lAny,
+		}
+	case *types.AttributeValueMemberL:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = attributeValueToObjForm(v)
+		}
+		return map[string]any{
+			"L": lAny,
+		}
+	case *types.AttributeValueMemberM:
+		mAny := make(map[string]any, len(t.Value))
+		for k, v := range t.Value {
+			mAny[k] = attributeValueToObjForm(v)
+		}
+		return map[string]any{
+			"M": mAny,
+		}
+	case *types.AttributeValueMemberN:
+		return map[string]any{
+			"N": t.Value,
+		}
+	case *types.AttributeValueMemberNS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return map[string]any{
+			"NS": lAny,
+		}
+	case *types.AttributeValueMemberNULL:
+		return map[string]any{
+			"NULL": t.Value,
+		}
+	case *types.AttributeValueMemberS:
+		return map[string]any{
+			"S": t.Value,
+		}
+	case *types.AttributeValueMemberSS:
+		lAny := make([]any, len(t.Value))
+		for i, v := range t.Value {
+			lAny[i] = v
+		}
+		return map[string]any{
+			"SS": lAny,
+		}
+	}
+	return map[string]any{
+		"NULL": true,
 	}
 }
