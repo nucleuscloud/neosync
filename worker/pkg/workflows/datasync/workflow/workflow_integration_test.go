@@ -49,7 +49,7 @@ func getAllPostgresSyncTests() []*workflow_testdata.IntegrationTest {
 	allTests = append(allTests, cdTests...)
 	allTests = append(allTests, javascriptTests...)
 	allTests = append(allTests, pkTransformationTests...)
-	return pkTransformationTests
+	return allTests
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {

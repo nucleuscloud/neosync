@@ -105,7 +105,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
 		}
-		redisDependsOn[neosync_benthos.BuildBenthosTable(cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
+		redisDependsOn[cfg.Name] = cfg.RedisDependsOn
 	}
 
 	workselector := workflow.NewSelector(ctx)
@@ -134,7 +134,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				activityErr = err
 			}
 			logger.Info("config sync completed")
-			delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
+			delete(redisDependsOn, bc.Name)
 			// clean up redis
 			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 			if err != nil {
@@ -182,7 +182,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					activityErr = err
 				}
 				logger.Info("config sync completed", "name", bc.Name)
-				delete(redisDependsOn, neosync_benthos.BuildBenthosTable(bc.TableSchema, bc.TableName))
+				delete(redisDependsOn, bc.Name)
 				// clean up redis
 				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 				if err != nil {

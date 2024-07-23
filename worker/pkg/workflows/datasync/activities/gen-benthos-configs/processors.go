@@ -22,41 +22,41 @@ func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
-	colTransformerMap map[string]*mgmtv1alpha1.JobMappingTransformer,
-	columnForeignKeysMap map[string][]*referenceKey,
+	transformedFktoPkMap map[string][]*referenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
-	for pkCol, fks := range columnForeignKeysMap {
-		for _, fk := range fks {
-			colTransformer, exists := colTransformerMap[pkCol]
-			// only need redis processors if the primary key has a transformer
-			if !exists || !hasTransformer(colTransformer.GetSource()) || !slices.Contains(config.InsertColumns, fk.Column) {
+	for fkCol, pks := range transformedFktoPkMap {
+		for _, pk := range pks {
+			if !slices.Contains(config.InsertColumns, fkCol) {
 				continue
 			}
 
 			// circular dependent foreign key
-			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
-			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
-			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
-			resultMap := fmt.Sprintf("root.%q = this", fk.Column)
+			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, pk.Table, pk.Column)
+			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fkCol)
+			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fkCol)
+			resultMap := fmt.Sprintf("root.%q = this", fkCol)
 			fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
 			if err != nil {
 				return nil, err
 			}
 			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: fkBranch})
+		}
+	}
 
+	if len(processorConfigs) > 0 {
+		for _, pk := range config.PrimaryKeys {
 			// primary key
-			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
-			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
-			pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
+			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, config.Table, pk)
+			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pk)
+			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pk)
+			pkResultMap := fmt.Sprintf("root.%q = this", pk)
 			pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
 			if err != nil {
 				return nil, err
 			}
 			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: pkBranch})
 		}
-	}
-	if len(processorConfigs) > 0 {
 		// add catch and error processor
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
 			{Error: &neosync_benthos.ErrorProcessorConfig{
@@ -76,23 +76,31 @@ func buildProcessorConfigs(
 	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
+	runconfig *tabledependency.RunConfig,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, cols)
+	// filter columns by config insert cols
+	filteredCols := []*mgmtv1alpha1.JobMapping{}
+	for _, col := range cols {
+		if slices.Contains(runconfig.InsertColumns, col.Column) {
+			filteredCols = append(filteredCols, col)
+		}
+	}
+	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, filteredCols)
 	if err != nil {
 		return nil, err
 	}
 
-	mutations, err := buildMutationConfigs(ctx, transformerclient, cols, tableColumnInfo)
+	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheBranches, err := buildBranchCacheConfigs(cols, transformedFktoPkMap, jobId, runId, redisConfig)
+	cacheBranches, err := buildBranchCacheConfigs(filteredCols, transformedFktoPkMap, jobId, runId, redisConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	pkMapping := buildPrimaryKeyMappingConfigs(cols, fkSourceCols)
+	pkMapping := buildPrimaryKeyMappingConfigs(filteredCols, fkSourceCols)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
