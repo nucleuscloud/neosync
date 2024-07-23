@@ -24,5 +24,10 @@
 		"folder": "mysql/multiple-dbs",
 		"sql_file": "create.sql",
 		"driver": "mysql"
+	},
+	{
+		"folder": "primary-key-transformer",
+		"sql_file": "create.sql",
+		"driver": "postgres"
 	}
 ]

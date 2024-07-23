@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -202,7 +203,6 @@ func buildBenthosSqlSourceConfigResponses(
 
 		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table]
 		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table]
-		colTransformers := colTransformerMap[config.Table]
 		colInfoMap := groupedColumnInfo[config.Table]
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
@@ -214,7 +214,6 @@ func buildBenthosSqlSourceConfigResponses(
 			jobId,
 			runId,
 			redisConfig,
-			colTransformers,
 			mappings.Mappings,
 			colInfoMap,
 		)
@@ -229,7 +228,7 @@ func buildBenthosSqlSourceConfigResponses(
 			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
 			Config:         bc,
 			DependsOn:      config.DependsOn,
-			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap),
+			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
 			RunType:        config.RunType,
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
@@ -250,15 +249,21 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey) map[string][]string {
+func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
-	for _, fks := range transformedForeignKeyToSourceMap {
+	for col, fks := range transformedForeignKeyToSourceMap {
+		if !slices.Contains(runconfig.InsertColumns, col) {
+			continue
+		}
 		for _, fk := range fks {
 			if _, exists := redisDependsOnMap[fk.Table]; !exists {
 				redisDependsOnMap[fk.Table] = []string{}
 			}
 			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
 		}
+	}
+	if runconfig.RunType == tabledependency.RunTypeUpdate && len(redisDependsOnMap) != 0 {
+		redisDependsOnMap[runconfig.Table] = runconfig.PrimaryKeys
 	}
 	return redisDependsOnMap
 }
@@ -294,13 +299,12 @@ func buildProcessorConfigsByRunType(
 	transformedFktoPkMap map[string][]*referenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
-	colTransformers map[string]*mgmtv1alpha1.JobMappingTransformer,
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	if config.RunType == tabledependency.RunTypeUpdate {
 		// sql update processor configs
-		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, colTransformers, columnForeignKeysMap)
+		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, transformedFktoPkMap)
 		if err != nil {
 			return nil, err
 		}
@@ -311,7 +315,7 @@ func buildProcessorConfigsByRunType(
 		for col := range columnForeignKeysMap {
 			fkSourceCols = append(fkSourceCols, col)
 		}
-		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings, columnInfoMap, transformedFktoPkMap, fkSourceCols, jobId, runId, redisConfig)
+		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings, columnInfoMap, transformedFktoPkMap, fkSourceCols, jobId, runId, redisConfig, config)
 		if err != nil {
 			return nil, err
 		}
@@ -384,6 +388,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 					},
 				})
+				// todo fix this
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &BenthosRedisConfig{
 					Key:    hashedKey,
 					Table:  tableKey,
