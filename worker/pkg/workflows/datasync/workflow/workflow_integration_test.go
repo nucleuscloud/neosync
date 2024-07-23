@@ -28,6 +28,7 @@ import (
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
+	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
 
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
@@ -42,10 +43,12 @@ func getAllPostgresSyncTests() []*workflow_testdata.IntegrationTest {
 	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
 	cdTests := testdata_circulardependencies.GetSyncTests()
 	javascriptTests := testdata_javascripttransformers.GetSyncTests()
+	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
 	allTests = append(allTests, drTests...)
 	allTests = append(allTests, vfkTests...)
 	allTests = append(allTests, cdTests...)
 	allTests = append(allTests, javascriptTests...)
+	allTests = append(allTests, pkTransformationTests...)
 	return allTests
 }
 

@@ -253,10 +253,6 @@ func (b *benthosBuilder) getJobById(
 	return getjobResp.Msg.Job, nil
 }
 
-func hasTransformer(t mgmtv1alpha1.TransformerSource) bool {
-	return t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED && t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
-}
-
 func groupGenerateSourceOptionsByTable(
 	schemaOptions []*mgmtv1alpha1.GenerateSourceSchemaOption,
 ) map[string]*generateSourceTableOptions {
