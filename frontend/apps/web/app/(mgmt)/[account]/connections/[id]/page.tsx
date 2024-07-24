@@ -95,8 +95,10 @@ export default function ConnectionPage({ params }: PageProps) {
     },
   ];
 
-  const isPostgres =
-    data?.connection?.connectionConfig?.config.case == 'pgConfig';
+  const showSubNav =
+    data?.connection?.connectionConfig?.config.case === 'pgConfig' ||
+    data?.connection?.connectionConfig?.config.case === 'dynamodbConfig' ||
+    data?.connection?.connectionConfig?.config.case === 'mongoConfig';
 
   return (
     <OverviewContainer
@@ -105,7 +107,7 @@ export default function ConnectionPage({ params }: PageProps) {
     >
       <div className="connection-details-container">
         <div className="flex flex-col gap-8">
-          {isPostgres && <SubNav items={subnav} buttonClassName="" />}
+          {showSubNav && <SubNav items={subnav} buttonClassName="" />}
           <div>{connectionComponent.body}</div>
         </div>
       </div>
