@@ -68,17 +68,21 @@ message ConnectionRolePrivilege {
 }
 
 message Connection {
+  // The unique identifier of the connection
   string id = 1;
+  // The unique, friendly name of the connection
   string name = 2;
-
+  // Contains the connection configuration and connection type
   ConnectionConfig connection_config = 3;
-
+  // The user id of the user that created the connection
   string created_by_user_id = 4;
+  // When the connection was created
   google.protobuf.Timestamp created_at = 5;
-
+  // Who last updated the connection
   string updated_by_user_id = 6;
+  // When the connection was last updated
   google.protobuf.Timestamp updated_at = 7;
-
+  // The unique account that owns this connection
   string account_id = 8;
 }
 
@@ -101,7 +105,20 @@ message ConnectionConfig {
     MongoConnectionConfig mongo_config = 6;
     // Configures a GCP Cloud Storage Connection
     GcpCloudStorageConnectionConfig gcp_cloudstorage_config = 7;
+    // Configures a DynamoDB Connection
+    DynamoDBConnectionConfig dynamodb_config = 8;
   }
+}
+
+// Configuration for a DynaomDB Connection
+message DynamoDBConnectionConfig {
+  // Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
+  // If self-hosting, this may be provided by the environment in lieu of specifying these here
+  optional AwsS3Credentials credentials = 1;
+  // Optionally specify the region that the dynamodb instance lives in if not provided by the environment.
+  optional string region = 2;
+  // Optionally specify the endpoint that will be used by the AWS SDK.
+  optional string endpoint = 3;
 }
 
 message MongoConnectionConfig {

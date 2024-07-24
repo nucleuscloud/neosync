@@ -554,41 +554,57 @@ export class ConnectionRolePrivilege extends Message<ConnectionRolePrivilege> {
  */
 export class Connection extends Message<Connection> {
   /**
+   * The unique identifier of the connection
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * The unique, friendly name of the connection
+   *
    * @generated from field: string name = 2;
    */
   name = "";
 
   /**
+   * Contains the connection configuration and connection type
+   *
    * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
    */
   connectionConfig?: ConnectionConfig;
 
   /**
+   * The user id of the user that created the connection
+   *
    * @generated from field: string created_by_user_id = 4;
    */
   createdByUserId = "";
 
   /**
+   * When the connection was created
+   *
    * @generated from field: google.protobuf.Timestamp created_at = 5;
    */
   createdAt?: Timestamp;
 
   /**
+   * Who last updated the connection
+   *
    * @generated from field: string updated_by_user_id = 6;
    */
   updatedByUserId = "";
 
   /**
+   * When the connection was last updated
+   *
    * @generated from field: google.protobuf.Timestamp updated_at = 7;
    */
   updatedAt?: Timestamp;
 
   /**
+   * The unique account that owns this connection
+   *
    * @generated from field: string account_id = 8;
    */
   accountId = "";
@@ -693,6 +709,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: GcpCloudStorageConnectionConfig;
     case: "gcpCloudstorageConfig";
+  } | {
+    /**
+     * Configures a DynamoDB Connection
+     *
+     * @generated from field: mgmt.v1alpha1.DynamoDBConnectionConfig dynamodb_config = 8;
+     */
+    value: DynamoDBConnectionConfig;
+    case: "dynamodbConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -710,6 +734,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 5, name: "openai_config", kind: "message", T: OpenAiConnectionConfig, oneof: "config" },
     { no: 6, name: "mongo_config", kind: "message", T: MongoConnectionConfig, oneof: "config" },
     { no: 7, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageConnectionConfig, oneof: "config" },
+    { no: 8, name: "dynamodb_config", kind: "message", T: DynamoDBConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -726,6 +751,64 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
 
   static equals(a: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined, b: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined): boolean {
     return proto3.util.equals(ConnectionConfig, a, b);
+  }
+}
+
+/**
+ * Configuration for a DynaomDB Connection
+ *
+ * @generated from message mgmt.v1alpha1.DynamoDBConnectionConfig
+ */
+export class DynamoDBConnectionConfig extends Message<DynamoDBConnectionConfig> {
+  /**
+   * Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.
+   * If self-hosting, this may be provided by the environment in lieu of specifying these here
+   *
+   * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 1;
+   */
+  credentials?: AwsS3Credentials;
+
+  /**
+   * Optionally specify the region that the dynamodb instance lives in if not provided by the environment.
+   *
+   * @generated from field: optional string region = 2;
+   */
+  region?: string;
+
+  /**
+   * Optionally specify the endpoint that will be used by the AWS SDK.
+   *
+   * @generated from field: optional string endpoint = 3;
+   */
+  endpoint?: string;
+
+  constructor(data?: PartialMessage<DynamoDBConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
+    { no: 2, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "endpoint", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBConnectionConfig {
+    return new DynamoDBConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBConnectionConfig {
+    return new DynamoDBConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBConnectionConfig {
+    return new DynamoDBConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBConnectionConfig | PlainMessage<DynamoDBConnectionConfig> | undefined, b: DynamoDBConnectionConfig | PlainMessage<DynamoDBConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(DynamoDBConnectionConfig, a, b);
   }
 }
 
