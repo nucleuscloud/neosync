@@ -337,7 +337,7 @@ export default function DynamoDBForm(props: Props) {
           connectionType="mongodb"
         />
 
-        <div className="flex flex-row gap-3 justify-end">
+        <div className="flex flex-row gap-3 justify-between">
           <Button
             type="button"
             variant="outline"
