@@ -146,6 +146,65 @@ func (_c *MockNeosyncAwsManagerClient_ListObjectsV2_Call) RunAndReturn(run func(
 	return _c
 }
 
+// NewDynamoDbClient provides a mock function with given fields: ctx, connCfg
+func (_m *MockNeosyncAwsManagerClient) NewDynamoDbClient(ctx context.Context, connCfg *mgmtv1alpha1.DynamoDBConnectionConfig) (*DynamoDbClient, error) {
+	ret := _m.Called(ctx, connCfg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewDynamoDbClient")
+	}
+
+	var r0 *DynamoDbClient
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *mgmtv1alpha1.DynamoDBConnectionConfig) (*DynamoDbClient, error)); ok {
+		return rf(ctx, connCfg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *mgmtv1alpha1.DynamoDBConnectionConfig) *DynamoDbClient); ok {
+		r0 = rf(ctx, connCfg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DynamoDbClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *mgmtv1alpha1.DynamoDBConnectionConfig) error); ok {
+		r1 = rf(ctx, connCfg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockNeosyncAwsManagerClient_NewDynamoDbClient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewDynamoDbClient'
+type MockNeosyncAwsManagerClient_NewDynamoDbClient_Call struct {
+	*mock.Call
+}
+
+// NewDynamoDbClient is a helper method to define mock.On call
+//   - ctx context.Context
+//   - connCfg *mgmtv1alpha1.DynamoDBConnectionConfig
+func (_e *MockNeosyncAwsManagerClient_Expecter) NewDynamoDbClient(ctx interface{}, connCfg interface{}) *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call {
+	return &MockNeosyncAwsManagerClient_NewDynamoDbClient_Call{Call: _e.mock.On("NewDynamoDbClient", ctx, connCfg)}
+}
+
+func (_c *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call) Run(run func(ctx context.Context, connCfg *mgmtv1alpha1.DynamoDBConnectionConfig)) *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*mgmtv1alpha1.DynamoDBConnectionConfig))
+	})
+	return _c
+}
+
+func (_c *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call) Return(_a0 *DynamoDbClient, _a1 error) *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call) RunAndReturn(run func(context.Context, *mgmtv1alpha1.DynamoDBConnectionConfig) (*DynamoDbClient, error)) *MockNeosyncAwsManagerClient_NewDynamoDbClient_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewS3Client provides a mock function with given fields: ctx, config
 func (_m *MockNeosyncAwsManagerClient) NewS3Client(ctx context.Context, config *mgmtv1alpha1.AwsS3ConnectionConfig) (*s3.Client, error) {
 	ret := _m.Called(ctx, config)

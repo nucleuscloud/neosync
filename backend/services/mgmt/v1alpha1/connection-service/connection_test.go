@@ -16,6 +16,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
@@ -686,6 +687,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockPgquerier := pg_queries.NewMockQuerier(t)
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockMongoConnector := mongoconnect.NewMockInterface(t)
+	mockAwsManager := awsmanager.NewMockNeosyncAwsManagerClient(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
@@ -693,7 +695,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	}
 
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
-		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector)
+		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector, mockAwsManager)
 
 	return &serviceMocks{
 		Service:                service,

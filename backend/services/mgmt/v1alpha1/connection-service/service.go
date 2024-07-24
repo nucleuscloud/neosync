@@ -10,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 )
 
 type Service struct {
@@ -23,6 +24,8 @@ type Service struct {
 
 	pgquerier    pg_queries.Querier
 	mysqlquerier mysql_queries.Querier
+
+	awsManager awsmanager.NeosyncAwsManagerClient
 }
 
 type Config struct {
@@ -36,6 +39,7 @@ func New(
 	pgquerier pg_queries.Querier,
 	mysqlquerier mysql_queries.Querier,
 	mongoconnector mongoconnect.Interface,
+	awsManager awsmanager.NeosyncAwsManagerClient,
 ) *Service {
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
@@ -49,5 +53,6 @@ func New(
 		mysqlquerier:       mysqlquerier,
 		sqlmanager:         sqlmanager,
 		mongoconnector:     mongoconnector,
+		awsManager:         awsManager,
 	}
 }
