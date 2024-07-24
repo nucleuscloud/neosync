@@ -93,3 +93,6 @@ packages:
   github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager:
     interfaces:
       ConnectionProvider:
+  github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb:
+    interfaces:
+      dynamoDBAPIV2:

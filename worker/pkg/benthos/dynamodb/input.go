@@ -80,7 +80,7 @@ func (d *dynamodbInput) Connect(ctx context.Context) error {
 	d.readMu.Lock()
 	defer d.readMu.Unlock()
 
-	if d.client != nil {
+	if d.client == nil {
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func (d *dynamodbInput) Connect(ctx context.Context) error {
 }
 
 func isTableActive(output *dynamodb.DescribeTableOutput) bool {
-	return output == nil || output.Table == nil || output.Table.TableStatus == types.TableStatusActive
+	return output != nil && output.Table != nil && output.Table.TableStatus == types.TableStatusActive
 }
 
 func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, service.AckFunc, error) {
