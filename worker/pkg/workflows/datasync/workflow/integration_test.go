@@ -72,7 +72,7 @@ func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
 		postgres.WithDatabase("postgres"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(5*time.Second),
+				WithOccurrence(2).WithStartupTimeout(20*time.Second),
 		),
 	)
 	if err != nil {
@@ -174,7 +174,7 @@ func createMysqlTestContainer(
 		testmysql.WithPassword(password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("port: 3306  MySQL Community Server").
-				WithOccurrence(1).WithStartupTimeout(10*time.Second),
+				WithOccurrence(1).WithStartupTimeout(20*time.Second),
 		),
 	)
 	if err != nil {
