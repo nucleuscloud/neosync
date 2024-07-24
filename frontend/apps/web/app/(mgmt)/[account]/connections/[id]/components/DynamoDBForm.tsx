@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
 import {
@@ -12,6 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -30,13 +32,17 @@ import {
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  CheckConnectionConfigResponse,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
 import {
+  checkConnectionConfig,
   isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { buildConnectionConfigDynamoDB } from '../../util';
 
@@ -63,6 +69,37 @@ export default function DynamoDBForm(props: Props) {
     },
   });
   const { mutateAsync } = useMutation(updateConnection);
+  const { mutateAsync: checkDbConnection } = useMutation(checkConnectionConfig);
+
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [validationResponse, setValidationResponse] = useState<
+    CheckConnectionConfigResponse | undefined
+  >();
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
+
+  async function onValidationClick(): Promise<void> {
+    if (isValidating) {
+      return;
+    }
+    setIsValidating(true);
+    try {
+      const res = await checkDbConnection({
+        connectionConfig: buildConnectionConfigDynamoDB(form.getValues()),
+      });
+      setValidationResponse(res);
+      setOpenPermissionDialog(!!res.isConnected);
+    } catch (err) {
+      setValidationResponse(
+        new CheckConnectionConfigResponse({
+          isConnected: false,
+          connectionError: err instanceof Error ? err.message : 'unknown error',
+        })
+      );
+    } finally {
+      setIsValidating(false);
+    }
+  }
 
   async function onSubmit(values: DynamoDbFormValues) {
     try {
@@ -289,7 +326,34 @@ export default function DynamoDBForm(props: Props) {
           </AccordionItem>
         </Accordion>
 
+        <PermissionsDialog
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          connectionName={form.getValues('connectionName')}
+          connectionType="mongodb"
+        />
+
         <div className="flex flex-row gap-3 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onValidationClick()}
+          >
+            <ButtonText
+              leftIcon={
+                isValidating ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div />
+                )
+              }
+              text="Test Connection"
+            />
+          </Button>
           <Button type="submit">
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
@@ -297,7 +361,30 @@ export default function DynamoDBForm(props: Props) {
             />
           </Button>
         </div>
+        {validationResponse && !validationResponse.isConnected && (
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        )}
       </form>
     </Form>
+  );
+}
+
+interface ErrorAlertProps {
+  title: string;
+  description: string;
+}
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { title, description } = props;
+  return (
+    <Alert variant="destructive">
+      <ExclamationTriangleIcon className="h-4 w-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
   );
 }
