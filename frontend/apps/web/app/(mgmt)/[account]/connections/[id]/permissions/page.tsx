@@ -46,6 +46,8 @@ function getPermissionColumnType(
       return 'mysql';
     case 'pgConfig':
       return 'postgres';
+    case 'dynamodbConfig':
+      return 'dynamodb';
     default: // trash
       return 'postgres';
   }

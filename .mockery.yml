@@ -64,9 +64,10 @@ packages:
     interfaces:
       SqlDatabase:
       SqlManagerClient:
-  github.com/nucleuscloud/neosync/backend/internal/aws:
+  github.com/nucleuscloud/neosync/internal/aws:
     interfaces:
       NeosyncAwsManagerClient:
+      dynamoDBAPIV2:
   github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
     interfaces:
       sqlProvider:

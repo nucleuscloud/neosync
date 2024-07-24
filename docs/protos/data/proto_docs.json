@@ -1339,7 +1339,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1351,7 +1351,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The unique, friendly name of the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1363,7 +1363,7 @@
             },
             {
               "name": "connection_config",
-              "description": "",
+              "description": "Contains the connection configuration and connection type",
               "label": "",
               "type": "ConnectionConfig",
               "longType": "ConnectionConfig",
@@ -1375,7 +1375,7 @@
             },
             {
               "name": "created_by_user_id",
-              "description": "",
+              "description": "The user id of the user that created the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1387,7 +1387,7 @@
             },
             {
               "name": "created_at",
-              "description": "",
+              "description": "When the connection was created",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -1399,7 +1399,7 @@
             },
             {
               "name": "updated_by_user_id",
-              "description": "",
+              "description": "Who last updated the connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1411,7 +1411,7 @@
             },
             {
               "name": "updated_at",
-              "description": "",
+              "description": "When the connection was last updated",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -1423,7 +1423,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique account that owns this connection",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1524,6 +1524,18 @@
               "type": "GcpCloudStorageConnectionConfig",
               "longType": "GcpCloudStorageConnectionConfig",
               "fullType": "mgmt.v1alpha1.GcpCloudStorageConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_config",
+              "description": "Configures a DynamoDB Connection",
+              "label": "",
+              "type": "DynamoDBConnectionConfig",
+              "longType": "DynamoDBConnectionConfig",
+              "fullType": "mgmt.v1alpha1.DynamoDBConnectionConfig",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -1697,6 +1709,54 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "DynamoDBConnectionConfig",
+          "longName": "DynamoDBConnectionConfig",
+          "fullName": "mgmt.v1alpha1.DynamoDBConnectionConfig",
+          "description": "Configuration for a DynaomDB Connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "credentials",
+              "description": "Optional credentials that may be provided and will be used to connect to the DynamoDB Instance.\nIf self-hosting, this may be provided by the environment in lieu of specifying these here",
+              "label": "optional",
+              "type": "AwsS3Credentials",
+              "longType": "AwsS3Credentials",
+              "fullType": "mgmt.v1alpha1.AwsS3Credentials",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_credentials",
+              "defaultValue": ""
+            },
+            {
+              "name": "region",
+              "description": "Optionally specify the region that the dynamodb instance lives in if not provided by the environment.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_region",
+              "defaultValue": ""
+            },
+            {
+              "name": "endpoint",
+              "description": "Optionally specify the endpoint that will be used by the AWS SDK.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_endpoint",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GcpCloudStorageConnectionConfig",

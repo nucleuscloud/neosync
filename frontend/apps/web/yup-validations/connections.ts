@@ -205,6 +205,19 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
 
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
 
+const AwsCredentialsFormValues = Yup.object({
+  profile: Yup.string().optional(),
+  accessKeyId: Yup.string(),
+  secretAccessKey: Yup.string().optional(),
+  sessionToken: Yup.string().optional(),
+  fromEc2Role: Yup.boolean().optional(),
+  roleArn: Yup.string().optional(),
+  roleExternalId: Yup.string().optional(),
+});
+export type AwsCredentialsFormValues = Yup.InferType<
+  typeof AwsCredentialsFormValues
+>;
+
 export const AWS_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
   s3: Yup.object({
@@ -212,19 +225,22 @@ export const AWS_FORM_SCHEMA = Yup.object({
     pathPrefix: Yup.string().optional(),
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),
-    credentials: Yup.object({
-      profile: Yup.string().optional(),
-      accessKeyId: Yup.string(),
-      secretAccessKey: Yup.string().optional(),
-      sessionToken: Yup.string().optional(),
-      fromEc2Role: Yup.boolean().optional(),
-      roleArn: Yup.string().optional(),
-      roleExternalId: Yup.string().optional(),
-    }).optional(),
+    credentials: AwsCredentialsFormValues.optional(),
   }).required(),
 });
 
 export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
+
+export const DynamoDbFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+  db: Yup.object({
+    region: Yup.string().optional(),
+    endpoint: Yup.string().optional(),
+    credentials: AwsCredentialsFormValues.optional(),
+  }).required(),
+});
+
+export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
 
 export const GcpCloudStorageFormValues = Yup.object({
   connectionName: connectionNameSchema,

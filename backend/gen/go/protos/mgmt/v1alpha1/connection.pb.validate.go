@@ -2137,6 +2137,47 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 		}
 
+	case *ConnectionConfig_DynamodbConfig:
+		if v == nil {
+			err := ConnectionConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetDynamodbConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "DynamodbConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "DynamodbConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDynamodbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionConfigValidationError{
+					field:  "DynamodbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2218,6 +2259,149 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ConnectionConfigValidationError{}
+
+// Validate checks the field values on DynamoDBConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DynamoDBConnectionConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DynamoDBConnectionConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DynamoDBConnectionConfigMultiError, or nil if none found.
+func (m *DynamoDBConnectionConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DynamoDBConnectionConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.Credentials != nil {
+
+		if all {
+			switch v := interface{}(m.GetCredentials()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DynamoDBConnectionConfigValidationError{
+						field:  "Credentials",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DynamoDBConnectionConfigValidationError{
+						field:  "Credentials",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetCredentials()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DynamoDBConnectionConfigValidationError{
+					field:  "Credentials",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.Region != nil {
+		// no validation rules for Region
+	}
+
+	if m.Endpoint != nil {
+		// no validation rules for Endpoint
+	}
+
+	if len(errors) > 0 {
+		return DynamoDBConnectionConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// DynamoDBConnectionConfigMultiError is an error wrapping multiple validation
+// errors returned by DynamoDBConnectionConfig.ValidateAll() if the designated
+// constraints aren't met.
+type DynamoDBConnectionConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DynamoDBConnectionConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DynamoDBConnectionConfigMultiError) AllErrors() []error { return m }
+
+// DynamoDBConnectionConfigValidationError is the validation error returned by
+// DynamoDBConnectionConfig.Validate if the designated constraints aren't met.
+type DynamoDBConnectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DynamoDBConnectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DynamoDBConnectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DynamoDBConnectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DynamoDBConnectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DynamoDBConnectionConfigValidationError) ErrorName() string {
+	return "DynamoDBConnectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DynamoDBConnectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDynamoDBConnectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DynamoDBConnectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DynamoDBConnectionConfigValidationError{}
 
 // Validate checks the field values on MongoConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are

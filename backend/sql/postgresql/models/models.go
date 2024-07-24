@@ -16,6 +16,7 @@ type ConnectionConfig struct {
 	OpenAiConfig          *OpenAiConnectionConfig         `json:"openaiConfig,omitempty"`
 	MongoConfig           *MongoConnectionConfig          `json:"mongoConfig,omitempty"`
 	GcpCloudStorageConfig *GcpCloudStorageConfig          `json:"gcpCloudStorageConfig,omitempty"`
+	DynamoDBConfig        *DynamoDBConfig                 `json:"dynamoDBConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
@@ -144,6 +145,16 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				GcpCloudstorageConfig: gdto,
 			},
 		}, nil
+	} else if c.DynamoDBConfig != nil {
+		dto, err := c.DynamoDBConfig.ToDto()
+		if err != nil {
+			return nil, err
+		}
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
+				DynamodbConfig: dto,
+			},
+		}, nil
 	}
 	return nil, errors.ErrUnsupported
 }
@@ -231,6 +242,12 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if err != nil {
 			return err
 		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		c.DynamoDBConfig = &DynamoDBConfig{}
+		err := c.DynamoDBConfig.FromDto(config.DynamodbConfig)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unable to convert to ConnectionConfig from DTO ConnectionConfig, type not supported: %T", config)
 	}
@@ -304,6 +321,34 @@ func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnect
 	g.Bucket = dto.Bucket
 	g.PathPrefix = dto.PathPrefix
 	g.ServiceAccountCredentials = dto.ServiceAccountCredentials
+	return nil
+}
+
+type DynamoDBConfig struct {
+	Credentials *AwsS3Credentials
+	Region      *string
+	Endpoint    *string
+}
+
+func (d *DynamoDBConfig) ToDto() (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
+	var creds *mgmtv1alpha1.AwsS3Credentials
+	if d.Credentials != nil {
+		creds = d.Credentials.ToDto()
+	}
+	return &mgmtv1alpha1.DynamoDBConnectionConfig{
+		Credentials: creds,
+		Region:      d.Region,
+		Endpoint:    d.Endpoint,
+	}, nil
+}
+
+func (d *DynamoDBConfig) FromDto(dto *mgmtv1alpha1.DynamoDBConnectionConfig) error {
+	if dto.Credentials != nil {
+		d.Credentials = &AwsS3Credentials{}
+		d.Credentials.FromDto(dto.Credentials)
+	}
+	d.Endpoint = dto.Endpoint
+	d.Region = dto.Region
 	return nil
 }
 
@@ -471,6 +516,30 @@ type AwsS3Credentials struct {
 	RoleExternalId  *string `json:"roleExternalId,omitempty"`
 }
 
+func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
+	return &mgmtv1alpha1.AwsS3Credentials{
+		Profile:         a.Profile,
+		AccessKeyId:     a.AccessKeyId,
+		SecretAccessKey: a.SecretAccessKey,
+		SessionToken:    a.SessionToken,
+		FromEc2Role:     a.FromEc2Role,
+		RoleArn:         a.RoleArn,
+		RoleExternalId:  a.RoleExternalId,
+	}
+}
+func (a *AwsS3Credentials) FromDto(dto *mgmtv1alpha1.AwsS3Credentials) {
+	if dto == nil {
+		return
+	}
+	a.Profile = dto.Profile
+	a.AccessKeyId = dto.AccessKeyId
+	a.SecretAccessKey = dto.SecretAccessKey
+	a.SessionToken = dto.SessionToken
+	a.FromEc2Role = dto.FromEc2Role
+	a.RoleArn = dto.RoleArn
+	a.RoleExternalId = dto.RoleExternalId
+}
+
 type LocalDirectoryConnectionConfig struct {
 	Path string `json:"path"`
 }
@@ -502,30 +571,6 @@ func (o *OpenAiConnectionConfig) FromDto(dto *mgmtv1alpha1.OpenAiConnectionConfi
 	}
 	o.ApiKey = dto.ApiKey
 	o.ApiUrl = dto.ApiUrl
-}
-
-func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
-	return &mgmtv1alpha1.AwsS3Credentials{
-		Profile:         a.Profile,
-		AccessKeyId:     a.AccessKeyId,
-		SecretAccessKey: a.SecretAccessKey,
-		SessionToken:    a.SessionToken,
-		FromEc2Role:     a.FromEc2Role,
-		RoleArn:         a.RoleArn,
-		RoleExternalId:  a.RoleExternalId,
-	}
-}
-func (a *AwsS3Credentials) FromDto(dto *mgmtv1alpha1.AwsS3Credentials) {
-	if dto == nil {
-		return
-	}
-	a.Profile = dto.Profile
-	a.AccessKeyId = dto.AccessKeyId
-	a.SecretAccessKey = dto.SecretAccessKey
-	a.SessionToken = dto.SessionToken
-	a.FromEc2Role = dto.FromEc2Role
-	a.RoleArn = dto.RoleArn
-	a.RoleExternalId = dto.RoleExternalId
 }
 
 type AwsS3ConnectionConfig struct {

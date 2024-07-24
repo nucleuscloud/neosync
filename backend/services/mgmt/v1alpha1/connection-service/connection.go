@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"connectrpc.com/connect"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -125,6 +126,31 @@ func (s *Service) CheckConnectionConfig(
 					PrivilegeType: []string{},
 				})
 			}
+		}
+
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     true,
+			ConnectionError: nil,
+			Privileges:      privs,
+		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		client, err := s.awsManager.NewDynamoDbClient(ctx, req.Msg.GetConnectionConfig().GetDynamodbConfig())
+		if err != nil {
+			return nil, err
+		}
+		tableNames, err := client.ListAllTables(ctx, &dynamodb.ListTablesInput{})
+		if err != nil {
+			return nil, err
+		}
+
+		privs := []*mgmtv1alpha1.ConnectionRolePrivilege{}
+		for _, tableName := range tableNames {
+			privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivilege{
+				Schema:        "",
+				Table:         tableName,
+				Grantee:       "",
+				PrivilegeType: []string{},
+			})
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{

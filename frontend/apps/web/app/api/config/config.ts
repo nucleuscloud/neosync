@@ -28,6 +28,7 @@ export function getSystemAppConfig(): SystemAppConfig {
     calendlyUpgradeLink:
       process.env.CALENDLY_UPGRADE_LINK ?? 'https://calendly.com/evis1/30min',
     isGcpCloudStorageConnectionsEnabled: isGcpConnectionsEnabled(),
+    isDynamoDbConnectionsEnabled: isDynamoConnectionsEnabled(),
     neosyncApiBaseUrl:
       process.env.NEOSYNC_API_BASE_URL ?? 'http://localhost:8080',
     publicNeosyncApiBaseUrl: PUBLIC_PATHNAME, // ensures that this always poitns to the same domain
@@ -36,6 +37,11 @@ export function getSystemAppConfig(): SystemAppConfig {
 
 function isGcpConnectionsEnabled(): boolean {
   const val = process.env.GCP_CS_CONNECTIONS_DISABLED;
+  return val ? val === 'false' : true;
+}
+
+function isDynamoConnectionsEnabled(): boolean {
+  const val = process.env.DYNAMODB_CONNECTIONS_DISABLED;
   return val ? val === 'false' : true;
 }
 

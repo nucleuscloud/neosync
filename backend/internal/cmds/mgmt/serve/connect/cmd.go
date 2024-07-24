@@ -29,7 +29,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
-	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
@@ -50,6 +49,7 @@ import (
 	v1alpha1_metricsservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/metrics-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -302,6 +302,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	awsManager := awsmanager.New()
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
@@ -310,7 +311,7 @@ func serve(ctx context.Context) error {
 	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
 	mongoconnector := mongoconnect.NewConnector()
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
-		mysqlquerier, mongoconnector)
+		mysqlquerier, mongoconnector, awsManager)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -356,7 +357,6 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	awsManager := awsmanager.New()
 	gcpmanager := neosync_gcp.NewManager()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},

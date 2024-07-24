@@ -6,7 +6,8 @@ import NextLink from 'next/link';
 
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { Connection, ConnectionConfig } from '@neosync/sdk';
+import { Connection } from '@neosync/sdk';
+import { getCategory } from '../../util';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
@@ -125,28 +126,4 @@ export function getColumns(
       ),
     },
   ];
-}
-
-function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
-  if (!cc) {
-    return '-';
-  }
-  switch (cc.config.case) {
-    case 'pgConfig':
-      return 'Postgres';
-    case 'mysqlConfig':
-      return 'MySQL';
-    case 'awsS3Config':
-      return 'AWS S3';
-    case 'openaiConfig':
-      return 'OpenAI';
-    case 'localDirConfig':
-      return 'Local Dir';
-    case 'mongoConfig':
-      return 'MongoDB';
-    case 'gcpCloudstorageConfig':
-      return 'GCP Cloud Storage';
-    default:
-      return '-';
-  }
 }

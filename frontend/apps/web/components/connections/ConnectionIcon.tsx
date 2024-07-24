@@ -59,7 +59,8 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
         </IconContext.Provider>
       );
     }
-    case 'aws-s3': {
+    case 'aws-s3':
+    case 'dynamodb': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <FaAws />

@@ -7,12 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -56,7 +53,7 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 	}
 
 	return &dynamodbInput{
-		awsConfig: sess,
+		awsConfig: *sess,
 		logger:    logger,
 
 		table: table,
@@ -154,49 +151,48 @@ func (d *dynamodbInput) Close(ctx context.Context) error {
 	return nil
 }
 
-func getAwsSession(ctx context.Context, parsedConf *service.ParsedConfig, opts ...func(*config.LoadOptions) error) (aws.Config, error) {
-	if region, _ := parsedConf.FieldString("region"); region != "" {
-		opts = append(opts, config.WithRegion(region))
+func getAwsSession(ctx context.Context, parsedConf *service.ParsedConfig, opts ...func(*config.LoadOptions) error) (*aws.Config, error) {
+	awsCfg, err := awsmanager.GetAwsConfig(ctx, getAwsCredentialsConfigFromParsedConf(parsedConf), opts...)
+	if err != nil {
+		return aws.NewConfig(), err
 	}
+	return awsCfg, nil
+}
+
+func getAwsCredentialsConfigFromParsedConf(parsedConf *service.ParsedConfig) *awsmanager.AwsCredentialsConfig {
+	output := &awsmanager.AwsCredentialsConfig{}
+	if parsedConf == nil {
+		return output
+	}
+	region, _ := parsedConf.FieldString("region")
+	output.Region = region
+
+	endpoint, _ := parsedConf.FieldString("endpoint")
+	output.Endpoint = endpoint
+
+	useEc2, _ := parsedConf.FieldBool("from_ec2_role")
+	output.UseEc2 = useEc2
+
+	role, _ := parsedConf.FieldString("role")
+	output.Role = role
+
+	roleExternalId, _ := parsedConf.FieldString("role_external_id")
+	output.RoleExternalId = roleExternalId
 
 	credsConf := parsedConf.Namespace("credentials")
-	if profile, _ := credsConf.FieldString("profile"); profile != "" {
-		opts = append(opts, config.WithSharedConfigProfile(profile))
-	} else if id, _ := credsConf.FieldString("id"); id != "" {
-		secret, _ := credsConf.FieldString("secret")
-		token, _ := credsConf.FieldString("token")
-		opts = append(opts, config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			id, secret, token,
-		)))
-	}
+	profile, _ := credsConf.FieldString("profile")
+	output.Profile = profile
 
-	conf, err := config.LoadDefaultConfig(ctx, opts...)
-	if err != nil {
-		return conf, err
-	}
+	id, _ := credsConf.FieldString("id")
+	output.Id = id
 
-	if endpoint, _ := parsedConf.FieldString("endpoint"); endpoint != "" {
-		conf.BaseEndpoint = &endpoint
-	}
+	secret, _ := credsConf.FieldString("secret")
+	output.Secret = secret
 
-	if role, _ := credsConf.FieldString("role"); role != "" {
-		stsSvc := sts.NewFromConfig(conf)
+	token, _ := credsConf.FieldString("token")
+	output.Token = token
 
-		var stsOpts []func(*stscreds.AssumeRoleOptions)
-		if externalID, _ := credsConf.FieldString("role_external_id"); externalID != "" {
-			stsOpts = append(stsOpts, func(aro *stscreds.AssumeRoleOptions) {
-				aro.ExternalID = &externalID
-			})
-		}
-
-		creds := stscreds.NewAssumeRoleProvider(stsSvc, role, stsOpts...)
-		conf.Credentials = aws.NewCredentialsCache(creds)
-	}
-
-	if useEC2, _ := credsConf.FieldBool("from_ec2_role"); useEC2 {
-		conf.Credentials = aws.NewCredentialsCache(ec2rolecreds.New())
-	}
-	return conf, nil
+	return output
 }
 
 // SessionFields defines a re-usable set of config fields for an AWS session
