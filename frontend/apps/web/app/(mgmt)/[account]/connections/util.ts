@@ -10,6 +10,7 @@ import {
   PostgresFormValues,
   SshTunnelFormValues,
 } from '@/yup-validations/connections';
+import { PlainMessage } from '@bufbuild/protobuf';
 import {
   AwsS3ConnectionConfig,
   AwsS3Credentials,
@@ -67,6 +68,33 @@ export function getConnectionType(
       return 'dynamodb';
     default:
       return null;
+  }
+}
+
+// Used for the connections data table
+export function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
+  if (!cc) {
+    return '-';
+  }
+  switch (cc.config.case) {
+    case 'pgConfig':
+      return 'Postgres';
+    case 'mysqlConfig':
+      return 'MySQL';
+    case 'awsS3Config':
+      return 'AWS S3';
+    case 'openaiConfig':
+      return 'OpenAI';
+    case 'localDirConfig':
+      return 'Local Dir';
+    case 'mongoConfig':
+      return 'MongoDB';
+    case 'gcpCloudstorageConfig':
+      return 'GCP Cloud Storage';
+    case 'dynamodbConfig':
+      return 'DynamoDB';
+    default:
+      return '-';
   }
 }
 
