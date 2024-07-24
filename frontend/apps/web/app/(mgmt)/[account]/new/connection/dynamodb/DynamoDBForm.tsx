@@ -302,7 +302,8 @@ export default function NewDynamoDBForm(): ReactElement {
             <AccordionContent className="space-y-4">
               <p className="text-sm">
                 This section is used to configure authentication credentials to
-                allow access to the DynamoDB tables
+                allow access to the DynamoDB tables and will be specific to how
+                you wish Neosync to connect to Dynamo.
               </p>
               <div className="space-y-8">
                 <FormField
