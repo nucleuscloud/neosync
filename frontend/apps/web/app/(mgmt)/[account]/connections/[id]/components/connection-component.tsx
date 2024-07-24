@@ -283,6 +283,9 @@ export function getConnectionComponentDetails(
                   roleExternalId:
                     connection.connectionConfig.config.value.credentials
                       ?.roleExternalId,
+                  profile:
+                    connection.connectionConfig.config.value.credentials
+                      ?.profile,
                 },
                 endpoint: connection.connectionConfig.config.value.endpoint,
                 region: connection.connectionConfig.config.value.region,
@@ -461,6 +464,9 @@ export function getConnectionComponentDetails(
                   roleExternalId:
                     connection.connectionConfig.config.value.credentials
                       ?.roleExternalId,
+                  profile:
+                    connection.connectionConfig.config.value.credentials
+                      ?.profile,
                 },
                 endpoint: connection.connectionConfig.config.value.endpoint,
                 region: connection.connectionConfig.config.value.region,
