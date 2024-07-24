@@ -7,13 +7,18 @@ import { ConnectionRolePrivilege } from '@neosync/sdk';
 import { CheckCircledIcon, CircleBackslashIcon } from '@radix-ui/react-icons';
 import { DataTableColumnHeader } from './data-table-column-header';
 
-export type PermissionConnectionType = 'mongodb' | 'mysql' | 'postgres';
+export type PermissionConnectionType =
+  | 'mongodb'
+  | 'mysql'
+  | 'postgres'
+  | 'dynamodb';
 
 export function getPermissionColumns(
   connectionType: PermissionConnectionType
 ): ColumnDef<PlainMessage<ConnectionRolePrivilege>>[] {
   switch (connectionType) {
     case 'mongodb':
+    case 'dynamodb':
       return [
         {
           accessorKey: 'schema',
@@ -26,7 +31,12 @@ export function getPermissionColumns(
           enableHiding: false,
         },
         {
-          accessorFn: (row) => `${row.schema}.${row.table}`,
+          accessorFn: (row) => {
+            if (row.schema) {
+              return `${row.schema}.${row.table}`;
+            }
+            return row.table;
+          },
           id: 'schemaTable',
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Collection" />

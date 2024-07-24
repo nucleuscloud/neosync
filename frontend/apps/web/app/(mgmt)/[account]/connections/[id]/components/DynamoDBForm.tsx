@@ -334,7 +334,7 @@ export default function DynamoDBForm(props: Props) {
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
           connectionName={form.getValues('connectionName')}
-          connectionType="mongodb"
+          connectionType="dynamodb"
         />
 
         <div className="flex flex-row gap-3 justify-between">
