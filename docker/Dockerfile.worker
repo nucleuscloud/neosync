@@ -10,6 +10,7 @@ RUN go mod download
 
 WORKDIR /workspace
 COPY backend/ backend/
+COPY internal/ internal/
 
 WORKDIR /workspace/worker
 

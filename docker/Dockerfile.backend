@@ -10,6 +10,7 @@ RUN go mod download
 
 WORKDIR /workspace
 COPY worker/ worker/
+COPY internal/ internal/
 
 # COPY tools.go tools.go
 # COPY Makefile Makefile
