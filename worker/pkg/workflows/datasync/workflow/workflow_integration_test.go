@@ -336,7 +336,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 	mdTests := mysql_multipledbs.GetSyncTests()
-	allTests["Multiple_Dbs"] = mdTests
+	allTests["Multiple_Databases"] = mdTests
 	return allTests
 }
 
