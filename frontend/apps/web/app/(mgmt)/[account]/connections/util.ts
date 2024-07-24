@@ -1,6 +1,8 @@
 import {
+  AwsCredentialsFormValues,
   AWSFormValues,
   ClientTlsFormValues,
+  DynamoDbFormValues,
   GcpCloudStorageFormValues,
   MongoDbFormValues,
   MysqlFormValues,
@@ -13,6 +15,7 @@ import {
   AwsS3Credentials,
   ClientTlsConfig,
   ConnectionConfig,
+  DynamoDBConnectionConfig,
   GcpCloudStorageConnectionConfig,
   MongoConnectionConfig,
   MysqlConnection,
@@ -20,11 +23,11 @@ import {
   OpenAiConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
+  SqlConnectionOptions,
   SSHAuthentication,
   SSHPassphrase,
   SSHPrivateKey,
   SSHTunnel,
-  SqlConnectionOptions,
 } from '@neosync/sdk';
 
 export type ConnectionType =
@@ -33,7 +36,8 @@ export type ConnectionType =
   | 'aws-s3'
   | 'openai'
   | 'mongodb'
-  | 'gcp-cloud-storage';
+  | 'gcp-cloud-storage'
+  | 'dynamodb';
 
 // Variant of a connection type.
 export type ConnectionTypeVariant = 'neon' | 'supabase';
@@ -59,9 +63,28 @@ export function getConnectionType(
       return 'mongodb';
     case 'gcpCloudstorageConfig':
       return 'gcp-cloud-storage';
+    case 'dynamodbConfig':
+      return 'dynamodb';
     default:
       return null;
   }
+}
+
+export function buildConnectionConfigDynamoDB(
+  values: DynamoDbFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'dynamodbConfig',
+      value: new DynamoDBConnectionConfig({
+        endpoint: values.db.endpoint,
+        region: values.db.region,
+        credentials: values.db.credentials
+          ? buildAwsCredentials(values.db.credentials)
+          : undefined,
+      }),
+    },
+  });
 }
 
 export function buildConnectionConfigAwsS3(
@@ -75,17 +98,25 @@ export function buildConnectionConfigAwsS3(
         pathPrefix: values.s3.pathPrefix,
         region: values.s3.region,
         endpoint: values.s3.endpoint,
-        credentials: new AwsS3Credentials({
-          profile: values.s3.credentials?.profile,
-          accessKeyId: values.s3.credentials?.accessKeyId,
-          secretAccessKey: values.s3.credentials?.secretAccessKey,
-          fromEc2Role: values.s3.credentials?.fromEc2Role,
-          roleArn: values.s3.credentials?.roleArn,
-          roleExternalId: values.s3.credentials?.roleExternalId,
-          sessionToken: values.s3.credentials?.sessionToken,
-        }),
+        credentials: values.s3.credentials
+          ? buildAwsCredentials(values.s3.credentials)
+          : undefined,
       }),
     },
+  });
+}
+
+function buildAwsCredentials(
+  values: AwsCredentialsFormValues
+): AwsS3Credentials {
+  return new AwsS3Credentials({
+    profile: values.profile,
+    accessKeyId: values.accessKeyId,
+    secretAccessKey: values.secretAccessKey,
+    fromEc2Role: values.fromEc2Role,
+    roleArn: values.roleArn,
+    roleExternalId: values.roleExternalId,
+    sessionToken: values.sessionToken,
   });
 }
 

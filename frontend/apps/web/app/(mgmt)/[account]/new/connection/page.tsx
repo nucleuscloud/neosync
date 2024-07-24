@@ -66,6 +66,14 @@ const CONNECTIONS: ConnectionMeta[] = [
     connectionType: 'mongodb',
     isExperimental: true,
   },
+  {
+    urlSlug: 'dynamodb',
+    name: 'DynamoDB',
+    description:
+      'Amazon DynamoDB is a fully managed proprietary NoSQL database offered by Amazon.com as part of the Amazon Web Services portfolio',
+    connectionType: 'dynamodb',
+    isExperimental: true,
+  },
 ];
 
 export default function NewConnectionPage(): ReactElement {

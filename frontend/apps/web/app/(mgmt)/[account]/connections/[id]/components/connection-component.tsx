@@ -10,6 +10,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
+import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
 import MysqlForm from './MysqlForm';
@@ -411,6 +412,58 @@ export function getConnectionComponentDetails(
               gcp: {
                 bucket: connection.connectionConfig.config.value.bucket,
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    }
+    case 'dynamodbConfig': {
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="DynamoDB"
+            leftIcon={<ConnectionIcon connectionType="dynamodb" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <DynamoDBForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              db: {
+                credentials: {
+                  accessKeyId:
+                    connection.connectionConfig.config.value.credentials
+                      ?.accessKeyId,
+                  secretAccessKey:
+                    connection.connectionConfig.config.value.credentials
+                      ?.secretAccessKey,
+                  sessionToken:
+                    connection.connectionConfig.config.value.credentials
+                      ?.sessionToken,
+                  fromEc2Role:
+                    connection.connectionConfig.config.value.credentials
+                      ?.fromEc2Role,
+                  roleArn:
+                    connection.connectionConfig.config.value.credentials
+                      ?.roleArn,
+                  roleExternalId:
+                    connection.connectionConfig.config.value.credentials
+                      ?.roleExternalId,
+                },
+                endpoint: connection.connectionConfig.config.value.endpoint,
+                region: connection.connectionConfig.config.value.region,
               },
             }}
             onSaved={(resp) => onSaved(resp)}
