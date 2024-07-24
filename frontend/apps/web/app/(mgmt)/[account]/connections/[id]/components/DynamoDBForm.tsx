@@ -6,7 +6,6 @@ import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -33,7 +32,6 @@ import {
   updateConnection,
 } from '@neosync/sdk/connectquery';
 import { Controller, useForm } from 'react-hook-form';
-import { IoAlertCircleOutline } from 'react-icons/io5';
 import { buildConnectionConfigDynamoDB } from '../../util';
 
 interface Props {
@@ -78,15 +76,6 @@ export default function DynamoDBForm(props: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Alert variant="warning">
-          <div className="flex flex-row items-center gap-2">
-            <IoAlertCircleOutline className="h-6 w-6" />
-            <AlertTitle className="font-semibold">Heads up!</AlertTitle>
-          </div>
-          <AlertDescription className="pl-8">
-            Right now AWS S3 connections can only be used as a destination
-          </AlertDescription>
-        </Alert>
         <Controller
           control={form.control}
           name="connectionName"
