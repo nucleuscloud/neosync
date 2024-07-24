@@ -78,12 +78,13 @@ const CONNECTIONS: ConnectionMeta[] = [
 
 export default function NewConnectionPage(): ReactElement {
   const searchParams = useSearchParams();
-  const { data: sytemAppConfigData } = useGetSystemAppConfig();
+  const { data: systemAppConfigData } = useGetSystemAppConfig();
   const connectionTypes = new Set(searchParams.getAll('connectionType'));
 
   const connections = getConnectionsMetadata(
     connectionTypes,
-    sytemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false
+    systemAppConfigData?.isGcpCloudStorageConnectionsEnabled ?? false,
+    systemAppConfigData?.isDynamoDbConnectionsEnabled ?? false
   );
   return (
     <OverviewContainer
@@ -106,13 +107,17 @@ export default function NewConnectionPage(): ReactElement {
 
 function getConnectionsMetadata(
   connectionTypes: Set<string>,
-  isGcpCloudStorageConnectionsEnabled: boolean
+  isGcpCloudStorageConnectionsEnabled: boolean,
+  isDynamoDbConnectionsEnabled: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS;
   if (!isGcpCloudStorageConnectionsEnabled) {
     connections = connections.filter(
       (c) => c.connectionType !== 'gcp-cloud-storage'
     );
+  }
+  if (!isDynamoDbConnectionsEnabled) {
+    connections = connections.filter((c) => c.connectionType !== 'dynamodb');
   }
   if (connectionTypes.size > 0) {
     connections = connections.filter((c) =>

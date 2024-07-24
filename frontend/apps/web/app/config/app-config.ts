@@ -10,6 +10,7 @@ export interface SystemAppConfig {
 
   calendlyUpgradeLink: string;
   isGcpCloudStorageConnectionsEnabled: boolean;
+  isDynamoDbConnectionsEnabled: boolean;
   // server-side base url
   neosyncApiBaseUrl: string;
   // public (client-side) base url;
