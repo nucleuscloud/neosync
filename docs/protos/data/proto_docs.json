@@ -8496,10 +8496,45 @@
           "fields": []
         },
         {
+          "name": "DynamoDBDestinationConnectionOptions",
+          "longName": "DynamoDBDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.DynamoDBDestinationConnectionOptions",
+          "description": "Configuration for DynamoDB Destination Connection Job Options",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "DynamoDBSourceConnectionOptions",
+          "longName": "DynamoDBSourceConnectionOptions",
+          "fullName": "mgmt.v1alpha1.DynamoDBSourceConnectionOptions",
+          "description": "DynamoDB connection options for a job source",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "The unique connection id to a dynamodb connection configuration",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GcpCloudStorageDestinationConnectionOptions",
           "longName": "GcpCloudStorageDestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions",
-          "description": "Configuration for Google Cloud Storage Connection Job Options",
+          "description": "Configuration for Google Cloud Storage Destination Connection Job Options",
           "hasExtensions": false,
           "hasFields": false,
           "hasOneofs": false,
@@ -9571,6 +9606,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_options",
+              "description": "Destination Connection options for DynamoDB",
+              "label": "",
+              "type": "DynamoDBDestinationConnectionOptions",
+              "longType": "DynamoDBDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.DynamoDBDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -10171,6 +10218,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "dynamodb",
+              "description": "",
+              "label": "",
+              "type": "DynamoDBSourceConnectionOptions",
+              "longType": "DynamoDBSourceConnectionOptions",
+              "fullType": "mgmt.v1alpha1.DynamoDBSourceConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -10261,7 +10320,7 @@
           "name": "MongoDBSourceConnectionOptions",
           "longName": "MongoDBSourceConnectionOptions",
           "fullName": "mgmt.v1alpha1.MongoDBSourceConnectionOptions",
-          "description": "",
+          "description": "MongoDB connection options for a job source",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -10269,7 +10328,7 @@
           "fields": [
             {
               "name": "connection_id",
-              "description": "",
+              "description": "The unique connection id to a mongo connection configuration",
               "label": "",
               "type": "string",
               "longType": "string",

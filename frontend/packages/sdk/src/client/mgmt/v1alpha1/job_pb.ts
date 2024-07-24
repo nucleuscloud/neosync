@@ -383,6 +383,12 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
      */
     value: MongoDBSourceConnectionOptions;
     case: "mongodb";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.DynamoDBSourceConnectionOptions dynamodb = 7;
+     */
+    value: DynamoDBSourceConnectionOptions;
+    case: "dynamodb";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceOptions>) {
@@ -399,6 +405,7 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
     { no: 4, name: "generate", kind: "message", T: GenerateSourceOptions, oneof: "config" },
     { no: 5, name: "ai_generate", kind: "message", T: AiGenerateSourceOptions, oneof: "config" },
     { no: 6, name: "mongodb", kind: "message", T: MongoDBSourceConnectionOptions, oneof: "config" },
+    { no: 7, name: "dynamodb", kind: "message", T: DynamoDBSourceConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
@@ -813,10 +820,14 @@ export class GenerateSourceTableOption extends Message<GenerateSourceTableOption
 }
 
 /**
+ * MongoDB connection options for a job source
+ *
  * @generated from message mgmt.v1alpha1.MongoDBSourceConnectionOptions
  */
 export class MongoDBSourceConnectionOptions extends Message<MongoDBSourceConnectionOptions> {
   /**
+   * The unique connection id to a mongo connection configuration
+   *
    * @generated from field: string connection_id = 1;
    */
   connectionId = "";
@@ -846,6 +857,47 @@ export class MongoDBSourceConnectionOptions extends Message<MongoDBSourceConnect
 
   static equals(a: MongoDBSourceConnectionOptions | PlainMessage<MongoDBSourceConnectionOptions> | undefined, b: MongoDBSourceConnectionOptions | PlainMessage<MongoDBSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(MongoDBSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * DynamoDB connection options for a job source
+ *
+ * @generated from message mgmt.v1alpha1.DynamoDBSourceConnectionOptions
+ */
+export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConnectionOptions> {
+  /**
+   * The unique connection id to a dynamodb connection configuration
+   *
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<DynamoDBSourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBSourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceConnectionOptions {
+    return new DynamoDBSourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBSourceConnectionOptions {
+    return new DynamoDBSourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBSourceConnectionOptions {
+    return new DynamoDBSourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined, b: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(DynamoDBSourceConnectionOptions, a, b);
   }
 }
 
@@ -1207,6 +1259,14 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
      */
     value: GcpCloudStorageDestinationConnectionOptions;
     case: "gcpCloudstorageOptions";
+  } | {
+    /**
+     * Destination Connection options for DynamoDB
+     *
+     * @generated from field: mgmt.v1alpha1.DynamoDBDestinationConnectionOptions dynamodb_options = 6;
+     */
+    value: DynamoDBDestinationConnectionOptions;
+    case: "dynamodbOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobDestinationOptions>) {
@@ -1222,6 +1282,7 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
     { no: 3, name: "mysql_options", kind: "message", T: MysqlDestinationConnectionOptions, oneof: "config" },
     { no: 4, name: "mongodb_options", kind: "message", T: MongoDBDestinationConnectionOptions, oneof: "config" },
     { no: 5, name: "gcp_cloudstorage_options", kind: "message", T: GcpCloudStorageDestinationConnectionOptions, oneof: "config" },
+    { no: 6, name: "dynamodb_options", kind: "message", T: DynamoDBDestinationConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
@@ -1273,7 +1334,7 @@ export class MongoDBDestinationConnectionOptions extends Message<MongoDBDestinat
 }
 
 /**
- * Configuration for Google Cloud Storage Connection Job Options
+ * Configuration for Google Cloud Storage Destination Connection Job Options
  *
  * @generated from message mgmt.v1alpha1.GcpCloudStorageDestinationConnectionOptions
  */
@@ -1302,6 +1363,39 @@ export class GcpCloudStorageDestinationConnectionOptions extends Message<GcpClou
 
   static equals(a: GcpCloudStorageDestinationConnectionOptions | PlainMessage<GcpCloudStorageDestinationConnectionOptions> | undefined, b: GcpCloudStorageDestinationConnectionOptions | PlainMessage<GcpCloudStorageDestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(GcpCloudStorageDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * Configuration for DynamoDB Destination Connection Job Options
+ *
+ * @generated from message mgmt.v1alpha1.DynamoDBDestinationConnectionOptions
+ */
+export class DynamoDBDestinationConnectionOptions extends Message<DynamoDBDestinationConnectionOptions> {
+  constructor(data?: PartialMessage<DynamoDBDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBDestinationConnectionOptions {
+    return new DynamoDBDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBDestinationConnectionOptions {
+    return new DynamoDBDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBDestinationConnectionOptions {
+    return new DynamoDBDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBDestinationConnectionOptions | PlainMessage<DynamoDBDestinationConnectionOptions> | undefined, b: DynamoDBDestinationConnectionOptions | PlainMessage<DynamoDBDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(DynamoDBDestinationConnectionOptions, a, b);
   }
 }
 
