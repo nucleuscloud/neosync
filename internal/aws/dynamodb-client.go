@@ -2,7 +2,6 @@ package awsmanager
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
@@ -29,7 +28,6 @@ func (d *DynamoDbClient) ListAllTables(ctx context.Context, input *dynamodb.List
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("hit table output")
 		tableNames = append(tableNames, output.TableNames...)
 		input.ExclusiveStartTableName = output.LastEvaluatedTableName
 		done = output.LastEvaluatedTableName == nil
