@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
@@ -62,6 +63,7 @@ import { buildConnectionConfigDynamoDB } from '../../../connections/util';
 export default function NewDynamoDBForm(): ReactElement {
   const searchParams = useSearchParams();
   const { account } = useAccount();
+  const { data: systemAppConfig } = useGetSystemAppConfig();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
   const { data: onboardingData } = useQuery(
@@ -306,20 +308,22 @@ export default function NewDynamoDBForm(): ReactElement {
                 you wish Neosync to connect to Dynamo.
               </p>
               <div className="space-y-8">
-                <FormField
-                  control={form.control}
-                  name="db.credentials.profile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>AWS Profile Name</FormLabel>
-                      <FormDescription>AWS Profile Name</FormDescription>
-                      <FormControl>
-                        <Input placeholder="default" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!systemAppConfig?.isNeosyncCloud && (
+                  <FormField
+                    control={form.control}
+                    name="db.credentials.profile"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>AWS Profile Name</FormLabel>
+                        <FormDescription>AWS Profile Name</FormDescription>
+                        <FormControl>
+                          <Input placeholder="default" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -369,23 +373,25 @@ export default function NewDynamoDBForm(): ReactElement {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="db.credentials.fromEc2Role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <SwitchCard
-                          isChecked={field.value || false}
-                          onCheckedChange={field.onChange}
-                          title="From EC2 Role"
-                          description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!systemAppConfig?.isNeosyncCloud && (
+                  <FormField
+                    control={form.control}
+                    name="db.credentials.fromEc2Role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <SwitchCard
+                            isChecked={field.value || false}
+                            onCheckedChange={field.onChange}
+                            title="From EC2 Role"
+                            description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
