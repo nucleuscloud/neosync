@@ -29,5 +29,10 @@
 		"folder": "primary-key-transformer",
 		"sql_file": "create.sql",
 		"driver": "postgres"
+	},
+	{
+		"folder": "mysql/composite-keys",
+		"sql_file": "create.sql",
+		"driver": "mysql"
 	}
 ]
