@@ -60,6 +60,29 @@ type Inputs struct {
 	OpenAiGenerate *OpenAiGenerate    `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
 	MongoDB        *InputMongoDb      `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
 	PooledMongoDB  *InputMongoDb      `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
+	AwsDynamoDB    *InputAwsDynamoDB  `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
+}
+
+type InputAwsDynamoDB struct {
+	Table string `json:"table" yaml:"table"`
+
+	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+}
+
+type OutputAwsDynamoDB struct {
+	Table          string            `json:"table" yaml:"table"`
+	JsonMapColumns map[string]string `json:"json_map_columns,omitempty" yaml:"json_map_columns,omitempty"`
+
+	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+
+	MaxInFlight *int      `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type InputMongoDb struct {
@@ -231,6 +254,7 @@ type Outputs struct {
 	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
 	MongoDB         *OutputMongoDb         `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
 	PooledMongoDB   *OutputMongoDb         `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
+	AwsDynamoDB     *OutputAwsDynamoDB     `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb"`
 }
 
 type SwitchOutputConfig struct {

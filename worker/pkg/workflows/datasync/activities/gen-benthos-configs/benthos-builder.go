@@ -111,6 +111,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to build benthos mongo sync source config responses: %w", err)
 		}
 		responses = append(responses, resp.BenthosConfigs...)
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		resp, err := b.getDynamoDbSyncBenthosConfigResponses(ctx, job, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build benthos dynamodb sync source config responses: %w", err)
+		}
+		responses = append(responses, resp.BenthosConfigs...)
 	default:
 		return nil, fmt.Errorf("unsupported job source: %T", job.GetSource().GetOptions().GetConfig())
 	}
@@ -189,6 +195,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
+			case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+				// todo:
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.GetConnectionConfig().GetConfig())
 			}
