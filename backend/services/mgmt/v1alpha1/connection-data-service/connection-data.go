@@ -665,10 +665,6 @@ func (s *Service) GetConnectionSchema(
 			Schemas: schemas,
 		}), nil
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-		dynCfg := req.Msg.GetSchemaConfig().GetDynamodbConfig()
-		if dynCfg == nil {
-			return nil, nucleuserrors.NewBadRequest("must provide dynamodb config")
-		}
 		dynclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create dynamodb client from connection: %w", err)

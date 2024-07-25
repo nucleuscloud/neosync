@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -1561,7 +1562,12 @@ func (s *Service) ValidateJobMappings(
 		return nil, err
 	}
 
-	if connection.Msg.GetConnection().GetConnectionConfig().GetAwsS3Config() != nil || connection.Msg.GetConnection().GetConnectionConfig().GetMongoConfig() != nil {
+	connConfig := connection.Msg.GetConnection().GetConnectionConfig()
+	if connConfig == nil {
+		return nil, errors.New("connection config for connection was nil")
+	}
+
+	if connConfig.GetAwsS3Config() != nil || connConfig.GetMongoConfig() != nil || connConfig.GetDynamodbConfig() != nil {
 		return connect.NewResponse(&mgmtv1alpha1.ValidateJobMappingsResponse{}), nil
 	}
 
