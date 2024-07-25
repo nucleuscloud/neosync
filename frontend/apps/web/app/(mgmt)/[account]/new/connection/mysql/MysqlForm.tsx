@@ -5,6 +5,7 @@ import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import {
@@ -61,10 +62,7 @@ import {
   isConnectionNameAvailable,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
-import {
-  CheckCircledIcon,
-  ExclamationTriangleIcon,
-} from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -122,6 +120,8 @@ export default function MysqlForm() {
   >();
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
   const posthog = usePostHog();
   const { mutateAsync: createMysqlConnection } = useMutation(createConnection);
   const { mutateAsync: checkMysqlConnection } = useMutation(
@@ -702,6 +702,16 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <PermissionsDialog
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          connectionName={form.getValues('connectionName')}
+          connectionType="mysql"
+        />
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
@@ -717,8 +727,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                     db: values.db,
                   }),
                 });
-                setIsValidating(false);
                 setValidationResponse(res);
+                setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
                 setValidationResponse(
                   new CheckConnectionConfigResponse({
@@ -760,29 +770,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             }
           />
         )}
-        {validationResponse && validationResponse.isConnected && (
-          <SuccessAlert description={'Successfully connected!'} />
-        )}
       </form>
     </Form>
-  );
-}
-
-interface SuccessAlertProps {
-  description: string;
-}
-
-function SuccessAlert(props: SuccessAlertProps): ReactElement {
-  const { description } = props;
-  return (
-    <Alert variant="success">
-      <div className="flex flex-row items-center gap-2">
-        <CheckCircledIcon className="h-4 w-4 text-green-900 dark:text-green-400" />
-        <div className="font-normal text-green-900 dark:text-green-400">
-          {description}
-        </div>
-      </div>
-    </Alert>
   );
 }
 

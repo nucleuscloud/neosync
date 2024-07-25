@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import {
   Accordion,
@@ -49,10 +50,7 @@ import {
   isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
-import {
-  CheckCircledIcon,
-  ExclamationTriangleIcon,
-} from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { buildConnectionConfigMysql } from '../../util';
@@ -95,6 +93,8 @@ export default function MysqlForm(props: Props) {
     CheckConnectionConfigResponse | undefined
   >();
   const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
 
   async function onSubmit(values: MysqlFormValues) {
     try {
@@ -473,6 +473,16 @@ export default function MysqlForm(props: Props) {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <PermissionsDialog
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          connectionName={form.getValues('connectionName')}
+          connectionType="mysql"
+        />
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
@@ -488,8 +498,8 @@ export default function MysqlForm(props: Props) {
                   }),
                 });
 
-                setIsValidating(false);
                 setValidationResponse(res);
+                setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
                 setValidationResponse(
                   new CheckConnectionConfigResponse({
@@ -523,9 +533,6 @@ export default function MysqlForm(props: Props) {
             />
           </Button>
         </div>
-        {validationResponse && validationResponse.isConnected && (
-          <SuccessAlert description={'Successfully connected!'} />
-        )}
         {validationResponse && !validationResponse.isConnected && (
           <ErrorAlert
             title="Unable to connect"
@@ -536,24 +543,6 @@ export default function MysqlForm(props: Props) {
         )}
       </form>
     </Form>
-  );
-}
-
-interface SuccessAlertProps {
-  description: string;
-}
-
-function SuccessAlert(props: SuccessAlertProps): ReactElement {
-  const { description } = props;
-  return (
-    <Alert variant="success">
-      <div className="flex flex-row items-center gap-2">
-        <CheckCircledIcon className="h-4 w-4 text-green-900 dark:text-green-400" />
-        <div className="font-normal text-green-900 dark:text-green-400">
-          {description}
-        </div>
-      </div>
-    </Alert>
   );
 }
 
