@@ -97,6 +97,7 @@ export default function ConnectionPage({ params }: PageProps) {
 
   const showSubNav =
     data?.connection?.connectionConfig?.config.case === 'pgConfig' ||
+    data?.connection?.connectionConfig?.config.case === 'mysqlConfig' ||
     data?.connection?.connectionConfig?.config.case === 'dynamodbConfig' ||
     data?.connection?.connectionConfig?.config.case === 'mongoConfig';
 
