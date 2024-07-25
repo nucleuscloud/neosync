@@ -53,6 +53,7 @@ message AwsS3SchemaConfig {
   }
 }
 message MongoSchemaConfig {}
+message DynamoDBSchemaConfig {}
 message GcpCloudStorageSchemaConfig {
   oneof id {
     string job_id = 1 [(buf.validate.field).string.uuid = true];
@@ -69,6 +70,7 @@ message ConnectionSchemaConfig {
     MysqlSchemaConfig mysql_config = 3;
     MongoSchemaConfig mongo_config = 4;
     GcpCloudStorageSchemaConfig gcp_cloudstorage_config = 5;
+    DynamoDBSchemaConfig dynamodb_config = 6;
   }
 }
 

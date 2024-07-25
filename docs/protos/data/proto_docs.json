@@ -2894,6 +2894,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_config",
+              "description": "",
+              "label": "",
+              "type": "DynamoDBSchemaConfig",
+              "longType": "DynamoDBSchemaConfig",
+              "fullType": "mgmt.v1alpha1.DynamoDBSchemaConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -3100,6 +3112,17 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "DynamoDBSchemaConfig",
+          "longName": "DynamoDBSchemaConfig",
+          "fullName": "mgmt.v1alpha1.DynamoDBSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "ForeignConstraint",

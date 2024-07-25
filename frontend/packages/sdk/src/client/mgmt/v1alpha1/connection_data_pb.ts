@@ -472,6 +472,37 @@ export class MongoSchemaConfig extends Message<MongoSchemaConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.DynamoDBSchemaConfig
+ */
+export class DynamoDBSchemaConfig extends Message<DynamoDBSchemaConfig> {
+  constructor(data?: PartialMessage<DynamoDBSchemaConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBSchemaConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSchemaConfig {
+    return new DynamoDBSchemaConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBSchemaConfig {
+    return new DynamoDBSchemaConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBSchemaConfig {
+    return new DynamoDBSchemaConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBSchemaConfig | PlainMessage<DynamoDBSchemaConfig> | undefined, b: DynamoDBSchemaConfig | PlainMessage<DynamoDBSchemaConfig> | undefined): boolean {
+    return proto3.util.equals(DynamoDBSchemaConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GcpCloudStorageSchemaConfig
  */
 export class GcpCloudStorageSchemaConfig extends Message<GcpCloudStorageSchemaConfig> {
@@ -558,6 +589,12 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
      */
     value: GcpCloudStorageSchemaConfig;
     case: "gcpCloudstorageConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.DynamoDBSchemaConfig dynamodb_config = 6;
+     */
+    value: DynamoDBSchemaConfig;
+    case: "dynamodbConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionSchemaConfig>) {
@@ -573,6 +610,7 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
     { no: 3, name: "mysql_config", kind: "message", T: MysqlSchemaConfig, oneof: "config" },
     { no: 4, name: "mongo_config", kind: "message", T: MongoSchemaConfig, oneof: "config" },
     { no: 5, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageSchemaConfig, oneof: "config" },
+    { no: 6, name: "dynamodb_config", kind: "message", T: DynamoDBSchemaConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionSchemaConfig {

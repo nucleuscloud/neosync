@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -489,14 +490,14 @@ func (s *Service) GetConnectionSchema(
 		}
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, dbname := range dbnames {
-			collNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
+			collectionNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
 			if err != nil {
 				return nil, err
 			}
-			for _, collName := range collNames {
+			for _, collectionName := range collectionNames {
 				schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
 					Schema: dbname,
-					Table:  collName,
+					Table:  collectionName,
 				})
 			}
 		}
@@ -659,6 +660,29 @@ func (s *Service) GetConnectionSchema(
 		)
 		if err != nil {
 			return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		dynCfg := req.Msg.GetSchemaConfig().GetDynamodbConfig()
+		if dynCfg == nil {
+			return nil, nucleuserrors.NewBadRequest("must provide dynamodb config")
+		}
+		dynclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create dynamodb client from connection: %w", err)
+		}
+		tableNames, err := dynclient.ListAllTables(ctx, &dynamodb.ListTablesInput{})
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve dynamodb tables: %w", err)
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, tableName := range tableNames {
+			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+				Schema: "",
+				Table:  tableName,
+			})
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
@@ -935,6 +959,10 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MongoConfig{
 				MongoConfig: &mgmtv1alpha1.MongoSchemaConfig{},
 			},
+		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{},
 		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
