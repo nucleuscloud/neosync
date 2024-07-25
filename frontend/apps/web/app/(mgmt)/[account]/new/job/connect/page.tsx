@@ -95,7 +95,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const { postgres, mysql, s3, mongodb, gcpcs } = splitConnections(connections);
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+    splitConnections(connections);
 
   return (
     <div
@@ -189,6 +190,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 urlParams.append('connectionType', 'postgres');
                                 urlParams.append('connectionType', 'mysql');
                                 urlParams.append('connectionType', 'mongodb');
+                                urlParams.append('connectionType', 'dynamodb');
                               }
 
                               router.push(
@@ -214,6 +216,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               postgres={postgres}
                               mysql={mysql}
                               mongodb={mongodb}
+                              dynamodb={dynamodb}
                               newConnectionValue={NEW_CONNECTION_VALUE}
                             />
                           </SelectContent>
@@ -315,6 +318,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             'connectionType',
                                             'mongodb'
                                           );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'dynamodb'
+                                          );
                                         }
 
                                         router.push(
@@ -349,6 +356,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         s3={s3}
                                         mongodb={mongodb}
                                         gcpcs={gcpcs}
+                                        dynamodb={dynamodb}
                                         newConnectionValue={
                                           NEW_CONNECTION_VALUE
                                         }

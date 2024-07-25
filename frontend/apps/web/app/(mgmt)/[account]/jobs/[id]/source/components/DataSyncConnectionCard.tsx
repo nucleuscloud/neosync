@@ -786,6 +786,7 @@ async function getUpdatedValues(
 function isNosqlSource(connection: Connection): boolean {
   switch (connection.connectionConfig?.config.case) {
     case 'mongoConfig':
+    case 'dynamodbConfig':
       return true;
     default: {
       return false;

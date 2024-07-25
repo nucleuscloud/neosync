@@ -80,6 +80,8 @@ export default function SourceOptionsForm(
       return <></>;
     case 'gcpCloudstorageConfig':
       return <></>;
+    case 'dynamodbConfig':
+      return <></>;
     default:
       return (
         <div>

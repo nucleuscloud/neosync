@@ -20,6 +20,9 @@ import {
   Connection,
   CreateJobRequest,
   DatabaseTable,
+  DynamoDBDestinationConnectionOptions,
+  DynamoDBDestinationTableMapping,
+  DynamoDBSourceConnectionOptions,
   GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
@@ -442,6 +445,16 @@ export function toJobDestinationOptions(
         },
       });
     }
+    case 'dynamodbConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'dynamodbOptions',
+          value: new DynamoDBDestinationConnectionOptions({
+            tableMappings: [new DynamoDBDestinationTableMapping()], // todo
+          }),
+        },
+      });
+    }
     default: {
       return new JobDestinationOptions();
     }
@@ -556,6 +569,16 @@ function toJobSourceOptions(
           }),
         },
       });
+    case 'dynamodbConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'dynamodb',
+          value: new DynamoDBSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+          }),
+        },
+      });
+    }
     default:
       throw new Error('unsupported connection type');
   }
@@ -749,6 +772,17 @@ function setDefaultConnectFormValues(
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
       return;
     }
+    case 'dynamodb': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {},
+        destinations: job.destinations.map(
+          (dest) => getDefaultDestinationFormValues(dest) // todo: needs to include the table mappings
+        ),
+      };
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
     case 'mysql': {
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
@@ -832,6 +866,7 @@ function setDefaultSchemaFormValues(
     }
     case 'mysql':
     case 'mongodb':
+    case 'dynamodb':
     case 'postgres': {
       const values: SchemaFormValues = {
         connectionId: job.source.options.config.value.connectionId,

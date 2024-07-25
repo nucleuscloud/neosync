@@ -130,6 +130,8 @@ export default function DestinationOptionsForm(
       return <></>;
     case 'gcpCloudstorageConfig':
       return <></>;
+    case 'dynamodbConfig':
+      return <></>;
     default:
       return (
         <div>

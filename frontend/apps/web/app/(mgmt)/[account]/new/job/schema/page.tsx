@@ -517,6 +517,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 function isNosqlSource(connection: Connection): boolean {
   switch (connection.connectionConfig?.config.case) {
     case 'mongoConfig':
+    case 'dynamodbConfig':
       return true;
     default: {
       return false;

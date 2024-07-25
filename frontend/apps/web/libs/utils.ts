@@ -28,6 +28,7 @@ export function splitConnections(connections: Connection[]): {
   openai: Connection[];
   mongodb: Connection[];
   gcpcs: Connection[];
+  dynamodb: Connection[];
 } {
   const postgres: Connection[] = [];
   const mysql: Connection[] = [];
@@ -35,6 +36,7 @@ export function splitConnections(connections: Connection[]): {
   const openai: Connection[] = [];
   const mongodb: Connection[] = [];
   const gcpcs: Connection[] = [];
+  const dynamodb: Connection[] = [];
 
   connections.forEach((connection) => {
     if (connection.connectionConfig?.config.case === 'pgConfig') {
@@ -51,6 +53,8 @@ export function splitConnections(connections: Connection[]): {
       connection.connectionConfig?.config.case === 'gcpCloudstorageConfig'
     ) {
       gcpcs.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'dynamodbConfig') {
+      dynamodb.push(connection);
     }
   });
 
@@ -61,6 +65,7 @@ export function splitConnections(connections: Connection[]): {
     openai,
     mongodb,
     gcpcs,
+    dynamodb,
   };
 }
 
