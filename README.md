@@ -23,7 +23,7 @@ Open Source Data Anonymization and Synthetic Data Orchestration
  | <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a>
  | <a href="https://www.neosync.dev/blog">Blog</a>
  | <a href="https://docs.neosync.dev/changelog">Changelog</a>
- |
+ | <a href="https://neosync.productlane.com/roadmap">Roadmap</a>
 </div>
 
  <br>
