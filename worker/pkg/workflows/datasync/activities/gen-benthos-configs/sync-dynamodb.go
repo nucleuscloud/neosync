@@ -56,7 +56,12 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 					Processors: []neosync_benthos.ProcessorConfig{},
 				},
 				Output: &neosync_benthos.OutputConfig{
-					Outputs: neosync_benthos.Outputs{},
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
 				},
 			},
 		}
@@ -106,4 +111,14 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	return &dynamoSyncResp{
 		BenthosConfigs: benthosConfigs,
 	}, nil
+}
+
+func (b *benthosBuilder) getDynamoDbSyncBenthosOutputs(
+	connection *mgmtv1alpha1.ConnectionConfig_DynamodbConfig,
+	destOpts *mgmtv1alpha1.DynamoDBDestinationConnectionOptions,
+	benthosConfig *BenthosConfigResponse,
+) []neosync_benthos.Outputs {
+	output := []neosync_benthos.Outputs{}
+
+	return output
 }

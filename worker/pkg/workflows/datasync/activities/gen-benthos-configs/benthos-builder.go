@@ -196,7 +196,39 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
 			case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-				// todo:
+				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})
+				if resp.Config.Input.AwsDynamoDB == nil {
+					return nil, errors.New("unable to build destination connection due to unsupported source connection for dynamodb")
+				}
+				dynamoDestinationOpts := destination.GetOptions().GetDynamodbOptions()
+				if dynamoDestinationOpts == nil {
+					return nil, errors.New("destination must have configured dyanmodb options")
+				}
+				tableMap := map[string]string{}
+				for _, tm := range dynamoDestinationOpts.GetTableMappings() {
+					tableMap[tm.GetSourceTable()] = tm.GetDestinationTable()
+				}
+				mappedTable, ok := tableMap[resp.TableName]
+				if !ok {
+					return nil, fmt.Errorf("did not find table map for %q when building dynamodb destination config", resp.TableName)
+				}
+				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+					AwsDynamoDB: &neosync_benthos.OutputAwsDynamoDB{
+						Table: mappedTable,
+						JsonMapColumns: map[string]string{
+							"": ".",
+						},
+
+						Batching: &neosync_benthos.Batching{
+							Period: "5s",
+							Count:  100,
+						},
+
+						Region:      connection.DynamodbConfig.GetRegion(),
+						Endpoint:    connection.DynamodbConfig.GetEndpoint(),
+						Credentials: buildBenthosS3Credentials(connection.DynamodbConfig.GetCredentials()),
+					},
+				})
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.GetConnectionConfig().GetConfig())
 			}
