@@ -81,8 +81,8 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
           name={`code`}
           render={({ field }) => (
             <FormItem>
-              <div className="flex flex-row justify-between">
-                <div className="space-y-0.5">
+              <div className="flex flex-row justify-between gap-6 items-center">
+                <div className="space-y-0.5 w-[90%]">
                   <FormLabel>Transformer Code</FormLabel>
                   <div className="text-[0.8rem] text-muted-foreground">
                     Define your own Transformation below using Javascript. The
@@ -98,7 +98,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
                     <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
                   </div>
                 </div>
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-2 w-[80px]">
                   {codeStatus !== 'null' && (
                     <Badge
                       variant={

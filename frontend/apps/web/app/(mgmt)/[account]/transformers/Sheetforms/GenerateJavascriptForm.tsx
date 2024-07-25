@@ -84,7 +84,7 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
                 <div className="space-y-0.5">
                   <FormLabel>Transformer Code</FormLabel>
                   <div className="text-[0.8rem] text-muted-foreground">
-                    Define your own Transformation below using Javascript. .{' '}
+                    Define your own Transformation below using Javascript.{' '}
                     <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
                   </div>
                 </div>
