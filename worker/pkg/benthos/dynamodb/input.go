@@ -77,7 +77,7 @@ func (d *dynamodbInput) Connect(ctx context.Context) error {
 	d.readMu.Lock()
 	defer d.readMu.Unlock()
 
-	if d.client == nil {
+	if d.client != nil {
 		return nil
 	}
 
