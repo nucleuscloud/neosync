@@ -3,6 +3,8 @@ CREATE TABLE information_schema.columns (
   table_schema text not null,
   table_name text not null,
   column_name text not null,
+  column_type text not null,
+  column_key text not null,
   ordinal_position bigint not null,
   column_default text null,
   is_nullable text not null,
@@ -10,12 +12,14 @@ CREATE TABLE information_schema.columns (
   character_maximum_length bigint,
   numeric_precision bigint,
   numeric_scale bigint,
-  extra longtext null
+  extra longtext null,
+  generation_expression longtext null
 );
 
 create table information_schema.tables (
   table_schema text not null,
-  table_name text not null
+  table_name text not null,
+  auto_increment bigint
 );
 
 create table information_schema.key_column_usage (
@@ -50,3 +54,31 @@ create table information_schema.table_privileges (
   grantee text not null,
   privilege_type text not null
 );
+
+create table information_schema.statistics (
+  table_schema text not null,
+  table_name text not null,
+  column_name text not null,
+  index_name text not null,
+  index_type text not null,
+  seq_in_index bigint,
+  nullable text not null
+);
+
+create table information_schema.routines (
+  routine_name text not null,
+  routine_schema text not null,
+  dtd_identifier text not null,
+  routine_definition longtext not null,
+  is_deterministic text not null
+);
+
+create table information_schema.triggers (
+  trigger_name text not null,
+  event_object_schema text not null,
+  event_object_table text not null,
+  action_statement longtext not null,
+  event_manipulation text not null,
+  action_orientation text not null,
+  action_timing text not null
+)

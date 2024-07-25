@@ -10,6 +10,113 @@ import (
 	"database/sql"
 )
 
+const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
+SELECT 
+    ROUTINE_NAME as function_name, 
+    ROUTINE_SCHEMA as schema_name,
+    DTD_IDENTIFIER as return_data_type,
+    ROUTINE_DEFINITION as definition,
+    IS_DETERMINISTIC as is_deterministic
+FROM 
+    INFORMATION_SCHEMA.ROUTINES 
+WHERE 
+    ROUTINE_TYPE = 'FUNCTION'
+    AND ROUTINE_SCHEMA = ?
+`
+
+type GetCustomFunctionsBySchemaAndTablesRow struct {
+	FunctionName    string
+	SchemaName      string
+	ReturnDataType  string
+	Definition      string
+	IsDeterministic string
+}
+
+func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemaAndTables, schema)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomFunctionsBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetCustomFunctionsBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.FunctionName,
+			&i.SchemaName,
+			&i.ReturnDataType,
+			&i.Definition,
+			&i.IsDeterministic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomTriggersBySchemaAndTables = `-- name: GetCustomTriggersBySchemaAndTables :many
+SELECT
+    TRIGGER_NAME AS trigger_name,
+    EVENT_OBJECT_SCHEMA AS schema_name,
+    EVENT_OBJECT_TABLE AS table_name,
+    ACTION_STATEMENT AS statement,
+    EVENT_MANIPULATION AS event_type,
+    ACTION_ORIENTATION AS orientation,
+    ACTION_TIMING AS timing
+FROM
+    information_schema.TRIGGERS
+WHERE 
+    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (/*SLICE:schematables*/?)
+`
+
+type GetCustomTriggersBySchemaAndTablesRow struct {
+	TriggerName string
+	SchemaName  string
+	TableName   string
+	Statement   string
+	EventType   string
+	Orientation string
+	Timing      string
+}
+
+func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemaAndTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomTriggersBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetCustomTriggersBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.TriggerName,
+			&i.SchemaName,
+			&i.TableName,
+			&i.Statement,
+			&i.EventType,
+			&i.Orientation,
+			&i.Timing,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
 SELECT
 	c.table_schema,
@@ -81,70 +188,142 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 	return items, nil
 }
 
-const getForeignKeyConstraints = `-- name: GetForeignKeyConstraints :many
+const getDatabaseTableSchemasBySchemasAndTables = `-- name: GetDatabaseTableSchemasBySchemasAndTables :many
 SELECT
-rc.constraint_name
-,
-kcu.table_schema AS schema_name
-,
-kcu.table_name as table_name
-,
-kcu.column_name as column_name
-,
-c.is_nullable as is_nullable
-,
-kcu.referenced_table_schema AS foreign_schema_name
-,
-kcu.referenced_table_name AS foreign_table_name
-,
-kcu.referenced_column_name AS foreign_column_name
+   c.TABLE_SCHEMA AS schema_name,
+   c.TABLE_NAME AS table_name,
+   c.COLUMN_NAME AS column_name,
+   c.COLUMN_TYPE AS data_type,
+   IFNULL(c.COLUMN_DEFAULT, '') AS column_default,
+   c.IS_NULLABLE AS is_nullable,
+   IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
+     IF(c.DATA_TYPE = 'smallint', 16, 
+        IF(c.DATA_TYPE = 'int', 32, 
+           IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
+   c.ORDINAL_POSITION AS ordinal_position,
+   c.COLUMN_KEY AS generated_type,
+   c.EXTRA AS identity_generation,
+	 c.GENERATION_EXPRESSION as generation_exp,
+   t.AUTO_INCREMENT as auto_increment_start_value
 FROM
-	information_schema.referential_constraints rc
-JOIN information_schema.key_column_usage kcu
-	ON
-	kcu.constraint_name = rc.constraint_name
-	AND kcu.constraint_schema = rc.constraint_schema
-JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    information_schema.COLUMNS as c
+    join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
 WHERE
-	kcu.table_schema = ?
+  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (/*SLICE:schematables*/?)
 ORDER BY
-	rc.constraint_name,
-	kcu.ordinal_position
+    c.ordinal_position
 `
 
-type GetForeignKeyConstraintsRow struct {
-	ConstraintName    string
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
+type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
+	SchemaName              string
+	TableName               string
+	ColumnName              string
+	DataType                string
+	ColumnDefault           interface{}
+	IsNullable              string
+	CharacterMaximumLength  interface{}
+	NumericPrecision        interface{}
+	NumericScale            interface{}
+	OrdinalPosition         int64
+	GeneratedType           string
+	IdentityGeneration      sql.NullString
+	GenerationExp           sql.NullString
+	AutoIncrementStartValue sql.NullInt64
 }
 
-func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getForeignKeyConstraints, tableSchema)
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getDatabaseTableSchemasBySchemasAndTables)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetForeignKeyConstraintsRow
+	var items []*GetDatabaseTableSchemasBySchemasAndTablesRow
 	for rows.Next() {
-		var i GetForeignKeyConstraintsRow
+		var i GetDatabaseTableSchemasBySchemasAndTablesRow
 		if err := rows.Scan(
-			&i.ConstraintName,
 			&i.SchemaName,
 			&i.TableName,
 			&i.ColumnName,
+			&i.DataType,
+			&i.ColumnDefault,
 			&i.IsNullable,
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			&i.ForeignColumnName,
+			&i.CharacterMaximumLength,
+			&i.NumericPrecision,
+			&i.NumericScale,
+			&i.OrdinalPosition,
+			&i.GeneratedType,
+			&i.IdentityGeneration,
+			&i.GenerationExp,
+			&i.AutoIncrementStartValue,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
+SELECT 
+    s.TABLE_SCHEMA as schema_name,
+    s.TABLE_NAME as table_name,
+    s.COLUMN_NAME as column_name,
+    s.INDEX_NAME as index_name,
+    s.INDEX_TYPE as index_type,
+    s.SEQ_IN_INDEX as seq_in_index,
+    s.NULLABLE as nullable
+FROM 
+    INFORMATION_SCHEMA.STATISTICS s
+LEFT JOIN 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
+    AND s.TABLE_NAME = kcu.TABLE_NAME
+    AND s.COLUMN_NAME = kcu.COLUMN_NAME
+WHERE 
+    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (/*SLICE:schematables*/?)
+    AND s.INDEX_NAME != 'PRIMARY'
+    AND kcu.CONSTRAINT_NAME IS NULL
+ORDER BY 
+    s.TABLE_NAME,
+    s.INDEX_NAME,
+    s.SEQ_IN_INDEX
+`
+
+type GetIndicesBySchemasAndTablesRow struct {
+	SchemaName string
+	TableName  string
+	ColumnName string
+	IndexName  string
+	IndexType  string
+	SeqInIndex sql.NullInt64
+	Nullable   string
+}
+
+func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetIndicesBySchemasAndTablesRow, error) {
+	rows, err := db.QueryContext(ctx, getIndicesBySchemasAndTables)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetIndicesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetIndicesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.IndexName,
+			&i.IndexType,
+			&i.SeqInIndex,
+			&i.Nullable,
 		); err != nil {
 			return nil, err
 		}
@@ -203,43 +382,66 @@ func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetM
 	return items, nil
 }
 
-const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
+const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
-	table_schema AS schema_name,
-	table_name as table_name,
-	column_name as column_name,
-	constraint_name as constraint_name
+    tc.table_schema AS schema_name,
+    tc.table_name AS table_name,
+    kcu.column_name AS column_name,
+    c.is_nullable as is_nullable,
+    tc.constraint_name AS constraint_name,
+	tc.constraint_type as constraint_type,
+    kcu.referenced_table_schema AS foreign_schema_name,
+	kcu.referenced_table_name AS foreign_table_name,
+	kcu.referenced_column_name AS foreign_column_name
 FROM
-	information_schema.key_column_usage
+    information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+    AND tc.table_name = kcu.table_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema
+	AND c.table_name = kcu.table_name
+	AND c.column_name = kcu.column_name
 WHERE
-	table_schema = ?
-	AND constraint_name = 'PRIMARY'
+    tc.table_schema NOT IN ('performance_schema', 'sys')
 ORDER BY
-	table_name,
-	column_name
+    tc.table_name,
+    kcu.column_name
 `
 
-type GetPrimaryKeyConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ColumnName     string
-	ConstraintName string
+type GetTableConstraintsRow struct {
+	SchemaName        string
+	TableName         string
+	ColumnName        string
+	IsNullable        string
+	ConstraintName    string
+	ConstraintType    string
+	ForeignSchemaName string
+	ForeignTableName  string
+	ForeignColumnName string
 }
 
-func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getPrimaryKeyConstraints, tableSchema)
+func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTableConstraintsRow, error) {
+	rows, err := db.QueryContext(ctx, getTableConstraints)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetPrimaryKeyConstraintsRow
+	var items []*GetTableConstraintsRow
 	for rows.Next() {
-		var i GetPrimaryKeyConstraintsRow
+		var i GetTableConstraintsRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
 			&i.ColumnName,
+			&i.IsNullable,
 			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.ForeignSchemaName,
+			&i.ForeignTableName,
+			&i.ForeignColumnName,
 		); err != nil {
 			return nil, err
 		}
@@ -254,47 +456,66 @@ func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSc
 	return items, nil
 }
 
-const getUniqueConstraints = `-- name: GetUniqueConstraints :many
+const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
+    kcu.column_name AS column_name,
+    c.is_nullable as is_nullable,
     tc.constraint_name AS constraint_name,
-    kcu.column_name AS column_name
+	tc.constraint_type as constraint_type,
+    kcu.referenced_table_schema AS foreign_schema_name,
+	kcu.referenced_table_name AS foreign_table_name,
+	kcu.referenced_column_name AS foreign_column_name
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema
+	AND c.table_name = kcu.table_name
+	AND c.column_name = kcu.column_name
 WHERE
-    tc.table_schema = ?
-    AND tc.constraint_type = 'UNIQUE'
+    tc.table_schema = ? 
 ORDER BY
     tc.table_name,
     kcu.column_name
 `
 
-type GetUniqueConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
+type GetTableConstraintsBySchemaRow struct {
+	SchemaName        string
+	TableName         string
+	ColumnName        string
+	IsNullable        string
+	ConstraintName    string
+	ConstraintType    string
+	ForeignSchemaName string
+	ForeignTableName  string
+	ForeignColumnName string
 }
 
-func (q *Queries) GetUniqueConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetUniqueConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getUniqueConstraints, tableSchema)
+func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema string) ([]*GetTableConstraintsBySchemaRow, error) {
+	rows, err := db.QueryContext(ctx, getTableConstraintsBySchema, schema)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetUniqueConstraintsRow
+	var items []*GetTableConstraintsBySchemaRow
 	for rows.Next() {
-		var i GetUniqueConstraintsRow
+		var i GetTableConstraintsBySchemaRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
-			&i.ConstraintName,
 			&i.ColumnName,
+			&i.IsNullable,
+			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.ForeignSchemaName,
+			&i.ForeignTableName,
+			&i.ForeignColumnName,
 		); err != nil {
 			return nil, err
 		}

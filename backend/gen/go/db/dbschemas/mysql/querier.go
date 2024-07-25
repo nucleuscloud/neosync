@@ -9,11 +9,14 @@ import (
 )
 
 type Querier interface {
+	GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)
+	GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error)
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
-	GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error)
+	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
+	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetMysqlRolePermissionsRow, error)
-	GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error)
-	GetUniqueConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetUniqueConstraintsRow, error)
+	GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTableConstraintsRow, error)
+	GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema string) ([]*GetTableConstraintsBySchemaRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

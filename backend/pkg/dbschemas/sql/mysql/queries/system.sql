@@ -105,7 +105,7 @@ SELECT
 FROM
     information_schema.TRIGGERS
 WHERE 
-    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.arg('schematables')::TEXT[]);
+    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'));
 
 
 -- name: GetDatabaseTableSchemasBySchemasAndTables :many
@@ -131,7 +131,7 @@ FROM
     information_schema.COLUMNS as c
     join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
 WHERE
-  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.arg('schematables')::TEXT[]);
+  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.slice('schematables'))
 ORDER BY
     c.ordinal_position;
 
@@ -144,7 +144,7 @@ SELECT
     s.INDEX_NAME as index_name,
     s.INDEX_TYPE as index_type,
     s.SEQ_IN_INDEX as seq_in_index,
-    s.NULLABLE as nullable,
+    s.NULLABLE as nullable
 FROM 
     INFORMATION_SCHEMA.STATISTICS s
 LEFT JOIN 
@@ -153,7 +153,7 @@ LEFT JOIN
     AND s.TABLE_NAME = kcu.TABLE_NAME
     AND s.COLUMN_NAME = kcu.COLUMN_NAME
 WHERE 
-    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.arg('schematables')::TEXT[]);
+    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables'))
     AND s.INDEX_NAME != 'PRIMARY'
     AND kcu.CONSTRAINT_NAME IS NULL
 ORDER BY 
