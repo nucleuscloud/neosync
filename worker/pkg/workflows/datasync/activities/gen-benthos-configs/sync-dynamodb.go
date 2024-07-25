@@ -74,7 +74,7 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			&tabledependency.RunConfig{RunType: tabledependency.RunTypeInsert},
+			&tabledependency.RunConfig{RunType: tabledependency.RunTypeInsert, Table: tableMapping.Table, SelectColumns: columns, InsertColumns: columns},
 			map[string][]*referenceKey{},
 			map[string][]*referenceKey{},
 			b.jobId,
