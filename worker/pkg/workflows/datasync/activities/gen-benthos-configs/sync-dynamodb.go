@@ -92,13 +92,12 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 
 		benthosConfigs = append(benthosConfigs, &BenthosConfigResponse{
 			Config:      bc,
-			Name:        tableMapping.Table,
-			TableSchema: "",
+			Name:        fmt.Sprintf("%s.%s", tableMapping.Schema, tableMapping.Table), // todo
+			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
 			RunType:     tabledependency.RunTypeInsert,
 			DependsOn:   []*tabledependency.DependsOn{},
 			Columns:     columns,
-			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),

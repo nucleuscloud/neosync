@@ -676,7 +676,7 @@ func (s *Service) GetConnectionSchema(
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, tableName := range tableNames {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema: "",
+				Schema: "dynamodb",
 				Table:  tableName,
 			})
 		}

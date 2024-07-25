@@ -348,7 +348,16 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       ),
     },
     {
-      accessorFn: (row) => `${row.schema}.${row.table}`,
+      accessorFn: (row) => {
+        console.log(row);
+        if (row.schema && row.table) {
+          return `${row.schema}.${row.table}`;
+        }
+        if (row.schema) {
+          return row.schema;
+        }
+        return row.table;
+      },
       id: 'schemaTable',
       footer: (props) => props.column.id,
       header: ({ column }) => (

@@ -91,7 +91,8 @@ function getConnectionIdFromSource(
     js?.options?.config.case === 'postgres' ||
     js?.options?.config.case === 'mysql' ||
     js?.options?.config.case === 'awsS3' ||
-    js?.options?.config.case === 'mongodb'
+    js?.options?.config.case === 'mongodb' ||
+    js?.options?.config.case === 'dynamodb'
   ) {
     return js.options.config.value.connectionId;
   }
@@ -728,6 +729,13 @@ function getJobSource(
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {},
       };
+    case 'dynamodb': {
+      return {
+        ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
+        sourceOptions: {},
+      };
+    }
     default:
       return yupValidationValues;
   }

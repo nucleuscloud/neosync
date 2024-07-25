@@ -196,7 +196,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
 			case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
-				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})
 				if resp.Config.Input.AwsDynamoDB == nil {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection for dynamodb")
 				}

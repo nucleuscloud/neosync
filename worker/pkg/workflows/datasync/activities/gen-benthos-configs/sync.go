@@ -706,7 +706,7 @@ func getSqlJobSourceOpts(
 			SchemaOpt:                     schemaOpt,
 		}, nil
 	default:
-		return nil, errors.New("unsupported job source options type")
+		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
 	}
 }
 

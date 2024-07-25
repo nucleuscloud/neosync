@@ -232,7 +232,6 @@ type OutputConfig struct {
 	Label      string `json:"label" yaml:"label"`
 	Outputs    `json:",inline" yaml:",inline"`
 	Processors []ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
-	// Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
 type Outputs struct {
@@ -254,7 +253,7 @@ type Outputs struct {
 	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
 	MongoDB         *OutputMongoDb         `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
 	PooledMongoDB   *OutputMongoDb         `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
-	AwsDynamoDB     *OutputAwsDynamoDB     `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb"`
+	AwsDynamoDB     *OutputAwsDynamoDB     `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
 }
 
 type SwitchOutputConfig struct {

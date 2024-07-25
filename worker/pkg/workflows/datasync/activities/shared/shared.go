@@ -2,7 +2,6 @@ package shared
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -204,8 +203,10 @@ func GetJobSourceConnection(
 		connectionId = jobSourceConfig.AiGenerate.GetAiConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
 		connectionId = jobSourceConfig.Mongodb.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		connectionId = jobSourceConfig.Dynamodb.GetConnectionId()
 	default:
-		return nil, errors.New("unsupported job source options type")
+		return nil, fmt.Errorf("unsupported job source options type for job source connection: %T", jobSourceConfig)
 	}
 	sourceConnection, err := GetConnectionById(ctx, connclient, connectionId)
 	if err != nil {

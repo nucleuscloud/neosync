@@ -3,7 +3,6 @@ package datasync_workflow
 import (
 	"fmt"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -253,9 +252,7 @@ func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosC
 }
 
 func getSyncMetadata(config *genbenthosconfigs_activity.BenthosConfigResponse) *sync_activity.SyncMetadata {
-	names := strings.Split(config.Name, ".")
-	schema, table := names[0], names[1]
-	return &sync_activity.SyncMetadata{Schema: schema, Table: table}
+	return &sync_activity.SyncMetadata{Schema: config.TableSchema, Table: config.TableName}
 }
 
 func invokeSync(

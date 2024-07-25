@@ -12,6 +12,7 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/javascript"
+	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/mongodb"
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
