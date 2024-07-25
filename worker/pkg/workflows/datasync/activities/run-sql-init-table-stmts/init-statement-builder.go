@@ -60,7 +60,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 	}
 
-	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil {
+	if sourceConnection.GetConnectionConfig().GetMongoConfig() != nil || sourceConnection.GetConnectionConfig().GetDynamodbConfig() != nil {
 		return &RunSqlInitTableStatementsResponse{}, nil
 	}
 
