@@ -181,7 +181,7 @@ export default function EditItem(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-col md:flex-row justify-between gap-2 md:gap-0">
         <div className="flex flex-row gap-4">
           <div className="flex flex-row gap-2 items-center">
             <span className="font-semibold tracking-tight">Schema</span>
