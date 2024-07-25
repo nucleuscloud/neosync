@@ -770,31 +770,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             }
           />
         )}
-        {/* {validationResponse && validationResponse.isConnected && (
-          <SuccessAlert description={'Successfully connected!'} />
-        )} */}
       </form>
     </Form>
   );
 }
-
-// interface SuccessAlertProps {
-//   description: string;
-// }
-
-// function SuccessAlert(props: SuccessAlertProps): ReactElement {
-//   const { description } = props;
-//   return (
-//     <Alert variant="success">
-//       <div className="flex flex-row items-center gap-2">
-//         <CheckCircledIcon className="h-4 w-4 text-green-900 dark:text-green-400" />
-//         <div className="font-normal text-green-900 dark:text-green-400">
-//           {description}
-//         </div>
-//       </div>
-//     </Alert>
-//   );
-// }
 
 interface ErrorAlertProps {
   title: string;
