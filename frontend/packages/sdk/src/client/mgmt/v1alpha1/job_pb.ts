@@ -1372,6 +1372,13 @@ export class GcpCloudStorageDestinationConnectionOptions extends Message<GcpClou
  * @generated from message mgmt.v1alpha1.DynamoDBDestinationConnectionOptions
  */
 export class DynamoDBDestinationConnectionOptions extends Message<DynamoDBDestinationConnectionOptions> {
+  /**
+   * List of table mappings when piping data from a dynamoDB table to another dynamoDB table
+   *
+   * @generated from field: repeated mgmt.v1alpha1.DynamoDBDestinationTableMapping table_mappings = 1;
+   */
+  tableMappings: DynamoDBDestinationTableMapping[] = [];
+
   constructor(data?: PartialMessage<DynamoDBDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1380,6 +1387,7 @@ export class DynamoDBDestinationConnectionOptions extends Message<DynamoDBDestin
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.DynamoDBDestinationConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table_mappings", kind: "message", T: DynamoDBDestinationTableMapping, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBDestinationConnectionOptions {
@@ -1396,6 +1404,55 @@ export class DynamoDBDestinationConnectionOptions extends Message<DynamoDBDestin
 
   static equals(a: DynamoDBDestinationConnectionOptions | PlainMessage<DynamoDBDestinationConnectionOptions> | undefined, b: DynamoDBDestinationConnectionOptions | PlainMessage<DynamoDBDestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(DynamoDBDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * Configuration for mapping a source table to a destination table for DynamoDB
+ *
+ * @generated from message mgmt.v1alpha1.DynamoDBDestinationTableMapping
+ */
+export class DynamoDBDestinationTableMapping extends Message<DynamoDBDestinationTableMapping> {
+  /**
+   * The name of the incoming source table
+   *
+   * @generated from field: string source_table = 1;
+   */
+  sourceTable = "";
+
+  /**
+   * The name of the outgoing destination table
+   *
+   * @generated from field: string destination_table = 2;
+   */
+  destinationTable = "";
+
+  constructor(data?: PartialMessage<DynamoDBDestinationTableMapping>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBDestinationTableMapping";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "source_table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "destination_table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBDestinationTableMapping {
+    return new DynamoDBDestinationTableMapping().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBDestinationTableMapping {
+    return new DynamoDBDestinationTableMapping().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBDestinationTableMapping {
+    return new DynamoDBDestinationTableMapping().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBDestinationTableMapping | PlainMessage<DynamoDBDestinationTableMapping> | undefined, b: DynamoDBDestinationTableMapping | PlainMessage<DynamoDBDestinationTableMapping> | undefined): boolean {
+    return proto3.util.equals(DynamoDBDestinationTableMapping, a, b);
   }
 }
 

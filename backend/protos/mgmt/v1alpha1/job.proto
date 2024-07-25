@@ -156,7 +156,18 @@ message MongoDBDestinationConnectionOptions {}
 message GcpCloudStorageDestinationConnectionOptions {}
 
 // Configuration for DynamoDB Destination Connection Job Options
-message DynamoDBDestinationConnectionOptions {}
+message DynamoDBDestinationConnectionOptions {
+  // List of table mappings when piping data from a dynamoDB table to another dynamoDB table
+  repeated DynamoDBDestinationTableMapping table_mappings = 1;
+}
+
+// Configuration for mapping a source table to a destination table for DynamoDB
+message DynamoDBDestinationTableMapping {
+  // The name of the incoming source table
+  string source_table = 1;
+  // The name of the outgoing destination table
+  string destination_table = 2;
+}
 
 message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;

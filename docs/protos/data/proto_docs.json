@@ -8501,10 +8501,59 @@
           "fullName": "mgmt.v1alpha1.DynamoDBDestinationConnectionOptions",
           "description": "Configuration for DynamoDB Destination Connection Job Options",
           "hasExtensions": false,
-          "hasFields": false,
+          "hasFields": true,
           "hasOneofs": false,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "table_mappings",
+              "description": "List of table mappings when piping data from a dynamoDB table to another dynamoDB table",
+              "label": "repeated",
+              "type": "DynamoDBDestinationTableMapping",
+              "longType": "DynamoDBDestinationTableMapping",
+              "fullType": "mgmt.v1alpha1.DynamoDBDestinationTableMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DynamoDBDestinationTableMapping",
+          "longName": "DynamoDBDestinationTableMapping",
+          "fullName": "mgmt.v1alpha1.DynamoDBDestinationTableMapping",
+          "description": "Configuration for mapping a source table to a destination table for DynamoDB",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "source_table",
+              "description": "The name of the incoming source table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "destination_table",
+              "description": "The name of the outgoing destination table",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "DynamoDBSourceConnectionOptions",

@@ -1090,7 +1090,44 @@ type JobDestinationOptions struct {
 	DynamoDBOptions        *DynamoDBDestinationOptions        `json:"dynamoDBOptions,omitempty"`
 }
 
-type DynamoDBDestinationOptions struct{}
+type DynamoDBDestinationOptions struct {
+	TableMappings []*DynamoDBDestinationTableMapping `json:"tableMappings"`
+}
+
+func (d *DynamoDBDestinationOptions) ToDto() *mgmtv1alpha1.DynamoDBDestinationConnectionOptions {
+	tableMappings := make([]*mgmtv1alpha1.DynamoDBDestinationTableMapping, 0, len(d.TableMappings))
+	for _, tm := range d.TableMappings {
+		tableMappings = append(tableMappings, tm.ToDto())
+	}
+	return &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{
+		TableMappings: tableMappings,
+	}
+}
+func (d *DynamoDBDestinationOptions) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions) {
+	d.TableMappings = make([]*DynamoDBDestinationTableMapping, 0, len(dto.GetTableMappings()))
+
+	for _, dtotm := range dto.GetTableMappings() {
+		tm := &DynamoDBDestinationTableMapping{}
+		tm.FromDto(dtotm)
+		d.TableMappings = append(d.TableMappings, tm)
+	}
+}
+
+type DynamoDBDestinationTableMapping struct {
+	SourceTable      string `json:"sourceTable"`
+	DestinationTable string `json:"destinationTable"`
+}
+
+func (d *DynamoDBDestinationTableMapping) ToDto() *mgmtv1alpha1.DynamoDBDestinationTableMapping {
+	return &mgmtv1alpha1.DynamoDBDestinationTableMapping{
+		SourceTable:      d.SourceTable,
+		DestinationTable: d.DestinationTable,
+	}
+}
+func (d *DynamoDBDestinationTableMapping) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationTableMapping) {
+	d.SourceTable = dto.GetSourceTable()
+	d.DestinationTable = dto.GetDestinationTable()
+}
 
 type GcpCloudStorageDestinationOptions struct{}
 
@@ -1227,7 +1264,7 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.DynamoDBOptions != nil {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_DynamodbOptions{
-				DynamodbOptions: &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{},
+				DynamodbOptions: j.DynamoDBOptions.ToDto(),
 			},
 		}
 	}
@@ -1272,6 +1309,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		j.GcpCloudStorageOptions = &GcpCloudStorageDestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_DynamodbOptions:
 		j.DynamoDBOptions = &DynamoDBDestinationOptions{}
+		j.DynamoDBOptions.FromDto(config.DynamodbOptions)
 	default:
 		return fmt.Errorf("invalid job destination options config")
 	}
