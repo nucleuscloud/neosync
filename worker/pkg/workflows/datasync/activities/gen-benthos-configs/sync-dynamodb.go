@@ -112,13 +112,3 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		BenthosConfigs: benthosConfigs,
 	}, nil
 }
-
-func (b *benthosBuilder) getDynamoDbSyncBenthosOutputs(
-	connection *mgmtv1alpha1.ConnectionConfig_DynamodbConfig,
-	destOpts *mgmtv1alpha1.DynamoDBDestinationConnectionOptions,
-	benthosConfig *BenthosConfigResponse,
-) []neosync_benthos.Outputs {
-	output := []neosync_benthos.Outputs{}
-
-	return output
-}
