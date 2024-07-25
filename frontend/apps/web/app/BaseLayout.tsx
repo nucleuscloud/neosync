@@ -1,5 +1,6 @@
 import SiteFooter from '@/components/SiteFooter';
 import OnboardingChecklist from '@/components/onboarding-checklist/OnboardingChecklist';
+import WelcomeDialog from '@/components/onboarding-checklist/WelcomeDialog';
 import AccountProvider from '@/components/providers/account-provider';
 import ConnectProvider from '@/components/providers/connect-provider';
 import { KoalaIdentifier } from '@/components/providers/koala-provider';
@@ -40,6 +41,7 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
               {/* https://sonner.emilkowal.ski/styling for styling documentation */}
               <Toaster richColors closeButton />
               <OnboardingChecklist />
+              <WelcomeDialog />
             </div>
           </AccountProvider>
         </SessionProvider>
