@@ -361,6 +361,8 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
 		connectionIds = append(connectionIds, config.Mongodb.GetConnectionId())
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		connectionIds = append(connectionIds, config.Dynamodb.GetConnectionId())
 	default:
 	}
 
@@ -1388,7 +1390,11 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 			return false, nil
 		}
 		if sourceConnection.ConnectionConfig.MongoConfig != nil && d.ConnectionConfig.MongoConfig == nil {
-			// invalid Mongo soure cannot have
+			// invalid Mongo source cannot have anything other than mongo to start
+			return false, nil
+		}
+		if sourceConnection.ConnectionConfig.DynamoDBConfig != nil && d.ConnectionConfig.DynamoDBConfig == nil {
+			// invalid DynamoDB source cannot have anything other than dynamodb to start
 			return false, nil
 		}
 	}
@@ -1945,6 +1951,9 @@ func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		connId := config.Dynamodb.GetConnectionId()
+		connectionIdToVerify = &connId
 	default:
 		return nil, fmt.Errorf("unsupported source option config type: %T", config)
 	}
