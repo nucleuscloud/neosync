@@ -19,72 +19,59 @@ WHERE
 	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE';
 
--- name: GetForeignKeyConstraints :many
-SELECT
-rc.constraint_name
-,
-kcu.table_schema AS schema_name
-,
-kcu.table_name as table_name
-,
-kcu.column_name as column_name
-,
-c.is_nullable as is_nullable
-,
-kcu.referenced_table_schema AS foreign_schema_name
-,
-kcu.referenced_table_name AS foreign_table_name
-,
-kcu.referenced_column_name AS foreign_column_name
-FROM
-	information_schema.referential_constraints rc
-JOIN information_schema.key_column_usage kcu
-	ON
-	kcu.constraint_name = rc.constraint_name
-	AND kcu.constraint_schema = rc.constraint_schema
-JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
-WHERE
-	kcu.table_schema = ?
-ORDER BY
-	rc.constraint_name,
-	kcu.ordinal_position;
 
-
--- name: GetPrimaryKeyConstraints :many
-SELECT
-	table_schema AS schema_name,
-	table_name as table_name,
-	column_name as column_name,
-	constraint_name as constraint_name
-FROM
-	information_schema.key_column_usage
-WHERE
-	table_schema = ?
-	AND constraint_name = 'PRIMARY'
-ORDER BY
-	table_name,
-	column_name;
-
-
--- name: GetUniqueConstraints :many
+-- name: GetTableConstraintsBySchema :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
+    kcu.column_name AS column_name,
+    c.is_nullable as is_nullable,
     tc.constraint_name AS constraint_name,
-    kcu.column_name AS column_name
+	tc.constraint_type as constraint_type,
+    kcu.referenced_table_schema AS foreign_schema_name,
+	kcu.referenced_table_name AS foreign_table_name,
+	kcu.referenced_column_name AS foreign_column_name
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema
+	AND c.table_name = kcu.table_name
+	AND c.column_name = kcu.column_name
 WHERE
-    tc.table_schema = ?
-    AND tc.constraint_type = 'UNIQUE'
+    tc.table_schema = sqlc.arg('schema') 
+ORDER BY
+    tc.table_name,
+    kcu.column_name;
+
+-- name: GetTableConstraints :many
+SELECT
+    tc.table_schema AS schema_name,
+    tc.table_name AS table_name,
+    kcu.column_name AS column_name,
+    c.is_nullable as is_nullable,
+    tc.constraint_name AS constraint_name,
+	tc.constraint_type as constraint_type,
+    kcu.referenced_table_schema AS foreign_schema_name,
+	kcu.referenced_table_name AS foreign_table_name,
+	kcu.referenced_column_name AS foreign_column_name
+FROM
+    information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+    AND tc.table_name = kcu.table_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema
+	AND c.table_name = kcu.table_name
+	AND c.column_name = kcu.column_name
+WHERE
+    tc.table_schema NOT IN ('performance_schema', 'sys')
 ORDER BY
     tc.table_name,
     kcu.column_name;
@@ -104,3 +91,86 @@ ORDER BY
     tp.TABLE_SCHEMA,
     tp.TABLE_NAME;
 
+
+
+-- name: GetCustomTriggersBySchemaAndTables :many
+SELECT
+    TRIGGER_NAME AS trigger_name,
+    EVENT_OBJECT_SCHEMA AS schema_name,
+    EVENT_OBJECT_TABLE AS table_name,
+    ACTION_STATEMENT AS statement,
+    EVENT_MANIPULATION AS event_type,
+    ACTION_ORIENTATION AS orientation,
+    ACTION_TIMING AS timing
+FROM
+    information_schema.TRIGGERS
+WHERE 
+    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.arg('schematables')::TEXT[]);
+
+
+-- name: GetDatabaseTableSchemasBySchemasAndTables :many
+SELECT
+   c.TABLE_SCHEMA AS schema_name,
+   c.TABLE_NAME AS table_name,
+   c.COLUMN_NAME AS column_name,
+   c.COLUMN_TYPE AS data_type,
+   IFNULL(c.COLUMN_DEFAULT, '') AS column_default,
+   c.IS_NULLABLE AS is_nullable,
+   IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
+     IF(c.DATA_TYPE = 'smallint', 16, 
+        IF(c.DATA_TYPE = 'int', 32, 
+           IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
+   c.ORDINAL_POSITION AS ordinal_position,
+   c.COLUMN_KEY AS generated_type,
+   c.EXTRA AS identity_generation,
+	 c.GENERATION_EXPRESSION as generation_exp,
+   t.AUTO_INCREMENT as auto_increment_start_value
+FROM
+    information_schema.COLUMNS as c
+    join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
+WHERE
+  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.arg('schematables')::TEXT[]);
+ORDER BY
+    c.ordinal_position;
+
+
+-- name: GetIndicesBySchemasAndTables :many
+SELECT 
+    s.TABLE_SCHEMA as schema_name,
+    s.TABLE_NAME as table_name,
+    s.COLUMN_NAME as column_name,
+    s.INDEX_NAME as index_name,
+    s.INDEX_TYPE as index_type,
+    s.SEQ_IN_INDEX as seq_in_index,
+    s.NULLABLE as nullable,
+FROM 
+    INFORMATION_SCHEMA.STATISTICS s
+LEFT JOIN 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
+    AND s.TABLE_NAME = kcu.TABLE_NAME
+    AND s.COLUMN_NAME = kcu.COLUMN_NAME
+WHERE 
+    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.arg('schematables')::TEXT[]);
+    AND s.INDEX_NAME != 'PRIMARY'
+    AND kcu.CONSTRAINT_NAME IS NULL
+ORDER BY 
+    s.TABLE_NAME,
+    s.INDEX_NAME,
+    s.SEQ_IN_INDEX;
+
+
+-- name: GetCustomFunctionsBySchemaAndTables :many
+SELECT 
+    ROUTINE_NAME as function_name, 
+    ROUTINE_SCHEMA as schema_name,
+    DTD_IDENTIFIER as return_data_type,
+    ROUTINE_DEFINITION as definition,
+    IS_DETERMINISTIC as is_deterministic
+FROM 
+    INFORMATION_SCHEMA.ROUTINES 
+WHERE 
+    ROUTINE_TYPE = 'FUNCTION'
+    AND ROUTINE_SCHEMA = sqlc.arg('schema');
