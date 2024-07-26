@@ -8,6 +8,7 @@ package mysql_queries
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
@@ -386,13 +387,13 @@ const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    kcu.column_name AS column_name,
-    c.is_nullable as is_nullable,
+    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
+    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
     tc.constraint_name AS constraint_name,
-	tc.constraint_type as constraint_type,
+    tc.constraint_type AS constraint_type,
     kcu.referenced_table_schema AS foreign_schema_name,
-	kcu.referenced_table_name AS foreign_table_name,
-	kcu.referenced_column_name AS foreign_column_name
+    kcu.referenced_table_name AS foreign_table_name,
+    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -400,27 +401,30 @@ JOIN information_schema.key_column_usage AS kcu
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
 JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
 WHERE
     tc.table_schema NOT IN ('performance_schema', 'sys')
-ORDER BY
+GROUP BY 
+    tc.table_schema,
     tc.table_name,
-    kcu.column_name
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name
 `
 
 type GetTableConstraintsRow struct {
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ConstraintName    string
-	ConstraintType    string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
+	SchemaName         string
+	TableName          string
+	ConstraintColumns  sql.NullString
+	NotNullable        sql.NullString
+	ConstraintName     string
+	ConstraintType     string
+	ForeignSchemaName  string
+	ForeignTableName   string
+	ForeignColumnNames sql.NullString
 }
 
 func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTableConstraintsRow, error) {
@@ -435,13 +439,13 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTable
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
-			&i.ColumnName,
-			&i.IsNullable,
+			&i.ConstraintColumns,
+			&i.NotNullable,
 			&i.ConstraintName,
 			&i.ConstraintType,
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.ForeignColumnName,
+			&i.ForeignColumnNames,
 		); err != nil {
 			return nil, err
 		}
@@ -456,17 +460,17 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTable
 	return items, nil
 }
 
-const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
+const getTableConstraintsBySchemas = `-- name: GetTableConstraintsBySchemas :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    kcu.column_name AS column_name,
-    c.is_nullable as is_nullable,
+    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
+    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
     tc.constraint_name AS constraint_name,
-	tc.constraint_type as constraint_type,
+    tc.constraint_type AS constraint_type,
     kcu.referenced_table_schema AS foreign_schema_name,
-	kcu.referenced_table_name AS foreign_table_name,
-	kcu.referenced_column_name AS foreign_column_name
+    kcu.referenced_table_name AS foreign_table_name,
+    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -474,48 +478,61 @@ JOIN information_schema.key_column_usage AS kcu
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
 JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
 WHERE
-    tc.table_schema = ? 
-ORDER BY
+    tc.table_schema IN (/*SLICE:schemas*/?) 
+GROUP BY 
+    tc.table_schema,
     tc.table_name,
-    kcu.column_name
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name
 `
 
-type GetTableConstraintsBySchemaRow struct {
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ConstraintName    string
-	ConstraintType    string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
+type GetTableConstraintsBySchemasRow struct {
+	SchemaName         string
+	TableName          string
+	ConstraintColumns  sql.NullString
+	NotNullable        sql.NullString
+	ConstraintName     string
+	ConstraintType     string
+	ForeignSchemaName  string
+	ForeignTableName   string
+	ForeignColumnNames sql.NullString
 }
 
-func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema string) ([]*GetTableConstraintsBySchemaRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraintsBySchema, schema)
+func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
+	query := getTableConstraintsBySchemas
+	var queryParams []interface{}
+	if len(schemas) > 0 {
+		for _, v := range schemas {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:schemas*/?", strings.Repeat(",?", len(schemas))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:schemas*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetTableConstraintsBySchemaRow
+	var items []*GetTableConstraintsBySchemasRow
 	for rows.Next() {
-		var i GetTableConstraintsBySchemaRow
+		var i GetTableConstraintsBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
-			&i.ColumnName,
-			&i.IsNullable,
+			&i.ConstraintColumns,
+			&i.NotNullable,
 			&i.ConstraintName,
 			&i.ConstraintType,
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.ForeignColumnName,
+			&i.ForeignColumnNames,
 		); err != nil {
 			return nil, err
 		}

@@ -10,7 +10,6 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	"golang.org/x/sync/errgroup"
 )
 
 type MysqlManager struct {
@@ -65,19 +64,45 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
-	foreignKeyMap, err := m.getForeignKeyConstraintsMap(ctx, schemas)
-	if err != nil {
+	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.pool, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
-	primaryKeyMap, err := m.getPrimaryKeyConstraintsMap(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
+	foreignKeyMap := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	primaryKeyMap := map[string][]string{}
+	uniqueConstraintsMap := map[string][][]string{}
 
-	uniqueConstraintsMap, err := m.getUniqueConstraintsMap(ctx, schemas)
-	if err != nil {
-		return nil, err
+	for _, row := range rows {
+		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
+		switch row.ConstraintType {
+		case "FOREIGN KEY":
+			if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
+				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
+			}
+			if len(row.ConstraintColumns) != len(row.Notnullable) {
+				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
+			}
+
+			foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
+				Columns:     row.ConstraintColumns,
+				NotNullable: row.Notnullable,
+				ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
+					Columns: row.ForeignColumnNames,
+				},
+			})
+		case "PRIMARY KEY":
+			if _, exists := primaryKeyMap[tableName]; !exists {
+				primaryKeyMap[tableName] = []string{}
+			}
+			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(row.ConstraintColumns)...)
+		case "UNIQUE":
+			columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
+			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
+		}
 	}
 
 	return &sqlmanager_shared.TableConstraints{
@@ -85,161 +110,6 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
-}
-
-// Key is schema.table value is list of tables that key depends on
-func (m *MysqlManager) getForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*sqlmanager_shared.ForeignConstraint, error) {
-	fksBySchema := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas)) // groupped by schema
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range schemas {
-		idx := idx
-		schema := schemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := m.querier.GetForeignKeyConstraints(errctx, m.pool, schema)
-			if err != nil {
-				return err
-			}
-			fksBySchema[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	constraints := map[string][]*sqlmanager_shared.ForeignConstraint{}
-	for _, fksSchema := range fksBySchema {
-		groupedFks := map[string][]*mysql_queries.GetForeignKeyConstraintsRow{} //  grouped by constraint name
-		for _, row := range fksSchema {
-			groupedFks[row.ConstraintName] = append(groupedFks[row.ConstraintName], row)
-		}
-		for _, fks := range groupedFks {
-			cols := []string{}
-			notNullable := []bool{}
-			fkCols := []string{}
-			for _, fk := range fks {
-				cols = append(cols, fk.ColumnName)
-				notNullable = append(notNullable, !sqlmanager_shared.ConvertNullableTextToBool(fk.IsNullable))
-				fkCols = append(fkCols, fk.ForeignColumnName)
-			}
-			row := fks[0]
-			tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
-			constraints[tableName] = append(constraints[tableName], &sqlmanager_shared.ForeignConstraint{
-				Columns:     cols,
-				NotNullable: notNullable,
-				ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-					Columns: fkCols,
-				},
-			})
-		}
-	}
-
-	return constraints, nil
-}
-
-func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*sqlmanager_shared.PrimaryKey, error) {
-	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range schemas {
-		idx := idx
-		schema := schemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := m.querier.GetPrimaryKeyConstraints(errctx, m.pool, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*mysql_queries.GetPrimaryKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	result := []*sqlmanager_shared.PrimaryKey{}
-	for _, row := range output {
-		result = append(result, &sqlmanager_shared.PrimaryKey{
-			Schema:  row.SchemaName,
-			Table:   row.TableName,
-			Columns: []string{row.ColumnName},
-		})
-	}
-	return result, nil
-}
-
-func (m *MysqlManager) getPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
-	primaryKeys, err := m.GetPrimaryKeyConstraints(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-	result := map[string][]string{}
-	for _, row := range primaryKeys {
-		tableName := sqlmanager_shared.BuildTable(row.Schema, row.Table)
-		if _, exists := result[tableName]; !exists {
-			result[tableName] = []string{}
-		}
-		result[tableName] = append(result[tableName], row.Columns...)
-	}
-	return result, nil
-}
-
-func (m *MysqlManager) getUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
-	holder := make([][]*mysql_queries.GetUniqueConstraintsRow, len(schemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range schemas {
-		idx := idx
-		schema := schemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := m.querier.GetUniqueConstraints(errctx, m.pool, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	rows := []*mysql_queries.GetUniqueConstraintsRow{}
-	for _, schemas := range holder {
-		rows = append(rows, schemas...)
-	}
-
-	uniqueConstraintMap := map[string][]*mysql_queries.GetUniqueConstraintsRow{}
-	for _, c := range rows {
-		_, ok := uniqueConstraintMap[c.ConstraintName]
-		if ok {
-			uniqueConstraintMap[c.ConstraintName] = append(uniqueConstraintMap[c.ConstraintName], c)
-		} else {
-			uniqueConstraintMap[c.ConstraintName] = []*mysql_queries.GetUniqueConstraintsRow{c}
-		}
-	}
-	output := map[string][][]string{}
-	for _, constraints := range uniqueConstraintMap {
-		uc := []string{}
-		var key string
-		for _, c := range constraints {
-			key = sqlmanager_shared.BuildTable(c.SchemaName, c.TableName)
-			_, ok := output[key]
-			if !ok {
-				output[key] = [][]string{}
-			}
-			uc = append(uc, c.ColumnName)
-		}
-		output[key] = append(output[key], uc)
-	}
-
-	return output, nil
 }
 
 func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {

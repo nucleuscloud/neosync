@@ -226,7 +226,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sqlmanager_shared.BatchExecOpts{})
 				if err != nil {
 					destdb.Db.Close()
-					return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
+					return nil, fmt.Errorf("unable to exec mysql table create statements: %w", err)
 				}
 			}
 			// truncate statements

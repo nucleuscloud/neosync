@@ -20,17 +20,17 @@ WHERE
 	AND t.table_type = 'BASE TABLE';
 
 
--- name: GetTableConstraintsBySchema :many
+-- name: GetTableConstraintsBySchemas :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    kcu.column_name AS column_name,
-    c.is_nullable as is_nullable,
+    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
+    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
     tc.constraint_name AS constraint_name,
-	tc.constraint_type as constraint_type,
+    tc.constraint_type AS constraint_type,
     kcu.referenced_table_schema AS foreign_schema_name,
-	kcu.referenced_table_name AS foreign_table_name,
-	kcu.referenced_column_name AS foreign_column_name
+    kcu.referenced_table_name AS foreign_table_name,
+    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -38,27 +38,31 @@ JOIN information_schema.key_column_usage AS kcu
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
 JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
 WHERE
-    tc.table_schema = sqlc.arg('schema') 
-ORDER BY
+    tc.table_schema IN (sqlc.slice('schemas')) 
+GROUP BY 
+    tc.table_schema,
     tc.table_name,
-    kcu.column_name;
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name;
+
 
 -- name: GetTableConstraints :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    kcu.column_name AS column_name,
-    c.is_nullable as is_nullable,
+    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
+    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
     tc.constraint_name AS constraint_name,
-	tc.constraint_type as constraint_type,
+    tc.constraint_type AS constraint_type,
     kcu.referenced_table_schema AS foreign_schema_name,
-	kcu.referenced_table_name AS foreign_table_name,
-	kcu.referenced_column_name AS foreign_column_name
+    kcu.referenced_table_name AS foreign_table_name,
+    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -66,15 +70,18 @@ JOIN information_schema.key_column_usage AS kcu
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
 JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
 WHERE
     tc.table_schema NOT IN ('performance_schema', 'sys')
-ORDER BY
+GROUP BY 
+    tc.table_schema,
     tc.table_name,
-    kcu.column_name;
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name;
 
 
 -- name: GetMysqlRolePermissions :many
@@ -90,7 +97,6 @@ WHERE
 ORDER BY
     tp.TABLE_SCHEMA,
     tp.TABLE_NAME;
-
 
 
 -- name: GetCustomTriggersBySchemaAndTables :many
