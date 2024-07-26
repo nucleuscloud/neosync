@@ -29,6 +29,7 @@ import {
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { Transformer } from '@/shared/transformers';
 import {
+  DestinationOptionFormValues,
   JobMappingFormValues,
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -68,6 +69,8 @@ interface Props {
   onAddMappings(values: AddNewNosqlRecordFormValues[]): void;
   onRemoveMappings(values: JobMappingFormValues[]): void;
   onEditMappings(values: JobMappingFormValues[]): void;
+
+  destinationOptions: DestinationOptionFormValues[];
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -81,6 +84,7 @@ export default function NosqlTable(props: Props): ReactElement {
     onAddMappings,
     onRemoveMappings,
     onEditMappings,
+    destinationOptions,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -133,6 +137,12 @@ export default function NosqlTable(props: Props): ReactElement {
           onValidate={onValidate}
         />
       </div>
+      <div>
+        <TableMappingsCard
+          mappings={destinationOptions}
+          onUpdate={(newMappings) => undefined}
+        />
+      </div>
       <SchemaPageTable
         columns={columns}
         data={data}
@@ -141,6 +151,50 @@ export default function NosqlTable(props: Props): ReactElement {
         constraintHandler={constraintHandler}
       />
     </div>
+  );
+}
+
+interface TableMappingsCardProps {
+  mappings: DestinationOptionFormValues[];
+  onUpdate(newMappings: Record<string, Record<string, string>>): void;
+}
+
+function TableMappingsCard(props: TableMappingsCardProps): ReactElement {
+  const { mappings, onUpdate } = props;
+  return (
+    <Card className="w-full">
+      <CardHeader className="flex flex-col gap-2">
+        <div className="flex flex-row items-center gap-2">
+          <div className="flex">
+            <TableIcon className="h-4 w-4" />
+          </div>
+          <CardTitle>DynamoDB Table Mappings</CardTitle>
+          {/* <div>{isValidating ? <Spinner /> : null}</div> */}
+        </div>
+        <CardDescription className="max-w-2xl">
+          Map a table from source to destination. As tables are added in the
+          form above, they will dynamically be added to this section. A mapping
+          is required to denote which table each source table should be synced
+          to for each corresponding DynamoDB destination.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {mappings.map((mapping) => {
+          return (
+            <div key={mapping.destinationId}>
+              {mapping.dynamoDb?.tableMappings.map((tm) => {
+                return (
+                  <div key={tm.sourceTable}>
+                    <p>{tm.sourceTable}</p>
+                    <p>{tm.destinationTable}</p>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -125,3 +125,35 @@ export const DestinationFormValues = Yup.object({
   }),
 }).required();
 export type DestinationFormValues = Yup.InferType<typeof DestinationFormValues>;
+
+// Intended to be used with the Source form values
+export const DestinationOptionFormValues = Yup.object({
+  destinationId: Yup.string().required(),
+
+  dynamoDb: Yup.object({
+    tableMappings: Yup.array()
+      .of(
+        Yup.object({
+          sourceTable: Yup.string().required(),
+          destinationTable: Yup.string().required(),
+        }).required()
+      )
+      .required(),
+  }).optional(),
+});
+export type DestinationOptionFormValues = Yup.InferType<
+  typeof DestinationOptionFormValues
+>;
+
+export const DataSyncSourceFormValues = SourceFormValues.concat(
+  SchemaFormValues
+).concat(
+  Yup.object({
+    destinationOptions: Yup.array()
+      .of(DestinationOptionFormValues.required())
+      .required(),
+  })
+);
+export type DataSyncSourceFormValues = Yup.InferType<
+  typeof DataSyncSourceFormValues
+>;

@@ -27,8 +27,8 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
-  SchemaFormValues,
-  SourceFormValues,
+  DataSyncSourceFormValues,
+  DestinationOptionFormValues,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -45,6 +45,7 @@ import {
   GetConnectionSchemaMapResponse,
   GetConnectionSchemaResponse,
   Job,
+  JobDestination,
   JobMapping,
   JobMappingTransformer,
   JobSource,
@@ -68,7 +69,6 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 import { validateJobMapping } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import { getOnSelectedTableToggle } from './util';
@@ -76,13 +76,6 @@ import { getOnSelectedTableToggle } from './util';
 interface Props {
   jobId: string;
 }
-
-const DataSyncSourceFormValues = SourceFormValues.concat(
-  Yup.object({
-    destinationIds: Yup.array().of(Yup.string().required()),
-  })
-).concat(SchemaFormValues);
-type DataSyncSourceFormValues = Yup.InferType<typeof DataSyncSourceFormValues>;
 
 function getConnectionIdFromSource(
   js: JobSource | undefined
@@ -203,6 +196,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   } = useFieldArray({
     control: form.control,
     name: 'mappings',
+  });
+
+  const {
+    append: appendDestOpts,
+    remove: removeDestOpts,
+    update: updateDestOpts,
+    fields: destOptsValues,
+  } = useFieldArray<DataSyncSourceFormValues>({
+    control: form.control,
+    name: 'destinationOptions',
   });
 
   useEffect(() => {
@@ -424,7 +427,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                       {connections
                         .filter(
                           (c) =>
-                            !form.getValues().destinationIds?.includes(c.id) &&
+                            !data?.job?.destinations
+                              .map((d) => d.connectionId)
+                              ?.includes(c.id) &&
                             c.connectionConfig?.config.case !== 'awsS3Config' &&
                             c.connectionConfig?.config.case !==
                               'openaiConfig' &&
@@ -457,6 +462,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           {isNosqlSource(source ?? new Connection()) && (
             <NosqlTable
               data={formMappings}
+              destinationOptions={form.watch('destinationOptions')}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
               isJobMappingsValidating={isValidatingMappings}
@@ -515,6 +521,38 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                     };
                   })
                 );
+                const uniqueCollections = Array.from(
+                  new Set(values.map((v) => v.collection))
+                );
+                const dynamoDbDests = getDynamoDbDestinations(
+                  data?.job?.destinations ?? []
+                );
+                const destOpts = form.getValues('destinationOptions');
+                const existing = new Map(
+                  destOpts.map((d) => [d.destinationId, d])
+                );
+                const updated = dynamoDbDests.map(
+                  (dest): DestinationOptionFormValues => {
+                    const opt = existing.get(dest.id);
+                    if (opt) {
+                      return opt;
+                    }
+                    return {
+                      destinationId: dest.id,
+                      dynamoDb: {
+                        tableMappings: uniqueCollections.map((c) => {
+                          const [, table] = c.split('.');
+                          return {
+                            sourceTable: table,
+                            destinationTable: 'todo',
+                          };
+                        }),
+                      },
+                    };
+                  }
+                );
+                form.setValue('destinationOptions', updated);
+                // const existing = destOptsValues[0].
               }}
             />
           )}
@@ -546,6 +584,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         </div>
       </form>
     </Form>
+  );
+}
+
+function getDynamoDbDestinations(
+  destinations: JobDestination[]
+): JobDestination[] {
+  return destinations.filter(
+    (d) => d.options?.config.case === 'dynamodbOptions'
   );
 }
 
@@ -629,10 +675,10 @@ function getJobSource(
       sourceOptions: {
         haltOnNewColumnAddition: false,
       },
-      destinationIds: [],
       mappings: [],
       virtualForeignKeys: [],
       connectionId: '',
+      destinationOptions: [],
     };
   }
 
@@ -690,10 +736,8 @@ function getJobSource(
     });
   }
 
-  const destinationIds = job?.destinations.map((d) => d.connectionId);
   const values = {
     sourceOptions: {},
-    destinationIds: destinationIds,
     mappings: mappings || [],
     virtualForeignKeys: virtualForeignKeys || [],
   };
@@ -702,6 +746,7 @@ function getJobSource(
     sourceId: getConnectionIdFromSource(job.source) || '',
     mappings,
     connectionId: getConnectionIdFromSource(job.source) || '',
+    destinationOptions: [],
   };
 
   switch (job?.source?.options?.config.case) {
@@ -730,10 +775,23 @@ function getJobSource(
         sourceOptions: {},
       };
     case 'dynamodb': {
+      const destOpts: DestinationOptionFormValues[] = [];
+      job.destinations.forEach((d) => {
+        if (d.options?.config.case !== 'dynamodbOptions') {
+          return;
+        }
+        destOpts.push({
+          destinationId: d.id,
+          dynamoDb: {
+            tableMappings: d.options.config.value.tableMappings,
+          },
+        });
+      });
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {},
+        destinationOptions: destOpts,
       };
     }
     default:
@@ -773,9 +831,10 @@ async function getUpdatedValues(
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
-    destinationIds: originalValues.destinationIds,
+    // destinationIds: originalValues.destinationIds,
     mappings,
     connectionId: connectionId || '',
+    destinationOptions: [],
   };
 
   switch (connRes.connection?.connectionConfig?.config.case) {
