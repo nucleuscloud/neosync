@@ -96,7 +96,7 @@ services:
 
   temporal-seed:
     container_name: neosync-temporal-seed
-    image: temporalio/admin-tools:1.23
+    image: temporalio/admin-tools:1.23.0
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
     entrypoint: /bin/sh -c "/create_schedules.sh"
@@ -141,3 +141,5 @@ volumes:
 networks:
   neosync-network:
     name: neosync-network
+  temporal-network:
+    name: temporal-network
