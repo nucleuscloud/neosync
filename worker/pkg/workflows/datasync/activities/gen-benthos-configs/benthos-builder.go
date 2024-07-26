@@ -219,8 +219,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						},
 
 						Batching: &neosync_benthos.Batching{
+							// https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+							// A single call to BatchWriteItem can transmit up to 16MB of data over the network, consisting of up to 25 item put or delete operations
+							// Specifying the count here may not be enough if the overall data is above 16MB.
+							// Benthos will fall back on error to single writes however
 							Period: "5s",
-							Count:  100,
+							Count:  25,
 						},
 
 						Region:      connection.DynamodbConfig.GetRegion(),
