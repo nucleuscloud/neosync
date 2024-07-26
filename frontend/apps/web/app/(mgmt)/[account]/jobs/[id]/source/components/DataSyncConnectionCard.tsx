@@ -46,6 +46,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
+  DynamoDBSourceConnectionOptions,
   GetConnectionResponse,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapResponse,
@@ -71,6 +72,7 @@ import {
   getConnectionTableConstraints,
   getConnections,
   getJob,
+  updateJobDestinationConnection,
   updateJobSourceConnection,
   validateJobMappings,
 } from '@neosync/sdk/connectquery';
@@ -158,6 +160,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { mutateAsync: updateJobSrcConnection } = useMutation(
     updateJobSourceConnection
   );
+  const { mutateAsync: updateJobDestConnection } = useMutation(
+    updateJobDestinationConnection
+  );
+
   const queryclient = useQueryClient();
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
@@ -231,15 +237,15 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     name: 'mappings',
   });
 
-  const {
-    append: appendDestOpts,
-    remove: removeDestOpts,
-    update: updateDestOpts,
-    fields: destOptsValues,
-  } = useFieldArray<DataSyncSourceFormValues>({
-    control: form.control,
-    name: 'destinationOptions',
-  });
+  // const {
+  //   append: appendDestOpts,
+  //   remove: removeDestOpts,
+  //   update: updateDestOpts,
+  //   fields: destOptsValues,
+  // } = useFieldArray<DataSyncSourceFormValues>({
+  //   control: form.control,
+  //   name: 'destinationOptions',
+  // });
 
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
@@ -330,11 +336,55 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         title: 'Successfully updated job source connection!',
         variant: 'success',
       });
-      mutate();
+      // hold off on mutating until after we update the job dest connections for dynamo conns
+      if (connection.connectionConfig?.config.case !== 'dynamodbConfig') {
+        mutate();
+      }
     } catch (err) {
       console.error(err);
       toast({
         title: 'Unable to update job source connection',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (connection.connectionConfig?.config.case !== 'dynamodbConfig') {
+      return;
+    }
+    try {
+      const destIdToConnId = new Map(
+        data?.job?.destinations.map((d) => [d.id, d.connectionId])
+      );
+      await Promise.all(
+        values.destinationOptions.map(async (destOpts) => {
+          if (!destOpts.dynamoDb) {
+            return;
+          }
+          return updateJobDestConnection({
+            destinationId: destOpts.destinationId,
+            jobId: data?.job?.id,
+            connectionId: destIdToConnId.get(destOpts.destinationId),
+            options: {
+              config: {
+                case: 'dynamodbOptions',
+                value: {
+                  tableMappings: destOpts.dynamoDb.tableMappings ?? [],
+                },
+              },
+            },
+          });
+        })
+      );
+      toast({
+        title: 'Successfully updated job destination connection(s)',
+        variant: 'success',
+      });
+      mutate();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to update one or all job destination connections',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
@@ -733,7 +783,7 @@ function getDestinationDetailsRecord(
 
   const output: Record<string, DestinationDetails> = {};
 
-  destinations.forEach((d) => {
+  getDynamoDbDestinations(destinations).forEach((d) => {
     const connection = connectionsRecord[d.connectionId];
     const availableTableNames = destSchemaRecord[d.connectionId] ?? [];
     output[d.id] = {
@@ -795,6 +845,17 @@ function toJobSourceOptions(
           }),
         },
       });
+    case 'dynamodbConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'dynamodb',
+          value: new DynamoDBSourceConnectionOptions({
+            ...getExistingDynamoDBSourceConnectionOptions(job),
+            connectionId: newSourceId,
+          }),
+        },
+      });
+    }
     default:
       throw new Error('unsupported connection type');
   }
@@ -820,6 +881,14 @@ function getExistingMongoSourceConnectionOptions(
   job: Job
 ): MongoDBSourceConnectionOptions | undefined {
   return job.source?.options?.config.case === 'mongodb'
+    ? job.source.options.config.value
+    : undefined;
+}
+
+function getExistingDynamoDBSourceConnectionOptions(
+  job: Job
+): DynamoDBSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'dynamodb'
     ? job.source.options.config.value
     : undefined;
 }

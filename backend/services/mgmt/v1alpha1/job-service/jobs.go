@@ -882,39 +882,38 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	var connectionIdToVerify *string
+	var connectionIdToVerify string
 	switch config := req.Msg.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		connectionIdToVerify = &config.Mysql.ConnectionId
+		connectionIdToVerify = config.Mysql.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		connectionIdToVerify = &config.Postgres.ConnectionId
+		connectionIdToVerify = config.Postgres.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
-		connectionIdToVerify = &config.AwsS3.ConnectionId
+		connectionIdToVerify = config.AwsS3.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		fkConnId := config.Generate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
+		connectionIdToVerify = config.Generate.GetFkSourceConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
-		if fkConnId != "" {
-			connectionIdToVerify = &fkConnId
-		}
+		connectionIdToVerify = config.AiGenerate.GetFkSourceConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
-		connId := config.Mongodb.GetConnectionId()
-		connectionIdToVerify = &connId
+		connectionIdToVerify = config.Mongodb.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		connectionIdToVerify = config.Dynamodb.GetConnectionId()
+	default:
+		return nil, fmt.Errorf("unable to find connection id to verify for config: %T", config)
+	}
+
+	if connectionIdToVerify == "" {
+		return nil, nucleuserrors.NewBadRequest("must provide valid non empty connection id")
 	}
 
 	// verifies that the account has access to that connection id
-	if connectionIdToVerify != nil {
-		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, nucleusdb.UUIDString(job.AccountID)); err != nil {
-			return nil, err
-		}
+	if err := s.verifyConnectionInAccount(ctx, connectionIdToVerify, nucleusdb.UUIDString(job.AccountID)); err != nil {
+		return nil, err
 	}
 
 	// retrieves the connection details
 	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: *connectionIdToVerify,
+		Id: connectionIdToVerify,
 	}))
 
 	// Type checking that the connection config that we want to use for the job is the same as the incoming job source config type
@@ -939,6 +938,13 @@ func (s *Service) UpdateJobSourceConnection(
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		dbConf := req.Msg.GetSource().GetOptions().GetMongodb()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		dbConf := req.Msg.GetSource().GetOptions().GetDynamodb()
 		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
 		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
 		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
