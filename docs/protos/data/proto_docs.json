@@ -3989,6 +3989,66 @@
           ]
         },
         {
+          "name": "GetConnectionSchemaMapsRequest",
+          "longName": "GetConnectionSchemaMapsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionSchemaMapsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "requests",
+              "description": "List of connection schema maps to request",
+              "label": "repeated",
+              "type": "GetConnectionSchemaMapRequest",
+              "longType": "GetConnectionSchemaMapRequest",
+              "fullType": "mgmt.v1alpha1.GetConnectionSchemaMapRequest",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionSchemaMapsResponse",
+          "longName": "GetConnectionSchemaMapsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionSchemaMapsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "responses",
+              "description": "List of responses in the same order as the input",
+              "label": "repeated",
+              "type": "GetConnectionSchemaMapResponse",
+              "longType": "GetConnectionSchemaMapResponse",
+              "fullType": "mgmt.v1alpha1.GetConnectionSchemaMapResponse",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_ids",
+              "description": "Parallel array of each connection id that matches with the response",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionSchemaRequest",
           "longName": "GetConnectionSchemaRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionSchemaRequest",
@@ -4641,7 +4701,7 @@
             },
             {
               "name": "GetConnectionSchemaMap",
-              "description": "Returns the schema in map format. The keys are the full qualified table in the format \u003cschema\u003e.\u003ctable\u003e",
+              "description": "Returns the schema in map format. The keys are the fully qualified table in the format \u003cschema\u003e.\u003ctable\u003e",
               "requestType": "GetConnectionSchemaMapRequest",
               "requestLongType": "GetConnectionSchemaMapRequest",
               "requestFullType": "mgmt.v1alpha1.GetConnectionSchemaMapRequest",
@@ -4649,6 +4709,18 @@
               "responseType": "GetConnectionSchemaMapResponse",
               "responseLongType": "GetConnectionSchemaMapResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaMapResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionSchemaMaps",
+              "description": "Returns the schema in map format for every request provided",
+              "requestType": "GetConnectionSchemaMapsRequest",
+              "requestLongType": "GetConnectionSchemaMapsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionSchemaMapsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionSchemaMapsResponse",
+              "responseLongType": "GetConnectionSchemaMapsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaMapsResponse",
               "responseStreaming": false
             },
             {

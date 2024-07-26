@@ -42,6 +42,9 @@ const (
 	// ConnectionDataServiceGetConnectionSchemaMapProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionSchemaMap RPC.
 	ConnectionDataServiceGetConnectionSchemaMapProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMap"
+	// ConnectionDataServiceGetConnectionSchemaMapsProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetConnectionSchemaMaps RPC.
+	ConnectionDataServiceGetConnectionSchemaMapsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionSchemaMaps"
 	// ConnectionDataServiceGetConnectionTableConstraintsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionTableConstraints RPC.
 	ConnectionDataServiceGetConnectionTableConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionTableConstraints"
@@ -71,6 +74,7 @@ var (
 	connectionDataServiceGetConnectionDataStreamMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionDataStream")
 	connectionDataServiceGetConnectionSchemaMethodDescriptor             = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchema")
 	connectionDataServiceGetConnectionSchemaMapMethodDescriptor          = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMap")
+	connectionDataServiceGetConnectionSchemaMapsMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchemaMaps")
 	connectionDataServiceGetConnectionTableConstraintsMethodDescriptor   = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionTableConstraints")
 	connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionForeignConstraints")
 	connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionPrimaryConstraints")
@@ -87,8 +91,10 @@ type ConnectionDataServiceClient interface {
 	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetConnectionDataStreamResponse], error)
 	// Returns the schema for a specific connection. Used mostly for SQL-based connections
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
-	// Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+	// Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
 	GetConnectionSchemaMap(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapResponse], error)
+	// Returns the schema in map format for every request provided
+	GetConnectionSchemaMaps(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error)
 	// For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
 	GetConnectionTableConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionTableConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionTableConstraintsResponse], error)
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
@@ -134,6 +140,12 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionSchemaMapProcedure,
 			connect.WithSchema(connectionDataServiceGetConnectionSchemaMapMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getConnectionSchemaMaps: connect.NewClient[v1alpha1.GetConnectionSchemaMapsRequest, v1alpha1.GetConnectionSchemaMapsResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetConnectionSchemaMapsProcedure,
+			connect.WithSchema(connectionDataServiceGetConnectionSchemaMapsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		getConnectionTableConstraints: connect.NewClient[v1alpha1.GetConnectionTableConstraintsRequest, v1alpha1.GetConnectionTableConstraintsResponse](
@@ -186,6 +198,7 @@ type connectionDataServiceClient struct {
 	getConnectionDataStream         *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
 	getConnectionSchema             *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
 	getConnectionSchemaMap          *connect.Client[v1alpha1.GetConnectionSchemaMapRequest, v1alpha1.GetConnectionSchemaMapResponse]
+	getConnectionSchemaMaps         *connect.Client[v1alpha1.GetConnectionSchemaMapsRequest, v1alpha1.GetConnectionSchemaMapsResponse]
 	getConnectionTableConstraints   *connect.Client[v1alpha1.GetConnectionTableConstraintsRequest, v1alpha1.GetConnectionTableConstraintsResponse]
 	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
 	getConnectionPrimaryConstraints *connect.Client[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse]
@@ -208,6 +221,11 @@ func (c *connectionDataServiceClient) GetConnectionSchema(ctx context.Context, r
 // GetConnectionSchemaMap calls mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap.
 func (c *connectionDataServiceClient) GetConnectionSchemaMap(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionSchemaMapRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapResponse], error) {
 	return c.getConnectionSchemaMap.CallUnary(ctx, req)
+}
+
+// GetConnectionSchemaMaps calls mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps.
+func (c *connectionDataServiceClient) GetConnectionSchemaMaps(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error) {
+	return c.getConnectionSchemaMaps.CallUnary(ctx, req)
 }
 
 // GetConnectionTableConstraints calls
@@ -258,8 +276,10 @@ type ConnectionDataServiceHandler interface {
 	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest], *connect.ServerStream[v1alpha1.GetConnectionDataStreamResponse]) error
 	// Returns the schema for a specific connection. Used mostly for SQL-based connections
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
-	// Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+	// Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
 	GetConnectionSchemaMap(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapResponse], error)
+	// Returns the schema in map format for every request provided
+	GetConnectionSchemaMaps(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error)
 	// For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
 	GetConnectionTableConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionTableConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionTableConstraintsResponse], error)
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
@@ -301,6 +321,12 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		ConnectionDataServiceGetConnectionSchemaMapProcedure,
 		svc.GetConnectionSchemaMap,
 		connect.WithSchema(connectionDataServiceGetConnectionSchemaMapMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	connectionDataServiceGetConnectionSchemaMapsHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetConnectionSchemaMapsProcedure,
+		svc.GetConnectionSchemaMaps,
+		connect.WithSchema(connectionDataServiceGetConnectionSchemaMapsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetConnectionTableConstraintsHandler := connect.NewUnaryHandler(
@@ -353,6 +379,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionSchemaHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionSchemaMapProcedure:
 			connectionDataServiceGetConnectionSchemaMapHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetConnectionSchemaMapsProcedure:
+			connectionDataServiceGetConnectionSchemaMapsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionTableConstraintsProcedure:
 			connectionDataServiceGetConnectionTableConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionForeignConstraintsProcedure:
@@ -386,6 +414,10 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionSchema(context.Con
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionSchemaMap(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetConnectionSchemaMaps(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaMapsRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaMapsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps is not implemented"))
 }
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionTableConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionTableConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionTableConstraintsResponse], error) {

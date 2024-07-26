@@ -1,6 +1,7 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
+import { DestinationDetails } from '@/components/jobs/NosqlTable/TableMappings/Columns';
 import {
   SchemaTable,
   getAllFormErrors,
@@ -33,6 +34,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { PartialMessage } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -42,7 +44,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
   GetConnectionResponse,
+  GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapResponse,
+  GetConnectionSchemaMapsResponse,
   GetConnectionSchemaResponse,
   Job,
   JobDestination,
@@ -60,6 +64,7 @@ import {
 import {
   getConnection,
   getConnectionSchemaMap,
+  getConnectionSchemaMaps,
   getConnectionTableConstraints,
   getConnections,
   getJob,
@@ -115,12 +120,37 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     getConnectionSchemaMap
   );
 
+  const { data: destinationConnectionSchemaMapsResp } = useQuery(
+    getConnectionSchemaMaps,
+    {
+      requests: data?.job?.destinations.map(
+        (dest): PartialMessage<GetConnectionSchemaMapRequest> => ({
+          connectionId: dest.connectionId,
+        })
+      ),
+    },
+    {
+      enabled:
+        (data?.job?.destinations.length ?? 0) > 0 &&
+        data?.job?.source?.options?.config.case === 'dynamodb',
+    }
+  );
+  const destinationConnectionsSchemaMaps =
+    destinationConnectionSchemaMapsResp?.responses ?? [];
+
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
     getConnections,
     { accountId: account?.id },
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
+  const connectionsRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection>
+  );
 
   const { mutateAsync: updateJobSrcConnection } = useMutation(
     updateJobSourceConnection
@@ -394,7 +424,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     return <SchemaPageSkeleton />;
   }
 
-  const source = connections.find((item) => item.id === sourceConnectionId);
+  const source = connectionsRecord[sourceConnectionId ?? ''] as
+    | Connection
+    | undefined;
 
   return (
     <Form {...form}>
@@ -554,6 +586,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 form.setValue('destinationOptions', updated);
                 // const existing = destOptsValues[0].
               }}
+              destinationDetailsRecord={getDestinationDetailsRecord(
+                data?.job?.destinations ?? [],
+                connectionsRecord,
+                destinationConnectionSchemaMapsResp ??
+                  new GetConnectionSchemaMapsResponse()
+              )}
             />
           )}
 
@@ -585,6 +623,36 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       </form>
     </Form>
   );
+}
+
+function getDestinationDetailsRecord(
+  destinations: JobDestination[],
+  connectionsRecord: Record<string, Connection>,
+  destinationSchemaMapsResp: GetConnectionSchemaMapsResponse
+): Record<string, DestinationDetails> {
+  const destSchemaRecord: Record<string, string[]> = {};
+  destinationSchemaMapsResp.connectionIds.forEach((connid, idx) => {
+    destSchemaRecord[connid] = Object.keys(
+      destinationSchemaMapsResp.responses[idx].schemaMap
+    ).map((table) => {
+      const [, tableName] = table.split('.');
+      return tableName;
+    });
+  });
+
+  const output: Record<string, DestinationDetails> = {};
+
+  destinations.forEach((d) => {
+    const connection = connectionsRecord[d.connectionId];
+    const availableTableNames = destSchemaRecord[d.connectionId] ?? [];
+    output[d.id] = {
+      destinationId: d.id,
+      friendlyName: connection?.name ?? 'Unknown Name',
+      availableTableNames,
+    };
+  });
+
+  return output;
 }
 
 function getDynamoDbDestinations(

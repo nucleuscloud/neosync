@@ -28,6 +28,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -391,6 +392,44 @@ func (s *Service) GetConnectionDataStream(
 		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 	return nil
+}
+
+func (s *Service) GetConnectionSchemaMaps(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaMapsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaMapsResponse], error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3)
+
+	responses := make([]*mgmtv1alpha1.GetConnectionSchemaMapResponse, len(req.Msg.GetRequests()))
+	connectionIds := make([]string, len(req.Msg.GetRequests()))
+
+	for idx, mapReq := range req.Msg.GetRequests() {
+		idx := idx
+		mapReq := mapReq
+		connectionIds[idx] = mapReq.GetConnectionId()
+
+		errgrp.Go(func() error {
+			resp, err := s.GetConnectionSchemaMap(errctx, connect.NewRequest(mapReq))
+			if err != nil {
+				return err
+			}
+			responses[idx] = &mgmtv1alpha1.GetConnectionSchemaMapResponse{
+				SchemaMap: resp.Msg.GetSchemaMap(),
+			}
+			return nil
+		})
+	}
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaMapsResponse{
+		Responses:     responses,
+		ConnectionIds: connectionIds,
+	}), nil
 }
 
 func (s *Service) GetConnectionSchemaMap(

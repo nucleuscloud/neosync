@@ -29,10 +29,10 @@ import {
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { Transformer } from '@/shared/transformers';
 import {
+  convertJobMappingTransformerToForm,
   DestinationOptionFormValues,
   JobMappingFormValues,
   JobMappingTransformerForm,
-  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -54,6 +54,12 @@ import SchemaPageTable, { Row } from '../SchemaTable/SchemaPageTable';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { SchemaConstraintHandler } from '../SchemaTable/schema-constraint-handler';
 import { TransformerHandler } from '../SchemaTable/transformer-handler';
+import {
+  DestinationDetails,
+  getTableMappingsColumns,
+  TableMappingRow,
+} from './TableMappings/Columns';
+import TableMappingsTable from './TableMappings/TableMappingsTable';
 import { DataTableRowActions } from './data-table-row-actions';
 
 interface Props {
@@ -71,6 +77,7 @@ interface Props {
   onEditMappings(values: JobMappingFormValues[]): void;
 
   destinationOptions: DestinationOptionFormValues[];
+  destinationDetailsRecord: Record<string, DestinationDetails>;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -85,6 +92,7 @@ export default function NosqlTable(props: Props): ReactElement {
     onRemoveMappings,
     onEditMappings,
     destinationOptions,
+    destinationDetailsRecord,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -141,6 +149,7 @@ export default function NosqlTable(props: Props): ReactElement {
         <TableMappingsCard
           mappings={destinationOptions}
           onUpdate={(newMappings) => undefined}
+          destinationDetailsRecord={destinationDetailsRecord}
         />
       </div>
       <SchemaPageTable
@@ -157,10 +166,15 @@ export default function NosqlTable(props: Props): ReactElement {
 interface TableMappingsCardProps {
   mappings: DestinationOptionFormValues[];
   onUpdate(newMappings: Record<string, Record<string, string>>): void;
+  destinationDetailsRecord: Record<string, DestinationDetails>;
 }
 
 function TableMappingsCard(props: TableMappingsCardProps): ReactElement {
-  const { mappings, onUpdate } = props;
+  const { mappings, onUpdate, destinationDetailsRecord } = props;
+  const columns = useMemo(
+    () => getTableMappingsColumns({ destinationDetailsRecord }),
+    [destinationDetailsRecord]
+  );
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-col gap-2">
@@ -179,23 +193,29 @@ function TableMappingsCard(props: TableMappingsCardProps): ReactElement {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {mappings.map((mapping) => {
-          return (
-            <div key={mapping.destinationId}>
-              {mapping.dynamoDb?.tableMappings.map((tm) => {
-                return (
-                  <div key={tm.sourceTable}>
-                    <p>{tm.sourceTable}</p>
-                    <p>{tm.destinationTable}</p>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+        <TableMappingsTable
+          data={toTableMappingRows(mappings)}
+          columns={columns}
+        />
       </CardContent>
     </Card>
   );
+}
+
+function toTableMappingRows(
+  mappings: DestinationOptionFormValues[]
+): TableMappingRow[] {
+  return mappings.flatMap((mapping) => {
+    return (
+      mapping.dynamoDb?.tableMappings.map((tm): TableMappingRow => {
+        return {
+          destinationId: mapping.destinationId,
+          sourceTable: tm.sourceTable,
+          destinationTable: tm.destinationTable,
+        };
+      }) ?? []
+    );
+  });
 }
 
 interface AddNewRecordProps {
