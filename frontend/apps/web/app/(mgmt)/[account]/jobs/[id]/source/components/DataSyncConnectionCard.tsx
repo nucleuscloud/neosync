@@ -1,7 +1,10 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
-import { DestinationDetails } from '@/components/jobs/NosqlTable/TableMappings/Columns';
+import {
+  DestinationDetails,
+  OnTableMappingUpdateRequest,
+} from '@/components/jobs/NosqlTable/TableMappings/Columns';
 import {
   SchemaTable,
   getAllFormErrors,
@@ -72,7 +75,7 @@ import {
   validateJobMappings,
 } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { validateJobMapping } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
@@ -420,6 +423,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     await validateVirtualForeignKeys(newVfks);
   }
 
+  const onDestinationTableMappingUpdate = useCallback(
+    (req: OnTableMappingUpdateRequest) => {
+      const destOpts = form.getValues('destinationOptions');
+      const destOpt = destOpts.find(
+        (d) => d.destinationId === req.destinationId
+      );
+      const tm = destOpt?.dynamoDb?.tableMappings.find(
+        (tm) => tm.sourceTable === req.souceName
+      );
+      if (tm) {
+        tm.destinationTable = req.tableName;
+        form.setValue('destinationOptions', destOpts);
+      }
+      return;
+    },
+    []
+  );
+
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
   }
@@ -522,6 +543,46 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 if (toRemove.length > 0) {
                   remove(toRemove);
                 }
+
+                if (
+                  source?.connectionConfig?.config.case !== 'dynamodbConfig'
+                ) {
+                  return;
+                }
+
+                const toRemoveSet = new Set(toRemove);
+                const remainingTables = formMappings
+                  .filter((_, idx) => !toRemoveSet.has(idx))
+                  .map((fm) => fm.table);
+
+                // Check and update destinationOptions if needed
+                const destOpts = form.getValues('destinationOptions');
+                const updatedDestOpts = destOpts
+                  .map((opt) => {
+                    if (opt.dynamoDb) {
+                      const updatedTableMappings =
+                        opt.dynamoDb.tableMappings.filter((tm) => {
+                          // Check if any columns remain for the table
+                          const tableColumnsExist = remainingTables.some(
+                            (table) => table === tm.sourceTable
+                          );
+                          return tableColumnsExist;
+                        });
+
+                      return {
+                        ...opt,
+                        dynamoDb: {
+                          ...opt.dynamoDb,
+                          tableMappings: updatedTableMappings,
+                        },
+                      };
+                    }
+                    return opt;
+                  })
+                  .filter(
+                    (opt) => (opt.dynamoDb?.tableMappings.length ?? 0) > 0
+                  );
+                form.setValue('destinationOptions', updatedDestOpts);
               }}
               onEditMappings={(values) => {
                 const valuesMap = new Map(
@@ -567,8 +628,37 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   (dest): DestinationOptionFormValues => {
                     const opt = existing.get(dest.id);
                     if (opt) {
-                      return opt;
+                      const sourceSet = new Set(
+                        opt.dynamoDb?.tableMappings.map(
+                          (mapping) => mapping.sourceTable
+                        ) ?? []
+                      );
+
+                      // Add missing uniqueCollections to the existing tableMappings
+                      const updatedTableMappings = [
+                        ...(opt.dynamoDb?.tableMappings ?? []),
+                        ...uniqueCollections
+                          .map((c) => {
+                            const [, table] = c.split('.');
+                            return {
+                              sourceTable: table,
+                              destinationTable: 'todo',
+                            };
+                          })
+                          .filter(
+                            (mapping) => !sourceSet.has(mapping.sourceTable)
+                          ),
+                      ];
+
+                      return {
+                        ...opt,
+                        dynamoDb: {
+                          ...opt.dynamoDb,
+                          tableMappings: updatedTableMappings,
+                        },
+                      };
                     }
+
                     return {
                       destinationId: dest.id,
                       dynamoDb: {
@@ -583,8 +673,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                     };
                   }
                 );
+
                 form.setValue('destinationOptions', updated);
-                // const existing = destOptsValues[0].
               }}
               destinationDetailsRecord={getDestinationDetailsRecord(
                 data?.job?.destinations ?? [],
@@ -592,6 +682,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 destinationConnectionSchemaMapsResp ??
                   new GetConnectionSchemaMapsResponse()
               )}
+              onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
             />
           )}
 

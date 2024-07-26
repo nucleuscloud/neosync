@@ -4,6 +4,13 @@ import { ColumnHeader } from './ColumnHeader';
 
 interface Props {
   destinationDetailsRecord: Record<string, DestinationDetails>;
+  onUpdate(req: OnTableMappingUpdateRequest): void;
+}
+
+export interface OnTableMappingUpdateRequest {
+  destinationId: string;
+  souceName: string;
+  tableName: string;
 }
 
 export interface DestinationDetails {
@@ -22,7 +29,7 @@ export interface TableMappingRow {
 export function getTableMappingsColumns(
   props: Props
 ): ColumnDef<TableMappingRow>[] {
-  const { destinationDetailsRecord } = props;
+  const { destinationDetailsRecord, onUpdate } = props;
 
   return [
     {
@@ -69,7 +76,13 @@ export function getTableMappingsColumns(
             <StringSelect
               value={destTableName}
               values={details.availableTableNames}
-              setValue={() => undefined}
+              setValue={(newDestTableName) =>
+                onUpdate({
+                  destinationId: destId,
+                  souceName: row.getValue<string>('sourceTable'),
+                  tableName: newDestTableName,
+                })
+              }
               text="destination table"
             />
           </div>

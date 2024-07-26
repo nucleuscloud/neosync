@@ -57,6 +57,7 @@ import { TransformerHandler } from '../SchemaTable/transformer-handler';
 import {
   DestinationDetails,
   getTableMappingsColumns,
+  OnTableMappingUpdateRequest,
   TableMappingRow,
 } from './TableMappings/Columns';
 import TableMappingsTable from './TableMappings/TableMappingsTable';
@@ -78,6 +79,7 @@ interface Props {
 
   destinationOptions: DestinationOptionFormValues[];
   destinationDetailsRecord: Record<string, DestinationDetails>;
+  onDestinationTableMappingUpdate(req: OnTableMappingUpdateRequest): void;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -93,6 +95,7 @@ export default function NosqlTable(props: Props): ReactElement {
     onEditMappings,
     destinationOptions,
     destinationDetailsRecord,
+    onDestinationTableMappingUpdate,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -148,7 +151,7 @@ export default function NosqlTable(props: Props): ReactElement {
       <div>
         <TableMappingsCard
           mappings={destinationOptions}
-          onUpdate={(newMappings) => undefined}
+          onUpdate={onDestinationTableMappingUpdate}
           destinationDetailsRecord={destinationDetailsRecord}
         />
       </div>
@@ -165,15 +168,15 @@ export default function NosqlTable(props: Props): ReactElement {
 
 interface TableMappingsCardProps {
   mappings: DestinationOptionFormValues[];
-  onUpdate(newMappings: Record<string, Record<string, string>>): void;
+  onUpdate(req: OnTableMappingUpdateRequest): void;
   destinationDetailsRecord: Record<string, DestinationDetails>;
 }
 
 function TableMappingsCard(props: TableMappingsCardProps): ReactElement {
   const { mappings, onUpdate, destinationDetailsRecord } = props;
   const columns = useMemo(
-    () => getTableMappingsColumns({ destinationDetailsRecord }),
-    [destinationDetailsRecord]
+    () => getTableMappingsColumns({ destinationDetailsRecord, onUpdate }),
+    [destinationDetailsRecord, onUpdate]
   );
   return (
     <Card className="w-full">
@@ -423,7 +426,6 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
     },
     {
       accessorFn: (row) => {
-        console.log(row);
         if (row.schema && row.table) {
           return `${row.schema}.${row.table}`;
         }
