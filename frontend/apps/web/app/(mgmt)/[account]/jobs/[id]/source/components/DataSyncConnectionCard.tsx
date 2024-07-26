@@ -140,8 +140,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         data?.job?.source?.options?.config.case === 'dynamodb',
     }
   );
-  const destinationConnectionsSchemaMaps =
-    destinationConnectionSchemaMapsResp?.responses ?? [];
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
     getConnections,
