@@ -91,3 +91,13 @@
   color: red; /* White text color */
   background-color: transparent;
 }
+
+.edge-path {
+  strokedasharray: 12 12;
+  animation: dashdraw 2s linear infinite;
+}
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -80;
+  }
+}
