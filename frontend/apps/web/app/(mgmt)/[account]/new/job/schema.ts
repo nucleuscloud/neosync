@@ -1,7 +1,7 @@
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
-  DestinationFormValues,
   JobMappingFormValues,
+  NewDestinationFormValues,
   SchemaFormValues,
   SourceFormValues,
 } from '@/yup-validations/jobs';
@@ -128,7 +128,7 @@ export type DefineFormValues = Yup.InferType<typeof DefineFormValues>;
 
 export const ConnectFormValues = SourceFormValues.concat(
   Yup.object({
-    destinations: Yup.array(DestinationFormValues).required(),
+    destinations: Yup.array(NewDestinationFormValues).required(),
   })
 ).test(
   'unique-connections',
@@ -246,8 +246,8 @@ function getErrorConnectionTypes(
   const conn = connections.find((c) => c.id === connId);
   if (!conn) {
     return isSource
-      ? '[Postgres, Mysql]'
-      : '[Postgres, Mysql, AWS S3, GCP Cloud Storage]';
+      ? '[Postgres, Mysql, MongoDB, DynamoDB]'
+      : '[Postgres, Mysql, MongoDB, DynamoDB, AWS S3, GCP Cloud Storage]';
   }
   if (
     conn.connectionConfig?.config.case === 'awsS3Config' ||
@@ -273,7 +273,7 @@ const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
 
 export const SingleTableConnectFormValues = Yup.object({
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
-  destination: DestinationFormValues,
+  destination: NewDestinationFormValues,
 });
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SingleTableConnectFormValues
@@ -282,7 +282,7 @@ export type SingleTableConnectFormValues = Yup.InferType<
 export const SingleTableAiConnectFormValues = Yup.object({
   sourceId: Yup.string().required('Connection is required').uuid(),
   fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
-  destination: DestinationFormValues,
+  destination: NewDestinationFormValues,
 });
 
 export type SingleTableAiConnectFormValues = Yup.InferType<

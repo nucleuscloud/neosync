@@ -3,9 +3,10 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
-  DestinationFormValues,
   JobMappingFormValues,
+  NewDestinationFormValues,
   SchemaFormValues,
+  SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -20,6 +21,9 @@ import {
   Connection,
   CreateJobRequest,
   DatabaseTable,
+  DynamoDBDestinationConnectionOptions,
+  DynamoDBDestinationTableMapping,
+  DynamoDBSourceConnectionOptions,
   GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
@@ -301,6 +305,13 @@ export function getCreateNewSyncJobRequest(
   accountId: string,
   getConnectionById: GetConnectionById
 ): CreateJobRequest {
+  const dstOptRecord = values.schema.destinationOptions.reduce(
+    (record, dstOpt) => {
+      record[dstOpt.destinationId] = dstOpt;
+      return record;
+    },
+    {} as Record<string, SchemaFormValuesDestinationOptions>
+  );
   return new CreateJobRequest({
     accountId,
     jobName: values.define.jobName,
@@ -309,7 +320,24 @@ export function getCreateNewSyncJobRequest(
     mappings: toSyncJobMappings(values),
     virtualForeignKeys: toSyncVirtualForeignKeys(values),
     source: toJobSource(values, getConnectionById),
-    destinations: toSyncJobDestinations(values, getConnectionById),
+    destinations: toSyncJobDestinations(
+      {
+        connect: {
+          ...values.connect,
+          destinations: values.connect.destinations.map((d) => {
+            const opt = dstOptRecord[d.connectionId];
+            return {
+              ...d,
+              destinationOptions: {
+                ...d.destinationOptions,
+                ...opt,
+              },
+            };
+          }),
+        },
+      },
+      getConnectionById
+    ),
     workflowOptions: toWorkflowOptions(values.define.workflowSettings),
     syncOptions: toSyncOptions(values),
   });
@@ -376,7 +404,7 @@ function toSyncJobDestinations(
 }
 
 export function toJobDestinationOptions(
-  values: DestinationFormValues,
+  values: NewDestinationFormValues,
   connection?: Connection
 ): JobDestinationOptions {
   if (!connection) {
@@ -390,13 +418,18 @@ export function toJobDestinationOptions(
           value: new PostgresDestinationConnectionOptions({
             truncateTable: new PostgresTruncateTableConfig({
               truncateBeforeInsert:
-                values.destinationOptions.truncateBeforeInsert ?? false,
-              cascade: values.destinationOptions.truncateCascade ?? false,
+                values.destinationOptions.postgres?.truncateBeforeInsert ??
+                false,
+              cascade:
+                values.destinationOptions.postgres?.truncateCascade ?? false,
             }),
             onConflict: new PostgresOnConflictConfig({
-              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
+              doNothing:
+                values.destinationOptions.postgres?.onConflictDoNothing ??
+                false,
             }),
-            initTableSchema: values.destinationOptions.initTableSchema,
+            initTableSchema:
+              values.destinationOptions.postgres?.initTableSchema,
           }),
         },
       });
@@ -408,12 +441,13 @@ export function toJobDestinationOptions(
           value: new MysqlDestinationConnectionOptions({
             truncateTable: new MysqlTruncateTableConfig({
               truncateBeforeInsert:
-                values.destinationOptions.truncateBeforeInsert ?? false,
+                values.destinationOptions.mysql?.truncateBeforeInsert ?? false,
             }),
             onConflict: new MysqlOnConflictConfig({
-              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
+              doNothing:
+                values.destinationOptions.mysql?.onConflictDoNothing ?? false,
             }),
-            initTableSchema: values.destinationOptions.initTableSchema,
+            initTableSchema: values.destinationOptions.mysql?.initTableSchema,
           }),
         },
       });
@@ -439,6 +473,23 @@ export function toJobDestinationOptions(
         config: {
           case: 'gcpCloudstorageOptions',
           value: new GcpCloudStorageDestinationConnectionOptions({}),
+        },
+      });
+    }
+    case 'dynamodbConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'dynamodbOptions',
+          value: new DynamoDBDestinationConnectionOptions({
+            tableMappings:
+              values.destinationOptions.dynamodb?.tableMappings.map(
+                (tm) =>
+                  new DynamoDBDestinationTableMapping({
+                    sourceTable: tm.sourceTable,
+                    destinationTable: tm.destinationTable,
+                  })
+              ),
+          }),
         },
       });
     }
@@ -556,6 +607,16 @@ function toJobSourceOptions(
           }),
         },
       });
+    case 'dynamodbConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'dynamodb',
+          value: new DynamoDBSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+          }),
+        },
+      });
+    }
     default:
       throw new Error('unsupported connection type');
   }
@@ -749,6 +810,17 @@ function setDefaultConnectFormValues(
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
       return;
     }
+    case 'dynamodb': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {},
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
+        ),
+      };
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
     case 'mysql': {
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
@@ -834,6 +906,49 @@ function setDefaultSchemaFormValues(
     case 'mongodb':
     case 'postgres': {
       const values: SchemaFormValues = {
+        destinationOptions: [],
+        connectionId: job.source.options.config.value.connectionId,
+        mappings: job.mappings.map((mapping) => {
+          return {
+            ...mapping,
+            transformer: mapping.transformer
+              ? convertJobMappingTransformerToForm(mapping.transformer)
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+          };
+        }),
+        virtualForeignKeys: job.virtualForeignKeys.map((v) => {
+          return {
+            ...v,
+            foreignKey: {
+              schema: v.foreignKey?.schema ?? '',
+              table: v.foreignKey?.table ?? '',
+              columns: v.foreignKey?.columns ?? [],
+            },
+          };
+        }),
+      };
+
+      storage.setItem(sessionKeys.dataSync.schema, JSON.stringify(values));
+      return;
+    }
+    case 'dynamodb': {
+      const values: SchemaFormValues = {
+        destinationOptions: job.destinations.map((dest) => {
+          if (dest.options?.config.case !== 'dynamodbOptions') {
+            return { destinationId: dest.id };
+          }
+          return {
+            destinationId: dest.id,
+            dynamoDb: {
+              tableMappings: dest.options.config.value.tableMappings.map(
+                (tm) => ({
+                  sourceTable: tm.sourceTable,
+                  destinationTable: tm.destinationTable,
+                })
+              ),
+            },
+          };
+        }),
         connectionId: job.source.options.config.value.connectionId,
         mappings: job.mappings.map((mapping) => {
           return {
@@ -940,29 +1055,51 @@ export function getSingleTableGenerateNumRows(
 
 export function getDefaultDestinationFormValues(
   d: JobDestination
-): DestinationFormValues {
+): NewDestinationFormValues {
   switch (d.options?.config.case) {
     case 'postgresOptions':
       return {
         connectionId: d.connectionId,
         destinationOptions: {
-          truncateBeforeInsert:
-            d.options.config.value.truncateTable?.truncateBeforeInsert,
-          truncateCascade: d.options.config.value.truncateTable?.cascade,
-          initTableSchema: d.options.config.value.initTableSchema,
-          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
+          postgres: {
+            truncateBeforeInsert:
+              d.options.config.value.truncateTable?.truncateBeforeInsert ??
+              false,
+            truncateCascade:
+              d.options.config.value.truncateTable?.cascade ?? false,
+            initTableSchema: d.options.config.value.initTableSchema ?? false,
+            onConflictDoNothing:
+              d.options.config.value.onConflict?.doNothing ?? false,
+          },
         },
       };
     case 'mysqlOptions':
       return {
         connectionId: d.connectionId,
         destinationOptions: {
-          truncateBeforeInsert:
-            d.options.config.value.truncateTable?.truncateBeforeInsert,
-          initTableSchema: d.options.config.value.initTableSchema,
-          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
+          mysql: {
+            truncateBeforeInsert:
+              d.options.config.value.truncateTable?.truncateBeforeInsert ??
+              false,
+            initTableSchema: d.options.config.value.initTableSchema ?? false,
+            onConflictDoNothing:
+              d.options.config.value.onConflict?.doNothing ?? false,
+          },
         },
       };
+    case 'dynamodbOptions': {
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          dynamodb: {
+            tableMappings: d.options.config.value.tableMappings.map((tm) => ({
+              sourceTable: tm.sourceTable,
+              destinationTable: tm.destinationTable,
+            })),
+          },
+        },
+      };
+    }
     default:
       return {
         connectionId: d.connectionId,

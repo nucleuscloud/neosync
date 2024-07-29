@@ -345,12 +345,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             field.onChange(value);
-                            form.setValue('destination.destinationOptions', {
-                              initTableSchema: false,
-                              truncateBeforeInsert: false,
-                              truncateCascade: false,
-                              onConflictDoNothing: false,
-                            });
+                            form.setValue('destination.destinationOptions', {});
                           }}
                           value={field.value}
                         >
@@ -377,27 +372,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   (c) => c.id === form.getValues().destination.connectionId
                 )}
                 hideInitTableSchema={shouldHideInitTableSchema}
-                value={{
-                  initTableSchema: destOpts.initTableSchema ?? false,
-                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
-                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
-                  truncateCascade: destOpts.truncateCascade ?? false,
-                }}
+                value={destOpts}
                 setValue={(newOpts) => {
-                  form.setValue(
-                    'destination.destinationOptions',
-                    {
-                      initTableSchema: newOpts.initTableSchema,
-                      onConflictDoNothing: newOpts.onConflictDoNothing,
-                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
-                      truncateCascade: newOpts.truncateCascade,
-                    },
-                    {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: true,
-                    }
-                  );
+                  form.setValue('destination.destinationOptions', newOpts, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
                 }}
               />
             </div>

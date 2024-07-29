@@ -13,34 +13,41 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-type mongoSyncResp struct {
+type dynamoSyncResp struct {
 	BenthosConfigs []*BenthosConfigResponse
 }
 
-func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
+func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	ctx context.Context,
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
-) (*mongoSyncResp, error) {
+) (*dynamoSyncResp, error) {
 	_ = slogger
 	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
 	}
 
+	dynamoSourceConfig := sourceConnection.GetConnectionConfig().GetDynamodbConfig()
+	if dynamoSourceConfig == nil {
+		return nil, fmt.Errorf("source connection was not dynamodb. Got %T", sourceConnection.GetConnectionConfig().Config)
+	}
+
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
 	benthosConfigs := []*BenthosConfigResponse{}
+	// todo: may need to filter here based on the destination config mappings if there is no source->destination table map
 	for _, tableMapping := range groupedMappings {
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
-						PooledMongoDB: &neosync_benthos.InputMongoDb{
-							Url:        "${SOURCE_CONNECTION_DSN}",
-							Database:   tableMapping.Schema,
-							Collection: tableMapping.Table,
-							Query:      "root = this",
+						AwsDynamoDB: &neosync_benthos.InputAwsDynamoDB{
+							Table: tableMapping.Table,
+
+							Region:      dynamoSourceConfig.GetRegion(),
+							Endpoint:    dynamoSourceConfig.GetEndpoint(),
+							Credentials: buildBenthosS3Credentials(dynamoSourceConfig.GetCredentials()),
 						},
 					},
 				},
@@ -49,7 +56,12 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 					Processors: []neosync_benthos.ProcessorConfig{},
 				},
 				Output: &neosync_benthos.OutputConfig{
-					Outputs: neosync_benthos.Outputs{},
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
 				},
 			},
 		}
@@ -86,7 +98,6 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			RunType:     tabledependency.RunTypeInsert,
 			DependsOn:   []*tabledependency.DependsOn{},
 			Columns:     columns,
-			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
@@ -96,7 +107,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 		})
 	}
 
-	return &mongoSyncResp{
+	return &dynamoSyncResp{
 		BenthosConfigs: benthosConfigs,
 	}, nil
 }

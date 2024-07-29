@@ -10,6 +10,7 @@ interface Props {
   openai?: Connection[];
   mongodb?: Connection[];
   gcpcs?: Connection[];
+  dynamodb?: Connection[];
 
   newConnectionValue: string;
 }
@@ -21,6 +22,7 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
     openai = [],
     mongodb = [],
     gcpcs = [],
+    dynamodb = [],
     newConnectionValue,
   } = props;
   const selectgroups = [
@@ -30,6 +32,7 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
     [s3, 'AWS S3'],
     [openai, 'OpenAI'],
     [gcpcs, 'GCP Cloud Storage'],
+    [dynamodb, 'DynamoDB'],
   ] as const;
   return (
     <>

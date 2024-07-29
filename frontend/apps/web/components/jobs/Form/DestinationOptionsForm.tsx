@@ -1,21 +1,15 @@
 'use client';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Badge } from '@/components/ui/badge';
+import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
-
-interface DestinationOptions {
-  truncateBeforeInsert: boolean;
-  truncateCascade: boolean;
-  initTableSchema: boolean;
-  onConflictDoNothing: boolean;
-}
 
 interface DestinationOptionsProps {
   connection?: Connection;
 
-  value: DestinationOptions;
-  setValue(newVal: DestinationOptions): void;
+  value: DestinationOptionsFormValues;
+  setValue(newVal: DestinationOptionsFormValues): void;
 
   hideInitTableSchema?: boolean;
 }
@@ -35,12 +29,23 @@ export default function DestinationOptionsForm(
         <div className="flex flex-col gap-2">
           <div>
             <SwitchCard
-              isChecked={value.truncateBeforeInsert}
+              isChecked={value.postgres?.truncateBeforeInsert ?? false}
               onCheckedChange={(newVal) => {
                 setValue({
                   ...value,
-                  truncateBeforeInsert: newVal,
-                  truncateCascade: newVal ? value.truncateCascade : false,
+                  postgres: {
+                    ...(value.postgres ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                    }),
+
+                    truncateBeforeInsert: newVal,
+                    truncateCascade: newVal
+                      ? (value.postgres?.truncateCascade ?? false)
+                      : false,
+                  },
                 });
               }}
               title="Truncate Before Insert"
@@ -49,15 +54,24 @@ export default function DestinationOptionsForm(
           </div>
           <div>
             <SwitchCard
-              isChecked={value.truncateCascade}
+              isChecked={value.postgres?.truncateCascade ?? false}
               onCheckedChange={(newVal) => {
                 setValue({
                   ...value,
-                  truncateBeforeInsert:
-                    newVal && !value.truncateBeforeInsert
-                      ? true
-                      : value.truncateBeforeInsert,
-                  truncateCascade: newVal,
+                  postgres: {
+                    ...(value.postgres ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                    }),
+
+                    truncateBeforeInsert:
+                      newVal && !value.postgres?.truncateBeforeInsert
+                        ? true
+                        : (value.postgres?.truncateBeforeInsert ?? false),
+                    truncateCascade: newVal,
+                  },
                 });
               }}
               title="Truncate Cascade"
@@ -67,9 +81,21 @@ export default function DestinationOptionsForm(
           {!hideInitTableSchema && (
             <div>
               <SwitchCard
-                isChecked={value.initTableSchema}
+                isChecked={value.postgres?.initTableSchema ?? false}
                 onCheckedChange={(newVal) => {
-                  setValue({ ...value, initTableSchema: newVal });
+                  setValue({
+                    ...value,
+                    postgres: {
+                      ...(value.postgres ?? {
+                        initTableSchema: false,
+                        onConflictDoNothing: false,
+                        truncateBeforeInsert: false,
+                        truncateCascade: false,
+                      }),
+
+                      initTableSchema: newVal ?? false,
+                    },
+                  });
                 }}
                 title="Init Table Schema"
                 postTitle={<Badge>Experimental</Badge>}
@@ -79,9 +105,21 @@ export default function DestinationOptionsForm(
           )}
           <div>
             <SwitchCard
-              isChecked={value.onConflictDoNothing}
+              isChecked={value.postgres?.onConflictDoNothing ?? false}
               onCheckedChange={(newVal) => {
-                setValue({ ...value, onConflictDoNothing: newVal });
+                setValue({
+                  ...value,
+                  postgres: {
+                    ...(value.postgres ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                    }),
+
+                    onConflictDoNothing: newVal,
+                  },
+                });
               }}
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
@@ -94,9 +132,20 @@ export default function DestinationOptionsForm(
         <div className="flex flex-col gap-2">
           <div>
             <SwitchCard
-              isChecked={value.truncateBeforeInsert}
+              isChecked={value.mysql?.truncateBeforeInsert ?? false}
               onCheckedChange={(newVal) => {
-                setValue({ ...value, truncateBeforeInsert: newVal });
+                setValue({
+                  ...value,
+                  mysql: {
+                    ...(value.mysql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+
+                    truncateBeforeInsert: newVal,
+                  },
+                });
               }}
               title="Truncate Before Insert"
               description="Truncates table before inserting data"
@@ -104,9 +153,19 @@ export default function DestinationOptionsForm(
           </div>
           <div>
             <SwitchCard
-              isChecked={value.initTableSchema}
+              isChecked={value.mysql?.initTableSchema ?? false}
               onCheckedChange={(newVal) => {
-                setValue({ ...value, initTableSchema: newVal });
+                setValue({
+                  ...value,
+                  mysql: {
+                    ...(value.mysql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+                    initTableSchema: newVal,
+                  },
+                });
               }}
               title="Init Table Schema"
               description="Creates table(s) and their constraints. The database schema must already exist. "
@@ -114,9 +173,19 @@ export default function DestinationOptionsForm(
           </div>
           <div>
             <SwitchCard
-              isChecked={value.onConflictDoNothing}
+              isChecked={value.mysql?.onConflictDoNothing ?? false}
               onCheckedChange={(newVal) => {
-                setValue({ ...value, onConflictDoNothing: newVal });
+                setValue({
+                  ...value,
+                  mysql: {
+                    ...(value.mysql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+                    onConflictDoNothing: newVal,
+                  },
+                });
               }}
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
@@ -129,6 +198,8 @@ export default function DestinationOptionsForm(
     case 'mongoConfig':
       return <></>;
     case 'gcpCloudstorageConfig':
+      return <></>;
+    case 'dynamodbConfig':
       return <></>;
     default:
       return (

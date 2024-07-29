@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodKind } from "@bufbuild/protobuf";
-import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaMapRequest, GetConnectionSchemaMapResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse, GetTableRowCountRequest, GetTableRowCountResponse } from "./connection_data_pb.js";
+import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaMapRequest, GetConnectionSchemaMapResponse, GetConnectionSchemaMapsRequest, GetConnectionSchemaMapsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionTableConstraintsRequest, GetConnectionTableConstraintsResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse, GetTableRowCountRequest, GetTableRowCountResponse } from "./connection_data_pb.js";
 
 /**
  * Returns the schema for a specific connection. Used mostly for SQL-based connections
@@ -23,7 +23,7 @@ export const getConnectionSchema = {
 } as const;
 
 /**
- * Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+ * Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
  *
  * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMap
  */
@@ -33,6 +33,22 @@ export const getConnectionSchemaMap = {
   kind: MethodKind.Unary,
   I: GetConnectionSchemaMapRequest,
   O: GetConnectionSchemaMapResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.ConnectionDataService"
+  }
+} as const;
+
+/**
+ * Returns the schema in map format for every request provided
+ *
+ * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionSchemaMaps
+ */
+export const getConnectionSchemaMaps = {
+  localName: "getConnectionSchemaMaps",
+  name: "GetConnectionSchemaMaps",
+  kind: MethodKind.Unary,
+  I: GetConnectionSchemaMapsRequest,
+  O: GetConnectionSchemaMapsResponse,
   service: {
     typeName: "mgmt.v1alpha1.ConnectionDataService"
   }

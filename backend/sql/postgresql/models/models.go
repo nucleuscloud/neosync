@@ -692,10 +692,41 @@ type JobSourceOptions struct {
 	GenerateOptions   *GenerateSourceOptions   `json:"generateOptions,omitempty"`
 	AiGenerateOptions *AiGenerateSourceOptions `json:"aiGenerateOptions,omitempty"`
 	MongoDbOptions    *MongoDbSourceOptions    `json:"mongoOptions,omitempty"`
+	DynamoDBOptions   *DynamoDBSourceOptions   `json:"dynamoDBOptions,omitempty"`
+}
+
+type DynamoDBSourceOptions struct {
+	ConnectionId string `json:"connectionId"`
+}
+
+func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOptions {
+	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
+		ConnectionId: s.ConnectionId,
+	}
+}
+
+func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.DynamoDBSourceConnectionOptions{}
+	}
+	s.ConnectionId = dto.GetConnectionId()
 }
 
 type MongoDbSourceOptions struct {
 	ConnectionId string `json:"connectionId"`
+}
+
+func (s *MongoDbSourceOptions) ToDto() *mgmtv1alpha1.MongoDBSourceConnectionOptions {
+	return &mgmtv1alpha1.MongoDBSourceConnectionOptions{
+		ConnectionId: s.ConnectionId,
+	}
+}
+
+func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MongoDBSourceConnectionOptions{}
+	}
+	s.ConnectionId = dto.GetConnectionId()
 }
 
 type MysqlSourceOptions struct {
@@ -898,19 +929,6 @@ func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchem
 	return output
 }
 
-func (s *MongoDbSourceOptions) ToDto() *mgmtv1alpha1.MongoDBSourceConnectionOptions {
-	return &mgmtv1alpha1.MongoDBSourceConnectionOptions{
-		ConnectionId: s.ConnectionId,
-	}
-}
-
-func (s *MongoDbSourceOptions) FromDto(dto *mgmtv1alpha1.MongoDBSourceConnectionOptions) {
-	if dto == nil {
-		dto = &mgmtv1alpha1.MongoDBSourceConnectionOptions{}
-	}
-	s.ConnectionId = dto.GetConnectionId()
-}
-
 func (s *AiGenerateSourceOptions) ToDto() *mgmtv1alpha1.AiGenerateSourceOptions {
 	dto := &mgmtv1alpha1.AiGenerateSourceOptions{
 		FkSourceConnectionId: s.FkSourceConnectionId,
@@ -1021,6 +1039,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 			},
 		}
 	}
+	if j.DynamoDBOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
+				Dynamodb: j.DynamoDBOptions.ToDto(),
+			},
+		}
+	}
 	return nil
 }
 
@@ -1046,6 +1071,10 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		opts := &MongoDbSourceOptions{}
 		opts.FromDto(dto.GetMongodb())
 		j.MongoDbOptions = opts
+	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
+		opts := &DynamoDBSourceOptions{}
+		opts.FromDto(dto.GetDynamodb())
+		j.DynamoDBOptions = opts
 	default:
 		return fmt.Errorf("invalid job source options config, received type: %T", config)
 	}
@@ -1058,6 +1087,46 @@ type JobDestinationOptions struct {
 	MysqlOptions           *MysqlDestinationOptions           `json:"mysqlOptions,omitempty"`
 	MongoOptions           *MongoDestinationOptions           `json:"mongoOptions,omitempty"`
 	GcpCloudStorageOptions *GcpCloudStorageDestinationOptions `json:"gcpCloudStorageOptions,omitempty"`
+	DynamoDBOptions        *DynamoDBDestinationOptions        `json:"dynamoDBOptions,omitempty"`
+}
+
+type DynamoDBDestinationOptions struct {
+	TableMappings []*DynamoDBDestinationTableMapping `json:"tableMappings"`
+}
+
+func (d *DynamoDBDestinationOptions) ToDto() *mgmtv1alpha1.DynamoDBDestinationConnectionOptions {
+	tableMappings := make([]*mgmtv1alpha1.DynamoDBDestinationTableMapping, 0, len(d.TableMappings))
+	for _, tm := range d.TableMappings {
+		tableMappings = append(tableMappings, tm.ToDto())
+	}
+	return &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{
+		TableMappings: tableMappings,
+	}
+}
+func (d *DynamoDBDestinationOptions) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationConnectionOptions) {
+	d.TableMappings = make([]*DynamoDBDestinationTableMapping, 0, len(dto.GetTableMappings()))
+
+	for _, dtotm := range dto.GetTableMappings() {
+		tm := &DynamoDBDestinationTableMapping{}
+		tm.FromDto(dtotm)
+		d.TableMappings = append(d.TableMappings, tm)
+	}
+}
+
+type DynamoDBDestinationTableMapping struct {
+	SourceTable      string `json:"sourceTable"`
+	DestinationTable string `json:"destinationTable"`
+}
+
+func (d *DynamoDBDestinationTableMapping) ToDto() *mgmtv1alpha1.DynamoDBDestinationTableMapping {
+	return &mgmtv1alpha1.DynamoDBDestinationTableMapping{
+		SourceTable:      d.SourceTable,
+		DestinationTable: d.DestinationTable,
+	}
+}
+func (d *DynamoDBDestinationTableMapping) FromDto(dto *mgmtv1alpha1.DynamoDBDestinationTableMapping) {
+	d.SourceTable = dto.GetSourceTable()
+	d.DestinationTable = dto.GetDestinationTable()
 }
 
 type GcpCloudStorageDestinationOptions struct{}
@@ -1192,6 +1261,13 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 			},
 		}
 	}
+	if j.DynamoDBOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_DynamodbOptions{
+				DynamodbOptions: j.DynamoDBOptions.ToDto(),
+			},
+		}
+	}
 
 	return nil
 }
@@ -1231,6 +1307,9 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		j.MongoOptions = &MongoDestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:
 		j.GcpCloudStorageOptions = &GcpCloudStorageDestinationOptions{}
+	case *mgmtv1alpha1.JobDestinationOptions_DynamodbOptions:
+		j.DynamoDBOptions = &DynamoDBDestinationOptions{}
+		j.DynamoDBOptions.FromDto(config.DynamodbOptions)
 	default:
 		return fmt.Errorf("invalid job destination options config")
 	}

@@ -122,6 +122,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       mappings: [],
       connectionId: '',
+      destinationOptions: [],
     }
   );
 

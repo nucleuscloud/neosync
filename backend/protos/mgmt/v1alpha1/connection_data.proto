@@ -53,6 +53,7 @@ message AwsS3SchemaConfig {
   }
 }
 message MongoSchemaConfig {}
+message DynamoDBSchemaConfig {}
 message GcpCloudStorageSchemaConfig {
   oneof id {
     string job_id = 1 [(buf.validate.field).string.uuid = true];
@@ -69,6 +70,7 @@ message ConnectionSchemaConfig {
     MysqlSchemaConfig mysql_config = 3;
     MongoSchemaConfig mongo_config = 4;
     GcpCloudStorageSchemaConfig gcp_cloudstorage_config = 5;
+    DynamoDBSchemaConfig dynamodb_config = 6;
   }
 }
 
@@ -109,6 +111,18 @@ message GetConnectionSchemaMapRequest {
 message GetConnectionSchemaMapResponse {
   // Returns the database columns separated by the fully qualified <schema>.<table>
   map<string, GetConnectionSchemaResponse> schema_map = 1;
+}
+
+message GetConnectionSchemaMapsRequest {
+  // List of connection schema maps to request
+  repeated GetConnectionSchemaMapRequest requests = 1;
+}
+
+message GetConnectionSchemaMapsResponse {
+  // List of responses in the same order as the input
+  repeated GetConnectionSchemaMapResponse responses = 1;
+  // Parallel array of each connection id that matches with the response
+  repeated string connection_ids = 2;
 }
 
 message GetConnectionForeignConstraintsRequest {
@@ -252,8 +266,10 @@ service ConnectionDataService {
   rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
   // Returns the schema for a specific connection. Used mostly for SQL-based connections
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
-  // Returns the schema in map format. The keys are the full qualified table in the format <schema>.<table>
+  // Returns the schema in map format. The keys are the fully qualified table in the format <schema>.<table>
   rpc GetConnectionSchemaMap(GetConnectionSchemaMapRequest) returns (GetConnectionSchemaMapResponse) {}
+  // Returns the schema in map format for every request provided
+  rpc GetConnectionSchemaMaps(GetConnectionSchemaMapsRequest) returns (GetConnectionSchemaMapsResponse) {}
   // For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.
   rpc GetConnectionTableConstraints(GetConnectionTableConstraintsRequest) returns (GetConnectionTableConstraintsResponse) {}
   // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.

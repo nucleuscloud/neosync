@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -27,6 +28,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -392,6 +394,44 @@ func (s *Service) GetConnectionDataStream(
 	return nil
 }
 
+func (s *Service) GetConnectionSchemaMaps(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaMapsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaMapsResponse], error) {
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3)
+
+	responses := make([]*mgmtv1alpha1.GetConnectionSchemaMapResponse, len(req.Msg.GetRequests()))
+	connectionIds := make([]string, len(req.Msg.GetRequests()))
+
+	for idx, mapReq := range req.Msg.GetRequests() {
+		idx := idx
+		mapReq := mapReq
+		connectionIds[idx] = mapReq.GetConnectionId()
+
+		errgrp.Go(func() error {
+			resp, err := s.GetConnectionSchemaMap(errctx, connect.NewRequest(mapReq))
+			if err != nil {
+				return err
+			}
+			responses[idx] = &mgmtv1alpha1.GetConnectionSchemaMapResponse{
+				SchemaMap: resp.Msg.GetSchemaMap(),
+			}
+			return nil
+		})
+	}
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaMapsResponse{
+		Responses:     responses,
+		ConnectionIds: connectionIds,
+	}), nil
+}
+
 func (s *Service) GetConnectionSchemaMap(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaMapRequest],
@@ -489,14 +529,14 @@ func (s *Service) GetConnectionSchema(
 		}
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, dbname := range dbnames {
-			collNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
+			collectionNames, err := mongoclient.Database(dbname).ListCollectionNames(ctx, bson.D{})
 			if err != nil {
 				return nil, err
 			}
-			for _, collName := range collNames {
+			for _, collectionName := range collectionNames {
 				schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
 					Schema: dbname,
-					Table:  collName,
+					Table:  collectionName,
 				})
 			}
 		}
@@ -659,6 +699,25 @@ func (s *Service) GetConnectionSchema(
 		)
 		if err != nil {
 			return nil, fmt.Errorf("uanble to retrieve db schema from gcs: %w", err)
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: schemas,
+		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		dynclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create dynamodb client from connection: %w", err)
+		}
+		tableNames, err := dynclient.ListAllTables(ctx, &dynamodb.ListTablesInput{})
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve dynamodb tables: %w", err)
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, tableName := range tableNames {
+			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+				Schema: "dynamodb",
+				Table:  tableName,
+			})
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
 			Schemas: schemas,
@@ -935,6 +994,10 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MongoConfig{
 				MongoConfig: &mgmtv1alpha1.MongoSchemaConfig{},
 			},
+		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{},
 		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")

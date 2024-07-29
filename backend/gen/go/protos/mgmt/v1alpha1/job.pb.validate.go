@@ -668,6 +668,47 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobSourceOptions_Dynamodb:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetDynamodb()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Dynamodb",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Dynamodb",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDynamodb()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "Dynamodb",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1903,6 +1944,111 @@ var _ interface {
 	ErrorName() string
 } = MongoDBSourceConnectionOptionsValidationError{}
 
+// Validate checks the field values on DynamoDBSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DynamoDBSourceConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DynamoDBSourceConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// DynamoDBSourceConnectionOptionsMultiError, or nil if none found.
+func (m *DynamoDBSourceConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DynamoDBSourceConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if len(errors) > 0 {
+		return DynamoDBSourceConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// DynamoDBSourceConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by DynamoDBSourceConnectionOptions.ValidateAll()
+// if the designated constraints aren't met.
+type DynamoDBSourceConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DynamoDBSourceConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DynamoDBSourceConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// DynamoDBSourceConnectionOptionsValidationError is the validation error
+// returned by DynamoDBSourceConnectionOptions.Validate if the designated
+// constraints aren't met.
+type DynamoDBSourceConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DynamoDBSourceConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DynamoDBSourceConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DynamoDBSourceConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DynamoDBSourceConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DynamoDBSourceConnectionOptionsValidationError) ErrorName() string {
+	return "DynamoDBSourceConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DynamoDBSourceConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDynamoDBSourceConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DynamoDBSourceConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DynamoDBSourceConnectionOptionsValidationError{}
+
 // Validate checks the field values on PostgresSourceConnectionOptions with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -3014,6 +3160,47 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobDestinationOptions_DynamodbOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetDynamodbOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "DynamodbOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "DynamodbOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDynamodbOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "DynamodbOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -3308,6 +3495,252 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GcpCloudStorageDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on DynamoDBDestinationConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *DynamoDBDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DynamoDBDestinationConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// DynamoDBDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *DynamoDBDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DynamoDBDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetTableMappings() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DynamoDBDestinationConnectionOptionsValidationError{
+						field:  fmt.Sprintf("TableMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DynamoDBDestinationConnectionOptionsValidationError{
+						field:  fmt.Sprintf("TableMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DynamoDBDestinationConnectionOptionsValidationError{
+					field:  fmt.Sprintf("TableMappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return DynamoDBDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// DynamoDBDestinationConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// DynamoDBDestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type DynamoDBDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DynamoDBDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DynamoDBDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// DynamoDBDestinationConnectionOptionsValidationError is the validation error
+// returned by DynamoDBDestinationConnectionOptions.Validate if the designated
+// constraints aren't met.
+type DynamoDBDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DynamoDBDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DynamoDBDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DynamoDBDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DynamoDBDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DynamoDBDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "DynamoDBDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DynamoDBDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDynamoDBDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DynamoDBDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DynamoDBDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on DynamoDBDestinationTableMapping with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DynamoDBDestinationTableMapping) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DynamoDBDestinationTableMapping with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// DynamoDBDestinationTableMappingMultiError, or nil if none found.
+func (m *DynamoDBDestinationTableMapping) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DynamoDBDestinationTableMapping) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SourceTable
+
+	// no validation rules for DestinationTable
+
+	if len(errors) > 0 {
+		return DynamoDBDestinationTableMappingMultiError(errors)
+	}
+
+	return nil
+}
+
+// DynamoDBDestinationTableMappingMultiError is an error wrapping multiple
+// validation errors returned by DynamoDBDestinationTableMapping.ValidateAll()
+// if the designated constraints aren't met.
+type DynamoDBDestinationTableMappingMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DynamoDBDestinationTableMappingMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DynamoDBDestinationTableMappingMultiError) AllErrors() []error { return m }
+
+// DynamoDBDestinationTableMappingValidationError is the validation error
+// returned by DynamoDBDestinationTableMapping.Validate if the designated
+// constraints aren't met.
+type DynamoDBDestinationTableMappingValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DynamoDBDestinationTableMappingValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DynamoDBDestinationTableMappingValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DynamoDBDestinationTableMappingValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DynamoDBDestinationTableMappingValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DynamoDBDestinationTableMappingValidationError) ErrorName() string {
+	return "DynamoDBDestinationTableMappingValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DynamoDBDestinationTableMappingValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDynamoDBDestinationTableMapping.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DynamoDBDestinationTableMappingValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DynamoDBDestinationTableMappingValidationError{}
 
 // Validate checks the field values on PostgresDestinationConnectionOptions
 // with the rules defined in the proto definition for this message. If any

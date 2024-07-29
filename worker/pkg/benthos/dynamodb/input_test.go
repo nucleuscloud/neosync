@@ -34,8 +34,9 @@ func Test_isTableActive(t *testing.T) {
 	}
 }
 
-func Test_dynamoDbBatchInput_Connect_NoClient(t *testing.T) {
-	input := &dynamodbInput{}
+func Test_dynamoDbBatchInput_Connect_Client(t *testing.T) {
+	mockClient := NewMockdynamoDBAPIV2(t)
+	input := &dynamodbInput{client: mockClient}
 	err := input.Connect(context.Background())
 	require.NoError(t, err)
 }

@@ -26,6 +26,7 @@ message JobSourceOptions {
     GenerateSourceOptions generate = 4;
     AiGenerateSourceOptions ai_generate = 5;
     MongoDBSourceConnectionOptions mongodb = 6;
+    DynamoDBSourceConnectionOptions dynamodb = 7;
   }
 }
 
@@ -87,7 +88,15 @@ message GenerateSourceTableOption {
   int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
 }
 
+// MongoDB connection options for a job source
 message MongoDBSourceConnectionOptions {
+  // The unique connection id to a mongo connection configuration
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+// DynamoDB connection options for a job source
+message DynamoDBSourceConnectionOptions {
+  // The unique connection id to a dynamodb connection configuration
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -136,13 +145,29 @@ message JobDestinationOptions {
     MongoDBDestinationConnectionOptions mongodb_options = 4;
     // Destination Connecton options for Google Cloud Storage
     GcpCloudStorageDestinationConnectionOptions gcp_cloudstorage_options = 5;
+    // Destination Connection options for DynamoDB
+    DynamoDBDestinationConnectionOptions dynamodb_options = 6;
   }
 }
 
 message MongoDBDestinationConnectionOptions {}
 
-// Configuration for Google Cloud Storage Connection Job Options
+// Configuration for Google Cloud Storage Destination Connection Job Options
 message GcpCloudStorageDestinationConnectionOptions {}
+
+// Configuration for DynamoDB Destination Connection Job Options
+message DynamoDBDestinationConnectionOptions {
+  // List of table mappings when piping data from a dynamoDB table to another dynamoDB table
+  repeated DynamoDBDestinationTableMapping table_mappings = 1;
+}
+
+// Configuration for mapping a source table to a destination table for DynamoDB
+message DynamoDBDestinationTableMapping {
+  // The name of the incoming source table
+  string source_table = 1;
+  // The name of the outgoing destination table
+  string destination_table = 2;
+}
 
 message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;

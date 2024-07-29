@@ -85,13 +85,6 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-export const SchemaFormValues = Yup.object({
-  mappings: Yup.array().of(JobMappingFormValues).required(),
-  virtualForeignKeys: Yup.array().of(VirtualForeignConstraintFormValues),
-  connectionId: Yup.string().required(),
-});
-export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
-
 export const SourceFormValues = Yup.object({
   sourceId: Yup.string().required('Source is required').uuid(),
   sourceOptions: Yup.object({
@@ -99,7 +92,60 @@ export const SourceFormValues = Yup.object({
   }),
 });
 
-export const DestinationFormValues = Yup.object({
+const DynamoDbDestinationOptionsFormValues = Yup.object({
+  tableMappings: Yup.array()
+    .of(
+      Yup.object({
+        sourceTable: Yup.string().required(),
+        destinationTable: Yup.string().required(),
+      }).required()
+    )
+    .required()
+    .default([]),
+});
+type DynamoDbDestinationOptionsFormValues = Yup.InferType<
+  typeof DynamoDbDestinationOptionsFormValues
+>;
+
+export const DestinationOptionsFormValues = Yup.object({
+  postgres: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional().default(false),
+    truncateCascade: Yup.boolean().optional().default(false),
+    initTableSchema: Yup.boolean().optional().default(false),
+    onConflictDoNothing: Yup.boolean().optional().default(false),
+  }).optional(),
+  mysql: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional().default(false),
+    initTableSchema: Yup.boolean().optional().default(false),
+    onConflictDoNothing: Yup.boolean().optional().default(false),
+  }).optional(),
+  dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
+}).required();
+// Object that holds connection specific destination options for a job
+export type DestinationOptionsFormValues = Yup.InferType<
+  typeof DestinationOptionsFormValues
+>;
+
+const SchemaFormValuesDestinationOptions = Yup.object({
+  destinationId: Yup.string().required(), // in this case it is the connection id
+  dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
+});
+export type SchemaFormValuesDestinationOptions = Yup.InferType<
+  typeof SchemaFormValuesDestinationOptions
+>;
+
+export const SchemaFormValues = Yup.object({
+  mappings: Yup.array().of(JobMappingFormValues).required(),
+  virtualForeignKeys: Yup.array().of(VirtualForeignConstraintFormValues),
+  connectionId: Yup.string().required(),
+
+  destinationOptions: Yup.array()
+    .of(SchemaFormValuesDestinationOptions.required())
+    .required(),
+});
+export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
+
+export const NewDestinationFormValues = Yup.object({
   connectionId: Yup.string()
     .required('Connection is required')
     .uuid()
@@ -117,11 +163,30 @@ export const DestinationFormValues = Yup.object({
         return true;
       }
     ),
-  destinationOptions: Yup.object({
-    truncateBeforeInsert: Yup.boolean().optional(),
-    truncateCascade: Yup.boolean().optional(),
-    initTableSchema: Yup.boolean().optional(),
-    onConflictDoNothing: Yup.boolean().optional(),
-  }),
+  destinationOptions: DestinationOptionsFormValues,
 }).required();
-export type DestinationFormValues = Yup.InferType<typeof DestinationFormValues>;
+export type NewDestinationFormValues = Yup.InferType<
+  typeof NewDestinationFormValues
+>;
+
+const EditDestinationOptionsFormValues = Yup.object({
+  destinationId: Yup.string().required(),
+})
+  .concat(DestinationOptionsFormValues.required())
+  .required();
+export type EditDestinationOptionsFormValues = Yup.InferType<
+  typeof EditDestinationOptionsFormValues
+>;
+
+export const DataSyncSourceFormValues = SourceFormValues.concat(
+  SchemaFormValues
+).concat(
+  Yup.object({
+    destinationOptions: Yup.array()
+      .of(EditDestinationOptionsFormValues.required())
+      .required(),
+  })
+);
+export type DataSyncSourceFormValues = Yup.InferType<
+  typeof DataSyncSourceFormValues
+>;
