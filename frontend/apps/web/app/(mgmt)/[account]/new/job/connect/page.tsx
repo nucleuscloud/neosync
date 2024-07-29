@@ -449,6 +449,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           }
                         );
                       }}
+                      hideDynamoDbTableMappings={true}
+                      destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
                     />
                   </div>
                 );

@@ -16,7 +16,7 @@ import {
 } from './Columns';
 import TableMappingsTable from './TableMappingsTable';
 
-interface Props {
+export interface Props {
   mappings: EditDestinationOptionsFormValues[];
   onUpdate(req: OnTableMappingUpdateRequest): void;
   destinationDetailsRecord: Record<string, DestinationDetails>;

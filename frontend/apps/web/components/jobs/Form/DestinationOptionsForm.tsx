@@ -4,6 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { DestinationDetails } from '../NosqlTable/TableMappings/Columns';
+import TableMappingsCard, {
+  Props as TableMappingsCardProps,
+} from '../NosqlTable/TableMappings/TableMappingsCard';
 
 interface DestinationOptionsProps {
   connection?: Connection;
@@ -13,6 +17,7 @@ interface DestinationOptionsProps {
 
   hideInitTableSchema?: boolean;
   hideDynamoDbTableMappings?: boolean;
+  destinationDetailsRecord: Record<string, DestinationDetails>;
 }
 
 export default function DestinationOptionsForm(
@@ -24,6 +29,7 @@ export default function DestinationOptionsForm(
     setValue,
     hideInitTableSchema,
     hideDynamoDbTableMappings,
+    destinationDetailsRecord,
   } = props;
 
   if (!connection) {
@@ -207,7 +213,44 @@ export default function DestinationOptionsForm(
     case 'gcpCloudstorageConfig':
       return <></>;
     case 'dynamodbConfig':
-      return <></>;
+      return (
+        <DynamoDbOptions
+          hideDynamoDbTableMappings={hideDynamoDbTableMappings ?? false}
+          tableMappingsProps={{
+            destinationDetailsRecord,
+            mappings: value.dynamodb?.tableMappings
+              ? [
+                  {
+                    destinationId: connection.id ?? '0',
+                    dynamodb: { tableMappings: value.dynamodb.tableMappings },
+                  },
+                ]
+              : [],
+            onUpdate(req) {
+              const tableMappings = value.dynamodb?.tableMappings ?? [];
+              if (tableMappings.length === 0) {
+                tableMappings.push({
+                  sourceTable: req.souceName,
+                  destinationTable: req.tableName,
+                });
+              } else {
+                tableMappings.forEach((tm) => {
+                  if (tm.sourceTable === req.souceName) {
+                    tm.destinationTable = req.tableName;
+                  }
+                });
+              }
+              setValue({
+                ...value,
+                dynamodb: {
+                  ...value.dynamodb,
+                  tableMappings: tableMappings,
+                },
+              });
+            },
+          }}
+        />
+      );
     default:
       return (
         <div>
@@ -216,4 +259,22 @@ export default function DestinationOptionsForm(
         </div>
       );
   }
+}
+
+interface DynamoDbOptionsProps {
+  hideDynamoDbTableMappings: boolean;
+
+  tableMappingsProps: TableMappingsCardProps;
+}
+
+function DynamoDbOptions(props: DynamoDbOptionsProps): ReactElement {
+  const { hideDynamoDbTableMappings, tableMappingsProps } = props;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {!hideDynamoDbTableMappings && (
+        <TableMappingsCard {...tableMappingsProps} />
+      )}
+    </div>
+  );
 }
