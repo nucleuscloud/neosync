@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@auth/core": "^0.34.1",
+    "@auth/core": "^0.34.2",
     "@bufbuild/protobuf": "^1.10.0",
     "@connectrpc/connect-node": "^1.4.0",
     "@connectrpc/connect-query": "^1.4.1",
@@ -42,7 +42,7 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@tanstack/react-query": "^5.51.11",
+    "@tanstack/react-query": "^5.51.15",
     "@tanstack/react-table": "^8.19.3",
     "@tanstack/react-virtual": "^3.8.3",
     "class-variance-authority": "^0.7.0",
@@ -56,7 +56,7 @@
     "next": "^14.2.5",
     "next-auth": "^5.0.0-beta.19",
     "next-themes": "^0.3.0",
-    "posthog-js": "^1.149.1",
+    "posthog-js": "^1.150.1",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "18.3.1",
