@@ -2,6 +2,7 @@ package sqlmanager_mysql
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"golang.org/x/sync/errgroup"
 )
 
 type MysqlManager struct {
@@ -77,30 +79,42 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 
 	for _, row := range rows {
 		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
+		constraintCols, err := jsonRawToSlice[string](row.ConstraintColumns)
+		if err != nil {
+			return nil, err
+		}
 		switch row.ConstraintType {
 		case "FOREIGN KEY":
-			if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
+			fkCols, err := jsonRawToSlice[string](row.ReferencedColumnNames)
+			if err != nil {
+				return nil, err
 			}
-			if len(row.ConstraintColumns) != len(row.Notnullable) {
-				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
+			notNullable, err := jsonRawToSlice[bool](row.NotNullable)
+			if err != nil {
+				return nil, err
+			}
+			if len(constraintCols) != len(fkCols) {
+				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
+			}
+			if len(constraintCols) != len(notNullable) {
+				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
 			}
 
 			foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
-				Columns:     row.ConstraintColumns,
-				NotNullable: row.Notnullable,
+				Columns:     constraintCols,
+				NotNullable: notNullable,
 				ForeignKey: &sqlmanager_shared.ForeignKey{
-					Table:   sqlmanager_shared.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-					Columns: row.ForeignColumnNames,
+					Table:   sqlmanager_shared.BuildTable(row.ReferencedSchemaName, row.ReferencedTableName),
+					Columns: fkCols,
 				},
 			})
 		case "PRIMARY KEY":
 			if _, exists := primaryKeyMap[tableName]; !exists {
 				primaryKeyMap[tableName] = []string{}
 			}
-			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(row.ConstraintColumns)...)
+			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(constraintCols)...)
 		case "UNIQUE":
-			columns := sqlmanager_shared.DedupeSlice(row.ConstraintColumns)
+			columns := sqlmanager_shared.DedupeSlice(constraintCols)
 			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
 		}
 	}
@@ -110,6 +124,17 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 		PrimaryKeyConstraints: primaryKeyMap,
 		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
+}
+
+func jsonRawToSlice[T any](j json.RawMessage) ([]T, error) {
+	elements := []T{}
+	if j == nil {
+		return elements, nil
+	}
+	if err := json.Unmarshal(j, &elements); err != nil {
+		return nil, err
+	}
+	return elements, nil
 }
 
 func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
@@ -128,27 +153,328 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context) (map[string][]
 	return schemaTablePrivsMap, err
 }
 
-// todo
 func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
-	return nil, errors.ErrUnsupported
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.TableInitStatement{}, nil
+	}
+
+	schemaset := map[string][]string{}
+	for _, table := range tables {
+		schemaset[table.Schema] = append(schemaset[table.Schema], table.Table)
+	}
+	schemas := []string{}
+	for schema := range schemaset {
+		schemas = append(schemas, schema)
+	}
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	colDefMap := map[string][]*mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.pool, &mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return err
+			}
+			for _, columnDefinition := range columnDefs {
+				key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
+				colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
+			}
+			return nil
+		})
+	}
+
+	constraintmap := map[string][]*mysql_queries.GetTableConstraintsRow{}
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			constraints, err := m.querier.GetTableConstraints(errctx, m.pool, &mysql_queries.GetTableConstraintsParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return err
+			}
+			for _, constraint := range constraints {
+				key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
+				constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
+			}
+			return nil
+		})
+	}
+
+	// need to handle unique indexes
+	indexmap := map[string][]string{}
+	for schema, tables := range schemaset {
+		errgrp.Go(func() error {
+			idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetIndicesBySchemasAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil {
+				return err
+			}
+			for _, record := range idxrecords {
+				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
+				indexmap[key.String()] = append(indexmap[key.String()], wrapIdempotentIndex(record.SchemaName, record.TableName, record.IndexName, record.ColumnName))
+			}
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	// if auto increment doesn't start with 1 then need to use
+	// ALTER TABLE tbl AUTO_INCREMENT = 100
+
+	output := []*sqlmanager_shared.TableInitStatement{}
+	// using input here causes the output to always be consistent
+	for _, schematable := range tables {
+		key := schematable.String()
+		tableData, ok := colDefMap[key]
+		if !ok {
+			continue
+		}
+		columns := make([]string, 0, len(tableData))
+		for _, record := range tableData {
+			record := record
+			var identityType *string
+			if record.IdentityGeneration.Valid {
+				identityType = &record.IdentityGeneration.String
+			}
+			columns = append(columns, buildTableCol(&buildTableColRequest{
+				ColumnName:          record.ColumnName,
+				ColumnDefault:       record.ColumnDefault.String,
+				DataType:            record.DataType,
+				IsNullable:          record.IsNullable == 1,
+				IdentityType:        identityType,
+				GeneratedExpression: record.GenerationExp.String,
+			}))
+		}
+
+		info := &sqlmanager_shared.TableInitStatement{
+			CreateTableStatement: fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s`.`%s` (%s);", tableData[0].SchemaName, tableData[0].TableName, strings.Join(columns, ", ")),
+			AlterTableStatements: []*sqlmanager_shared.AlterTableStatement{},
+			IndexStatements:      indexmap[key],
+		}
+		for _, constraint := range constraintmap[key] {
+			stmt, err := buildAlterStatementByConstraint(constraint)
+			if err != nil {
+				return nil, err
+			}
+			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
+		}
+		output = append(output, info)
+	}
+	return output, nil
 }
 
-// todo
+type buildTableColRequest struct {
+	ColumnName          string
+	ColumnDefault       string
+	DataType            string
+	IsNullable          bool
+	GeneratedType       string
+	GeneratedExpression string
+	IdentityType        *string
+}
+
+func buildTableCol(record *buildTableColRequest) string {
+	pieces := []string{EscapeMysqlColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
+
+	if record.ColumnDefault != "" {
+		pieces = append(pieces, fmt.Sprintf("DEFAULT %s", record.ColumnDefault))
+	}
+
+	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
+		pieces = append(pieces, *record.IdentityType)
+	}
+
+	if record.GeneratedExpression != "" {
+		genType := "VIRTUAL"
+		if record.IdentityType != nil && *record.IdentityType == "STORED GENERATED" {
+			genType = "STORED"
+		}
+		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS %s %s", record.GeneratedExpression, genType))
+	}
+
+	return strings.Join(pieces, " ")
+}
+
+func buildNullableText(isNullable bool) string {
+	if isNullable {
+		return "NULL"
+	}
+	return "NOT NULL"
+}
+
+func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*sqlmanager_shared.AlterTableStatement, error) {
+	constraintCols, err := jsonRawToSlice[string](c.ConstraintColumns)
+	if err != nil {
+		return nil, err
+	}
+	referencedCols, err := jsonRawToSlice[string](c.ReferencedColumnNames)
+	if err != nil {
+		return nil, err
+	}
+	switch c.ConstraintType {
+	case "PRIMARY KEY":
+		stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		return &sqlmanager_shared.AlterTableStatement{
+			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			ConstraintType: sqlmanager_shared.PrimaryConstraintType,
+		}, nil
+	case "UNIQUE":
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s UNIQUE (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		return &sqlmanager_shared.AlterTableStatement{
+			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			ConstraintType: sqlmanager_shared.UniqueConstraintType,
+		}, nil
+	case "FOREIGN KEY":
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES `%s`.`%s`(%s) ON DELETE %s ON UPDATE %s;",
+			c.SchemaName,
+			c.TableName,
+			c.ConstraintName,
+			strings.Join(constraintCols, ","),
+			c.ReferencedSchemaName,
+			c.ReferencedTableName,
+			strings.Join(referencedCols, ","),
+			c.DeleteRule.String,
+			c.UpdateRule.String,
+		)
+		return &sqlmanager_shared.AlterTableStatement{
+			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			ConstraintType: sqlmanager_shared.ForeignConstraintType,
+		}, nil
+	case "CHECK":
+		// TODO fix
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK %s;", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		return &sqlmanager_shared.AlterTableStatement{
+			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
+			ConstraintType: sqlmanager_shared.CheckConstraintType,
+		}, nil
+	}
+	return nil, errors.ErrUnsupported
+
+}
+
 func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
 	return nil, errors.ErrUnsupported
 }
 
-// todo
 func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
-	return nil, errors.ErrUnsupported
+	if len(tables) == 0 {
+		return []*sqlmanager_shared.TableTrigger{}, nil
+	}
+
+	fullTableNames := make(map[string]struct{}, len(tables))
+	schemaTableMap := map[string][]string{}
+	for _, t := range tables {
+		schemaTableMap[t.Schema] = append(schemaTableMap[t.Schema], t.Table)
+		fullTableNames[t.String()] = struct{}{}
+	}
+
+	resMap := map[string][]*mysql_queries.GetCustomTriggersBySchemaAndTablesRow{}
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(3)
+	for schema, tables := range schemaTableMap {
+		schema := schema
+		tables := tables
+		errgrp.Go(func() error {
+			rows, err := m.querier.GetCustomTriggersBySchemaAndTables(errctx, m.pool, &mysql_queries.GetCustomTriggersBySchemaAndTablesParams{
+				Schema: schema,
+				Tables: tables,
+			})
+			if err != nil && !nucleusdb.IsNoRows(err) {
+				return err
+			} else if err != nil && nucleusdb.IsNoRows(err) {
+				resMap[schema] = []*mysql_queries.GetCustomTriggersBySchemaAndTablesRow{}
+				return nil
+			}
+			resMap[schema] = rows
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*sqlmanager_shared.TableTrigger{}
+	for _, rows := range resMap {
+		for _, row := range rows {
+			if _, ok := fullTableNames[sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)]; !ok {
+				continue
+			}
+			output = append(output, &sqlmanager_shared.TableTrigger{
+				Schema:      row.SchemaName,
+				Table:       row.TableName,
+				TriggerName: row.TriggerName,
+				Definition:  wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.Timing, row.EventType, row.Orientation, row.Statement),
+			})
+		}
+	}
+	return output, nil
 }
 
-// todo
-func (p *MysqlManager) GetSchemaInitStatements(
+func (m *MysqlManager) GetSchemaInitStatements(
 	ctx context.Context,
 	tables []*sqlmanager_shared.SchemaTable,
 ) ([]*sqlmanager_shared.InitSchemaStatements, error) {
-	return nil, errors.ErrUnsupported
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(5)
+
+	tableTriggerStmts := []string{}
+	errgrp.Go(func() error {
+		tableTriggers, err := m.GetSchemaTableTriggers(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve mysql schema table triggers: %w", err)
+		}
+		for _, ttrig := range tableTriggers {
+			tableTriggerStmts = append(tableTriggerStmts, ttrig.Definition)
+		}
+		return nil
+	})
+
+	createTables := []string{}
+	nonFkAlterStmts := []string{}
+	fkAlterStmts := []string{}
+	idxStmts := []string{}
+	errgrp.Go(func() error {
+		initStatementCfgs, err := m.GetTableInitStatements(errctx, tables)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve mysql schema table create statements: %w", err)
+		}
+		for _, stmtCfg := range initStatementCfgs {
+			createTables = append(createTables, stmtCfg.CreateTableStatement)
+			for _, alter := range stmtCfg.AlterTableStatements {
+				if alter.ConstraintType == sqlmanager_shared.ForeignConstraintType {
+					fkAlterStmts = append(fkAlterStmts, alter.Statement)
+				} else {
+					nonFkAlterStmts = append(nonFkAlterStmts, alter.Statement)
+				}
+			}
+			idxStmts = append(idxStmts, stmtCfg.IndexStatements...)
+		}
+		return nil
+	})
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return []*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types"},
+		{Label: "create table", Statements: createTables},
+		{Label: "non-fk alter table", Statements: nonFkAlterStmts},
+		{Label: "fk alter table", Statements: fkAlterStmts},
+		{Label: "table index", Statements: idxStmts},
+		{Label: "table triggers", Statements: tableTriggerStmts},
+	}, nil
 }
 
 func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
@@ -164,6 +490,116 @@ func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, tabl
 	)
 	split := strings.Split(result.CreateTable, "CREATE TABLE")
 	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s;", split[1]), nil
+}
+
+func int32ToBool(i int32) bool {
+	return i != 0
+}
+
+func wrapIdempotentConstraint(
+	schema,
+	table,
+	constraintname,
+	constraintStmt string,
+) string {
+	stmt := fmt.Sprintf(`
+DELIMITER //
+CREATE PROCEDURE NeosyncAddConstraintIfNotExists()
+BEGIN
+    DECLARE constraint_exists INT DEFAULT 0;
+
+    -- check if the constraint exists
+    SELECT COUNT(*) INTO constraint_exists
+    FROM information_schema.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = '%s'
+    AND TABLE_NAME = '%s'
+    AND CONSTRAINT_NAME = '%s';
+
+    -- if the constraint does not exist, create it
+    IF constraint_exists = 0 THEN
+        %s
+    END IF;
+END//
+DELIMITER ;
+
+CALL NeosyncAddConstraintIfNotExists();
+DROP PROCEDURE NeosyncAddConstraintIfNotExists;
+`, schema, table, constraintname, constraintStmt)
+	return strings.TrimSpace(stmt)
+}
+
+func wrapIdempotentIndex(
+	schema,
+	table,
+	constraintname,
+	col string,
+) string {
+	stmt := fmt.Sprintf(`
+DELIMITER //
+CREATE PROCEDURE NeosyncAddIndexIfNotExists()
+BEGIN
+    DECLARE index_exists INT DEFAULT 0;
+
+    -- check if the index exists
+    SELECT COUNT(*) INTO index_exists
+    FROM information_schema.statistics
+    WHERE table_schema = '%s'
+    AND table_name = '%s'
+    AND index_name = '%s';
+
+    -- if the index does not exist, create it
+    IF index_exists = 0 THEN
+        CREATE INDEX %s ON %s.%s(%s);
+    END IF;
+END//
+DELIMITER ;
+
+CALL NeosyncAddIndexIfNotExists();
+DROP PROCEDURE NeosyncAddIndexIfNotExists;
+`, schema, table, constraintname, constraintname, schema, table, col)
+	return strings.TrimSpace(stmt)
+}
+
+func wrapIdempotentFunction(
+	schema,
+	funcName,
+	returnDataType,
+	definition string,
+	isDeterministic bool,
+) string {
+	deterministic := "DETERMINISTIC"
+	if !isDeterministic {
+		deterministic = "NOT DETERMINISTIC"
+	}
+	stmt := fmt.Sprintf(`
+DELIMITER //
+CREATE FUNCTION IF NOT EXISTS %s(%s)
+RETURNS %s
+%s
+%s //
+DELIMITER;
+`, funcName, returnDataType, returnDataType, deterministic, definition)
+	return strings.TrimSpace(stmt)
+}
+
+func wrapIdempotentTrigger(
+	schema,
+	tableName,
+	triggerName,
+	timing,
+	event_type,
+	orientation,
+	actionStmt string,
+) string {
+	stmt := fmt.Sprintf(`
+DELIMITER //
+CREATE TRIGGER IF NOT EXISTS %s
+%s %s ON %s.%s
+FOR EACH %s
+%s //
+DELIMITER;
+`, triggerName, timing, event_type, schema, tableName, orientation, actionStmt)
+	return strings.TrimSpace(stmt)
 }
 
 type databaseTableShowCreate struct {

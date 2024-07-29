@@ -8,40 +8,51 @@ package mysql_queries
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strings"
 )
 
-const getCustomFunctionsBySchemaAndTables = `-- name: GetCustomFunctionsBySchemaAndTables :many
+const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
 SELECT 
     ROUTINE_NAME as function_name, 
     ROUTINE_SCHEMA as schema_name,
     DTD_IDENTIFIER as return_data_type,
     ROUTINE_DEFINITION as definition,
-    IS_DETERMINISTIC as is_deterministic
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
 FROM 
     INFORMATION_SCHEMA.ROUTINES 
 WHERE 
     ROUTINE_TYPE = 'FUNCTION'
-    AND ROUTINE_SCHEMA = ?
+    AND ROUTINE_SCHEMA in (/*SLICE:schemas*/?)
 `
 
-type GetCustomFunctionsBySchemaAndTablesRow struct {
+type GetCustomFunctionsBySchemasRow struct {
 	FunctionName    string
 	SchemaName      string
 	ReturnDataType  string
 	Definition      string
-	IsDeterministic string
+	IsDeterministic int32
 }
 
-func (q *Queries) GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomFunctionsBySchemaAndTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getCustomFunctionsBySchemaAndTables, schema)
+func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
+	query := getCustomFunctionsBySchemas
+	var queryParams []interface{}
+	if len(schemas) > 0 {
+		for _, v := range schemas {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:schemas*/?", strings.Repeat(",?", len(schemas))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:schemas*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetCustomFunctionsBySchemaAndTablesRow
+	var items []*GetCustomFunctionsBySchemasRow
 	for rows.Next() {
-		var i GetCustomFunctionsBySchemaAndTablesRow
+		var i GetCustomFunctionsBySchemasRow
 		if err := rows.Scan(
 			&i.FunctionName,
 			&i.SchemaName,
@@ -74,8 +85,13 @@ SELECT
 FROM
     information_schema.TRIGGERS
 WHERE 
-    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (/*SLICE:schematables*/?)
+    EVENT_OBJECT_SCHEMA = ? AND EVENT_OBJECT_TABLE IN (/*SLICE:tables*/?)
 `
+
+type GetCustomTriggersBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
 
 type GetCustomTriggersBySchemaAndTablesRow struct {
 	TriggerName string
@@ -87,8 +103,20 @@ type GetCustomTriggersBySchemaAndTablesRow struct {
 	Timing      string
 }
 
-func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getCustomTriggersBySchemaAndTables)
+// sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
+func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomTriggersBySchemaAndTablesParams) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	query := getCustomTriggersBySchemaAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +223,8 @@ SELECT
    c.TABLE_NAME AS table_name,
    c.COLUMN_NAME AS column_name,
    c.COLUMN_TYPE AS data_type,
-   IFNULL(c.COLUMN_DEFAULT, '') AS column_default,
-   c.IS_NULLABLE AS is_nullable,
+   c.COLUMN_DEFAULT AS column_default,
+   CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
      IF(c.DATA_TYPE = 'smallint', 16, 
@@ -204,38 +232,53 @@ SELECT
            IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
    c.ORDINAL_POSITION AS ordinal_position,
-   c.COLUMN_KEY AS generated_type,
    c.EXTRA AS identity_generation,
-	 c.GENERATION_EXPRESSION as generation_exp,
+c.GENERATION_EXPRESSION as generation_exp,
    t.AUTO_INCREMENT as auto_increment_start_value
 FROM
     information_schema.COLUMNS as c
     join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
 WHERE
-  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (/*SLICE:schematables*/?)
+  -- CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+	c.TABLE_SCHEMA = ? AND c.TABLE_NAME in (/*SLICE:tables*/?)
 ORDER BY
     c.ordinal_position
 `
+
+type GetDatabaseTableSchemasBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
 
 type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
 	SchemaName              string
 	TableName               string
 	ColumnName              string
 	DataType                string
-	ColumnDefault           interface{}
-	IsNullable              string
+	ColumnDefault           sql.NullString
+	IsNullable              int32
 	CharacterMaximumLength  interface{}
 	NumericPrecision        interface{}
 	NumericScale            interface{}
 	OrdinalPosition         int64
-	GeneratedType           string
 	IdentityGeneration      sql.NullString
 	GenerationExp           sql.NullString
 	AutoIncrementStartValue sql.NullInt64
 }
 
-func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getDatabaseTableSchemasBySchemasAndTables)
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemasBySchemasAndTablesParams) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+	query := getDatabaseTableSchemasBySchemasAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +297,6 @@ func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context,
 			&i.NumericPrecision,
 			&i.NumericScale,
 			&i.OrdinalPosition,
-			&i.GeneratedType,
 			&i.IdentityGeneration,
 			&i.GenerationExp,
 			&i.AutoIncrementStartValue,
@@ -289,7 +331,8 @@ LEFT JOIN
     AND s.TABLE_NAME = kcu.TABLE_NAME
     AND s.COLUMN_NAME = kcu.COLUMN_NAME
 WHERE 
-    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (/*SLICE:schematables*/?)
+    -- CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+		s.TABLE_SCHEMA = ? AND s.TABLE_NAME in (/*SLICE:tables*/?)
     AND s.INDEX_NAME != 'PRIMARY'
     AND kcu.CONSTRAINT_NAME IS NULL
 ORDER BY 
@@ -297,6 +340,11 @@ ORDER BY
     s.INDEX_NAME,
     s.SEQ_IN_INDEX
 `
+
+type GetIndicesBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
 
 type GetIndicesBySchemasAndTablesRow struct {
 	SchemaName string
@@ -308,8 +356,19 @@ type GetIndicesBySchemasAndTablesRow struct {
 	Nullable   string
 }
 
-func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetIndicesBySchemasAndTablesRow, error) {
-	rows, err := db.QueryContext(ctx, getIndicesBySchemasAndTables)
+func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error) {
+	query := getIndicesBySchemasAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -387,13 +446,15 @@ const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
-    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS foreign_schema_name,
-    kcu.referenced_table_name AS foreign_table_name,
-    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
+    kcu.referenced_table_schema AS referenced_schema_name,
+    kcu.referenced_table_name AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -404,31 +465,56 @@ JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
 WHERE
-    tc.table_schema NOT IN ('performance_schema', 'sys')
+    tc.table_schema = ?
+    AND tc.table_name IN (/*SLICE:tables*/?)
 GROUP BY 
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
     tc.constraint_type,
     kcu.referenced_table_schema,
-    kcu.referenced_table_name
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule
 `
 
-type GetTableConstraintsRow struct {
-	SchemaName         string
-	TableName          string
-	ConstraintColumns  sql.NullString
-	NotNullable        sql.NullString
-	ConstraintName     string
-	ConstraintType     string
-	ForeignSchemaName  string
-	ForeignTableName   string
-	ForeignColumnNames sql.NullString
+type GetTableConstraintsParams struct {
+	Schema string
+	Tables []string
 }
 
-func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTableConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getTableConstraints)
+type GetTableConstraintsRow struct {
+	SchemaName            string
+	TableName             string
+	ConstraintColumns     json.RawMessage
+	NotNullable           json.RawMessage
+	ConstraintName        string
+	ConstraintType        string
+	ReferencedSchemaName  string
+	ReferencedTableName   string
+	ReferencedColumnNames json.RawMessage
+	UpdateRule            sql.NullString
+	DeleteRule            sql.NullString
+}
+
+func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
+	query := getTableConstraints
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -443,9 +529,11 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTable
 			&i.NotNullable,
 			&i.ConstraintName,
 			&i.ConstraintType,
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			&i.ForeignColumnNames,
+			&i.ReferencedSchemaName,
+			&i.ReferencedTableName,
+			&i.ReferencedColumnNames,
+			&i.UpdateRule,
+			&i.DeleteRule,
 		); err != nil {
 			return nil, err
 		}
@@ -464,13 +552,13 @@ const getTableConstraintsBySchemas = `-- name: GetTableConstraintsBySchemas :man
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
-    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS foreign_schema_name,
-    kcu.referenced_table_name AS foreign_table_name,
-    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
+    kcu.referenced_table_schema AS referenced_schema_name,
+    kcu.referenced_table_name AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -493,15 +581,15 @@ GROUP BY
 `
 
 type GetTableConstraintsBySchemasRow struct {
-	SchemaName         string
-	TableName          string
-	ConstraintColumns  sql.NullString
-	NotNullable        sql.NullString
-	ConstraintName     string
-	ConstraintType     string
-	ForeignSchemaName  string
-	ForeignTableName   string
-	ForeignColumnNames sql.NullString
+	SchemaName            string
+	TableName             string
+	ConstraintColumns     json.RawMessage
+	NotNullable           json.RawMessage
+	ConstraintName        string
+	ConstraintType        string
+	ReferencedSchemaName  string
+	ReferencedTableName   string
+	ReferencedColumnNames json.RawMessage
 }
 
 func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
@@ -530,9 +618,9 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, sch
 			&i.NotNullable,
 			&i.ConstraintName,
 			&i.ConstraintType,
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			&i.ForeignColumnNames,
+			&i.ReferencedSchemaName,
+			&i.ReferencedTableName,
+			&i.ReferencedColumnNames,
 		); err != nil {
 			return nil, err
 		}

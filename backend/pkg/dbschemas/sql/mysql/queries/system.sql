@@ -24,13 +24,13 @@ WHERE
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
-    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS foreign_schema_name,
-    kcu.referenced_table_name AS foreign_table_name,
-    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
+    kcu.referenced_table_schema AS referenced_schema_name,
+    kcu.referenced_table_name AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -56,13 +56,15 @@ GROUP BY
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
-    GROUP_CONCAT(kcu.column_name) AS constraint_columns,
-    GROUP_CONCAT(CASE WHEN c.is_nullable = 'YES' THEN '0' ELSE '1' END) AS not_nullable,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS foreign_schema_name,
-    kcu.referenced_table_name AS foreign_table_name,
-    GROUP_CONCAT(kcu.referenced_column_name) AS foreign_column_names
+    kcu.referenced_table_schema AS referenced_schema_name,
+    kcu.referenced_table_name AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule
 FROM
     information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
@@ -73,15 +75,22 @@ JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
 WHERE
-    tc.table_schema NOT IN ('performance_schema', 'sys')
+    tc.table_schema = sqlc.arg('schema')
+    AND tc.table_name IN (sqlc.slice('tables'))
 GROUP BY 
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
     tc.constraint_type,
     kcu.referenced_table_schema,
-    kcu.referenced_table_name;
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule;
 
 
 -- name: GetMysqlRolePermissions :many
@@ -99,6 +108,7 @@ ORDER BY
     tp.TABLE_NAME;
 
 
+-- sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
 -- name: GetCustomTriggersBySchemaAndTables :many
 SELECT
     TRIGGER_NAME AS trigger_name,
@@ -111,7 +121,7 @@ SELECT
 FROM
     information_schema.TRIGGERS
 WHERE 
-    CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'));
+    EVENT_OBJECT_SCHEMA = sqlc.arg('schema') AND EVENT_OBJECT_TABLE IN (sqlc.slice('tables'));
 
 
 -- name: GetDatabaseTableSchemasBySchemasAndTables :many
@@ -120,8 +130,8 @@ SELECT
    c.TABLE_NAME AS table_name,
    c.COLUMN_NAME AS column_name,
    c.COLUMN_TYPE AS data_type,
-   IFNULL(c.COLUMN_DEFAULT, '') AS column_default,
-   c.IS_NULLABLE AS is_nullable,
+   c.COLUMN_DEFAULT AS column_default,
+   CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
      IF(c.DATA_TYPE = 'smallint', 16, 
@@ -129,15 +139,15 @@ SELECT
            IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
    c.ORDINAL_POSITION AS ordinal_position,
-   c.COLUMN_KEY AS generated_type,
    c.EXTRA AS identity_generation,
-	 c.GENERATION_EXPRESSION as generation_exp,
+c.GENERATION_EXPRESSION as generation_exp,
    t.AUTO_INCREMENT as auto_increment_start_value
 FROM
     information_schema.COLUMNS as c
     join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
 WHERE
-  CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.slice('schematables'))
+  -- CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+	c.TABLE_SCHEMA = sqlc.arg('schema') AND c.TABLE_NAME in (sqlc.slice('tables'))
 ORDER BY
     c.ordinal_position;
 
@@ -159,7 +169,8 @@ LEFT JOIN
     AND s.TABLE_NAME = kcu.TABLE_NAME
     AND s.COLUMN_NAME = kcu.COLUMN_NAME
 WHERE 
-    CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables'))
+    -- CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+		s.TABLE_SCHEMA = sqlc.arg('schema') AND s.TABLE_NAME in (sqlc.slice('tables'))
     AND s.INDEX_NAME != 'PRIMARY'
     AND kcu.CONSTRAINT_NAME IS NULL
 ORDER BY 
@@ -168,15 +179,15 @@ ORDER BY
     s.SEQ_IN_INDEX;
 
 
--- name: GetCustomFunctionsBySchemaAndTables :many
+-- name: GetCustomFunctionsBySchemas :many
 SELECT 
     ROUTINE_NAME as function_name, 
     ROUTINE_SCHEMA as schema_name,
     DTD_IDENTIFIER as return_data_type,
     ROUTINE_DEFINITION as definition,
-    IS_DETERMINISTIC as is_deterministic
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
 FROM 
     INFORMATION_SCHEMA.ROUTINES 
 WHERE 
     ROUTINE_TYPE = 'FUNCTION'
-    AND ROUTINE_SCHEMA = sqlc.arg('schema');
+    AND ROUTINE_SCHEMA in (sqlc.slice('schemas'));

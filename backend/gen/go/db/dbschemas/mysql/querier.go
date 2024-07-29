@@ -9,13 +9,14 @@ import (
 )
 
 type Querier interface {
-	GetCustomFunctionsBySchemaAndTables(ctx context.Context, db DBTX, schema string) ([]*GetCustomFunctionsBySchemaAndTablesRow, error)
-	GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX) ([]*GetCustomTriggersBySchemaAndTablesRow, error)
+	GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error)
+	// sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
+	GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomTriggersBySchemaAndTablesParams) ([]*GetCustomTriggersBySchemaAndTablesRow, error)
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
-	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
-	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX) ([]*GetIndicesBySchemasAndTablesRow, error)
+	GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemasBySchemasAndTablesParams) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error)
+	GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error)
 	GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetMysqlRolePermissionsRow, error)
-	GetTableConstraints(ctx context.Context, db DBTX) ([]*GetTableConstraintsRow, error)
+	GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error)
 	GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error)
 }
 
