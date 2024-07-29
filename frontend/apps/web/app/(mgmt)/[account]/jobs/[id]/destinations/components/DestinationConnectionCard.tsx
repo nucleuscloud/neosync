@@ -66,11 +66,11 @@ export default function DestinationConnectionCard({
   );
 
   const form = useForm({
-    resolver: yupResolver<DestinationFormValues>(NewDestinationFormValues),
+    resolver: yupResolver<NewDestinationFormValues>(NewDestinationFormValues),
     values: getDefaultDestinationFormValues(destination),
   });
 
-  async function onSubmit(values: DestinationFormValues) {
+  async function onSubmit(values: NewDestinationFormValues) {
     try {
       const connection = connections.find((c) => c.id === values.connectionId);
       await setJobDestConnection({
@@ -124,6 +124,7 @@ export default function DestinationConnectionCard({
     form.control,
     jobSourceId
   );
+  console.log(form.formState.errors, form.formState.isValid);
   return (
     <Card>
       <Form {...form}>
@@ -141,12 +142,7 @@ export default function DestinationConnectionCard({
                           field.onChange(value);
                           form.setValue(
                             `destinationOptions`,
-                            {
-                              truncateBeforeInsert: false,
-                              truncateCascade: false,
-                              initTableSchema: false,
-                              onConflictDoNothing: false,
-                            },
+                            {},
                             {
                               shouldDirty: true,
                               shouldTouch: true,
@@ -183,27 +179,13 @@ export default function DestinationConnectionCard({
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
-                value={{
-                  initTableSchema: destOpts.initTableSchema ?? false,
-                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
-                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
-                  truncateCascade: destOpts.truncateCascade ?? false,
-                }}
+                value={destOpts}
                 setValue={(newOpts) => {
-                  form.setValue(
-                    'destinationOptions',
-                    {
-                      initTableSchema: newOpts.initTableSchema,
-                      onConflictDoNothing: newOpts.onConflictDoNothing,
-                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
-                      truncateCascade: newOpts.truncateCascade,
-                    },
-                    {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: true,
-                    }
-                  );
+                  form.setValue('destinationOptions', newOpts, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
                 }}
                 hideInitTableSchema={shouldHideInitTableSchema}
               />
@@ -231,7 +213,7 @@ export default function DestinationConnectionCard({
 }
 
 function useShouldHideInitConnectionSchema(
-  control: Control<DestinationFormValues>,
+  control: Control<NewDestinationFormValues>,
   sourceId: string
 ): boolean {
   const [destinationConnectionid] = useWatch({

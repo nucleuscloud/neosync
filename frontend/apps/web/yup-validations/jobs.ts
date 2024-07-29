@@ -100,7 +100,8 @@ const DynamoDbDestinationOptionsFormValues = Yup.object({
         destinationTable: Yup.string().required(),
       }).required()
     )
-    .required(),
+    .required()
+    .default([]),
 });
 type DynamoDbDestinationOptionsFormValues = Yup.InferType<
   typeof DynamoDbDestinationOptionsFormValues

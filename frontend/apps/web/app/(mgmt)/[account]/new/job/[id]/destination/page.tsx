@@ -157,12 +157,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                     );
                                     form.setValue(
                                       `destinations.${index}.destinationOptions`,
-                                      {
-                                        truncateBeforeInsert: false,
-                                        truncateCascade: false,
-                                        initTableSchema: false,
-                                        onConflictDoNothing: false,
-                                      }
+                                      {}
                                     );
                                   }}
                                   value={field.value}
@@ -205,23 +200,11 @@ export default function Page({ params }: PageProps): ReactElement {
 
                     <DestinationOptionsForm
                       connection={currConnection}
-                      value={{
-                        initTableSchema: destOpts.initTableSchema ?? false,
-                        onConflictDoNothing:
-                          destOpts.onConflictDoNothing ?? false,
-                        truncateBeforeInsert:
-                          destOpts.truncateBeforeInsert ?? false,
-                        truncateCascade: destOpts.truncateCascade ?? false,
-                      }}
+                      value={destOpts}
                       setValue={(newOpts) => {
                         form.setValue(
                           `destinations.${index}.destinationOptions`,
-                          {
-                            initTableSchema: newOpts.initTableSchema,
-                            onConflictDoNothing: newOpts.onConflictDoNothing,
-                            truncateBeforeInsert: newOpts.truncateBeforeInsert,
-                            truncateCascade: newOpts.truncateCascade,
-                          },
+                          newOpts,
                           {
                             shouldDirty: true,
                             shouldTouch: true,
