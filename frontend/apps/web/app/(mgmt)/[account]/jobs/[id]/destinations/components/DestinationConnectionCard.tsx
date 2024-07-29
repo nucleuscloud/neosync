@@ -1,4 +1,5 @@
 'use client';
+import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,11 +14,11 @@ import {
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
@@ -124,7 +125,9 @@ export default function DestinationConnectionCard({
     form.control,
     jobSourceId
   );
-  console.log(form.formState.errors, form.formState.isValid);
+
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+    splitConnections(connections);
   return (
     <Card>
       <Form {...form}>
@@ -153,18 +156,20 @@ export default function DestinationConnectionCard({
                         value={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={dest?.name} />
+                          <SelectValue
+                            ref={field.ref}
+                            placeholder={dest?.name}
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableConnections.map((connection) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={connection.id}
-                              value={connection.id}
-                            >
-                              {connection.name}
-                            </SelectItem>
-                          ))}
+                          <ConnectionSelectContent
+                            postgres={postgres}
+                            mysql={mysql}
+                            s3={s3}
+                            mongodb={mongodb}
+                            gcpcs={gcpcs}
+                            dynamodb={dynamodb}
+                          />
                         </SelectContent>
                       </Select>
                     </FormControl>

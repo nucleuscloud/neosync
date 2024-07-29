@@ -18,11 +18,11 @@ import {
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 
 const FormValues = Yup.object({
   destinations: Yup.array(NewDestinationFormValues).required(),
@@ -64,7 +65,7 @@ export default function Page({ params }: PageProps): ReactElement {
   >();
 
   const connections = connectionsData?.connections ?? [];
-  const destinationIds = new Set(
+  const destinationConnectionIds = new Set(
     data?.job?.destinations.map((d) => d.connectionId)
   );
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
@@ -76,7 +77,7 @@ export default function Page({ params }: PageProps): ReactElement {
   });
 
   const availableConnections = connections.filter(
-    (c) => c.id != sourceConnectionId && !destinationIds?.has(c.id)
+    (c) => c.id != sourceConnectionId && !destinationConnectionIds?.has(c.id)
   );
 
   const { fields, append, remove } = useFieldArray({
@@ -84,17 +85,15 @@ export default function Page({ params }: PageProps): ReactElement {
     name: 'destinations',
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues): Promise<void> {
     try {
+      const connMap = new Map(connections.map((c) => [c.id, c]));
       const job = await createJobConnections({
         jobId: id,
         destinations: values.destinations.map((d) => {
           return new JobDestination({
             connectionId: d.connectionId,
-            options: toJobDestinationOptions(
-              d,
-              connections.find((c) => c.id === d.connectionId)
-            ),
+            options: toJobDestinationOptions(d, connMap.get(d.connectionId)),
           });
         }),
       });
@@ -112,6 +111,9 @@ export default function Page({ params }: PageProps): ReactElement {
       });
     }
   }
+
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+    splitConnections(connections);
 
   return (
     <div className="job-details-container mx-24">
@@ -161,18 +163,20 @@ export default function Page({ params }: PageProps): ReactElement {
                                   value={field.value}
                                 >
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a destination ..." />
+                                    <SelectValue
+                                      ref={field.ref}
+                                      placeholder="Select a destination ..."
+                                    />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {availableConnections.map((connection) => (
-                                      <SelectItem
-                                        className="cursor-pointer"
-                                        key={connection.id}
-                                        value={connection.id}
-                                      >
-                                        {connection.name}
-                                      </SelectItem>
-                                    ))}
+                                    <ConnectionSelectContent
+                                      postgres={postgres}
+                                      mysql={mysql}
+                                      s3={s3}
+                                      mongodb={mongodb}
+                                      gcpcs={gcpcs}
+                                      dynamodb={dynamodb}
+                                    />
                                   </SelectContent>
                                 </Select>
                               </FormControl>
