@@ -29,7 +29,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
-  DestinationOptionFormValues,
+  EditDestinationOptionsFormValues,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -359,7 +359,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       );
       await Promise.all(
         values.destinationOptions.map(async (destOpts) => {
-          if (!destOpts.dynamoDb) {
+          if (!destOpts.dynamodb) {
             return;
           }
           return updateJobDestConnection({
@@ -370,7 +370,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               config: {
                 case: 'dynamodbOptions',
                 value: {
-                  tableMappings: destOpts.dynamoDb.tableMappings ?? [],
+                  tableMappings: destOpts.dynamodb.tableMappings ?? [],
                 },
               },
             },
@@ -480,7 +480,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const destOpt = destOpts.find(
         (d) => d.destinationId === req.destinationId
       );
-      const tm = destOpt?.dynamoDb?.tableMappings.find(
+      const tm = destOpt?.dynamodb?.tableMappings.find(
         (tm) => tm.sourceTable === req.souceName
       );
       if (tm) {
@@ -612,9 +612,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 const destOpts = form.getValues('destinationOptions');
                 const updatedDestOpts = destOpts
                   .map((opt) => {
-                    if (opt.dynamoDb) {
+                    if (opt.dynamodb) {
                       const updatedTableMappings =
-                        opt.dynamoDb.tableMappings.filter((tm) => {
+                        opt.dynamodb.tableMappings.filter((tm) => {
                           // Check if any columns remain for the table
                           const tableColumnsExist = remainingTables.some(
                             (table) => table === tm.sourceTable
@@ -625,7 +625,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                       return {
                         ...opt,
                         dynamoDb: {
-                          ...opt.dynamoDb,
+                          ...opt.dynamodb,
                           tableMappings: updatedTableMappings,
                         },
                       };
@@ -633,7 +633,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                     return opt;
                   })
                   .filter(
-                    (opt) => (opt.dynamoDb?.tableMappings.length ?? 0) > 0
+                    (opt) => (opt.dynamodb?.tableMappings.length ?? 0) > 0
                   );
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
@@ -676,18 +676,18 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   destOpts.map((d) => [d.destinationId, d])
                 );
                 const updated = dynamoDBDestinations.map(
-                  (dest): DestinationOptionFormValues => {
+                  (dest): EditDestinationOptionsFormValues => {
                     const opt = existing.get(dest.id);
                     if (opt) {
                       const sourceSet = new Set(
-                        opt.dynamoDb?.tableMappings.map(
+                        opt.dynamodb?.tableMappings.map(
                           (mapping) => mapping.sourceTable
                         ) ?? []
                       );
 
                       // Add missing uniqueCollections to the existing tableMappings
                       const updatedTableMappings = [
-                        ...(opt.dynamoDb?.tableMappings ?? []),
+                        ...(opt.dynamodb?.tableMappings ?? []),
                         ...uniqueCollections
                           .map((c) => {
                             const [, table] = c.split('.');
@@ -703,8 +703,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
                       return {
                         ...opt,
-                        dynamoDb: {
-                          ...opt.dynamoDb,
+                        dynamodb: {
+                          ...opt.dynamodb,
                           tableMappings: updatedTableMappings,
                         },
                       };
@@ -712,7 +712,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
                     return {
                       destinationId: dest.id,
-                      dynamoDb: {
+                      dynamodb: {
                         tableMappings: uniqueCollections.map((c) => {
                           const [, table] = c.split('.');
                           return {
@@ -970,14 +970,14 @@ function getJobSource(
         sourceOptions: {},
       };
     case 'dynamodb': {
-      const destOpts: DestinationOptionFormValues[] = [];
+      const destOpts: EditDestinationOptionsFormValues[] = [];
       job.destinations.forEach((d) => {
         if (d.options?.config.case !== 'dynamodbOptions') {
           return;
         }
         destOpts.push({
           destinationId: d.id,
-          dynamoDb: {
+          dynamodb: {
             tableMappings: d.options.config.value.tableMappings,
           },
         });

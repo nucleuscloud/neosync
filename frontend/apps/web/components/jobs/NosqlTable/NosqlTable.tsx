@@ -30,7 +30,7 @@ import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandle
 import { Transformer } from '@/shared/transformers';
 import {
   convertJobMappingTransformerToForm,
-  DestinationOptionFormValues,
+  EditDestinationOptionsFormValues,
   JobMappingFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
@@ -77,7 +77,7 @@ interface Props {
   onRemoveMappings(values: JobMappingFormValues[]): void;
   onEditMappings(values: JobMappingFormValues[]): void;
 
-  destinationOptions: DestinationOptionFormValues[];
+  destinationOptions: EditDestinationOptionsFormValues[];
   destinationDetailsRecord: Record<string, DestinationDetails>;
   onDestinationTableMappingUpdate(req: OnTableMappingUpdateRequest): void;
   showDestinationTableMappings: boolean;
@@ -171,7 +171,7 @@ export default function NosqlTable(props: Props): ReactElement {
 }
 
 interface TableMappingsCardProps {
-  mappings: DestinationOptionFormValues[];
+  mappings: EditDestinationOptionsFormValues[];
   onUpdate(req: OnTableMappingUpdateRequest): void;
   destinationDetailsRecord: Record<string, DestinationDetails>;
 }
@@ -210,11 +210,11 @@ function TableMappingsCard(props: TableMappingsCardProps): ReactElement {
 }
 
 function toTableMappingRows(
-  mappings: DestinationOptionFormValues[]
+  mappings: EditDestinationOptionsFormValues[]
 ): TableMappingRow[] {
   return mappings.flatMap((mapping) => {
     return (
-      mapping.dynamoDb?.tableMappings.map((tm): TableMappingRow => {
+      mapping.dynamodb?.tableMappings.map((tm): TableMappingRow => {
         return {
           destinationId: mapping.destinationId,
           sourceTable: tm.sourceTable,

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { DestinationFormValues } from '@/yup-validations/jobs';
+import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -66,7 +66,7 @@ export default function DestinationConnectionCard({
   );
 
   const form = useForm({
-    resolver: yupResolver<DestinationFormValues>(DestinationFormValues),
+    resolver: yupResolver<DestinationFormValues>(NewDestinationFormValues),
     values: getDefaultDestinationFormValues(destination),
   });
 

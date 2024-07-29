@@ -18,8 +18,8 @@ import { toast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
-  DestinationOptionFormValues,
   SchemaFormValues,
+  SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
 import { PartialMessage } from '@bufbuild/protobuf';
@@ -206,10 +206,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     useMutation(validateJobMappings);
 
   async function onSubmit(values: SchemaFormValues) {
-    if (!account || !connectionData?.connection) {
+    if (!account || !source) {
       return;
     }
-    if (isNosqlSource(connectionData.connection)) {
+    if (isNosqlSource(source)) {
       try {
         const connMap = new Map(connections.map((c) => [c.id, c]));
         const job = await createNewSyncJob(
@@ -593,7 +593,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   destOpts.map((d) => [d.destinationId, d])
                 );
                 const updated = dynamoDbDestinations.map(
-                  (dest): DestinationOptionFormValues => {
+                  (dest): SchemaFormValuesDestinationOptions => {
                     const opt = existing.get(dest.id);
                     if (opt) {
                       const sourceSet = new Set(

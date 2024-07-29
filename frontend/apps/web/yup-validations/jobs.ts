@@ -85,23 +85,52 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
-// Intended to be used with the Source form values
-export const DestinationOptionFormValues = Yup.object({
-  destinationId: Yup.string().required(),
-
-  dynamoDb: Yup.object({
-    tableMappings: Yup.array()
-      .of(
-        Yup.object({
-          sourceTable: Yup.string().required(),
-          destinationTable: Yup.string().required(),
-        }).required()
-      )
-      .required(),
-  }).optional(),
+export const SourceFormValues = Yup.object({
+  sourceId: Yup.string().required('Source is required').uuid(),
+  sourceOptions: Yup.object({
+    haltOnNewColumnAddition: Yup.boolean().optional(),
+  }),
 });
-export type DestinationOptionFormValues = Yup.InferType<
-  typeof DestinationOptionFormValues
+
+const DynamoDbDestinationOptionsFormValues = Yup.object({
+  tableMappings: Yup.array()
+    .of(
+      Yup.object({
+        sourceTable: Yup.string().required(),
+        destinationTable: Yup.string().required(),
+      }).required()
+    )
+    .required(),
+});
+type DynamoDbDestinationOptionsFormValues = Yup.InferType<
+  typeof DynamoDbDestinationOptionsFormValues
+>;
+
+export const DestinationOptionsFormValues = Yup.object({
+  postgres: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional().default(false),
+    truncateCascade: Yup.boolean().optional().default(false),
+    initTableSchema: Yup.boolean().optional().default(false),
+    onConflictDoNothing: Yup.boolean().optional().default(false),
+  }).optional(),
+  mysql: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional().default(false),
+    initTableSchema: Yup.boolean().optional().default(false),
+    onConflictDoNothing: Yup.boolean().optional().default(false),
+  }).optional(),
+  dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
+}).required();
+// Object that holds connection specific destination options for a job
+export type DestinationOptionsFormValues = Yup.InferType<
+  typeof DestinationOptionsFormValues
+>;
+
+const SchemaFormValuesDestinationOptions = Yup.object({
+  destinationId: Yup.string().required(),
+  dynamoDb: DynamoDbDestinationOptionsFormValues.optional(),
+});
+export type SchemaFormValuesDestinationOptions = Yup.InferType<
+  typeof SchemaFormValuesDestinationOptions
 >;
 
 export const SchemaFormValues = Yup.object({
@@ -110,19 +139,12 @@ export const SchemaFormValues = Yup.object({
   connectionId: Yup.string().required(),
 
   destinationOptions: Yup.array()
-    .of(DestinationOptionFormValues.required())
+    .of(SchemaFormValuesDestinationOptions.required())
     .required(),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
 
-export const SourceFormValues = Yup.object({
-  sourceId: Yup.string().required('Source is required').uuid(),
-  sourceOptions: Yup.object({
-    haltOnNewColumnAddition: Yup.boolean().optional(),
-  }),
-});
-
-export const DestinationFormValues = Yup.object({
+export const NewDestinationFormValues = Yup.object({
   connectionId: Yup.string()
     .required('Connection is required')
     .uuid()
@@ -140,21 +162,27 @@ export const DestinationFormValues = Yup.object({
         return true;
       }
     ),
-  destinationOptions: Yup.object({
-    truncateBeforeInsert: Yup.boolean().optional(),
-    truncateCascade: Yup.boolean().optional(),
-    initTableSchema: Yup.boolean().optional(),
-    onConflictDoNothing: Yup.boolean().optional(),
-  }),
+  destinationOptions: DestinationOptionsFormValues,
 }).required();
-export type DestinationFormValues = Yup.InferType<typeof DestinationFormValues>;
+export type NewDestinationFormValues = Yup.InferType<
+  typeof NewDestinationFormValues
+>;
+
+const EditDestinationOptionsFormValues = Yup.object({
+  destinationId: Yup.string().required(),
+})
+  .concat(DestinationOptionsFormValues.required())
+  .required();
+export type EditDestinationOptionsFormValues = Yup.InferType<
+  typeof EditDestinationOptionsFormValues
+>;
 
 export const DataSyncSourceFormValues = SourceFormValues.concat(
   SchemaFormValues
 ).concat(
   Yup.object({
     destinationOptions: Yup.array()
-      .of(DestinationOptionFormValues.required())
+      .of(EditDestinationOptionsFormValues.required())
       .required(),
   })
 );

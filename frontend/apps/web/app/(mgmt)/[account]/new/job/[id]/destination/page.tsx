@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { DestinationFormValues } from '@/yup-validations/jobs';
+import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Connection, JobDestination } from '@neosync/sdk';
@@ -41,7 +41,7 @@ import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
   jobId: Yup.string().required(),
-  destinations: Yup.array(DestinationFormValues).required(),
+  destinations: Yup.array(NewDestinationFormValues).required(),
 });
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
