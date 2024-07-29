@@ -1,10 +1,7 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
-import {
-  DestinationDetails,
-  OnTableMappingUpdateRequest,
-} from '@/components/jobs/NosqlTable/TableMappings/Columns';
+import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
 import {
   SchemaTable,
   getAllFormErrors,
@@ -53,7 +50,6 @@ import {
   GetConnectionSchemaMapsResponse,
   GetConnectionSchemaResponse,
   Job,
-  JobDestination,
   JobMapping,
   JobMappingTransformer,
   JobSource,
@@ -81,7 +77,14 @@ import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { validateJobMapping } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
-import { getOnSelectedTableToggle } from './util';
+import {
+  getDestinationDetailsRecord,
+  getDynamoDbDestinations,
+  getOnSelectedTableToggle,
+  isDynamoDBConnection,
+  isNosqlSource,
+  shouldShowDestinationTableMappings,
+} from './util';
 
 interface Props {
   jobId: string;
@@ -497,6 +500,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     | Connection
     | undefined;
 
+  const dynamoDBDestinations = getDynamoDbDestinations(
+    data?.job?.destinations ?? []
+  );
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -592,9 +599,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   remove(toRemove);
                 }
 
-                if (
-                  source?.connectionConfig?.config.case !== 'dynamodbConfig'
-                ) {
+                if (!source || isDynamoDBConnection(source)) {
                   return;
                 }
 
@@ -665,14 +670,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 const uniqueCollections = Array.from(
                   new Set(values.map((v) => v.collection))
                 );
-                const dynamoDbDests = getDynamoDbDestinations(
-                  data?.job?.destinations ?? []
-                );
+
                 const destOpts = form.getValues('destinationOptions');
                 const existing = new Map(
                   destOpts.map((d) => [d.destinationId, d])
                 );
-                const updated = dynamoDbDests.map(
+                const updated = dynamoDBDestinations.map(
                   (dest): DestinationOptionFormValues => {
                     const opt = existing.get(dest.id);
                     if (opt) {
@@ -690,7 +693,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                             const [, table] = c.split('.');
                             return {
                               sourceTable: table,
-                              destinationTable: 'todo',
+                              destinationTable: '',
                             };
                           })
                           .filter(
@@ -725,7 +728,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 form.setValue('destinationOptions', updated);
               }}
               destinationDetailsRecord={getDestinationDetailsRecord(
-                data?.job?.destinations ?? [],
+                dynamoDBDestinations,
                 connectionsRecord,
                 destinationConnectionSchemaMapsResp ??
                   new GetConnectionSchemaMapsResponse()
@@ -733,7 +736,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
               onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
               showDestinationTableMappings={shouldShowDestinationTableMappings(
                 source ?? new Connection(),
-                data?.job?.destinations ?? []
+                dynamoDBDestinations.length > 0
               )}
             />
           )}
@@ -765,44 +768,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         </div>
       </form>
     </Form>
-  );
-}
-
-function getDestinationDetailsRecord(
-  destinations: JobDestination[],
-  connectionsRecord: Record<string, Connection>,
-  destinationSchemaMapsResp: GetConnectionSchemaMapsResponse
-): Record<string, DestinationDetails> {
-  const destSchemaRecord: Record<string, string[]> = {};
-  destinationSchemaMapsResp.connectionIds.forEach((connid, idx) => {
-    destSchemaRecord[connid] = Object.keys(
-      destinationSchemaMapsResp.responses[idx].schemaMap
-    ).map((table) => {
-      const [, tableName] = table.split('.');
-      return tableName;
-    });
-  });
-
-  const output: Record<string, DestinationDetails> = {};
-
-  getDynamoDbDestinations(destinations).forEach((d) => {
-    const connection = connectionsRecord[d.connectionId];
-    const availableTableNames = destSchemaRecord[d.connectionId] ?? [];
-    output[d.id] = {
-      destinationId: d.id,
-      friendlyName: connection?.name ?? 'Unknown Name',
-      availableTableNames,
-    };
-  });
-
-  return output;
-}
-
-function getDynamoDbDestinations(
-  destinations: JobDestination[]
-): JobDestination[] {
-  return destinations.filter(
-    (d) => d.options?.config.case === 'dynamodbOptions'
   );
 }
 
@@ -1078,29 +1043,4 @@ async function getUpdatedValues(
     default:
       return values;
   }
-}
-
-function isNosqlSource(connection: Connection): boolean {
-  switch (connection.connectionConfig?.config.case) {
-    case 'mongoConfig':
-    case 'dynamodbConfig':
-      return true;
-    default: {
-      return false;
-    }
-  }
-}
-
-function shouldShowDestinationTableMappings(
-  sourceConnection: Connection,
-  jobDests: JobDestination[]
-): boolean {
-  return (
-    isDynamoDBConnection(sourceConnection) &&
-    jobDests.some((dst) => dst.options?.config.case === 'dynamodbOptions')
-  );
-}
-
-function isDynamoDBConnection(connection: Connection): boolean {
-  return connection.connectionConfig?.config.case === 'dynamodbConfig';
 }

@@ -3,6 +3,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
+import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
 import {
   getAllFormErrors,
   SchemaTable,
@@ -17,9 +18,11 @@ import { toast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
+  DestinationOptionFormValues,
   SchemaFormValues,
   VirtualForeignConstraintFormValues,
 } from '@/yup-validations/jobs';
+import { PartialMessage } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
@@ -31,6 +34,8 @@ import {
   DatabaseColumn,
   ForeignConstraintTables,
   GetAccountOnboardingConfigResponse,
+  GetConnectionSchemaMapRequest,
+  GetConnectionSchemaMapsResponse,
   PrimaryConstraint,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
@@ -42,6 +47,7 @@ import {
   getConnection,
   getConnections,
   getConnectionSchemaMap,
+  getConnectionSchemaMaps,
   getConnectionTableConstraints,
   setAccountOnboardingConfig,
   validateJobMappings,
@@ -49,11 +55,17 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
+import {
+  getDestinationDetailsRecord,
+  getOnSelectedTableToggle,
+  isDynamoDBConnection,
+  isNosqlSource,
+  shouldShowDestinationTableMappings,
+} from '../../../jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
   getCreateNewSyncJobRequest,
@@ -121,6 +133,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [schemaFormData] = useSessionStorage<SchemaFormValues>(schemaFormKey, {
     mappings: [],
     connectionId: '', // hack to track if source id changes
+    destinationOptions: [],
   });
 
   const { data: connectionData, isLoading: isConnectionLoading } = useQuery(
@@ -144,6 +157,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     { enabled: !!account?.id }
   );
   const connections = connectionsData?.connections ?? [];
+  const connectionsRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection>
+  );
 
   const { data: tableConstraints, isFetching: isTableConstraintsValidating } =
     useQuery(
@@ -151,6 +171,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       { connectionId: connectFormValues.sourceId },
       { enabled: !!connectFormValues.sourceId }
     );
+
+  const { data: destinationConnectionSchemaMapsResp } = useQuery(
+    getConnectionSchemaMaps,
+    {
+      requests: connectFormValues.destinations.map(
+        (dest): PartialMessage<GetConnectionSchemaMapRequest> => ({
+          connectionId: dest.connectionId,
+        })
+      ),
+    },
+    {
+      enabled:
+        (connectFormValues.destinations.length ?? 0) > 0 &&
+        connectionData?.connection?.connectionConfig?.config?.case ===
+          'dynamodbConfig',
+    }
+  );
 
   const { mutateAsync: createNewSyncJob } = useMutation(createJob);
 
@@ -323,7 +360,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   ]);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
-  const { append, remove, fields, update } = useFieldArray<SchemaFormValues>({
+  const { append, remove, update } = useFieldArray<SchemaFormValues>({
     control: form.control,
     name: 'mappings',
   });
@@ -338,7 +375,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectionSchemaDataMap?.schemaMap ?? {},
     selectedTables,
     setSelectedTables,
-    fields,
+    formMappings,
     remove,
     append
   );
@@ -386,9 +423,45 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     await validateVirtualForeignKeys(newVfks);
   }
 
+  const onDestinationTableMappingUpdate = useCallback(
+    (req: OnTableMappingUpdateRequest) => {
+      const destOpts = form.getValues('destinationOptions');
+      const destOpt = destOpts.find(
+        (d) => d.destinationId === req.destinationId
+      );
+      const tm = destOpt?.dynamoDb?.tableMappings.find(
+        (tm) => tm.sourceTable === req.souceName
+      );
+      if (tm) {
+        tm.destinationTable = req.tableName;
+        form.setValue('destinationOptions', destOpts);
+      }
+      return;
+    },
+    []
+  );
+
   if (isConnectionLoading || isSchemaMapLoading) {
     return <SkeletonForm />;
   }
+
+  const source = connectionData?.connection;
+
+  const dynamoDbDestinationConnections =
+    source && isDynamoDBConnection(source)
+      ? connectFormValues.destinations
+          .map((d) => connectionsRecord[d.connectionId])
+          .filter((c) => !!c && isDynamoDBConnection(c))
+      : [];
+
+  const dynamoDbDestinations =
+    source && isDynamoDBConnection(source)
+      ? connectFormValues.destinations.map((d, idx) => ({
+          id: idx.toString(),
+          connectionId: d.connectionId,
+        }))
+      : [];
+
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -399,7 +472,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <JobsProgressSteps
                 steps={getJobProgressSteps(
                   'data-sync',
-                  !isNosqlSource(connectionData?.connection ?? new Connection())
+                  !isNosqlSource(source ?? new Connection())
                 )}
                 stepName={'schema'}
               />
@@ -412,7 +485,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {isNosqlSource(connectionData?.connection ?? new Connection({})) && (
+          {isNosqlSource(source ?? new Connection({})) && (
             <NosqlTable
               data={formMappings}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -442,6 +515,44 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 if (toRemove.length > 0) {
                   remove(toRemove);
                 }
+
+                if (!source || isDynamoDBConnection(source)) {
+                  return;
+                }
+
+                const toRemoveSet = new Set(toRemove);
+                const remainingTables = formMappings
+                  .filter((_, idx) => !toRemoveSet.has(idx))
+                  .map((fm) => fm.table);
+
+                // Check and update destinationOptions if needed
+                const destOpts = form.getValues('destinationOptions');
+                const updatedDestOpts = destOpts
+                  .map((opt) => {
+                    if (opt.dynamoDb) {
+                      const updatedTableMappings =
+                        opt.dynamoDb.tableMappings.filter((tm) => {
+                          // Check if any columns remain for the table
+                          const tableColumnsExist = remainingTables.some(
+                            (table) => table === tm.sourceTable
+                          );
+                          return tableColumnsExist;
+                        });
+
+                      return {
+                        ...opt,
+                        dynamoDb: {
+                          ...opt.dynamoDb,
+                          tableMappings: updatedTableMappings,
+                        },
+                      };
+                    }
+                    return opt;
+                  })
+                  .filter(
+                    (opt) => (opt.dynamoDb?.tableMappings.length ?? 0) > 0
+                  );
+                form.setValue('destinationOptions', updatedDestOpts);
               }}
               onEditMappings={(values) => {
                 const valuesMap = new Map(
@@ -473,11 +584,82 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     };
                   })
                 );
+                const uniqueCollections = Array.from(
+                  new Set(values.map((v) => v.collection))
+                );
+
+                const destOpts = form.getValues('destinationOptions');
+                const existing = new Map(
+                  destOpts.map((d) => [d.destinationId, d])
+                );
+                const updated = dynamoDbDestinations.map(
+                  (dest): DestinationOptionFormValues => {
+                    const opt = existing.get(dest.id);
+                    if (opt) {
+                      const sourceSet = new Set(
+                        opt.dynamoDb?.tableMappings.map(
+                          (mapping) => mapping.sourceTable
+                        ) ?? []
+                      );
+
+                      // Add missing uniqueCollections to the existing tableMappings
+                      const updatedTableMappings = [
+                        ...(opt.dynamoDb?.tableMappings ?? []),
+                        ...uniqueCollections
+                          .map((c) => {
+                            const [, table] = c.split('.');
+                            return {
+                              sourceTable: table,
+                              destinationTable: '',
+                            };
+                          })
+                          .filter(
+                            (mapping) => !sourceSet.has(mapping.sourceTable)
+                          ),
+                      ];
+
+                      return {
+                        ...opt,
+                        dynamoDb: {
+                          ...opt.dynamoDb,
+                          tableMappings: updatedTableMappings,
+                        },
+                      };
+                    }
+
+                    return {
+                      destinationId: dest.id,
+                      dynamoDb: {
+                        tableMappings: uniqueCollections.map((c) => {
+                          const [, table] = c.split('.');
+                          return {
+                            sourceTable: table,
+                            destinationTable: 'todo',
+                          };
+                        }),
+                      },
+                    };
+                  }
+                );
+
+                form.setValue('destinationOptions', updated);
               }}
+              destinationDetailsRecord={getDestinationDetailsRecord(
+                dynamoDbDestinations,
+                connectionsRecord,
+                destinationConnectionSchemaMapsResp ??
+                  new GetConnectionSchemaMapsResponse()
+              )}
+              onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
+              showDestinationTableMappings={shouldShowDestinationTableMappings(
+                source ?? new Connection(),
+                dynamoDbDestinationConnections.length > 0
+              )}
+              destinationOptions={form.watch('destinationOptions')}
             />
           )}
 
-          {!isNosqlSource(connectionData?.connection ?? new Connection({})) && (
+          {!isNosqlSource(source ?? new Connection({})) && (
             <SchemaTable
               data={formMappings}
               jobType="sync"
@@ -503,26 +685,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               Back
             </Button>
             <Button key="submit" type="submit">
-              {isNosqlSource(connectionData?.connection ?? new Connection())
-                ? 'Submit'
-                : 'Next'}
+              {isNosqlSource(source ?? new Connection()) ? 'Submit' : 'Next'}
             </Button>
           </div>
         </form>
       </Form>
     </div>
   );
-}
-
-function isNosqlSource(connection: Connection): boolean {
-  switch (connection.connectionConfig?.config.case) {
-    case 'mongoConfig':
-    case 'dynamodbConfig':
-      return true;
-    default: {
-      return false;
-    }
-  }
 }
 
 function getFormValues(
@@ -542,5 +711,6 @@ function getFormValues(
     mappings: [],
     virtualForeignKeys: [],
     connectionId,
+    destinationOptions: [],
   };
 }

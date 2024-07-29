@@ -85,10 +85,33 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
+// Intended to be used with the Source form values
+export const DestinationOptionFormValues = Yup.object({
+  destinationId: Yup.string().required(),
+
+  dynamoDb: Yup.object({
+    tableMappings: Yup.array()
+      .of(
+        Yup.object({
+          sourceTable: Yup.string().required(),
+          destinationTable: Yup.string().required(),
+        }).required()
+      )
+      .required(),
+  }).optional(),
+});
+export type DestinationOptionFormValues = Yup.InferType<
+  typeof DestinationOptionFormValues
+>;
+
 export const SchemaFormValues = Yup.object({
   mappings: Yup.array().of(JobMappingFormValues).required(),
   virtualForeignKeys: Yup.array().of(VirtualForeignConstraintFormValues),
   connectionId: Yup.string().required(),
+
+  destinationOptions: Yup.array()
+    .of(DestinationOptionFormValues.required())
+    .required(),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
 
@@ -125,25 +148,6 @@ export const DestinationFormValues = Yup.object({
   }),
 }).required();
 export type DestinationFormValues = Yup.InferType<typeof DestinationFormValues>;
-
-// Intended to be used with the Source form values
-export const DestinationOptionFormValues = Yup.object({
-  destinationId: Yup.string().required(),
-
-  dynamoDb: Yup.object({
-    tableMappings: Yup.array()
-      .of(
-        Yup.object({
-          sourceTable: Yup.string().required(),
-          destinationTable: Yup.string().required(),
-        }).required()
-      )
-      .required(),
-  }).optional(),
-});
-export type DestinationOptionFormValues = Yup.InferType<
-  typeof DestinationOptionFormValues
->;
 
 export const DataSyncSourceFormValues = SourceFormValues.concat(
   SchemaFormValues

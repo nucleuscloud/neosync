@@ -246,8 +246,8 @@ function getErrorConnectionTypes(
   const conn = connections.find((c) => c.id === connId);
   if (!conn) {
     return isSource
-      ? '[Postgres, Mysql]'
-      : '[Postgres, Mysql, AWS S3, GCP Cloud Storage]';
+      ? '[Postgres, Mysql, MongoDB, DynamoDB]'
+      : '[Postgres, Mysql, MongoDB, DynamoDB, AWS S3, GCP Cloud Storage]';
   }
   if (
     conn.connectionConfig?.config.case === 'awsS3Config' ||
