@@ -80,6 +80,7 @@ interface Props {
   destinationOptions: DestinationOptionFormValues[];
   destinationDetailsRecord: Record<string, DestinationDetails>;
   onDestinationTableMappingUpdate(req: OnTableMappingUpdateRequest): void;
+  showDestinationTableMappings: boolean;
 }
 
 export default function NosqlTable(props: Props): ReactElement {
@@ -96,6 +97,7 @@ export default function NosqlTable(props: Props): ReactElement {
     destinationOptions,
     destinationDetailsRecord,
     onDestinationTableMappingUpdate,
+    showDestinationTableMappings,
   } = props;
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
@@ -148,13 +150,15 @@ export default function NosqlTable(props: Props): ReactElement {
           onValidate={onValidate}
         />
       </div>
-      <div>
-        <TableMappingsCard
-          mappings={destinationOptions}
-          onUpdate={onDestinationTableMappingUpdate}
-          destinationDetailsRecord={destinationDetailsRecord}
-        />
-      </div>
+      {showDestinationTableMappings && (
+        <div>
+          <TableMappingsCard
+            mappings={destinationOptions}
+            onUpdate={onDestinationTableMappingUpdate}
+            destinationDetailsRecord={destinationDetailsRecord}
+          />
+        </div>
+      )}
       <SchemaPageTable
         columns={columns}
         data={data}

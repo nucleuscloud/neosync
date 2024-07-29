@@ -731,6 +731,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   new GetConnectionSchemaMapsResponse()
               )}
               onDestinationTableMappingUpdate={onDestinationTableMappingUpdate}
+              showDestinationTableMappings={shouldShowDestinationTableMappings(
+                source ?? new Connection(),
+                data?.job?.destinations ?? []
+              )}
             />
           )}
 
@@ -1085,4 +1089,18 @@ function isNosqlSource(connection: Connection): boolean {
       return false;
     }
   }
+}
+
+function shouldShowDestinationTableMappings(
+  sourceConnection: Connection,
+  jobDests: JobDestination[]
+): boolean {
+  return (
+    isDynamoDBConnection(sourceConnection) &&
+    jobDests.some((dst) => dst.options?.config.case === 'dynamodbOptions')
+  );
+}
+
+function isDynamoDBConnection(connection: Connection): boolean {
+  return connection.connectionConfig?.config.case === 'dynamodbConfig';
 }
