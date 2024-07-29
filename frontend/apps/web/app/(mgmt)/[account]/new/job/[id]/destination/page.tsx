@@ -1,5 +1,9 @@
 'use client';
-import { getConnectionIdFromSource } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
+import {
+  getConnectionIdFromSource,
+  getDestinationDetailsRecord,
+  isDynamoDBConnection,
+} from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import { toJobDestinationOptions } from '@/app/(mgmt)/[account]/jobs/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -18,32 +22,37 @@ import {
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection, JobDestination } from '@neosync/sdk';
+import {
+  Connection,
+  GetConnectionSchemaMapsResponse,
+  JobDestination,
+} from '@neosync/sdk';
 import {
   createJobDestinationConnections,
   getConnections,
+  getConnectionSchemaMaps,
   getJob,
 } from '@neosync/sdk/connectquery';
 import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 
-const FORM_SCHEMA = Yup.object({
-  jobId: Yup.string().required(),
+const FormValues = Yup.object({
   destinations: Yup.array(NewDestinationFormValues).required(),
 });
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type FormValues = Yup.InferType<typeof FormValues>;
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
@@ -60,43 +69,60 @@ export default function Page({ params }: PageProps): ReactElement {
     createJobDestinationConnections
   );
 
-  const [currConnection, setCurrConnection] = useState<
-    Connection | undefined
-  >();
-
   const connections = connectionsData?.connections ?? [];
-  const destinationIds = new Set(
+  const destinationConnectionIds = new Set(
     data?.job?.destinations.map((d) => d.connectionId)
   );
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const form = useForm({
-    resolver: yupResolver<FormValues>(FORM_SCHEMA),
+    resolver: yupResolver<FormValues>(FormValues),
     defaultValues: {
-      jobId: id,
       destinations: [{ connectionId: '', destinationOptions: {} }],
     },
   });
 
   const availableConnections = connections.filter(
-    (c) => c.id != sourceConnectionId && !destinationIds?.has(c.id)
+    (c) => c.id != sourceConnectionId && !destinationConnectionIds?.has(c.id)
+  );
+  const connRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection>
   );
 
-  const { fields, append, remove } = useFieldArray({
+  const { append, remove } = useFieldArray({
     control: form.control,
     name: 'destinations',
   });
 
-  async function onSubmit(values: FormValues) {
+  const fields = form.watch('destinations');
+
+  // Contains a list of the new destinations to be added that are specifically dynamo db connections
+  const newDynamoDestConnections = fields
+    .map((field) => connRecord[field.connectionId])
+    .filter((conn) => !!conn && isDynamoDBConnection(conn));
+
+  const { data: destinationConnectionSchemaMapsResp } = useQuery(
+    getConnectionSchemaMaps,
+    {
+      requests: newDynamoDestConnections.map((conn) => ({
+        connectionId: conn.id,
+      })),
+    },
+    { enabled: newDynamoDestConnections.length > 0 }
+  );
+
+  async function onSubmit(values: FormValues): Promise<void> {
     try {
+      const connMap = new Map(connections.map((c) => [c.id, c]));
       const job = await createJobConnections({
         jobId: id,
         destinations: values.destinations.map((d) => {
           return new JobDestination({
             connectionId: d.connectionId,
-            options: toJobDestinationOptions(
-              d,
-              connections.find((c) => c.id === d.connectionId)
-            ),
+            options: toJobDestinationOptions(d, connMap.get(d.connectionId)),
           });
         }),
       });
@@ -115,6 +141,11 @@ export default function Page({ params }: PageProps): ReactElement {
     }
   }
 
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+    splitConnections(availableConnections);
+  const sourceConnection = connRecord[sourceConnectionId ?? ''] as
+    | Connection
+    | undefined;
   return (
     <div className="job-details-container mx-24">
       <div className="my-10">
@@ -130,10 +161,13 @@ export default function Page({ params }: PageProps): ReactElement {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-12">
-              {fields.map((_, index) => {
-                const destOpts = form.watch(
-                  `destinations.${index}.destinationOptions`
-                );
+              {fields.map((f, index) => {
+                // not using the field here because it doesn't seem to always update when it needs to
+                const connId = f.connectionId;
+                const destOpts = f.destinationOptions;
+                const destConnection = connRecord[connId] as
+                  | Connection
+                  | undefined;
                 return (
                   <div key={index} className="space-y-4">
                     <div className="flex flex-row space-x-8">
@@ -147,34 +181,55 @@ export default function Page({ params }: PageProps): ReactElement {
                                 <Select
                                   onValueChange={(value: string) => {
                                     field.onChange(value);
-                                    setCurrConnection(
-                                      connections.find(
-                                        (c) =>
-                                          c.id ==
-                                          form.getValues().destinations[index]
-                                            .connectionId
-                                      )
-                                    );
-                                    form.setValue(
-                                      `destinations.${index}.destinationOptions`,
-                                      {}
-                                    );
+                                    const newDest = connRecord[value];
+                                    if (
+                                      newDest &&
+                                      isDynamoDBConnection(newDest) &&
+                                      sourceConnection &&
+                                      isDynamoDBConnection(sourceConnection)
+                                    ) {
+                                      const uniqueTables = new Set(
+                                        data?.job?.mappings.map(
+                                          (mapping) => mapping.table
+                                        )
+                                      );
+                                      form.setValue(
+                                        `destinations.${index}.destinationOptions`,
+                                        {
+                                          dynamodb: {
+                                            tableMappings: Array.from(
+                                              uniqueTables
+                                            ).map((table) => ({
+                                              sourceTable: table,
+                                              destinationTable: '',
+                                            })),
+                                          },
+                                        }
+                                      );
+                                    } else {
+                                      form.setValue(
+                                        `destinations.${index}.destinationOptions`,
+                                        {}
+                                      );
+                                    }
                                   }}
                                   value={field.value}
                                 >
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a destination ..." />
+                                    <SelectValue
+                                      ref={field.ref}
+                                      placeholder="Select a destination ..."
+                                    />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {availableConnections.map((connection) => (
-                                      <SelectItem
-                                        className="cursor-pointer"
-                                        key={connection.id}
-                                        value={connection.id}
-                                      >
-                                        {connection.name}
-                                      </SelectItem>
-                                    ))}
+                                    <ConnectionSelectContent
+                                      postgres={postgres}
+                                      mysql={mysql}
+                                      s3={s3}
+                                      mongodb={mongodb}
+                                      gcpcs={gcpcs}
+                                      dynamodb={dynamodb}
+                                    />
                                   </SelectContent>
                                 </Select>
                               </FormControl>
@@ -199,7 +254,7 @@ export default function Page({ params }: PageProps): ReactElement {
                     </div>
 
                     <DestinationOptionsForm
-                      connection={currConnection}
+                      connection={destConnection}
                       value={destOpts}
                       setValue={(newOpts) => {
                         form.setValue(
@@ -212,6 +267,20 @@ export default function Page({ params }: PageProps): ReactElement {
                           }
                         );
                       }}
+                      hideDynamoDbTableMappings={
+                        !isDynamoDBConnection(
+                          destConnection ?? new Connection()
+                        )
+                      }
+                      destinationDetailsRecord={getDestinationDetailsRecord(
+                        fields.map((field) => ({
+                          connectionId: field.connectionId,
+                          id: field.connectionId,
+                        })),
+                        connRecord,
+                        destinationConnectionSchemaMapsResp ??
+                          new GetConnectionSchemaMapsResponse()
+                      )}
                     />
                   </div>
                 );

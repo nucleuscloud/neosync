@@ -380,6 +380,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     shouldValidate: true,
                   });
                 }}
+                hideDynamoDbTableMappings={true}
+                destinationDetailsRecord={{}} // not used because we are hiding dynamodb table mappings
               />
             </div>
           </div>

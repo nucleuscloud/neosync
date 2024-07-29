@@ -12,7 +12,8 @@ interface Props {
   gcpcs?: Connection[];
   dynamodb?: Connection[];
 
-  newConnectionValue: string;
+  // Provide a value to include the new connection item
+  newConnectionValue?: string;
 }
 export default function ConnectionSelectContent(props: Props): ReactElement {
   const {
@@ -53,16 +54,18 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
             </SelectGroup>
           )
       )}
-      <SelectItem
-        className="cursor-pointer"
-        key="new-dst-connection"
-        value={newConnectionValue}
-      >
-        <div className="flex flex-row gap-1 items-center">
-          <PlusIcon />
-          <p>New Connection</p>
-        </div>
-      </SelectItem>
+      {!!newConnectionValue && (
+        <SelectItem
+          className="cursor-pointer"
+          key="new-dst-connection"
+          value={newConnectionValue}
+        >
+          <div className="flex flex-row gap-1 items-center">
+            <PlusIcon />
+            <p>New Connection</p>
+          </div>
+        </SelectItem>
+      )}
     </>
   );
 }
