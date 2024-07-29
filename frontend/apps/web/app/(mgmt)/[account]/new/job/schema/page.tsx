@@ -456,8 +456,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const dynamoDbDestinations =
     source && isDynamoDBConnection(source)
-      ? connectFormValues.destinations.map((d, idx) => ({
-          id: idx.toString(),
+      ? connectFormValues.destinations.map((d) => ({
+          id: d.connectionId,
           connectionId: d.connectionId,
         }))
       : [];

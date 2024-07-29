@@ -126,7 +126,7 @@ export type DestinationOptionsFormValues = Yup.InferType<
 >;
 
 const SchemaFormValuesDestinationOptions = Yup.object({
-  destinationId: Yup.string().required(),
+  destinationId: Yup.string().required(), // in this case it is the connection id
   dynamoDb: DynamoDbDestinationOptionsFormValues.optional(),
 });
 export type SchemaFormValuesDestinationOptions = Yup.InferType<
