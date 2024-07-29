@@ -40,7 +40,6 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const FormValues = Yup.object({
-  jobId: Yup.string().required(),
   destinations: Yup.array(NewDestinationFormValues).required(),
 });
 type FormValues = Yup.InferType<typeof FormValues>;
@@ -72,7 +71,6 @@ export default function Page({ params }: PageProps): ReactElement {
   const form = useForm({
     resolver: yupResolver<FormValues>(FormValues),
     defaultValues: {
-      jobId: id,
       destinations: [{ connectionId: '', destinationOptions: {} }],
     },
   });
