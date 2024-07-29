@@ -814,8 +814,8 @@ function setDefaultConnectFormValues(
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {},
-        destinations: job.destinations.map(
-          (dest) => getDefaultDestinationFormValues(dest) // todo: needs to include the table mappings
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
         ),
       };
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
