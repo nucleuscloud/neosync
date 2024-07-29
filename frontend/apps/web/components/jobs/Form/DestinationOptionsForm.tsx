@@ -12,12 +12,19 @@ interface DestinationOptionsProps {
   setValue(newVal: DestinationOptionsFormValues): void;
 
   hideInitTableSchema?: boolean;
+  hideDynamoDbTableMappings?: boolean;
 }
 
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
 ): ReactElement {
-  const { connection, value, setValue, hideInitTableSchema } = props;
+  const {
+    connection,
+    value,
+    setValue,
+    hideInitTableSchema,
+    hideDynamoDbTableMappings,
+  } = props;
 
   if (!connection) {
     return <></>;
