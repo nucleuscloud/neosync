@@ -6,6 +6,7 @@ import {
   JobMappingFormValues,
   NewDestinationFormValues,
   SchemaFormValues,
+  SchemaFormValuesDestinationOptions,
   VirtualForeignConstraintFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -304,6 +305,13 @@ export function getCreateNewSyncJobRequest(
   accountId: string,
   getConnectionById: GetConnectionById
 ): CreateJobRequest {
+  const dstOptRecord = values.schema.destinationOptions.reduce(
+    (record, dstOpt) => {
+      record[dstOpt.destinationId] = dstOpt;
+      return record;
+    },
+    {} as Record<string, SchemaFormValuesDestinationOptions>
+  );
   return new CreateJobRequest({
     accountId,
     jobName: values.define.jobName,
@@ -312,7 +320,24 @@ export function getCreateNewSyncJobRequest(
     mappings: toSyncJobMappings(values),
     virtualForeignKeys: toSyncVirtualForeignKeys(values),
     source: toJobSource(values, getConnectionById),
-    destinations: toSyncJobDestinations(values, getConnectionById),
+    destinations: toSyncJobDestinations(
+      {
+        connect: {
+          ...values.connect,
+          destinations: values.connect.destinations.map((d) => {
+            const opt = dstOptRecord[d.connectionId];
+            return {
+              ...d,
+              destinationOptions: {
+                ...d.destinationOptions,
+                ...opt,
+              },
+            };
+          }),
+        },
+      },
+      getConnectionById
+    ),
     workflowOptions: toWorkflowOptions(values.define.workflowSettings),
     syncOptions: toSyncOptions(values),
   });

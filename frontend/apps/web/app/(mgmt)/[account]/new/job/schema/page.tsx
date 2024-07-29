@@ -429,7 +429,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const destOpt = destOpts.find(
         (d) => d.destinationId === req.destinationId
       );
-      const tm = destOpt?.dynamoDb?.tableMappings.find(
+      const tm = destOpt?.dynamodb?.tableMappings.find(
         (tm) => tm.sourceTable === req.souceName
       );
       if (tm) {
@@ -529,9 +529,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 const destOpts = form.getValues('destinationOptions');
                 const updatedDestOpts = destOpts
                   .map((opt) => {
-                    if (opt.dynamoDb) {
+                    if (opt.dynamodb) {
                       const updatedTableMappings =
-                        opt.dynamoDb.tableMappings.filter((tm) => {
+                        opt.dynamodb.tableMappings.filter((tm) => {
                           // Check if any columns remain for the table
                           const tableColumnsExist = remainingTables.some(
                             (table) => table === tm.sourceTable
@@ -542,7 +542,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       return {
                         ...opt,
                         dynamoDb: {
-                          ...opt.dynamoDb,
+                          ...opt.dynamodb,
                           tableMappings: updatedTableMappings,
                         },
                       };
@@ -550,7 +550,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     return opt;
                   })
                   .filter(
-                    (opt) => (opt.dynamoDb?.tableMappings.length ?? 0) > 0
+                    (opt) => (opt.dynamodb?.tableMappings.length ?? 0) > 0
                   );
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
@@ -597,14 +597,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     const opt = existing.get(dest.id);
                     if (opt) {
                       const sourceSet = new Set(
-                        opt.dynamoDb?.tableMappings.map(
+                        opt.dynamodb?.tableMappings.map(
                           (mapping) => mapping.sourceTable
                         ) ?? []
                       );
 
                       // Add missing uniqueCollections to the existing tableMappings
                       const updatedTableMappings = [
-                        ...(opt.dynamoDb?.tableMappings ?? []),
+                        ...(opt.dynamodb?.tableMappings ?? []),
                         ...uniqueCollections
                           .map((c) => {
                             const [, table] = c.split('.');
@@ -620,8 +620,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
                       return {
                         ...opt,
-                        dynamoDb: {
-                          ...opt.dynamoDb,
+                        dynamodb: {
+                          ...opt.dynamodb,
                           tableMappings: updatedTableMappings,
                         },
                       };
@@ -629,19 +629,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
                     return {
                       destinationId: dest.id,
-                      dynamoDb: {
+                      dynamodb: {
                         tableMappings: uniqueCollections.map((c) => {
                           const [, table] = c.split('.');
                           return {
                             sourceTable: table,
-                            destinationTable: 'todo',
+                            destinationTable: '',
                           };
                         }),
                       },
                     };
                   }
                 );
-
                 form.setValue('destinationOptions', updated);
               }}
               destinationDetailsRecord={getDestinationDetailsRecord(

@@ -238,16 +238,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     name: 'mappings',
   });
 
-  // const {
-  //   append: appendDestOpts,
-  //   remove: removeDestOpts,
-  //   update: updateDestOpts,
-  //   fields: destOptsValues,
-  // } = useFieldArray<DataSyncSourceFormValues>({
-  //   control: form.control,
-  //   name: 'destinationOptions',
-  // });
-
   useEffect(() => {
     if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
       return;
@@ -717,7 +707,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                           const [, table] = c.split('.');
                           return {
                             sourceTable: table,
-                            destinationTable: 'todo',
+                            destinationTable: '',
                           };
                         }),
                       },
@@ -978,7 +968,7 @@ function getJobSource(
         destOpts.push({
           destinationId: d.id,
           dynamodb: {
-            tableMappings: d.options.config.value.tableMappings,
+            tableMappings: d.options.config.value.tableMappings ?? [],
           },
         });
       });
