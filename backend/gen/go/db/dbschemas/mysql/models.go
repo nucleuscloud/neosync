@@ -5,3 +5,14 @@
 package mysql_queries
 
 import ()
+
+type AdminPrivilege struct {
+	PrivilegeType string
+	Grantee       string
+}
+
+type DbPrivilege struct {
+	TableSchema   string
+	PrivilegeType string
+	Grantee       string
+}

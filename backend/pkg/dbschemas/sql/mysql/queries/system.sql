@@ -94,18 +94,59 @@ GROUP BY
 
 
 -- name: GetMysqlRolePermissions :many
+WITH admin_privileges AS (
+	SELECT
+		privilege_type
+	FROM
+		INFORMATION_SCHEMA.USER_PRIVILEGES
+	WHERE
+		USER_PRIVILEGES.GRANTEE = CONCAT("'",
+			SUBSTRING_INDEX(CURRENT_USER(),
+				'@',
+				1),
+			"'@'%'")
+),
+db_privileges AS (
+	SELECT
+		TABLE_SCHEMA AS table_schema,
+		PRIVILEGE_TYPE AS privilege_type
+	FROM
+		INFORMATION_SCHEMA.SCHEMA_PRIVILEGES
+	WHERE
+		SCHEMA_PRIVILEGES.GRANTEE = CONCAT("'",
+			SUBSTRING_INDEX(CURRENT_USER(),
+				'@',
+				1),
+			"'@'%'")
+)
 SELECT
-    tp.TABLE_SCHEMA AS table_schema,
-    tp.TABLE_NAME AS table_name,
-    tp.PRIVILEGE_TYPE AS privilege_type
+	t.TABLE_SCHEMA AS table_schema, t.TABLE_NAME AS table_name, ap.privilege_type AS privilege_type
 FROM
-    information_schema.TABLE_PRIVILEGES AS tp
+	INFORMATION_SCHEMA.TABLES AS t
+	JOIN admin_privileges AS ap
 WHERE
-    tp.TABLE_SCHEMA NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
-    AND (tp.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'"))
-ORDER BY
-    tp.TABLE_SCHEMA,
-    tp.TABLE_NAME;
+	t.TABLE_SCHEMA NOT IN('mysql', 'sys', 'performance_schema', 'information_schema')
+UNION
+SELECT
+	t.TABLE_SCHEMA AS table_schema,
+	t.TABLE_NAME AS table_name,
+	dp.privilege_type AS privilege_type
+FROM
+	INFORMATION_SCHEMA.TABLES AS t
+	JOIN db_privileges AS dp ON dp.table_schema = t.table_schema
+WHERE
+	t.TABLE_SCHEMA IN(
+		SELECT
+			table_schema FROM db_privileges)
+UNION
+SELECT
+	TABLE_PRIVILEGES.TABLE_SCHEMA AS table_schema,
+	TABLE_PRIVILEGES.TABLE_NAME AS table_name,
+	TABLE_PRIVILEGES.PRIVILEGE_TYPE AS privilege_type
+FROM
+	INFORMATION_SCHEMA.TABLE_PRIVILEGES
+WHERE
+	TABLE_PRIVILEGES.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'");
 
 
 -- sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))

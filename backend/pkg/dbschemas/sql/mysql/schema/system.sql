@@ -83,4 +83,26 @@ create table information_schema.triggers (
   event_manipulation text not null,
   action_orientation text not null,
   action_timing text not null
-)
+);
+
+create table information_schema.user_privileges (
+  privilege_type text not null,
+  grantee text not null
+);
+
+create table information_schema.schema_privileges (
+  table_schema text not null,
+  privilege_type text not null,
+  grantee text not null
+);
+
+create table admin_privileges (
+  privilege_type text not null,
+  grantee text not null
+);
+
+create table db_privileges (
+  table_schema text not null,
+  privilege_type text not null,
+  grantee text not null
+);
