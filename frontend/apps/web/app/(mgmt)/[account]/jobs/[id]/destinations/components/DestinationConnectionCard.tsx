@@ -1,5 +1,7 @@
 'use client';
 import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
+import ButtonText from '@/components/ButtonText';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -32,6 +34,7 @@ import {
   deleteJobDestinationConnection,
   updateJobDestinationConnection,
 } from '@neosync/sdk/connectquery';
+import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
 import {
@@ -200,14 +203,7 @@ export default function DestinationConnectionCard({
           </CardContent>
           <CardFooter>
             <div className="flex flex-row items-center justify-between w-full mt-4">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={onDelete}
-                disabled={isDeleteDisabled}
-              >
-                Delete
-              </Button>
+              <DeleteButton isDisabled={isDeleteDisabled} onDelete={onDelete} />
               <Button disabled={!form.formState.isDirty} type="submit">
                 Save
               </Button>
@@ -216,6 +212,27 @@ export default function DestinationConnectionCard({
         </form>
       </Form>
     </Card>
+  );
+}
+
+interface DeleteButtonProps {
+  isDisabled?: boolean;
+  onDelete(): Promise<void> | void;
+}
+
+function DeleteButton(props: DeleteButtonProps): ReactElement {
+  const { isDisabled, onDelete } = props;
+  return (
+    <DeleteConfirmationDialog
+      trigger={
+        <Button type="button" variant="destructive" disabled={isDisabled}>
+          <ButtonText leftIcon={<TrashIcon />} text="Delete" />
+        </Button>
+      }
+      headerText="Are you sure you want to delete this destination connection?"
+      description="Deleting this is irreversable and will cause data to stop syncing to this destination!"
+      onConfirm={async () => onDelete()}
+    />
   );
 }
 
