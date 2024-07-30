@@ -141,5 +141,3 @@ volumes:
 networks:
   neosync-network:
     name: neosync-network
-  temporal-network:
-    name: temporal-network
