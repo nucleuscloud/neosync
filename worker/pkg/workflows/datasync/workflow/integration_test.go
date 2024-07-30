@@ -390,10 +390,10 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 	}
 }
 
-func (s *IntegrationTestSuite) SetupDynamoDbTable(tableName, primaryKey string) error {
+func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName, primaryKey string) error {
 	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
 
-	_, err := s.localstack.dynamoclient.CreateTable(s.ctx, &dynamodb.CreateTableInput{
+	_, err := s.localstack.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
 		TableName:            &tableName,
 		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
 		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
@@ -402,7 +402,20 @@ func (s *IntegrationTestSuite) SetupDynamoDbTable(tableName, primaryKey string) 
 	if err != nil {
 		return err
 	}
-	return nil
+	return s.waitUntilDynamoTableExists(ctx, tableName)
+}
+
+func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
+	input := &dynamodb.DescribeTableInput{TableName: &tableName}
+	for {
+		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
+		if err != nil {
+			return err
+		}
+		if out.Table.TableStatus == dyntypes.TableStatusActive {
+			return nil
+		}
+	}
 }
 
 func (s *IntegrationTestSuite) DestroyDynamoDbTable(tableName string) error {

@@ -32,6 +32,7 @@ import (
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
@@ -501,9 +502,10 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					// setup
 					sourceTableName := "test-sync-source"
 					destTableName := "test-sync-dest"
-					err := s.SetupDynamoDbTable(sourceTableName, "id")
-					require.NoError(t, err)
-					err = s.SetupDynamoDbTable(destTableName, "id")
+					errgrp, errctx := errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.SetupDynamoDbTable(errctx, sourceTableName, "id") })
+					errgrp.Go(func() error { return s.SetupDynamoDbTable(errctx, destTableName, "id") })
+					err := errgrp.Wait()
 					require.NoError(t, err)
 
 					err = s.InsertDynamoDBRecords(sourceTableName, []map[string]dyntypes.AttributeValue{
