@@ -4,6 +4,7 @@ on:
       - cli/**.go
       - backend/**.go
       - worker/**.go
+      - internal/**.go
       - go.mod
       - go.sum
   push:
@@ -13,6 +14,7 @@ on:
       - cli/**.go
       - backend/**.go
       - worker/**.go
+      - internal/**.go
       - go.mod
       - go.sum
 
