@@ -409,7 +409,6 @@ func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName
 func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
-		fmt.Println("waiting for dynamodb table to exist...")
 		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
