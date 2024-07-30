@@ -86,6 +86,12 @@ create table information_schema.triggers (
   action_timing text not null
 );
 
+create table information_schema.check_constraints (
+  constraint_schema text not null,
+  constraint_name text not null,
+  check_clause text not null
+);
+
 create table information_schema.user_privileges (
   privilege_type text not null,
   grantee text not null

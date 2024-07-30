@@ -32,7 +32,8 @@ SELECT
     COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
-    rc.delete_rule as delete_rule
+    rc.delete_rule as delete_rule,
+    cc.check_clause as check_clause
 FROM
     information_schema.table_constraints AS tc
 LEFT JOIN information_schema.key_column_usage AS kcu
@@ -47,6 +48,9 @@ LEFT JOIN information_schema.referential_constraints as rc
 	ON rc.constraint_schema = tc.table_schema
 	AND rc.table_name = tc.table_name
 	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
     tc.table_schema IN (sqlc.slice('schemas'))
 GROUP BY 
@@ -57,8 +61,8 @@ GROUP BY
     kcu.referenced_table_schema,
     kcu.referenced_table_name,
     rc.update_rule,
-    rc.delete_rule;
-
+    rc.delete_rule,
+    cc.check_clause;
 
 -- name: GetTableConstraints :many
 SELECT
@@ -72,7 +76,8 @@ SELECT
     COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
-    rc.delete_rule as delete_rule
+    rc.delete_rule as delete_rule,
+    cc.check_clause as check_clause
 FROM
     information_schema.table_constraints AS tc
 LEFT JOIN information_schema.key_column_usage AS kcu
@@ -87,6 +92,9 @@ LEFT JOIN information_schema.referential_constraints as rc
 	ON rc.constraint_schema = tc.table_schema
 	AND rc.table_name = tc.table_name
 	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
     tc.table_schema = sqlc.arg('schema')
     AND tc.table_name IN (sqlc.slice('tables'))
@@ -98,7 +106,8 @@ GROUP BY
     kcu.referenced_table_schema,
     kcu.referenced_table_name,
     rc.update_rule,
-    rc.delete_rule;
+    rc.delete_rule,
+    cc.check_clause;
 
 
 -- name: GetMysqlRolePermissions :many

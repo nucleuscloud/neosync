@@ -9,12 +9,13 @@ import (
 	"html/template"
 	"io"
 	"os"
+	"regexp"
+	"slices"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
-	"github.com/xwb1989/sqlparser"
 )
 
 type Input struct {
@@ -77,49 +78,59 @@ func parsePostegresStatements(sql string) ([]*Table, error) {
 	return tables, nil
 }
 
-// todo parser breaks when there are foreign key constraints defined in the create table statements
-// work around for now is to use alter table statements to add foreign key constraints to tables
-func parseMysqlStatements(sql string) ([]*Table, error) {
-	var tables []*Table
-	var currentSchema string
+// todo fix very brittle
+func parseSQLStatements(sql string) []*Table {
+	lines := strings.Split(sql, "\n")
+	tableColumnsMap := make(map[string][]string)
+	var currentSchema, currentTable string
 
-	r := strings.NewReader(sql)
+	reUSE := regexp.MustCompile(`USE\s+(\w+);`)
+	reCreateTable := regexp.MustCompile(`CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)\s*\.\s*(\w+)\s*\(`)
+	reCreateTableNoSchema := regexp.MustCompile(`CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)\s*\(`)
+	reColumn := regexp.MustCompile(`^\s*([\w]+)\s+[\w\(\)]+.*`)
 
-	tokens := sqlparser.NewTokenizer(r)
-	for {
-		parsedStmt, err := sqlparser.ParseNext(tokens)
-		if err == io.EOF {
-			break
-		}
-		switch stmt := parsedStmt.(type) {
-		case *sqlparser.DBDDL:
-			currentSchema = stmt.DBName
-		case *sqlparser.DDL:
-			switch stmt.Action {
-			case sqlparser.CreateStr:
-				if stmt.TableSpec != nil {
-					s := stmt.NewName.Qualifier.String()
-					if s == "" {
-						s = currentSchema
-					}
-					table := &Table{
-						Schema: s,
-						Name:   stmt.NewName.Name.String(),
-					}
-					for _, col := range stmt.TableSpec.Columns {
-						column := &Column{
-							Name: col.Name.String(),
-						}
-						table.Columns = append(table.Columns, column)
-					}
-					tables = append(tables, table)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if matches := reUSE.FindStringSubmatch(line); len(matches) > 1 {
+			currentSchema = matches[1]
+		} else if matches := reCreateTable.FindStringSubmatch(line); len(matches) > 2 {
+			currentSchema = matches[1]
+			currentTable = matches[2]
+		} else if matches := reCreateTableNoSchema.FindStringSubmatch(line); len(matches) > 1 {
+			currentTable = matches[1]
+		} else if currentTable != "" {
+			if matches := reColumn.FindStringSubmatch(line); len(matches) > 1 {
+				columnName := matches[1]
+				if slices.Contains([]string{"primary key", "constraint", "key", "unique", "primary"}, strings.ToLower(matches[1])) {
+					continue
+				}
+				key := currentSchema + "." + currentTable
+				tableColumnsMap[key] = append(tableColumnsMap[key], columnName)
+			} else if strings.HasPrefix(line, "PRIMARY KEY") || strings.HasPrefix(line, "CONSTRAINT") || strings.HasPrefix(line, "UNIQUE") || strings.HasPrefix(line, "KEY") || strings.HasPrefix(line, "ENGINE") || strings.HasPrefix(line, ")") {
+				// Ignore key constraints and end of table definition
+				if strings.HasPrefix(line, ")") {
+					currentTable = ""
 				}
 			}
-		case *sqlparser.Use:
-			currentSchema = stmt.DBName.String()
 		}
 	}
-	return tables, nil
+	res := []*Table{}
+	for table, cols := range tableColumnsMap {
+		tableCols := []*Column{}
+		for _, c := range cols {
+			tableCols = append(tableCols, &Column{
+				Name: c,
+			})
+		}
+		split := strings.Split(table, ".")
+		res = append(res, &Table{
+			Schema:  split[0],
+			Name:    split[1],
+			Columns: tableCols,
+		})
+	}
+
+	return res
 }
 
 func generateJobMapping(tables []*Table) []*mgmtv1alpha1.JobMapping {
@@ -248,11 +259,7 @@ func main() {
 			}
 			tables = t
 		} else if input.Driver == "mysql" {
-			t, err := parseMysqlStatements(sqlContent)
-			if err != nil {
-				fmt.Println("Error parsing mysql SQL schema:", err)
-				return
-			}
+			t := parseSQLStatements(sqlContent)
 			tables = t
 		}
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -280,7 +281,19 @@ type buildTableColRequest struct {
 }
 
 func buildTableCol(record *buildTableColRequest) string {
-	pieces := []string{EscapeMysqlColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
+	pieces := []string{EscapeMysqlColumn(record.ColumnName), record.DataType}
+
+	if record.GeneratedExpression != "" {
+		genType := ""
+		if record.IdentityType != nil && *record.IdentityType == "STORED GENERATED" {
+			genType = "STORED"
+		} else if record.IdentityType != nil && *record.IdentityType == "VIRTUAL GENERATED" {
+			genType = "VIRTUAL"
+		}
+		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", decodeExpression(record.GeneratedExpression), genType))
+	} else {
+		pieces = append(pieces, buildNullableText(record.IsNullable))
+	}
 
 	if record.ColumnDefault != "" {
 		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
@@ -290,15 +303,27 @@ func buildTableCol(record *buildTableColRequest) string {
 		pieces = append(pieces, fmt.Sprintf("%s PRIMARY KEY", *record.IdentityType))
 	}
 
-	if record.GeneratedExpression != "" {
-		genType := "VIRTUAL"
-		if record.IdentityType != nil && *record.IdentityType == "STORED GENERATED" {
-			genType = "STORED"
-		}
-		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS %s %s", record.GeneratedExpression, genType))
+	return strings.Join(pieces, " ")
+}
+
+func decodeExpression(expr string) string {
+	// regex patterns for common encodings
+	replacements := map[string]string{
+		"_utf8mb4\\\\' \\\\'": "' '",
+		"_utf8mb4":            "",
+		"\\\\'":               "'",
+		"\\\\\"":              "\"",
+		"\\\\n":               "\n",
+		"\\\\t":               "\t",
 	}
 
-	return strings.Join(pieces, " ")
+	expr = strings.ReplaceAll(expr, "`", "")
+	for pattern, replacement := range replacements {
+		re := regexp.MustCompile(pattern)
+		expr = re.ReplaceAllString(expr, replacement)
+	}
+
+	return expr
 }
 
 func buildNullableText(isNullable bool) string {
@@ -347,8 +372,7 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 			ConstraintType: sqlmanager_shared.ForeignConstraintType,
 		}, nil
 	case "CHECK":
-		// TODO fix
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK %s;", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, decodeExpression(c.CheckClause.String))
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.CheckConstraintType,
@@ -537,14 +561,12 @@ CREATE PROCEDURE NeosyncAddConstraintIfNotExists()
 BEGIN
     DECLARE constraint_exists INT DEFAULT 0;
 
-    -- check if the constraint exists
     SELECT COUNT(*) INTO constraint_exists
     FROM information_schema.TABLE_CONSTRAINTS
     WHERE CONSTRAINT_SCHEMA = '%s'
     AND TABLE_NAME = '%s'
     AND CONSTRAINT_NAME = '%s';
 
-    -- if the constraint does not exist, create it
     IF constraint_exists = 0 THEN
         %s
     END IF;
@@ -567,14 +589,12 @@ CREATE PROCEDURE NeosyncAddIndexIfNotExists()
 BEGIN
     DECLARE index_exists INT DEFAULT 0;
 
-    -- check if the index exists
     SELECT COUNT(*) INTO index_exists
     FROM information_schema.statistics
     WHERE table_schema = '%s'
     AND table_name = '%s'
     AND index_name = '%s';
 
-    -- if the index does not exist, create it
     IF index_exists = 0 THEN
         CREATE INDEX %s ON %s.%s(%s);
     END IF;

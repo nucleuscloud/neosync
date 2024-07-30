@@ -498,14 +498,15 @@ SELECT
     COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
-    rc.delete_rule as delete_rule
+    rc.delete_rule as delete_rule,
+    cc.check_clause as check_clause
 FROM
     information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
+LEFT JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
-JOIN information_schema.columns as c
+LEFT JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
@@ -513,6 +514,9 @@ LEFT JOIN information_schema.referential_constraints as rc
 	ON rc.constraint_schema = tc.table_schema
 	AND rc.table_name = tc.table_name
 	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
     tc.table_schema = ?
     AND tc.table_name IN (/*SLICE:tables*/?)
@@ -524,7 +528,8 @@ GROUP BY
     kcu.referenced_table_schema,
     kcu.referenced_table_name,
     rc.update_rule,
-    rc.delete_rule
+    rc.delete_rule,
+    cc.check_clause
 `
 
 type GetTableConstraintsParams struct {
@@ -544,6 +549,7 @@ type GetTableConstraintsRow struct {
 	ReferencedColumnNames json.RawMessage
 	UpdateRule            sql.NullString
 	DeleteRule            sql.NullString
+	CheckClause           sql.NullString
 }
 
 func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
@@ -578,6 +584,7 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 			&i.ReferencedColumnNames,
 			&i.UpdateRule,
 			&i.DeleteRule,
+			&i.CheckClause,
 		); err != nil {
 			return nil, err
 		}
@@ -602,26 +609,39 @@ SELECT
     tc.constraint_type AS constraint_type,
     COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
     COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
-    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule,
+    cc.check_clause as check_clause
 FROM
     information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
+LEFT JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
-JOIN information_schema.columns as c
+LEFT JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
-    tc.table_schema IN (/*SLICE:schemas*/?) 
+    tc.table_schema IN (/*SLICE:schemas*/?)
 GROUP BY 
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
     tc.constraint_type,
     kcu.referenced_table_schema,
-    kcu.referenced_table_name
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule,
+    cc.check_clause
 `
 
 type GetTableConstraintsBySchemasRow struct {
@@ -634,6 +654,9 @@ type GetTableConstraintsBySchemasRow struct {
 	ReferencedSchemaName  string
 	ReferencedTableName   string
 	ReferencedColumnNames json.RawMessage
+	UpdateRule            sql.NullString
+	DeleteRule            sql.NullString
+	CheckClause           sql.NullString
 }
 
 func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
@@ -665,6 +688,9 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, sch
 			&i.ReferencedSchemaName,
 			&i.ReferencedTableName,
 			&i.ReferencedColumnNames,
+			&i.UpdateRule,
+			&i.DeleteRule,
+			&i.CheckClause,
 		); err != nil {
 			return nil, err
 		}

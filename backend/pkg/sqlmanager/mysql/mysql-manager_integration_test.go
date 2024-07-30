@@ -308,7 +308,7 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 	require.NoError(s.T(), err)
 }
 
-func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
+func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_exec() {
 	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
@@ -317,9 +317,13 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
 		{Schema: schema, Table: "child1"},
 		{Schema: schema, Table: "custom_table"},
 		{Schema: schema, Table: "unique_emails_and_usernames"},
+		{Schema: schema, Table: "t1"},
+		{Schema: schema, Table: "t2"},
+		{Schema: schema, Table: "t3"},
 		{Schema: schema, Table: "t4"},
 		{Schema: schema, Table: "t5"},
 		{Schema: schema, Table: "employee_log"},
+		{Schema: schema, Table: "users"},
 	})
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), statements)

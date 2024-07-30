@@ -2,7 +2,6 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -191,42 +190,29 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if sqlopts.InitSchema {
-				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
-				}
-				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies.ForeignKeyConstraints)))
-				tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
-				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
-				if err != nil {
-					destdb.Db.Close()
-					return nil, err
-				}
-				if orderedTablesResp.HasCycles {
-					destdb.Db.Close()
-					return nil, errors.New("init schema: unable to handle circular dependencies")
-				}
-
-				tableCreateStmts := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					schema, table := sqlmanager_shared.SplitTableKey(table)
-					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					initStmt, err := sourcedb.Db.GetCreateTableStatement(
-						ctx,
-						schema,
-						table,
-					)
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
+				if sqlopts.InitSchema {
+					tables := []*sqlmanager_shared.SchemaTable{}
+					for tableKey := range uniqueTables {
+						schema, table := sqlmanager_shared.SplitTableKey(tableKey)
+						tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 					}
-					tableCreateStmts = append(tableCreateStmts, initStmt)
-				}
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sqlmanager_shared.BatchExecOpts{})
-				if err != nil {
-					destdb.Db.Close()
-					return nil, fmt.Errorf("unable to exec mysql table create statements: %w", err)
+
+					initblocks, err := sourcedb.Db.GetSchemaInitStatements(ctx, tables)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, block := range initblocks {
+						slogger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
+						if len(block.Statements) == 0 {
+							continue
+						}
+						err = destdb.Db.BatchExec(ctx, batchSizeConst, block.Statements, &sqlmanager_shared.BatchExecOpts{})
+						if err != nil {
+							destdb.Db.Close()
+							return nil, fmt.Errorf("unable to exec mysql %s statements: %w", block.Label, err)
+						}
+					}
 				}
 			}
 			// truncate statements
