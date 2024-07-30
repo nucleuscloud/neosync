@@ -36,12 +36,12 @@ import {
 type ExtractCase<T> = T extends { case: infer U } ? U : never;
 
 // Extraction type that pulls out all of the connection config cases
-type ConnectionConfigCase = NonNullable<
+export type ConnectionConfigCase = NonNullable<
   ExtractCase<ConnectionConfig['config']>
 >;
 
 // Key is Source config, set of values are allowed destinations
-const ALLOWED_SOURCE_CONNECTION_PAIRS: Record<
+const ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS: Record<
   ConnectionConfigCase,
   Set<ConnectionConfigCase>
 > = {
@@ -67,6 +67,61 @@ const ALLOWED_SOURCE_CONNECTION_PAIRS: Record<
     'gcpCloudstorageConfig',
   ]),
 };
+function reverseMap(
+  originalMap: Record<ConnectionConfigCase, Set<ConnectionConfigCase>>
+): Record<ConnectionConfigCase, Set<ConnectionConfigCase>> {
+  const reversedMap: Record<ConnectionConfigCase, Set<ConnectionConfigCase>> = {
+    awsS3Config: new Set<ConnectionConfigCase>(),
+    dynamodbConfig: new Set<ConnectionConfigCase>(),
+    gcpCloudstorageConfig: new Set<ConnectionConfigCase>(),
+    localDirConfig: new Set<ConnectionConfigCase>(),
+    mongoConfig: new Set<ConnectionConfigCase>(),
+    mysqlConfig: new Set<ConnectionConfigCase>(),
+    openaiConfig: new Set<ConnectionConfigCase>(),
+    pgConfig: new Set<ConnectionConfigCase>(),
+  };
+
+  Object.entries(originalMap).forEach(([source, destinations]) => {
+    destinations.forEach((destination) => {
+      if (!reversedMap[destination]) {
+        reversedMap[destination] = new Set<ConnectionConfigCase>();
+      }
+      reversedMap[destination].add(source as ConnectionConfigCase);
+    });
+  });
+
+  return reversedMap;
+}
+const ALLOWED_SYNC_DEST_CONNECTION_PAIRS = reverseMap(
+  ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS
+);
+
+export function getAllowedSyncDestinationTypes(
+  sourceType?: ConnectionConfigCase
+): Set<ConnectionConfigCase> {
+  if (sourceType) {
+    return new Set(ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS[sourceType]);
+  }
+
+  return new Set(
+    Object.values(ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS).flatMap((set) =>
+      Array.from(set)
+    )
+  );
+}
+
+export function getAllowedSyncSourceTypes(
+  destTypes: ConnectionConfigCase[] = []
+): Set<ConnectionConfigCase> {
+  const filteredDests = destTypes.filter(
+    (dt) => !DESTINATION_ONLY_CONNECTION_TYPES.has(dt)
+  );
+  return new Set(
+    filteredDests
+      .map((dest) => ALLOWED_SYNC_DEST_CONNECTION_PAIRS[dest])
+      .flatMap((set) => Array.from(set))
+  );
+}
 
 // Given two connections, determines if they are a valid pair.
 export function isValidConnectionPair(
@@ -81,7 +136,9 @@ export function isValidConnectionPair(
   }
 
   const allowsPairs =
-    ALLOWED_SOURCE_CONNECTION_PAIRS[sourceConn.connectionConfig.config.case];
+    ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS[
+      sourceConn.connectionConfig.config.case
+    ];
 
   return (
     allowsPairs.size > 0 &&
@@ -89,71 +146,38 @@ export function isValidConnectionPair(
   );
 }
 
-export type ConnectionType =
-  | 'postgres'
-  | 'mysql'
-  | 'aws-s3'
-  | 'openai'
-  | 'mongodb'
-  | 'gcp-cloud-storage'
-  | 'dynamodb';
-
 // Variant of a connection type.
 export type ConnectionTypeVariant = 'neon' | 'supabase';
 
-export const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionType>([
-  'aws-s3',
-  'gcp-cloud-storage',
+const DESTINATION_ONLY_CONNECTION_TYPES = new Set<ConnectionConfigCase>([
+  'awsS3Config',
+  'gcpCloudstorageConfig',
 ]);
 
 export function getConnectionType(
-  connectionConfig: ConnectionConfig
-): ConnectionType | null {
-  switch (connectionConfig.config.case) {
-    case 'pgConfig':
-      return 'postgres';
-    case 'mysqlConfig':
-      return 'mysql';
-    case 'awsS3Config':
-      return 'aws-s3';
-    case 'openaiConfig':
-      return 'openai';
-    case 'mongoConfig':
-      return 'mongodb';
-    case 'gcpCloudstorageConfig':
-      return 'gcp-cloud-storage';
-    case 'dynamodbConfig':
-      return 'dynamodb';
-    default:
-      return null;
-  }
+  connectionConfig: PlainMessage<ConnectionConfig>
+): ConnectionConfigCase | null {
+  return connectionConfig.config.case ?? null;
 }
+
+const CONNECTION_CATEGORY_MAP: Record<ConnectionConfigCase, string> = {
+  awsS3Config: 'AWS S3',
+  dynamodbConfig: 'DynamoDB',
+  gcpCloudstorageConfig: 'GCP Cloud Storage',
+  localDirConfig: 'Local Directory',
+  mongoConfig: 'MongoDB',
+  mysqlConfig: 'MySQL',
+  openaiConfig: 'OpenAI',
+  pgConfig: 'PostgreSQL',
+};
 
 // Used for the connections data table
 export function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
-  if (!cc) {
+  if (!cc || !cc.config.case) {
     return '-';
   }
-  switch (cc.config.case) {
-    case 'pgConfig':
-      return 'Postgres';
-    case 'mysqlConfig':
-      return 'MySQL';
-    case 'awsS3Config':
-      return 'AWS S3';
-    case 'openaiConfig':
-      return 'OpenAI';
-    case 'localDirConfig':
-      return 'Local Dir';
-    case 'mongoConfig':
-      return 'MongoDB';
-    case 'gcpCloudstorageConfig':
-      return 'GCP Cloud Storage';
-    case 'dynamodbConfig':
-      return 'DynamoDB';
-    default:
-      return '-';
-  }
+  const connType = getConnectionType(cc);
+  return connType ? CONNECTION_CATEGORY_MAP[connType] : '-';
 }
 
 export function buildConnectionConfigDynamoDB(

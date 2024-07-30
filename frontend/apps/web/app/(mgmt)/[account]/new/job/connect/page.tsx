@@ -34,7 +34,8 @@ import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
 import {
-  DESTINATION_ONLY_CONNECTION_TYPES,
+  getAllowedSyncDestinationTypes,
+  getAllowedSyncSourceTypes,
   getConnectionType,
 } from '../../../connections/util';
 import { getNewJobSessionKeys } from '../../../jobs/util';
@@ -173,25 +174,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         new ConnectionConfig()
                                     )
                                   )
+                                  .filter((x) => !!x)
                               );
-                              connTypes.forEach((connType) => {
-                                if (
-                                  connType &&
-                                  !DESTINATION_ONLY_CONNECTION_TYPES.has(
-                                    connType
-                                  )
-                                ) {
-                                  urlParams.append('connectionType', connType);
-                                }
-                              });
-                              if (
-                                urlParams.getAll('connectionType').length === 0
-                              ) {
-                                urlParams.append('connectionType', 'postgres');
-                                urlParams.append('connectionType', 'mysql');
-                                urlParams.append('connectionType', 'mongodb');
-                                urlParams.append('connectionType', 'dynamodb');
-                              }
+                              const allowedSourceTypes =
+                                getAllowedSyncSourceTypes(
+                                  Array.from(connTypes)
+                                );
+                              allowedSourceTypes.forEach((sourceType) =>
+                                urlParams.append('connectionType', sourceType)
+                              );
 
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
@@ -278,51 +269,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       const connection = connections.find(
                                         (c) => c.id === sourceId
                                       );
-                                      const connType = getConnectionType(
-                                        connection?.connectionConfig ??
-                                          new ConnectionConfig()
-                                      );
 
                                       if (value === NEW_CONNECTION_VALUE) {
                                         const urlParams = new URLSearchParams({
                                           returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
                                         });
 
-                                        if (connType) {
-                                          urlParams.append(
-                                            'connectionType',
-                                            connType
+                                        const allowedDestinationConnectionTypes =
+                                          getAllowedSyncDestinationTypes(
+                                            connection?.connectionConfig?.config
+                                              .case
                                           );
-                                        }
-                                        if (
-                                          urlParams.getAll('connectionType')
-                                            .length === 0
-                                        ) {
-                                          urlParams.append(
-                                            'connectionType',
-                                            'postgres'
-                                          );
-                                          urlParams.append(
-                                            'connectionType',
-                                            'mysql'
-                                          );
-                                          urlParams.append(
-                                            'connectionType',
-                                            'aws-s3'
-                                          );
-                                          urlParams.append(
-                                            'connectionType',
-                                            'gcp-cloud-storage'
-                                          );
-                                          urlParams.append(
-                                            'connectionType',
-                                            'mongodb'
-                                          );
-                                          urlParams.append(
-                                            'connectionType',
-                                            'dynamodb'
-                                          );
-                                        }
+                                        allowedDestinationConnectionTypes.forEach(
+                                          (ct) =>
+                                            urlParams.append(
+                                              'connectionType',
+                                              ct
+                                            )
+                                        );
 
                                         router.push(
                                           `/${account?.name}/new/connection?${urlParams.toString()}`
@@ -338,7 +302,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         destConnection?.connectionConfig ??
                                           new ConnectionConfig()
                                       );
-                                      if (destConnType === 'postgres') {
+                                      if (destConnType === 'pgConfig') {
                                         form.setValue(
                                           `destinations.${index}.destinationOptions`,
                                           {
@@ -355,7 +319,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             shouldValidate: true,
                                           }
                                         );
-                                      } else if (destConnType === 'mysql') {
+                                      } else if (
+                                        destConnType === 'mysqlConfig'
+                                      ) {
                                         form.setValue(
                                           `destinations.${index}.destinationOptions`,
                                           {
@@ -371,7 +337,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             shouldValidate: true,
                                           }
                                         );
-                                      } else if (destConnType === 'dynamodb') {
+                                      } else if (
+                                        destConnType === 'dynamodbConfig'
+                                      ) {
                                         form.setValue(
                                           `destinations.${index}.destinationOptions`,
                                           {
