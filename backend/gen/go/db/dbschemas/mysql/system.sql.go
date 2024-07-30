@@ -76,6 +76,7 @@ func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, sche
 const getCustomTriggersBySchemaAndTables = `-- name: GetCustomTriggersBySchemaAndTables :many
 SELECT
     TRIGGER_NAME AS trigger_name,
+    TRIGGER_SCHEMA as trigger_schema,
     EVENT_OBJECT_SCHEMA AS schema_name,
     EVENT_OBJECT_TABLE AS table_name,
     ACTION_STATEMENT AS statement,
@@ -94,13 +95,14 @@ type GetCustomTriggersBySchemaAndTablesParams struct {
 }
 
 type GetCustomTriggersBySchemaAndTablesRow struct {
-	TriggerName string
-	SchemaName  string
-	TableName   string
-	Statement   string
-	EventType   string
-	Orientation string
-	Timing      string
+	TriggerName   string
+	TriggerSchema string
+	SchemaName    string
+	TableName     string
+	Statement     string
+	EventType     string
+	Orientation   string
+	Timing        string
 }
 
 // sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
@@ -126,6 +128,7 @@ func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBT
 		var i GetCustomTriggersBySchemaAndTablesRow
 		if err := rows.Scan(
 			&i.TriggerName,
+			&i.TriggerSchema,
 			&i.SchemaName,
 			&i.TableName,
 			&i.Statement,

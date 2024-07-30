@@ -77,6 +77,7 @@ create table information_schema.routines (
 
 create table information_schema.triggers (
   trigger_name text not null,
+  trigger_schema text not null,
   event_object_schema text not null,
   event_object_table text not null,
   action_statement longtext not null,

@@ -166,10 +166,6 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	for _, table := range tables {
 		schemaset[table.Schema] = append(schemaset[table.Schema], table.Table)
 	}
-	schemas := []string{}
-	for schema := range schemaset {
-		schemas = append(schemas, schema)
-	}
 
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(5)
@@ -210,7 +206,6 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		})
 	}
 
-	// need to handle unique indexes
 	indexmap := map[string][]string{}
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
@@ -233,11 +228,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		return nil, err
 	}
 
-	// if auto increment doesn't start with 1 then need to use
-	// ALTER TABLE tbl AUTO_INCREMENT = 100
-
 	output := []*sqlmanager_shared.TableInitStatement{}
-	// using input here causes the output to always be consistent
 	for _, schematable := range tables {
 		key := schematable.String()
 		tableData, ok := colDefMap[key]
@@ -292,11 +283,11 @@ func buildTableCol(record *buildTableColRequest) string {
 	pieces := []string{EscapeMysqlColumn(record.ColumnName), record.DataType, buildNullableText(record.IsNullable)}
 
 	if record.ColumnDefault != "" {
-		pieces = append(pieces, fmt.Sprintf("DEFAULT %s", record.ColumnDefault))
+		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
-		pieces = append(pieces, *record.IdentityType)
+		pieces = append(pieces, fmt.Sprintf("%s PRIMARY KEY", *record.IdentityType))
 	}
 
 	if record.GeneratedExpression != "" {
@@ -328,7 +319,7 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 	}
 	switch c.ConstraintType {
 	case "PRIMARY KEY":
-		stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD PRIMARY KEY (%s);", c.SchemaName, c.TableName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.PrimaryConstraintType,
@@ -368,7 +359,27 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 }
 
 func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
-	return nil, errors.ErrUnsupported
+	if len(tables) == 0 {
+		return &sqlmanager_shared.SchemaTableDataTypeResponse{}, nil
+	}
+
+	schemasMap := map[string]struct{}{}
+	for _, t := range tables {
+		schemasMap[t.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemasMap {
+		schemas = append(schemas, s)
+	}
+
+	output := &sqlmanager_shared.SchemaTableDataTypeResponse{}
+	funcs, err := m.getFunctionsByTables(ctx, schemas)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get postgres custom functions by tables: %w", err)
+	}
+	output.Functions = append(output.Functions, funcs...)
+
+	return output, nil
 }
 
 func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error) {
@@ -418,7 +429,7 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 				Schema:      row.SchemaName,
 				Table:       row.TableName,
 				TriggerName: row.TriggerName,
-				Definition:  wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.Timing, row.EventType, row.Orientation, row.Statement),
+				Definition:  wrapIdempotentTrigger(row.SchemaName, row.TableName, row.TriggerName, row.TriggerSchema, row.Timing, row.EventType, row.Orientation, row.Statement),
 			})
 		}
 	}
@@ -496,8 +507,23 @@ func (m *MysqlManager) GetCreateTableStatement(ctx context.Context, schema, tabl
 	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s;", split[1]), nil
 }
 
-func int32ToBool(i int32) bool {
-	return i != 0
+func (m *MysqlManager) getFunctionsByTables(ctx context.Context, schemas []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := m.querier.GetCustomFunctionsBySchemas(ctx, m.pool, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DataType{}, nil
+	}
+
+	output := make([]*sqlmanager_shared.DataType, 0, len(rows))
+	for _, row := range rows {
+		output = append(output, &sqlmanager_shared.DataType{
+			Schema:     row.SchemaName,
+			Name:       row.FunctionName,
+			Definition: wrapIdempotentFunction(row.FunctionName, row.ReturnDataType, row.Definition, row.IsDeterministic == 1),
+		})
+	}
+	return output, nil
 }
 
 func wrapIdempotentConstraint(
@@ -507,7 +533,6 @@ func wrapIdempotentConstraint(
 	constraintStmt string,
 ) string {
 	stmt := fmt.Sprintf(`
-DELIMITER //
 CREATE PROCEDURE NeosyncAddConstraintIfNotExists()
 BEGIN
     DECLARE constraint_exists INT DEFAULT 0;
@@ -523,8 +548,7 @@ BEGIN
     IF constraint_exists = 0 THEN
         %s
     END IF;
-END//
-DELIMITER ;
+END;
 
 CALL NeosyncAddConstraintIfNotExists();
 DROP PROCEDURE NeosyncAddConstraintIfNotExists;
@@ -539,7 +563,6 @@ func wrapIdempotentIndex(
 	col string,
 ) string {
 	stmt := fmt.Sprintf(`
-DELIMITER //
 CREATE PROCEDURE NeosyncAddIndexIfNotExists()
 BEGIN
     DECLARE index_exists INT DEFAULT 0;
@@ -555,8 +578,7 @@ BEGIN
     IF index_exists = 0 THEN
         CREATE INDEX %s ON %s.%s(%s);
     END IF;
-END//
-DELIMITER ;
+END;
 
 CALL NeosyncAddIndexIfNotExists();
 DROP PROCEDURE NeosyncAddIndexIfNotExists;
@@ -565,7 +587,6 @@ DROP PROCEDURE NeosyncAddIndexIfNotExists;
 }
 
 func wrapIdempotentFunction(
-	schema,
 	funcName,
 	returnDataType,
 	definition string,
@@ -576,12 +597,10 @@ func wrapIdempotentFunction(
 		deterministic = "NOT DETERMINISTIC"
 	}
 	stmt := fmt.Sprintf(`
-DELIMITER //
 CREATE FUNCTION IF NOT EXISTS %s(%s)
 RETURNS %s
 %s
-%s //
-DELIMITER;
+%s;
 `, funcName, returnDataType, returnDataType, deterministic, definition)
 	return strings.TrimSpace(stmt)
 }
@@ -590,19 +609,18 @@ func wrapIdempotentTrigger(
 	schema,
 	tableName,
 	triggerName,
+	triggerSchema,
 	timing,
 	event_type,
 	orientation,
 	actionStmt string,
 ) string {
 	stmt := fmt.Sprintf(`
-DELIMITER //
-CREATE TRIGGER IF NOT EXISTS %s
+CREATE TRIGGER IF NOT EXISTS %s.%s
 %s %s ON %s.%s
 FOR EACH %s
-%s //
-DELIMITER;
-`, triggerName, timing, event_type, schema, tableName, orientation, actionStmt)
+%s;
+`, triggerSchema, triggerName, timing, event_type, schema, tableName, orientation, actionStmt)
 	return strings.TrimSpace(stmt)
 }
 

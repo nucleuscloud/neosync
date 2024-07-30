@@ -30,26 +30,34 @@ SELECT
     tc.constraint_type AS constraint_type,
     COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
     COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
-    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule
 FROM
     information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
+LEFT JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
-JOIN information_schema.columns as c
+LEFT JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
 WHERE
-    tc.table_schema IN (sqlc.slice('schemas')) 
+    tc.table_schema IN (sqlc.slice('schemas'))
 GROUP BY 
     tc.table_schema,
     tc.table_name,
     tc.constraint_name,
     tc.constraint_type,
     kcu.referenced_table_schema,
-    kcu.referenced_table_name;
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule;
 
 
 -- name: GetTableConstraints :many
@@ -67,11 +75,11 @@ SELECT
     rc.delete_rule as delete_rule
 FROM
     information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
+LEFT JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
-JOIN information_schema.columns as c
+LEFT JOIN information_schema.columns as c
     ON c.table_schema = kcu.table_schema
     AND c.table_name = kcu.table_name
     AND c.column_name = kcu.column_name
@@ -153,6 +161,7 @@ WHERE
 -- name: GetCustomTriggersBySchemaAndTables :many
 SELECT
     TRIGGER_NAME AS trigger_name,
+    TRIGGER_SCHEMA as trigger_schema,
     EVENT_OBJECT_SCHEMA AS schema_name,
     EVENT_OBJECT_TABLE AS table_name,
     ACTION_STATEMENT AS statement,

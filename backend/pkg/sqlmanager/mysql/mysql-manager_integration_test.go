@@ -10,7 +10,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
-	manager := MysqlManager{querier: s.querier, pool: s.pool}
+	manager := MysqlManager{querier: s.source.querier, pool: s.source.pool}
 
 	expected := &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
@@ -42,8 +42,7 @@ func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetSchemaColumnMap(context.Background())
 	require.NoError(s.T(), err)
@@ -58,8 +57,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
 	require.NoError(s.T(), err)
@@ -115,8 +113,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
 	require.NoError(s.T(), err)
@@ -157,8 +154,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() 
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
@@ -178,8 +174,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -197,8 +192,7 @@ func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -212,8 +206,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
@@ -229,7 +222,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
-	manager := NewManager(s.querier, s.pool, func() {})
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetRolePermissionsMap(context.Background())
@@ -248,33 +241,47 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetCreateTableStatement(context.Background(), schema, "users")
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
-	// todo: test that the statement can actually be invoked
+	_, err = s.target.pool.ExecContext(context.Background(), actual)
+	require.NoError(s.T(), err)
 }
 
 func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	actual, err := manager.GetTableInitStatements(
 		context.Background(),
 		[]*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "parent1"}, {Schema: schema, Table: "child1"}},
 	)
+
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), actual)
-	// todo: test that the statements can actually be invoked
+	for _, stmt := range actual {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt.CreateTableStatement)
+		require.NoError(s.T(), err)
+	}
+	for _, stmt := range actual {
+		for _, index := range stmt.IndexStatements {
+			_, err = s.target.pool.ExecContext(context.Background(), index)
+			require.NoError(s.T(), err)
+		}
+	}
+	for _, stmt := range actual {
+		for _, alter := range stmt.AlterTableStatements {
+			_, err = s.target.pool.ExecContext(context.Background(), alter.Statement)
+			require.NoError(s.T(), err)
+		}
+	}
 }
 
 func (s *IntegrationTestSuite) Test_Exec() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	err := manager.Exec(context.Background(), fmt.Sprintf("SELECT 1 FROM %s.%s", schema, "users"))
@@ -282,8 +289,7 @@ func (s *IntegrationTestSuite) Test_Exec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", schema, "users")
@@ -292,8 +298,7 @@ func (s *IntegrationTestSuite) Test_BatchExec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", schema, "users")
@@ -304,18 +309,48 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
-	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "parent1"}})
+	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{
+		{Schema: schema, Table: "parent1"},
+		{Schema: schema, Table: "child1"},
+		{Schema: schema, Table: "custom_table"},
+		{Schema: schema, Table: "unique_emails_and_usernames"},
+		{Schema: schema, Table: "t4"},
+		{Schema: schema, Table: "t5"},
+		{Schema: schema, Table: "employee_log"},
+	})
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), statements)
+	lableStmtMap := map[string][]string{}
+	for _, st := range statements {
+		lableStmtMap[st.Label] = append(lableStmtMap[st.Label], st.Statements...)
+	}
+	for _, stmt := range lableStmtMap["create table"] {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		require.NoError(s.T(), err)
+	}
+	for _, stmt := range lableStmtMap["table triggers"] {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		require.NoError(s.T(), err)
+	}
+	for _, stmt := range lableStmtMap["table index"] {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		require.NoError(s.T(), err)
+	}
+	for _, stmt := range lableStmtMap["non-fk alter table"] {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		require.NoError(s.T(), err)
+	}
+	for _, stmt := range lableStmtMap["fk alter table"] {
+		_, err = s.target.pool.ExecContext(context.Background(), stmt)
+		require.NoError(s.T(), err)
+	}
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})
@@ -324,8 +359,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
 	triggers, err := manager.GetSchemaTableTriggers(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "employee_log"}})
@@ -333,25 +367,15 @@ func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
 	require.NotEmpty(s.T(), triggers)
 }
 
-func (s *IntegrationTestSuite) Test_GetTableRowCount() {
-	manager := NewManager(s.querier, s.pool, func() {})
-
+func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
+	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
-	table := "tablewithcount"
 
-	count, err := manager.GetTableRowCount(context.Background(), schema, table, nil)
+	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "custom_table"}})
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), count, int64(2))
-
-	where := "id = '1'"
-	count, err = manager.GetTableRowCount(context.Background(), schema, table, &where)
-	require.NoError(s.T(), err)
-	require.Equal(s.T(), count, int64(1))
-
-	where = "id = 'doesnotexist'"
-	count, err = manager.GetTableRowCount(context.Background(), schema, table, &where)
-	require.NoError(s.T(), err)
-	require.Equal(s.T(), count, int64(0))
+	require.NotNil(s.T(), resp)
+	require.NotEmptyf(s.T(), resp.GetStatements(), "statements")
+	require.NotEmptyf(s.T(), resp.Functions, "functions")
 }
 
 func containsSubset[T any](t testing.TB, array, subset []T) {
