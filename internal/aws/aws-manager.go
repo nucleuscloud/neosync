@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dynamodbtypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -156,6 +157,10 @@ func IsNotFound(err error) bool {
 
 		var notFound *types.NoSuchKey
 		if ok := errors.As(err, &notFound); ok {
+			return true
+		}
+		var dynResourceNotFound *dynamodbtypes.ResourceNotFoundException
+		if ok := errors.As(err, &dynResourceNotFound); ok {
 			return true
 		}
 
