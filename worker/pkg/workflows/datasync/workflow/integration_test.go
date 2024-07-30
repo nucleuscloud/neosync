@@ -418,16 +418,29 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, t
 	}
 }
 
-func (s *IntegrationTestSuite) DestroyDynamoDbTable(tableName string) error {
+func (s *IntegrationTestSuite) DestroyDynamoDbTable(ctx context.Context, tableName string) error {
 	s.T().Logf("Destroying DynamoDB table: %s\n", tableName)
 
-	_, err := s.localstack.dynamoclient.DeleteTable(s.ctx, &dynamodb.DeleteTableInput{
+	_, err := s.localstack.dynamoclient.DeleteTable(ctx, &dynamodb.DeleteTableInput{
 		TableName: &tableName,
 	})
 	if err != nil {
 		return err
 	}
-	return nil
+	return s.waitUntilDynamoTableDestroy(ctx, tableName)
+}
+
+func (s *IntegrationTestSuite) waitUntilDynamoTableDestroy(ctx context.Context, tableName string) error {
+	input := &dynamodb.DescribeTableInput{TableName: &tableName}
+	for {
+		_, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
+		if err != nil && !awsmanager.IsNotFound(err) {
+			return err
+		}
+		if err != nil && awsmanager.IsNotFound(err) {
+			return nil
+		}
+	}
 }
 
 func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []map[string]dyntypes.AttributeValue) error {

@@ -606,9 +606,10 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					}
 
 					// tear down
-					err = s.DestroyDynamoDbTable(sourceTableName)
-					require.NoError(t, err)
-					err = s.DestroyDynamoDbTable(destTableName)
+					errgrp, errctx = errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.DestroyDynamoDbTable(errctx, sourceTableName) })
+					errgrp.Go(func() error { return s.DestroyDynamoDbTable(errctx, destTableName) })
+					err = errgrp.Wait()
 					require.NoError(t, err)
 				})
 			}
