@@ -418,6 +418,9 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, t
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
 		}
+		if err != nil && awsmanager.IsNotFound(err) {
+			continue
+		}
 		if out.Table.TableStatus == dyntypes.TableStatusActive {
 			return nil
 		}
@@ -452,22 +455,28 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableDestroy(ctx context.Context, 
 func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []map[string]dyntypes.AttributeValue) error {
 	s.T().Logf("Inserting %d DynamoDB Records into table: %s\n", len(data), tableName)
 
-	writeRequests := make([]dyntypes.WriteRequest, len(data))
-	for i, record := range data {
-		writeRequests[i] = dyntypes.WriteRequest{
-			PutRequest: &dyntypes.PutRequest{
-				Item: record,
-			},
-		}
-	}
+	// writeRequests := make([]dyntypes.WriteRequest, len(data))
+	// for i, record := range data {
+	// 	writeRequests[i] = dyntypes.WriteRequest{
+	// 		PutRequest: &dyntypes.PutRequest{
+	// 			Item: record,
+	// 		},
+	// 	}
+	// }
 
-	_, err := s.localstack.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
-		RequestItems: map[string][]dyntypes.WriteRequest{
-			tableName: writeRequests,
-		},
-	})
-	if err != nil {
-		return err
+	// _, err := s.localstack.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
+	// 	RequestItems: map[string][]dyntypes.WriteRequest{
+	// 		tableName: writeRequests,
+	// 	},
+	// })
+	for _, record := range data {
+		_, err := s.localstack.dynamoclient.PutItem(s.ctx, &dynamodb.PutItemInput{
+			TableName: &tableName,
+			Item:      record,
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

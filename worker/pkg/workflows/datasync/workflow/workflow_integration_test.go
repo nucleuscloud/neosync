@@ -495,7 +495,8 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 	for groupName, group := range tests {
 		group := group
 		s.T().Run(groupName, func(t *testing.T) {
-			t.Parallel()
+			// cannot run in parallel until we have each test create/delete its own tables.
+			// t.Parallel()
 			for _, tt := range group {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
