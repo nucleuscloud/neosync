@@ -15,6 +15,7 @@ import {
   AwsS3ConnectionConfig,
   AwsS3Credentials,
   ClientTlsConfig,
+  Connection,
   ConnectionConfig,
   DynamoDBConnectionConfig,
   GcpCloudStorageConnectionConfig,
@@ -30,6 +31,63 @@ import {
   SSHPrivateKey,
   SSHTunnel,
 } from '@neosync/sdk';
+
+// Helper function to extract the 'case' property from a config type
+type ExtractCase<T> = T extends { case: infer U } ? U : never;
+
+// Extraction type that pulls out all of the connection config cases
+type ConnectionConfigCase = NonNullable<
+  ExtractCase<ConnectionConfig['config']>
+>;
+
+// Key is Source config, set of values are allowed destinations
+const ALLOWED_SOURCE_CONNECTION_PAIRS: Record<
+  ConnectionConfigCase,
+  Set<ConnectionConfigCase>
+> = {
+  awsS3Config: new Set<ConnectionConfigCase>(),
+  dynamodbConfig: new Set<ConnectionConfigCase>(['dynamodbConfig']),
+  gcpCloudstorageConfig: new Set<ConnectionConfigCase>(),
+  localDirConfig: new Set<ConnectionConfigCase>(),
+  mongoConfig: new Set<ConnectionConfigCase>(['mongoConfig']),
+  mysqlConfig: new Set<ConnectionConfigCase>([
+    'mysqlConfig',
+    'awsS3Config',
+    'gcpCloudstorageConfig',
+  ]),
+  openaiConfig: new Set<ConnectionConfigCase>([
+    'pgConfig',
+    'mysqlConfig',
+    'awsS3Config',
+    'gcpCloudstorageConfig',
+  ]),
+  pgConfig: new Set<ConnectionConfigCase>([
+    'pgConfig',
+    'awsS3Config',
+    'gcpCloudstorageConfig',
+  ]),
+};
+
+// Given two connections, determines if they are a valid pair.
+export function isValidConnectionPair(
+  sourceConn: Connection,
+  destConn: Connection
+): boolean {
+  if (
+    !sourceConn.connectionConfig?.config.case ||
+    !destConn.connectionConfig?.config.case
+  ) {
+    return false;
+  }
+
+  const allowsPairs =
+    ALLOWED_SOURCE_CONNECTION_PAIRS[sourceConn.connectionConfig.config.case];
+
+  return (
+    allowsPairs.size > 0 &&
+    allowsPairs.has(destConn.connectionConfig.config.case)
+  );
+}
 
 export type ConnectionType =
   | 'postgres'

@@ -20,11 +20,11 @@ import DestinationConnectionCard from './components/DestinationConnectionCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const {
-    data,
-    isLoading,
-    refetch: mutate,
-  } = useQuery(getJob, { id }, { enabled: !!id });
+  const { data, isLoading, refetch } = useQuery(
+    getJob,
+    { id },
+    { enabled: !!id }
+  );
   const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
     getConnections,
     { accountId: account?.id },
@@ -67,7 +67,7 @@ export default function Page({ params }: PageProps): ReactElement {
                 }
                 jobId={id}
                 destination={destination}
-                mutate={mutate}
+                mutate={refetch}
                 connections={connections}
                 availableConnections={connections.filter((c) => {
                   if (isDataGenJob(data?.job) || isAiDataGenJob(data?.job)) {

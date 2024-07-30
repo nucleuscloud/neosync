@@ -130,7 +130,7 @@ export default function DestinationConnectionCard({
   );
 
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
-    splitConnections(connections);
+    splitConnections(availableConnections);
   return (
     <Card>
       <Form {...form}>
