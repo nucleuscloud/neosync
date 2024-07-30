@@ -651,10 +651,6 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			},
 		},
 	}
-	// allTests["Virtual_Foreign_Keys"] = vfkTests
-	// allTests["Circular_Dependencies"] = cdTests
-	// allTests["Javascript_Transformers"] = javascriptTests
-	// allTests["Primary_Key_Transformers"] = pkTransformationTests
 	return allTests
 }
 

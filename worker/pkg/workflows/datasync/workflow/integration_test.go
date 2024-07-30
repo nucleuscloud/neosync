@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/docker/go-connections/nat"
@@ -240,9 +239,7 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 
 type localstackTest struct {
 	container *localstack.LocalStackContainer
-
-	awscfg   *aws.Config
-	endpoint string
+	endpoint  string
 
 	// Used by plugging in to Neosync resources so Benthos can wire up its aws config
 	dtoAwsCreds *mgmtv1alpha1.AwsS3Credentials
@@ -271,7 +268,7 @@ func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	// defer provider.Close()
+	defer provider.Close()
 	host, err := provider.DaemonHost(s.ctx)
 	if err != nil {
 		return nil, err
@@ -300,7 +297,6 @@ func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
 
 	return &localstackTest{
 		container:   container,
-		awscfg:      awscfg,
 		endpoint:    endpoint,
 		dtoAwsCreds: dtoAwsCreds,
 		dynamoclient: dynamodb.NewFromConfig(*awscfg, func(o *dynamodb.Options) {
