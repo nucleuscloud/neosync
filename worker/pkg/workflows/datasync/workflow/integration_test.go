@@ -11,11 +11,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgxpool"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/localstack"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -60,9 +66,10 @@ type IntegrationTestSuite struct {
 
 	ctx context.Context
 
-	mysql    *mysqlTest
-	postgres *postgresTest
-	redis    *redisTest
+	mysql      *mysqlTest
+	postgres   *postgresTest
+	redis      *redisTest
+	localstack *localstackTest
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
@@ -230,12 +237,68 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 	}, nil
 }
 
+type localstackTest struct {
+	container *localstack.LocalStackContainer
+
+	awscfg   *aws.Config
+	endpoint string
+
+	dynamoclient *dynamodb.Client
+}
+
+func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
+	container, err := localstack.Run(
+		s.ctx,
+		"localstack:1.4.0",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	mappedport, err := container.MappedPort(s.ctx, nat.Port("4566/tcp"))
+	if err != nil {
+		return nil, err
+	}
+
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		return nil, err
+	}
+	// defer provider.Close()
+	host, err := provider.DaemonHost(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint := fmt.Sprintf("http://%s:%d", host, mappedport.Int())
+
+	awscfg, err := awsmanager.GetAwsConfig(s.ctx, &awsmanager.AwsCredentialsConfig{
+		Endpoint: endpoint,
+		Id:       "fake-id",
+		Secret:   "fake-secret",
+		Token:    "fake-token",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &localstackTest{
+		container: container,
+		awscfg:    awscfg,
+		endpoint:  endpoint,
+		dynamoclient: dynamodb.NewFromConfig(*s.localstack.awscfg, func(o *dynamodb.Options) {
+			o.BaseEndpoint = &endpoint
+		}),
+	}, nil
+}
+
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
 	var postgresTest *postgresTest
 	var mysqlTest *mysqlTest
 	var redisTest *redisTest
+	var localstackTest *localstackTest
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -265,6 +328,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		return nil
 	})
 
+	errgrp.Go(func() error {
+		d, err := s.SetupLocalStack()
+		if err != nil {
+			return err
+		}
+		localstackTest = d
+		return nil
+	})
+
 	err := errgrp.Wait()
 	if err != nil {
 		panic(err)
@@ -273,6 +345,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.postgres = postgresTest
 	s.mysql = mysqlTest
 	s.redis = redisTest
+	s.localstack = localstackTest
 }
 
 func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
@@ -302,6 +375,46 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 			panic(err)
 		}
 	}
+}
+
+func (s *IntegrationTestSuite) SetupDynamoDbTable(tableName string, primaryKey string) error {
+	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
+
+	_, err := s.localstack.dynamoclient.CreateTable(s.ctx, &dynamodb.CreateTableInput{
+		TableName: &tableName,
+		KeySchema: []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *IntegrationTestSuite) DestroyDynamoDbTable(tableName string) error {
+	s.T().Logf("Destroying DynamoDB table: %s\n", tableName)
+
+	_, err := s.localstack.dynamoclient.DeleteTable(s.ctx, &dynamodb.DeleteTableInput{
+		TableName: &tableName,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []map[string]dyntypes.AttributeValue) error {
+	s.T().Logf("Inserting %d DynamoDB Records into table: %s\n", len(data), tableName)
+
+	for _, record := range data {
+		_, err := s.localstack.dynamoclient.PutItem(s.ctx, &dynamodb.PutItemInput{
+			TableName: &tableName,
+			Item:      record,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
@@ -348,6 +461,13 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	// redis
 	if s.redis.testcontainer != nil {
 		if err := s.redis.testcontainer.Terminate(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+
+	// localstack
+	if s.localstack.container != nil {
+		if err := s.localstack.container.Terminate(s.ctx); err != nil {
 			panic(err)
 		}
 	}
