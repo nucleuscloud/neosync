@@ -409,8 +409,11 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, t
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
 		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
-		if err != nil {
+		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
+		}
+		if err != nil && awsmanager.IsNotFound(err) {
+			continue
 		}
 		if out.Table.TableStatus == dyntypes.TableStatusActive {
 			return nil
