@@ -21,7 +21,6 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/localstack"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -69,7 +68,7 @@ type IntegrationTestSuite struct {
 	mysql      *mysqlTest
 	postgres   *postgresTest
 	redis      *redisTest
-	localstack *localstackTest
+	localstack *dynamodbTest
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
@@ -237,8 +236,8 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 	}, nil
 }
 
-type localstackTest struct {
-	container *localstack.LocalStackContainer
+type dynamodbTest struct {
+	container testcontainers.Container
 	endpoint  string
 
 	// Used by plugging in to Neosync resources so Benthos can wire up its aws config
@@ -247,37 +246,33 @@ type localstackTest struct {
 	dynamoclient *dynamodb.Client
 }
 
-func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
-	container, err := localstack.Run(
-		s.ctx,
-		"localstack/localstack:1.4.0",
-		testcontainers.WithEnv(map[string]string{
-			"SERVICES": "dynamodb",
-		}),
-	)
+func (s *IntegrationTestSuite) SetupDynamoDB() (*dynamodbTest, error) {
+	port := nat.Port("8000/tcp")
+	container, err := testcontainers.GenericContainer(s.ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "amazon/dynamodb-local:2.5.2",
+			ExposedPorts: []string{string(port)},
+			WaitingFor:   wait.ForListeningPort(port),
+		},
+		Started: true,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	mappedport, err := container.MappedPort(s.ctx, nat.Port("4566/tcp"))
+	mappedport, err := container.MappedPort(s.ctx, port)
 	if err != nil {
 		return nil, err
 	}
-
-	provider, err := testcontainers.NewDockerProvider()
-	if err != nil {
-		return nil, err
-	}
-	defer provider.Close()
-	host, err := provider.DaemonHost(s.ctx)
+	host, err := container.Host(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	endpoint := fmt.Sprintf("http://%s:%d", host, mappedport.Int())
-	fakeId := "fake-id"
-	fakeSecret := "fake-secret"
-	fakeToken := "fake-token"
+	fakeId := "fakeid"
+	fakeSecret := "fakesecret"
+	fakeToken := "faketoken"
 
 	awscfg, err := awsmanager.GetAwsConfig(s.ctx, &awsmanager.AwsCredentialsConfig{
 		Endpoint: endpoint,
@@ -295,7 +290,7 @@ func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
 		SessionToken:    &fakeToken,
 	}
 
-	return &localstackTest{
+	return &dynamodbTest{
 		container:   container,
 		endpoint:    endpoint,
 		dtoAwsCreds: dtoAwsCreds,
@@ -311,7 +306,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	var postgresTest *postgresTest
 	var mysqlTest *mysqlTest
 	var redisTest *redisTest
-	var localstackTest *localstackTest
+	var localstackTest *dynamodbTest
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -342,7 +337,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	})
 
 	errgrp.Go(func() error {
-		d, err := s.SetupLocalStack()
+		d, err := s.SetupDynamoDB()
 		if err != nil {
 			return err
 		}
@@ -414,6 +409,7 @@ func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName
 func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
+		fmt.Println("waiting for dynamodb table to exist...")
 		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
@@ -455,28 +451,22 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableDestroy(ctx context.Context, 
 func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []map[string]dyntypes.AttributeValue) error {
 	s.T().Logf("Inserting %d DynamoDB Records into table: %s\n", len(data), tableName)
 
-	// writeRequests := make([]dyntypes.WriteRequest, len(data))
-	// for i, record := range data {
-	// 	writeRequests[i] = dyntypes.WriteRequest{
-	// 		PutRequest: &dyntypes.PutRequest{
-	// 			Item: record,
-	// 		},
-	// 	}
-	// }
-
-	// _, err := s.localstack.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
-	// 	RequestItems: map[string][]dyntypes.WriteRequest{
-	// 		tableName: writeRequests,
-	// 	},
-	// })
-	for _, record := range data {
-		_, err := s.localstack.dynamoclient.PutItem(s.ctx, &dynamodb.PutItemInput{
-			TableName: &tableName,
-			Item:      record,
-		})
-		if err != nil {
-			return err
+	writeRequests := make([]dyntypes.WriteRequest, len(data))
+	for i, record := range data {
+		writeRequests[i] = dyntypes.WriteRequest{
+			PutRequest: &dyntypes.PutRequest{
+				Item: record,
+			},
 		}
+	}
+
+	_, err := s.localstack.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
+		RequestItems: map[string][]dyntypes.WriteRequest{
+			tableName: writeRequests,
+		},
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
