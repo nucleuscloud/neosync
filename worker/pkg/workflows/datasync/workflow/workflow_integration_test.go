@@ -568,8 +568,8 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
 												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
-													Credentials: s.localstack.dtoAwsCreds,
-													Endpoint:    &s.localstack.endpoint,
+													Credentials: s.dynamo.dtoAwsCreds,
+													Endpoint:    &s.dynamo.endpoint,
 												},
 											},
 										},
@@ -584,8 +584,8 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
 												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
-													Credentials: s.localstack.dtoAwsCreds,
-													Endpoint:    &s.localstack.endpoint,
+													Credentials: s.dynamo.dtoAwsCreds,
+													Endpoint:    &s.dynamo.endpoint,
 												},
 											},
 										},
@@ -599,7 +599,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
 
 					for table, expected := range tt.Expected {
-						out, err := s.localstack.dynamoclient.Scan(s.ctx, &dynamodb.ScanInput{
+						out, err := s.dynamo.dynamoclient.Scan(s.ctx, &dynamodb.ScanInput{
 							TableName: &table,
 						})
 						require.NoError(t, err)

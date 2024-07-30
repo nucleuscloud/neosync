@@ -65,10 +65,10 @@ type IntegrationTestSuite struct {
 
 	ctx context.Context
 
-	mysql      *mysqlTest
-	postgres   *postgresTest
-	redis      *redisTest
-	localstack *dynamodbTest
+	mysql    *mysqlTest
+	postgres *postgresTest
+	redis    *redisTest
+	dynamo   *dynamodbTest
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
@@ -306,7 +306,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	var postgresTest *postgresTest
 	var mysqlTest *mysqlTest
 	var redisTest *redisTest
-	var localstackTest *dynamodbTest
+	var dynamoTest *dynamodbTest
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -341,7 +341,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		if err != nil {
 			return err
 		}
-		localstackTest = d
+		dynamoTest = d
 		return nil
 	})
 
@@ -353,7 +353,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.postgres = postgresTest
 	s.mysql = mysqlTest
 	s.redis = redisTest
-	s.localstack = localstackTest
+	s.dynamo = dynamoTest
 }
 
 func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
@@ -388,7 +388,7 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName, primaryKey string) error {
 	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
 
-	out, err := s.localstack.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
+	out, err := s.dynamo.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
 		TableName:            &tableName,
 		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
 		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
@@ -409,7 +409,7 @@ func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName
 func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
-		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
+		out, err := s.dynamo.dynamoclient.DescribeTable(ctx, input)
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
 		}
@@ -425,7 +425,7 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, t
 func (s *IntegrationTestSuite) DestroyDynamoDbTable(ctx context.Context, tableName string) error {
 	s.T().Logf("Destroying DynamoDB table: %s\n", tableName)
 
-	_, err := s.localstack.dynamoclient.DeleteTable(ctx, &dynamodb.DeleteTableInput{
+	_, err := s.dynamo.dynamoclient.DeleteTable(ctx, &dynamodb.DeleteTableInput{
 		TableName: &tableName,
 	})
 	if err != nil {
@@ -437,7 +437,7 @@ func (s *IntegrationTestSuite) DestroyDynamoDbTable(ctx context.Context, tableNa
 func (s *IntegrationTestSuite) waitUntilDynamoTableDestroy(ctx context.Context, tableName string) error {
 	input := &dynamodb.DescribeTableInput{TableName: &tableName}
 	for {
-		_, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
+		_, err := s.dynamo.dynamoclient.DescribeTable(ctx, input)
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
 		}
@@ -459,7 +459,7 @@ func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []ma
 		}
 	}
 
-	_, err := s.localstack.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
+	_, err := s.dynamo.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]dyntypes.WriteRequest{
 			tableName: writeRequests,
 		},
@@ -519,8 +519,8 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	}
 
 	// localstack
-	if s.localstack.container != nil {
-		if err := s.localstack.container.Terminate(s.ctx); err != nil {
+	if s.dynamo.container != nil {
+		if err := s.dynamo.container.Terminate(s.ctx); err != nil {
 			panic(err)
 		}
 	}
