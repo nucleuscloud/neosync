@@ -393,7 +393,7 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName, primaryKey string) error {
 	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
 
-	_, err := s.localstack.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
+	out, err := s.localstack.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
 		TableName:            &tableName,
 		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
 		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
@@ -402,7 +402,13 @@ func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName
 	if err != nil {
 		return err
 	}
-	return s.waitUntilDynamoTableExists(ctx, tableName)
+	if out.TableDescription.TableStatus == dyntypes.TableStatusActive {
+		return nil
+	}
+	if out.TableDescription.TableStatus == dyntypes.TableStatusCreating {
+		return s.waitUntilDynamoTableExists(ctx, tableName)
+	}
+	return fmt.Errorf("%s dynamo table created but unexpected table status: %s", tableName, out.TableDescription.TableStatus)
 }
 
 func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
@@ -411,9 +417,6 @@ func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, t
 		out, err := s.localstack.dynamoclient.DescribeTable(ctx, input)
 		if err != nil && !awsmanager.IsNotFound(err) {
 			return err
-		}
-		if err != nil && awsmanager.IsNotFound(err) {
-			continue
 		}
 		if out.Table.TableStatus == dyntypes.TableStatusActive {
 			return nil

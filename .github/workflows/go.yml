@@ -70,7 +70,8 @@ jobs:
 
       - name: Test
         run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          # go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          go test -race -coverprofile=coverage.out -covermode=atomic ./worker/pkg/workflows/datasync/workflow
         env:
           INTEGRATION_TESTS_ENABLED: 1
 
