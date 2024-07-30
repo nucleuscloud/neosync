@@ -117,3 +117,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 	}
 	suite.Run(t, new(IntegrationTestSuite))
 }
+
+func (s *IntegrationTestSuite) buildTable(schema, tableName string) string {
+	return fmt.Sprintf("%s.%s", schema, tableName)
+}

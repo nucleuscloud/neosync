@@ -8,8 +8,8 @@ SELECT
 	c.is_nullable,
 	c.data_type,
 	c.character_maximum_length,
-  c.numeric_precision,
-  c.numeric_scale,
+    c.numeric_precision,
+    c.numeric_scale,
 	c.extra
 FROM
 	information_schema.columns AS c
@@ -28,8 +28,8 @@ SELECT
     JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS referenced_schema_name,
-    kcu.referenced_table_name AS referenced_table_name,
+    COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
+    COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names
 FROM
     information_schema.table_constraints AS tc
@@ -60,8 +60,8 @@ SELECT
     JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
     tc.constraint_type AS constraint_type,
-    kcu.referenced_table_schema AS referenced_schema_name,
-    kcu.referenced_table_name AS referenced_table_name,
+    COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
+    COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
     rc.delete_rule as delete_rule

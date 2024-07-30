@@ -89,9 +89,13 @@ func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas 
 			if err != nil {
 				return nil, err
 			}
-			notNullable, err := jsonRawToSlice[bool](row.NotNullable)
+			notNullableInts, err := jsonRawToSlice[int](row.NotNullable)
 			if err != nil {
 				return nil, err
+			}
+			notNullable := []bool{}
+			for _, notNullableInt := range notNullableInts {
+				notNullable = append(notNullable, notNullableInt == 1)
 			}
 			if len(constraintCols) != len(fkCols) {
 				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
