@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -30,6 +32,7 @@ import (
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/require"
@@ -485,6 +488,174 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 			}
 		})
 	}
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
+	tests := getAllDynamoDBSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			// cannot run in parallel until we have each test create/delete its own tables.
+			// t.Parallel()
+			for _, tt := range group {
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					sourceTableName := "test-sync-source"
+					destTableName := "test-sync-dest"
+					errgrp, errctx := errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.SetupDynamoDbTable(errctx, sourceTableName, "id") })
+					errgrp.Go(func() error { return s.SetupDynamoDbTable(errctx, destTableName, "id") })
+					err := errgrp.Wait()
+					require.NoError(t, err)
+
+					err = s.InsertDynamoDBRecords(sourceTableName, []map[string]dyntypes.AttributeValue{
+						{
+							"id": &dyntypes.AttributeValueMemberS{Value: "1"},
+							"a":  &dyntypes.AttributeValueMemberBOOL{Value: true},
+						},
+					})
+					require.NoError(t, err)
+
+					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					sourceConnectionId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
+					destOpts := &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{
+						TableMappings: []*mgmtv1alpha1.DynamoDBDestinationTableMapping{{SourceTable: sourceTableName, DestinationTable: destTableName}},
+					}
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id: jobId,
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
+												Dynamodb: &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
+													ConnectionId: sourceConnectionId,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: destConnectionId,
+											Options: &mgmtv1alpha1.JobDestinationOptions{
+												Config: &mgmtv1alpha1.JobDestinationOptions_DynamodbOptions{
+													DynamodbOptions: destOpts,
+												},
+											},
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == sourceConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   sourceConnectionId,
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
+												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
+													Credentials: s.dynamo.dtoAwsCreds,
+													Endpoint:    &s.dynamo.endpoint,
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == destConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   destConnectionId,
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
+												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
+													Credentials: s.dynamo.dtoAwsCreds,
+													Endpoint:    &s.dynamo.endpoint,
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, fmt.Errorf("unknown test connection")
+						},
+					))
+					srv := startHTTPServer(t, mux)
+					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
+
+					for table, expected := range tt.Expected {
+						out, err := s.dynamo.dynamoclient.Scan(s.ctx, &dynamodb.ScanInput{
+							TableName: &table,
+						})
+						require.NoError(t, err)
+						require.Equal(t, expected.RowCount, int(out.Count), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					errgrp, errctx = errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.DestroyDynamoDbTable(errctx, sourceTableName) })
+					errgrp.Go(func() error { return s.DestroyDynamoDbTable(errctx, destTableName) })
+					err = errgrp.Wait()
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
+}
+
+func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+
+	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
+		{
+			Name: "Passthrough Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "a",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync-source": {RowCount: 1},
+				"test-sync-dest":   {RowCount: 1},
+			},
+		},
+	}
+	return allTests
 }
 
 func executeWorkflow(

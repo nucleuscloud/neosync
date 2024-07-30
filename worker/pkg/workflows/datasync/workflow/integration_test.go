@@ -11,9 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dyntypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgxpool"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
@@ -63,6 +68,7 @@ type IntegrationTestSuite struct {
 	mysql    *mysqlTest
 	postgres *postgresTest
 	redis    *redisTest
+	dynamo   *dynamodbTest
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
@@ -230,12 +236,77 @@ func (s *IntegrationTestSuite) SetupRedis() (*redisTest, error) {
 	}, nil
 }
 
+type dynamodbTest struct {
+	container testcontainers.Container
+	endpoint  string
+
+	// Used by plugging in to Neosync resources so Benthos can wire up its aws config
+	dtoAwsCreds *mgmtv1alpha1.AwsS3Credentials
+
+	dynamoclient *dynamodb.Client
+}
+
+func (s *IntegrationTestSuite) SetupDynamoDB() (*dynamodbTest, error) {
+	port := nat.Port("8000/tcp")
+	container, err := testcontainers.GenericContainer(s.ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "amazon/dynamodb-local:2.5.2",
+			ExposedPorts: []string{string(port)},
+			WaitingFor:   wait.ForListeningPort(port),
+		},
+		Started: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	mappedport, err := container.MappedPort(s.ctx, port)
+	if err != nil {
+		return nil, err
+	}
+	host, err := container.Host(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint := fmt.Sprintf("http://%s:%d", host, mappedport.Int())
+	fakeId := "fakeid"
+	fakeSecret := "fakesecret"
+	fakeToken := "faketoken"
+
+	awscfg, err := awsmanager.GetAwsConfig(s.ctx, &awsmanager.AwsCredentialsConfig{
+		Endpoint: endpoint,
+		Id:       fakeId,
+		Secret:   fakeSecret,
+		Token:    fakeToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	dtoAwsCreds := &mgmtv1alpha1.AwsS3Credentials{
+		AccessKeyId:     &fakeId,
+		SecretAccessKey: &fakeSecret,
+		SessionToken:    &fakeToken,
+	}
+
+	return &dynamodbTest{
+		container:   container,
+		endpoint:    endpoint,
+		dtoAwsCreds: dtoAwsCreds,
+		dynamoclient: dynamodb.NewFromConfig(*awscfg, func(o *dynamodb.Options) {
+			o.BaseEndpoint = &endpoint
+		}),
+	}, nil
+}
+
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
 	var postgresTest *postgresTest
 	var mysqlTest *mysqlTest
 	var redisTest *redisTest
+	var dynamoTest *dynamodbTest
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -265,6 +336,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		return nil
 	})
 
+	errgrp.Go(func() error {
+		d, err := s.SetupDynamoDB()
+		if err != nil {
+			return err
+		}
+		dynamoTest = d
+		return nil
+	})
+
 	err := errgrp.Wait()
 	if err != nil {
 		panic(err)
@@ -273,6 +353,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.postgres = postgresTest
 	s.mysql = mysqlTest
 	s.redis = redisTest
+	s.dynamo = dynamoTest
 }
 
 func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
@@ -302,6 +383,91 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 			panic(err)
 		}
 	}
+}
+
+func (s *IntegrationTestSuite) SetupDynamoDbTable(ctx context.Context, tableName, primaryKey string) error {
+	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
+
+	out, err := s.dynamo.dynamoclient.CreateTable(ctx, &dynamodb.CreateTableInput{
+		TableName:            &tableName,
+		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
+		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
+		BillingMode:          dyntypes.BillingModePayPerRequest,
+	})
+	if err != nil {
+		return err
+	}
+	if out.TableDescription.TableStatus == dyntypes.TableStatusActive {
+		return nil
+	}
+	if out.TableDescription.TableStatus == dyntypes.TableStatusCreating {
+		return s.waitUntilDynamoTableExists(ctx, tableName)
+	}
+	return fmt.Errorf("%s dynamo table created but unexpected table status: %s", tableName, out.TableDescription.TableStatus)
+}
+
+func (s *IntegrationTestSuite) waitUntilDynamoTableExists(ctx context.Context, tableName string) error {
+	input := &dynamodb.DescribeTableInput{TableName: &tableName}
+	for {
+		out, err := s.dynamo.dynamoclient.DescribeTable(ctx, input)
+		if err != nil && !awsmanager.IsNotFound(err) {
+			return err
+		}
+		if err != nil && awsmanager.IsNotFound(err) {
+			continue
+		}
+		if out.Table.TableStatus == dyntypes.TableStatusActive {
+			return nil
+		}
+	}
+}
+
+func (s *IntegrationTestSuite) DestroyDynamoDbTable(ctx context.Context, tableName string) error {
+	s.T().Logf("Destroying DynamoDB table: %s\n", tableName)
+
+	_, err := s.dynamo.dynamoclient.DeleteTable(ctx, &dynamodb.DeleteTableInput{
+		TableName: &tableName,
+	})
+	if err != nil {
+		return err
+	}
+	return s.waitUntilDynamoTableDestroy(ctx, tableName)
+}
+
+func (s *IntegrationTestSuite) waitUntilDynamoTableDestroy(ctx context.Context, tableName string) error {
+	input := &dynamodb.DescribeTableInput{TableName: &tableName}
+	for {
+		_, err := s.dynamo.dynamoclient.DescribeTable(ctx, input)
+		if err != nil && !awsmanager.IsNotFound(err) {
+			return err
+		}
+		if err != nil && awsmanager.IsNotFound(err) {
+			return nil
+		}
+	}
+}
+
+func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []map[string]dyntypes.AttributeValue) error {
+	s.T().Logf("Inserting %d DynamoDB Records into table: %s\n", len(data), tableName)
+
+	writeRequests := make([]dyntypes.WriteRequest, len(data))
+	for i, record := range data {
+		writeRequests[i] = dyntypes.WriteRequest{
+			PutRequest: &dyntypes.PutRequest{
+				Item: record,
+			},
+		}
+	}
+
+	_, err := s.dynamo.dynamoclient.BatchWriteItem(s.ctx, &dynamodb.BatchWriteItemInput{
+		RequestItems: map[string][]dyntypes.WriteRequest{
+			tableName: writeRequests,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
@@ -348,6 +514,13 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	// redis
 	if s.redis.testcontainer != nil {
 		if err := s.redis.testcontainer.Terminate(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+
+	// localstack
+	if s.dynamo.container != nil {
+		if err := s.dynamo.container.Terminate(s.ctx); err != nil {
 			panic(err)
 		}
 	}
