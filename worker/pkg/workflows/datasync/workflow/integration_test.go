@@ -17,6 +17,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgxpool"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/stretchr/testify/suite"
@@ -243,13 +244,19 @@ type localstackTest struct {
 	awscfg   *aws.Config
 	endpoint string
 
+	// Used by plugging in to Neosync resources so Benthos can wire up its aws config
+	dtoAwsCreds *mgmtv1alpha1.AwsS3Credentials
+
 	dynamoclient *dynamodb.Client
 }
 
 func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
 	container, err := localstack.Run(
 		s.ctx,
-		"localstack:1.4.0",
+		"localstack/localstack:1.4.0",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "dynamodb",
+		}),
 	)
 	if err != nil {
 		return nil, err
@@ -271,22 +278,32 @@ func (s *IntegrationTestSuite) SetupLocalStack() (*localstackTest, error) {
 	}
 
 	endpoint := fmt.Sprintf("http://%s:%d", host, mappedport.Int())
+	fakeId := "fake-id"
+	fakeSecret := "fake-secret"
+	fakeToken := "fake-token"
 
 	awscfg, err := awsmanager.GetAwsConfig(s.ctx, &awsmanager.AwsCredentialsConfig{
 		Endpoint: endpoint,
-		Id:       "fake-id",
-		Secret:   "fake-secret",
-		Token:    "fake-token",
+		Id:       fakeId,
+		Secret:   fakeSecret,
+		Token:    fakeToken,
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	dtoAwsCreds := &mgmtv1alpha1.AwsS3Credentials{
+		AccessKeyId:     &fakeId,
+		SecretAccessKey: &fakeSecret,
+		SessionToken:    &fakeToken,
+	}
+
 	return &localstackTest{
-		container: container,
-		awscfg:    awscfg,
-		endpoint:  endpoint,
-		dynamoclient: dynamodb.NewFromConfig(*s.localstack.awscfg, func(o *dynamodb.Options) {
+		container:   container,
+		awscfg:      awscfg,
+		endpoint:    endpoint,
+		dtoAwsCreds: dtoAwsCreds,
+		dynamoclient: dynamodb.NewFromConfig(*awscfg, func(o *dynamodb.Options) {
 			o.BaseEndpoint = &endpoint
 		}),
 	}, nil
@@ -377,12 +394,14 @@ func (s *IntegrationTestSuite) RunMysqlSqlFiles(pool *sql.DB, testFolder string,
 	}
 }
 
-func (s *IntegrationTestSuite) SetupDynamoDbTable(tableName string, primaryKey string) error {
+func (s *IntegrationTestSuite) SetupDynamoDbTable(tableName, primaryKey string) error {
 	s.T().Logf("Creating DynamoDB table: %s\n", tableName)
 
 	_, err := s.localstack.dynamoclient.CreateTable(s.ctx, &dynamodb.CreateTableInput{
-		TableName: &tableName,
-		KeySchema: []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
+		TableName:            &tableName,
+		KeySchema:            []dyntypes.KeySchemaElement{{KeyType: dyntypes.KeyTypeHash, AttributeName: &primaryKey}},
+		AttributeDefinitions: []dyntypes.AttributeDefinition{{AttributeName: &primaryKey, AttributeType: dyntypes.ScalarAttributeTypeS}},
+		BillingMode:          dyntypes.BillingModePayPerRequest,
 	})
 	if err != nil {
 		return err

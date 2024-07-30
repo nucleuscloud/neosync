@@ -564,7 +564,10 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 										Name: "source",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
-												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{}, // todo
+												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
+													Credentials: s.localstack.dtoAwsCreds,
+													Endpoint:    &s.localstack.endpoint,
+												},
 											},
 										},
 									},
@@ -577,7 +580,10 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 										Name: "target",
 										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
 											Config: &mgmtv1alpha1.ConnectionConfig_DynamodbConfig{
-												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{}, // todo
+												DynamodbConfig: &mgmtv1alpha1.DynamoDBConnectionConfig{
+													Credentials: s.localstack.dtoAwsCreds,
+													Endpoint:    &s.localstack.endpoint,
+												},
 											},
 										},
 									},
@@ -594,7 +600,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 							TableName: &table,
 						})
 						require.NoError(t, err)
-						require.Equal(t, expected.RowCount, out.Count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+						require.Equal(t, expected.RowCount, int(out.Count), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
 					}
 
 					// tear down
