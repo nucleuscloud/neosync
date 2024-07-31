@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -290,13 +289,13 @@ func buildTableCol(record *buildTableColRequest) string {
 		} else if record.IdentityType != nil && *record.IdentityType == "VIRTUAL GENERATED" {
 			genType = "VIRTUAL"
 		}
-		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", decodeExpression(record.GeneratedExpression), genType))
+		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", stripEscapeCharacters(record.GeneratedExpression), genType))
 	} else {
 		pieces = append(pieces, buildNullableText(record.IsNullable))
 	}
 
 	if record.ColumnDefault != "" {
-		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
+		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", stripEscapeCharacters(record.ColumnDefault)))
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
@@ -306,24 +305,21 @@ func buildTableCol(record *buildTableColRequest) string {
 	return strings.Join(pieces, " ")
 }
 
-func decodeExpression(expr string) string {
-	// regex patterns for common encodings
+func stripEscapeCharacters(input string) string {
 	replacements := map[string]string{
-		"_utf8mb4\\\\' \\\\'": "' '",
-		"_utf8mb4":            "",
-		"\\\\'":               "'",
-		"\\\\\"":              "\"",
-		"\\\\n":               "\n",
-		"\\\\t":               "\t",
+		"\\\\": "\\", // Double backslash to single backslash
+		"\\'":  "'",  // Escaped single quote to single quote
+		"\\\"": "\"", // Escaped double quote to double quote
+		"\\n":  "\n", // Escaped newline to newline
+		"\\t":  "\t", // Escaped tab to tab
+		"\\r":  "\r", // Escaped carriage return to carriage return
 	}
 
-	expr = strings.ReplaceAll(expr, "`", "")
-	for pattern, replacement := range replacements {
-		re := regexp.MustCompile(pattern)
-		expr = re.ReplaceAllString(expr, replacement)
+	for old, new := range replacements {
+		input = strings.ReplaceAll(input, old, new)
 	}
 
-	return expr
+	return input
 }
 
 func buildNullableText(isNullable bool) string {
@@ -344,26 +340,26 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 	}
 	switch c.ConstraintType {
 	case "PRIMARY KEY":
-		stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD PRIMARY KEY (%s);", c.SchemaName, c.TableName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD PRIMARY KEY (%s);", c.SchemaName, c.TableName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.PrimaryConstraintType,
 		}, nil
 	case "UNIQUE":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s UNIQUE (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` UNIQUE (%s);", c.SchemaName, c.TableName, c.ConstraintName, strings.Join(EscapeMysqlColumns(constraintCols), ","))
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.UniqueConstraintType,
 		}, nil
 	case "FOREIGN KEY":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES `%s`.`%s`(%s) ON DELETE %s ON UPDATE %s;",
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT `%s` FOREIGN KEY (%s) REFERENCES `%s`.`%s`(%s) ON DELETE %s ON UPDATE %s;",
 			c.SchemaName,
 			c.TableName,
 			c.ConstraintName,
-			strings.Join(constraintCols, ","),
+			strings.Join(EscapeMysqlColumns(constraintCols), ","),
 			c.ReferencedSchemaName,
 			c.ReferencedTableName,
-			strings.Join(referencedCols, ","),
+			strings.Join(EscapeMysqlColumns(referencedCols), ","),
 			c.DeleteRule.String,
 			c.UpdateRule.String,
 		)
@@ -372,7 +368,7 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 			ConstraintType: sqlmanager_shared.ForeignConstraintType,
 		}, nil
 	case "CHECK":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, decodeExpression(c.CheckClause.String))
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, stripEscapeCharacters(c.CheckClause.String))
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.CheckConstraintType,
@@ -602,7 +598,7 @@ END;
 
 CALL NeosyncAddIndexIfNotExists();
 DROP PROCEDURE NeosyncAddIndexIfNotExists;
-`, schema, table, constraintname, constraintname, schema, table, col)
+`, schema, table, constraintname, EscapeMysqlColumn(constraintname), schema, table, col)
 	return strings.TrimSpace(stmt)
 }
 
@@ -640,7 +636,7 @@ CREATE TRIGGER IF NOT EXISTS %s.%s
 %s %s ON %s.%s
 FOR EACH %s
 %s;
-`, triggerSchema, triggerName, timing, event_type, schema, tableName, orientation, actionStmt)
+`, triggerSchema, triggerName, timing, event_type, EscapeMysqlColumn(schema), EscapeMysqlColumn(tableName), orientation, actionStmt)
 	return strings.TrimSpace(stmt)
 }
 

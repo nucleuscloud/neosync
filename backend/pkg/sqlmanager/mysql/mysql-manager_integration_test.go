@@ -308,7 +308,7 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 	require.NoError(s.T(), err)
 }
 
-func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_exec() {
+func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
 	manager := NewManager(s.source.querier, s.source.pool, func() {})
 	schema := "sqlmanagermysql3"
 
