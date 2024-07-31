@@ -98,11 +98,11 @@ export function getConnectionComponentDetails(
             leftIcon={
               headerType == 'neon' ? (
                 <ConnectionIcon
-                  connectionType="postgres"
+                  connectionType="pgConfig"
                   connectionTypeVariant="neon"
                 />
               ) : (
-                <ConnectionIcon connectionType="postgres" />
+                <ConnectionIcon connectionType="pgConfig" />
               )
             }
             extraHeading={extraPageHeading}
@@ -199,7 +199,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="Mysql"
-            leftIcon={<ConnectionIcon connectionType="mysql" />}
+            leftIcon={<ConnectionIcon connectionType="mysqlConfig" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -251,7 +251,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="AWS S3"
-            leftIcon={<ConnectionIcon connectionType="aws-s3" />}
+            leftIcon={<ConnectionIcon connectionType="awsS3Config" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -307,7 +307,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="OpenAI"
-            leftIcon={<ConnectionIcon connectionType="openai" />}
+            leftIcon={<ConnectionIcon connectionType="openaiConfig" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -357,7 +357,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="MongoDB"
-            leftIcon={<ConnectionIcon connectionType="mongodb" />}
+            leftIcon={<ConnectionIcon connectionType="mongoConfig" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -402,7 +402,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="GCP Cloud Storage"
-            leftIcon={<ConnectionIcon connectionType="gcp-cloud-storage" />}
+            leftIcon={<ConnectionIcon connectionType="gcpCloudstorageConfig" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -434,7 +434,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="DynamoDB"
-            leftIcon={<ConnectionIcon connectionType="dynamodb" />}
+            leftIcon={<ConnectionIcon connectionType="dynamodbConfig" />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
