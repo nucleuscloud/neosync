@@ -105,7 +105,7 @@ message DynamoDBSourceConnectionOptions {
 
 message DynamoDBSourceTableOption {
   // The table that this configuration will be applied to
-  string table = 1;
+  string table = 1 [(buf.validate.field).string.min_len = 1];
   // An optional PartiQL query that may be used for subsetting the DynamoDB table.
   // This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
   optional string where_clause = 2;

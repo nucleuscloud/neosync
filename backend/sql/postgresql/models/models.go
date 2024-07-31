@@ -696,12 +696,37 @@ type JobSourceOptions struct {
 }
 
 type DynamoDBSourceOptions struct {
-	ConnectionId string `json:"connectionId"`
+	ConnectionId string                       `json:"connectionId"`
+	Tables       []*DynamoDBSourceTableOption `json:"tables"`
+}
+
+type DynamoDBSourceTableOption struct {
+	Table       string  `json:"table"`
+	WhereClause *string `json:"whereClause,omitempty"`
+}
+
+func (s *DynamoDBSourceTableOption) ToDto() *mgmtv1alpha1.DynamoDBSourceTableOption {
+	return &mgmtv1alpha1.DynamoDBSourceTableOption{
+		Table:       s.Table,
+		WhereClause: s.WhereClause,
+	}
+}
+func (s *DynamoDBSourceTableOption) FromDto(dto *mgmtv1alpha1.DynamoDBSourceTableOption) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.DynamoDBSourceTableOption{}
+	}
+	s.Table = dto.GetTable()
+	s.WhereClause = dto.WhereClause
 }
 
 func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOptions {
+	tables := make([]*mgmtv1alpha1.DynamoDBSourceTableOption, len(s.Tables))
+	for i, t := range s.Tables {
+		tables[i] = t.ToDto()
+	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
 		ConnectionId: s.ConnectionId,
+		Tables:       tables,
 	}
 }
 
@@ -710,6 +735,12 @@ func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnecti
 		dto = &mgmtv1alpha1.DynamoDBSourceConnectionOptions{}
 	}
 	s.ConnectionId = dto.GetConnectionId()
+	s.Tables = make([]*DynamoDBSourceTableOption, len(dto.GetTables()))
+	for i, table := range dto.GetTables() {
+		t := &DynamoDBSourceTableOption{}
+		t.FromDto(table)
+		s.Tables[i] = t
+	}
 }
 
 type MongoDbSourceOptions struct {
