@@ -296,7 +296,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 func convertUInt8ToString(value interface{}) (string, error) {
 	convertedType, ok := value.([]uint8)
 	if !ok {
-		return "", fmt.Errorf("failed to convert column default to string")
+		return "", fmt.Errorf("failed to convert []uint8 to string")
 	}
 	return string(convertedType), nil
 }
