@@ -134,7 +134,9 @@ export function getPermissionColumns(
         },
         {
           id: 'truncate',
-          accessorFn: (row) => row.privilegeType.includes('TRUNCATE'),
+          accessorFn: (row) =>
+            row.privilegeType.includes('TRUNCATE') ||
+            row.privilegeType.includes('DELETE'),
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Truncate" />
           ),
