@@ -6,15 +6,12 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
-import { Connection, ConnectionConfig } from '@neosync/sdk';
+import { Connection } from '@neosync/sdk';
 import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
-import {
-  getConnectionType,
-  isValidConnectionPair,
-} from '../../../connections/util';
+import { isValidConnectionPair } from '../../../connections/util';
 import {
   getConnectionIdFromSource,
   getFkIdFromGenerateSource,
@@ -75,11 +72,6 @@ export default function Page({ params }: PageProps): ReactElement {
       ) : (
         <div className="space-y-10">
           {data?.job?.destinations.map((destination) => {
-            const destConn =
-              connectionsRecord[destination.connectionId] ?? new Connection();
-            const destConnType = getConnectionType(
-              destConn.connectionConfig ?? new ConnectionConfig()
-            );
             return (
               <DestinationConnectionCard
                 key={destination.id}
