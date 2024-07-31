@@ -8,7 +8,146 @@ package mysql_queries
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"strings"
 )
+
+const getCustomFunctionsBySchemas = `-- name: GetCustomFunctionsBySchemas :many
+SELECT 
+    ROUTINE_NAME as function_name, 
+    ROUTINE_SCHEMA as schema_name,
+    DTD_IDENTIFIER as return_data_type,
+    ROUTINE_DEFINITION as definition,
+    CASE WHEN IS_DETERMINISTIC = 'YES' THEN 1 ELSE 0 END as is_deterministic
+FROM 
+    INFORMATION_SCHEMA.ROUTINES 
+WHERE 
+    ROUTINE_TYPE = 'FUNCTION'
+    AND ROUTINE_SCHEMA in (/*SLICE:schemas*/?)
+`
+
+type GetCustomFunctionsBySchemasRow struct {
+	FunctionName    string
+	SchemaName      string
+	ReturnDataType  string
+	Definition      string
+	IsDeterministic int32
+}
+
+func (q *Queries) GetCustomFunctionsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetCustomFunctionsBySchemasRow, error) {
+	query := getCustomFunctionsBySchemas
+	var queryParams []interface{}
+	if len(schemas) > 0 {
+		for _, v := range schemas {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:schemas*/?", strings.Repeat(",?", len(schemas))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:schemas*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomFunctionsBySchemasRow
+	for rows.Next() {
+		var i GetCustomFunctionsBySchemasRow
+		if err := rows.Scan(
+			&i.FunctionName,
+			&i.SchemaName,
+			&i.ReturnDataType,
+			&i.Definition,
+			&i.IsDeterministic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomTriggersBySchemaAndTables = `-- name: GetCustomTriggersBySchemaAndTables :many
+SELECT
+    TRIGGER_NAME AS trigger_name,
+    TRIGGER_SCHEMA as trigger_schema,
+    EVENT_OBJECT_SCHEMA AS schema_name,
+    EVENT_OBJECT_TABLE AS table_name,
+    ACTION_STATEMENT AS statement,
+    EVENT_MANIPULATION AS event_type,
+    ACTION_ORIENTATION AS orientation,
+    ACTION_TIMING AS timing
+FROM
+    information_schema.TRIGGERS
+WHERE 
+    EVENT_OBJECT_SCHEMA = ? AND EVENT_OBJECT_TABLE IN (/*SLICE:tables*/?)
+`
+
+type GetCustomTriggersBySchemaAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetCustomTriggersBySchemaAndTablesRow struct {
+	TriggerName   string
+	TriggerSchema string
+	SchemaName    string
+	TableName     string
+	Statement     string
+	EventType     string
+	Orientation   string
+	Timing        string
+}
+
+// sqlc is broken for mysql so can't do CONCAT(EVENT_OBJECT_SCHEMA, '.', EVENT_OBJECT_TABLE) IN (sqlc.slice('schematables'))
+func (q *Queries) GetCustomTriggersBySchemaAndTables(ctx context.Context, db DBTX, arg *GetCustomTriggersBySchemaAndTablesParams) ([]*GetCustomTriggersBySchemaAndTablesRow, error) {
+	query := getCustomTriggersBySchemaAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetCustomTriggersBySchemaAndTablesRow
+	for rows.Next() {
+		var i GetCustomTriggersBySchemaAndTablesRow
+		if err := rows.Scan(
+			&i.TriggerName,
+			&i.TriggerSchema,
+			&i.SchemaName,
+			&i.TableName,
+			&i.Statement,
+			&i.EventType,
+			&i.Orientation,
+			&i.Timing,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
 SELECT
@@ -16,12 +155,12 @@ SELECT
 	c.table_name,
 	c.column_name,
 	c.ordinal_position,
-	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
 	c.is_nullable,
 	c.data_type,
 	c.character_maximum_length,
-  c.numeric_precision,
-  c.numeric_scale,
+    c.numeric_precision,
+    c.numeric_scale,
 	c.extra
 FROM
 	information_schema.columns AS c
@@ -37,7 +176,7 @@ type GetDatabaseSchemaRow struct {
 	TableName              string
 	ColumnName             string
 	OrdinalPosition        int64
-	ColumnDefault          string
+	ColumnDefault          interface{}
 	IsNullable             string
 	DataType               string
 	CharacterMaximumLength sql.NullInt64
@@ -81,70 +220,173 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 	return items, nil
 }
 
-const getForeignKeyConstraints = `-- name: GetForeignKeyConstraints :many
+const getDatabaseTableSchemasBySchemasAndTables = `-- name: GetDatabaseTableSchemasBySchemasAndTables :many
 SELECT
-rc.constraint_name
-,
-kcu.table_schema AS schema_name
-,
-kcu.table_name as table_name
-,
-kcu.column_name as column_name
-,
-c.is_nullable as is_nullable
-,
-kcu.referenced_table_schema AS foreign_schema_name
-,
-kcu.referenced_table_name AS foreign_table_name
-,
-kcu.referenced_column_name AS foreign_column_name
+   c.TABLE_SCHEMA AS schema_name,
+   c.TABLE_NAME AS table_name,
+   c.COLUMN_NAME AS column_name,
+   c.COLUMN_TYPE AS data_type,
+   IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
+   CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
+   IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
+     IF(c.DATA_TYPE = 'smallint', 16, 
+        IF(c.DATA_TYPE = 'int', 32, 
+           IF(c.DATA_TYPE = 'bigint', 64, -1)))) AS numeric_precision,
+   IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
+   c.ORDINAL_POSITION AS ordinal_position,
+   c.EXTRA AS identity_generation,
+   IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.GENERATION_EXPRESSION, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS generation_exp, -- hack to fix this bug https://bugs.mysql.com/
+   t.AUTO_INCREMENT as auto_increment_start_value
 FROM
-	information_schema.referential_constraints rc
-JOIN information_schema.key_column_usage kcu
-	ON
-	kcu.constraint_name = rc.constraint_name
-	AND kcu.constraint_schema = rc.constraint_schema
-JOIN information_schema.columns as c
-	ON
-	c.table_schema = kcu.table_schema
-	AND c.table_name = kcu.table_name
-	AND c.column_name = kcu.column_name
+    information_schema.COLUMNS as c
+    join information_schema.TABLES as t on t.TABLE_SCHEMA = c.TABLE_SCHEMA and t.TABLE_NAME = c.TABLE_NAME
 WHERE
-	kcu.table_schema = ?
+  -- CONCAT(c.TABLE_SCHEMA, '.', c.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+	c.TABLE_SCHEMA = ? AND c.TABLE_NAME in (/*SLICE:tables*/?)
 ORDER BY
-	rc.constraint_name,
-	kcu.ordinal_position
+    c.ordinal_position
 `
 
-type GetForeignKeyConstraintsRow struct {
-	ConstraintName    string
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
+type GetDatabaseTableSchemasBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
 }
 
-func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getForeignKeyConstraints, tableSchema)
+type GetDatabaseTableSchemasBySchemasAndTablesRow struct {
+	SchemaName              string
+	TableName               string
+	ColumnName              string
+	DataType                string
+	ColumnDefault           interface{}
+	IsNullable              int32
+	CharacterMaximumLength  interface{}
+	NumericPrecision        interface{}
+	NumericScale            interface{}
+	OrdinalPosition         int64
+	IdentityGeneration      sql.NullString
+	GenerationExp           interface{}
+	AutoIncrementStartValue sql.NullInt64
+}
+
+func (q *Queries) GetDatabaseTableSchemasBySchemasAndTables(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemasBySchemasAndTablesParams) ([]*GetDatabaseTableSchemasBySchemasAndTablesRow, error) {
+	query := getDatabaseTableSchemasBySchemasAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetForeignKeyConstraintsRow
+	var items []*GetDatabaseTableSchemasBySchemasAndTablesRow
 	for rows.Next() {
-		var i GetForeignKeyConstraintsRow
+		var i GetDatabaseTableSchemasBySchemasAndTablesRow
 		if err := rows.Scan(
-			&i.ConstraintName,
 			&i.SchemaName,
 			&i.TableName,
 			&i.ColumnName,
+			&i.DataType,
+			&i.ColumnDefault,
 			&i.IsNullable,
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			&i.ForeignColumnName,
+			&i.CharacterMaximumLength,
+			&i.NumericPrecision,
+			&i.NumericScale,
+			&i.OrdinalPosition,
+			&i.IdentityGeneration,
+			&i.GenerationExp,
+			&i.AutoIncrementStartValue,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getIndicesBySchemasAndTables = `-- name: GetIndicesBySchemasAndTables :many
+SELECT 
+    s.TABLE_SCHEMA as schema_name,
+    s.TABLE_NAME as table_name,
+    s.COLUMN_NAME as column_name,
+    s.INDEX_NAME as index_name,
+    s.INDEX_TYPE as index_type,
+    s.SEQ_IN_INDEX as seq_in_index,
+    s.NULLABLE as nullable
+FROM 
+    INFORMATION_SCHEMA.STATISTICS s
+LEFT JOIN 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    ON s.TABLE_SCHEMA = kcu.CONSTRAINT_SCHEMA
+    AND s.TABLE_NAME = kcu.TABLE_NAME
+    AND s.COLUMN_NAME = kcu.COLUMN_NAME
+WHERE 
+    -- CONCAT(s.TABLE_SCHEMA, '.', s.TABLE_NAME) IN (sqlc.slice('schematables')) broken
+		s.TABLE_SCHEMA = ? AND s.TABLE_NAME in (/*SLICE:tables*/?)
+    AND s.INDEX_NAME != 'PRIMARY'
+    AND kcu.CONSTRAINT_NAME IS NULL
+ORDER BY 
+    s.TABLE_NAME,
+    s.INDEX_NAME,
+    s.SEQ_IN_INDEX
+`
+
+type GetIndicesBySchemasAndTablesParams struct {
+	Schema string
+	Tables []string
+}
+
+type GetIndicesBySchemasAndTablesRow struct {
+	SchemaName string
+	TableName  string
+	ColumnName string
+	IndexName  string
+	IndexType  string
+	SeqInIndex sql.NullInt64
+	Nullable   string
+}
+
+func (q *Queries) GetIndicesBySchemasAndTables(ctx context.Context, db DBTX, arg *GetIndicesBySchemasAndTablesParams) ([]*GetIndicesBySchemasAndTablesRow, error) {
+	query := getIndicesBySchemasAndTables
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetIndicesBySchemasAndTablesRow
+	for rows.Next() {
+		var i GetIndicesBySchemasAndTablesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.IndexName,
+			&i.IndexType,
+			&i.SeqInIndex,
+			&i.Nullable,
 		); err != nil {
 			return nil, err
 		}
@@ -160,18 +402,59 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSc
 }
 
 const getMysqlRolePermissions = `-- name: GetMysqlRolePermissions :many
+WITH admin_privileges AS (
+	SELECT
+		privilege_type
+	FROM
+		INFORMATION_SCHEMA.USER_PRIVILEGES
+	WHERE
+		USER_PRIVILEGES.GRANTEE = CONCAT("'",
+			SUBSTRING_INDEX(CURRENT_USER(),
+				'@',
+				1),
+			"'@'%'")
+),
+db_privileges AS (
+	SELECT
+		TABLE_SCHEMA AS table_schema,
+		PRIVILEGE_TYPE AS privilege_type
+	FROM
+		INFORMATION_SCHEMA.SCHEMA_PRIVILEGES
+	WHERE
+		SCHEMA_PRIVILEGES.GRANTEE = CONCAT("'",
+			SUBSTRING_INDEX(CURRENT_USER(),
+				'@',
+				1),
+			"'@'%'")
+)
 SELECT
-    tp.TABLE_SCHEMA AS table_schema,
-    tp.TABLE_NAME AS table_name,
-    tp.PRIVILEGE_TYPE AS privilege_type
+	t.TABLE_SCHEMA AS table_schema, t.TABLE_NAME AS table_name, ap.privilege_type AS privilege_type
 FROM
-    information_schema.TABLE_PRIVILEGES AS tp
+	INFORMATION_SCHEMA.TABLES AS t
+	JOIN admin_privileges AS ap
 WHERE
-    tp.TABLE_SCHEMA NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys')
-    AND (tp.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'"))
-ORDER BY
-    tp.TABLE_SCHEMA,
-    tp.TABLE_NAME
+	t.TABLE_SCHEMA NOT IN('mysql', 'sys', 'performance_schema', 'information_schema')
+UNION
+SELECT
+	t.TABLE_SCHEMA AS table_schema,
+	t.TABLE_NAME AS table_name,
+	dp.privilege_type AS privilege_type
+FROM
+	INFORMATION_SCHEMA.TABLES AS t
+	JOIN db_privileges AS dp ON dp.table_schema = t.table_schema
+WHERE
+	t.TABLE_SCHEMA IN(
+		SELECT
+			table_schema FROM db_privileges)
+UNION
+SELECT
+	TABLE_PRIVILEGES.TABLE_SCHEMA AS table_schema,
+	TABLE_PRIVILEGES.TABLE_NAME AS table_name,
+	TABLE_PRIVILEGES.PRIVILEGE_TYPE AS privilege_type
+FROM
+	INFORMATION_SCHEMA.TABLE_PRIVILEGES
+WHERE
+	TABLE_PRIVILEGES.GRANTEE = CONCAT("'", SUBSTRING_INDEX(CURRENT_USER(), '@', 1), "'@'%'")
 `
 
 type GetMysqlRolePermissionsRow struct {
@@ -203,43 +486,105 @@ func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX) ([]*GetM
 	return items, nil
 }
 
-const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
+const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
-	table_schema AS schema_name,
-	table_name as table_name,
-	column_name as column_name,
-	constraint_name as constraint_name
+    tc.table_schema AS schema_name,
+    tc.table_name AS table_name,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
+    tc.constraint_name AS constraint_name,
+    tc.constraint_type AS constraint_type,
+    COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
+    COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule,
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(cc.check_clause, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS check_clause -- hack to fix this bug https://bugs.mysql.com/
 FROM
-	information_schema.key_column_usage
+    information_schema.table_constraints AS tc
+LEFT JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+    AND tc.table_name = kcu.table_name
+LEFT JOIN information_schema.columns as c
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
-	table_schema = ?
-	AND constraint_name = 'PRIMARY'
-ORDER BY
-	table_name,
-	column_name
+    tc.table_schema = ?
+    AND tc.table_name IN (/*SLICE:tables*/?)
+GROUP BY 
+    tc.table_schema,
+    tc.table_name,
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule,
+    cc.check_clause
 `
 
-type GetPrimaryKeyConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ColumnName     string
-	ConstraintName string
+type GetTableConstraintsParams struct {
+	Schema string
+	Tables []string
 }
 
-func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getPrimaryKeyConstraints, tableSchema)
+type GetTableConstraintsRow struct {
+	SchemaName            string
+	TableName             string
+	ConstraintColumns     json.RawMessage
+	NotNullable           json.RawMessage
+	ConstraintName        string
+	ConstraintType        string
+	ReferencedSchemaName  string
+	ReferencedTableName   string
+	ReferencedColumnNames json.RawMessage
+	UpdateRule            sql.NullString
+	DeleteRule            sql.NullString
+	CheckClause           interface{}
+}
+
+func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
+	query := getTableConstraints
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.Schema)
+	if len(arg.Tables) > 0 {
+		for _, v := range arg.Tables {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tables*/?", strings.Repeat(",?", len(arg.Tables))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tables*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetPrimaryKeyConstraintsRow
+	var items []*GetTableConstraintsRow
 	for rows.Next() {
-		var i GetPrimaryKeyConstraintsRow
+		var i GetTableConstraintsRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
-			&i.ColumnName,
+			&i.ConstraintColumns,
+			&i.NotNullable,
 			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.ReferencedSchemaName,
+			&i.ReferencedTableName,
+			&i.ReferencedColumnNames,
+			&i.UpdateRule,
+			&i.DeleteRule,
+			&i.CheckClause,
 		); err != nil {
 			return nil, err
 		}
@@ -254,47 +599,98 @@ func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSc
 	return items, nil
 }
 
-const getUniqueConstraints = `-- name: GetUniqueConstraints :many
+const getTableConstraintsBySchemas = `-- name: GetTableConstraintsBySchemas :many
 SELECT
     tc.table_schema AS schema_name,
     tc.table_name AS table_name,
+    JSON_ARRAYAGG(kcu.column_name) AS constraint_columns,
+    JSON_ARRAYAGG(CASE WHEN c.is_nullable = 'YES' THEN 0 ELSE 1 END) AS not_nullable,
     tc.constraint_name AS constraint_name,
-    kcu.column_name AS column_name
+    tc.constraint_type AS constraint_type,
+    COALESCE(kcu.referenced_table_schema, 'NULL') AS referenced_schema_name,
+    COALESCE(kcu.referenced_table_name, 'NULL') AS referenced_table_name,
+    JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
+    rc.update_rule as update_rule,
+    rc.delete_rule as delete_rule,
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(cc.check_clause, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS check_clause -- hack to fix this bug https://bugs.mysql.com/
 FROM
     information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
+LEFT JOIN information_schema.key_column_usage AS kcu
     ON tc.constraint_name = kcu.constraint_name
     AND tc.table_schema = kcu.table_schema
     AND tc.table_name = kcu.table_name
+LEFT JOIN information_schema.columns as c
+    ON c.table_schema = kcu.table_schema
+    AND c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
+LEFT JOIN information_schema.referential_constraints as rc
+	ON rc.constraint_schema = tc.table_schema
+	AND rc.table_name = tc.table_name
+	AND rc.constraint_name = tc.constraint_name
+LEFT JOIN information_schema.check_constraints as cc
+	ON tc.constraint_schema = cc.constraint_schema
+	AND tc.constraint_name = cc.constraint_name
 WHERE
-    tc.table_schema = ?
-    AND tc.constraint_type = 'UNIQUE'
-ORDER BY
+    tc.table_schema IN (/*SLICE:schemas*/?)
+GROUP BY 
+    tc.table_schema,
     tc.table_name,
-    kcu.column_name
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.referenced_table_schema,
+    kcu.referenced_table_name,
+    rc.update_rule,
+    rc.delete_rule,
+    cc.check_clause
 `
 
-type GetUniqueConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
+type GetTableConstraintsBySchemasRow struct {
+	SchemaName            string
+	TableName             string
+	ConstraintColumns     json.RawMessage
+	NotNullable           json.RawMessage
+	ConstraintName        string
+	ConstraintType        string
+	ReferencedSchemaName  string
+	ReferencedTableName   string
+	ReferencedColumnNames json.RawMessage
+	UpdateRule            sql.NullString
+	DeleteRule            sql.NullString
+	CheckClause           interface{}
 }
 
-func (q *Queries) GetUniqueConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetUniqueConstraintsRow, error) {
-	rows, err := db.QueryContext(ctx, getUniqueConstraints, tableSchema)
+func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
+	query := getTableConstraintsBySchemas
+	var queryParams []interface{}
+	if len(schemas) > 0 {
+		for _, v := range schemas {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:schemas*/?", strings.Repeat(",?", len(schemas))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:schemas*/?", "NULL", 1)
+	}
+	rows, err := db.QueryContext(ctx, query, queryParams...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetUniqueConstraintsRow
+	var items []*GetTableConstraintsBySchemasRow
 	for rows.Next() {
-		var i GetUniqueConstraintsRow
+		var i GetTableConstraintsBySchemasRow
 		if err := rows.Scan(
 			&i.SchemaName,
 			&i.TableName,
+			&i.ConstraintColumns,
+			&i.NotNullable,
 			&i.ConstraintName,
-			&i.ColumnName,
+			&i.ConstraintType,
+			&i.ReferencedSchemaName,
+			&i.ReferencedTableName,
+			&i.ReferencedColumnNames,
+			&i.UpdateRule,
+			&i.DeleteRule,
+			&i.CheckClause,
 		); err != nil {
 			return nil, err
 		}

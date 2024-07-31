@@ -456,6 +456,14 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 			DataType:    "character varying",
 		}}, nil)
 	m.DbMock.On("GetCreateTableStatement", mock.Anything, "public", "users").Return("CREATE TABLE IF NOT EXISTS  public.users;", nil)
+	m.DbMock.On("GetSchemaInitStatements", mock.Anything, mock.Anything).Return([]*sqlmanager_shared.InitSchemaStatements{
+		{Label: "data types", Statements: []string{}},
+		{Label: "create table", Statements: []string{"test-create-statement"}},
+		{Label: "non-fk alter table", Statements: []string{"test-pk-statement"}},
+		{Label: "fk alter table", Statements: []string{"test-fk-statement"}},
+		{Label: "table index", Statements: []string{"test-idx-statement"}},
+		{Label: "table triggers", Statements: []string{"test-trigger-statement"}},
+	}, nil)
 
 	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{

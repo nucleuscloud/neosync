@@ -34,5 +34,10 @@
 		"folder": "mysql/composite-keys",
 		"sql_file": "create.sql",
 		"driver": "mysql"
+	},
+	{
+		"folder": "mysql/init-schema",
+		"sql_file": "create.sql",
+		"driver": "mysql"
 	}
 ]

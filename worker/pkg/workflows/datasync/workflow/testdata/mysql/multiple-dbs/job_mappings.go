@@ -11,7 +11,7 @@ import (
 func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "m_db_1",
+			Schema: "m_db_2",
 			Table:  "container_status",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -19,7 +19,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_1",
+			Schema: "m_db_2",
 			Table:  "container",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -27,7 +27,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_1",
+			Schema: "m_db_2",
 			Table:  "container",
 			Column: "code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -35,7 +35,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_1",
+			Schema: "m_db_2",
 			Table:  "container",
 			Column: "container_status_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -43,7 +43,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_2",
+			Schema: "m_db_1",
 			Table:  "container_status",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -51,7 +51,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_2",
+			Schema: "m_db_1",
 			Table:  "container",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -59,7 +59,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_2",
+			Schema: "m_db_1",
 			Table:  "container",
 			Column: "code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -67,7 +67,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "m_db_2",
+			Schema: "m_db_1",
 			Table:  "container",
 			Column: "container_status_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{

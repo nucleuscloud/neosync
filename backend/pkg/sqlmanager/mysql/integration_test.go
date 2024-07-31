@@ -10,6 +10,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/sync/errgroup"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -22,39 +23,126 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	querier mysql_queries.Querier
-	pool    mysql_queries.DBTX
-	close   func()
-
+	initSql     string
 	setupSql    string
 	teardownSql string
 
 	ctx context.Context
 
-	mysqlcontainer *testmysql.MySQLContainer
+	source *mysqlTestContainer
+	target *mysqlTestContainer
+}
+
+type mysqlTestContainer struct {
+	pool      *sql.DB
+	querier   mysql_queries.Querier
+	container *testmysql.MySQLContainer
+	url       string
+	close     func()
+}
+
+type mysqlTest struct {
+	source *mysqlTestContainer
+	target *mysqlTestContainer
+}
+
+func (s *IntegrationTestSuite) SetupMysql() (*mysqlTest, error) {
+	var source *mysqlTestContainer
+	var target *mysqlTestContainer
+
+	errgrp := errgroup.Group{}
+	errgrp.Go(func() error {
+		sourcecontainer, err := createMysqlTestContainer(s.ctx, "datasync", "root", "pass-source")
+		if err != nil {
+			return err
+		}
+		source = sourcecontainer
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		targetcontainer, err := createMysqlTestContainer(s.ctx, "datasync", "root", "pass-target")
+		if err != nil {
+			return err
+		}
+		target = targetcontainer
+		return nil
+	})
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return &mysqlTest{
+		source: source,
+		target: target,
+	}, nil
+}
+
+func createMysqlTestContainer(
+	ctx context.Context,
+	database, username, password string,
+) (*mysqlTestContainer, error) {
+	container, err := testmysql.Run(ctx,
+		"mysql:8.0.36",
+		testmysql.WithDatabase(database),
+		testmysql.WithUsername(username),
+		testmysql.WithPassword(password),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("port: 3306  MySQL Community Server").
+				WithOccurrence(1).WithStartupTimeout(20*time.Second),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	connstr, err := container.ConnectionString(ctx, "multiStatements=true")
+	if err != nil {
+		panic(err)
+	}
+	pool, err := sql.Open(sqlmanager_shared.MysqlDriver, connstr)
+	if err != nil {
+		panic(err)
+	}
+	containerPort, err := container.MappedPort(ctx, "3306/tcp")
+	if err != nil {
+		return nil, err
+	}
+	containerHost, err := container.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
+	return &mysqlTestContainer{
+		pool:      pool,
+		querier:   mysql_queries.New(),
+		url:       connUrl,
+		container: container,
+		close: func() {
+			if pool != nil {
+				pool.Close()
+			}
+		},
+	}, nil
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
-	mysqlcontainer, err := testmysql.Run(s.ctx,
-		"mysql:8.0.36",
-		testmysql.WithDatabase("foo"),
-		testmysql.WithUsername("root"),
-		testmysql.WithPassword("password"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("port: 3306  MySQL Community Server").
-				WithOccurrence(1).WithStartupTimeout(10*time.Second),
-		),
-	)
+	m, err := s.SetupMysql()
 	if err != nil {
 		panic(err)
 	}
-	s.mysqlcontainer = mysqlcontainer
-	connstr, err := mysqlcontainer.ConnectionString(s.ctx, "multiStatements=true")
+	s.source = m.source
+	s.target = m.target
+
+	initSql, err := os.ReadFile("./testdata/init.sql")
 	if err != nil {
 		panic(err)
 	}
+	s.initSql = string(initSql)
 
 	setupSql, err := os.ReadFile("./testdata/setup.sql")
 	if err != nil {
@@ -67,41 +155,46 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 	s.teardownSql = string(teardownSql)
-
-	pool, err := sql.Open(sqlmanager_shared.MysqlDriver, connstr)
-	if err != nil {
-		panic(err)
-	}
-	s.pool = pool
-	s.querier = mysql_queries.New()
-	s.close = func() {
-		if pool != nil {
-			pool.Close()
-		}
-	}
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.pool.ExecContext(s.ctx, s.setupSql)
+	_, err := s.target.pool.ExecContext(s.ctx, s.initSql)
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.source.pool.ExecContext(s.ctx, s.setupSql)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	_, err := s.pool.ExecContext(s.ctx, s.teardownSql)
+	_, err := s.target.pool.ExecContext(s.ctx, s.teardownSql)
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.source.pool.ExecContext(s.ctx, s.teardownSql)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.pool != nil {
-		s.close()
+	if s.source.pool != nil {
+		s.source.close()
 	}
-	if s.mysqlcontainer != nil {
-		err := s.mysqlcontainer.Terminate(s.ctx)
+	if s.target.pool != nil {
+		s.target.close()
+	}
+	if s.source != nil {
+		err := s.source.container.Terminate(s.ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	if s.target != nil {
+		err := s.target.container.Terminate(s.ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -116,4 +209,9 @@ func TestIntegrationTestSuite(t *testing.T) {
 		return
 	}
 	suite.Run(t, new(IntegrationTestSuite))
+}
+
+//nolint:unparam
+func (s *IntegrationTestSuite) buildTable(schema, tableName string) string {
+	return fmt.Sprintf("%s.%s", schema, tableName)
 }

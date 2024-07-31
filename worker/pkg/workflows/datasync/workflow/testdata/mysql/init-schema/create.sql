@@ -1,36 +1,34 @@
-CREATE DATABASE IF NOT EXISTS sqlmanagermysql;
-CREATE DATABASE IF NOT EXISTS sqlmanagermysql2;
-CREATE DATABASE IF NOT EXISTS sqlmanagermysql3;
+CREATE DATABASE IF NOT EXISTS init_schema;
+CREATE DATABASE IF NOT EXISTS init_schema2;
+CREATE DATABASE IF NOT EXISTS init_schema3;
 
-CREATE TABLE IF NOT EXISTS `sqlmanagermysql`.`container_status` (
-	`id` int NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY (`id`)) ENGINE = InnoDB AUTO_INCREMENT = 2 DEFAULT CHARSET = utf8mb3;
+USE init_schema; 
+CREATE TABLE IF NOT EXISTS container_status (
+	id int NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY (id)) ENGINE = InnoDB AUTO_INCREMENT = 2 DEFAULT CHARSET = utf8mb3;
 
-CREATE TABLE IF NOT EXISTS `sqlmanagermysql`.`container` (
-	`id` int NOT NULL AUTO_INCREMENT,
-	`code` varchar(32) NOT NULL,
-	`container_status_id` int NOT NULL,
-PRIMARY KEY (`id`),
-UNIQUE KEY `container_code_uniq` (`code`),
-KEY `container_container_status_fk` (`container_status_id`),
-CONSTRAINT `container_container_status_fk` FOREIGN KEY (`container_status_id`) REFERENCES `container_status` (`id`)) ENGINE = InnoDB AUTO_INCREMENT = 530 DEFAULT CHARSET = utf8mb3;
+CREATE TABLE IF NOT EXISTS container (
+	id int NOT NULL AUTO_INCREMENT,
+	code varchar(32) NOT NULL,
+	container_status_id int NOT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY container_code_uniq (code),
+KEY container_container_status_fk (container_status_id));
 
+USE init_schema2; 
+CREATE TABLE IF NOT EXISTS container_status (
+	id int NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY (id)) ENGINE = InnoDB AUTO_INCREMENT = 2 DEFAULT CHARSET = utf8mb3;
 
-CREATE TABLE IF NOT EXISTS `sqlmanagermysql2`.`container_status` (
-	`id` int NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY (`id`)) ENGINE = InnoDB AUTO_INCREMENT = 2 DEFAULT CHARSET = utf8mb3;
+CREATE TABLE IF NOT EXISTS container (
+	id int NOT NULL AUTO_INCREMENT,
+	code varchar(32) NOT NULL,
+	container_status_id int NOT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY container_code_uniq (code),
+KEY container_container_status_fk (container_status_id));
 
-CREATE TABLE IF NOT EXISTS `sqlmanagermysql2`.`container` (
-	`id` int NOT NULL AUTO_INCREMENT,
-	`code` varchar(32) NOT NULL,
-	`container_status_id` int NOT NULL,
-PRIMARY KEY (`id`),
-UNIQUE KEY `container_code_uniq` (`code`),
-KEY `container_container_status_fk` (`container_status_id`),
-CONSTRAINT `container_container_status_fk` FOREIGN KEY (`container_status_id`) REFERENCES `container_status` (`id`)) ENGINE = InnoDB AUTO_INCREMENT = 530 DEFAULT CHARSET = utf8mb3;
-
-
-USE sqlmanagermysql3; 
+USE init_schema3; 
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
     current_salary float NOT NULL
 );
 
-CREATE TABLE unique_emails (
+CREATE TABLE IF NOT EXISTS unique_emails (
      id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) not null UNIQUE
 );
@@ -57,8 +55,7 @@ CREATE TABLE IF NOT EXISTS unique_emails_and_usernames (
 -- Testing basic circular dependencies
 CREATE TABLE IF NOT EXISTS t1 (
     a INT AUTO_INCREMENT PRIMARY KEY,
-    b INT NULL,
-    CONSTRAINT t1_b_fkey FOREIGN KEY (b) REFERENCES t1(a)
+    b INT NULL
 );
 
 CREATE TABLE IF NOT EXISTS t2 (
@@ -71,13 +68,6 @@ CREATE TABLE IF NOT EXISTS t3 (
     b INT NULL
 );
 
-ALTER TABLE t2
-ADD CONSTRAINT t2_b_fkey FOREIGN KEY (b) REFERENCES t3(a);
-
-ALTER TABLE t3
-ADD CONSTRAINT t3_b_fkey FOREIGN KEY (b) REFERENCES t2(a);
-
-
 CREATE TABLE IF NOT EXISTS parent1 (
     id CHAR(36) NOT NULL DEFAULT (UUID()),
     CONSTRAINT pk_parent1_id PRIMARY KEY (id)
@@ -86,8 +76,7 @@ CREATE TABLE IF NOT EXISTS parent1 (
 CREATE TABLE IF NOT EXISTS child1 (
     id CHAR(36) NOT NULL DEFAULT (UUID()),
     parent_id CHAR(36) NULL,
-    CONSTRAINT pk_child1_id PRIMARY KEY (id),
-    CONSTRAINT fk_child1_parent_id_parent1_id FOREIGN KEY (parent_id) REFERENCES parent1(id) ON DELETE CASCADE
+    CONSTRAINT pk_child1_id PRIMARY KEY (id)
 );
 
 -- Testing composite keys
@@ -101,11 +90,8 @@ CREATE TABLE IF NOT EXISTS t4 (
 CREATE TABLE IF NOT EXISTS t5 (
     x INT NOT NULL,
     y INT NOT NULL,
-    z INT NULL,
-    CONSTRAINT t5_t4_fkey FOREIGN KEY (x, y) REFERENCES t4 (a, b)
+    z INT NULL
 );
-
-
 
 -- DELIMITER //
 CREATE FUNCTION generate_custom_id()
@@ -144,11 +130,23 @@ CREATE TABLE IF NOT EXISTS custom_table (
   CONSTRAINT chk_custom_domain CHECK (name REGEXP '^[a-zA-Z]+$')
 );
 
-
 CREATE INDEX idx_name ON custom_table(name);
 
 CREATE TABLE IF NOT EXISTS tablewithcount (
     id VARCHAR(255) NOT NULL
 );
 
-INSERT INTO tablewithcount(id) VALUES ('1'), ('2');
+
+-- Foreign key constraints
+USE init_schema;
+ALTER TABLE container ADD CONSTRAINT container_container_status_fk FOREIGN KEY (container_status_id) REFERENCES container_status (id);
+
+USE init_schema2;
+ALTER TABLE container ADD CONSTRAINT container_container_status_fk FOREIGN KEY (container_status_id) REFERENCES container_status (id);
+
+USE init_schema3;
+ALTER TABLE t1 ADD CONSTRAINT t1_b_fkey FOREIGN KEY (b) REFERENCES t1(a);
+ALTER TABLE t2 ADD CONSTRAINT t2_b_fkey FOREIGN KEY (b) REFERENCES t3(a);
+ALTER TABLE t3 ADD CONSTRAINT t3_b_fkey FOREIGN KEY (b) REFERENCES t2(a);
+ALTER TABLE child1 ADD CONSTRAINT fk_child1_parent_id_parent1_id FOREIGN KEY (parent_id) REFERENCES parent1(id) ON DELETE CASCADE;
+ALTER TABLE t5 ADD CONSTRAINT t5_t4_fkey FOREIGN KEY (x, y) REFERENCES t4 (a, b);

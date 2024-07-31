@@ -87,8 +87,6 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	}
 	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(foreignKeysMap)
 
-	// reverse of table dependency
-	// map of foreign key to source table + column
 	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, foreignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
