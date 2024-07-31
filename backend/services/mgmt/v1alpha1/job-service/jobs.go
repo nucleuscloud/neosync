@@ -1156,7 +1156,7 @@ func (s *Service) UpdateJobDestinationConnection(
 		return nil, err
 	}
 
-	// todo: need a lot more validation here for changing connection uuid, matching options, as well as creating a new destination
+	// todo(NEOS-1281):  need a lot more validation here for changing connection uuid, matching options, as well as creating a new destination
 	// if that destination is not supported with the source type
 	logger.Info("updating job destination connection")
 	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, s.db.Db, db_queries.UpdateJobConnectionDestinationParams{
