@@ -14,12 +14,12 @@ import {
 } from '@/components/ui/form';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Editor } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ValidCode } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
@@ -48,6 +48,55 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [codeStatus, setCodeStatus] = useState<ValidCode>('null');
   const { resolvedTheme } = useTheme();
+
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (monaco) {
+      const provider = monaco.languages.registerCompletionItemProvider('sql', {
+        triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
+
+        provideCompletionItems: (model, position) => {
+          // const textUntilPosition = model.getValueInRange({
+          //   startLineNumber: 1,
+          //   startColumn: 1,
+          //   endLineNumber: position.lineNumber,
+          //   endColumn: position.column,
+          // });
+
+          const columnSet = new Set<string>('neosync');
+
+          // Check if the last character or word should trigger the auto-complete
+          // if (!shouldTriggerAutocomplete(textUntilPosition)) {
+          //   return { suggestions: [] };
+          // }
+
+          const word = model.getWordUntilPosition(position);
+
+          const range = {
+            startLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: word.endColumn,
+          };
+
+          const suggestions = Array.from(columnSet).map((name) => ({
+            label: name, // would be nice if we could add the type here as well?
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: name,
+            range: range,
+          }));
+
+          return { suggestions: suggestions };
+        },
+      });
+      /* disposes of the instance if the component re-renders, otherwise the auto-compelte list just keeps appending the column names to the auto-complete, so you get liek 20 'address' entries for ex. then it re-renders and then it goes to 30 'address' entries
+       */
+      return () => {
+        provider.dispose();
+      };
+    }
+  }, [monaco]);
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -170,3 +219,22 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     </div>
   );
 }
+
+// function shouldTriggerAutocomplete(text: string): boolean {
+//   const trimmedText = text.trim();
+//   const textSplit = trimmedText.split(/\s+/);
+//   const lastSignificantWord = trimmedText.split(/\s+/).pop()?.toUpperCase();
+//   const triggerKeywords = ['neo'];
+
+//   if (textSplit.length == 2 && textSplit[0].toUpperCase() == 'WHERE') {
+//     /* since we pre-pend the 'WHERE', we want the autocomplete to show up for the first letter typed
+//      which would come through as 'WHERE a' if the user just typed the letter 'a'
+//      so the when we split that text, we check if the length is 2 (as a way of checking if the user has only typed one letter or is still on the first word) and if it is and the first word is 'WHERE' which it should be since we pre-pend it, then show the auto-complete */
+//     return true;
+//   } else {
+//     return (
+//       triggerKeywords.includes(lastSignificantWord || '') ||
+//       triggerKeywords.some((keyword) => trimmedText.endsWith(keyword + ' '))
+//     );
+//   }
+// }

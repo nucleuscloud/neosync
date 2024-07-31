@@ -3,6 +3,7 @@ import SubPageHeader from '@/components/headers/SubPageHeader';
 import { PageProps } from '@/components/types';
 import { ReactElement } from 'react';
 import SourceConnectionCard from './components/SourceConnectionCard';
+import TestEditor from './editortest';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
@@ -14,6 +15,7 @@ export default function Page({ params }: PageProps): ReactElement {
       />
 
       <div className="space-y-10">
+        <TestEditor />
         <SourceConnectionCard jobId={id} />
       </div>
     </div>
