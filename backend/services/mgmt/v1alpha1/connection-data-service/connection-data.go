@@ -834,17 +834,15 @@ func (s *Service) GetConnectionInitStatements(
 			createStmtsMap[k] = stmt
 			tables = append(tables, &sqlmanager_shared.SchemaTable{Schema: v.Schema, Table: v.Table})
 		}
-		if db.Driver == sqlmanager_shared.PostgresDriver {
-			initBlocks, err := db.Db.GetSchemaInitStatements(ctx, tables)
-			if err != nil {
-				return nil, err
-			}
-			for _, b := range initBlocks {
-				initSchemaStmts = append(initSchemaStmts, &mgmtv1alpha1.SchemaInitStatements{
-					Label:      b.Label,
-					Statements: b.Statements,
-				})
-			}
+		initBlocks, err := db.Db.GetSchemaInitStatements(ctx, tables)
+		if err != nil {
+			return nil, err
+		}
+		for _, b := range initBlocks {
+			initSchemaStmts = append(initSchemaStmts, &mgmtv1alpha1.SchemaInitStatements{
+				Label:      b.Label,
+				Statements: b.Statements,
+			})
 		}
 	}
 
