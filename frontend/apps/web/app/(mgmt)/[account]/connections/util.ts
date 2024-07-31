@@ -41,7 +41,7 @@ export interface ConnectionMeta {
   isExperimental?: boolean;
 }
 
-export const CONNECTIONS_METADATA: ConnectionMeta[] = [
+const CONNECTIONS_METADATA: ConnectionMeta[] = [
   {
     urlSlug: 'postgres',
     name: 'Postgres',
