@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS `composite`;
-USE `composite`;
+CREATE DATABASE IF NOT EXISTS composite;
+USE composite;
 
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     order_id CHAR(36)  NOT NULL,
     product_id CHAR(36)  NOT NULL,
     order_date DATE,
@@ -9,7 +9,7 @@ CREATE TABLE orders (
 );
 
 
-CREATE TABLE order_details (
+CREATE TABLE IF NOT EXISTS order_details (
     detail_id CHAR(36) NOT NULL,
     order_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE order_details (
 );
 
 
-CREATE TABLE order_shipping (
+CREATE TABLE IF NOT EXISTS order_shipping (
     shipping_id CHAR(36) NOT NULL,
     order_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE order_shipping (
     PRIMARY KEY (shipping_id)
 );
 
-CREATE TABLE shipping_status (
+CREATE TABLE IF NOT EXISTS shipping_status (
     status_id CHAR(36) NOT NULL,
     order_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,

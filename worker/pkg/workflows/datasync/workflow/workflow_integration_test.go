@@ -24,7 +24,9 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
+	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
+	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
@@ -335,11 +337,11 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 
 func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
-	// mdTests := mysql_multipledbs.GetSyncTests()
-	// compositeTests := mysql_compositekeys.GetSyncTests()
-	// allTests["Multiple_Dbs"] = mdTests
-	// allTests["Composite_Keys"] = compositeTests
+	mdTests := mysql_multipledbs.GetSyncTests()
 	initTests := mysql_initschema.GetSyncTests()
+	compositeTests := mysql_compositekeys.GetSyncTests()
+	allTests["Multiple_Dbs"] = mdTests
+	allTests["Composite_Keys"] = compositeTests
 	allTests["Init_Schema"] = initTests
 	return allTests
 }
