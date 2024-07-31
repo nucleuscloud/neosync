@@ -19,6 +19,10 @@ Stands up mongodb databases.
 
 Stands up mysql databases.
 
+## compose-db-dynamo.yml
+
+Stands up dynamodb databases.
+
 ## compose-metrics.yml
 
 Stands up an entire metrics suite.
