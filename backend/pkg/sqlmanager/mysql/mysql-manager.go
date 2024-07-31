@@ -39,12 +39,16 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}
+		columnDefaultStr, err := convertUInt8ToString(row.ColumnDefault)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:   row.TableSchema,
 			TableName:     row.TableName,
 			ColumnName:    row.ColumnName,
 			DataType:      row.DataType,
-			ColumnDefault: row.ColumnDefault,
+			ColumnDefault: columnDefaultStr,
 			IsNullable:    row.IsNullable,
 			GeneratedType: generatedType,
 		})

@@ -4,7 +4,7 @@ SELECT
 	c.table_name,
 	c.column_name,
 	c.ordinal_position,
-	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
 	c.is_nullable,
 	c.data_type,
 	c.character_maximum_length,
