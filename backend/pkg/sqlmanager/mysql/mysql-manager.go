@@ -172,6 +172,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	errgrp.SetLimit(5)
 
 	colDefMap := map[string][]*mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
+	var colDefMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
 			columnDefs, err := m.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, m.pool, &mysql_queries.GetDatabaseTableSchemasBySchemasAndTablesParams{
@@ -181,6 +182,8 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return err
 			}
+			colDefMapMu.Lock()
+			defer colDefMapMu.Unlock()
 			for _, columnDefinition := range columnDefs {
 				key := sqlmanager_shared.SchemaTable{Schema: columnDefinition.SchemaName, Table: columnDefinition.TableName}
 				colDefMap[key.String()] = append(colDefMap[key.String()], columnDefinition)
@@ -190,6 +193,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	}
 
 	constraintmap := map[string][]*mysql_queries.GetTableConstraintsRow{}
+	var constraintMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
 			constraints, err := m.querier.GetTableConstraints(errctx, m.pool, &mysql_queries.GetTableConstraintsParams{
@@ -199,6 +203,8 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return err
 			}
+			constraintMapMu.Lock()
+			defer constraintMapMu.Unlock()
 			for _, constraint := range constraints {
 				key := sqlmanager_shared.SchemaTable{Schema: constraint.SchemaName, Table: constraint.TableName}
 				constraintmap[key.String()] = append(constraintmap[key.String()], constraint)
@@ -208,6 +214,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	}
 
 	indexmap := map[string][]string{}
+	var indexMapMu sync.Mutex
 	for schema, tables := range schemaset {
 		errgrp.Go(func() error {
 			idxrecords, err := m.querier.GetIndicesBySchemasAndTables(errctx, m.pool, &mysql_queries.GetIndicesBySchemasAndTablesParams{
@@ -217,6 +224,8 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return err
 			}
+			indexMapMu.Lock()
+			defer indexMapMu.Unlock()
 			for _, record := range idxrecords {
 				key := sqlmanager_shared.SchemaTable{Schema: record.SchemaName, Table: record.TableName}
 				indexmap[key.String()] = append(indexmap[key.String()], wrapIdempotentIndex(record.SchemaName, record.TableName, record.IndexName, record.ColumnName))
@@ -243,13 +252,22 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if record.IdentityGeneration.Valid {
 				identityType = &record.IdentityGeneration.String
 			}
+
+			columnDefaultStr, err := convertUInt8ToString(record.ColumnDefault)
+			if err != nil {
+				return nil, err
+			}
+			genExp, err := convertUInt8ToString(record.GenerationExp)
+			if err != nil {
+				return nil, err
+			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
 				ColumnName:          record.ColumnName,
-				ColumnDefault:       record.ColumnDefault.String,
+				ColumnDefault:       columnDefaultStr,
 				DataType:            record.DataType,
 				IsNullable:          record.IsNullable == 1,
 				IdentityType:        identityType,
-				GeneratedExpression: record.GenerationExp.String,
+				GeneratedExpression: genExp,
 			}))
 		}
 
@@ -268,6 +286,15 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 		output = append(output, info)
 	}
 	return output, nil
+}
+
+//nolint:gofmt
+func convertUInt8ToString(value interface{}) (string, error) {
+	convertedType, ok := value.([]uint8)
+	if !ok {
+		return "", fmt.Errorf("failed to convert column default to string")
+	}
+	return string(convertedType), nil
 }
 
 type buildTableColRequest struct {
@@ -290,13 +317,13 @@ func buildTableCol(record *buildTableColRequest) string {
 		} else if record.IdentityType != nil && *record.IdentityType == "VIRTUAL GENERATED" {
 			genType = "VIRTUAL"
 		}
-		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", stripEscapeCharacters(record.GeneratedExpression), genType))
+		pieces = append(pieces, fmt.Sprintf("GENERATED ALWAYS AS (%s) %s", record.GeneratedExpression, genType))
 	} else {
 		pieces = append(pieces, buildNullableText(record.IsNullable))
 	}
 
 	if record.ColumnDefault != "" {
-		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", stripEscapeCharacters(record.ColumnDefault)))
+		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
@@ -304,24 +331,6 @@ func buildTableCol(record *buildTableColRequest) string {
 	}
 
 	return strings.Join(pieces, " ")
-}
-
-// hack to fix this mysql bug https://bugs.mysql.com/bug.php?id=100607
-func stripEscapeCharacters(input string) string {
-	replacements := map[string]string{
-		"\\\\": "\\", // Double backslash to single backslash
-		"\\'":  "'",  // Escaped single quote to single quote
-		"\\\"": "\"", // Escaped double quote to double quote
-		"\\n":  "\n", // Escaped newline to newline
-		"\\t":  "\t", // Escaped tab to tab
-		"\\r":  "\r", // Escaped carriage return to carriage return
-	}
-
-	for old, new := range replacements {
-		input = strings.ReplaceAll(input, old, new)
-	}
-
-	return input
 }
 
 func buildNullableText(isNullable bool) string {
@@ -370,7 +379,11 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 			ConstraintType: sqlmanager_shared.ForeignConstraintType,
 		}, nil
 	case "CHECK":
-		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, stripEscapeCharacters(c.CheckClause.String))
+		checkStr, err := convertUInt8ToString(c.CheckClause)
+		if err != nil {
+			return nil, err
+		}
+		stmt := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD CONSTRAINT %s CHECK (%s);", c.SchemaName, c.TableName, c.ConstraintName, checkStr)
 		return &sqlmanager_shared.AlterTableStatement{
 			Statement:      wrapIdempotentConstraint(c.SchemaName, c.TableName, c.ConstraintName, stmt),
 			ConstraintType: sqlmanager_shared.CheckConstraintType,

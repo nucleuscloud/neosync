@@ -33,7 +33,7 @@ SELECT
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
     rc.delete_rule as delete_rule,
-    cc.check_clause as check_clause
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(cc.check_clause, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS check_clause -- hack to fix this bug https://bugs.mysql.com/
 FROM
     information_schema.table_constraints AS tc
 LEFT JOIN information_schema.key_column_usage AS kcu
@@ -77,7 +77,7 @@ SELECT
     JSON_ARRAYAGG(kcu.referenced_column_name) AS referenced_column_names,
     rc.update_rule as update_rule,
     rc.delete_rule as delete_rule,
-    cc.check_clause as check_clause
+    IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(cc.check_clause, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS check_clause -- hack to fix this bug https://bugs.mysql.com/
 FROM
     information_schema.table_constraints AS tc
 LEFT JOIN information_schema.key_column_usage AS kcu
@@ -189,7 +189,7 @@ SELECT
    c.TABLE_NAME AS table_name,
    c.COLUMN_NAME AS column_name,
    c.COLUMN_TYPE AS data_type,
-   c.COLUMN_DEFAULT AS column_default,
+   IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.COLUMN_DEFAULT, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS column_default, -- hack to fix this bug https://bugs.mysql.com/bug.php?
    CASE WHEN c.IS_NULLABLE = 'YES' THEN 1 ELSE 0 END AS is_nullable,
    IF(c.DATA_TYPE = 'varchar', c.CHARACTER_MAXIMUM_LENGTH, -1) AS character_maximum_length,
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_PRECISION, 
@@ -199,7 +199,7 @@ SELECT
    IF(c.DATA_TYPE IN ('decimal', 'numeric'), c.NUMERIC_SCALE, 0) AS numeric_scale,
    c.ORDINAL_POSITION AS ordinal_position,
    c.EXTRA AS identity_generation,
-c.GENERATION_EXPRESSION as generation_exp,
+   IFNULL(REPLACE(REPLACE(REPLACE(REPLACE(c.GENERATION_EXPRESSION, '_utf8mb4\\\'', '_utf8mb4\''), '_utf8mb3\\\'', '_utf8mb3\''), '\\\'', '\''), '\\\'', '\''), '') AS generation_exp, -- hack to fix this bug https://bugs.mysql.com/
    t.AUTO_INCREMENT as auto_increment_start_value
 FROM
     information_schema.COLUMNS as c

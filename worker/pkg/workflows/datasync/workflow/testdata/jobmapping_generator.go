@@ -101,7 +101,7 @@ func parseSQLStatements(sql string) []*Table {
 		} else if currentTable != "" {
 			if matches := reColumn.FindStringSubmatch(line); len(matches) > 1 {
 				columnName := matches[1]
-				if slices.Contains([]string{"primary key", "constraint", "key", "unique", "primary"}, strings.ToLower(matches[1])) {
+				if slices.Contains([]string{"primary key", "constraint", "key", "unique", "primary", "alter"}, strings.ToLower(matches[1])) {
 					continue
 				}
 				key := currentSchema + "." + currentTable
