@@ -155,7 +155,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 	s.teardownSql = string(teardownSql)
-
 }
 
 // Runs before each test
@@ -212,6 +211,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
+//nolint:unparam
 func (s *IntegrationTestSuite) buildTable(schema, tableName string) string {
 	return fmt.Sprintf("%s.%s", schema, tableName)
 }

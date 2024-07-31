@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -305,6 +306,7 @@ func buildTableCol(record *buildTableColRequest) string {
 	return strings.Join(pieces, " ")
 }
 
+// hack to fix this mysql bug https://bugs.mysql.com/bug.php?id=100607
 func stripEscapeCharacters(input string) string {
 	replacements := map[string]string{
 		"\\\\": "\\", // Double backslash to single backslash
@@ -375,7 +377,6 @@ func buildAlterStatementByConstraint(c *mysql_queries.GetTableConstraintsRow) (*
 		}, nil
 	}
 	return nil, errors.ErrUnsupported
-
 }
 
 func (m *MysqlManager) GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error) {
@@ -415,6 +416,8 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 	}
 
 	resMap := map[string][]*mysql_queries.GetCustomTriggersBySchemaAndTablesRow{}
+	var resMapMu sync.Mutex
+
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.SetLimit(3)
 	for schema, tables := range schemaTableMap {
@@ -428,10 +431,12 @@ func (m *MysqlManager) GetSchemaTableTriggers(ctx context.Context, tables []*sql
 			if err != nil && !nucleusdb.IsNoRows(err) {
 				return err
 			} else if err != nil && nucleusdb.IsNoRows(err) {
-				resMap[schema] = []*mysql_queries.GetCustomTriggersBySchemaAndTablesRow{}
 				return nil
 			}
-			resMap[schema] = rows
+
+			resMapMu.Lock()
+			defer resMapMu.Unlock()
+			resMap[schema] = append(resMap[schema], rows...)
 			return nil
 		})
 	}
