@@ -1,4 +1,4 @@
-import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
+import { getConnectionUrlSlugName } from '@/app/(mgmt)/[account]/connections/util';
 import { ConnectionConfig } from '@neosync/sdk';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -20,7 +20,7 @@ export function CloneConnectionButton(
 
   return (
     <NextLink
-      href={`/${account?.name}/new/connection/${getConnectionType(connectionConfig)}?sourceId=${id}`}
+      href={`/${account?.name}/new/connection/${getConnectionUrlSlugName(connectionConfig)}?sourceId=${id}`}
     >
       <Button>
         <ButtonText

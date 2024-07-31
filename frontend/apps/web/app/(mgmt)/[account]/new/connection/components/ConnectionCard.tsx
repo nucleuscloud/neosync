@@ -10,19 +10,7 @@ import {
 } from '@/components/ui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
-import {
-  ConnectionConfigCase,
-  ConnectionTypeVariant,
-} from '../../../connections/util';
-
-export interface ConnectionMeta {
-  name: string;
-  description: string;
-  urlSlug: string;
-  connectionType: ConnectionConfigCase;
-  connectionTypeVariant?: ConnectionTypeVariant;
-  isExperimental?: boolean;
-}
+import { ConnectionMeta } from '../../../connections/util';
 
 interface Props {
   connection: ConnectionMeta;
