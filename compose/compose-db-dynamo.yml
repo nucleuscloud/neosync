@@ -1,0 +1,18 @@
+services:
+  test-prod-db-dynamo:
+    container_name: test-prod-db-dynamo
+    image: amazon/dynamodb-local:2.5.2
+    ports:
+      - 8008:8000
+    restart: always
+    networks:
+      - neosync-network
+
+  test-stage-db-dynamo:
+    container_name: test-stage-db-dynamo
+    image: amazon/dynamodb-local:2.5.2
+    ports:
+      - 8009:8000
+    restart: always
+    networks:
+      - neosync-network
