@@ -159,7 +159,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             if (value === NEW_CONNECTION_VALUE) {
                               const urlParams = new URLSearchParams({
                                 returnTo: `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
-                                connectionType: 'openai',
+                                connectionType: 'openaiConfig',
                               });
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
