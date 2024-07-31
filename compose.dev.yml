@@ -7,6 +7,7 @@ include:
   - path: ./compose/compose-db.yml
   # - path: ./compose/compose-db-mysql.yml
   # - path: ./compose/compose-db-mongo.yml
+  # - path: ./compose/compose-db-dynamo.yml
 
 services:
   app:
