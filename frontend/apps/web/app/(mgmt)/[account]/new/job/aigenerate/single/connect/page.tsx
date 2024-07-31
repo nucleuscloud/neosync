@@ -249,8 +249,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               if (
                                 urlParams.getAll('connectionType').length === 0
                               ) {
-                                urlParams.append('connectionType', 'postgres');
-                                urlParams.append('connectionType', 'mysql');
+                                urlParams.append('connectionType', 'pgConfig');
+                                urlParams.append(
+                                  'connectionType',
+                                  'mysqlConfig'
+                                );
                               }
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
@@ -336,8 +339,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               if (
                                 urlParams.getAll('connectionType').length === 0
                               ) {
-                                urlParams.append('connectionType', 'postgres');
-                                urlParams.append('connectionType', 'mysql');
+                                urlParams.append('connectionType', 'pgConfig');
+                                urlParams.append(
+                                  'connectionType',
+                                  'mysqlConfig'
+                                );
                               }
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`

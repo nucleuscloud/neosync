@@ -55,12 +55,7 @@ const ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS: Record<
     'awsS3Config',
     'gcpCloudstorageConfig',
   ]),
-  openaiConfig: new Set<ConnectionConfigCase>([
-    'pgConfig',
-    'mysqlConfig',
-    'awsS3Config',
-    'gcpCloudstorageConfig',
-  ]),
+  openaiConfig: new Set<ConnectionConfigCase>(),
   pgConfig: new Set<ConnectionConfigCase>([
     'pgConfig',
     'awsS3Config',
