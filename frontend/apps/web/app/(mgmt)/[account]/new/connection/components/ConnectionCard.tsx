@@ -11,7 +11,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
 import {
-  ConnectionType,
+  ConnectionConfigCase,
   ConnectionTypeVariant,
 } from '../../../connections/util';
 
@@ -19,7 +19,7 @@ export interface ConnectionMeta {
   name: string;
   description: string;
   urlSlug: string;
-  connectionType: ConnectionType;
+  connectionType: ConnectionConfigCase;
   connectionTypeVariant?: ConnectionTypeVariant;
   isExperimental?: boolean;
 }

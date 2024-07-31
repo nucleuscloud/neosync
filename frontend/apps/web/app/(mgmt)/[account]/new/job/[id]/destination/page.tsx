@@ -1,4 +1,5 @@
 'use client';
+import { isValidConnectionPair } from '@/app/(mgmt)/[account]/connections/util';
 import {
   getConnectionIdFromSource,
   getDestinationDetailsRecord,
@@ -70,10 +71,21 @@ export default function Page({ params }: PageProps): ReactElement {
   );
 
   const connections = connectionsData?.connections ?? [];
+  const connRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection>
+  );
   const destinationConnectionIds = new Set(
     data?.job?.destinations.map((d) => d.connectionId)
   );
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
+  const sourceConnection = sourceConnectionId
+    ? connRecord[sourceConnectionId]
+    : new Connection();
+
   const form = useForm({
     resolver: yupResolver<FormValues>(FormValues),
     defaultValues: {
@@ -82,14 +94,10 @@ export default function Page({ params }: PageProps): ReactElement {
   });
 
   const availableConnections = connections.filter(
-    (c) => c.id != sourceConnectionId && !destinationConnectionIds?.has(c.id)
-  );
-  const connRecord = connections.reduce(
-    (record, conn) => {
-      record[conn.id] = conn;
-      return record;
-    },
-    {} as Record<string, Connection>
+    (c) =>
+      c.id != sourceConnectionId &&
+      !destinationConnectionIds?.has(c.id) &&
+      isValidConnectionPair(sourceConnection, c)
   );
 
   const { append, remove } = useFieldArray({
@@ -143,9 +151,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
     splitConnections(availableConnections);
-  const sourceConnection = connRecord[sourceConnectionId ?? ''] as
-    | Connection
-    | undefined;
+
   return (
     <div className="job-details-container mx-24">
       <div className="my-10">

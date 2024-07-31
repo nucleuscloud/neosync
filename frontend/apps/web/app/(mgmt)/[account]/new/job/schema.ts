@@ -15,6 +15,7 @@ import {
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import cron from 'cron-validate';
 import * as Yup from 'yup';
+import { isValidConnectionPair } from '../../connections/util';
 
 export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
 
@@ -131,10 +132,18 @@ export const ConnectFormValues = SourceFormValues.concat(
     destinations: Yup.array(NewDestinationFormValues).required(),
   })
 ).test(
+  // todo: need to add a test for generate / ai generate too
   'unique-connections',
   'connections must be unique and type specific', // this message isn't exposed anywhere
   function (value, ctx) {
     const connections: Connection[] = ctx.options.context?.connections ?? [];
+    const connectionsRecord = connections.reduce(
+      (record, conn) => {
+        record[conn.id] = conn;
+        return record;
+      },
+      {} as Record<string, Connection>
+    );
 
     const destinationIds = value.destinations.map((dst) => dst.connectionId);
 
@@ -149,24 +158,43 @@ export const ConnectFormValues = SourceFormValues.concat(
       );
     }
 
-    if (
-      destinationIds.some(
-        (destId) => !isValidConnectionPair(value.sourceId, destId, connections)
-      )
-    ) {
+    const sourceConn = connectionsRecord[value.sourceId];
+    if (!sourceConn) {
+      errors.push(
+        ctx.createError({
+          path: 'sourceId',
+          message: 'Source is not a valid connection',
+        })
+      );
+      return new Yup.ValidationError(errors);
+    }
+
+    const invalidDestinationConnections = destinationIds
+      .map((destId) => connectionsRecord[destId])
+      .filter((dest) => !!dest && !isValidConnectionPair(sourceConn, dest));
+    if (invalidDestinationConnections.length > 0) {
+      const invalidDestRecord = invalidDestinationConnections.reduce(
+        (record, dest) => {
+          record[dest.id] = dest;
+          return record;
+        },
+        {} as Record<string, Connection>
+      );
       destinationIds.forEach((destId, idx) => {
-        if (!isValidConnectionPair(value.sourceId, destId, connections)) {
-          errors.push(
-            ctx.createError({
-              path: `destinations.${idx}.connectionId`,
-              message: `Destination connection type must be one of: ${getErrorConnectionTypes(
-                false,
-                value.sourceId,
-                connections
-              )}`,
-            })
-          );
+        const invalidDest = invalidDestRecord[destId];
+        if (!invalidDest) {
+          return;
         }
+        errors.push(
+          ctx.createError({
+            path: `destinations.${idx}.connectionId`,
+            message: `Destination connection type must be one of: ${getErrorConnectionTypes(
+              false,
+              value.sourceId,
+              connections
+            )}`,
+          })
+        );
       });
     }
 
@@ -202,42 +230,9 @@ export const ConnectFormValues = SourceFormValues.concat(
     return true;
   }
 );
-
 export type ConnectFormValues = Yup.InferType<typeof ConnectFormValues>;
 
-function isValidConnectionPair(
-  connId1: string,
-  connId2: string,
-  connections: Connection[]
-): boolean {
-  const conn1 = connections.find((c) => c.id === connId1);
-  const conn2 = connections.find((c) => c.id === connId2);
-
-  if (!conn1 || !conn2) {
-    return true;
-  }
-  if (
-    conn1.connectionConfig?.config.case === 'awsS3Config' ||
-    conn2.connectionConfig?.config.case === 'awsS3Config'
-  ) {
-    return true;
-  }
-  if (
-    conn1.connectionConfig?.config.case === 'gcpCloudstorageConfig' ||
-    conn2.connectionConfig?.config.case === 'gcpCloudstorageConfig'
-  ) {
-    return true;
-  }
-
-  if (
-    conn1.connectionConfig?.config.case === conn2.connectionConfig?.config.case
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
+// todo: move this and centralize / automate using new maps
 function getErrorConnectionTypes(
   isSource: boolean,
   connId: string,
@@ -261,6 +256,9 @@ function getErrorConnectionTypes(
 
   if (conn.connectionConfig?.config.case === 'pgConfig') {
     return isSource ? '[Mysql]' : '[Postgres, AWS S3, GCP Cloud Storage]';
+  }
+  if (conn.connectionConfig?.config.case === 'dynamodbConfig') {
+    return isSource ? '[DynamoDB]' : '[DynamoDB]';
   }
   return '';
 }

@@ -1,5 +1,5 @@
 import {
-  ConnectionType,
+  ConnectionConfigCase,
   ConnectionTypeVariant,
 } from '@/app/(mgmt)/[account]/connections/util';
 import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
@@ -13,7 +13,7 @@ import { FaAws } from 'react-icons/fa';
 import { SiGooglecloud } from 'react-icons/si';
 
 interface Props {
-  connectionType: ConnectionType;
+  connectionType: ConnectionConfigCase;
   connectionTypeVariant?: ConnectionTypeVariant;
   iconWidth?: string;
   iconHeight?: string;
@@ -29,7 +29,7 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
   const { resolvedTheme } = useTheme();
 
   switch (connectionType) {
-    case 'postgres': {
+    case 'pgConfig': {
       switch (connectionTypeVariant) {
         case 'neon': {
           return (
@@ -52,36 +52,36 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
         </IconContext.Provider>
       );
     }
-    case 'mysql': {
+    case 'mysqlConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <DiMysql />
         </IconContext.Provider>
       );
     }
-    case 'aws-s3':
-    case 'dynamodb': {
+    case 'awsS3Config':
+    case 'dynamodbConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <FaAws />
         </IconContext.Provider>
       );
     }
-    case 'openai': {
+    case 'openaiConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <OpenAiLogo bg={resolvedTheme === 'dark' ? 'white' : '#272F30'} />
         </IconContext.Provider>
       );
     }
-    case 'mongodb': {
+    case 'mongoConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <DiMongodb />
         </IconContext.Provider>
       );
     }
-    case 'gcp-cloud-storage': {
+    case 'gcpCloudstorageConfig': {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <SiGooglecloud />
