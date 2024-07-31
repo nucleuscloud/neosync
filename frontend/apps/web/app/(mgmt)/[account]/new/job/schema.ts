@@ -132,6 +132,7 @@ export const ConnectFormValues = SourceFormValues.concat(
     destinations: Yup.array(NewDestinationFormValues).required(),
   })
 ).test(
+  // todo: need to add a test for generate / ai generate too
   'unique-connections',
   'connections must be unique and type specific', // this message isn't exposed anywhere
   function (value, ctx) {
@@ -231,6 +232,7 @@ export const ConnectFormValues = SourceFormValues.concat(
 );
 export type ConnectFormValues = Yup.InferType<typeof ConnectFormValues>;
 
+// todo: move this and centralize / automate using new maps
 function getErrorConnectionTypes(
   isSource: boolean,
   connId: string,

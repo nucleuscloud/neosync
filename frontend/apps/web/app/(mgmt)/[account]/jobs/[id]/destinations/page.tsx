@@ -6,10 +6,15 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@connectrpc/connect-query';
+import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { getConnections, getJob } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
+import {
+  getConnectionType,
+  isValidConnectionPair,
+} from '../../../connections/util';
 import {
   getConnectionIdFromSource,
   getFkIdFromGenerateSource,
@@ -32,12 +37,27 @@ export default function Page({ params }: PageProps): ReactElement {
   );
 
   const connections = connectionsData?.connections ?? [];
+  const connectionsRecord = connections.reduce(
+    (record, conn) => {
+      record[conn.id] = conn;
+      return record;
+    },
+    {} as Record<string, Connection>
+  );
   const destinationIds = new Set(
     data?.job?.destinations.map((d) => d.connectionId)
   );
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const fkConnectionId = getFkIdFromGenerateSource(data?.job?.source);
   const fkConnection = connections.find((c) => c.id === fkConnectionId);
+  const destinationJobSourceId = fkConnectionId
+    ? fkConnectionId
+    : sourceConnectionId
+      ? sourceConnectionId
+      : '';
+  const sourceConnection =
+    connectionsRecord[destinationJobSourceId] ?? new Connection();
+
   return (
     <div className="job-details-container">
       <SubPageHeader
@@ -55,30 +75,34 @@ export default function Page({ params }: PageProps): ReactElement {
       ) : (
         <div className="space-y-10">
           {data?.job?.destinations.map((destination) => {
+            const destConn =
+              connectionsRecord[destination.connectionId] ?? new Connection();
+            const destConnType = getConnectionType(
+              destConn.connectionConfig ?? new ConnectionConfig()
+            );
             return (
               <DestinationConnectionCard
                 key={destination.id}
-                jobSourceId={
-                  fkConnectionId
-                    ? fkConnectionId
-                    : sourceConnectionId
-                      ? sourceConnectionId
-                      : ''
-                }
+                jobSourceId={destinationJobSourceId}
                 jobId={id}
                 destination={destination}
                 mutate={refetch}
                 connections={connections}
                 availableConnections={connections.filter((c) => {
                   if (isDataGenJob(data?.job) || isAiDataGenJob(data?.job)) {
+                    // ensures that the data gen jobs can only send to their FK equivalents
                     return (
                       c.connectionConfig?.config.case ===
                       fkConnection?.connectionConfig?.config.case
                     );
                   }
+                  // cannot be itself or one of the other destinations or any non-supported destination
+
                   return (
-                    c.id === destination.connectionId ||
-                    (c.id != sourceConnectionId && !destinationIds?.has(c.id))
+                    (c.id === destination.connectionId ||
+                      (c.id !== sourceConnectionId &&
+                        !destinationIds?.has(c.id))) &&
+                    isValidConnectionPair(sourceConnection, c)
                   );
                 })}
                 isDeleteDisabled={data?.job?.destinations.length === 1}

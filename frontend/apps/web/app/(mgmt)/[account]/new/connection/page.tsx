@@ -12,35 +12,35 @@ const CONNECTIONS: ConnectionMeta[] = [
     name: 'Postgres',
     description:
       'PostgreSQL is a free and open-source relational database manageent system emphasizing extensibility and SQL compliance.',
-    connectionType: 'postgres',
+    connectionType: 'pgConfig',
   },
   {
     urlSlug: 'mysql',
     name: 'MySQL',
     description:
       'MySQL is an open-source relational database management system.',
-    connectionType: 'mysql',
+    connectionType: 'mysqlConfig',
   },
   {
     urlSlug: 'aws-s3',
     name: 'AWS S3',
     description:
       'Amazon Simple Storage Service (Amazon S3) is an object storage service used to store and retrieve any data.',
-    connectionType: 'aws-s3',
+    connectionType: 'awsS3Config',
   },
   {
     urlSlug: 'gcp-cloud-storage',
     name: 'GCP Cloud Storage',
     description:
       'GCP Cloud Storage is an object storage service used to store and retrieve any data.',
-    connectionType: 'gcp-cloud-storage',
+    connectionType: 'gcpCloudstorageConfig',
   },
   {
     urlSlug: 'neon',
     name: 'Neon',
     description:
       'Neon is a serverless Postgres database that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
-    connectionType: 'postgres',
+    connectionType: 'pgConfig',
     connectionTypeVariant: 'neon',
   },
   {
@@ -48,7 +48,7 @@ const CONNECTIONS: ConnectionMeta[] = [
     name: 'Supabase',
     description:
       'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more.',
-    connectionType: 'postgres',
+    connectionType: 'pgConfig',
     connectionTypeVariant: 'supabase',
   },
   {
@@ -56,14 +56,14 @@ const CONNECTIONS: ConnectionMeta[] = [
     name: 'OpenAI',
     description:
       'OpenAI (or equivalent interface) Chat API for generating synthetic data and inserting it directly into a destination datasource.',
-    connectionType: 'openai',
+    connectionType: 'openaiConfig',
   },
   {
     urlSlug: 'mongodb',
     name: 'MongoDB',
     description:
       'MongoDB is a source-available, cross-platform, document-oriented database program.',
-    connectionType: 'mongodb',
+    connectionType: 'mongoConfig',
     isExperimental: true,
   },
   {
@@ -71,7 +71,7 @@ const CONNECTIONS: ConnectionMeta[] = [
     name: 'DynamoDB',
     description:
       'Amazon DynamoDB is a fully managed proprietary NoSQL database offered by Amazon.com as part of the Amazon Web Services portfolio',
-    connectionType: 'dynamodb',
+    connectionType: 'dynamodbConfig',
     isExperimental: true,
   },
 ];
@@ -113,11 +113,13 @@ function getConnectionsMetadata(
   let connections = CONNECTIONS;
   if (!isGcpCloudStorageConnectionsEnabled) {
     connections = connections.filter(
-      (c) => c.connectionType !== 'gcp-cloud-storage'
+      (c) => c.connectionType !== 'gcpCloudstorageConfig'
     );
   }
   if (!isDynamoDbConnectionsEnabled) {
-    connections = connections.filter((c) => c.connectionType !== 'dynamodb');
+    connections = connections.filter(
+      (c) => c.connectionType !== 'dynamodbConfig'
+    );
   }
   if (connectionTypes.size > 0) {
     connections = connections.filter((c) =>

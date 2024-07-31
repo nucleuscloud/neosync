@@ -67,7 +67,7 @@ const ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS: Record<
     'gcpCloudstorageConfig',
   ]),
 };
-function reverseMap(
+function reverseConfigCaseMap(
   originalMap: Record<ConnectionConfigCase, Set<ConnectionConfigCase>>
 ): Record<ConnectionConfigCase, Set<ConnectionConfigCase>> {
   const reversedMap: Record<ConnectionConfigCase, Set<ConnectionConfigCase>> = {
@@ -92,7 +92,7 @@ function reverseMap(
 
   return reversedMap;
 }
-const ALLOWED_SYNC_DEST_CONNECTION_PAIRS = reverseMap(
+const ALLOWED_SYNC_DEST_CONNECTION_PAIRS = reverseConfigCaseMap(
   ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS
 );
 
