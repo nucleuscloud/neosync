@@ -146,6 +146,7 @@ declare namespace neosync {
 	{{ range $i, $spec := .TransformerSpecs }}
 	export interface {{$spec.InterfaceName}} {
 	{{- range $j, $param := $spec.Params }}
+		/** {{$param.Description}} */
 		{{$param.Name}}{{ if $param.IsOptional }}?{{ else if $param.HasDefault }}?{{end}}: {{$param.TsTypeStr}};
 	{{- end }}
 	}
@@ -154,6 +155,7 @@ declare namespace neosync {
    * {{$spec.Description}}
    */
 	declare function {{$spec.Name}}(value: any, options: {{$spec.InterfaceName}}): {{$spec.TsReturnTypeStr}};
+
 	{{ end }}
 
 	
@@ -163,6 +165,7 @@ declare namespace neosync {
 	{{ range $i, $spec := .GeneratorSpecs }}
 	export interface {{$spec.InterfaceName}} {
 	{{- range $j, $param := $spec.Params}}
+		/** {{$param.Description}} */
 		{{$param.Name}}{{ if $param.IsOptional }}?{{ else if $param.HasDefault }}?{{end}}: {{$param.TsTypeStr}};
 	{{- end }}
 	}
@@ -171,6 +174,7 @@ declare namespace neosync {
    * {{$spec.Description}}
    */
 	declare function {{$spec.Name}}(options: {{$spec.InterfaceName}}): {{$spec.TsReturnTypeStr}};
+	
 	{{ end }}
 }`
 

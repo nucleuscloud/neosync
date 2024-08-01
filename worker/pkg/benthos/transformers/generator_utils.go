@@ -165,7 +165,7 @@ func lowercaseFirst(s string) string {
 }
 
 func CapitalizeFirst(s string) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 	return strings.ToUpper(string(s[0])) + s[1:]

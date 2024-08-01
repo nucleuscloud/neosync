@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { useReadNeosyncTransformerDeclarationFile } from '@/libs/hooks/useReadNeosyncTransfomerDeclarationFile';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Editor, useMonaco } from '@monaco-editor/react';
@@ -50,53 +51,16 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
   const { resolvedTheme } = useTheme();
 
   const monaco = useMonaco();
+  const { data: fileContent } = useReadNeosyncTransformerDeclarationFile();
 
   useEffect(() => {
-    if (monaco) {
-      const provider = monaco.languages.registerCompletionItemProvider('sql', {
-        triggerCharacters: [' ', '.'], // Trigger autocomplete on space and dot
-
-        provideCompletionItems: (model, position) => {
-          // const textUntilPosition = model.getValueInRange({
-          //   startLineNumber: 1,
-          //   startColumn: 1,
-          //   endLineNumber: position.lineNumber,
-          //   endColumn: position.column,
-          // });
-
-          const columnSet = new Set<string>('neosync');
-
-          // Check if the last character or word should trigger the auto-complete
-          // if (!shouldTriggerAutocomplete(textUntilPosition)) {
-          //   return { suggestions: [] };
-          // }
-
-          const word = model.getWordUntilPosition(position);
-
-          const range = {
-            startLineNumber: position.lineNumber,
-            startColumn: word.startColumn,
-            endLineNumber: position.lineNumber,
-            endColumn: word.endColumn,
-          };
-
-          const suggestions = Array.from(columnSet).map((name) => ({
-            label: name, // would be nice if we could add the type here as well?
-            kind: monaco.languages.CompletionItemKind.Field,
-            insertText: name,
-            range: range,
-          }));
-
-          return { suggestions: suggestions };
-        },
-      });
-      /* disposes of the instance if the component re-renders, otherwise the auto-compelte list just keeps appending the column names to the auto-complete, so you get liek 20 'address' entries for ex. then it re-renders and then it goes to 30 'address' entries
-       */
-      return () => {
-        provider.dispose();
-      };
+    if (monaco && fileContent) {
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(
+        fileContent,
+        'neosync-transformer.d.ts'
+      );
     }
-  }, [monaco]);
+  }, [monaco, fileContent]);
 
   async function handleValidateCode(): Promise<void> {
     if (!account) {
@@ -144,7 +108,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
                       input.{'{'}column_name{'}'}
                     </code>
                     .{' '}
-                    <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
+                    <LearnMoreTag href="https://docs.neosync.dev/transformers/javascript" />
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 w-[80px]">
