@@ -34,6 +34,21 @@ otel:
   # -- Specifies the port that otel is listening on that the service will export metrics and traces to
   otlpPort: 4317
 
+# Set requests and limits on the backend to change its performance
+resources:
+  ## Sets the CPU and Memory baseline. These are low-usage defaults. Change these depending on your needs.
+  requests:
+    # -- Sets the CPU amount to be requested
+    cpu: '100m'
+    # -- Sets the Memory amount to be requested
+    memory: '128Mi'
+  ## Sets teh max CPU and Memory. These are low-usage defaults. Change these depending on your needs.
+  limits:
+    # -- Sets the max CPU amount
+    cpu: '500m'
+    # -- Sets the max Memory amount
+    memory: '512Mi'
+
 # Adds annotations and labels to the deployment to opt it in to Istio service mesh. See the Neosync k8s docs for more details. This may be omitted and applied manually via the deployment's annotations and labels
 istio:
   # -- Whether or not to apply the default istio annotations/labels to the deployment

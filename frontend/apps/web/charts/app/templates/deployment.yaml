@@ -68,6 +68,15 @@ spec:
             - containerPort: {{ .Values.containerPort }}
               name: http
               protocol: TCP
+
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+
           env:
             - name: HOST_IP
               valueFrom:
