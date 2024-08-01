@@ -2,7 +2,12 @@ package transformers
 
 import (
 	"bufio"
+	"fmt"
+	"go/parser"
+	"go/token"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -50,6 +55,39 @@ type BenthosSpec struct {
 type ParsedBenthosSpec struct {
 	Params          []*BenthosSpecParam
 	SpecDescription string
+}
+
+func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
+	transformerSpecs := []*BenthosSpec{}
+
+	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() && filepath.Ext(path) == ".go" {
+			node, err := parser.ParseFile(fileSet, path, nil, parser.ParseComments)
+			if err != nil {
+				return fmt.Errorf("Failed to parse file %s: %v", path, err)
+			}
+			for _, cgroup := range node.Comments {
+				for _, comment := range cgroup.List {
+					if strings.HasPrefix(comment.Text, "// +neosyncTransformerBuilder:") {
+						parts := strings.Split(comment.Text, ":")
+						if len(parts) < 3 {
+							continue
+						}
+						transformerSpecs = append(transformerSpecs, &BenthosSpec{
+							SourceFile: path,
+							Name:       parts[2],
+							Type:       parts[1],
+						})
+					}
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("impossible to walk directories: %s", err)
+	}
+	return transformerSpecs, nil
 }
 
 func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
@@ -124,4 +162,11 @@ func lowercaseFirst(s string) string {
 		return s
 	}
 	return strings.ToLower(string(s[0])) + s[1:]
+}
+
+func CapitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToUpper(string(s[0])) + s[1:]
 }

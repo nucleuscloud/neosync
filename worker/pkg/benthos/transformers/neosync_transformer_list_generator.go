@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	transformers_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
 type TransformerInfo struct {
@@ -46,9 +48,9 @@ func main() {
 							continue
 						}
 						if parts[1] == "transform" {
-							transformers = append(transformers, fmt.Sprintf("New%s()", capitalizeFirst(parts[2])))
+							transformers = append(transformers, fmt.Sprintf("New%s()", transformers_utils.CapitalizeFirst(parts[2])))
 						} else if parts[1] == "generate" {
-							generators = append(generators, fmt.Sprintf("New%s()", capitalizeFirst(parts[2])))
+							generators = append(generators, fmt.Sprintf("New%s()", transformers_utils.CapitalizeFirst(parts[2])))
 						}
 					}
 				}
@@ -121,11 +123,4 @@ func generateCode(transformers, generators []string, pkgName string) (string, er
 		return "", err
 	}
 	return out.String(), nil
-}
-
-func capitalizeFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToUpper(string(s[0])) + s[1:]
 }

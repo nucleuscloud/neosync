@@ -39,7 +39,7 @@ export default function TestEditor(_: Props): ReactElement {
               {
                 label: 'neosync.transformEmail',
                 kind: monaco.languages.CompletionItemKind.Function,
-                insertText: 'neosync.transformEmail({${1:email}})',
+                insertText: 'neosync.transformEmail(${1:value}, {})',
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 documentation: 'Transforms an email using neosync',

@@ -62,9 +62,6 @@ func main() {
 		if err != nil {
 			fmt.Println("Error parsing bloblang params:", err)
 		}
-		// fmt.Println(tf.Name)
-		// jsonF, _ := json.MarshalIndent(parsedSpec.Params, "", " ")
-		// fmt.Printf("%s \n", string(jsonF))
 		tf.Params = sanitizeParamDefaults(parsedSpec.Params)
 		tf.Description = parsedSpec.SpecDescription
 		exampleStr, err := generateExample(tf)
