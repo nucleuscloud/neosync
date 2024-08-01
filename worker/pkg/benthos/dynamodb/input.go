@@ -18,7 +18,10 @@ func dynamoInputConfigSpec() *service.ConfigSpec {
 		Categories("Services").
 		Summary("Scans an entire dynamodb table and creates a message for each document received").
 		Field(service.NewStringField("table").
-			Description("The table to retrieve items from."))
+			Description("The table to retrieve items from.")).
+		Field(service.NewStringField("where").
+			Description("Optional PartiQL where clause that gets tacked on to the end of the select query").
+			Optional())
 
 	for _, f := range awsSessionFields() {
 		spec = spec.Field(f)
@@ -47,6 +50,15 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 		return nil, err
 	}
 
+	var whereClause *string
+	if conf.Contains("where") {
+		where, err := conf.FieldString("where")
+		if err != nil {
+			return nil, err
+		}
+		whereClause = &where
+	}
+
 	sess, err := getAwsSession(context.Background(), conf)
 	if err != nil {
 		return nil, err
@@ -57,6 +69,7 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 		logger:    logger,
 
 		table: table,
+		where: whereClause,
 	}, nil
 }
 
@@ -66,7 +79,9 @@ type dynamodbInput struct {
 	logger    *service.Logger
 	readMu    sync.Mutex
 
-	table     string
+	table string
+	where *string
+
 	nextToken *string
 	done      bool
 }
@@ -113,7 +128,7 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 
 	// todo: allow specifying batch size
 	result, err := d.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
-		Statement:      aws.String(fmt.Sprintf(`SELECT * from %q`, d.table)),
+		Statement:      aws.String(buildExecStatement(d.table, d.where)),
 		NextToken:      d.nextToken,
 		ConsistentRead: aws.Bool(true),
 	})
@@ -135,6 +150,14 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 	d.done = result.NextToken == nil
 
 	return batch, emptyAck, nil
+}
+
+func buildExecStatement(table string, where *string) string {
+	stmt := fmt.Sprintf("SELECT * FROM %q", table)
+	if where != nil && *where != "" {
+		return fmt.Sprintf("%s WHERE %s", stmt, *where)
+	}
+	return stmt
 }
 
 func emptyAck(ctx context.Context, err error) error {
