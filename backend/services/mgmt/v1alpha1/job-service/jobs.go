@@ -1067,6 +1067,8 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 			connectionId = &job.ConnectionOptions.MysqlOptions.ConnectionId
 		} else if job.ConnectionOptions.PostgresOptions != nil {
 			connectionId = &job.ConnectionOptions.PostgresOptions.ConnectionId
+		} else if job.ConnectionOptions.DynamoDBOptions != nil {
+			connectionId = &job.ConnectionOptions.DynamoDBOptions.ConnectionId
 		} else {
 			return nil, nucleuserrors.NewBadRequest("only jobs with a valid source connection id may be subset")
 		}
@@ -1084,11 +1086,11 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 	connection := connectionResp.Msg.Connection
 
 	if connection.ConnectionConfig == nil ||
-		(connection.ConnectionConfig.GetPgConfig() == nil && connection.ConnectionConfig.GetMysqlConfig() == nil) {
-		return nil, nucleuserrors.NewBadRequest("may only update subsets if the source connection is a SQL-based connection")
+		(connection.ConnectionConfig.GetPgConfig() == nil && connection.ConnectionConfig.GetMysqlConfig() == nil && connection.ConnectionConfig.GetDynamodbConfig() == nil) {
+		return nil, nucleuserrors.NewBadRequest("may only update subsets for select source connections")
 	}
 
-	if err := s.db.SetSqlSourceSubsets(
+	if err := s.db.SetSourceSubsets(
 		ctx,
 		jobUuid,
 		req.Msg.Schemas,
@@ -1102,8 +1104,7 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve job: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse{

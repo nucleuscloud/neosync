@@ -8687,6 +8687,30 @@
           ]
         },
         {
+          "name": "DynamoDBSourceSchemaSubset",
+          "longName": "DynamoDBSourceSchemaSubset",
+          "fullName": "mgmt.v1alpha1.DynamoDBSourceSchemaSubset",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "tables",
+              "description": "",
+              "label": "repeated",
+              "type": "DynamoDBSourceTableOption",
+              "longType": "DynamoDBSourceTableOption",
+              "fullType": "mgmt.v1alpha1.DynamoDBSourceTableOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "DynamoDBSourceTableOption",
           "longName": "DynamoDBSourceTableOption",
           "fullName": "mgmt.v1alpha1.DynamoDBSourceTableOption",
@@ -10458,6 +10482,18 @@
               "isoneof": true,
               "oneofdecl": "schemas",
               "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_subset",
+              "description": "",
+              "label": "",
+              "type": "DynamoDBSourceSchemaSubset",
+              "longType": "DynamoDBSourceSchemaSubset",
+              "fullType": "mgmt.v1alpha1.DynamoDBSourceSchemaSubset",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "schemas",
+              "defaultValue": ""
             }
           ]
         },
@@ -11204,7 +11240,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job to update subsets for",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -11216,7 +11252,7 @@
             },
             {
               "name": "schemas",
-              "description": "",
+              "description": "The subset configuration",
               "label": "",
               "type": "JobSourceSqlSubetSchemas",
               "longType": "JobSourceSqlSubetSchemas",
@@ -11228,7 +11264,7 @@
             },
             {
               "name": "subset_by_foreign_key_constraints",
-              "description": "",
+              "description": "Whether or not to have subsets follow foreign key constraints (for connections that support it)",
               "label": "",
               "type": "bool",
               "longType": "bool",

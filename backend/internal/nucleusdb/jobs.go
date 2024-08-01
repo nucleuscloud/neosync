@@ -47,7 +47,7 @@ func (d *NucleusDb) CreateJob(
 	return createdJob, nil
 }
 
-func (d *NucleusDb) SetSqlSourceSubsets(
+func (d *NucleusDb) SetSourceSubsets(
 	ctx context.Context,
 	jobId pgtype.UUID,
 	schemas *mgmtv1alpha1.JobSourceSqlSubetSchemas,
@@ -64,17 +64,22 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 			if dbjob.ConnectionOptions.PostgresOptions == nil {
 				dbjob.ConnectionOptions.PostgresOptions = &pg_models.PostgresSourceOptions{}
 			}
-			dbjob.ConnectionOptions.PostgresOptions.Schemas = pg_models.FromDtoPostgresSourceSchemaOptions(s.PostgresSubset.PostgresSchemas)
+			dbjob.ConnectionOptions.PostgresOptions.Schemas = pg_models.FromDtoPostgresSourceSchemaOptions(s.PostgresSubset.GetPostgresSchemas())
 			dbjob.ConnectionOptions.PostgresOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
 
 		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_MysqlSubset:
 			if dbjob.ConnectionOptions.MysqlOptions == nil {
 				dbjob.ConnectionOptions.MysqlOptions = &pg_models.MysqlSourceOptions{}
 			}
-			dbjob.ConnectionOptions.MysqlOptions.Schemas = pg_models.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.MysqlSchemas)
+			dbjob.ConnectionOptions.MysqlOptions.Schemas = pg_models.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.GetMysqlSchemas())
 			dbjob.ConnectionOptions.MysqlOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
+		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_DynamodbSubset:
+			if dbjob.ConnectionOptions.DynamoDBOptions == nil {
+				dbjob.ConnectionOptions.DynamoDBOptions = &pg_models.DynamoDBSourceOptions{}
+			}
+			dbjob.ConnectionOptions.DynamoDBOptions.Tables = pg_models.FromDtoDynamoDBSourceTableOptions(s.DynamodbSubset.GetTables())
 		default:
-			return fmt.Errorf("this connection config is not currently supported")
+			return fmt.Errorf("this connection config is not currently supported: %T", s)
 		}
 
 		_, err = d.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
