@@ -263,3 +263,8 @@ func Test_buildExecStatement(t *testing.T) {
 		})
 	}
 }
+
+func Test_RegisterDynamoDBInput(t *testing.T) {
+	err := RegisterDynamoDbInput(service.NewEmptyEnvironment())
+	require.NoError(t, err)
+}
