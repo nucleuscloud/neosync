@@ -222,3 +222,49 @@ func TestAttributeValueMapToStandardJSON(t *testing.T) {
 	actual := attributeValueMapToStandardJSON(input)
 	require.True(t, reflect.DeepEqual(actual, expected), fmt.Sprintf("expected %v, got %v", expected, actual))
 }
+
+func Test_buildExecStatement(t *testing.T) {
+	tests := []struct {
+		name     string
+		table    string
+		where    *string
+		expected string
+	}{
+		{
+			name:     "No Where Clause",
+			table:    "users",
+			where:    nil,
+			expected: `SELECT * FROM "users"`,
+		},
+		{
+			name:     "Empty Where Clause",
+			table:    "users",
+			where:    func() *string { s := ""; return &s }(),
+			expected: `SELECT * FROM "users"`,
+		},
+		{
+			name:     "Valid Where Clause",
+			table:    "users",
+			where:    func() *string { s := "id = 1"; return &s }(),
+			expected: `SELECT * FROM "users" WHERE id = 1`,
+		},
+		{
+			name:     "Another Table with Where Clause",
+			table:    "orders",
+			where:    func() *string { s := "status = 'shipped'"; return &s }(),
+			expected: `SELECT * FROM "orders" WHERE status = 'shipped'`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := buildExecStatement(tt.table, tt.where)
+			require.True(t, result == tt.expected, "expected %v, got %v", tt.expected, result)
+		})
+	}
+}
+
+func Test_RegisterDynamoDBInput(t *testing.T) {
+	err := RegisterDynamoDbInput(service.NewEmptyEnvironment())
+	require.NoError(t, err)
+}

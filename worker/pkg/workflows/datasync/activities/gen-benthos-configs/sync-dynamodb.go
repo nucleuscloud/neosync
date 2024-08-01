@@ -33,6 +33,9 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		return nil, fmt.Errorf("source connection was not dynamodb. Got %T", sourceConnection.GetConnectionConfig().Config)
 	}
 
+	dynamoJobSourceOpts := job.GetSource().GetOptions().GetDynamodb()
+	tableOptsMap := toDynamoDbSourceTableOptionMap(dynamoJobSourceOpts.GetTables())
+
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
 	benthosConfigs := []*BenthosConfigResponse{}
@@ -44,6 +47,7 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 					Inputs: neosync_benthos.Inputs{
 						AwsDynamoDB: &neosync_benthos.InputAwsDynamoDB{
 							Table: tableMapping.Table,
+							Where: getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
 
 							Region:      dynamoSourceConfig.GetRegion(),
 							Endpoint:    dynamoSourceConfig.GetEndpoint(),
@@ -110,4 +114,19 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	return &dynamoSyncResp{
 		BenthosConfigs: benthosConfigs,
 	}, nil
+}
+
+func getWhereFromSourceTableOption(opt *mgmtv1alpha1.DynamoDBSourceTableOption) *string {
+	if opt == nil {
+		return nil
+	}
+	return opt.WhereClause
+}
+
+func toDynamoDbSourceTableOptionMap(tableOpts []*mgmtv1alpha1.DynamoDBSourceTableOption) map[string]*mgmtv1alpha1.DynamoDBSourceTableOption {
+	output := map[string]*mgmtv1alpha1.DynamoDBSourceTableOption{}
+	for _, opt := range tableOpts {
+		output[opt.Table] = opt
+	}
+	return output
 }

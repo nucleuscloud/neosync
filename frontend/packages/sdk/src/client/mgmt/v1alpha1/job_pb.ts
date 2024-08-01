@@ -873,6 +873,14 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
    */
   connectionId = "";
 
+  /**
+   * List of table option configurations for any mapped source table.
+   * Any table listed in this must also be present as a job mapping table to be applied.
+   *
+   * @generated from field: repeated mgmt.v1alpha1.DynamoDBSourceTableOption tables = 2;
+   */
+  tables: DynamoDBSourceTableOption[] = [];
+
   constructor(data?: PartialMessage<DynamoDBSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -882,6 +890,7 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
   static readonly typeName = "mgmt.v1alpha1.DynamoDBSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "tables", kind: "message", T: DynamoDBSourceTableOption, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceConnectionOptions {
@@ -898,6 +907,54 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
 
   static equals(a: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined, b: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(DynamoDBSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.DynamoDBSourceTableOption
+ */
+export class DynamoDBSourceTableOption extends Message<DynamoDBSourceTableOption> {
+  /**
+   * The table that this configuration will be applied to
+   *
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * An optional PartiQL query that may be used for subsetting the DynamoDB table.
+   * This is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.
+   *
+   * @generated from field: optional string where_clause = 2;
+   */
+  whereClause?: string;
+
+  constructor(data?: PartialMessage<DynamoDBSourceTableOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBSourceTableOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceTableOption {
+    return new DynamoDBSourceTableOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBSourceTableOption {
+    return new DynamoDBSourceTableOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBSourceTableOption {
+    return new DynamoDBSourceTableOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBSourceTableOption | PlainMessage<DynamoDBSourceTableOption> | undefined, b: DynamoDBSourceTableOption | PlainMessage<DynamoDBSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(DynamoDBSourceTableOption, a, b);
   }
 }
 

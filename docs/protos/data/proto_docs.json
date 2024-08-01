@@ -8671,6 +8671,54 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "List of table option configurations for any mapped source table.\nAny table listed in this must also be present as a job mapping table to be applied.",
+              "label": "repeated",
+              "type": "DynamoDBSourceTableOption",
+              "longType": "DynamoDBSourceTableOption",
+              "fullType": "mgmt.v1alpha1.DynamoDBSourceTableOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DynamoDBSourceTableOption",
+          "longName": "DynamoDBSourceTableOption",
+          "fullName": "mgmt.v1alpha1.DynamoDBSourceTableOption",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "The table that this configuration will be applied to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "where_clause",
+              "description": "An optional PartiQL query that may be used for subsetting the DynamoDB table.\nThis is not a parameterized query and must be valid. Intended to be everything after the WHERE keyword.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_where_clause",
+              "defaultValue": ""
             }
           ]
         },
