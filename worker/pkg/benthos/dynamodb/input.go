@@ -112,11 +112,6 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 	}
 
 	// todo: allow specifying batch size
-	// result, err := d.client.Scan(ctx, &dynamodb.ScanInput{
-	// 	TableName:         &d.table,
-	// 	ExclusiveStartKey: d.lastEvaluatedKey,
-	// 	ConsistentRead:    aws.Bool(true),
-	// })
 	result, err := d.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
 		Statement:      aws.String(fmt.Sprintf(`SELECT * from %q`, d.table)),
 		NextToken:      d.nextToken,
