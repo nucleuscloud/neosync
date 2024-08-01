@@ -517,12 +517,25 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 							"id": &dyntypes.AttributeValueMemberS{Value: "1"},
 							"a":  &dyntypes.AttributeValueMemberBOOL{Value: true},
 						},
+						{
+							"id": &dyntypes.AttributeValueMemberS{Value: "2"},
+							"a":  &dyntypes.AttributeValueMemberBOOL{Value: false},
+						},
 					})
 					require.NoError(t, err)
 
 					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
 					sourceConnectionId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
 					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
+					sourceTableOpts := []*mgmtv1alpha1.DynamoDBSourceTableOption{}
+					for table, where := range tt.SubsetMap {
+						where := where
+						sourceTableOpts = append(sourceTableOpts, &mgmtv1alpha1.DynamoDBSourceTableOption{
+							Table:       table,
+							WhereClause: &where,
+						})
+					}
 
 					destOpts := &mgmtv1alpha1.DynamoDBDestinationConnectionOptions{
 						TableMappings: []*mgmtv1alpha1.DynamoDBDestinationTableMapping{{SourceTable: sourceTableName, DestinationTable: destTableName}},
@@ -540,6 +553,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 											Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
 												Dynamodb: &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
 													ConnectionId: sourceConnectionId,
+													Tables:       sourceTableOpts,
 												},
 											},
 										},
@@ -653,7 +667,41 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			},
 			JobOptions: &workflow_testdata.TestJobOptions{},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"test-sync-source": {RowCount: 1},
+				"test-sync-source": {RowCount: 2},
+				"test-sync-dest":   {RowCount: 2},
+			},
+		},
+		{
+			Name: "Subset Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "a",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			SubsetMap: map[string]string{
+				"test-sync-source": "id = '1'",
+			},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync-source": {RowCount: 2},
 				"test-sync-dest":   {RowCount: 1},
 			},
 		},
