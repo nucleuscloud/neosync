@@ -183,22 +183,3 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     </div>
   );
 }
-
-// function shouldTriggerAutocomplete(text: string): boolean {
-//   const trimmedText = text.trim();
-//   const textSplit = trimmedText.split(/\s+/);
-//   const lastSignificantWord = trimmedText.split(/\s+/).pop()?.toUpperCase();
-//   const triggerKeywords = ['neo'];
-
-//   if (textSplit.length == 2 && textSplit[0].toUpperCase() == 'WHERE') {
-//     /* since we pre-pend the 'WHERE', we want the autocomplete to show up for the first letter typed
-//      which would come through as 'WHERE a' if the user just typed the letter 'a'
-//      so the when we split that text, we check if the length is 2 (as a way of checking if the user has only typed one letter or is still on the first word) and if it is and the first word is 'WHERE' which it should be since we pre-pend it, then show the auto-complete */
-//     return true;
-//   } else {
-//     return (
-//       triggerKeywords.includes(lastSignificantWord || '') ||
-//       triggerKeywords.some((keyword) => trimmedText.endsWith(keyword + ' '))
-//     );
-//   }
-// }
