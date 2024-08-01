@@ -1,2 +1,3 @@
 ignore:
   - "**/mock_*.go"
+  - "backend/gen/**"
