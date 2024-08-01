@@ -19,6 +19,7 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryErrorAlert from './SubsetErrorAlert';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import { TableRow } from './subset-table/column';
+import { ValidSubsetConnectionType } from './utils';
 
 interface Props {
   item?: TableRow;
@@ -26,12 +27,19 @@ interface Props {
   onSave(): void;
   onCancel(): void;
   connectionId: string;
-  dbType: string;
+  connectionType: ValidSubsetConnectionType;
   columns: string[];
 }
 export default function EditItem(props: Props): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId, dbType, columns } =
-    props;
+  const {
+    item,
+    onItem,
+    onSave,
+    onCancel,
+    connectionId,
+    connectionType,
+    columns,
+  } = props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
@@ -108,22 +116,26 @@ export default function EditItem(props: Props): ReactElement {
   const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
 
   async function onValidate(): Promise<void> {
-    const pgString = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
-    const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
+    if (connectionType === 'pgConfig' || connectionType === 'mysqlConfig') {
+      const pgString = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
+      const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
 
-    try {
-      const resp = await validateSql({
-        id: connectionId,
-        query: dbType === 'mysql' ? mysqlString : pgString,
-      });
-      setValidateResp(resp);
-    } catch (err) {
-      setValidateResp(
-        new CheckSqlQueryResponse({
-          isValid: false,
-          erorrMessage: getErrorMessage(err),
-        })
-      );
+      try {
+        const resp = await validateSql({
+          id: connectionId,
+          query: connectionType === 'mysqlConfig' ? mysqlString : pgString,
+        });
+        setValidateResp(resp);
+      } catch (err) {
+        setValidateResp(
+          new CheckSqlQueryResponse({
+            isValid: false,
+            erorrMessage: getErrorMessage(err),
+          })
+        );
+      }
+    } else if (connectionType === 'dynamodbConfig') {
+      // todo
     }
   }
 
