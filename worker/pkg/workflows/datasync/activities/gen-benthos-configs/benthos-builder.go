@@ -323,7 +323,7 @@ func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 	}
 }
 
-func groupJobSourceOptionsByTable(
+func groupSqlJobSourceOptionsByTable(
 	sqlSourceOpts *sqlJobSourceOpts,
 ) map[string]*sqlSourceTableOptions {
 	groupedMappings := map[string]*sqlSourceTableOptions{}

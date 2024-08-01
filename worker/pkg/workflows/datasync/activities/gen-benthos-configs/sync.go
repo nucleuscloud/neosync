@@ -40,7 +40,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	}
 	var sourceTableOpts map[string]*sqlSourceTableOptions
 	if sqlSourceOpts != nil {
-		sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
+		sourceTableOpts = groupSqlJobSourceOptionsByTable(sqlSourceOpts)
 	}
 
 	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, sourceConnection)
