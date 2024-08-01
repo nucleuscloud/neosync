@@ -42,7 +42,7 @@ resources:
     cpu: "100m"
     # -- Sets the Memory amount to be requested
     memory: "128Mi"
-  ## Sets teh max CPU and Memory. These are low-usage defaults. Change these depending on your needs.
+  ## Sets the max CPU and Memory. These are low-usage defaults. Change these depending on your needs.
   limits:
     # -- Sets the max CPU amount
     cpu: "500m"
