@@ -96,8 +96,8 @@ func (_c *MockdynamoDBAPIV2_DescribeTable_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
-// Scan provides a mock function with given fields: ctx, params, optFns
-func (_m *MockdynamoDBAPIV2) Scan(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error) {
+// ExecuteStatement provides a mock function with given fields: ctx, params, optFns
+func (_m *MockdynamoDBAPIV2) ExecuteStatement(ctx context.Context, params *dynamodb.ExecuteStatementInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ExecuteStatementOutput, error) {
 	_va := make([]interface{}, len(optFns))
 	for _i := range optFns {
 		_va[_i] = optFns[_i]
@@ -108,23 +108,23 @@ func (_m *MockdynamoDBAPIV2) Scan(ctx context.Context, params *dynamodb.ScanInpu
 	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Scan")
+		panic("no return value specified for ExecuteStatement")
 	}
 
-	var r0 *dynamodb.ScanOutput
+	var r0 *dynamodb.ExecuteStatementOutput
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *dynamodb.ScanInput, ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *dynamodb.ExecuteStatementInput, ...func(*dynamodb.Options)) (*dynamodb.ExecuteStatementOutput, error)); ok {
 		return rf(ctx, params, optFns...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *dynamodb.ScanInput, ...func(*dynamodb.Options)) *dynamodb.ScanOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *dynamodb.ExecuteStatementInput, ...func(*dynamodb.Options)) *dynamodb.ExecuteStatementOutput); ok {
 		r0 = rf(ctx, params, optFns...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*dynamodb.ScanOutput)
+			r0 = ret.Get(0).(*dynamodb.ExecuteStatementOutput)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *dynamodb.ScanInput, ...func(*dynamodb.Options)) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *dynamodb.ExecuteStatementInput, ...func(*dynamodb.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -133,21 +133,21 @@ func (_m *MockdynamoDBAPIV2) Scan(ctx context.Context, params *dynamodb.ScanInpu
 	return r0, r1
 }
 
-// MockdynamoDBAPIV2_Scan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Scan'
-type MockdynamoDBAPIV2_Scan_Call struct {
+// MockdynamoDBAPIV2_ExecuteStatement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExecuteStatement'
+type MockdynamoDBAPIV2_ExecuteStatement_Call struct {
 	*mock.Call
 }
 
-// Scan is a helper method to define mock.On call
+// ExecuteStatement is a helper method to define mock.On call
 //   - ctx context.Context
-//   - params *dynamodb.ScanInput
+//   - params *dynamodb.ExecuteStatementInput
 //   - optFns ...func(*dynamodb.Options)
-func (_e *MockdynamoDBAPIV2_Expecter) Scan(ctx interface{}, params interface{}, optFns ...interface{}) *MockdynamoDBAPIV2_Scan_Call {
-	return &MockdynamoDBAPIV2_Scan_Call{Call: _e.mock.On("Scan",
+func (_e *MockdynamoDBAPIV2_Expecter) ExecuteStatement(ctx interface{}, params interface{}, optFns ...interface{}) *MockdynamoDBAPIV2_ExecuteStatement_Call {
+	return &MockdynamoDBAPIV2_ExecuteStatement_Call{Call: _e.mock.On("ExecuteStatement",
 		append([]interface{}{ctx, params}, optFns...)...)}
 }
 
-func (_c *MockdynamoDBAPIV2_Scan_Call) Run(run func(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options))) *MockdynamoDBAPIV2_Scan_Call {
+func (_c *MockdynamoDBAPIV2_ExecuteStatement_Call) Run(run func(ctx context.Context, params *dynamodb.ExecuteStatementInput, optFns ...func(*dynamodb.Options))) *MockdynamoDBAPIV2_ExecuteStatement_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]func(*dynamodb.Options), len(args)-2)
 		for i, a := range args[2:] {
@@ -155,17 +155,17 @@ func (_c *MockdynamoDBAPIV2_Scan_Call) Run(run func(ctx context.Context, params 
 				variadicArgs[i] = a.(func(*dynamodb.Options))
 			}
 		}
-		run(args[0].(context.Context), args[1].(*dynamodb.ScanInput), variadicArgs...)
+		run(args[0].(context.Context), args[1].(*dynamodb.ExecuteStatementInput), variadicArgs...)
 	})
 	return _c
 }
 
-func (_c *MockdynamoDBAPIV2_Scan_Call) Return(_a0 *dynamodb.ScanOutput, _a1 error) *MockdynamoDBAPIV2_Scan_Call {
+func (_c *MockdynamoDBAPIV2_ExecuteStatement_Call) Return(_a0 *dynamodb.ExecuteStatementOutput, _a1 error) *MockdynamoDBAPIV2_ExecuteStatement_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockdynamoDBAPIV2_Scan_Call) RunAndReturn(run func(context.Context, *dynamodb.ScanInput, ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)) *MockdynamoDBAPIV2_Scan_Call {
+func (_c *MockdynamoDBAPIV2_ExecuteStatement_Call) RunAndReturn(run func(context.Context, *dynamodb.ExecuteStatementInput, ...func(*dynamodb.Options)) (*dynamodb.ExecuteStatementOutput, error)) *MockdynamoDBAPIV2_ExecuteStatement_Call {
 	_c.Call.Return(run)
 	return _c
 }

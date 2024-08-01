@@ -38,7 +38,7 @@ func RegisterDynamoDbInput(env *service.Environment) error {
 
 type dynamoDBAPIV2 interface {
 	DescribeTable(ctx context.Context, params *dynamodb.DescribeTableInput, optFns ...func(*dynamodb.Options)) (*dynamodb.DescribeTableOutput, error)
-	Scan(ctx context.Context, params *dynamodb.ScanInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
+	ExecuteStatement(ctx context.Context, params *dynamodb.ExecuteStatementInput, optFns ...func(*dynamodb.Options)) (*dynamodb.ExecuteStatementOutput, error)
 }
 
 func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (service.BatchInput, error) {
@@ -66,9 +66,9 @@ type dynamodbInput struct {
 	logger    *service.Logger
 	readMu    sync.Mutex
 
-	table            string
-	lastEvaluatedKey map[string]types.AttributeValue
-	done             bool
+	table     string
+	nextToken *string
+	done      bool
 }
 
 var _ service.BatchInput = &dynamodbInput{}
@@ -112,10 +112,10 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 	}
 
 	// todo: allow specifying batch size
-	result, err := d.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:         &d.table,
-		ExclusiveStartKey: d.lastEvaluatedKey,
-		ConsistentRead:    aws.Bool(true),
+	result, err := d.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
+		Statement:      aws.String(fmt.Sprintf(`SELECT * from %q`, d.table)),
+		NextToken:      d.nextToken,
+		ConsistentRead: aws.Bool(true),
 	})
 	if err != nil {
 		return nil, nil, err
@@ -131,8 +131,8 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
-	d.lastEvaluatedKey = result.LastEvaluatedKey
-	d.done = result.LastEvaluatedKey == nil
+	d.nextToken = result.NextToken
+	d.done = result.NextToken == nil
 
 	return batch, emptyAck, nil
 }
