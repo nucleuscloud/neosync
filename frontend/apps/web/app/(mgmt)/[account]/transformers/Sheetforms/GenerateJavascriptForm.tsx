@@ -85,7 +85,7 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
                   <FormLabel>Transformer Code</FormLabel>
                   <div className="text-[0.8rem] text-muted-foreground">
                     Define your own Transformation below using Javascript.{' '}
-                    <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
+                    <LearnMoreTag href="https://docs.neosync.dev/transformers/javascript" />
                   </div>
                 </div>
                 <div className="flex flex-row gap-2">
