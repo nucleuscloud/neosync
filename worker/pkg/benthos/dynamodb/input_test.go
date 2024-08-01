@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/stretchr/testify/mock"
@@ -56,11 +57,11 @@ func Test_dynamoDbBatchInput_ReadBatch_EndOfInput(t *testing.T) {
 	require.Equal(t, service.ErrEndOfInput, err)
 }
 
-func Test_dynamoDbBatchInput_ReadBatch_Scan(t *testing.T) {
+func Test_dynamoDbBatchInput_ReadBatch_SinglePage(t *testing.T) {
 	mockClient := NewMockdynamoDBAPIV2(t)
 	input := &dynamodbInput{client: mockClient, table: "foo"}
 
-	mockClient.On("Scan", mock.Anything, mock.Anything).Return(&dynamodb.ScanOutput{
+	mockClient.On("ExecuteStatement", mock.Anything, mock.Anything).Return(&dynamodb.ExecuteStatementOutput{
 		Items: []map[string]types.AttributeValue{
 			{"f": &types.AttributeValueMemberBOOL{Value: false}},
 			{"g": &types.AttributeValueMemberBOOL{Value: true}},
@@ -70,26 +71,26 @@ func Test_dynamoDbBatchInput_ReadBatch_Scan(t *testing.T) {
 	batch, _, err := input.ReadBatch(context.Background())
 	require.NoError(t, err)
 	require.Len(t, batch, 2)
-	require.Nil(t, input.lastEvaluatedKey)
+	require.Nil(t, input.nextToken)
 	require.True(t, input.done)
 }
 
-func Test_dynamoDbBatchInput_ReadBatch_Scan_Paginated(t *testing.T) {
+func Test_dynamoDbBatchInput_ReadBatch_MultiPage(t *testing.T) {
 	mockClient := NewMockdynamoDBAPIV2(t)
 	input := &dynamodbInput{client: mockClient, table: "foo"}
 
-	mockClient.On("Scan", mock.Anything, mock.Anything).Return(&dynamodb.ScanOutput{
+	mockClient.On("ExecuteStatement", mock.Anything, mock.Anything).Return(&dynamodb.ExecuteStatementOutput{
 		Items: []map[string]types.AttributeValue{
 			{"f": &types.AttributeValueMemberBOOL{Value: false}},
 			{"g": &types.AttributeValueMemberBOOL{Value: true}},
 		},
-		LastEvaluatedKey: map[string]types.AttributeValue{},
+		NextToken: aws.String("foo"),
 	}, nil)
 
 	batch, _, err := input.ReadBatch(context.Background())
 	require.NoError(t, err)
 	require.Len(t, batch, 2)
-	require.NotNil(t, input.lastEvaluatedKey)
+	require.NotNil(t, input.nextToken)
 	require.False(t, input.done)
 }
 
