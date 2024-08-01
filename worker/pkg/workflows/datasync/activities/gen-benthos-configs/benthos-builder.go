@@ -18,9 +18,6 @@ import (
 )
 
 const (
-	generateDefault            = "generate_default"
-	passthrough                = "passthrough"
-	dbDefault                  = "DEFAULT"
 	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
 	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
 		"columns found in the source connection for the selected schemas and tables"
