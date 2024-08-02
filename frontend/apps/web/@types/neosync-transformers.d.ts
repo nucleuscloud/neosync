@@ -4,6 +4,7 @@
  */
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
+/* prettier-ignore-start */
 
 declare namespace neosync {
 
@@ -483,4 +484,5 @@ declare namespace neosync {
 	declare function generateZipcode(options: GenerateZipcodeOptions): any;
 	
 	
+	/* prettier-ignore-end */
 }

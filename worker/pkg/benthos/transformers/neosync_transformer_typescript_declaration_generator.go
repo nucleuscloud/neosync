@@ -140,6 +140,7 @@ const docTemplate = `
  */
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
+/* prettier-ignore-start */
 
 declare namespace neosync {
 
@@ -181,6 +182,7 @@ declare namespace neosync {
 	declare function {{$spec.Name}}(options: {{$spec.InterfaceName}}): {{$spec.TsReturnTypeStr}};
 	
 	{{ end }}
+	/* prettier-ignore-end */
 }`
 
 type TemplateData struct {
