@@ -27,6 +27,12 @@ const (
 	ddboFieldTTL            = "ttl"
 	ddboFieldTTLKey         = "ttl_key"
 	ddboFieldBatching       = "batching"
+
+	crboFieldMaxRetries     = "max_retries"
+	crboFieldBackOff        = "backoff"
+	crboFieldInitInterval   = "initial_interval"
+	crboFieldMaxInterval    = "max_interval"
+	crboFieldMaxElapsedTime = "max_elapsed_time"
 )
 
 type ddboConfig struct {
@@ -37,8 +43,8 @@ type ddboConfig struct {
 	TTLKey         string
 
 	// aconf       aws.Config
-	// backoffCtor func() backoff.BackOff
-	awsConfig aws.Config
+	backoffCtor func() backoff.BackOff
+	awsConfig   aws.Config
 }
 
 func ddboConfigFromParsed(pConf *service.ParsedConfig) (conf ddboConfig, err error) {
@@ -55,6 +61,9 @@ func ddboConfigFromParsed(pConf *service.ParsedConfig) (conf ddboConfig, err err
 		return
 	}
 	if conf.TTLKey, err = pConf.FieldString(ddboFieldTTLKey); err != nil {
+		return
+	}
+	if conf.backoffCtor, err = commonRetryBackOffCtorFromParsed(pConf); err != nil {
 		return
 	}
 	sess, err := getAwsSession(context.Background(), pConf)
@@ -103,7 +112,8 @@ func dynamoOutputConfigSpec() *service.ConfigSpec {
 				Advanced(),
 			service.NewOutputMaxInFlightField(),
 			service.NewBatchPolicyField(ddboFieldBatching),
-		)
+		).
+		Fields(commonRetryBackOffFields(3, "1s", "5s", "30s")...)
 	for _, f := range awsSessionFields() {
 		spec = spec.Field(f)
 	}
@@ -170,11 +180,11 @@ func newDynamoDBWriter(conf ddboConfig, mgr *service.Resources) (*dynamoDBWriter
 		}
 		db.ttl = ttl
 	}
-	// db.boffPool = sync.Pool{
-	// 	New: func() any {
-	// 		return db.conf.backoffCtor()
-	// 	},
-	// }
+	db.boffPool = sync.Pool{
+		New: func() any {
+			return db.conf.backoffCtor()
+		},
+	}
 	return db, nil
 }
 
@@ -270,6 +280,12 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 
 	writeReqs := []types.WriteRequest{}
 	if err := b.WalkWithBatchedErrors(func(i int, p *service.Message) error {
+		meta, ok := p.MetaGetMut("neosync")
+		if ok {
+			fmt.Println()
+			fmt.Println(meta)
+			fmt.Println()
+		}
 		items := map[string]types.AttributeValue{}
 		if d.ttl != 0 && d.conf.TTLKey != "" {
 			items[d.conf.TTLKey] = &types.AttributeValueMemberN{
@@ -400,4 +416,71 @@ unprocessedLoop:
 
 func (d *dynamoDBWriter) Close(context.Context) error {
 	return nil
+}
+
+func commonRetryBackOffFields(
+	defaultMaxRetries int,
+	defaultInitInterval string,
+	defaultMaxInterval string,
+	defaultMaxElapsed string,
+) []*service.ConfigField {
+	return []*service.ConfigField{
+		service.NewIntField(crboFieldMaxRetries).
+			Description("The maximum number of retries before giving up on the request. If set to zero there is no discrete limit.").
+			Default(defaultMaxRetries).
+			Advanced(),
+		service.NewObjectField(crboFieldBackOff,
+			service.NewDurationField(crboFieldInitInterval).
+				Description("The initial period to wait between retry attempts.").
+				Default(defaultInitInterval),
+			service.NewDurationField(crboFieldMaxInterval).
+				Description("The maximum period to wait between retry attempts.").
+				Default(defaultMaxInterval),
+			service.NewDurationField(crboFieldMaxElapsedTime).
+				Description("The maximum period to wait before retry attempts are abandoned. If zero then no limit is used.").
+				Default(defaultMaxElapsed),
+		).
+			Description("Control time intervals between retry attempts.").
+			Advanced(),
+	}
+}
+
+func commonRetryBackOffCtorFromParsed(pConf *service.ParsedConfig) (ctor func() backoff.BackOff, err error) {
+	var maxRetries int
+	if maxRetries, err = pConf.FieldInt(crboFieldMaxRetries); err != nil {
+		return
+	}
+
+	var initInterval, maxInterval, maxElapsed time.Duration
+	if pConf.Contains(crboFieldBackOff) {
+		bConf := pConf.Namespace(crboFieldBackOff)
+		if initInterval, err = fieldDurationOrEmptyStr(bConf, crboFieldInitInterval); err != nil {
+			return
+		}
+		if maxInterval, err = fieldDurationOrEmptyStr(bConf, crboFieldMaxInterval); err != nil {
+			return
+		}
+		if maxElapsed, err = fieldDurationOrEmptyStr(bConf, crboFieldMaxElapsedTime); err != nil {
+			return
+		}
+	}
+
+	return func() backoff.BackOff {
+		boff := backoff.NewExponentialBackOff()
+
+		boff.InitialInterval = initInterval
+		boff.MaxInterval = maxInterval
+		boff.MaxElapsedTime = maxElapsed
+
+		if maxRetries > 0 {
+			return backoff.WithMaxRetries(boff, uint64(maxRetries))
+		}
+		return boff
+	}, nil
+}
+func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.Duration, error) {
+	if dStr, err := pConf.FieldString(path...); err == nil && dStr == "" {
+		return 0, nil
+	}
+	return pConf.FieldDuration(path...)
 }

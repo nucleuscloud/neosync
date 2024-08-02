@@ -143,6 +143,7 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 
 		resMap := attributeValueMapToStandardJSON(item)
 		msg := service.NewMessage(nil)
+		msg.MetaSetMut("neosync", "test meta")
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
@@ -261,6 +262,8 @@ func awsSessionFields() []*service.ConfigField {
 func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) map[string]any {
 	standardJSON := make(map[string]any)
 	for k, v := range item {
+		fmt.Println()
+		fmt.Println(k)
 		standardJSON[k] = attributeValueToStandardValue(v)
 	}
 	return standardJSON
@@ -268,12 +271,15 @@ func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) map[s
 
 // attributeValueToStandardValue converts a DynamoDB AttributeValue to a standard value
 func attributeValueToStandardValue(v types.AttributeValue) any {
+	fmt.Println(v)
 	switch t := v.(type) {
 	case *types.AttributeValueMemberB:
+		fmt.Println("binary")
 		return t.Value
 	case *types.AttributeValueMemberBOOL:
 		return t.Value
 	case *types.AttributeValueMemberBS:
+		fmt.Println("binary set")
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			lAny[i] = v
@@ -304,6 +310,7 @@ func attributeValueToStandardValue(v types.AttributeValue) any {
 	case *types.AttributeValueMemberS:
 		return t.Value
 	case *types.AttributeValueMemberSS:
+		fmt.Println("set")
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			lAny[i] = v
