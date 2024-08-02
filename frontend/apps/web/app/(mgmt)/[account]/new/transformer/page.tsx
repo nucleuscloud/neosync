@@ -11,6 +11,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
   Form,
@@ -188,33 +189,35 @@ export default function NewTransformer(): ReactElement {
                     <SelectContent>
                       <Command className="overflow-auto">
                         <CommandInput placeholder="Search transformers..." />
-                        <CommandEmpty>No transformers found.</CommandEmpty>
-                        <CommandGroup className="overflow-auto h-[200px]">
-                          {transformers.map((t) => (
-                            <CommandItem
-                              key={`${t.source}`}
-                              onSelect={() => {
-                                field.onChange(t.source);
-                                form.setValue(
-                                  'config',
-                                  convertTransformerConfigToForm(t.config)
-                                );
-                                setOpenBaseSelect(false);
-                              }}
-                              value={t.name}
-                            >
-                              <CheckIcon
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  base.name === t.name
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                              />
-                              {t.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        <CommandList>
+                          <CommandEmpty>No transformers found.</CommandEmpty>
+                          <CommandGroup className="overflow-auto h-[200px]">
+                            {transformers.map((t) => (
+                              <CommandItem
+                                key={`${t.source}`}
+                                onSelect={() => {
+                                  field.onChange(t.source);
+                                  form.setValue(
+                                    'config',
+                                    convertTransformerConfigToForm(t.config)
+                                  );
+                                  setOpenBaseSelect(false);
+                                }}
+                                value={t.name}
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    'mr-2 h-4 w-4',
+                                    base.name === t.name
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                                  )}
+                                />
+                                {t.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
                       </Command>
                     </SelectContent>
                   </Select>

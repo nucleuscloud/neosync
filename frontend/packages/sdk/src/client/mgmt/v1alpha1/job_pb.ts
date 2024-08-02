@@ -2590,6 +2590,43 @@ export class MysqlSourceSchemaSubset extends Message<MysqlSourceSchemaSubset> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.DynamoDBSourceSchemaSubset
+ */
+export class DynamoDBSourceSchemaSubset extends Message<DynamoDBSourceSchemaSubset> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.DynamoDBSourceTableOption tables = 1;
+   */
+  tables: DynamoDBSourceTableOption[] = [];
+
+  constructor(data?: PartialMessage<DynamoDBSourceSchemaSubset>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBSourceSchemaSubset";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tables", kind: "message", T: DynamoDBSourceTableOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceSchemaSubset {
+    return new DynamoDBSourceSchemaSubset().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBSourceSchemaSubset {
+    return new DynamoDBSourceSchemaSubset().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBSourceSchemaSubset {
+    return new DynamoDBSourceSchemaSubset().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBSourceSchemaSubset | PlainMessage<DynamoDBSourceSchemaSubset> | undefined, b: DynamoDBSourceSchemaSubset | PlainMessage<DynamoDBSourceSchemaSubset> | undefined): boolean {
+    return proto3.util.equals(DynamoDBSourceSchemaSubset, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.JobSourceSqlSubetSchemas
  */
 export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> {
@@ -2608,6 +2645,12 @@ export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> 
      */
     value: MysqlSourceSchemaSubset;
     case: "mysqlSubset";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.DynamoDBSourceSchemaSubset dynamodb_subset = 4;
+     */
+    value: DynamoDBSourceSchemaSubset;
+    case: "dynamodbSubset";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceSqlSubetSchemas>) {
@@ -2620,6 +2663,7 @@ export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> 
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 2, name: "postgres_subset", kind: "message", T: PostgresSourceSchemaSubset, oneof: "schemas" },
     { no: 3, name: "mysql_subset", kind: "message", T: MysqlSourceSchemaSubset, oneof: "schemas" },
+    { no: 4, name: "dynamodb_subset", kind: "message", T: DynamoDBSourceSchemaSubset, oneof: "schemas" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceSqlSubetSchemas {
@@ -2644,16 +2688,22 @@ export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> 
  */
 export class SetJobSourceSqlConnectionSubsetsRequest extends Message<SetJobSourceSqlConnectionSubsetsRequest> {
   /**
+   * The unique identifier of the job to update subsets for
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * The subset configuration
+   *
    * @generated from field: mgmt.v1alpha1.JobSourceSqlSubetSchemas schemas = 2;
    */
   schemas?: JobSourceSqlSubetSchemas;
 
   /**
+   * Whether or not to have subsets follow foreign key constraints (for connections that support it)
+   *
    * @generated from field: bool subset_by_foreign_key_constraints = 3;
    */
   subsetByForeignKeyConstraints = false;

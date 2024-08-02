@@ -86,8 +86,8 @@ func Test_CreateJob_Rollback(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-// SetSqlSourceSubsets
-func Test_SetSqlSourceSubsets(t *testing.T) {
+// SetSourceSubsets
+func Test_SetSourceSubsets(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
 	querierMock := db_queries.NewMockQuerier(t)
 	mockTx := new(MockTx)
@@ -132,7 +132,7 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	err := service.SetSqlSourceSubsets(context.Background(), jobUuid, schemas, true, userUuid)
+	err := service.SetSourceSubsets(context.Background(), jobUuid, schemas, true, userUuid)
 
 	assert.NoError(t, err)
 }

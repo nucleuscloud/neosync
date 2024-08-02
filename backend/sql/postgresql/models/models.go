@@ -735,12 +735,7 @@ func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnecti
 		dto = &mgmtv1alpha1.DynamoDBSourceConnectionOptions{}
 	}
 	s.ConnectionId = dto.GetConnectionId()
-	s.Tables = make([]*DynamoDBSourceTableOption, len(dto.GetTables()))
-	for i, table := range dto.GetTables() {
-		t := &DynamoDBSourceTableOption{}
-		t.FromDto(table)
-		s.Tables[i] = t
-	}
+	s.Tables = FromDtoDynamoDBSourceTableOptions(dto.GetTables())
 }
 
 type MongoDbSourceOptions struct {
@@ -909,6 +904,16 @@ func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOptio
 	}
 
 	return output
+}
+
+func FromDtoDynamoDBSourceTableOptions(dtos []*mgmtv1alpha1.DynamoDBSourceTableOption) []*DynamoDBSourceTableOption {
+	tables := make([]*DynamoDBSourceTableOption, len(dtos))
+	for i, table := range dtos {
+		t := &DynamoDBSourceTableOption{}
+		t.FromDto(table)
+		tables[i] = t
+	}
+	return tables
 }
 
 func (s *GenerateSourceOptions) ToDto() *mgmtv1alpha1.GenerateSourceOptions {
