@@ -398,12 +398,12 @@ declare namespace neosync {
 	
 	
 	export interface GenerateStateOptions {
-		/** Randomly selects a US state and either returns the two character state code or the full state name. */
+		/** If true returns the full state name instead of the two character state code. */
 		generateFullName?: boolean;
 	}
 
   /**
-   * 
+   * Randomly selects a US state and either returns the two character state code or the full state name.
    */
 	declare function generateState(options: GenerateStateOptions): any;
 	

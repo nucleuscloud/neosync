@@ -20,7 +20,7 @@ func NewGenerateState() *GenerateState {
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
-		Description: "",
+		Description: "Randomly selects a US state and either returns the two character state code or the full state name.",
 		Example: "",
 	}, nil
 }

@@ -11,7 +11,8 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("Randomly selects a US state and either returns the two character state code or the full state name."))
+	spec := bloblang.NewPluginSpec().Description("Randomly selects a US state and either returns the two character state code or the full state name.").
+		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full state name instead of the two character state code."))
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		generateFullName, err := args.GetBool("generate_full_name")
 		if err != nil {
