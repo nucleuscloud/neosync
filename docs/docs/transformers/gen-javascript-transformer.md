@@ -955,7 +955,7 @@ source: generate_state.go
 
 ### generateState
 
-
+Randomly selects a US state and either returns the two character state code or the full state name.
 
 **Parameters**
 
@@ -963,7 +963,7 @@ source: generate_state.go
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| generateFullName | bool | false | false | Randomly selects a US state and either returns the two character state code or the full state name.
+| generateFullName | bool | false | false | If true returns the full state name instead of the two character state code.
 <br/>
 
 **Example**

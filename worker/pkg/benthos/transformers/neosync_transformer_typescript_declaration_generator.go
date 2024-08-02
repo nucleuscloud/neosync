@@ -88,7 +88,7 @@ type tsDeclarationParam struct {
 func toDeclarationSpec(benthosSpec *transformers.BenthosSpec) (*tsDeclarationSpec, error) {
 	tsParams := []*tsDeclarationParam{}
 	for _, p := range benthosSpec.Params {
-		tsTypeStr, err := convertToTypescriptType(p.TypeStr)
+		tsTypeStr, err := convertToTypescriptType(p.TypeStr, p.Default)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +112,7 @@ func toDeclarationSpec(benthosSpec *transformers.BenthosSpec) (*tsDeclarationSpe
 	}, nil
 }
 
-func convertToTypescriptType(typeStr string) (string, error) {
+func convertToTypescriptType(typeStr, defaultStr string) (string, error) {
 	switch typeStr {
 	case "string":
 		return "string", nil
@@ -125,6 +125,9 @@ func convertToTypescriptType(typeStr string) (string, error) {
 	case "bool":
 		return "boolean", nil
 	case "any":
+		if defaultStr == "[]any{}" {
+			return "any[]", nil
+		}
 		return "any", nil
 	default:
 		return "", fmt.Errorf("Error: unable to convert type to typescript type: %s", typeStr)
@@ -137,6 +140,7 @@ const docTemplate = `
  */
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
+/* prettier-ignore */
 
 declare namespace neosync {
 
@@ -146,6 +150,7 @@ declare namespace neosync {
 	{{ range $i, $spec := .TransformerSpecs }}
 	export interface {{$spec.InterfaceName}} {
 	{{- range $j, $param := $spec.Params }}
+	{{- if eq $param.Name "value" -}}{{ continue }}{{- end }}
 		/** {{$param.Description}} */
 		{{$param.Name}}{{ if $param.IsOptional }}?{{ else if $param.HasDefault }}?{{end}}: {{$param.TsTypeStr}};
 	{{- end }}
@@ -165,6 +170,7 @@ declare namespace neosync {
 	{{ range $i, $spec := .GeneratorSpecs }}
 	export interface {{$spec.InterfaceName}} {
 	{{- range $j, $param := $spec.Params}}
+	{{- if eq $param.Name "value" -}}{{ continue }}{{- end }}
 		/** {{$param.Description}} */
 		{{$param.Name}}{{ if $param.IsOptional }}?{{ else if $param.HasDefault }}?{{end}}: {{$param.TsTypeStr}};
 	{{- end }}
