@@ -49,6 +49,7 @@ import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { getConnectionType } from '../../../connections/util';
+import { showSubsetOptions } from '../../../jobs/[id]/subsets/components/SubsetCard';
 import {
   clearNewJobSession,
   getCreateNewSyncJobRequest,
@@ -324,7 +325,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               className="flex flex-col gap-8"
             >
               <div>
-                <SubsetOptionsForm maxColNum={2} />
+                {showSubsetOptions(connectionType) && (
+                  <SubsetOptionsForm maxColNum={2} />
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <div>

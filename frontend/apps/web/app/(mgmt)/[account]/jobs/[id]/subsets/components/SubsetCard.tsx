@@ -1,4 +1,7 @@
-import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
+import {
+  ConnectionConfigCase,
+  getConnectionType,
+} from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
@@ -196,7 +199,9 @@ export default function SubsetCard(props: Props): ReactElement {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-8"
         >
-          <SubsetOptionsForm maxColNum={2} />
+          {showSubsetOptions(connectionType) && (
+            <SubsetOptionsForm maxColNum={2} />
+          )}
           <div className="flex flex-col gap-2">
             <div>
               <SubsetTable
@@ -277,6 +282,15 @@ export default function SubsetCard(props: Props): ReactElement {
       </Form>
     </div>
   );
+}
+
+// Determines if the subset options should be wholesale shown
+// May need to change this in the future if a subset of the options apply to specific source connections.
+// Currently there is only one and it only applies to pg/mysql
+export function showSubsetOptions(
+  connType: ConnectionConfigCase | null
+): boolean {
+  return connType === 'pgConfig' || connType === 'mysqlConfig';
 }
 
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
