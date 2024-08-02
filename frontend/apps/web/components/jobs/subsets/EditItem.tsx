@@ -21,7 +21,11 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryErrorAlert from './SubsetErrorAlert';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import { TableRow } from './subset-table/column';
-import { isSubsetRowCountSupported, ValidSubsetConnectionType } from './utils';
+import {
+  isSubsetRowCountSupported,
+  isSubsetValidationSupported,
+  ValidSubsetConnectionType,
+} from './utils';
 
 interface Props {
   item?: TableRow;
@@ -56,7 +60,7 @@ export default function EditItem(props: Props): ReactElement {
   const monaco = useMonaco();
 
   const showRowCountButton = isSubsetRowCountSupported(connectionType);
-  const showValidateButton = isSubsetRowCountSupported(connectionType);
+  const showValidateButton = isSubsetValidationSupported(connectionType);
 
   useEffect(() => {
     if (monaco) {
