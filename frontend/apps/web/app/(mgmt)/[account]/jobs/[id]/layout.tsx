@@ -273,6 +273,7 @@ function shouldEnableSubsettingNav(job?: Job): boolean {
   switch (job?.source?.options?.config.case) {
     case 'postgres':
     case 'mysql':
+    case 'dynamodb':
       return true;
     default:
       return false;
