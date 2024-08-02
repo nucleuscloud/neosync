@@ -1,3 +1,4 @@
+import { ConnectionConfigCase } from '@/app/(mgmt)/[account]/connections/util';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { Editor, useMonaco } from '@monaco-editor/react';
@@ -19,6 +21,11 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import ValidateQueryErrorAlert from './SubsetErrorAlert';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import { TableRow } from './subset-table/column';
+import {
+  isSubsetRowCountSupported,
+  isSubsetValidationSupported,
+  ValidSubsetConnectionType,
+} from './utils';
 
 interface Props {
   item?: TableRow;
@@ -26,12 +33,19 @@ interface Props {
   onSave(): void;
   onCancel(): void;
   connectionId: string;
-  dbType: string;
+  connectionType: ValidSubsetConnectionType;
   columns: string[];
 }
 export default function EditItem(props: Props): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId, dbType, columns } =
-    props;
+  const {
+    item,
+    onItem,
+    onSave,
+    onCancel,
+    connectionId,
+    connectionType,
+    columns,
+  } = props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
@@ -44,6 +58,9 @@ export default function EditItem(props: Props): ReactElement {
   const [rowCountError, setRowCountError] = useState<string>();
 
   const monaco = useMonaco();
+
+  const showRowCountButton = isSubsetRowCountSupported(connectionType);
+  const showValidateButton = isSubsetValidationSupported(connectionType);
 
   useEffect(() => {
     if (monaco) {
@@ -108,22 +125,24 @@ export default function EditItem(props: Props): ReactElement {
   const { mutateAsync: getRowCountByTable } = useMutation(getTableRowCount);
 
   async function onValidate(): Promise<void> {
-    const pgString = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
-    const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
+    if (connectionType === 'pgConfig' || connectionType === 'mysqlConfig') {
+      const pgString = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
+      const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
 
-    try {
-      const resp = await validateSql({
-        id: connectionId,
-        query: dbType === 'mysql' ? mysqlString : pgString,
-      });
-      setValidateResp(resp);
-    } catch (err) {
-      setValidateResp(
-        new CheckSqlQueryResponse({
-          isValid: false,
-          erorrMessage: getErrorMessage(err),
-        })
-      );
+      try {
+        const resp = await validateSql({
+          id: connectionId,
+          query: connectionType === 'mysqlConfig' ? mysqlString : pgString,
+        });
+        setValidateResp(resp);
+      } catch (err) {
+        setValidateResp(
+          new CheckSqlQueryResponse({
+            isValid: false,
+            erorrMessage: getErrorMessage(err),
+          })
+        );
+      }
     }
   }
 
@@ -183,7 +202,12 @@ export default function EditItem(props: Props): ReactElement {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col md:flex-row justify-between gap-2 md:gap-0">
         <div className="flex flex-row gap-4">
-          <div className="flex flex-row gap-2 items-center">
+          <div
+            className={cn(
+              'flex flex-row gap-2 items-center',
+              showSchema(connectionType) ? undefined : 'hidden'
+            )}
+          >
             <span className="font-semibold tracking-tight">Schema</span>
             <Badge
               className="px-4 py-2 dark:border-gray-700"
@@ -206,58 +230,65 @@ export default function EditItem(props: Props): ReactElement {
           </div>
         </div>
         <div className="flex flex-row gap-4">
-          <TooltipProvider>
-            <Tooltip delayDuration={200}>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!item?.where}
-                  onClick={() => onGetRowCount()}
+          {showRowCountButton && (
+            <>
+              <TooltipProvider>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={!item?.where}
+                      onClick={() => onGetRowCount()}
+                    >
+                      {calculatingRowCount ? (
+                        <Spinner className="text-black dark:text-white" />
+                      ) : (
+                        <ButtonText text={'Row Count'} />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      Attempts to run a SQL COUNT(*) statement against the
+                      source connection for the table with the included WHERE
+                      clause
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {tableRowCountResp && tableRowCountResp.count >= 0 ? (
+                <Badge
+                  variant="darkOutline"
+                  className="dark:bg-gray-800 dark:border-gray-800"
                 >
-                  {calculatingRowCount ? (
-                    <Spinner className="text-black dark:text-white" />
-                  ) : (
-                    <ButtonText text={'Row Count'} />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Attempts to run a SQL COUNT(*) statement against the source
-                  connection for the table with the included WHERE clause
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {tableRowCountResp && tableRowCountResp.count >= 0 ? (
-            <Badge
-              variant="darkOutline"
-              className="dark:bg-gray-800 dark:border-gray-800"
-            >
-              {tableRowCountResp.count.toString()}
-            </Badge>
-          ) : null}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!item}
-                  onClick={() => onValidate()}
-                >
-                  <ButtonText text="Validate" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Attempts to run a SQL PREPARE statement against the source
-                  connection for the table with the included WHERE clause
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  {tableRowCountResp.count.toString()}
+                </Badge>
+              ) : null}
+            </>
+          )}
+          {showValidateButton && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={!item}
+                    onClick={() => onValidate()}
+                  >
+                    <ButtonText text="Validate" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Attempts to run a SQL PREPARE statement against the source
+                    connection for the table with the included WHERE clause
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <Button
             type="button"
             variant="secondary"
@@ -317,6 +348,10 @@ export default function EditItem(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+function showSchema(connectionType: ConnectionConfigCase | null): boolean {
+  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
 }
 
 function shouldTriggerAutocomplete(text: string): boolean {

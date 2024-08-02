@@ -1439,19 +1439,24 @@ func (s *Service) GetTableRowCount(
 		return nil, err
 	}
 
-	connectionTimeout := 5
-	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Db.Close()
+	switch connection.Msg.GetConnection().GetConnectionConfig().Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		connectionTimeout := 5
+		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
+		defer db.Db.Close()
 
-	count, err := db.Db.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
-	if err != nil {
-		return nil, err
-	}
+		count, err := db.Db.GetTableRowCount(ctx, req.Msg.Schema, req.Msg.Table, req.Msg.WhereClause)
+		if err != nil {
+			return nil, err
+		}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetTableRowCountResponse{
-		Count: count,
-	}), nil
+		return connect.NewResponse(&mgmtv1alpha1.GetTableRowCountResponse{
+			Count: count,
+		}), nil
+	default:
+		return nil, fmt.Errorf("unsupported connection type when retrieving table row count %T", connection.Msg.GetConnection().GetConnectionConfig().Config)
+	}
 }

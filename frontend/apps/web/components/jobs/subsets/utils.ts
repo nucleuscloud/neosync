@@ -1,6 +1,13 @@
+import { ConnectionConfigCase } from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import { JobMapping } from '@neosync/sdk';
 import { TableRow } from './subset-table/column';
+
+// Valid ConnectionConfigCase types. Using Extract here to ensure they stay consistent with what is available in ConnectionConfigCase
+export type ValidSubsetConnectionType = Extract<
+  ConnectionConfigCase,
+  'pgConfig' | 'mysqlConfig' | 'dynamodbConfig'
+>;
 
 interface DbCol {
   schema: string;
@@ -48,4 +55,26 @@ export function GetColumnsForSqlAutocomplete(
   });
 
   return cols;
+}
+
+export function isValidSubsetType(
+  connectionType: ConnectionConfigCase | null
+): connectionType is ValidSubsetConnectionType {
+  return (
+    connectionType === 'pgConfig' ||
+    connectionType === 'mysqlConfig' ||
+    connectionType === 'dynamodbConfig'
+  );
+}
+
+export function isSubsetRowCountSupported(
+  connectionType: ConnectionConfigCase | null
+): boolean {
+  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
+}
+
+export function isSubsetValidationSupported(
+  connectionType: ConnectionConfigCase | null
+): boolean {
+  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
 }

@@ -1,3 +1,7 @@
+import {
+  ConnectionConfigCase,
+  getConnectionType,
+} from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
@@ -7,6 +11,7 @@ import {
   GetColumnsForSqlAutocomplete,
   buildRowKey,
   buildTableRowData,
+  isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,8 +25,13 @@ import {
   useQuery,
 } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GetJobResponse, JobSourceOptions } from '@neosync/sdk';
 import {
+  ConnectionConfig,
+  GetJobResponse,
+  JobSourceOptions,
+} from '@neosync/sdk';
+import {
+  getConnection,
   getConnectionTableConstraints,
   getJob,
   setJobSourceSqlConnectionSubsets,
@@ -57,6 +67,11 @@ export default function SubsetCard(props: Props): ReactElement {
   const { mutateAsync: setJobSubsets } = useMutation(
     setJobSourceSqlConnectionSubsets
   );
+  const { data: sourceConnectionData } = useQuery(
+    getConnection,
+    { id: sourceConnectionId },
+    { enabled: !!sourceConnectionId }
+  );
 
   const fkConstraints = tableConstraints?.foreignKeyConstraints;
 
@@ -73,8 +88,6 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }, [fkConstraints, isTableConstraintsValidating]);
-
-  const dbType = getDbtype(data?.job?.source?.options);
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
@@ -102,7 +115,11 @@ export default function SubsetCard(props: Props): ReactElement {
     );
   }
 
-  if (dbType === 'invalid') {
+  const connectionType = getConnectionType(
+    sourceConnectionData?.connection?.connectionConfig ?? new ConnectionConfig()
+  );
+
+  if (!isValidSubsetType(connectionType)) {
     return (
       <Alert variant="warning">
         <ExclamationTriangleIcon className="h-4 w-4" />
@@ -116,12 +133,16 @@ export default function SubsetCard(props: Props): ReactElement {
   }
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
+    if (!isValidSubsetType(connectionType)) {
+      return;
+    }
+
     try {
       const updatedJobRes = await setJobSubsets({
         id: jobId,
         subsetByForeignKeyConstraints:
           values.subsetOptions.subsetByForeignKeyConstraints,
-        schemas: toJobSourceSqlSubsetSchemas(values, dbType),
+        schemas: toJobSourceSqlSubsetSchemas(values, connectionType),
       });
       toast({
         title: 'Successfully updated database subsets',
@@ -178,7 +199,9 @@ export default function SubsetCard(props: Props): ReactElement {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-8"
         >
-          <SubsetOptionsForm maxColNum={2} />
+          {showSubsetOptions(connectionType) && (
+            <SubsetOptionsForm maxColNum={2} />
+          )}
           <div className="flex flex-col gap-2">
             <div>
               <SubsetTable
@@ -236,7 +259,7 @@ export default function SubsetCard(props: Props): ReactElement {
                   }
                   setItemToEdit(undefined);
                 }}
-                dbType={dbType}
+                connectionType={connectionType}
               />
             </div>
             <div className="my-6">
@@ -261,46 +284,58 @@ export default function SubsetCard(props: Props): ReactElement {
   );
 }
 
-function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
-  if (
-    !sourceOpts ||
-    (sourceOpts.config.case !== 'postgres' &&
-      sourceOpts.config.case !== 'mysql')
-  ) {
-    return {
-      subsets: [],
-      subsetOptions: { subsetByForeignKeyConstraints: false },
-    };
-  }
-
-  const schemas = sourceOpts.config.value.schemas;
-  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
-    return schema.tables.map((table) => {
-      return {
-        schema: schema.schema,
-        table: table.table,
-        whereClause: table.whereClause,
-      };
-    });
-  });
-  return {
-    subsets,
-    subsetOptions: {
-      subsetByForeignKeyConstraints:
-        sourceOpts.config.value.subsetByForeignKeyConstraints,
-    },
-  };
+// Determines if the subset options should be wholesale shown
+// May need to change this in the future if a subset of the options apply to specific source connections.
+// Currently there is only one and it only applies to pg/mysql
+export function showSubsetOptions(
+  connType: ConnectionConfigCase | null
+): boolean {
+  return connType === 'pgConfig' || connType === 'mysqlConfig';
 }
 
-function getDbtype(
-  options?: JobSourceOptions
-): 'mysql' | 'postgres' | 'invalid' {
-  switch (options?.config.case) {
+function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
+  switch (sourceOpts?.config.case) {
     case 'postgres':
-      return 'postgres';
-    case 'mysql':
-      return 'mysql';
-    default:
-      return 'invalid';
+    case 'mysql': {
+      const schemas = sourceOpts.config.value.schemas;
+      const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
+        return schema.tables.map((table) => {
+          return {
+            schema: schema.schema,
+            table: table.table,
+            whereClause: table.whereClause,
+          };
+        });
+      });
+      return {
+        subsets,
+        subsetOptions: {
+          subsetByForeignKeyConstraints:
+            sourceOpts.config.value.subsetByForeignKeyConstraints,
+        },
+      };
+    }
+    case 'dynamodb': {
+      const tables = sourceOpts.config.value.tables;
+      const subsets: SubsetFormValues['subsets'] = tables.map((tableOpt) => {
+        return {
+          schema: 'dynamodb',
+          table: tableOpt.table,
+          whereClause: tableOpt.whereClause,
+        };
+      });
+      return {
+        subsets,
+        subsetOptions: {
+          subsetByForeignKeyConstraints: false,
+        },
+      };
+    }
+    default: {
+      return {
+        subsets: [],
+        subsetOptions: { subsetByForeignKeyConstraints: false },
+      };
+    }
   }
 }

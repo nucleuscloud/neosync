@@ -1,3 +1,4 @@
+import { ValidSubsetConnectionType } from '@/components/jobs/subsets/utils';
 import {
   convertMinutesToNanoseconds,
   convertNanosecondsToMinutes,
@@ -24,6 +25,8 @@ import {
   DynamoDBDestinationConnectionOptions,
   DynamoDBDestinationTableMapping,
   DynamoDBSourceConnectionOptions,
+  DynamoDBSourceSchemaSubset,
+  DynamoDBSourceTableOption,
   GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
@@ -613,6 +616,7 @@ function toJobSourceOptions(
           case: 'dynamodb',
           value: new DynamoDBSourceConnectionOptions({
             connectionId: values.connect.sourceId,
+            tables: toDynamoDbSourceTableOptions(values.subset?.subsets ?? []),
           }),
         },
       });
@@ -670,6 +674,18 @@ function toMysqlSourceSchemaOptions(
   return Object.values(schemaMap);
 }
 
+function toDynamoDbSourceTableOptions(
+  subsets: SubsetFormValues['subsets']
+): DynamoDBSourceTableOption[] {
+  return subsets.map(
+    (ss) =>
+      new DynamoDBSourceTableOption({
+        table: ss.table,
+        whereClause: ss.whereClause,
+      })
+  );
+}
+
 export function toActivityOptions(
   values: ActivityOptionsSchema
 ): ActivityOptions {
@@ -691,18 +707,21 @@ export function toActivityOptions(
 
 export function toJobSourceSqlSubsetSchemas(
   values: SubsetFormValues,
-  dbType: string
+  dbType: ValidSubsetConnectionType | null
 ): JobSourceSqlSubetSchemas {
-  return dbType == 'mysql'
-    ? new JobSourceSqlSubetSchemas({
+  switch (dbType) {
+    case 'mysqlConfig': {
+      return new JobSourceSqlSubetSchemas({
         schemas: {
           case: 'mysqlSubset',
           value: new MysqlSourceSchemaSubset({
             mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
           }),
         },
-      })
-    : new JobSourceSqlSubetSchemas({
+      });
+    }
+    case 'pgConfig': {
+      return new JobSourceSqlSubetSchemas({
         schemas: {
           case: 'postgresSubset',
           value: new PostgresSourceSchemaSubset({
@@ -710,6 +729,21 @@ export function toJobSourceSqlSubsetSchemas(
           }),
         },
       });
+    }
+    case 'dynamodbConfig': {
+      return new JobSourceSqlSubetSchemas({
+        schemas: {
+          case: 'dynamodbSubset',
+          value: new DynamoDBSourceSchemaSubset({
+            tables: toDynamoDbSourceTableOptions(values.subsets),
+          }),
+        },
+      });
+    }
+    default: {
+      return new JobSourceSqlSubetSchemas();
+    }
+  }
 }
 
 export function setDefaultNewJobFormValues(

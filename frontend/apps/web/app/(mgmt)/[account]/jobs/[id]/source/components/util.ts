@@ -122,6 +122,18 @@ export function isNosqlSource(connection: Connection): boolean {
   }
 }
 
+export function isConnectionSubsettable(connection: Connection): boolean {
+  switch (connection.connectionConfig?.config.case) {
+    case 'pgConfig':
+    case 'mysqlConfig':
+    case 'dynamodbConfig':
+      return true;
+    default: {
+      return false;
+    }
+  }
+}
+
 export function shouldShowDestinationTableMappings(
   sourceConnection: Connection,
   hasDynamoDbDestinations: boolean

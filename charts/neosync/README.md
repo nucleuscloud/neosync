@@ -140,6 +140,10 @@ A Helm chart for Neosync that contains the api, app, and worker
 | app.otel.otlpPort | int | `4317` | Specifies the port that otel is listening on that the service will export metrics and traces to |
 | app.posthog.key | string | `"phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip"` | Posthog Key |
 | app.protometrics.enabled | bool | `false` |  |
+| app.resources.limits.cpu | string | `"500m"` | Sets the max CPU amount |
+| app.resources.limits.memory | string | `"512Mi"` | Sets the max Memory amount |
+| app.resources.requests.cpu | string | `"100m"` | Sets the CPU amount to be requested |
+| app.resources.requests.memory | string | `"128Mi"` | Sets the Memory amount to be requested |
 | app.serviceAccount.annotations | object | `{}` | Specify annotations here that will be attached to the service account. Useful for specifying role information or other tagging depending on environment. |
 | app.serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
 | app.serviceAccount.name | string | `nil` | The name of the service account to use. If namenot set and create is true, a name is generated using fullname template |

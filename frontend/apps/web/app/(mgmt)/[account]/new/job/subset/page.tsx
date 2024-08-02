@@ -10,6 +10,7 @@ import {
   buildRowKey,
   buildTableRowData,
   GetColumnsForSqlAutocomplete,
+  isValidSubsetType,
 } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -47,6 +48,8 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import { getConnectionType } from '../../../connections/util';
+import { showSubsetOptions } from '../../../jobs/[id]/subsets/components/SubsetCard';
 import {
   clearNewJobSession,
   getCreateNewSyncJobRequest,
@@ -58,6 +61,8 @@ import {
   DefineFormValues,
   SubsetFormValues,
 } from '../schema';
+
+const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -154,7 +159,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues: subsetFormValues,
   });
 
-  const isBrowser = () => typeof window !== 'undefined';
   useFormPersist(formKey, {
     watch: form.watch,
     setValue: form.setValue,
@@ -167,7 +171,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     (item) => item.id == connectFormValues.sourceId
   );
 
-  const dbType = getDbtype(connection?.connectionConfig);
+  const connectionType = getConnectionType(
+    connection?.connectionConfig ?? new ConnectionConfig()
+  );
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
@@ -299,19 +305,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       >
         <div />
       </OverviewContainer>
-      {dbType === 'invalid' && (
+      {!isValidSubsetType(connectionType) && (
         <Alert variant="warning">
           <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertTitle>Heads up!</AlertTitle>
           <AlertDescription>
-            Subsetting is not currently enabled for NoSQL jobs. You may proceed
-            with the creation of this job while we continue to work on NoSQL
-            subsetting.
+            Subsetting is not currently enabled for this connection type. You
+            may proceed with the creation of this job while we continue to work
+            on subsetting for this connection.
           </AlertDescription>
         </Alert>
       )}
 
-      {dbType !== 'invalid' && (
+      {isValidSubsetType(connectionType) && (
         <div className="flex flex-col gap-4">
           <Form {...form}>
             <form
@@ -319,7 +325,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               className="flex flex-col gap-8"
             >
               <div>
-                <SubsetOptionsForm maxColNum={2} />
+                {showSubsetOptions(connectionType) && (
+                  <SubsetOptionsForm maxColNum={2} />
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <div>
@@ -388,7 +396,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       }
                       setItemToEdit(undefined);
                     }}
-                    dbType={dbType}
+                    connectionType={connectionType}
                   />
                 </div>
 
@@ -414,17 +422,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       )}
     </div>
   );
-}
-
-function getDbtype(
-  options?: ConnectionConfig
-): 'mysql' | 'postgres' | 'invalid' {
-  switch (options?.config.case) {
-    case 'pgConfig':
-      return 'postgres';
-    case 'mysqlConfig':
-      return 'mysql';
-    default:
-      return 'invalid';
-  }
 }
