@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Command,
+  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -45,42 +46,35 @@ export function StringSelect(props: Props): ReactElement {
         <Command>
           <CommandInput placeholder={`Search ${text}...`} />
           <CommandList>
+            <CommandEmpty>
+              <div className="text-sm text-gray-500 p-4">No {text} found.</div>
+            </CommandEmpty>
             <CommandGroup>
-              {values.length > 0 ? (
-                <>
-                  {values.map((v) => (
-                    <CommandItem
-                      key={v}
-                      value={v}
-                      onSelect={(currentValue) => {
-                        setValue(currentValue === value ? '' : currentValue);
-                        setOpen(false);
-                      }}
-                    >
-                      <CheckIcon
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === v ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                      <div className="flex flex-row justify-between w-full">
-                        <p className="mr-2">{v}</p>
-                        <div>
-                          {badgeValueMap && (
-                            <Badge variant="secondary">
-                              {badgeValueMap[v]}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CommandItem>
-                  ))}{' '}
-                </>
-              ) : (
-                <div className="text-sm text-gray-500 p-4">
-                  No {text} found.
-                </div>
-              )}
+              {values.map((v) => (
+                <CommandItem
+                  key={v}
+                  value={v}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? '' : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <CheckIcon
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === v ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                  <div className="flex flex-row justify-between w-full">
+                    <p className="mr-2">{v}</p>
+                    <div>
+                      {badgeValueMap && (
+                        <Badge variant="secondary">{badgeValueMap[v]}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>
