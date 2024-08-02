@@ -881,6 +881,13 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
    */
   tables: DynamoDBSourceTableOption[] = [];
 
+  /**
+   * Default transformations for any unmapped keys
+   *
+   * @generated from field: mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig unmapped_transforms = 3;
+   */
+  unmappedTransforms?: DynamoDBSourceUnmappedTransformConfig;
+
   constructor(data?: PartialMessage<DynamoDBSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -891,6 +898,7 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tables", kind: "message", T: DynamoDBSourceTableOption, repeated: true },
+    { no: 3, name: "unmapped_transforms", kind: "message", T: DynamoDBSourceUnmappedTransformConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceConnectionOptions {
@@ -907,6 +915,69 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
 
   static equals(a: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined, b: DynamoDBSourceConnectionOptions | PlainMessage<DynamoDBSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(DynamoDBSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig
+ */
+export class DynamoDBSourceUnmappedTransformConfig extends Message<DynamoDBSourceUnmappedTransformConfig> {
+  /**
+   * Byte
+   *
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer b = 1;
+   */
+  b?: JobMappingTransformer;
+
+  /**
+   * Boolean
+   *
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer boolean = 2;
+   */
+  boolean?: JobMappingTransformer;
+
+  /**
+   * Number
+   *
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer n = 4;
+   */
+  n?: JobMappingTransformer;
+
+  /**
+   * String
+   *
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer s = 6;
+   */
+  s?: JobMappingTransformer;
+
+  constructor(data?: PartialMessage<DynamoDBSourceUnmappedTransformConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "b", kind: "message", T: JobMappingTransformer },
+    { no: 2, name: "boolean", kind: "message", T: JobMappingTransformer },
+    { no: 4, name: "n", kind: "message", T: JobMappingTransformer },
+    { no: 6, name: "s", kind: "message", T: JobMappingTransformer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceUnmappedTransformConfig {
+    return new DynamoDBSourceUnmappedTransformConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamoDBSourceUnmappedTransformConfig {
+    return new DynamoDBSourceUnmappedTransformConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamoDBSourceUnmappedTransformConfig {
+    return new DynamoDBSourceUnmappedTransformConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DynamoDBSourceUnmappedTransformConfig | PlainMessage<DynamoDBSourceUnmappedTransformConfig> | undefined, b: DynamoDBSourceUnmappedTransformConfig | PlainMessage<DynamoDBSourceUnmappedTransformConfig> | undefined): boolean {
+    return proto3.util.equals(DynamoDBSourceUnmappedTransformConfig, a, b);
   }
 }
 
