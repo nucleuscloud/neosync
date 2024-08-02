@@ -138,8 +138,8 @@ export default function AccountSwitcher(_: Props): ReactElement {
         <PopoverContent className="w-[200px] p-0">
           <Command>
             <CommandInput placeholder="Search account..." />
-            <CommandEmpty>No Account found.</CommandEmpty>
             <CommandList>
+              <CommandEmpty>No Account found.</CommandEmpty>
               <CommandGroup key="personal" heading="Personal">
                 {personalAccounts.map((a) => (
                   <CommandItem

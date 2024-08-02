@@ -85,10 +85,10 @@ export default function TransformerSelect(props: Props): ReactElement {
       >
         <Command>
           <CommandInput placeholder={buttonText} />
-          <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            {userDefined.length > 0 && (
-              <CommandList>
+            <CommandList>
+              <CommandEmpty>No transformers found.</CommandEmpty>
+              {userDefined.length > 0 && (
                 <CommandGroup heading="Custom">
                   {userDefined.map((t) => {
                     return (
@@ -135,9 +135,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                     );
                   })}
                 </CommandGroup>
-              </CommandList>
-            )}
-            <CommandList>
+              )}
               <CommandGroup heading="System">
                 {system.map((t) => {
                   return (

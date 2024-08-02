@@ -189,8 +189,8 @@ export default function NewTransformer(): ReactElement {
                     <SelectContent>
                       <Command className="overflow-auto">
                         <CommandInput placeholder="Search transformers..." />
-                        <CommandEmpty>No transformers found.</CommandEmpty>
                         <CommandList>
+                          <CommandEmpty>No transformers found.</CommandEmpty>
                           <CommandGroup className="overflow-auto h-[200px]">
                             {transformers.map((t) => (
                               <CommandItem
