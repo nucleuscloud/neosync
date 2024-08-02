@@ -25,6 +25,7 @@ import {
   DynamoDBDestinationConnectionOptions,
   DynamoDBDestinationTableMapping,
   DynamoDBSourceConnectionOptions,
+  DynamoDBSourceSchemaSubset,
   DynamoDBSourceTableOption,
   GcpCloudStorageDestinationConnectionOptions,
   GenerateSourceOptions,
@@ -731,7 +732,12 @@ export function toJobSourceSqlSubsetSchemas(
     }
     case 'dynamodbConfig': {
       return new JobSourceSqlSubetSchemas({
-        // schemas: {},
+        schemas: {
+          case: 'dynamodbSubset',
+          value: new DynamoDBSourceSchemaSubset({
+            tables: toDynamoDbSourceTableOptions(values.subsets),
+          }),
+        },
       });
     }
     default: {

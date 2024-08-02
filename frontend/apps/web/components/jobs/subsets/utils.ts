@@ -66,3 +66,15 @@ export function isValidSubsetType(
     connectionType === 'dynamodbConfig'
   );
 }
+
+export function isSubsetRowCountSupported(
+  connectionType: ConnectionConfigCase | null
+): boolean {
+  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
+}
+
+export function isSubsetValidationSupported(
+  connectionType: ConnectionConfigCase | null
+): boolean {
+  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
+}

@@ -62,6 +62,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import {
   getDestinationDetailsRecord,
   getOnSelectedTableToggle,
+  isConnectionSubsettable,
   isDynamoDBConnection,
   isNosqlSource,
   shouldShowDestinationTableMappings,
@@ -209,7 +210,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     if (!account || !source) {
       return;
     }
-    if (isNosqlSource(source)) {
+    if (!isConnectionSubsettable(source)) {
       try {
         const connMap = new Map(connections.map((c) => [c.id, c]));
         const job = await createNewSyncJob(
@@ -472,7 +473,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <JobsProgressSteps
                 steps={getJobProgressSteps(
                   'data-sync',
-                  !isNosqlSource(source ?? new Connection())
+                  isConnectionSubsettable(source ?? new Connection())
                 )}
                 stepName={'schema'}
               />
@@ -684,7 +685,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               Back
             </Button>
             <Button key="submit" type="submit">
-              {isNosqlSource(source ?? new Connection()) ? 'Submit' : 'Next'}
+              {isConnectionSubsettable(source ?? new Connection())
+                ? 'Next'
+                : 'Submit'}
             </Button>
           </div>
         </form>

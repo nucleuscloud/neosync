@@ -294,32 +294,48 @@ export function showSubsetOptions(
 }
 
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
-  if (
-    !sourceOpts ||
-    (sourceOpts.config.case !== 'postgres' &&
-      sourceOpts.config.case !== 'mysql')
-  ) {
-    return {
-      subsets: [],
-      subsetOptions: { subsetByForeignKeyConstraints: false },
-    };
-  }
-
-  const schemas = sourceOpts.config.value.schemas;
-  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
-    return schema.tables.map((table) => {
+  switch (sourceOpts?.config.case) {
+    case 'postgres':
+    case 'mysql': {
+      const schemas = sourceOpts.config.value.schemas;
+      const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
+        return schema.tables.map((table) => {
+          return {
+            schema: schema.schema,
+            table: table.table,
+            whereClause: table.whereClause,
+          };
+        });
+      });
       return {
-        schema: schema.schema,
-        table: table.table,
-        whereClause: table.whereClause,
+        subsets,
+        subsetOptions: {
+          subsetByForeignKeyConstraints:
+            sourceOpts.config.value.subsetByForeignKeyConstraints,
+        },
       };
-    });
-  });
-  return {
-    subsets,
-    subsetOptions: {
-      subsetByForeignKeyConstraints:
-        sourceOpts.config.value.subsetByForeignKeyConstraints,
-    },
-  };
+    }
+    case 'dynamodb': {
+      const tables = sourceOpts.config.value.tables;
+      const subsets: SubsetFormValues['subsets'] = tables.map((tableOpt) => {
+        return {
+          schema: 'dynamodb',
+          table: tableOpt.table,
+          whereClause: tableOpt.whereClause,
+        };
+      });
+      return {
+        subsets,
+        subsetOptions: {
+          subsetByForeignKeyConstraints: false,
+        },
+      };
+    }
+    default: {
+      return {
+        subsets: [],
+        subsetOptions: { subsetByForeignKeyConstraints: false },
+      };
+    }
+  }
 }

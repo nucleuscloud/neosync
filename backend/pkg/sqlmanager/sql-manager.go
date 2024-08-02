@@ -3,7 +3,6 @@ package sqlmanager
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -166,7 +165,7 @@ func (s *SqlManager) NewPooledSqlDb(
 		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, closer)
 		driver = sqlmanager_shared.MysqlDriver
 	default:
-		return nil, errors.New("unsupported sql database connection: %s")
+		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.ConnectionConfig.Config)
 	}
 
 	return &SqlConnection{
@@ -237,7 +236,7 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		})
 		driver = sqlmanager_shared.MysqlDriver
 	default:
-		return nil, errors.New("unsupported sql database connection: %s")
+		return nil, fmt.Errorf("unsupported sql database connection: %T", connectionConfig.Config)
 	}
 
 	return &SqlConnection{
@@ -290,7 +289,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		})
 		driver = sqlmanager_shared.MysqlDriver
 	default:
-		return nil, errors.New("unsupported sql database connection: %s")
+		return nil, fmt.Errorf("unsupported sql driver: %s", driver)
 	}
 
 	return &SqlConnection{
