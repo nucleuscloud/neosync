@@ -5,6 +5,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -87,24 +88,67 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
             {userDefined.length > 0 && (
-              <CommandGroup heading="Custom">
-                {userDefined.map((t) => {
+              <CommandList>
+                <CommandGroup heading="Custom">
+                  {userDefined.map((t) => {
+                    return (
+                      <CommandItem
+                        key={t.id}
+                        onSelect={() => {
+                          onSelect(
+                            convertJobMappingTransformerToForm(
+                              new JobMappingTransformer({
+                                source: TransformerSource.USER_DEFINED,
+                                config: new TransformerConfig({
+                                  config: {
+                                    case: 'userDefinedTransformerConfig',
+                                    value: new UserDefinedTransformerConfig({
+                                      id: t.id,
+                                    }),
+                                  },
+                                }),
+                              })
+                            )
+                          );
+                          setOpen(false);
+                        }}
+                        value={t.name}
+                      >
+                        <div className="flex flex-row items-center justify-between w-full">
+                          <div className="flex flex-row items-center">
+                            <CheckIcon
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                value?.config?.case ===
+                                  'userDefinedTransformerConfig' &&
+                                  value?.source ===
+                                    TransformerSource.USER_DEFINED &&
+                                  value.config.value.id === t.id
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                            <div className="items-center">{t?.name}</div>
+                          </div>
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+            )}
+            <CommandList>
+              <CommandGroup heading="System">
+                {system.map((t) => {
                   return (
                     <CommandItem
-                      key={t.id}
+                      key={t.source}
                       onSelect={() => {
                         onSelect(
                           convertJobMappingTransformerToForm(
                             new JobMappingTransformer({
-                              source: TransformerSource.USER_DEFINED,
-                              config: new TransformerConfig({
-                                config: {
-                                  case: 'userDefinedTransformerConfig',
-                                  value: new UserDefinedTransformerConfig({
-                                    id: t.id,
-                                  }),
-                                },
-                              }),
+                              source: t.source,
+                              config: t.config,
                             })
                           )
                         );
@@ -113,15 +157,11 @@ export default function TransformerSelect(props: Props): ReactElement {
                       value={t.name}
                     >
                       <div className="flex flex-row items-center justify-between w-full">
-                        <div className="flex flex-row items-center">
+                        <div className=" flex flex-row items-center">
                           <CheckIcon
                             className={cn(
                               'mr-2 h-4 w-4',
-                              value?.config?.case ===
-                                'userDefinedTransformerConfig' &&
-                                value?.source ===
-                                  TransformerSource.USER_DEFINED &&
-                                value.config.value.id === t.id
+                              value?.source === t?.source
                                 ? 'opacity-100'
                                 : 'opacity-0'
                             )}
@@ -133,42 +173,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                   );
                 })}
               </CommandGroup>
-            )}
-            <CommandGroup heading="System">
-              {system.map((t) => {
-                return (
-                  <CommandItem
-                    key={t.source}
-                    onSelect={() => {
-                      onSelect(
-                        convertJobMappingTransformerToForm(
-                          new JobMappingTransformer({
-                            source: t.source,
-                            config: t.config,
-                          })
-                        )
-                      );
-                      setOpen(false);
-                    }}
-                    value={t.name}
-                  >
-                    <div className="flex flex-row items-center justify-between w-full">
-                      <div className=" flex flex-row items-center">
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value?.source === t?.source
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <div className="items-center">{t?.name}</div>
-                      </div>
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+            </CommandList>
           </div>
         </Command>
       </PopoverContent>
