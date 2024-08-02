@@ -85,11 +85,27 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
+const PostgresSourceOptionsFormValues = Yup.object({
+  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+});
+const MysqlSourceOptionsFormValues = Yup.object({
+  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+});
+const DynamoDBSourceOptionsFormValues = Yup.object({});
+
+export const SourceOptionsFormValues = Yup.object({
+  postgres: PostgresSourceOptionsFormValues.optional(),
+  mysql: MysqlSourceOptionsFormValues.optional(),
+  dynamodb: DynamoDBSourceOptionsFormValues.optional(),
+});
+
+export type SourceOptionsFormValues = Yup.InferType<
+  typeof SourceOptionsFormValues
+>;
+
 export const SourceFormValues = Yup.object({
   sourceId: Yup.string().required('Source is required').uuid(),
-  sourceOptions: Yup.object({
-    haltOnNewColumnAddition: Yup.boolean().optional(),
-  }),
+  sourceOptions: SourceOptionsFormValues.required(),
 });
 
 const DynamoDbDestinationOptionsFormValues = Yup.object({

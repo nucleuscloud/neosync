@@ -725,8 +725,9 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 		tables[i] = t.ToDto()
 	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
-		ConnectionId: s.ConnectionId,
-		Tables:       tables,
+		ConnectionId:       s.ConnectionId,
+		Tables:             tables,
+		UnmappedTransforms: &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{},
 	}
 }
 

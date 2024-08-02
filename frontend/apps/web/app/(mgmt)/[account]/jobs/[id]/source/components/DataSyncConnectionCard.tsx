@@ -555,6 +555,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             connection={connections.find(
               (c) => c.id === form.getValues().sourceId
             )}
+            value={form.watch('sourceOptions')}
+            setValue={(newOpts) => {
+              form.setValue('sourceOptions', newOpts, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
+            }}
           />
 
           {isNosqlSource(source ?? new Connection()) && (
@@ -776,7 +784,7 @@ function toJobSourceOptions(
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.haltOnNewColumnAddition,
+              values.sourceOptions.postgres?.haltOnNewColumnAddition,
           }),
         },
       });
@@ -788,7 +796,7 @@ function toJobSourceOptions(
             ...getExistingMysqlSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.haltOnNewColumnAddition,
+              values.sourceOptions.mysql?.haltOnNewColumnAddition,
           }),
         },
       });
@@ -857,9 +865,7 @@ function getJobSource(
   if (!job || !connSchemaMap) {
     return {
       sourceId: '',
-      sourceOptions: {
-        haltOnNewColumnAddition: false,
-      },
+      sourceOptions: {},
       mappings: [],
       virtualForeignKeys: [],
       connectionId: '',
@@ -940,8 +946,10 @@ function getJobSource(
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job?.source?.options?.config.value.haltOnNewColumnAddition,
+          postgres: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
         },
       };
     case 'mysql':
@@ -949,8 +957,10 @@ function getJobSource(
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job?.source?.options?.config.value.haltOnNewColumnAddition,
+          mysql: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
         },
       };
     case 'mongodb':
@@ -975,7 +985,9 @@ function getJobSource(
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
-        sourceOptions: {},
+        sourceOptions: {
+          dynamodb: {}, // todo
+        },
         destinationOptions: destOpts,
       };
     }
@@ -1016,7 +1028,6 @@ async function getUpdatedValues(
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
-    // destinationIds: originalValues.destinationIds,
     mappings,
     connectionId: connectionId || '',
     destinationOptions: [],
@@ -1027,9 +1038,31 @@ async function getUpdatedValues(
       return {
         ...values,
         sourceOptions: {
-          haltOnNewColumnAddition: false,
+          postgres: {
+            haltOnNewColumnAddition: false,
+          },
         },
       };
+    case 'mysqlConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          mysql: {
+            haltOnNewColumnAddition: false,
+          },
+        },
+      };
+    }
+    case 'dynamodbConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          dynamodb: {
+            haltOnNewColumnAddition: false,
+          },
+        },
+      };
+    }
     default:
       return values;
   }

@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ConnectionConfig } from '@neosync/sdk';
+import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { getConnections } from '@neosync/sdk/connectquery';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -190,9 +190,32 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             field.onChange(value);
-                            form.setValue('sourceOptions', {
-                              haltOnNewColumnAddition: false,
-                            });
+                            const connection =
+                              connections.find((c) => c.id === value) ??
+                              new Connection();
+                            const connectionType = getConnectionType(
+                              connection.connectionConfig ??
+                                new ConnectionConfig()
+                            );
+                            if (connectionType === 'pgConfig') {
+                              form.setValue('sourceOptions', {
+                                postgres: {
+                                  haltOnNewColumnAddition: false,
+                                },
+                              });
+                            } else if (connectionType === 'mysqlConfig') {
+                              form.setValue('sourceOptions', {
+                                mysql: {
+                                  haltOnNewColumnAddition: false,
+                                },
+                              });
+                            } else if (connectionType === 'dynamodbConfig') {
+                              form.setValue('sourceOptions', {
+                                dynamodb: {},
+                              });
+                            } else {
+                              form.setValue('sourceOptions', {});
+                            }
                           }}
                           value={field.value}
                         >
@@ -223,6 +246,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().sourceId
                 )}
+                value={form.watch('sourceOptions')}
+                setValue={(newOpts) =>
+                  form.setValue('sourceOptions', newOpts, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             </div>
           </div>
