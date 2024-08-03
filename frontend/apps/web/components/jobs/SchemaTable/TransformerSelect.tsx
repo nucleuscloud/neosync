@@ -41,7 +41,7 @@ interface Props {
   buttonText: string;
   buttonClassName?: string;
   onSelect(value: JobMappingTransformerForm): void;
-  side: Side;
+  side?: Side;
   disabled: boolean;
 }
 
@@ -84,7 +84,7 @@ export default function TransformerSelect(props: Props): ReactElement {
         side={side}
       >
         <Command>
-          <CommandInput placeholder={buttonText} />
+          <CommandInput placeholder={'Search...'} />
           <div className="max-h-[450px] overflow-y-scroll">
             <CommandList>
               <CommandEmpty>No transformers found.</CommandEmpty>
