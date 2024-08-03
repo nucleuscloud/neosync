@@ -2,20 +2,11 @@ import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTran
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Transformer } from '@/shared/transformers';
 import {
-  convertJobMappingTransformerToForm,
   DynamoDBSourceOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import {
-  GenerateBool,
-  GenerateString,
-  JobMappingTransformer,
-  Passthrough,
-  SystemTransformer,
-  TransformerConfig,
-  TransformerSource,
-} from '@neosync/sdk';
+import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { TransformerHandler } from '../SchemaTable/transformer-handler';
@@ -49,55 +40,6 @@ export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
       </div>
     </div>
   );
-}
-
-export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformConfigFormValues {
-  return {
-    boolean: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        source: TransformerSource.GENERATE_BOOL,
-        config: new TransformerConfig({
-          config: {
-            case: 'generateBoolConfig',
-            value: new GenerateBool(),
-          },
-        }),
-      })
-    ),
-    byte: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
-        config: new TransformerConfig({
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough(),
-          },
-        }),
-      })
-    ),
-    n: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        source: TransformerSource.PASSTHROUGH,
-        config: new TransformerConfig({
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough(),
-          },
-        }),
-      })
-    ),
-    s: convertJobMappingTransformerToForm(
-      new JobMappingTransformer({
-        source: TransformerSource.GENERATE_RANDOM_STRING,
-        config: new TransformerConfig({
-          config: {
-            case: 'generateStringConfig',
-            value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
-          },
-        }),
-      })
-    ),
-  };
 }
 
 interface UnmappedTransformConfigFormProps {

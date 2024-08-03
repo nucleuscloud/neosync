@@ -1,5 +1,4 @@
 'use client';
-import { getDefaultUnmappedTransformConfig } from '@/components/jobs/Form/DynamoDBSourceOptionsForm';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
@@ -77,7 +76,10 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { validateJobMapping } from '../../../util';
+import {
+  getDefaultUnmappedTransformConfig,
+  validateJobMapping,
+} from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import {
   getDestinationDetailsRecord,

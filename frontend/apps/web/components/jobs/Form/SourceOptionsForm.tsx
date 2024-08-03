@@ -1,12 +1,11 @@
 'use client';
+import { getDefaultUnmappedTransformConfig } from '@/app/(mgmt)/[account]/jobs/util';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { SourceOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import DynamoDBSourceOptionsForm, {
-  getDefaultUnmappedTransformConfig,
-} from './DynamoDBSourceOptionsForm';
+import DynamoDBSourceOptionsForm from './DynamoDBSourceOptionsForm';
 
 interface SourceOptionsProps {
   connection?: Connection;

@@ -38,7 +38,10 @@ import {
   getAllowedSyncSourceTypes,
   getConnectionType,
 } from '../../../connections/util';
-import { getNewJobSessionKeys } from '../../../jobs/util';
+import {
+  getDefaultUnmappedTransformConfig,
+  getNewJobSessionKeys,
+} from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
@@ -211,7 +214,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               });
                             } else if (connectionType === 'dynamodbConfig') {
                               form.setValue('sourceOptions', {
-                                dynamodb: {},
+                                dynamodb: {
+                                  unmappedTransformConfig:
+                                    getDefaultUnmappedTransformConfig(),
+                                },
                               });
                             } else {
                               form.setValue('sourceOptions', {});
