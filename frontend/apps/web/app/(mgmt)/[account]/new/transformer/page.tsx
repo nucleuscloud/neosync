@@ -42,6 +42,7 @@ import {
   createUserDefinedTransformer,
   getSystemTransformers,
   isTransformerNameAvailable,
+  validateUserJavascriptCode,
 } from '@neosync/sdk/connectquery';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -75,6 +76,9 @@ export default function NewTransformer(): ReactElement {
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
     isTransformerNameAvailable
   );
+  const { mutateAsync: isJavascriptCodeValid } = useMutation(
+    validateUserJavascriptCode
+  );
 
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
   const posthog = usePostHog();
@@ -94,6 +98,7 @@ export default function NewTransformer(): ReactElement {
     context: {
       accountId: account?.id ?? '',
       isTransformerNameAvailable: isTransformerNameAvailableAsync,
+      isJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
 
