@@ -243,7 +243,6 @@ function getTransformerFromField(
       new SystemTransformer()
     );
   }
-  console.log(value.source, handler.getSystemTransformerBySource(value.source));
   return (
     handler.getSystemTransformerBySource(value.source) ??
     new SystemTransformer()
