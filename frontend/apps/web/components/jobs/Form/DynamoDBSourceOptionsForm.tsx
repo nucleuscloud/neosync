@@ -40,9 +40,7 @@ export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
           </p>
         </div>
         <UnmappedTransformConfigForm
-          value={
-            value.unmappedTransformConfig ?? getDefaultUnmappedTransformConfig()
-          }
+          value={value.unmappedTransformConfig}
           setValue={(newVal) =>
             setValue({ ...value, unmappedTransformConfig: newVal })
           }
@@ -53,7 +51,7 @@ export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
   );
 }
 
-function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformConfigFormValues {
+export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformConfigFormValues {
   return {
     boolean: convertJobMappingTransformerToForm(
       new JobMappingTransformer({
@@ -94,7 +92,7 @@ function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformCon
         config: new TransformerConfig({
           config: {
             case: 'generateStringConfig',
-            value: new GenerateString(),
+            value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
           },
         }),
       })

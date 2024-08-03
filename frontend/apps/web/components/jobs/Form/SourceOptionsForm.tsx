@@ -4,7 +4,9 @@ import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandle
 import { SourceOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import DynamoDBSourceOptionsForm from './DynamoDBSourceOptionsForm';
+import DynamoDBSourceOptionsForm, {
+  getDefaultUnmappedTransformConfig,
+} from './DynamoDBSourceOptionsForm';
 
 interface SourceOptionsProps {
   connection?: Connection;
@@ -79,7 +81,11 @@ export default function SourceOptionsForm(
     case 'dynamodbConfig':
       return (
         <DynamoDBSourceOptionsForm
-          value={value.dynamodb ?? {}}
+          value={
+            value.dynamodb ?? {
+              unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+            }
+          }
           setValue={(newVal) => {
             setValue({
               ...value,

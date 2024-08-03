@@ -1,4 +1,5 @@
 'use client';
+import { getDefaultUnmappedTransformConfig } from '@/components/jobs/Form/DynamoDBSourceOptionsForm';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
@@ -44,6 +45,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
   DynamoDBSourceConnectionOptions,
+  DynamoDBSourceUnmappedTransformConfig,
   GetConnectionResponse,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapResponse,
@@ -817,6 +819,31 @@ function toJobSourceOptions(
           value: new DynamoDBSourceConnectionOptions({
             ...getExistingDynamoDBSourceConnectionOptions(job),
             connectionId: newSourceId,
+            unmappedTransforms: new DynamoDBSourceUnmappedTransformConfig({
+              b: values.sourceOptions.dynamodb?.unmappedTransformConfig?.byte
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.byte
+                  )
+                : undefined,
+              boolean: values.sourceOptions.dynamodb?.unmappedTransformConfig
+                ?.boolean
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig
+                      .boolean
+                  )
+                : undefined,
+              n: values.sourceOptions.dynamodb?.unmappedTransformConfig?.n
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.n
+                  )
+                : undefined,
+              s: values.sourceOptions.dynamodb?.unmappedTransformConfig?.s
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.s
+                  )
+                : undefined,
+            }),
+            //   // tables: [] // todo: fix this
           }),
         },
       });
@@ -986,7 +1013,9 @@ function getJobSource(
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
-          dynamodb: {}, // todo
+          dynamodb: {
+            unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+          },
         },
         destinationOptions: destOpts,
       };
@@ -1057,7 +1086,9 @@ async function getUpdatedValues(
       return {
         ...values,
         sourceOptions: {
-          dynamodb: {},
+          dynamodb: {
+            unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+          },
         },
       };
     }

@@ -304,12 +304,6 @@ export const SingleTableAiSchemaFormValues = Yup.object({
       'batch-size-num-rows',
       'batch size must always be smaller than the number of rows',
       function (value, context) {
-        console.log('batch size', value, typeof value);
-        console.log(
-          'numRows',
-          context.parent.numRows,
-          typeof context.parent.numRows
-        );
         return value <= context.parent.numRows;
       }
     ),
