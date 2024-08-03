@@ -635,6 +635,12 @@ export interface CreateUserDefinedTransformerFormContext {
     PartialMessage<IsTransformerNameAvailableRequest>,
     unknown
   >;
+  isJavascriptCodeValid: UseMutateAsyncFunction<
+    ValidateUserJavascriptCodeResponse,
+    ConnectError,
+    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    unknown
+  >;
 }
 
 export const UpdateUserDefinedTransformerFormValues = Yup.object({
