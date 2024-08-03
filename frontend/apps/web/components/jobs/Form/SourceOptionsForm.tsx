@@ -1,12 +1,13 @@
 'use client';
 import SwitchCard from '@/components/switches/SwitchCard';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { SourceOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import DynamoDBSourceOptionsForm from './DynamoDBSourceOptionsForm';
 
 interface SourceOptionsProps {
   connection?: Connection;
-
   value: SourceOptionsFormValues;
   setValue(newVal: SourceOptionsFormValues): void;
 }
@@ -15,9 +16,15 @@ export default function SourceOptionsForm(
 ): ReactElement {
   const { connection, value, setValue } = props;
 
-  if (!connection) {
+  const {
+    handler: transformersHandler,
+    isLoading: isTransformersHandlerLoading,
+  } = useGetTransformersHandler(connection?.accountId ?? '');
+
+  if (!connection || isTransformersHandlerLoading) {
     return <></>;
   }
+
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       return (
@@ -70,7 +77,21 @@ export default function SourceOptionsForm(
     case 'gcpCloudstorageConfig':
       return <></>;
     case 'dynamodbConfig':
-      return <></>;
+      return (
+        <DynamoDBSourceOptionsForm
+          value={value.dynamodb ?? {}}
+          setValue={(newVal) => {
+            setValue({
+              ...value,
+              dynamodb: {
+                ...(value.dynamodb ?? {}),
+                ...newVal,
+              },
+            });
+          }}
+          transformerHandler={transformersHandler}
+        />
+      );
     default:
       return (
         <div>

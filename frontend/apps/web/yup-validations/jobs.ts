@@ -91,7 +91,24 @@ const PostgresSourceOptionsFormValues = Yup.object({
 const MysqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
 });
-const DynamoDBSourceOptionsFormValues = Yup.object({});
+
+const DynamoDBSourceUnmappedTransformConfigFormValues = Yup.object({
+  byte: JobMappingTransformerForm.required(),
+  boolean: JobMappingTransformerForm.required(),
+  n: JobMappingTransformerForm.required(),
+  s: JobMappingTransformerForm.required(),
+});
+export type DynamoDBSourceUnmappedTransformConfigFormValues = Yup.InferType<
+  typeof DynamoDBSourceUnmappedTransformConfigFormValues
+>;
+
+const DynamoDBSourceOptionsFormValues = Yup.object({
+  unmappedTransformConfig:
+    DynamoDBSourceUnmappedTransformConfigFormValues.optional(),
+});
+export type DynamoDBSourceOptionsFormValues = Yup.InferType<
+  typeof DynamoDBSourceOptionsFormValues
+>;
 
 export const SourceOptionsFormValues = Yup.object({
   postgres: PostgresSourceOptionsFormValues.optional(),

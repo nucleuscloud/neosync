@@ -1057,9 +1057,7 @@ async function getUpdatedValues(
       return {
         ...values,
         sourceOptions: {
-          dynamodb: {
-            haltOnNewColumnAddition: false,
-          },
+          dynamodb: {},
         },
       };
     }
