@@ -453,7 +453,7 @@ const JavascriptConfig = Yup.object().shape({
           return true;
         } catch (error) {
           return context.createError({
-            message: 'Unable to verify Javascript code.',
+            message: `Unable to verify Javascript code: ${error}`,
           });
         }
       }

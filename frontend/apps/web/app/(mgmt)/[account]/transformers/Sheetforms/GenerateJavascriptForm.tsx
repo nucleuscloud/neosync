@@ -11,6 +11,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -34,13 +35,13 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
   );
   const form = useForm({
     mode: 'onChange',
-    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformJavascriptConfig),
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateJavascriptConfig),
     defaultValues: {
       code: existingConfig?.code ?? '',
     },
     context: {
       accountId: account?.id,
-      isUserJavascriptCodeValid: validateUserJavascriptCode,
+      isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
 
@@ -126,6 +127,7 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
                   />
                 </div>
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

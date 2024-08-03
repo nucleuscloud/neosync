@@ -4,6 +4,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 
 import ButtonText from '@/components/ButtonText';
@@ -142,6 +143,7 @@ export default function UserDefinedGenerateJavascriptForm(
                 />
               </div>
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
