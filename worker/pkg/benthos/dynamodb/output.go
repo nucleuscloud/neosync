@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -47,31 +48,32 @@ type ddboConfig struct {
 	awsConfig   aws.Config
 }
 
-func ddboConfigFromParsed(pConf *service.ParsedConfig) (conf ddboConfig, err error) {
-	if conf.Table, err = pConf.FieldString(ddboFieldTable); err != nil {
+func ddboConfigFromParsed(pConf *service.ParsedConfig) (conf *ddboConfig, err error) {
+	c := &ddboConfig{}
+	if c.Table, err = pConf.FieldString(ddboFieldTable); err != nil {
 		return
 	}
-	if conf.StringColumns, err = pConf.FieldInterpolatedStringMap(ddboFieldStringColumns); err != nil {
+	if c.StringColumns, err = pConf.FieldInterpolatedStringMap(ddboFieldStringColumns); err != nil {
 		return
 	}
-	if conf.JSONMapColumns, err = pConf.FieldStringMap(ddboFieldJSONMapColumns); err != nil {
+	if c.JSONMapColumns, err = pConf.FieldStringMap(ddboFieldJSONMapColumns); err != nil {
 		return
 	}
-	if conf.TTL, err = pConf.FieldString(ddboFieldTTL); err != nil {
+	if c.TTL, err = pConf.FieldString(ddboFieldTTL); err != nil {
 		return
 	}
-	if conf.TTLKey, err = pConf.FieldString(ddboFieldTTLKey); err != nil {
+	if c.TTLKey, err = pConf.FieldString(ddboFieldTTLKey); err != nil {
 		return
 	}
-	if conf.backoffCtor, err = commonRetryBackOffCtorFromParsed(pConf); err != nil {
+	if c.backoffCtor, err = commonRetryBackOffCtorFromParsed(pConf); err != nil {
 		return
 	}
 	sess, err := getAwsSession(context.Background(), pConf)
 	if err != nil {
 		return
 	}
-	conf.awsConfig = *sess
-	return
+	c.awsConfig = *sess
+	return c, nil
 }
 
 func dynamoOutputConfigSpec() *service.ConfigSpec {
@@ -129,7 +131,7 @@ func RegisterDynamoDbOutput(env *service.Environment) error {
 			if batchPolicy, err = conf.FieldBatchPolicy(ddboFieldBatching); err != nil {
 				return
 			}
-			var wConf ddboConfig
+			var wConf *ddboConfig
 			if wConf, err = ddboConfigFromParsed(conf); err != nil {
 				return
 			}
@@ -159,9 +161,9 @@ type dynamoDBWriter struct {
 	ttl   time.Duration
 }
 
-func newDynamoDBWriter(conf ddboConfig, mgr *service.Resources) (*dynamoDBWriter, error) {
+func newDynamoDBWriter(conf *ddboConfig, mgr *service.Resources) (*dynamoDBWriter, error) {
 	db := &dynamoDBWriter{
-		conf:  conf,
+		conf:  *conf,
 		log:   mgr.Logger(),
 		table: aws.String(conf.Table),
 	}
@@ -207,20 +209,46 @@ func (d *dynamoDBWriter) Connect(ctx context.Context) error {
 	return nil
 }
 
-func anyToAttributeValue(root any) types.AttributeValue {
+func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
+	if typeStr, ok := keyTypeMap[key]; ok {
+		switch typeStr {
+		case StringSet:
+			s, ok := getGenericSlice[string](root)
+			if ok {
+				return &types.AttributeValueMemberSS{
+					Value: s,
+				}
+			}
+		case NumberSet:
+			s, ok := getGenericSlice[string](root)
+			if ok {
+				return &types.AttributeValueMemberNS{
+					Value: s,
+				}
+			}
+		}
+	}
 	switch v := root.(type) {
 	case map[string]any:
 		m := make(map[string]types.AttributeValue, len(v))
 		for k, v2 := range v {
-			m[k] = anyToAttributeValue(v2)
+			m[k] = anyToAttributeValue(k, v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberM{
 			Value: m,
 		}
+	case []byte:
+		return &types.AttributeValueMemberB{
+			Value: v,
+		}
+	case [][]byte:
+		return &types.AttributeValueMemberBS{
+			Value: v,
+		}
 	case []any:
 		l := make([]types.AttributeValue, len(v))
 		for i, v2 := range v {
-			l[i] = anyToAttributeValue(v2)
+			l[i] = anyToAttributeValue("", v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberL{
 			Value: l,
@@ -259,12 +287,31 @@ func anyToAttributeValue(root any) types.AttributeValue {
 	}
 }
 
-func jsonToMap(path string, root any) (types.AttributeValue, error) {
+func getGenericSlice[T any](v any) ([]T, bool) {
+	val := reflect.ValueOf(v)
+	if val.Kind() != reflect.Slice {
+		return nil, false
+	}
+
+	genericSlice := make([]T, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		elem := val.Index(i).Interface()
+		if tElem, ok := elem.(T); ok {
+			genericSlice[i] = tElem
+		} else {
+			return nil, false
+		}
+	}
+
+	return genericSlice, true
+}
+
+func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
 	gObj := gabs.Wrap(root)
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
-	return anyToAttributeValue(gObj.Data()), nil
+	return anyToAttributeValue(key, gObj.Data(), keyTypeMap)
 }
 
 func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch) error {
@@ -280,11 +327,9 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 
 	writeReqs := []types.WriteRequest{}
 	if err := b.WalkWithBatchedErrors(func(i int, p *service.Message) error {
-		meta, ok := p.MetaGetMut("neosync")
-		if ok {
-			fmt.Println()
-			fmt.Println(meta)
-			fmt.Println()
+		keyTypeMap, err := getKeyTypMap(p)
+		if err != nil {
+			return err
 		}
 		items := map[string]types.AttributeValue{}
 		if d.ttl != 0 && d.conf.TTLKey != "" {
@@ -308,21 +353,17 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				return err
 			}
 			for k, v := range d.conf.JSONMapColumns {
-				if attr, err := jsonToMap(v, jRoot); err == nil {
-					if k == "" {
-						if mv, ok := attr.(*types.AttributeValueMemberM); ok {
-							for ak, av := range mv.Value {
-								items[ak] = av
-							}
-						} else {
-							items[k] = attr
+				attr := jsonToMap(k, v, jRoot, keyTypeMap)
+				if k == "" {
+					if mv, ok := attr.(*types.AttributeValueMemberM); ok {
+						for ak, av := range mv.Value {
+							items[ak] = av
 						}
 					} else {
 						items[k] = attr
 					}
 				} else {
-					d.log.Warnf("Unable to extract JSON map path '%v' from document: %v", v, err)
-					return err
+					items[k] = attr
 				}
 			}
 		}
@@ -366,7 +407,7 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 					case <-ctx.Done():
 						break individualRequestsLoop
 					}
-					batchErr.Failed(i, iErr)
+					err = batchErr.Failed(i, iErr)
 				} else {
 					writeReqs[i].PutRequest = nil
 				}
@@ -418,6 +459,27 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 	return nil
 }
 
+func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
+	keyTypeMap := map[string]KeyType{}
+	meta, ok := p.MetaGetMut(metaTypeMapStr)
+	if ok {
+		kt, err := convertToMapStringKeyType(meta)
+		if err != nil {
+			return nil, err
+		}
+		keyTypeMap = kt
+	}
+	return keyTypeMap, nil
+}
+
+func convertToMapStringKeyType(i any) (map[string]KeyType, error) {
+	if m, ok := i.(map[string]KeyType); ok {
+		return m, nil
+	}
+
+	return nil, errors.New("input is not of type map[string]KeyType")
+}
+
 func commonRetryBackOffFields(
 	defaultMaxRetries int,
 	defaultInitInterval string,
@@ -448,20 +510,20 @@ func commonRetryBackOffFields(
 func commonRetryBackOffCtorFromParsed(pConf *service.ParsedConfig) (ctor func() backoff.BackOff, err error) {
 	var maxRetries int
 	if maxRetries, err = pConf.FieldInt(crboFieldMaxRetries); err != nil {
-		return
+		return nil, err
 	}
 
 	var initInterval, maxInterval, maxElapsed time.Duration
 	if pConf.Contains(crboFieldBackOff) {
 		bConf := pConf.Namespace(crboFieldBackOff)
 		if initInterval, err = fieldDurationOrEmptyStr(bConf, crboFieldInitInterval); err != nil {
-			return
+			return nil, err
 		}
 		if maxInterval, err = fieldDurationOrEmptyStr(bConf, crboFieldMaxInterval); err != nil {
-			return
+			return nil, err
 		}
 		if maxElapsed, err = fieldDurationOrEmptyStr(bConf, crboFieldMaxElapsedTime); err != nil {
-			return
+			return nil, err
 		}
 	}
 

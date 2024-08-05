@@ -126,7 +126,7 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 		{
 			name:     "Binary Set",
 			input:    &types.AttributeValueMemberBS{Value: [][]byte{{1, 2, 3}, {4, 5, 6}}},
-			expected: []any{[]byte{1, 2, 3}, []byte{4, 5, 6}},
+			expected: [][]byte{{1, 2, 3}, {4, 5, 6}},
 		},
 		{
 			name: "List",
@@ -134,7 +134,7 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 				&types.AttributeValueMemberS{Value: "test"},
 				&types.AttributeValueMemberN{Value: "123"},
 			}},
-			expected: []any{"test", "123"},
+			expected: []any{"test", 123},
 		},
 		{
 			name: "Map",
@@ -142,12 +142,12 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 				"key1": &types.AttributeValueMemberS{Value: "value1"},
 				"key2": &types.AttributeValueMemberN{Value: "456"},
 			}},
-			expected: map[string]any{"key1": "value1", "key2": "456"},
+			expected: map[string]any{"key1": "value1", "key2": 456},
 		},
 		{
 			name:     "Number",
 			input:    &types.AttributeValueMemberN{Value: "789"},
-			expected: "789",
+			expected: 789,
 		},
 		{
 			name:     "Number Set",
@@ -173,7 +173,8 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := attributeValueToStandardValue(tt.input)
+			ktm := map[string]KeyType{}
+			actual := attributeValueToStandardValue(tt.name, tt.input, ktm)
 			require.True(t, reflect.DeepEqual(actual, tt.expected), fmt.Sprintf("expected %v, got %v", tt.expected, actual))
 		})
 	}
@@ -205,22 +206,24 @@ func TestAttributeValueMapToStandardJSON(t *testing.T) {
 		"PK":     "PrimaryKey",
 		"SK":     "SortKey",
 		"Str":    "StringValue",
-		"Num":    "123.45",
+		"Num":    123.45,
 		"Bool":   true,
 		"Bin":    []byte("BinaryValue"),
 		"StrSet": []any{"Str1", "Str2"},
 		"NumSet": []any{"1", "2", "3"},
-		"BinSet": []any{[]byte("Bin1"), []byte("Bin2")},
+		"BinSet": [][]byte{[]byte("Bin1"), []byte("Bin2")},
 		"Map": map[string]any{
 			"NestedStr": "NestedStringValue",
-			"NestedNum": "456.78",
+			"NestedNum": 456.78,
 		},
-		"List": []any{"ListStr", "789.01"},
+		"List": []any{"ListStr", 789.01},
 		"Null": nil,
 	}
 
-	actual := attributeValueMapToStandardJSON(input)
+	actual, keyTypeMap := attributeValueMapToStandardJSON(input)
 	require.True(t, reflect.DeepEqual(actual, expected), fmt.Sprintf("expected %v, got %v", expected, actual))
+	require.Equal(t, keyTypeMap["StrSet"], StringSet)
+	require.Equal(t, keyTypeMap["NumSet"], NumberSet)
 }
 
 func Test_buildExecStatement(t *testing.T) {
