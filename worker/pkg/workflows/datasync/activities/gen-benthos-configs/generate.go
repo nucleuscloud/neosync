@@ -58,7 +58,7 @@ func buildBenthosGenerateSourceConfigResponses(
 			return nil, err
 		}
 
-		mutations, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo)
+		mutations, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo, false)
 		if err != nil {
 			return nil, err
 		}

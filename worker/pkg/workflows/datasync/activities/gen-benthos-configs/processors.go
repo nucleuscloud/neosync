@@ -90,7 +90,7 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo)
+	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo, runconfig.SplitColumnPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +172,7 @@ func buildMutationConfigs(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*sqlmanager_shared.ColumnInfo,
+	splitColumnPaths bool,
 ) (string, error) {
 	mutations := []string{}
 
@@ -191,12 +192,29 @@ func buildMutationConfigs(
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}
-				mutations = append(mutations, fmt.Sprintf("root.%q = %s", col.Column, mutation))
+				mutations = append(mutations, fmt.Sprintf("root.%s = %s", getBenthosColumnKey(col.Column, splitColumnPaths), mutation))
 			}
 		}
 	}
-
 	return strings.Join(mutations, "\n"), nil
+}
+
+const pathSeparator = "."
+
+func getBenthosColumnKey(column string, shouldSplitPath bool) string {
+	if shouldSplitPath {
+		segments := strings.Split(column, pathSeparator)
+		quotedSegments := make([]string, 0, len(segments))
+		for _, segment := range segments {
+			quotedSegments = append(quotedSegments, fmt.Sprintf("%q", segment))
+		}
+		return strings.Join(quotedSegments, pathSeparator)
+	}
+	return fmt.Sprintf("%q", column)
+}
+
+func getSplitColPaths(column string, separator string) []string {
+	return strings.Split(column, separator)
 }
 
 func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {
