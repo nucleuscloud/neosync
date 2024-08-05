@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	// _ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/gcp"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
