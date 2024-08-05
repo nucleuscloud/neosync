@@ -15,6 +15,12 @@ fullnameOverride:
 # -- Define a list of image pull secrets that will be used by the deployment
 imagePullSecrets: []
 
+# -- Provide a map of deployment annotations that will be attached to the deployment's annotations
+deploymentAnnotations: {}
+
+# -- Provide a map of pod annotations that will be attached to the deployment's pod template annotations
+podAnnotations: {}
+
 # Specify service account options for the deployment
 serviceAccount:
   # -- Specifies whether a service account should be created

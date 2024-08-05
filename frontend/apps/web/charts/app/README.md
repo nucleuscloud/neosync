@@ -24,6 +24,7 @@ A Helm chart for the Neosync App
 | auth.trustHost | bool | `true` | Whether or not to trust the external host (most likely want this to be true if running behind a load balancer) |
 | containerPort | int | `3000` | The container port |
 | datadog.enabled | bool | `false` | Whether or not to apply the default Datadog annotations/labels to the deployment |
+| deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
 | disableGcpCloudStorageConnections | bool | `false` | Feature flag that will disable GCP Cloud Storage Connections from being visible. Note: This only disables the new connections form and is a temporary flag until authentication in the multi-tenant environment is better understood. |
 | enableRunLogs | bool | `false` | Feature flag that enables the frontend to show the run logs on the Run [id] page. only enable this if the backend has been configured to surface run logs |
 | extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
@@ -46,6 +47,7 @@ A Helm chart for the Neosync App
 | nucleusEnv | string | `nil` | Mostly used by NeosyncCloud. Adds a special tag to the logging to determine what environment is running |
 | otel.enabled | bool | `false` | whether or not to enable open telemetry settings |
 | otel.otlpPort | int | `4317` | Specifies the port that otel is listening on that the service will export metrics and traces to |
+| podAnnotations | object | `{}` | Provide a map of pod annotations that will be attached to the deployment's pod template annotations |
 | posthog.key | string | `"phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip"` | Posthog Key |
 | protometrics.enabled | bool | `false` |  |
 | resources.limits.cpu | string | `"500m"` | Sets the max CPU amount |

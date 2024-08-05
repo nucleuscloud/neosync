@@ -29,6 +29,7 @@ import { UserDefinedTransformer } from '@neosync/sdk';
 import {
   isTransformerNameAvailable,
   updateUserDefinedTransformer,
+  validateUserJavascriptCode,
 } from '@neosync/sdk/connectquery';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -47,6 +48,9 @@ export default function UpdateUserDefinedTransformerForm(
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
     isTransformerNameAvailable
   );
+  const { mutateAsync: isJavascriptCodeValid } = useMutation(
+    validateUserJavascriptCode
+  );
 
   const form = useForm<
     UpdateUserDefinedTransformerFormValues,
@@ -64,6 +68,7 @@ export default function UpdateUserDefinedTransformerForm(
       name: currentTransformer?.name,
       accountId: account?.id ?? '',
       isTransformerNameAvailable: isTransformerNameAvailableAsync,
+      isJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
   const { mutateAsync } = useMutation(updateUserDefinedTransformer);

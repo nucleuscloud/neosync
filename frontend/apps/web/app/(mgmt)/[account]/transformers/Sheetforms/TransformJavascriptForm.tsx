@@ -42,7 +42,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     },
     context: {
       accountId: account?.id,
-      isUserJavascriptCodeValid: validateUserJavascriptCode,
+      isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
 

@@ -1,0 +1,21 @@
+---
+title: 8/01 - DynamoDB
+hide_table_of_contents: false
+slug: /dynamodb
+authors:
+  - name: Evis Drenova
+    title: Co-Founder/CEO, Neosync
+    url: https://twitter.com/evisdrenova
+    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+---
+
+1. First class support for integrating with DynamoDB
+2. Fixed a bug that was causing some Redis values to not get cleaned up
+3. Update generate_state transformer to return full state names as an option
+4. Add role permissions to MYSQL connection
+5. Improve mysql init schema options to resolve circular dependencies
+6. Add auto-complete to custom javascript transformers
+7. Update Connect page to ensure that users only select valid destinations based on the source connection
+8. Support subsetting within DynamoDB
+9. Update integration tests to parallelize
+10. Fix a rare data race issue that occurs in Benthos
