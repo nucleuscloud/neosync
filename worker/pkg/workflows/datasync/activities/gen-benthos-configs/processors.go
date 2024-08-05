@@ -213,10 +213,6 @@ func getBenthosColumnKey(column string, shouldSplitPath bool) string {
 	return fmt.Sprintf("%q", column)
 }
 
-func getSplitColPaths(column string, separator string) []string {
-	return strings.Split(column, separator)
-}
-
 func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {
 	mappings := []string{}
 	for _, col := range cols {
