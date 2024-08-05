@@ -101,5 +101,10 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*serv
 		return nil, fmt.Errorf("unable to register dynamodb input to benthos instance: %w", err)
 	}
 
+	err = neosync_benthos_dynamodb.RegisterDynamoDbOutput(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register dynamodb output to benthos instance: %w", err)
+	}
+
 	return env, nil
 }
