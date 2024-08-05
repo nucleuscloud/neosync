@@ -3813,7 +3813,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 			},
-		}, &sqlmanager_shared.ColumnInfo{})
+		}, &sqlmanager_shared.ColumnInfo{}, false)
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -4203,7 +4203,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						Source: transformer.Source,
 						Config: transformer.Config,
 					},
-				}, emailColInfo)
+				}, emailColInfo, false)
 			require.NoError(t, err)
 			ex, err := bloblang.Parse(val)
 			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
@@ -4284,7 +4284,7 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(t.Name(), func(t *testing.T) {
-			out, err := computeMutationFunction(tc.jm, tc.ci)
+			out, err := computeMutationFunction(tc.jm, tc.ci, false)
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")
