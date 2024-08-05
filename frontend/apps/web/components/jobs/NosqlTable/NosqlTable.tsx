@@ -34,6 +34,7 @@ import {
   JobMappingFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
+import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetConnectionSchemaResponse,
@@ -43,6 +44,7 @@ import {
   TransformerConfig,
   TransformerSource,
 } from '@neosync/sdk';
+import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { TableIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useMemo, useRef } from 'react';
@@ -185,6 +187,11 @@ type AddNewNosqlRecordFormValues = Yup.InferType<
 function AddNewRecord(props: AddNewRecordProps): ReactElement {
   const { collections, onSubmit, transformerHandler } = props;
 
+  const { account } = useAccount();
+  const { mutateAsync: validateUserJsCodeAsync } = useMutation(
+    validateUserJavascriptCode
+  );
+
   const form = useForm<AddNewNosqlRecordFormValues>({
     resolver: yupResolver(AddNewNosqlRecordFormValues),
     defaultValues: {
@@ -201,6 +208,10 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
           }),
         })
       ),
+    },
+    context: {
+      accountId: account?.id,
+      isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
   return (
