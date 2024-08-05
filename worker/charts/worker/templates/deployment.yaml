@@ -14,6 +14,12 @@ metadata:
     tags.neosync.dev/env: {{ .Values.nucleusEnv }}
     tags.neosync.dev/service: {{ template "neosync-worker.fullname" . }}
     tags.neosync.dev/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   selector:
     matchLabels:
@@ -22,6 +28,11 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if .Values.podAnnotations }}
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
         {{- if eq .Values.datadog.enabled true }}
         ad.datadoghq.com/nucleus-api.logs: '[{"source":"nucleus-neosync-worker","service":"{{ template "neosync-worker.fullname" . }}"}]'
         {{- end }}
