@@ -2,7 +2,9 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,6 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/warpstreamlabs/bento/public/service"
+)
+
+const (
+	metaTypeMapStr = "neosync_key_type_map"
+)
+
+type KeyType int
+
+const (
+	StringSet KeyType = iota
+	NumberSet
 )
 
 func dynamoInputConfigSpec() *service.ConfigSpec {
@@ -141,8 +154,9 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 			continue
 		}
 
-		resMap := attributeValueMapToStandardJSON(item)
+		resMap, keyTypeMap := attributeValueMapToStandardJSON(item)
 		msg := service.NewMessage(nil)
+		msg.MetaSetMut(metaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
@@ -258,42 +272,47 @@ func awsSessionFields() []*service.ConfigField {
 	}
 }
 
-func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) map[string]any {
+func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
 	standardJSON := make(map[string]any)
+	ktm := make(map[string]KeyType)
 	for k, v := range item {
-		standardJSON[k] = attributeValueToStandardValue(v)
+		val := attributeValueToStandardValue(k, v, ktm)
+		standardJSON[k] = val
 	}
-	return standardJSON
+	return standardJSON, ktm
 }
 
 // attributeValueToStandardValue converts a DynamoDB AttributeValue to a standard value
-func attributeValueToStandardValue(v types.AttributeValue) any {
+func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMap map[string]KeyType) any {
 	switch t := v.(type) {
 	case *types.AttributeValueMemberB:
 		return t.Value
 	case *types.AttributeValueMemberBOOL:
 		return t.Value
 	case *types.AttributeValueMemberBS:
-		lAny := make([]any, len(t.Value))
-		for i, v := range t.Value {
-			lAny[i] = v
-		}
-		return lAny
+		return t.Value
 	case *types.AttributeValueMemberL:
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			lAny[i] = attributeValueToStandardValue(v)
+			val := attributeValueToStandardValue("", v, keyTypeMap)
+			lAny[i] = val
 		}
 		return lAny
 	case *types.AttributeValueMemberM:
 		mAny := make(map[string]any, len(t.Value))
 		for k, v := range t.Value {
-			mAny[k] = attributeValueToStandardValue(v)
+			val := attributeValueToStandardValue(k, v, keyTypeMap)
+			mAny[k] = val
 		}
 		return mAny
 	case *types.AttributeValueMemberN:
-		return t.Value
+		n, err := convertStringToNumber(t.Value)
+		if err != nil {
+			return t.Value
+		}
+		return n
 	case *types.AttributeValueMemberNS:
+		keyTypeMap[key] = NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			lAny[i] = v
@@ -304,6 +323,7 @@ func attributeValueToStandardValue(v types.AttributeValue) any {
 	case *types.AttributeValueMemberS:
 		return t.Value
 	case *types.AttributeValueMemberSS:
+		keyTypeMap[key] = StringSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			lAny[i] = v
@@ -311,4 +331,16 @@ func attributeValueToStandardValue(v types.AttributeValue) any {
 		return lAny
 	}
 	return nil
+}
+
+func convertStringToNumber(s string) (any, error) {
+	if i, err := strconv.Atoi(s); err == nil {
+		return i, nil
+	}
+
+	if f, err := strconv.ParseFloat(s, 64); err == nil {
+		return f, nil
+	}
+
+	return nil, errors.New("input string is neither a valid int nor a float")
 }
