@@ -193,15 +193,6 @@ func getAwsCredentialsConfigFromParsedConf(parsedConf *service.ParsedConfig) *aw
 	endpoint, _ := parsedConf.FieldString("endpoint")
 	output.Endpoint = endpoint
 
-	useEc2, _ := parsedConf.FieldBool("from_ec2_role")
-	output.UseEc2 = useEc2
-
-	role, _ := parsedConf.FieldString("role")
-	output.Role = role
-
-	roleExternalId, _ := parsedConf.FieldString("role_external_id")
-	output.RoleExternalId = roleExternalId
-
 	credsConf := parsedConf.Namespace("credentials")
 	profile, _ := credsConf.FieldString("profile")
 	output.Profile = profile
@@ -214,6 +205,15 @@ func getAwsCredentialsConfigFromParsedConf(parsedConf *service.ParsedConfig) *aw
 
 	token, _ := credsConf.FieldString("token")
 	output.Token = token
+
+	useEc2, _ := credsConf.FieldBool("from_ec2_role")
+	output.UseEc2 = useEc2
+
+	role, _ := credsConf.FieldString("role")
+	output.Role = role
+
+	roleExternalId, _ := credsConf.FieldString("role_external_id")
+	output.RoleExternalId = roleExternalId
 
 	return output
 }
