@@ -20,6 +20,16 @@ func NewTransformInt64() *TransformInt64 {
 	return &TransformInt64{}
 }
 
+func NewTransformInt64Opts(
+	randomizationRangeMin int64,
+	randomizationRangeMax int64,
+) (*TransformInt64Opts, error) {
+	return &TransformInt64Opts{
+		randomizationRangeMin: randomizationRangeMin,
+		randomizationRangeMax: randomizationRangeMax,	
+	}, nil
+}
+
 func (t *TransformInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64",

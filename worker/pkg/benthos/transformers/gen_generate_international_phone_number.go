@@ -20,6 +20,16 @@ func NewGenerateInternationalPhoneNumber() *GenerateInternationalPhoneNumber {
 	return &GenerateInternationalPhoneNumber{}
 }
 
+func NewGenerateInternationalPhoneNumberOpts(
+	min int64,
+	max int64,
+) (*GenerateInternationalPhoneNumberOpts, error) {
+	return &GenerateInternationalPhoneNumberOpts{
+		min: min,
+		max: max,	
+	}, nil
+}
+
 func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInternationalPhoneNumber",

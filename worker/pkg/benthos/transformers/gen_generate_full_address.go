@@ -19,6 +19,14 @@ func NewGenerateFullAddress() *GenerateFullAddress {
 	return &GenerateFullAddress{}
 }
 
+func NewGenerateFullAddressOpts(
+	maxLength int64,
+) (*GenerateFullAddressOpts, error) {
+	return &GenerateFullAddressOpts{
+		maxLength: maxLength,	
+	}, nil
+}
+
 func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullAddress",

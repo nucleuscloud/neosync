@@ -21,6 +21,23 @@ func NewGenerateInt64() *GenerateInt64 {
 	return &GenerateInt64{}
 }
 
+func NewGenerateInt64Opts(
+	randomizeSignArg *bool,
+	min int64,
+	max int64,
+) (*GenerateInt64Opts, error) {
+	randomizeSign := bool(false) 
+	if randomizeSignArg != nil {
+		randomizeSign = *randomizeSignArg
+	}
+	
+	return &GenerateInt64Opts{
+		randomizeSign: randomizeSign,
+		min: min,
+		max: max,	
+	}, nil
+}
+
 func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64",

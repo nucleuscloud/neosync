@@ -25,6 +25,34 @@ func NewTransformFirstName() *TransformFirstName {
 	return &TransformFirstName{}
 }
 
+func NewTransformFirstNameOpts(
+	maxLengthArg *int64,
+	preserveLengthArg *bool,
+  seedArg *int64,
+	
+) (*TransformFirstNameOpts, error) {
+	maxLength := int64(10000) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &TransformFirstNameOpts{
+		maxLength: maxLength,
+		preserveLength: preserveLength,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *TransformFirstName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFirstName",
@@ -48,16 +76,10 @@ func (t *TransformFirstName) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.preserveLength = preserveLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

@@ -17,6 +17,19 @@ func NewGenerateState() *GenerateState {
 	return &GenerateState{}
 }
 
+func NewGenerateStateOpts(
+	generateFullNameArg *bool,
+) (*GenerateStateOpts, error) {
+	generateFullName := bool(false) 
+	if generateFullNameArg != nil {
+		generateFullName = *generateFullNameArg
+	}
+	
+	return &GenerateStateOpts{
+		generateFullName: generateFullName,	
+	}, nil
+}
+
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",

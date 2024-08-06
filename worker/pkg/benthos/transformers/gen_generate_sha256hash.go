@@ -16,6 +16,12 @@ func NewGenerateSHA256Hash() *GenerateSHA256Hash {
 	return &GenerateSHA256Hash{}
 }
 
+func NewGenerateSHA256HashOpts(
+) (*GenerateSHA256HashOpts, error) {
+	return &GenerateSHA256HashOpts{	
+	}, nil
+}
+
 func (t *GenerateSHA256Hash) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSHA256Hash",

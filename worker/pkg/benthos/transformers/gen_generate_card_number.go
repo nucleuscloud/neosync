@@ -19,6 +19,14 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 	return &GenerateCardNumber{}
 }
 
+func NewGenerateCardNumberOpts(
+	validLuhn bool,
+) (*GenerateCardNumberOpts, error) {
+	return &GenerateCardNumberOpts{
+		validLuhn: validLuhn,	
+	}, nil
+}
+
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",

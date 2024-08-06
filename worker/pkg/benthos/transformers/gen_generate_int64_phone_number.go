@@ -16,6 +16,12 @@ func NewGenerateInt64PhoneNumber() *GenerateInt64PhoneNumber {
 	return &GenerateInt64PhoneNumber{}
 }
 
+func NewGenerateInt64PhoneNumberOpts(
+) (*GenerateInt64PhoneNumberOpts, error) {
+	return &GenerateInt64PhoneNumberOpts{	
+	}, nil
+}
+
 func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64PhoneNumber",

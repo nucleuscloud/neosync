@@ -20,6 +20,16 @@ func NewGenerateStringPhoneNumber() *GenerateStringPhoneNumber {
 	return &GenerateStringPhoneNumber{}
 }
 
+func NewGenerateStringPhoneNumberOpts(
+	min int64,
+	max int64,
+) (*GenerateStringPhoneNumberOpts, error) {
+	return &GenerateStringPhoneNumberOpts{
+		min: min,
+		max: max,	
+	}, nil
+}
+
 func (t *GenerateStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateStringPhoneNumber",

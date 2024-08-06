@@ -19,6 +19,14 @@ func NewGenerateStreetAddress() *GenerateStreetAddress {
 	return &GenerateStreetAddress{}
 }
 
+func NewGenerateStreetAddressOpts(
+	maxLength int64,
+) (*GenerateStreetAddressOpts, error) {
+	return &GenerateStreetAddressOpts{
+		maxLength: maxLength,	
+	}, nil
+}
+
 func (t *GenerateStreetAddress) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateStreetAddress",

@@ -320,8 +320,6 @@ declare namespace neosync {
 		min: number;
 		/** Specifies the maximum value for the generated int. */
 		max: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
 	}
 
   /**

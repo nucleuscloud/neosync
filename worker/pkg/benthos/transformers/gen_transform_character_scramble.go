@@ -17,6 +17,14 @@ func NewTransformCharacterScramble() *TransformCharacterScramble {
 	return &TransformCharacterScramble{}
 }
 
+func NewTransformCharacterScrambleOpts(
+	userProvidedRegex *string,
+) (*TransformCharacterScrambleOpts, error) {
+	return &TransformCharacterScrambleOpts{
+		userProvidedRegex: userProvidedRegex,	
+	}, nil
+}
+
 func (t *TransformCharacterScramble) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformCharacterScramble",

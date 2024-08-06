@@ -23,6 +23,20 @@ func NewGenerateBool() *GenerateBool {
 	return &GenerateBool{}
 }
 
+func NewGenerateBoolOpts(
+  seedArg *int64,
+	
+) (*GenerateBoolOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateBoolOpts{
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateBool",
@@ -34,16 +48,10 @@ func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateBool) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateBoolOpts{}
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

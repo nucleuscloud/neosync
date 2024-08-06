@@ -16,6 +16,12 @@ func NewGenerateUnixTimestamp() *GenerateUnixTimestamp {
 	return &GenerateUnixTimestamp{}
 }
 
+func NewGenerateUnixTimestampOpts(
+) (*GenerateUnixTimestampOpts, error) {
+	return &GenerateUnixTimestampOpts{	
+	}, nil
+}
+
 func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUnixTimestamp",

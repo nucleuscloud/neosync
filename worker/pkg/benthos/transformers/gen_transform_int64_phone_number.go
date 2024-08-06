@@ -19,6 +19,14 @@ func NewTransformInt64PhoneNumber() *TransformInt64PhoneNumber {
 	return &TransformInt64PhoneNumber{}
 }
 
+func NewTransformInt64PhoneNumberOpts(
+	preserveLength bool,
+) (*TransformInt64PhoneNumberOpts, error) {
+	return &TransformInt64PhoneNumberOpts{
+		preserveLength: preserveLength,	
+	}, nil
+}
+
 func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64PhoneNumber",

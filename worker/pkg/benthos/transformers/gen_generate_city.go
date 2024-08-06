@@ -19,6 +19,14 @@ func NewGenerateCity() *GenerateCity {
 	return &GenerateCity{}
 }
 
+func NewGenerateCityOpts(
+	maxLength int64,
+) (*GenerateCityOpts, error) {
+	return &GenerateCityOpts{
+		maxLength: maxLength,	
+	}, nil
+}
+
 func (t *GenerateCity) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCity",

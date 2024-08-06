@@ -20,6 +20,16 @@ func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
 	return &TransformE164PhoneNumber{}
 }
 
+func NewTransformE164PhoneNumberOpts(
+	preserveLength bool,
+	maxLength *int64,
+) (*TransformE164PhoneNumberOpts, error) {
+	return &TransformE164PhoneNumberOpts{
+		preserveLength: preserveLength,
+		maxLength: maxLength,	
+	}, nil
+}
+
 func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformE164PhoneNumber",

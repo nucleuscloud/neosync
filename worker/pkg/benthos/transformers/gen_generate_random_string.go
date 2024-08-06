@@ -20,6 +20,16 @@ func NewGenerateRandomString() *GenerateRandomString {
 	return &GenerateRandomString{}
 }
 
+func NewGenerateRandomStringOpts(
+	min int64,
+	max int64,
+) (*GenerateRandomStringOpts, error) {
+	return &GenerateRandomStringOpts{
+		min: min,
+		max: max,	
+	}, nil
+}
+
 func (t *GenerateRandomString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateRandomString",

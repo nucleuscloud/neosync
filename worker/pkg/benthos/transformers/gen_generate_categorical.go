@@ -19,6 +19,14 @@ func NewGenerateCategorical() *GenerateCategorical {
 	return &GenerateCategorical{}
 }
 
+func NewGenerateCategoricalOpts(
+	categories string,
+) (*GenerateCategoricalOpts, error) {
+	return &GenerateCategoricalOpts{
+		categories: categories,	
+	}, nil
+}
+
 func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCategorical",

@@ -25,6 +25,34 @@ func NewGenerateGender() *GenerateGender {
 	return &GenerateGender{}
 }
 
+func NewGenerateGenderOpts(
+	abbreviateArg *bool,
+	maxLengthArg *int64,
+  seedArg *int64,
+	
+) (*GenerateGenderOpts, error) {
+	abbreviate := bool(false) 
+	if abbreviateArg != nil {
+		abbreviate = *abbreviateArg
+	}
+	
+	maxLength := int64(10000) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateGenderOpts{
+		abbreviate: abbreviate,
+		maxLength: maxLength,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateGender) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateGender",
@@ -48,16 +76,10 @@ func (t *GenerateGender) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

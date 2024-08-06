@@ -19,6 +19,33 @@ func NewTransformString() *TransformString {
 	return &TransformString{}
 }
 
+func NewTransformStringOpts(
+	preserveLengthArg *bool,
+	minLengthArg *int64,
+	maxLengthArg *int64,
+) (*TransformStringOpts, error) {
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	minLength := int64(1) 
+	if minLengthArg != nil {
+		minLength = *minLengthArg
+	}
+	
+	maxLength := int64(20) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	return &TransformStringOpts{
+		preserveLength: preserveLength,
+		minLength: minLength,
+		maxLength: maxLength,	
+	}, nil
+}
+
 func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",

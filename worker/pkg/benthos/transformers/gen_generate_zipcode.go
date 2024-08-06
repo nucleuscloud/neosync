@@ -16,6 +16,12 @@ func NewGenerateZipcode() *GenerateZipcode {
 	return &GenerateZipcode{}
 }
 
+func NewGenerateZipcodeOpts(
+) (*GenerateZipcodeOpts, error) {
+	return &GenerateZipcodeOpts{	
+	}, nil
+}
+
 func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateZipcode",

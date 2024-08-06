@@ -16,6 +16,12 @@ func NewGenerateUTCTimestamp() *GenerateUTCTimestamp {
 	return &GenerateUTCTimestamp{}
 }
 
+func NewGenerateUTCTimestampOpts(
+) (*GenerateUTCTimestampOpts, error) {
+	return &GenerateUTCTimestampOpts{	
+	}, nil
+}
+
 func (t *GenerateUTCTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUTCTimestamp",
