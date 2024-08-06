@@ -6,7 +6,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -23,7 +22,7 @@ func init() {
 		Param(bloblang.NewFloat64Param("max").Description("Specifies the maximum value for the generated float")).
 		Param(bloblang.NewInt64Param("precision").Optional().Description("An optional parameter that defines the number of significant digits for the generated float.")).
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the generated float.")).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		randomizeSign, err := args.GetBool("randomize_sign")
@@ -49,7 +48,12 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		seed, err := args.GetInt64("seed")
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 		if err != nil {
 			return nil, err
 		}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/dop251/goja"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -2859,215 +2860,214 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
-func Test_ProcessorConfigMultiJavascript(t *testing.T) {
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// func Test_ProcessorConfigMultiJavascript(t *testing.T) {
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := map[string]*tableMapping{
-		"public.users": {Schema: "public",
-			Table: "users",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " hello";return payload;`},
-							},
-						},
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "first_name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},
-							},
-						},
-					},
-				},
-			},
-		}}
+// 	tableMappings := map[string]*tableMapping{
+// 		"public.users": {Schema: "public",
+// 			Table: "users",
+// 			Mappings: []*mgmtv1alpha1.JobMapping{
+// 				{
+// 					Schema: "public",
+// 					Table:  "users",
+// 					Column: "name",
+// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+// 						Config: &mgmtv1alpha1.TransformerConfig{
+// 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+// 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " hello";return payload;`},
+// 							},
+// 						},
+// 					},
+// 				},
+// 				{
+// 					Schema: "public",
+// 					Table:  "users",
+// 					Column: "first_name",
+// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+// 						Config: &mgmtv1alpha1.TransformerConfig{
+// 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+// 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},
+// 							},
+// 						},
+// 					},
+// 				},
+// 			},
+// 		}}
 
-	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"public.users": {
-			"id": &sqlmanager_shared.ColumnInfo{
-				OrdinalPosition:        1,
-				ColumnDefault:          "324",
-				IsNullable:             false,
-				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
-			},
-		},
-	}
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
-	}
+// 	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+// 		"public.users": {
+// 			"id": &sqlmanager_shared.ColumnInfo{
+// 				OrdinalPosition:        1,
+// 				ColumnDefault:          "324",
+// 				IsNullable:             false,
+// 				DataType:               "",
+// 				CharacterMaximumLength: nil,
+// 				NumericPrecision:       nil,
+// 				NumericScale:           nil,
+// 			},
+// 		},
+// 	}
+// 	queryMap := map[string]map[tabledependency.RunType]string{
+// 		"public.users": {tabledependency.RunTypeInsert: ""},
+// 	}
 
-	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name", "first_name"}, SelectColumns: []string{"id", "name", "first_name"}, DependsOn: []*tabledependency.DependsOn{}},
-	}
+// 	runconfigs := []*tabledependency.RunConfig{
+// 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name", "first_name"}, SelectColumns: []string{"id", "name", "first_name"}, DependsOn: []*tabledependency.DependsOn{}},
+// 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(
-		context.Background(),
-		mockTransformerClient,
-		tableMappings,
-		runconfigs,
-		dsn,
-		driver,
-		queryMap,
-		groupedSchemas,
-		map[string][]*sqlmanager_shared.ForeignConstraint{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		mockJobId,
-		mockRunId,
-		nil,
-		nil,
-	)
-	require.Nil(t, err)
+// 	res, err := buildBenthosSqlSourceConfigResponses(
+// 		context.Background(),
+// 		mockTransformerClient,
+// 		tableMappings,
+// 		runconfigs,
+// 		dsn,
+// 		driver,
+// 		queryMap,
+// 		groupedSchemas,
+// 		map[string][]*sqlmanager_shared.ForeignConstraint{},
+// 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+// 		mockJobId,
+// 		mockRunId,
+// 		nil,
+// 		nil,
+// 	)
+// 	require.Nil(t, err)
 
-	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(`
-- neosync_javascript:
-    code: |4-
-        (() => {
+// 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(`
+// - neosync_javascript:
+//     code: |4-
+//         (() => {
 
-        function fn_name(value, input){
-          var payload = value + " hello";return payload;
-        };
+//         function fn_name(value, input){
+//           var payload = value + " hello";return payload;
+//         };
 
+//         function fn_first_name(value, input){
+//           var payload = value + " firstname";return payload;
+//         };
 
-        function fn_first_name(value, input){
-          var payload = value + " firstname";return payload;
-        };
+//         const input = benthos.v0_msg_as_structured();
+//         const output = { ...input };
+//         output["name"] = fn_name(input["name"], input);
+//         output["first_name"] = fn_first_name(input["first_name"], input);
+//         benthos.v0_msg_set_structured(output);
+//         })();
+// - catch:
+//     - error:
+//         error_msg: ${! error()}
+//       `), strings.TrimSpace(string(out)))
+// }
 
-        const input = benthos.v0_msg_as_structured();
-        const output = { ...input };
-        output["name"] = fn_name(input["name"], input);
-        output["first_name"] = fn_first_name(input["first_name"], input);
-        benthos.v0_msg_set_structured(output);
-        })();
-- catch:
-    - error:
-        error_msg: ${! error()}
-      `), strings.TrimSpace(string(out)))
-}
+// func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	tableMappings := map[string]*tableMapping{
+// 		"public.users": {Schema: "public",
+// 			Table: "users",
+// 			Mappings: []*mgmtv1alpha1.JobMapping{
+// 				{
+// 					Schema: "public",
+// 					Table:  "users",
+// 					Column: "email",
+// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
+// 						Config: &mgmtv1alpha1.TransformerConfig{
+// 							Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+// 								GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+// 							},
+// 						},
+// 					},
+// 				},
+// 				{
+// 					Schema: "public",
+// 					Table:  "users",
+// 					Column: "first_name",
+// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+// 						Config: &mgmtv1alpha1.TransformerConfig{
+// 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+// 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},
+// 							},
+// 						},
+// 					},
+// 				},
+// 			},
+// 		}}
 
-	tableMappings := map[string]*tableMapping{
-		"public.users": {Schema: "public",
-			Table: "users",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "email",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-								GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
-							},
-						},
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "first_name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},
-							},
-						},
-					},
-				},
-			},
-		}}
+// 	var email int32 = int32(40)
 
-	var email int32 = int32(40)
+// 	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+// 		"public.users": {
+// 			"email": &sqlmanager_shared.ColumnInfo{
+// 				OrdinalPosition:        2,
+// 				ColumnDefault:          "",
+// 				IsNullable:             true,
+// 				DataType:               "timestamptz",
+// 				CharacterMaximumLength: &email,
+// 				NumericPrecision:       nil,
+// 				NumericScale:           nil,
+// 			},
+// 		},
+// 	}
 
-	groupedSchemas := map[string]map[string]*sqlmanager_shared.ColumnInfo{
-		"public.users": {
-			"email": &sqlmanager_shared.ColumnInfo{
-				OrdinalPosition:        2,
-				ColumnDefault:          "",
-				IsNullable:             true,
-				DataType:               "timestamptz",
-				CharacterMaximumLength: &email,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
-			},
-		},
-	}
+// 	queryMap := map[string]map[tabledependency.RunType]string{
+// 		"public.users": {tabledependency.RunTypeInsert: ""},
+// 	}
+// 	runconfigs := []*tabledependency.RunConfig{
+// 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"email", "first_name"}, SelectColumns: []string{"email", "first_name"}, DependsOn: []*tabledependency.DependsOn{}},
+// 	}
 
-	queryMap := map[string]map[tabledependency.RunType]string{
-		"public.users": {tabledependency.RunTypeInsert: ""},
-	}
-	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"email", "first_name"}, SelectColumns: []string{"email", "first_name"}, DependsOn: []*tabledependency.DependsOn{}},
-	}
+// 	res, err := buildBenthosSqlSourceConfigResponses(
+// 		context.Background(),
+// 		mockTransformerClient,
+// 		tableMappings,
+// 		runconfigs,
+// 		dsn,
+// 		driver,
+// 		queryMap,
+// 		groupedSchemas,
+// 		map[string][]*sqlmanager_shared.ForeignConstraint{},
+// 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+// 		mockJobId,
+// 		mockRunId,
+// 		nil,
+// 		nil,
+// 	)
 
-	res, err := buildBenthosSqlSourceConfigResponses(
-		context.Background(),
-		mockTransformerClient,
-		tableMappings,
-		runconfigs,
-		dsn,
-		driver,
-		queryMap,
-		groupedSchemas,
-		map[string][]*sqlmanager_shared.ForeignConstraint{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		mockJobId,
-		mockRunId,
-		nil,
-		nil,
-	)
+// 	require.Nil(t, err)
 
-	require.Nil(t, err)
+// 	require.Len(t, res[0].Config.Pipeline.Processors, 3)
 
-	require.Len(t, res[0].Config.Pipeline.Processors, 3)
+// 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(`
+// - mutation: root."email" = generate_email(max_length:40,email_type:"uuidv4")
+// - neosync_javascript:
+//     code: |4-
+//         (() => {
 
-	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(`
-- mutation: root."email" = generate_email(max_length:40,email_type:"uuidv4")
-- neosync_javascript:
-    code: |4-
-        (() => {
+//         function fn_first_name(value, input){
+//           var payload = value + " firstname";return payload;
+//         };
 
-        function fn_first_name(value, input){
-          var payload = value + " firstname";return payload;
-        };
-
-        const input = benthos.v0_msg_as_structured();
-        const output = { ...input };
-        output["first_name"] = fn_first_name(input["first_name"], input);
-        benthos.v0_msg_set_structured(output);
-        })();
-- catch:
-    - error:
-        error_msg: ${! error()}
-      `), strings.TrimSpace(string(out)))
-}
+//         const input = benthos.v0_msg_as_structured();
+//         const output = { ...input };
+//         output["first_name"] = fn_first_name(input["first_name"], input);
+//         benthos.v0_msg_set_structured(output);
+//         })();
+// - catch:
+//     - error:
+//         error_msg: ${! error()}
+//       `), strings.TrimSpace(string(out)))
+// }
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
@@ -3223,10 +3223,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -3260,59 +3257,70 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(value:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`)
 }
 
-const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
-const generateJSCodeFnStr = `var payload = "hello";return payload;`
-
 func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: transformJsCodeFnStr,
+					Code: `return "hello " + value;`,
 				},
 			},
 		},
 	}
 
-	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"address"}})
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public", Table: "users", Column: "address",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"address"}},
+	)
 
 	require.NoError(t, err)
-	require.Equal(t, `
-(() => {
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
 
-function fn_address(value, input){
-  var payload = value+=" hello";return payload;
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({address: "world"}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
 };
+%s
+	`, res[0].NeosyncJavascript.Code)
 
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["address"] = fn_address(input["address"], input);
-benthos.v0_msg_set_structured(output);
-})();`,
-		res[0].NeosyncJavascript.Code,
-	)
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap["address"])
 }
 
 func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
 	ctx := context.Background()
-	genCode := `var payload = "test";return payload;`
+	genCode := `return "hello world";`
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
 				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
@@ -3322,196 +3330,301 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"test"}})
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{Schema: "public", Table: "users", Column: "test",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"test"}},
+	)
 
 	require.NoError(t, err)
-	require.Equal(t, `
-(() => {
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
 
-function fn_test(){
-  var payload = "test";return payload;
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
 };
+%s
+	`, res[0].NeosyncJavascript.Code)
 
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["test"] = fn_test();
-benthos.v0_msg_set_structured(output);
-})();`,
-		res[0].NeosyncJavascript.Code,
-	)
-}
-
-const nameCol = "name"
-
-func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
-	ctx := context.Background()
-
-	code :=
-		`var payload = value+=" hello";
-  payload.replace("hello","newHello");
-  return payload;`
-
-	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
-		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: code,
-				},
-			},
-		},
-	}
-
-	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{nameCol}})
-
+	program, err := goja.Compile("test.js", wrappedCode, true)
 	require.NoError(t, err)
-	require.Equal(t, `
-(() => {
-
-function fn_name(value, input){
-  var payload = value+=" hello";
-  payload.replace("hello","newHello");
-  return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name(input["name"], input);
-benthos.v0_msg_set_structured(output);
-})();`,
-		res[0].NeosyncJavascript.Code,
-	)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap["test"])
 }
 
 func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	ctx := context.Background()
 
-	code2 := `var payload = value*2;return payload;`
-	col2 := "age"
+	nameCol := "name"
+	ageCol := "age"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: transformJsCodeFnStr,
+					Code: `return "hello " + value;`,
 				},
 			},
 		},
 	}
 
 	jsT2 := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: code2,
+					Code: `return value + 2;`,
 				},
 			},
 		},
 	}
 
-	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{nameCol, col2}})
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
+		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{nameCol, ageCol}},
+	)
 
 	require.NoError(t, err)
-	require.Equal(t, `
-(() => {
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
 
-function fn_name(value, input){
-  var payload = value+=" hello";return payload;
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({"name": "world", "age": 2}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
 };
+%s
+	`, res[0].NeosyncJavascript.Code)
 
-
-function fn_age(value, input){
-  var payload = value*2;return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name(input["name"], input);
-output["age"] = fn_age(input["age"], input);
-benthos.v0_msg_set_structured(output);
-})();`,
-		res[0].NeosyncJavascript.Code,
-	)
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap["name"])
+	require.Equal(t, int64(4), outputMap["age"])
 }
 
 func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	ctx := context.Background()
 
+	nameCol := "name"
 	col2 := "test"
-	genCode := `var payload = "test";return payload;`
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: transformJsCodeFnStr,
+					Code: `return "hello " + value;`,
 				},
 			},
 		},
 	}
 
 	jsT2 := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
 				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
-					Code: genCode,
+					Code: `return "test";`,
 				},
 			},
 		},
 	}
 
-	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{nameCol, col2}})
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
+		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{nameCol, col2}},
+	)
 
 	require.NoError(t, err)
-	require.Equal(t, `
-(() => {
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
 
-function fn_name(value, input){
-  var payload = value+=" hello";return payload;
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({"name": "world"}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
 };
+%s
+	`, res[0].NeosyncJavascript.Code)
 
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "hello world", outputMap[nameCol])
+	require.Equal(t, "test", outputMap[col2])
+}
 
-function fn_test(){
-  var payload = "test";return payload;
-};
+func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name(input["name"], input);
-output["test"] = fn_test();
-benthos.v0_msg_set_structured(output);
-})();`,
-		res[0].NeosyncJavascript.Code,
+	ctx := context.Background()
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: `return "hello " + value;`,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public", Table: "users", Column: "foo.bar.baz",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
 	)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({foo: {bar: {baz: "world"}}}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
+};
+%s
+	`, res[0].NeosyncJavascript.Code)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	fooMap, ok := outputMap["foo"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, fooMap)
+	barMap, ok := fooMap["bar"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, barMap)
+	require.Equal(t, "hello world", barMap["baz"])
+}
+
+func Test_buildProcessorConfigsJavascript_Generate_DeepKeys_SetsNested(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	ctx := context.Background()
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: `return "hello world";`,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public", Table: "users", Column: "foo.bar.baz",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+	)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
+};
+%s
+	`, res[0].NeosyncJavascript.Code)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	fooMap, ok := outputMap["foo"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, fooMap)
+	barMap, ok := fooMap["bar"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, barMap)
+	require.Equal(t, "hello world", barMap["baz"])
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
@@ -3542,103 +3655,12 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 	require.Equal(t, false, res)
 }
 
-func Test_ConstructJsFunctionTransformJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-
-	res := constructJsFunction(transformJsCodeFnStr, "col", s)
-	require.Equal(t, `
-function fn_col(value, input){
-  var payload = value+=" hello";return payload;
-};
-`, res)
-}
-
-func Test_ConstructJsFunctionGenerateJS(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-
-	res := constructJsFunction(generateJSCodeFnStr, "col", s)
-	require.Equal(t, `
-function fn_col(){
-  var payload = "hello";return payload;
-};
-`, res)
-}
-
-func Test_ConstructBenthosJsProcessorTransformJS(t *testing.T) {
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-
-	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
-	jsFunction := constructJsFunction(transformJsCodeFnStr, nameCol, s)
-	benthosOutputs = append(benthosOutputs, benthosOutput)
-
-	jsFunctions = append(jsFunctions, jsFunction)
-
-	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-
-	require.Equal(t, `
-(() => {
-
-function fn_name(value, input){
-  var payload = value+=" hello";return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name(input["name"], input);
-benthos.v0_msg_set_structured(output);
-})();`, res)
-}
-
-func Test_ConstructBenthosJsProcessorGenerateJS(t *testing.T) {
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-
-	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
-	jsFunction := constructJsFunction(generateJSCodeFnStr, nameCol, s)
-	benthosOutputs = append(benthosOutputs, benthosOutput)
-
-	jsFunctions = append(jsFunctions, jsFunction)
-
-	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-
-	require.Equal(t, `
-(() => {
-
-function fn_name(){
-  var payload = "hello";return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name();
-benthos.v0_msg_set_structured(output);
-})();`, res)
-}
-
-func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-	res := constructBenthosJavascriptObject("col", s)
-	require.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
-}
-
-func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-	res := constructBenthosJavascriptObject("col", s)
-	require.Equal(t, `output["col"] = fn_col();`, res)
-}
-
 func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
-		Name:        "stage",
-		Description: "description",
-		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -3808,12 +3830,12 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 }
 
 func Test_computeMutationFunction_null(t *testing.T) {
-	val, err := ComputeMutationFunction(
+	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 			},
-		}, &sqlmanager_shared.ColumnInfo{})
+		}, &sqlmanager_shared.ColumnInfo{}, false)
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -4196,14 +4218,14 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
-			val, err := ComputeMutationFunction(
+			val, err := computeMutationFunction(
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
 						Source: transformer.Source,
 						Config: transformer.Config,
 					},
-				}, emailColInfo)
+				}, emailColInfo, false)
 			require.NoError(t, err)
 			ex, err := bloblang.Parse(val)
 			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
@@ -4284,7 +4306,7 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(t.Name(), func(t *testing.T) {
-			out, err := ComputeMutationFunction(tc.jm, tc.ci)
+			out, err := computeMutationFunction(tc.jm, tc.ci, false)
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")

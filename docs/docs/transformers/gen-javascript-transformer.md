@@ -442,7 +442,7 @@ Generates a boolean value at random.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -450,7 +450,7 @@ Generates a boolean value at random.
 ```javascript
 
 const newValue = neosync.generateBool({ 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -592,7 +592,7 @@ Generates a random first name.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -601,7 +601,7 @@ Generates a random first name.
 
 const newValue = neosync.generateFirstName({ 
 	maxLength: 10000, 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -627,7 +627,7 @@ Generates a random float64 value.
 | max | float64 |  | true | Specifies the maximum value for the generated float
 | precision | int64 |  | false | An optional parameter that defines the number of significant digits for the generated float.
 | scale | int64 |  | false | An optional parameter that defines the number of decimal places for the generated float.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -640,7 +640,7 @@ const newValue = neosync.generateFloat64({
 	max: 1.12,  
 	precision: 1,  
 	scale: 1,  
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -691,7 +691,7 @@ Generates a new full name consisting of a first and last name.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -700,7 +700,7 @@ Generates a new full name consisting of a first and last name.
 
 const newValue = neosync.generateFullName({ 
 	maxLength: 10000, 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -723,7 +723,7 @@ Randomly generates one of the following genders: female, male, undefined, nonbin
 | -------- | ---- | ------- | -------- | ----------- |
 | abbreviate | bool | false | false | Shortens length of generated value to 1.
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -733,7 +733,7 @@ Randomly generates one of the following genders: female, male, undefined, nonbin
 const newValue = neosync.generateGender({ 
 	abbreviate: false, 
 	maxLength: 10000, 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -757,7 +757,6 @@ Generates a random integer value with a default length of 4 unless the Integer L
 | randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
 | min | int64 |  | true | Specifies the minimum value for the generated int.
 | max | int64 |  | true | Specifies the maximum value for the generated int.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -767,8 +766,7 @@ Generates a random integer value with a default length of 4 unless the Integer L
 const newValue = neosync.generateInt64({ 
 	randomizeSign: false, 
 	min: 1,  
-	max: 1,  
-	seed: 1,
+	max: 1, 
 });
 
 ```
@@ -847,7 +845,7 @@ Generates a random last name.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -856,7 +854,7 @@ Generates a random last name.
 
 const newValue = neosync.generateLastName({ 
 	maxLength: 10000, 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -934,7 +932,7 @@ Generates a completely random social security numbers including the hyphens in t
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -942,7 +940,7 @@ Generates a completely random social security numbers including the hyphens in t
 ```javascript
 
 const newValue = neosync.generateSSN({ 
-	seed: 1,
+	seed: 1, 
 });
 
 ```
@@ -1079,7 +1077,7 @@ Randomly generates a username
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 | Unix timestamp in nanoseconds | false | An optional seed value used to generate deterministic outputs.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -1088,7 +1086,7 @@ Randomly generates a username
 
 const newValue = neosync.generateUsername({ 
 	maxLength: 10000, 
-	seed: 1,
+	seed: 1, 
 });
 
 ```

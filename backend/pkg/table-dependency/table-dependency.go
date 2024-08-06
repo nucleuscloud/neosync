@@ -38,6 +38,8 @@ type RunConfig struct {
 	PrimaryKeys   []string
 	WhereClause   *string
 	SelectQuery   *string
+	// Used for mutations to handle columns that contain dot notations (for nosql)
+	SplitColumnPaths bool
 }
 
 type ConstraintColumns struct {
