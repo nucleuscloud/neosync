@@ -70,7 +70,7 @@ func init() {
 func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformE164PhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	valueStr, ok := value.(string)

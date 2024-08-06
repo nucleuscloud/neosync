@@ -78,7 +78,7 @@ func init() {
 func (t *GenerateEmail) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateEmailOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	var excludedDomains []string

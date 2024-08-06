@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -49,7 +49,7 @@ func init() {
 func (t *GenerateCategorical) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateCategoricalOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateCategorical(parsedOpts.randomizer, strings.Split(parsedOpts.categories, ",")), nil

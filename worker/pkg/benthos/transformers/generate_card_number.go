@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -56,7 +55,7 @@ func init() {
 func (t *GenerateCardNumber) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateCardNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateCardNumber(parsedOpts.randomizer, parsedOpts.validLuhn)

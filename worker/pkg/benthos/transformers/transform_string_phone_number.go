@@ -64,7 +64,7 @@ func init() {
 func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformStringPhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	valueStr, ok := value.(string)

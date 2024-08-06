@@ -64,7 +64,7 @@ func init() {
 func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformInt64PhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	valueInt, ok := value.(int64)

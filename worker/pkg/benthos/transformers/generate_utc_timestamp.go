@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -37,9 +37,9 @@ func init() {
 }
 
 func (t *GenerateUTCTimestamp) Generate(opts any) (any, error) {
-	parsedOpts, ok := opts.(GenerateUTCTimestampOpts)
+	parsedOpts, ok := opts.(*GenerateUTCTimestampOpts)
 	if !ok {
-		return nil, errors.New("invalid parsed opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 	return generateRandomUTCTimestamp(parsedOpts.randomizer), nil
 }

@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"errors"
+	"fmt"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -52,7 +52,7 @@ func init() {
 func (t *GenerateGender) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateGenderOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateRandomGender(parsedOpts.randomizer, parsedOpts.abbreviate, parsedOpts.maxLength), nil

@@ -59,7 +59,7 @@ func init() {
 func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateInternationalPhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateInternationalPhoneNumber(parsedOpts.randomizer, parsedOpts.min, parsedOpts.max)

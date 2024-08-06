@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"errors"
+	"fmt"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -44,7 +44,7 @@ func init() {
 func (t *GenerateState) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateStateOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 	return generateRandomState(parsedOpts.randomizer, parsedOpts.generateFullName), nil
 }

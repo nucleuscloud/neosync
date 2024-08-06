@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -78,7 +77,7 @@ func init() {
 func (t *TransformFloat64) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformFloat64Opts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	maxnumgetter := newMaxNumCache()

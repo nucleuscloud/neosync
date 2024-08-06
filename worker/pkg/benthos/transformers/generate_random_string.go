@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -58,7 +57,7 @@ func init() {
 func (t *GenerateRandomString) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateRandomStringOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return transformer_utils.GenerateRandomStringWithInclusiveBounds(parsedOpts.randomizer, parsedOpts.min, parsedOpts.max)

@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
@@ -51,7 +50,7 @@ func init() {
 func (t *GenerateFullAddress) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateFullAddressOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateRandomFullAddress(parsedOpts.randomizer, parsedOpts.maxLength)

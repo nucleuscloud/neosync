@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -58,7 +57,7 @@ func init() {
 func (t *GenerateStringPhoneNumber) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateStringPhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateStringPhoneNumber(parsedOpts.randomizer, parsedOpts.min, parsedOpts.max)
