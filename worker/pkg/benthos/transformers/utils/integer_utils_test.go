@@ -123,32 +123,12 @@ func Test_AbsInt64Negative(t *testing.T) {
 	assert.Equal(t, int64(7), res)
 }
 
-func Test_IsNegativeIntTrue(t *testing.T) {
-	val := IsNegativeInt(-1)
-
-	assert.True(t, val, "The value should be negative")
-}
-
-func Test_IsNegativeIntFalse(t *testing.T) {
-	val := IsNegativeInt(1)
-
-	assert.False(t, val, "The value should be positive")
-}
-
 func Test_MinInt(t *testing.T) {
 	assert.Equal(t, 1, MinInt(1, 2))
 	assert.Equal(t, 1, MinInt(2, 1))
 	assert.Equal(t, 1, MinInt(1, 1))
 	assert.Equal(t, -1, MinInt(-1, 1))
 	assert.Equal(t, -1, MinInt(1, -1))
-}
-
-func Test_MaxInt(t *testing.T) {
-	assert.Equal(t, 2, MaxInt(1, 2))
-	assert.Equal(t, 2, MaxInt(2, 1))
-	assert.Equal(t, 1, MaxInt(1, 1))
-	assert.Equal(t, 1, MaxInt(-1, 1))
-	assert.Equal(t, 1, MaxInt(1, -1))
 }
 
 func Test_Floor(t *testing.T) {

@@ -80,10 +80,6 @@ func IsLastIntDigitZero[T int | int64 | int32 | uint | uint32 | uint64](n T) boo
 	return n%10 == 0
 }
 
-func IsNegativeInt[T int | int64 | int32 | uint | uint32 | uint64](val T) bool {
-	return val < 0
-}
-
 func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 	if n < 0 {
 		return -n
@@ -93,13 +89,6 @@ func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 
 func MinInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
 	if a < b {
-		return a
-	}
-	return b
-}
-
-func MaxInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
-	if a > b {
 		return a
 	}
 	return b
@@ -152,4 +141,8 @@ func GetSeedOrDefault(seed *int64) (int64, error) {
 		return *seed, nil
 	}
 	return GenerateCryptoSeed()
+}
+
+func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
+	return minValue + randomizer.Int63n(maxValue-minValue+1)
 }

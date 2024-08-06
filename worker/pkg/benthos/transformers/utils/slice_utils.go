@@ -59,7 +59,7 @@ func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxValue int64) (leftid
 	for i, val1 := range sortedSlice1 {
 		for j, val2 := range sortedSlice2 {
 			sum := val1 + val2
-			diff := abs(val1 - val2)
+			diff := AbsInt(val1 - val2)
 			// Check if this pair is within the maxLength and optimizes for closeness.
 			if sum <= maxValue && (sum > maxSum || (sum == maxSum && diff < closestDiff)) {
 				maxSum = sum
@@ -70,12 +70,4 @@ func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxValue int64) (leftid
 	}
 
 	return bestPair[0], bestPair[1]
-}
-
-// Helper function to calculate the absolute difference
-func abs(a int64) int64 {
-	if a < 0 {
-		return -a
-	}
-	return a
 }

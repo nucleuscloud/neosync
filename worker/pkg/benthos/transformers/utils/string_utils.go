@@ -18,26 +18,15 @@ var SpecialCharsSet = map[rune]struct{}{
 var SpecialChars []rune
 
 func init() {
-	SpecialChars = SetToSlice(SpecialCharsSet)
+	SpecialChars = setToSlice(SpecialCharsSet)
 }
 
-func SetToSlice[T rune | string](input map[T]struct{}) []T {
+func setToSlice[T rune | string](input map[T]struct{}) []T {
 	slice := make([]T, 0, len(input))
 	for val := range input {
 		slice = append(slice, val)
 	}
 	return slice
-}
-
-// substrings a string using rune length to account for multi-byte characters
-func SliceString(s string, l int) string {
-	// use runes instead of strings in order to avoid slicing a multi-byte character and returning invalid UTF-8
-	runes := []rune(s)
-
-	if l > len(runes) {
-		l = len(runes)
-	}
-	return string(runes[:l])
 }
 
 // Generate a random alphanumeric string of length l
@@ -96,35 +85,6 @@ func IsValidEmail(email string) bool {
 	return emailRegex.MatchString(email)
 }
 
-const (
-	domainPattern = `^@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-)
-
-var (
-	domainRegex = regexp.MustCompile(domainPattern)
-)
-
-func IsValidDomain(domain string) bool {
-	return domainRegex.MatchString(domain)
-}
-
-const (
-	// Regex to match RFC 5322 username
-	// Chars allowed: a-z A-Z 0-9 . - _
-	// First char must be alphanumeric
-	// Last char must be alphanumeric or numeric
-	// 63 max char
-	usernamePattern = `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+\/=?^_{|}~.-]{0,62}[A-Za-z0-9])?$`
-)
-
-var (
-	usernameRegex = regexp.MustCompile(usernamePattern)
-)
-
-func IsValidUsername(username string) bool {
-	return usernameRegex.MatchString(username)
-}
-
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
@@ -140,33 +100,11 @@ func IsAllowedSpecialChar(r rune) bool {
 	return ok
 }
 
-// stringInSlice checks if a string is present in a slice of strings.
-// It returns true if the string is found, and false otherwise.
-func StringInSlice(str string, list []string) bool {
-	for _, item := range list {
-		if item == str {
-			return true
-		}
-	}
-	return false
-}
-
 func TrimStringIfExceeds(s string, maxLength int64) string {
 	if int64(len(s)) > maxLength {
 		return s[:maxLength]
 	}
 	return s
-}
-
-func GetSmallerOrEqualNumbers(nums []int64, val int64) []int64 {
-	candidates := []int64{}
-
-	for _, num := range nums {
-		if num <= val {
-			candidates = append(candidates, num)
-		}
-	}
-	return candidates
 }
 
 func ToSet[T string | int64](input []T) map[T]struct{} {
@@ -285,8 +223,4 @@ func getRangeText(minLength *int64, maxLength int64) string {
 		return fmt.Sprintf("[%d:%d]", *minLength, maxLength)
 	}
 	return fmt.Sprintf("[-:%d]", maxLength)
-}
-
-func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
-	return minValue + randomizer.Int63n(maxValue-minValue+1)
 }
