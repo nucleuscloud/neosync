@@ -147,3 +147,10 @@ func GenerateCryptoSeed() (int64, error) {
 	}
 	return n.Int64(), nil
 }
+
+func GetSeedOrDefault(seed *int64) (int64, error) {
+	if seed != nil {
+		return *seed, nil
+	}
+	return GenerateCryptoSeed()
+}

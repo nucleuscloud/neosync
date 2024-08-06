@@ -45,16 +45,10 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		var seed int64
-		if seedArg != nil {
-			seed = *seedArg
-		} else {
-			// we want a bit more randomness here with generate_email so using something that isn't time based
-			var err error
-			seed, err = transformer_utils.GenerateCryptoSeed()
-			if err != nil {
-				return nil, err
-			}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
 		}
 
 		randomizer := rng.New(seed)
