@@ -347,14 +347,14 @@ func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.Transforme
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(
-			`setNestedProperty(output, %s, fn_%s(%s, input));`,
+			`setNestedProperty(output, %q, fn_%s(%s, input));`,
 			col,
 			sanitizeJsFunctionName(col),
 			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", col)),
 		)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
 		return fmt.Sprintf(
-			`setNestedProperty(output, %s, fn_%s());`,
+			`setNestedProperty(output, %q, fn_%s());`,
 			col,
 			sanitizeJsFunctionName(col),
 		)
