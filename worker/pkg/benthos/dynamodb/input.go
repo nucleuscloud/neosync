@@ -229,6 +229,8 @@ func getAwsCredentialsConfigFromParsedConf(parsedConf *service.ParsedConfig) *aw
 	roleExternalId, _ := credsConf.FieldString("role_external_id")
 	output.RoleExternalId = roleExternalId
 
+	output.RoleSessionName = "neosync"
+
 	return output
 }
 
