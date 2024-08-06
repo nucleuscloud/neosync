@@ -4,7 +4,7 @@ description: Amazon DynamoDB is a fully managed proprietary NoSQL database offer
 id: dynamodb
 hide_title: false
 slug: /connections/dynamodb
-# cSpell:words textareas
+# cSpell:words dummyid,dummysecret
 ---
 
 ## Introduction
@@ -21,7 +21,7 @@ There are a few different methods of giving Neosync access to your DynamoDB inst
 
 Neosync supports being given an IAM Role along with an External ID.
 
-If configuring DynaomDB via NeosyncCloud, this is the recommended approach over using raw Access Credentials that don't expire. Neosync will assume this role only during active syncs or any time data is requested via the frontend and does not store those credentials in any way.
+If configuring DynamoDB via NeosyncCloud, this is the recommended approach over using raw Access Credentials that don't expire. Neosync will assume this role only during active syncs or any time data is requested via the frontend and does not store those credentials in any way.
 
 ### AWS Access Credentials
 
@@ -161,7 +161,7 @@ This will automatically transform values by their type, unless it is a known key
 
 Neosync has selected sensible defaults for each primitive type, but if it's desired to pass every value through except for known mapped keys, this can be configured as well.
 
-Neosync by default willl not map primary key columns as this would result in new records being created every time.
+Neosync by default will not map primary key columns as this would result in new records being created every time.
 As such, all primary key columns are by default marked as passthrough, unless otherwise configured as a known mapping.
 
 ### How to map keys with DynamoDB
@@ -207,7 +207,7 @@ If I wanted to anonymize the name of my cat, I would provide the key: `Pets.Judi
 
 ### Mapping Limitations
 
-The main limitation with the mapping scheme in its correct form is the inability to provide mapping keys for specific array indicies.
+The main limitation with the mapping scheme in its correct form is the inability to provide mapping keys for specific array indexes.
 
 It is currently recommended to provide the key directly to the array itself and configure a `TransformJavaScript` or `GenerateJavaScript` transformer to convert the array using JS instead of an off the shelf transformation.
 All of Neosync's transformer functions are available and usable within the JS transformers, so the sky is the limit for what you can do there.
@@ -215,7 +215,7 @@ All of Neosync's transformer functions are available and usable within the JS tr
 ### Data Type Gotchas
 
 The sync processor is written in Go. Go does not have a native Set type. To work with DynamoDB's native set, these are converted into Go slices.
-Metadata for the original type is retained and the transformed data is converted back into a DyanmoDB Set prior to being written.
+Metadata for the original type is retained and the transformed data is converted back into a DynamoDB Set prior to being written.
 
 ## Dataset Subsetting
 
@@ -226,7 +226,7 @@ The traditional approach is very type heavy, where PartiQL offers a more automat
 
 The default query looks basically like this: `SELECT * FROM <table>`.
 
-IF a subset is configured, a where clause is tacked on alongwith your provided query. Example: `SELECT * FROM <table> WHERE Id = '111'`.
+IF a subset is configured, a where clause is tacked on along with your provided query. Example: `SELECT * FROM <table> WHERE Id = '111'`.
 
 If this type of subsetting is not sufficient for your usecase, please reach out to us on Discord.
 
