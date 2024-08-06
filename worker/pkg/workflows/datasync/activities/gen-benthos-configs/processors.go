@@ -329,7 +329,7 @@ function setNestedProperty(obj, path, value) {
 		if (index === parts.length - 1) {
 			current[part] = value;
 		} else {
-			current[part] = current[part] || {};
+			current[part] = current[part] ?? {};
 		}
 		return current[part];
 	}, obj);
