@@ -30,14 +30,15 @@ type DependsOn struct {
 }
 
 type RunConfig struct {
-	Table            string // schema.table
-	SelectColumns    []string
-	InsertColumns    []string
-	DependsOn        []*DependsOn
-	RunType          RunType
-	PrimaryKeys      []string
-	WhereClause      *string
-	SelectQuery      *string
+	Table         string // schema.table
+	SelectColumns []string
+	InsertColumns []string
+	DependsOn     []*DependsOn
+	RunType       RunType
+	PrimaryKeys   []string
+	WhereClause   *string
+	SelectQuery   *string
+	// Used for mutations to handle columns that contain dot notations (for nosql)
 	SplitColumnPaths bool
 }
 

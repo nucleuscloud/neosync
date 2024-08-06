@@ -3503,6 +3503,130 @@ const benthos = {
 	require.Equal(t, "test", outputMap[col2])
 }
 
+func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	ctx := context.Background()
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: `return "hello " + value;`,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public", Table: "users", Column: "foo.bar.baz",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+	)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({foo: {bar: {baz: "world"}}}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
+};
+%s
+	`, res[0].NeosyncJavascript.Code)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	fooMap, ok := outputMap["foo"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, fooMap)
+	barMap, ok := fooMap["bar"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, barMap)
+	require.Equal(t, "hello world", barMap["baz"])
+}
+
+func Test_buildProcessorConfigsJavascript_Generate_DeepKeys_SetsNested(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	ctx := context.Background()
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: `return "hello world";`,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(
+		ctx, mockTransformerClient,
+		[]*mgmtv1alpha1.JobMapping{
+			{
+				Schema: "public", Table: "users", Column: "foo.bar.baz",
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config},
+			}},
+		map[string]*sqlmanager_shared.ColumnInfo{},
+		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
+		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+	)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.NotNil(t, res[0].NeosyncJavascript)
+	require.NotNil(t, res[0].NeosyncJavascript.Code)
+
+	wrappedCode := fmt.Sprintf(`
+let programOutput = undefined;
+const benthos = {
+  v0_msg_as_structured: () => ({}),
+  v0_msg_set_structured: (val) => {
+    programOutput = val;
+  }
+};
+%s
+	`, res[0].NeosyncJavascript.Code)
+
+	program, err := goja.Compile("test.js", wrappedCode, true)
+	require.NoError(t, err)
+	rt := goja.New()
+	_, err = rt.RunProgram(program)
+	require.NoError(t, err)
+	programOutput := rt.Get("programOutput").Export()
+	require.NotNil(t, programOutput)
+	outputMap, ok := programOutput.(map[string]any)
+	require.True(t, ok)
+	fooMap, ok := outputMap["foo"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, fooMap)
+	barMap, ok := fooMap["bar"].(map[string]any)
+	require.True(t, ok)
+	require.NotNil(t, barMap)
+	require.Equal(t, "hello world", barMap["baz"])
+}
+
 func Test_ShouldProcessColumnTrue(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
 		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
