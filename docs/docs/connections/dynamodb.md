@@ -232,7 +232,7 @@ If this type of subsetting is not sufficient for your usecase, please reach out 
 
 ## Trying out DynamoDB offline
 
-Even though DynamoDB is AWS proprietary, they ship a Docker image that can be used to try out DynamoDB in an offline, self-hosted format.
+Even though DynamoDB is AWS proprietary, they ship a [Docker image](https://hub.docker.com/r/amazon/dynamodb-local) that can be used to try out DynamoDB in an offline, self-hosted format.
 
 Neosync provides a Docker [compose.yml](https://github.com/nucleuscloud/neosync/blob/main/compose/compose-db-dynamo.yml) that can be used in conjunction with our main `compose` or dev compose to stand up two local instances inside of the `neosync-network` docker network.
 Both are not needed and could definitely be trimmed down to one, but they can be used as two discrete AWS Accounts / Two totally different DynamoDB servers.
