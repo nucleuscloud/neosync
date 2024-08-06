@@ -3261,7 +3261,6 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 }
 
 const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
-const generateJSCodeFnStr = `var payload = "hello";return payload;`
 
 func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -3540,94 +3539,6 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 
 	res := shouldProcessColumn(val)
 	require.Equal(t, false, res)
-}
-
-func Test_ConstructJsFunctionTransformJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-
-	res := constructJsFunction(transformJsCodeFnStr, "col", s)
-	require.Equal(t, `
-function fn_col(value, input){
-  var payload = value+=" hello";return payload;
-};
-`, res)
-}
-
-func Test_ConstructJsFunctionGenerateJS(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-
-	res := constructJsFunction(generateJSCodeFnStr, "col", s)
-	require.Equal(t, `
-function fn_col(){
-  var payload = "hello";return payload;
-};
-`, res)
-}
-
-func Test_ConstructBenthosJsProcessorTransformJS(t *testing.T) {
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-
-	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
-	jsFunction := constructJsFunction(transformJsCodeFnStr, nameCol, s)
-	benthosOutputs = append(benthosOutputs, benthosOutput)
-
-	jsFunctions = append(jsFunctions, jsFunction)
-
-	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-
-	require.Equal(t, `
-(() => {
-
-function fn_name(value, input){
-  var payload = value+=" hello";return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name(input["name"], input);
-benthos.v0_msg_set_structured(output);
-})();`, res)
-}
-
-func Test_ConstructBenthosJsProcessorGenerateJS(t *testing.T) {
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-
-	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
-	jsFunction := constructJsFunction(generateJSCodeFnStr, nameCol, s)
-	benthosOutputs = append(benthosOutputs, benthosOutput)
-
-	jsFunctions = append(jsFunctions, jsFunction)
-
-	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-
-	require.Equal(t, `
-(() => {
-
-function fn_name(){
-  var payload = "hello";return payload;
-};
-
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fn_name();
-benthos.v0_msg_set_structured(output);
-})();`, res)
-}
-
-func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-	res := constructBenthosJavascriptObject("col", s)
-	require.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
-}
-
-func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
-	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-	res := constructBenthosJavascriptObject("col", s)
-	require.Equal(t, `output["col"] = fn_col();`, res)
 }
 
 func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
