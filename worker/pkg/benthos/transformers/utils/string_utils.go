@@ -3,7 +3,6 @@ package transformer_utils
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"regexp"
 	"strings"
 	"unicode"
@@ -19,10 +18,10 @@ var SpecialCharsSet = map[rune]struct{}{
 var SpecialChars []rune
 
 func init() {
-	SpecialChars = SetToSlice(SpecialCharsSet)
+	SpecialChars = setToSlice(SpecialCharsSet)
 }
 
-func SetToSlice[T rune | string](input map[T]struct{}) []T {
+func setToSlice[T rune | string](input map[T]struct{}) []T {
 	slice := make([]T, 0, len(input))
 	for val := range input {
 		slice = append(slice, val)
@@ -30,19 +29,8 @@ func SetToSlice[T rune | string](input map[T]struct{}) []T {
 	return slice
 }
 
-// substrings a string using rune length to account for multi-byte characters
-func SliceString(s string, l int) string {
-	// use runes instead of strings in order to avoid slicing a multi-byte character and returning invalid UTF-8
-	runes := []rune(s)
-
-	if l > len(runes) {
-		l = len(runes)
-	}
-	return string(runes[:l])
-}
-
 // Generate a random alphanumeric string of length l
-func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
+func GenerateRandomStringWithDefinedLength(randomizer rng.Rand, length int64) (string, error) {
 	if length < 1 {
 		return "", fmt.Errorf("the length of the string can't be less than 1")
 	}
@@ -50,8 +38,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 	result := make([]byte, length)
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		//nolint:all
-		index := rand.Intn(len(alphanumeric))
+		index := randomizer.Intn(len(alphanumeric))
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
@@ -59,7 +46,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 }
 
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, error) {
+func GenerateRandomStringWithInclusiveBounds(randomizer rng.Rand, minValue, maxValue int64) (string, error) {
 	if minValue < 0 || maxValue < 0 || minValue > maxValue {
 		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", minValue, maxValue)
 	}
@@ -68,7 +55,7 @@ func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, 
 	if minValue == maxValue {
 		length = minValue
 	} else {
-		randlength, err := GenerateRandomInt64InValueRange(minValue, maxValue)
+		randlength, err := GenerateRandomInt64InValueRange(randomizer, minValue, maxValue)
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random length for the string within range [%d:%d]: %w", minValue, maxValue, err)
 		}
@@ -78,7 +65,7 @@ func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, 
 	result := make([]byte, length)
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		index := rand.Intn(len(alphanumeric)) //nolint:gosec
+		index := randomizer.Intn(len(alphanumeric))
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
@@ -98,35 +85,6 @@ func IsValidEmail(email string) bool {
 	return emailRegex.MatchString(email)
 }
 
-const (
-	domainPattern = `^@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-)
-
-var (
-	domainRegex = regexp.MustCompile(domainPattern)
-)
-
-func IsValidDomain(domain string) bool {
-	return domainRegex.MatchString(domain)
-}
-
-const (
-	// Regex to match RFC 5322 username
-	// Chars allowed: a-z A-Z 0-9 . - _
-	// First char must be alphanumeric
-	// Last char must be alphanumeric or numeric
-	// 63 max char
-	usernamePattern = `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+\/=?^_{|}~.-]{0,62}[A-Za-z0-9])?$`
-)
-
-var (
-	usernameRegex = regexp.MustCompile(usernamePattern)
-)
-
-func IsValidUsername(username string) bool {
-	return usernameRegex.MatchString(username)
-}
-
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
@@ -142,33 +100,11 @@ func IsAllowedSpecialChar(r rune) bool {
 	return ok
 }
 
-// stringInSlice checks if a string is present in a slice of strings.
-// It returns true if the string is found, and false otherwise.
-func StringInSlice(str string, list []string) bool {
-	for _, item := range list {
-		if item == str {
-			return true
-		}
-	}
-	return false
-}
-
 func TrimStringIfExceeds(s string, maxLength int64) string {
 	if int64(len(s)) > maxLength {
 		return s[:maxLength]
 	}
 	return s
-}
-
-func GetSmallerOrEqualNumbers(nums []int64, val int64) []int64 {
-	candidates := []int64{}
-
-	for _, num := range nums {
-		if num <= val {
-			candidates = append(candidates, num)
-		}
-	}
-	return candidates
 }
 
 func ToSet[T string | int64](input []T) map[T]struct{} {
@@ -287,8 +223,4 @@ func getRangeText(minLength *int64, maxLength int64) string {
 		return fmt.Sprintf("[%d:%d]", *minLength, maxLength)
 	}
 	return fmt.Sprintf("[-:%d]", maxLength)
-}
-
-func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
-	return minValue + randomizer.Int63n(maxValue-minValue+1)
 }

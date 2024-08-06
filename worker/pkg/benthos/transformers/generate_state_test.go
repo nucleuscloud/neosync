@@ -2,14 +2,16 @@ package transformers
 
 import (
 	"testing"
+	"time"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateState(t *testing.T) {
-	res := generateRandomState(false)
+	res := generateRandomState(rng.New(time.Now().UnixMilli()), false)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 
@@ -25,7 +27,7 @@ func Test_GenerateState(t *testing.T) {
 }
 
 func Test_GenerateStateCodeLength(t *testing.T) {
-	res := generateRandomState(false)
+	res := generateRandomState(rng.New(time.Now().UnixMilli()), false)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 
@@ -42,7 +44,7 @@ func Test_GenerateStateCodeLength(t *testing.T) {
 }
 
 func Test_GenerateStateCodeFullName(t *testing.T) {
-	res := generateRandomState(true)
+	res := generateRandomState(rng.New(time.Now().UnixMilli()), true)
 
 	assert.IsType(t, "", res, "The returned state should be a string")
 

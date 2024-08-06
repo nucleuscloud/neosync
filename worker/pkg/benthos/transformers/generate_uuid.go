@@ -1,7 +1,7 @@
 package transformers
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -36,7 +36,7 @@ func init() {
 func (t *GenerateUUID) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateUUIDOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateUuid(parsedOpts.includeHyphens), nil

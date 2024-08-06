@@ -3,7 +3,9 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
@@ -11,7 +13,7 @@ import (
 var maxLength = int64(20)
 
 func Test_GenerateCity(t *testing.T) {
-	res, err := generateRandomCity(maxLength)
+	res, err := generateRandomCity(rng.New(time.Now().UnixMilli()), maxLength)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned city should be a string")
@@ -19,7 +21,7 @@ func Test_GenerateCity(t *testing.T) {
 }
 
 func Test_GenerateCityShortMax(t *testing.T) {
-	res, err := generateRandomCity(int64(3))
+	res, err := generateRandomCity(rng.New(time.Now().UnixMilli()), int64(3))
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned city should be a string")

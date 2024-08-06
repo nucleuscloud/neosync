@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomStringWithDefinedLength(t *testing.T) {
 	val := int64(6)
 
-	res, err := GenerateRandomStringWithDefinedLength(val)
+	res, err := GenerateRandomStringWithDefinedLength(rng.New(time.Now().UnixMilli()), val)
 	require.NoError(t, err)
 
 	require.Equal(t, val, int64(len(res)), "The output string should be the same length as the input length")
@@ -21,27 +22,8 @@ func Test_GenerateRandomStringWithDefinedLength(t *testing.T) {
 func Test_GenerateRandomStringWithDefinedLengthError(t *testing.T) {
 	val := int64(0)
 
-	_, err := GenerateRandomStringWithDefinedLength(val)
+	_, err := GenerateRandomStringWithDefinedLength(rng.New(time.Now().UnixMilli()), val)
 	require.Error(t, err)
-}
-
-func Test_SliceStringEmptyString(t *testing.T) {
-	res := SliceString("", 10)
-	require.Empty(t, res, "Expected result to be an empty string")
-}
-
-func Test_SliceStringShortString(t *testing.T) {
-	s := "short"
-	res := SliceString(s, 10)
-	require.Equal(t, s, res, "Expected result to be equal to the input string")
-}
-
-func Test_SliceStringValidSlice(t *testing.T) {
-	s := "hello, world"
-	length := 5
-	expected := "hello"
-	res := SliceString(s, length)
-	require.Equal(t, expected, res, "Expected result to be a substring of the input string with the specified length")
 }
 
 func Test_GenerateRandomStringBounds(t *testing.T) {
@@ -62,7 +44,7 @@ func Test_GenerateRandomStringBounds(t *testing.T) {
 	for _, tc := range testcases {
 		name := fmt.Sprintf("%s_%d_%d", t.Name(), tc.min, tc.max)
 		t.Run(name, func(t *testing.T) {
-			output, err := GenerateRandomStringWithInclusiveBounds(tc.min, tc.max)
+			output, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), tc.min, tc.max)
 			require.NoError(t, err)
 			length := int64(len(output))
 			require.GreaterOrEqual(t, length, tc.min, "%d>=%d was not true. output should be greater than or equal to the min. output: %s", length, tc.min, output)
@@ -75,7 +57,7 @@ func Test_GenerateRandomStringError(t *testing.T) {
 	minValue := int64(-2)
 	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
+	_, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), minValue, maxValue)
 	require.Error(t, err, "The min or max cannot be less than 0")
 }
 
@@ -83,25 +65,13 @@ func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
 	minValue := int64(5)
 	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
+	_, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), minValue, maxValue)
 	require.Error(t, err, "The min cannot be greater than the max")
 }
 
 func Test_IsValidEmail(t *testing.T) {
 	require.True(t, IsValidEmail("test@example.com"), "Email follows the valid email format")
 	require.False(t, IsValidEmail("invalid"), "Email doesn't have a valid email format")
-}
-
-func Test_IsValidDomain(t *testing.T) {
-	require.True(t, IsValidDomain("@example.com"), "Domain should have an @ sign and then a domain and top level domain")
-	require.False(t, IsValidDomain("invalid"), "Domain doesn't contain an @ sign or a top level domain")
-}
-
-func Test_IsValidUsername(t *testing.T) {
-	require.True(t, IsValidUsername("test"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
-	require.True(t, IsValidUsername("test-test"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
-	require.True(t, IsValidUsername("test-TEST"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
-	require.False(t, IsValidUsername("eger?45//"), "Username contains non-alphanumeric characters")
 }
 
 func Test_isValidCharTrue(t *testing.T) {
@@ -136,24 +106,6 @@ func Test_IsAllowedSpecialCharFalse(t *testing.T) {
 	}
 }
 
-func Test_StringinSliceTrue(t *testing.T) {
-	slice := []string{"hello", "world"}
-	val := "hello"
-
-	res := StringInSlice(val, slice)
-
-	require.True(t, res)
-}
-
-func Test_StringinSliceFalse(t *testing.T) {
-	slice := []string{"hello", "world"}
-	val := "hellomeow"
-
-	res := StringInSlice(val, slice)
-
-	require.False(t, res)
-}
-
 func Test_TrimStringIfExceeds(t *testing.T) {
 	type testcase struct {
 		input    string
@@ -171,27 +123,6 @@ func Test_TrimStringIfExceeds(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
 			actual := TrimStringIfExceeds(tc.input, tc.maxl)
-			require.Equal(t, tc.expected, actual)
-		})
-	}
-}
-
-func Test_GetSmallerOrEqualNumbers(t *testing.T) {
-	type testcase struct {
-		input    []int64
-		val      int64
-		expected []int64
-	}
-
-	testcases := []testcase{
-		{[]int64{1, 2, 3}, 2, []int64{1, 2}},
-		{[]int64{1, 2, 3}, 0, []int64{}},
-		{[]int64{1, 2, 3}, 3, []int64{1, 2, 3}},
-	}
-
-	for _, tc := range testcases {
-		t.Run("", func(t *testing.T) {
-			actual := GetSmallerOrEqualNumbers(tc.input, tc.val)
 			require.Equal(t, tc.expected, actual)
 		})
 	}
@@ -224,7 +155,7 @@ func Test_WithoutCharacters(t *testing.T) {
 
 func Test_GetRandomCharacterString(t *testing.T) {
 	actual := GetRandomCharacterString(rand.New(rand.NewSource(1)), 100)
-	assert.Len(t, actual, 100)
+	require.Len(t, actual, 100)
 }
 
 func Test_GenerateStringFromCorpus(t *testing.T) {

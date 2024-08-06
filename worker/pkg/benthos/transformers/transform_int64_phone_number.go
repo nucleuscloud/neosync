@@ -6,6 +6,7 @@ import (
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -15,7 +16,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Transforms an existing phone number that is typed as an integer").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data."))
+		Param(bloblang.NewBoolParam("preserve_length").Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalInt64("value")
@@ -33,8 +35,20 @@ func init() {
 			return nil, err
 		}
 
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
+		}
+
+		randomizer := rng.New(seed)
+
 		return func() (any, error) {
-			res, err := transformInt64PhoneNumber(value, preserveLength)
+			res, err := transformInt64PhoneNumber(randomizer, value, preserveLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_int64_phone_number: %w", err)
 			}
@@ -50,7 +64,7 @@ func init() {
 func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformInt64PhoneNumberOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	valueInt, ok := value.(int64)
@@ -58,23 +72,23 @@ func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not an int64")
 	}
 
-	return transformInt64PhoneNumber(valueInt, parsedOpts.preserveLength)
+	return transformInt64PhoneNumber(parsedOpts.randomizer, valueInt, parsedOpts.preserveLength)
 }
 
 // generates a random phone number and returns it as an int64
-func transformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error) {
+func transformInt64PhoneNumber(randomizer rng.Rand, number int64, preserveLength bool) (*int64, error) {
 	if number == 0 {
 		return nil, nil
 	}
 
 	if preserveLength {
-		res, err := generateIntPhoneNumberPreserveLength(number)
+		res, err := generateIntPhoneNumberPreserveLength(randomizer, number)
 		if err != nil {
 			return nil, err
 		}
 		return &res, nil
 	} else {
-		res, err := generateRandomInt64PhoneNumber()
+		res, err := generateRandomInt64PhoneNumber(randomizer)
 		if err != nil {
 			return nil, err
 		}
@@ -82,16 +96,14 @@ func transformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error
 	}
 }
 
-func generateIntPhoneNumberPreserveLength(number int64) (int64, error) {
-	ac := transformers_dataset.AreaCodes
-
+func generateIntPhoneNumberPreserveLength(randomizer rng.Rand, number int64) (int64, error) {
 	// get a random area code from the areacodes data set
-	randAreaCode, err := transformer_utils.GetRandomValueFromSlice[int64](ac)
+	randAreaCode, err := transformer_utils.GetRandomValueFromSlice[int64](randomizer, transformers_dataset.AreaCodes)
 	if err != nil {
 		return 0, err
 	}
 
-	pn, err := transformer_utils.GenerateRandomInt64FixedLength(transformer_utils.GetInt64Length(number) - 3)
+	pn, err := transformer_utils.GenerateRandomInt64FixedLength(randomizer, transformer_utils.GetInt64Length(number)-3)
 	if err != nil {
 		return 0, err
 	}

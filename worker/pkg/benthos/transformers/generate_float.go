@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -76,7 +75,7 @@ func init() {
 func (t *GenerateFloat64) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateFloat64Opts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateRandomFloat64(
@@ -142,7 +141,7 @@ func generateRandomFloat64(
 		}
 	}
 
-	if randomizeSign && generateRandomizerBool(randomizer) {
+	if randomizeSign && generateRandomBool(randomizer) {
 		randomFloat *= -1
 	}
 

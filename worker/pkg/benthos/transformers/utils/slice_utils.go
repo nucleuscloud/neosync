@@ -3,7 +3,8 @@ package transformer_utils
 import (
 	"errors"
 	"math"
-	"math/rand"
+
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
 const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
@@ -11,15 +12,13 @@ const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456
 /* SLICE MANIPULATION UTILS */
 
 // returns a random index from a one-dimensional slice
-func GetRandomValueFromSlice[T any](arr []T) (T, error) {
+func GetRandomValueFromSlice[T any](randomizer rng.Rand, arr []T) (T, error) {
 	if len(arr) == 0 {
 		var zeroValue T
 		return zeroValue, errors.New("slice is empty")
 	}
 
-	//nolint:gosec
-	randomIndex := rand.Intn(len(arr))
-
+	randomIndex := randomizer.Intn(len(arr))
 	return arr[randomIndex], nil
 }
 
@@ -60,7 +59,7 @@ func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxValue int64) (leftid
 	for i, val1 := range sortedSlice1 {
 		for j, val2 := range sortedSlice2 {
 			sum := val1 + val2
-			diff := abs(val1 - val2)
+			diff := AbsInt(val1 - val2)
 			// Check if this pair is within the maxLength and optimizes for closeness.
 			if sum <= maxValue && (sum > maxSum || (sum == maxSum && diff < closestDiff)) {
 				maxSum = sum
@@ -71,12 +70,4 @@ func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxValue int64) (leftid
 	}
 
 	return bestPair[0], bestPair[1]
-}
-
-// Helper function to calculate the absolute difference
-func abs(a int64) int64 {
-	if a < 0 {
-		return -a
-	}
-	return a
 }

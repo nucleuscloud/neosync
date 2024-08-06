@@ -132,7 +132,7 @@ func init() {
 func (t *TransformEmail) Transform(value, opts any) (any, error) {
 	parsedOpts, ok := opts.(*TransformEmailOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	valueStr, ok := value.(string)

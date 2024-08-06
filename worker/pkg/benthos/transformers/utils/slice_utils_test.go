@@ -2,7 +2,9 @@ package transformer_utils
 
 import (
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -10,13 +12,13 @@ import (
 // returns a random index from a one-dimensional slice
 func Test_GetRandomValueFromSliceEmptySlice(t *testing.T) {
 	arr := []string{}
-	_, err := GetRandomValueFromSlice(arr)
+	_, err := GetRandomValueFromSlice(rng.New(time.Now().UnixNano()), arr)
 	assert.Error(t, err, "Expected an error for the empty slice")
 }
 
 func Test_GetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 	arr := []string{"a", "b", "c"}
-	res, err := GetRandomValueFromSlice(arr)
+	res, err := GetRandomValueFromSlice(rng.New(time.Now().UnixNano()), arr)
 	assert.NoError(t, err)
 	assert.Contains(t, arr, res, "Expected the response to be included in the input array")
 }
