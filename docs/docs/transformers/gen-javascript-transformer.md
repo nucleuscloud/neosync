@@ -515,6 +515,7 @@ Randomly selects a value from a defined set of categorical values.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | categories | string |  | true | A list of comma-separated string values to randomly select from.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -522,7 +523,8 @@ Randomly selects a value from a defined set of categorical values.
 ```javascript
 
 const newValue = neosync.generateCategorical({ 
-	categories: "", 
+	categories: "",  
+	seed: 1, 
 });
 
 ```
@@ -1083,13 +1085,16 @@ Randomly generates a Unix timestamp.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateUnixTimestamp({});
+const newValue = neosync.generateUnixTimestamp({ 
+	seed: 1, 
+});
 
 ```
 <br/>
@@ -1140,13 +1145,16 @@ Randomly generates a UTC timestamp.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateUTCTimestamp({});
+const newValue = neosync.generateUTCTimestamp({ 
+	seed: 1, 
+});
 
 ```
 <br/>

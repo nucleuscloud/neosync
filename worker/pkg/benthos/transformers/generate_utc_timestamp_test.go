@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_ProcessUTCTimestamp(t *testing.T) {
-	timestamp, err := generateRandomUTCTimestamp()
+	timestamp, err := generateRandomUTCTimestamp(rng.New(time.Now().UnixNano()))
 	assert.NoError(t, err, "Error generating random UTC timestamp")
 
 	// Check if the timestamp's time zone is UTC

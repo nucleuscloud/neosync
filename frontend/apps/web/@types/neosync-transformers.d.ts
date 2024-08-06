@@ -219,6 +219,8 @@ declare namespace neosync {
 	export interface GenerateCategoricalOptions {
 		/** A list of comma-separated string values to randomly select from. */
 		categories: string;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
 	}
 
   /**
@@ -463,6 +465,8 @@ declare namespace neosync {
 
 
 	export interface GenerateUnixTimestampOptions {
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
 	}
 
   /**
@@ -485,6 +489,8 @@ declare namespace neosync {
 
 
 	export interface GenerateUTCTimestampOptions {
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
 	}
 
   /**

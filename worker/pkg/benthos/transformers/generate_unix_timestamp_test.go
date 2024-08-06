@@ -2,13 +2,15 @@ package transformers
 
 import (
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateUnixTimestamp(t *testing.T) {
-	timestamp, err := generateRandomUnixTimestamp()
+	timestamp, err := generateRandomUnixTimestamp(rng.New(time.Now().UnixNano()))
 	assert.NoError(t, err, "Error generating random unix timestamp")
 
 	assert.True(t, timestamp > 0, "Generated timestamp is not a valid Unix timestamp")
