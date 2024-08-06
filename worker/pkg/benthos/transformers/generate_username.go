@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -17,14 +16,19 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly generates a username").
 		Param(bloblang.NewInt64Param("max_length").Default(10000).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_username", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
-		seed, err := args.GetInt64("seed")
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 		if err != nil {
 			return nil, err
 		}

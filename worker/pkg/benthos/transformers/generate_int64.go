@@ -3,7 +3,6 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -32,8 +31,7 @@ func init() {
 		Description("Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.").
 		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
 		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated int.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated int.")).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()).Description("An optional seed value used to generate deterministic outputs."))
+		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated int."))
 
 	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		randomizeSign, err := args.GetBool("randomize_sign")
