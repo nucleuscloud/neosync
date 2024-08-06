@@ -44,7 +44,7 @@
     "cspell": "^8.13.1",
     "knip": "^5.27.0",
     "postcss-import": "^16.1.0",
-    "postcss-nesting": "^12.1.5",
+    "postcss-nesting": "^13.0.0",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4"
   },
