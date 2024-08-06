@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +14,7 @@ import (
 func Test_GenerateRandomStringWithDefinedLength(t *testing.T) {
 	val := int64(6)
 
-	res, err := GenerateRandomStringWithDefinedLength(val)
+	res, err := GenerateRandomStringWithDefinedLength(rng.New(time.Now().UnixMilli()), val)
 	require.NoError(t, err)
 
 	require.Equal(t, val, int64(len(res)), "The output string should be the same length as the input length")
@@ -21,7 +23,7 @@ func Test_GenerateRandomStringWithDefinedLength(t *testing.T) {
 func Test_GenerateRandomStringWithDefinedLengthError(t *testing.T) {
 	val := int64(0)
 
-	_, err := GenerateRandomStringWithDefinedLength(val)
+	_, err := GenerateRandomStringWithDefinedLength(rng.New(time.Now().UnixMilli()), val)
 	require.Error(t, err)
 }
 
@@ -62,7 +64,7 @@ func Test_GenerateRandomStringBounds(t *testing.T) {
 	for _, tc := range testcases {
 		name := fmt.Sprintf("%s_%d_%d", t.Name(), tc.min, tc.max)
 		t.Run(name, func(t *testing.T) {
-			output, err := GenerateRandomStringWithInclusiveBounds(tc.min, tc.max)
+			output, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), tc.min, tc.max)
 			require.NoError(t, err)
 			length := int64(len(output))
 			require.GreaterOrEqual(t, length, tc.min, "%d>=%d was not true. output should be greater than or equal to the min. output: %s", length, tc.min, output)
@@ -75,7 +77,7 @@ func Test_GenerateRandomStringError(t *testing.T) {
 	minValue := int64(-2)
 	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
+	_, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), minValue, maxValue)
 	require.Error(t, err, "The min or max cannot be less than 0")
 }
 
@@ -83,7 +85,7 @@ func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
 	minValue := int64(5)
 	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
+	_, err := GenerateRandomStringWithInclusiveBounds(rng.New(time.Now().UnixNano()), minValue, maxValue)
 	require.Error(t, err, "The min cannot be greater than the max")
 }
 

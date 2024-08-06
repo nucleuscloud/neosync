@@ -3,7 +3,6 @@ package transformer_utils
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"regexp"
 	"strings"
 	"unicode"
@@ -42,7 +41,7 @@ func SliceString(s string, l int) string {
 }
 
 // Generate a random alphanumeric string of length l
-func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
+func GenerateRandomStringWithDefinedLength(randomizer rng.Rand, length int64) (string, error) {
 	if length < 1 {
 		return "", fmt.Errorf("the length of the string can't be less than 1")
 	}
@@ -50,8 +49,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 	result := make([]byte, length)
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		//nolint:all
-		index := rand.Intn(len(alphanumeric))
+		index := randomizer.Intn(len(alphanumeric))
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
@@ -59,7 +57,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 }
 
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, error) {
+func GenerateRandomStringWithInclusiveBounds(randomizer rng.Rand, minValue, maxValue int64) (string, error) {
 	if minValue < 0 || maxValue < 0 || minValue > maxValue {
 		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", minValue, maxValue)
 	}
@@ -68,7 +66,7 @@ func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, 
 	if minValue == maxValue {
 		length = minValue
 	} else {
-		randlength, err := GenerateRandomInt64InValueRange(minValue, maxValue)
+		randlength, err := GenerateRandomInt64InValueRange(randomizer, minValue, maxValue)
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random length for the string within range [%d:%d]: %w", minValue, maxValue, err)
 		}
@@ -78,7 +76,7 @@ func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, 
 	result := make([]byte, length)
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		index := rand.Intn(len(alphanumeric)) //nolint:gosec
+		index := randomizer.Intn(len(alphanumeric))
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}

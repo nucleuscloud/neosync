@@ -3,7 +3,8 @@ package transformer_utils
 import (
 	"errors"
 	"math"
-	"math/rand"
+
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
 const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
@@ -11,15 +12,13 @@ const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456
 /* SLICE MANIPULATION UTILS */
 
 // returns a random index from a one-dimensional slice
-func GetRandomValueFromSlice[T any](arr []T) (T, error) {
+func GetRandomValueFromSlice[T any](randomizer rng.Rand, arr []T) (T, error) {
 	if len(arr) == 0 {
 		var zeroValue T
 		return zeroValue, errors.New("slice is empty")
 	}
 
-	//nolint:gosec
-	randomIndex := rand.Intn(len(arr))
-
+	randomIndex := randomizer.Intn(len(arr))
 	return arr[randomIndex], nil
 }
 

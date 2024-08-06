@@ -3,10 +3,10 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -15,16 +15,28 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly generates a street address.").
-		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters."))
+		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_full_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
+		}
+
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := generateRandomFullAddress(maxLength)
+			res, err := generateRandomFullAddress(randomizer, maxLength)
 			if err != nil {
 				return nil, err
 			}
@@ -42,11 +54,11 @@ func (t *GenerateFullAddress) Generate(opts any) (any, error) {
 		return nil, errors.New("invalid parse opts")
 	}
 
-	return generateRandomFullAddress(parsedOpts.maxLength)
+	return generateRandomFullAddress(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 
 /* Generates a random full address from the US including street address, city, state and zipcode */
-func generateRandomFullAddress(maxLength int64) (string, error) {
+func generateRandomFullAddress(randomizer rng.Rand, maxLength int64) (string, error) {
 	addresses := transformers_dataset.Addresses
 
 	var filteredAddresses []string
@@ -61,30 +73,29 @@ func generateRandomFullAddress(maxLength int64) (string, error) {
 	// we can't generate an address that is smaller than the max length, so attempt to generate the smallest address possible which is , if not, generate random text
 	if len(filteredAddresses) == 0 {
 		if maxLength < 17 {
-			str, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
+			str, err := transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength)
 			if err != nil {
 				return "", err
 			}
 			return str, nil
 		} else {
-			sa, err := generateRandomStreetAddress(5)
+			sa, err := generateRandomStreetAddress(randomizer, 5)
 			if err != nil {
 				return "", err
 			}
-			city, err := generateRandomCity(5)
+			city, err := generateRandomCity(randomizer, 5)
 			if err != nil {
 				return "", err
 			}
 
-			state := generateRandomState(false)
+			state := generateRandomState(randomizer, false)
 
-			zip := generateRandomZipcode()
+			zip := generateRandomZipcode(randomizer)
 
 			return fmt.Sprintf(`%s %s %s, %s`, sa, city, state, zip), nil
 		}
 	}
 
-	//nolint:gosec
-	randomIndex := rand.Intn(len(filteredAddresses))
+	randomIndex := randomizer.Intn(len(filteredAddresses))
 	return filteredAddresses[randomIndex], nil
 }

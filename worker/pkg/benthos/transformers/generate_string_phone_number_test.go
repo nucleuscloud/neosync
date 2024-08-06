@@ -3,7 +3,9 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
@@ -12,7 +14,7 @@ func Test_GenerateStringPhoneNumber(t *testing.T) {
 	minValue := int64(9)
 	maxValue := int64(14)
 
-	res, err := generateStringPhoneNumber(minValue, maxValue)
+	res, err := generateStringPhoneNumber(rng.New(time.Now().UnixNano()), minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 9, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
@@ -23,7 +25,7 @@ func Test_GenerateStringPhoneNumberEqualMinMax(t *testing.T) {
 	minValue := int64(12)
 	maxValue := int64(12)
 
-	res, err := generateStringPhoneNumber(minValue, maxValue)
+	res, err := generateStringPhoneNumber(rng.New(time.Now().UnixNano()), minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
@@ -35,7 +37,7 @@ func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
 	minValue := int64(9)
 	maxPhoneLimit := 11
 
-	res, err := generateStringPhoneNumber(minValue, int64(maxPhoneLimit))
+	res, err := generateStringPhoneNumber(rng.New(time.Now().UnixNano()), minValue, int64(maxPhoneLimit))
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")

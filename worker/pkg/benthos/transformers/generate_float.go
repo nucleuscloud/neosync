@@ -142,7 +142,7 @@ func generateRandomFloat64(
 		}
 	}
 
-	if randomizeSign && generateRandomizerBool(randomizer) {
+	if randomizeSign && generateRandomBool(randomizer) {
 		randomFloat *= -1
 	}
 

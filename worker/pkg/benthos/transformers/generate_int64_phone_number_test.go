@@ -3,13 +3,15 @@ package transformers
 import (
 	"strconv"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateRandomIntPhoneNumber(t *testing.T) {
-	res, err := generateRandomInt64PhoneNumber()
+	res, err := generateRandomInt64PhoneNumber(rng.New(time.Now().UnixNano()))
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(res, 10)

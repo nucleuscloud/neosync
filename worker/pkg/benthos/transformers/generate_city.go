@@ -3,10 +3,10 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -15,16 +15,28 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly selects a city from a list of predefined US cities.").
-		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters."))
+		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
+		}
+
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := generateRandomCity(maxLength)
+			res, err := generateRandomCity(randomizer, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_city: %w", err)
 			}
@@ -42,31 +54,22 @@ func (t *GenerateCity) Generate(opts any) (any, error) {
 		return nil, errors.New("invalid parse opts")
 	}
 
-	return generateRandomCity(parsedOpts.maxLength)
+	return generateRandomCity(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 
 // Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength. If not, it randomly generates a string that len(string) == maxLength
-func generateRandomCity(maxLength int64) (string, error) {
-	addresses := transformers_dataset.Addresses
+func generateRandomCity(randomizer rng.Rand, maxLength int64) (string, error) {
 	var filteredCities []string
-
-	for _, address := range addresses {
+	for _, address := range transformers_dataset.Addresses {
 		if len(address.City) <= int(maxLength) {
 			filteredCities = append(filteredCities, address.City)
 		}
 	}
 
 	if len(filteredCities) == 0 {
-		city, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
-		if err != nil {
-			return "", err
-		}
-		return city, nil
+		return transformer_utils.GenerateRandomStringWithDefinedLength(randomizer, maxLength)
 	}
 
-	// -1 because addresses is an array so we don't overflow
-	//nolint:all
-	randomIndex := rand.Intn(len(filteredCities) - 1)
-
+	randomIndex := randomizer.Intn(len(filteredCities))
 	return filteredCities[randomIndex], nil
 }
