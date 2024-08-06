@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -287,16 +288,33 @@ func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSour
 function fn_%s(value, input){
   %s
 };
-`, col, jsCode)
+`, sanitizeJsFunctionName(col), jsCode)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
 		return fmt.Sprintf(`
 function fn_%s(){
   %s
 };
-`, col, jsCode)
+`, sanitizeJsFunctionName(col), jsCode)
 	default:
 		return ""
 	}
+}
+
+func sanitizeJsFunctionName(input string) string {
+	var result strings.Builder
+
+	for i, r := range input {
+		if unicode.IsLetter(r) || r == '_' || r == '$' || (unicode.IsDigit(r) && i > 0) {
+			result.WriteRune(r)
+		} else if unicode.IsDigit(r) && i == 0 {
+			result.WriteRune('_')
+			result.WriteRune(r)
+		} else {
+			result.WriteRune('_')
+		}
+	}
+
+	return result.String()
 }
 
 func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
@@ -306,6 +324,16 @@ func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
 
 	jsCode := fmt.Sprintf(`
 (() => {
+function setNestedProperty(obj, path, value) {
+	path.split('.').reduce((current, part, index, parts) => {
+		if (index === parts.length - 1) {
+			current[part] = value;
+		} else {
+			current[part] = current[part] ?? {};
+		}
+		return current[part];
+	}, obj);
+}
 %s
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
@@ -318,12 +346,29 @@ benthos.v0_msg_set_structured(output);
 func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.TransformerSource) string {
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
-		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
+		return fmt.Sprintf(
+			`setNestedProperty(output, %q, fn_%s(%s, input));`,
+			col,
+			sanitizeJsFunctionName(col),
+			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", col)),
+		)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
-		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s();`, col)
+		return fmt.Sprintf(
+			`setNestedProperty(output, %q, fn_%s());`,
+			col,
+			sanitizeJsFunctionName(col),
+		)
 	default:
 		return ""
 	}
+}
+
+func convertJsObjPathToOptionalChain(inputPath string) string {
+	parts := strings.Split(inputPath, ".")
+	for i := 1; i < len(parts); i++ {
+		parts[i] = fmt.Sprintf("['%s']", parts[i])
+	}
+	return strings.Join(parts, "?.")
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
