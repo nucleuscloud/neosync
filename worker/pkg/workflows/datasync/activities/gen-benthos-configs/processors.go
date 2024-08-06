@@ -324,6 +324,16 @@ func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
 
 	jsCode := fmt.Sprintf(`
 (() => {
+function setNestedProperty(obj, path, value) {
+	path.split('.').reduce((current, part, index, parts) => {
+		if (index === parts.length - 1) {
+			current[part] = value;
+		} else {
+			current[part] = current[part] || {};
+		}
+		return current[part];
+	}, obj);
+}
 %s
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
@@ -337,15 +347,15 @@ func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.Transforme
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(
-			`%s = fn_%s(%s, input);`,
-			convertJsObjPathToOptionalChain(fmt.Sprintf("output.%s", col)),
+			`setNestedProperty(output, %s, fn_%s(%s, input));`,
+			col,
 			sanitizeJsFunctionName(col),
 			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", col)),
 		)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
 		return fmt.Sprintf(
-			`%s = fn_%s();`,
-			convertJsObjPathToOptionalChain(fmt.Sprintf("output.%s", col)),
+			`setNestedProperty(output, %s, fn_%s());`,
+			col,
 			sanitizeJsFunctionName(col),
 		)
 	default:
