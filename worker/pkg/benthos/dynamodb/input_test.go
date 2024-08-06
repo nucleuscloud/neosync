@@ -271,3 +271,69 @@ func Test_RegisterDynamoDBInput(t *testing.T) {
 	err := RegisterDynamoDbInput(service.NewEmptyEnvironment())
 	require.NoError(t, err)
 }
+
+func Test_InputBasic_Config(t *testing.T) {
+	conf, err := dynamoInputConfigSpec().ParseYAML(`
+table: test-table
+`, service.NewEmptyEnvironment())
+	require.NoError(t, err)
+	require.NotNil(t, conf)
+}
+
+func Test_InputBasic_Config_Where(t *testing.T) {
+	conf, err := dynamoInputConfigSpec().ParseYAML(`
+table: test-table
+where: foo = '123'
+`, service.NewEmptyEnvironment())
+	require.NoError(t, err)
+	require.NotNil(t, conf)
+}
+
+func Test_InputBasic_Config_Creds(t *testing.T) {
+	conf, err := dynamoInputConfigSpec().ParseYAML(`
+table: test-table
+region: us-west-2
+endpoint: http://localhost:8000
+credentials:
+  profile: default
+  id: dummyid
+  secret: dummysecret
+  token: dummytoken
+  from_ec2_role: true
+  role: my-role
+  role_external_id: 123
+`, service.NewEmptyEnvironment())
+	require.NoError(t, err)
+	require.NotNil(t, conf)
+}
+
+func Test_Input_AwsCreds(t *testing.T) {
+	conf, err := dynamoInputConfigSpec().ParseYAML(`
+table: test-table
+region: us-west-2
+endpoint: http://localhost:8000
+credentials:
+  profile: default
+  id: dummyid
+  secret: dummysecret
+  token: dummytoken
+  from_ec2_role: true
+  role: my-role
+  role_external_id: 123
+`, service.NewEmptyEnvironment())
+	require.NoError(t, err)
+	require.NotNil(t, conf)
+
+	credsConfig := getAwsCredentialsConfigFromParsedConf(conf)
+	require.NotNil(t, credsConfig)
+	require.Equal(t, "us-west-2", credsConfig.Region)
+	require.Equal(t, "http://localhost:8000", credsConfig.Endpoint)
+	require.Equal(t, "default", credsConfig.Profile)
+	require.Equal(t, "dummyid", credsConfig.Id)
+	require.Equal(t, "dummysecret", credsConfig.Secret)
+	require.Equal(t, "dummytoken", credsConfig.Token)
+	require.True(t, credsConfig.UseEc2)
+	require.Equal(t, "my-role", credsConfig.Role)
+	require.Equal(t, "123", credsConfig.RoleExternalId)
+	require.Equal(t, "neosync", credsConfig.RoleSessionName)
+}
