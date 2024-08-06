@@ -61,6 +61,9 @@ export function IconHandler(name: string): ReactElement {
     case 'Mysql':
       return <GrMysql />;
     case 'S3':
+    case 'DynamoDB':
+    case 'DynamoDb':
+    case 'Dynamodb':
       return <FaAws />;
     case 'Mongo':
     case 'MongoDB':
