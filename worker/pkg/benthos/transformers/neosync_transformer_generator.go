@@ -126,6 +126,10 @@ func New{{.StructName}}() *{{.StructName}} {
 	return &{{.StructName}}{}
 }
 
+func New{{.StructName}}Opts() *{{.StructName}}Opts {
+	return &{{.StructName}}{}
+}
+
 func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "{{.FunctInfo.Name}}",

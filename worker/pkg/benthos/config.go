@@ -167,16 +167,22 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation          *string                  `json:"mutation,omitempty" yaml:"mutation,omitempty"`
-	Javascript        *JavascriptConfig        `json:"javascript,omitempty" yaml:"javascript,omitempty"`
-	NeosyncJavascript *NeosyncJavascriptConfig `json:"neosync_javascript,omitempty" yaml:"neosync_javascript,omitempty"`
-	Branch            *BranchConfig            `json:"branch,omitempty" yaml:"branch,omitempty"`
-	Cache             *CacheConfig             `json:"cache,omitempty" yaml:"cache,omitempty"`
-	Mapping           *string                  `json:"mapping,omitempty" yaml:"mapping,omitempty"`
-	Redis             *RedisProcessorConfig    `json:"redis,omitempty" yaml:"redis,omitempty"`
-	Error             *ErrorProcessorConfig    `json:"error,omitempty" yaml:"error,omitempty"`
-	Catch             []*ProcessorConfig       `json:"catch,omitempty" yaml:"catch,omitempty"`
-	While             *WhileProcessorConfig    `json:"while,omitempty" yaml:"while,omitempty"`
+	Mutation              *string                      `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Javascript            *JavascriptConfig            `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	NeosyncJavascript     *NeosyncJavascriptConfig     `json:"neosync_javascript,omitempty" yaml:"neosync_javascript,omitempty"`
+	Branch                *BranchConfig                `json:"branch,omitempty" yaml:"branch,omitempty"`
+	Cache                 *CacheConfig                 `json:"cache,omitempty" yaml:"cache,omitempty"`
+	Mapping               *string                      `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Redis                 *RedisProcessorConfig        `json:"redis,omitempty" yaml:"redis,omitempty"`
+	Error                 *ErrorProcessorConfig        `json:"error,omitempty" yaml:"error,omitempty"`
+	Catch                 []*ProcessorConfig           `json:"catch,omitempty" yaml:"catch,omitempty"`
+	While                 *WhileProcessorConfig        `json:"while,omitempty" yaml:"while,omitempty"`
+	NeosyncDefaultMapping *NeosyncDefaultMappingConfig `json:"neosync_default_mapping,omitempty" yaml:"neosync_default_mapping,omitempty"`
+}
+
+type NeosyncDefaultMappingConfig struct {
+	JobSourceOptionsString string   `json:"job_source_options_string" yaml:"job_source_options_string"`
+	MappedKeys             []string `json:"mapped_keys" yaml:"mapped_keys"`
 }
 
 type NeosyncJavascriptConfig struct {

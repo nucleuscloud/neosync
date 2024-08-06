@@ -11,6 +11,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type dynamoSyncResp struct {
@@ -38,9 +39,19 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
+	sourceOptBits, err := protojson.Marshal(job.GetSource().GetOptions())
+	if err != nil {
+		return nil, err
+	}
+
 	benthosConfigs := []*BenthosConfigResponse{}
 	// todo: may need to filter here based on the destination config mappings if there is no source->destination table map
 	for _, tableMapping := range groupedMappings {
+		columns := []string{}
+		for _, jm := range tableMapping.Mappings {
+			columns = append(columns, jm.Column)
+		}
+
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -56,8 +67,15 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 					},
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{
-					Threads:    -1,
-					Processors: []neosync_benthos.ProcessorConfig{},
+					Threads: -1,
+					Processors: []neosync_benthos.ProcessorConfig{
+						{
+							NeosyncDefaultMapping: &neosync_benthos.NeosyncDefaultMappingConfig{
+								JobSourceOptionsString: string(sourceOptBits),
+								MappedKeys:             columns,
+							},
+						},
+					},
 				},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
@@ -68,11 +86,6 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 					},
 				},
 			},
-		}
-
-		columns := []string{}
-		for _, jm := range tableMapping.Mappings {
-			columns = append(columns, jm.Column)
 		}
 
 		processorConfigs, err := buildProcessorConfigsByRunType(

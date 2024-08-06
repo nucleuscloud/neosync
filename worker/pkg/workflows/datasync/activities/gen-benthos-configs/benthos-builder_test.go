@@ -3808,7 +3808,7 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 }
 
 func Test_computeMutationFunction_null(t *testing.T) {
-	val, err := computeMutationFunction(
+	val, err := ComputeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
@@ -4196,7 +4196,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 
 	for _, transformer := range transformers {
 		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
-			val, err := computeMutationFunction(
+			val, err := ComputeMutationFunction(
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -4284,7 +4284,7 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(t.Name(), func(t *testing.T) {
-			out, err := computeMutationFunction(tc.jm, tc.ci)
+			out, err := ComputeMutationFunction(tc.jm, tc.ci)
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")

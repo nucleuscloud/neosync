@@ -315,7 +315,11 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 		keyTypeMap[key] = NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			lAny[i] = v
+			n, err := convertStringToNumber(v)
+			if err != nil {
+				return v
+			}
+			lAny[i] = n
 		}
 		return lAny
 	case *types.AttributeValueMemberNULL:
