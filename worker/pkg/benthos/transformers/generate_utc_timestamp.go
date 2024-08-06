@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -29,11 +28,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			val, err := generateRandomUTCTimestamp(randomizer)
-			if err != nil {
-				return false, fmt.Errorf("unable to run generate_utctimestamp: %w", err)
-			}
-			return val, nil
+			return generateRandomUTCTimestamp(randomizer), nil
 		}, nil
 	})
 	if err != nil {
@@ -46,14 +41,14 @@ func (t *GenerateUTCTimestamp) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, errors.New("invalid parsed opts")
 	}
-	return generateRandomUTCTimestamp(parsedOpts.randomizer)
+	return generateRandomUTCTimestamp(parsedOpts.randomizer), nil
 }
 
-func generateRandomUTCTimestamp(randomizer rng.Rand) (time.Time, error) {
+func generateRandomUTCTimestamp(randomizer rng.Rand) time.Time {
 	// get the current UTC time
 	currentTime := time.Now().UTC()
 	randomSeconds := randomizer.Int63n(secondsInYear + 1)
 	// subtract the random number of seconds from the current time
 	randomTime := currentTime.Add(-time.Duration(randomSeconds) * time.Second)
-	return randomTime, nil
+	return randomTime
 }
