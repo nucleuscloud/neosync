@@ -15,6 +15,7 @@ import UserDefinedTransformE164NumberForm from './UserDefinedTransformE164PhoneN
 import UserDefinedTransformEmailForm from './UserDefinedTransformEmailForm';
 import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameForm';
 import UserDefinedTransformFloat64Form from './UserDefinedTransformFloat64Form';
+import UserDefinedTransformFullNameForm from './UserDefinedTransformFullNameForm';
 
 interface Props {
   value: TransformerConfig;
@@ -236,8 +237,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_FULL_NAME:
-    //   return <UserDefinedTransformFullNameForm isDisabled={disabled} />;
+    case 'transformFullNameConfig':
+      return (
+        <UserDefinedTransformFullNameForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_INT64:
     //   return <UserDefinedTransformInt64Form isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_INT64_PHONE_NUMBER:
