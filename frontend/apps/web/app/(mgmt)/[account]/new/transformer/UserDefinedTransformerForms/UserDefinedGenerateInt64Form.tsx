@@ -1,5 +1,5 @@
 'use client';
-import { FormDescription, FormItem, FormLabel } from '@/components/ui/form';
+import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
@@ -40,7 +40,7 @@ export default function UserDefinedGenerateInt64Form(
           </div>
         </div>
       </div>
-      <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
           <FormLabel>Minimum Value</FormLabel>
           <FormDescription>
@@ -68,8 +68,8 @@ export default function UserDefinedGenerateInt64Form(
             </div>
           </div>
         </div>
-      </FormItem>
-      <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      </div>
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
           <FormLabel>Maximum Value</FormLabel>
           <FormDescription>
@@ -97,7 +97,7 @@ export default function UserDefinedGenerateInt64Form(
             </div>
           </div>
         </div>
-      </FormItem>
+      </div>
     </div>
   );
 }

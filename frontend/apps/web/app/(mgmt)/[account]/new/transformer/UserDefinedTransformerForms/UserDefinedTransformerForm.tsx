@@ -7,6 +7,7 @@ import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
+import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 
 interface Props {
   value: TransformerConfig;
@@ -102,8 +103,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_RANDOM_STRING:
-    //   return <UserDefinedGenerateStringForm isDisabled={disabled} />;
+    case 'generateStringConfig':
+      return (
+        <UserDefinedGenerateStringForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.GENERATE_STRING_PHONE_NUMBER:
     //   return (
     //     <UserDefinedGenerateStringPhoneNumberNumberForm isDisabled={disabled} />
