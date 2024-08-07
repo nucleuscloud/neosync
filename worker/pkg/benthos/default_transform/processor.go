@@ -5,16 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
-	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
+)
+
+type PrimitiveType int
+
+const (
+	Boolean PrimitiveType = iota
+	Byte
+	Number
+	String
 )
 
 func defaultTransformerProcessorConfig() *service.ConfigSpec {
@@ -39,8 +45,8 @@ func ReisterDefaultTransformerProcessor(env *service.Environment) error {
 
 type defaultTransformerProcessor struct {
 	mappedKeys                 map[string]struct{}
-	defaultTransformerMap      map[string]*mgmtv1alpha1.JobMappingTransformer
-	defaultTransformersInitMap map[string]*InitTransformers
+	defaultTransformerMap      map[PrimitiveType]*mgmtv1alpha1.JobMappingTransformer
+	defaultTransformersInitMap map[PrimitiveType]*DefaultTransformer
 	logger                     *service.Logger
 }
 
@@ -58,15 +64,11 @@ func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Res
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("dtmstr")
-	fmt.Println(dtmStr)
 	var jobSourceOptions mgmtv1alpha1.JobSourceOptions
 	err = protojson.Unmarshal([]byte(dtmStr), &jobSourceOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
-	// jsonF, _ := json.MarshalIndent(jobSourceOptions, "", " ")
-	// fmt.Printf("%s \n", string(jsonF))
 
 	defaultTransformerMap := getDefaultTransformerMap(&jobSourceOptions)
 	defaultTransformersInitMap, err := initDefaultTransformers(defaultTransformerMap)
@@ -83,152 +85,36 @@ func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Res
 
 }
 
-func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) map[string]*mgmtv1alpha1.JobMappingTransformer {
+func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) map[PrimitiveType]*mgmtv1alpha1.JobMappingTransformer {
 	switch cfg := jobSourceOptions.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		unmappedTransformers := cfg.Dynamodb.UnmappedTransforms
-		return map[string]*mgmtv1alpha1.JobMappingTransformer{
-			"bool":   unmappedTransformers.Boolean,
-			"[]byte": unmappedTransformers.B,
-			"int64":  unmappedTransformers.N,
-			"int":    unmappedTransformers.N,
-			"float":  unmappedTransformers.N,
-			"string": unmappedTransformers.S,
+		return map[PrimitiveType]*mgmtv1alpha1.JobMappingTransformer{
+			Boolean: unmappedTransformers.Boolean,
+			Byte:    unmappedTransformers.B,
+			Number:  unmappedTransformers.N,
+			String:  unmappedTransformers.S,
 		}
 
 	default:
-		return map[string]*mgmtv1alpha1.JobMappingTransformer{}
+		return map[PrimitiveType]*mgmtv1alpha1.JobMappingTransformer{}
 	}
 }
 
-// func newMapping(log *service.Logger) *mappingProc {
-// 	functionDef := `
-// 	root.foo = transformEmail()
-// 	root.baz = this.qux.number()
-// 	`
-
-// 	function, err := bloblang.Parse(functionDef)
-// 	if err != nil {
-// 		fmt.Println("Error parsing Bloblang function:", err)
-// 		return nil
-// 	}
-
-// 	return &mappingProc{
-// 		exec: function,
-// 		log:  log,
-// 	}
-// }
-
-// type mappingProc struct {
-// 	exec *bloblang.Executor
-// 	log  *service.Logger
-// }
-
-// root: {
-//   "Id": "123",
-//   "NestedMap": {
-//    "Level1": {
-//     "Level2": {
-//      "Attribute1": "Value1",
-//      "BinaryData": "U29tZUJpbmFyeURhdGE=",
-//      "Level3": {
-//       "Attribute2": "Value2",
-//       "BinarySet": [
-//        "QW5vdGhlckJpbmFyeQ==",
-//        "U29tZUJpbmFyeQ=="
-//       ],
-//       "Level4": {
-//        "Attribute3": "Value3",
-//        "Boolean": true,
-//        "MoreBinaryData": "TW9yZUJpbmFyeURhdGE=",
-//        "MoreBinarySet": [
-//         "QW5vdGhlck1vcmVCaW5hcnk=",
-//         "TW9yZUJpbmFyeQ=="
-//        ]
-//       },
-//       "StringSet": [
-//        "Item1",
-//        "Item2",
-//        "Item3"
-//       ]
-//      },
-//      "NumberSet": [
-//       "1",
-//       "2",
-//       "3"
-//      ]
-//     }
-//    }
-//   }
-//  }
-
 func (m *defaultTransformerProcessor) ProcessBatch(ctx context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
 	newBatch := make(service.MessageBatch, 0, len(batch))
-
-	for i, msg := range batch {
-
+	for _, msg := range batch {
 		root, err := msg.AsStructuredMut()
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ := json.MarshalIndent(root, "", " ")
-		fmt.Printf("root: %s \n\n", string(jsonF))
-		// if err := m.exec.Overlay(nil); err != nil {
-		// 	// ctx.OnError(err, i, msg)
-		// 	m.logger.Errorf("Overlay error: %v", err)
-		// 	// newBatch = append(newBatch, msg)
-		// 	continue
-		// }
-		mutations, err := anyToAttributeValueTest("", root, m.mappedKeys, m.defaultTransformersInitMap, []string{})
+
+		newRoot, err := m.transformRoot("", root)
 		if err != nil {
-			fmt.Println(err.Error())
 			return nil, err
 		}
-
-		rootMutations := []string{}
-		for _, s := range mutations {
-			rootMutations = append(rootMutations, fmt.Sprintf("root.%s", s))
-		}
-		jsonF, _ = json.MarshalIndent(rootMutations, "", " ")
-		fmt.Printf("mutations: %s \n", string(jsonF))
-
-		bloblangFuncStr := strings.Join(rootMutations, "\n")
-		function, err := bloblang.Parse(bloblangFuncStr)
-		if err != nil {
-			fmt.Println("Error parsing Bloblang function:", err)
-			return nil, err
-		}
-
-		executor := batch.BloblangExecutor(function)
-		// batch.BloblangExecutor()
-
-		newMsg, err := executor.Mutate(i)
-		if err != nil {
-			fmt.Println("Error mutate Bloblang function:", err)
-
-			return nil, err
-		}
-
-		nms, err := newMsg.AsStructured()
-		if err != nil {
-			fmt.Println("Error new message as structured:", err)
-
-			return nil, err
-		}
-
-		jsonF, _ = json.MarshalIndent(nms, "", " ")
-		fmt.Printf("newMsg: %s \n", string(jsonF))
-
-		// res, err := function.Query(msg)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// if err := function.Overlay(nil, &root); err != nil {
-		// 	m.logger.Errorf("Overlay error: %v", err)
-		// 	continue
-
-		// }
-
+		newMsg := msg.Copy()
+		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
 	}
 
@@ -242,171 +128,90 @@ func (m *defaultTransformerProcessor) Close(context.Context) error {
 	return nil
 }
 
-func anyToAttributeValueTest(path string, root any, mappedKeys map[string]struct{}, transformerMap map[string]*InitTransformers, mutations []string) ([]string, error) {
-	key := strings.ReplaceAll(strings.ReplaceAll(path, `"."`, `"/"`), `"`, ``)
-	if _, ok := mappedKeys[key]; ok {
-		return mutations, nil
-	}
+// returns new root
+func (m *defaultTransformerProcessor) transformRoot(path string, root any) (any, error) {
+	_, isMappedKey := m.mappedKeys[path] // don't mutate mapped keys
 	switch v := root.(type) {
 	case map[string]any:
+		newMap := make(map[string]any)
 		for k, v2 := range v {
 			p := k
 			if path != "" {
-				p = fmt.Sprintf(`%s.%s`, path, k)
+				p = fmt.Sprintf("%s.%s", path, k)
 			}
-			mu, err := anyToAttributeValueTest(p, v2, mappedKeys, transformerMap, mutations)
+			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
 				return nil, err
 			}
-			mutations = mu
+			newMap[k] = dereferenceValue(newValue)
 		}
-	case []byte:
-		t := transformerMap["[]byte"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
+		return newMap, nil
 	case [][]byte:
+		newSlice := make([][]byte, len(v))
 		for i, v2 := range v {
 			p := fmt.Sprintf("[%d]", i)
 			if path != "" {
-				p = fmt.Sprintf(`%s[%d]`, path, i)
+				p = fmt.Sprintf("%s[%d]", path, i)
 			}
-			mu, err := anyToAttributeValueTest(p, v2, mappedKeys, transformerMap, mutations)
+			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
 				return nil, err
 			}
-			mutations = mu
+			bits, err := toByteSlice(newValue)
+			if err != nil {
+				return nil, err
+			}
+			newSlice[i] = bits
 		}
+		return newSlice, nil
 	case []any:
+		newSlice := make([]any, len(v))
 		for i, v2 := range v {
 			p := fmt.Sprintf("[%d]", i)
 			if path != "" {
-				p = fmt.Sprintf(`%s[%d]`, path, i)
+				p = fmt.Sprintf("%s[%d]", path, i)
 			}
-			mu, err := anyToAttributeValueTest(p, v2, mappedKeys, transformerMap, mutations)
+			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
 				return nil, err
 			}
-			mutations = mu
+			newSlice[i] = dereferenceValue(newValue)
 		}
-	case string:
-		t := transformerMap["string"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			fmt.Printf("Type of variable: %s\n", reflect.TypeOf(newValue))
-
-			printHumanReadable(newValue)
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
-	case json.Number:
-		t := transformerMap["string"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
-	case float64:
-		t := transformerMap["float64"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %f", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
-	case int:
-		t := transformerMap["int"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %d", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
-	case int64:
-		t := transformerMap["int64"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %d", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %s", path, newValue))
-		}
-	case bool:
-		t := transformerMap["bool"]
-		if t == nil {
-			mutations = append(mutations, fmt.Sprintf("%s = %t", path, v))
-		} else {
-			newValue, err := t.mutate(v, t.opts)
-			if err != nil {
-				return nil, err
-			}
-			mutations = append(mutations, fmt.Sprintf("%s = %t", path, newValue))
-		}
-	}
-	return mutations, nil
-}
-
-func printHumanReadable(value any) {
-	// Print the type of the variable
-	fmt.Printf("Type of variable: %s\n", reflect.TypeOf(value))
-
-	// Print the value in a human-readable format
-	switch v := value.(type) {
-	case int, int8, int16, int32, int64:
-		fmt.Printf("Integer value: %d\n", v)
-	case uint, uint8, uint16, uint32, uint64:
-		fmt.Printf("Unsigned integer value: %d\n", v)
-	case float32, float64:
-		fmt.Printf("Float value: %f\n", v)
-	case string:
-		fmt.Printf("String value: %s\n", v)
-	case *string:
-		if v != nil {
-			fmt.Printf("Pointer to string value: %s\n", *v)
-		} else {
-			fmt.Printf("Pointer to string value: nil\n")
-		}
-	case bool:
-		fmt.Printf("Boolean value: %t\n", v)
-	case time.Time:
-		fmt.Printf("Time value: %s\n", v.Format(time.RFC3339))
+		return newSlice, nil
 	case []byte:
-		fmt.Printf("Byte slice value: %s\n", string(v))
+		return m.getValue(Byte, v, !isMappedKey)
+	case string:
+		return m.getValue(String, v, !isMappedKey)
+	case json.Number:
+		return m.getValue(String, v, !isMappedKey)
+	case float64:
+		return m.getValue(Number, v, !isMappedKey)
+	case int:
+		return m.getValue(Number, v, !isMappedKey)
+	case int64:
+		return m.getValue(Number, v, !isMappedKey)
+	case bool:
+		return m.getValue(Boolean, v, !isMappedKey)
 	default:
-		fmt.Printf("Other type: %v\n", v)
+		return v, nil
 	}
 }
 
-type InitTransformers struct {
-	opts any
-	// generate  func(opts any) (any, error)
-	// transform func(value any, opts any) (any, error)
+func (m *defaultTransformerProcessor) getValue(transformerKey PrimitiveType, value any, shouldMutate bool) (any, error) {
+	t := m.defaultTransformersInitMap[transformerKey]
+	if t != nil && shouldMutate {
+		return t.mutate(value, t.opts)
+	}
+	return value, nil
+}
+
+type DefaultTransformer struct {
+	opts   any
 	mutate func(value any, opts any) (any, error)
 }
 
-func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer) (*InitTransformers, error) {
+// initializes transformers and options
+func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer) (*DefaultTransformer, error) {
 	switch transformerMapping.Source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL:
 		categories := transformerMapping.Config.GetGenerateCategoricalConfig().Categories
@@ -414,10 +219,8 @@ func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer)
 		if err != nil {
 			return nil, err
 		}
-
 		generate := transformer.NewGenerateCategorical().Generate
-
-		return &InitTransformers{
+		return &DefaultTransformer{
 			opts: opts,
 			mutate: func(value any, opts any) (any, error) {
 				return generate(opts)
@@ -429,7 +232,7 @@ func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer)
 			return nil, err
 		}
 		generate := transformer.NewGenerateBool().Generate
-		return &InitTransformers{
+		return &DefaultTransformer{
 			opts: opts,
 			mutate: func(value any, opts any) (any, error) {
 				return generate(opts)
@@ -444,7 +247,7 @@ func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer)
 			return nil, err
 		}
 		transform := transformer.NewTransformString().Transform
-		return &InitTransformers{
+		return &DefaultTransformer{
 			opts: opts,
 			mutate: func(value any, opts any) (any, error) {
 				return transform(value, opts)
@@ -456,9 +259,8 @@ func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer)
 		if err != nil {
 			return nil, err
 		}
-
 		transform := transformer.NewTransformFullName().Transform
-		return &InitTransformers{
+		return &DefaultTransformer{
 			opts: opts,
 			mutate: func(value any, opts any) (any, error) {
 				return transform(value, opts)
@@ -470,8 +272,8 @@ func initTransformerOpts(transformerMapping *mgmtv1alpha1.JobMappingTransformer)
 
 }
 
-func initDefaultTransformers(defaultTransformerMap map[string]*mgmtv1alpha1.JobMappingTransformer) (map[string]*InitTransformers, error) {
-	transformersInit := map[string]*InitTransformers{}
+func initDefaultTransformers(defaultTransformerMap map[PrimitiveType]*mgmtv1alpha1.JobMappingTransformer) (map[PrimitiveType]*DefaultTransformer, error) {
+	transformersInit := map[PrimitiveType]*DefaultTransformer{}
 	for k, t := range defaultTransformerMap {
 		init, err := initTransformerOpts(t)
 		if err != nil {
@@ -696,3 +498,33 @@ func initDefaultTransformers(defaultTransformerMap map[string]*mgmtv1alpha1.JobM
 // 		return "", fmt.Errorf("unsupported transformer")
 // 	}
 // }
+
+func dereferenceValue(value any) any {
+	rv := reflect.ValueOf(value)
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return nil
+		}
+		return rv.Elem().Interface()
+	}
+	return value
+}
+
+func toByteSlice(value any) ([]byte, error) {
+	switch v := value.(type) {
+	case []byte:
+		return v, nil
+	case string:
+		return []byte(v), nil
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, bool:
+		return []byte(fmt.Sprintf("%v", v)), nil
+	default:
+		if reflect.TypeOf(v).Kind() == reflect.Ptr {
+			if reflect.ValueOf(v).IsNil() {
+				return []byte("null"), nil
+			}
+			v = reflect.ValueOf(v).Elem().Interface()
+		}
+		return json.Marshal(v)
+	}
+}

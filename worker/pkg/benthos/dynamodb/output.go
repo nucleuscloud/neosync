@@ -43,7 +43,6 @@ type ddboConfig struct {
 	TTL            string
 	TTLKey         string
 
-	// aconf       aws.Config
 	backoffCtor func() backoff.BackOff
 	awsConfig   aws.Config
 }
@@ -220,10 +219,10 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 				}
 			}
 		case NumberSet:
-			s, ok := getGenericSlice[string](root)
-			if ok {
+			stringSlice, err := toStringSlice(root)
+			if err == nil {
 				return &types.AttributeValueMemberNS{
-					Value: s,
+					Value: stringSlice,
 				}
 			}
 		}
@@ -545,4 +544,44 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 		return 0, nil
 	}
 	return pConf.FieldDuration(path...)
+}
+
+func toStringSlice(slice any) ([]string, error) {
+	v := reflect.ValueOf(slice)
+	if v.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("input is not a slice")
+	}
+
+	result := make([]string, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i).Interface()
+		str, err := anyToString(elem)
+		if err != nil {
+			return nil, fmt.Errorf("error converting element at index %d: %v", i, err)
+		}
+		result[i] = str
+	}
+
+	return result, nil
+}
+
+func anyToString(value any) (string, error) {
+	switch v := value.(type) {
+	case string:
+		return v, nil
+	case int, int8, int16, int32, int64:
+		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10), nil
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10), nil
+	case float32, float64:
+		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64), nil
+	case bool:
+		return strconv.FormatBool(v), nil
+	case []byte:
+		return string(v), nil
+	case nil:
+		return "null", nil
+	default:
+		return fmt.Sprintf("%v", v), nil
+	}
 }
