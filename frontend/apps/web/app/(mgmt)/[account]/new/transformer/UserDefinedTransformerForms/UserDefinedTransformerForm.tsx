@@ -7,6 +7,7 @@ import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
+import UserDefinedGenerateJavascriptForm from './UserDefinedGenerateJavascriptForm';
 import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
@@ -356,8 +357,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_JAVASCRIPT:
-    //   return <UserDefinedGenerateJavascriptForm isDisabled={disabled} />;
+    case 'generateJavascriptConfig':
+      return (
+        <UserDefinedGenerateJavascriptForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     default:
       <div>No transformer found</div>;
   }
