@@ -20,6 +20,7 @@ import UserDefinedTransformInt64Form from './UserDefinedTransformInt64Form';
 import UserDefinedTransformIntPhoneNumberForm from './UserDefinedTransformInt64PhoneForm';
 import UserDefinedTransformLastNameForm from './UserDefinedTransformLastNameForm';
 import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
+import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 
 interface Props {
   value: TransformerConfig;
@@ -311,8 +312,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_STRING:
-    //   return <UserDefinedTransformStringForm isDisabled={disabled} />;
+    case 'transformStringConfig':
+      return (
+        <UserDefinedTransformStringForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_JAVASCRIPT:
     //   return <UserDefinedTransformJavascriptForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_CHARACTER_SCRAMBLE:
