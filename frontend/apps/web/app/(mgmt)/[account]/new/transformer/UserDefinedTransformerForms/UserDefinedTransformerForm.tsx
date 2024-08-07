@@ -17,6 +17,8 @@ import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameFo
 import UserDefinedTransformFloat64Form from './UserDefinedTransformFloat64Form';
 import UserDefinedTransformFullNameForm from './UserDefinedTransformFullNameForm';
 import UserDefinedTransformInt64Form from './UserDefinedTransformInt64Form';
+import UserDefinedTransformIntPhoneNumberForm from './UserDefinedTransformInt64PhoneForm';
+import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
 
 interface Props {
   value: TransformerConfig;
@@ -266,12 +268,36 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_INT64_PHONE_NUMBER:
-    //   return <UserDefinedTransformIntPhoneNumberForm isDisabled={disabled} />;
+    case 'transformInt64PhoneNumberConfig':
+      return (
+        <UserDefinedTransformIntPhoneNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_LAST_NAME:
     //   return <UserDefinedTransformLastNameForm isDisabled={disabled} />;
-    // case TransformerSource.TRANSFORM_PHONE_NUMBER:
-    //   return <UserDefinedTransformPhoneNumberForm isDisabled={disabled} />;
+    case 'transformPhoneNumberConfig':
+      return (
+        <UserDefinedTransformPhoneNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_STRING:
     //   return <UserDefinedTransformStringForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_JAVASCRIPT:
