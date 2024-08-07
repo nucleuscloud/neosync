@@ -12,6 +12,8 @@ import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
 import UserDefinedTransformE164NumberForm from './UserDefinedTransformE164PhoneNumberForm';
+import UserDefinedTransformEmailForm from './UserDefinedTransformEmailForm';
+import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameForm';
 
 interface Props {
   value: TransformerConfig;
@@ -177,8 +179,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_EMAIL:
-    //   return <UserDefinedTransformEmailForm isDisabled={disabled} />;
+    case 'transformEmailConfig':
+      return (
+        <UserDefinedTransformEmailForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     case 'generateEmailConfig':
       return (
         <UserDefinedGenerateEmailForm
@@ -193,8 +207,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_FIRST_NAME:
-    //   return <UserDefinedTransformFirstNameForm isDisabled={disabled} />;
+    case 'transformFirstNameConfig':
+      return (
+        <UserDefinedTransformFirstNameForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_FLOAT64:
     //   return <UserDefinedTransformFloat64Form isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_FULL_NAME:
