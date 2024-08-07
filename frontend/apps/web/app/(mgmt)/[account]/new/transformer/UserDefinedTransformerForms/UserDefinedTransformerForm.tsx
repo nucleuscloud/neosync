@@ -10,6 +10,7 @@ import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenera
 import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
+import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
 
 interface Props {
   value: TransformerConfig;
@@ -147,8 +148,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_UUID:
-    //   return <UserDefinedGenerateUuidForm  isDisabled={disabled} />;
+    case 'generateUuidConfig':
+      return (
+        <UserDefinedGenerateUuidForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:
     //   return <UserDefinedTransformE164NumberForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_EMAIL:
