@@ -171,7 +171,7 @@ export default function NewTransformer(): ReactElement {
 
     form.setValue('config', convertTransformerConfigToForm(base.config));
   }, [isLoading, base.source, configCase, transformerQueryParam]);
-
+  console.log(form.formState.errors, form.formState.isValid);
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a New Transformer" />}
@@ -288,20 +288,27 @@ export default function NewTransformer(): ReactElement {
             </div>
           )}
           <div>
-            <UserDefinedTransformerForm
-              value={convertTransformerConfigSchemaToTransformerConfig(
-                form.watch('config')
+            <FormField
+              control={form.control}
+              name="config"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <UserDefinedTransformerForm
+                      value={convertTransformerConfigSchemaToTransformerConfig(
+                        field.value
+                      )}
+                      setValue={(newValue) => {
+                        field.onChange(
+                          convertTransformerConfigToForm(newValue)
+                        );
+                      }}
+                      disabled={false}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              setValue={(newValue) => {
-                console.log('updating', newValue);
-                // form.setValue('source', newValue.source);
-                form.setValue(
-                  'config',
-                  convertTransformerConfigToForm(newValue)
-                );
-              }}
-              disabled={false}
-            />
+            ></FormField>
           </div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>

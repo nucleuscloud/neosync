@@ -461,7 +461,9 @@ const JavascriptConfig = Yup.object().shape({
 });
 
 const generateCategoricalConfig = Yup.object().shape({
-  categories: Yup.string().required('This field is required.'),
+  categories: Yup.string()
+    .min(1, 'Must have at least one category')
+    .required('This field is required.'),
 });
 
 type ConfigType = TransformerConfig['config'];

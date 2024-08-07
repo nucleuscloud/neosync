@@ -1,6 +1,7 @@
 import { TransformerConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
+import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
 
 interface Props {
   value: TransformerConfig;
@@ -10,23 +11,36 @@ interface Props {
 // handles rendering custom transformer configs
 export function UserDefinedTransformerForm(props: Props): ReactElement {
   const { value, disabled, setValue } = props;
-  switch (value.config.case) {
+  const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
+  switch (valConfig.case) {
     case 'generateCardNumberConfig':
       return (
         <UserDefinedGenerateCardNumberForm
-          value={value.config.value}
+          value={valConfig.value}
           setValue={(newVal) =>
             setValue(
               new TransformerConfig({
-                config: { case: 'generateCardNumberConfig', value: newVal },
+                config: { case: valConfig.case, value: newVal },
               })
             )
           }
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_CATEGORICAL:
-    //   return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
+    case 'generateCategoricalConfig':
+      return (
+        <UserDefinedGenerateCategoricalForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.GENERATE_E164_PHONE_NUMBER:
     //   return (
     //     <UserDefinedGenerateInternationalPhoneNumberForm
