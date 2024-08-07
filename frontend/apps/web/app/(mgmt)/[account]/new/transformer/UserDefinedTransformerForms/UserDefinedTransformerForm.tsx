@@ -7,6 +7,7 @@ import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
+import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 
@@ -132,10 +133,22 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_STATE:
-    //   return <UserDefinedGenerateStateForm isDisabled={disabled} />;
+    case 'generateStateConfig':
+      return (
+        <UserDefinedGenerateStateForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.GENERATE_UUID:
-    //   return <UserDefinedGenerateUuidForm isDisabled={disabled} />;
+    //   return <UserDefinedGenerateUuidForm  isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:
     //   return <UserDefinedTransformE164NumberForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_EMAIL:
