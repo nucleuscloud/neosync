@@ -70,6 +70,8 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			&shared.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.ColumnInfo{},
+			job.GetSource().GetOptions(),
+			columns,
 		)
 		if err != nil {
 			return nil, err

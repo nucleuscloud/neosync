@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type dynamoSyncResp struct {
@@ -33,33 +34,27 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	if dynamoSourceConfig == nil {
 		return nil, fmt.Errorf("source connection was not dynamodb. Got %T", sourceConnection.GetConnectionConfig().Config)
 	}
+	awsManager := awsmanager.New()
+	dynamoClient, err := awsManager.NewDynamoDbClient(ctx, dynamoSourceConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create DynamoDB client: %w", err)
+	}
 
 	dynamoJobSourceOpts := job.GetSource().GetOptions().GetDynamodb()
 	tableOptsMap := toDynamoDbSourceTableOptionMap(dynamoJobSourceOpts.GetTables())
 
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
-	sourceOptBits, err := protojson.Marshal(job.GetSource().GetOptions())
-	if err != nil {
-		return nil, err
-	}
-
 	benthosConfigs := []*BenthosConfigResponse{}
 	// todo: may need to filter here based on the destination config mappings if there is no source->destination table map
 	for _, tableMapping := range groupedMappings {
-		columns := []string{}
-		for _, jm := range tableMapping.Mappings {
-			columns = append(columns, jm.Column)
-		}
-
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						AwsDynamoDB: &neosync_benthos.InputAwsDynamoDB{
-							Table: tableMapping.Table,
-							Where: getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
-
+							Table:       tableMapping.Table,
+							Where:       getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
 							Region:      dynamoSourceConfig.GetRegion(),
 							Endpoint:    dynamoSourceConfig.GetEndpoint(),
 							Credentials: buildBenthosS3Credentials(dynamoSourceConfig.GetCredentials()),
@@ -67,15 +62,8 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 					},
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{
-					Threads: -1,
-					Processors: []neosync_benthos.ProcessorConfig{
-						{
-							NeosyncDefaultMapping: &neosync_benthos.NeosyncDefaultMappingConfig{
-								JobSourceOptionsString: string(sourceOptBits),
-								MappedKeys:             columns,
-							},
-						},
-					},
+					Threads:    -1,
+					Processors: []neosync_benthos.ProcessorConfig{},
 				},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
@@ -88,6 +76,16 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 			},
 		}
 
+		columns := []string{}
+		for _, jm := range tableMapping.Mappings {
+			columns = append(columns, jm.Column)
+		}
+
+		tableKey, err := dynamoClient.GetTableKey(ctx, tableMapping.Table)
+		if err != nil {
+			return nil, fmt.Errorf("failed to describe table %s: %w", tableMapping.Table, err)
+		}
+		mappedKeys := slices.Concat[[]string, string](columns, []string{tableKey.HashKey, tableKey.RangeKey})
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
@@ -99,6 +97,8 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 			&shared.RedisConfig{},
 			tableMapping.Mappings,
 			map[string]*sqlmanager_shared.ColumnInfo{},
+			job.GetSource().GetOptions(),
+			mappedKeys,
 		)
 		if err != nil {
 			return nil, err

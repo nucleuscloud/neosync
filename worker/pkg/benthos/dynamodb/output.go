@@ -212,6 +212,9 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case StringSet:
+			fmt.Println("output string set")
+			fmt.Println(key)
+			fmt.Println(root)
 			s, ok := getGenericSlice[string](root)
 			if ok {
 				return &types.AttributeValueMemberSS{
@@ -219,6 +222,9 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 				}
 			}
 		case NumberSet:
+			fmt.Println("output number set")
+			fmt.Println(key)
+			fmt.Println(root)
 			stringSlice, err := toStringSlice(root)
 			if err == nil {
 				return &types.AttributeValueMemberNS{
@@ -247,7 +253,7 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	case []any:
 		l := make([]types.AttributeValue, len(v))
 		for i, v2 := range v {
-			l[i] = anyToAttributeValue("", v2, keyTypeMap)
+			l[i] = anyToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberL{
 			Value: l,
@@ -310,6 +316,8 @@ func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
+	jsonF, _ := json.MarshalIndent(keyTypeMap, "", " ")
+	fmt.Printf("keyTypeMap: %s \n", string(jsonF))
 	return anyToAttributeValue(key, gObj.Data(), keyTypeMap)
 }
 
@@ -366,6 +374,8 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				}
 			}
 		}
+		jsonF, _ := json.MarshalIndent(items, "", " ")
+		fmt.Printf("jsonToMap: %s \n", string(jsonF))
 		writeReqs = append(writeReqs, types.WriteRequest{
 			PutRequest: &types.PutRequest{
 				Item: items,
