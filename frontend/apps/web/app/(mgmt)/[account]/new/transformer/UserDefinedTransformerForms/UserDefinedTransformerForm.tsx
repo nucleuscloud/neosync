@@ -4,6 +4,7 @@ import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
 import UserDefinedGenerateEmailForm from './UserDefinedGenerateEmailForm';
 import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
+import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
 
 interface Props {
@@ -72,8 +73,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.GENERATE_GENDER:
-    //   return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
+    case 'generateGenderConfig':
+      return (
+        <UserDefinedGenerateGenderForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.GENERATE_INT64:
     //   return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
     // case TransformerSource.GENERATE_RANDOM_STRING:
