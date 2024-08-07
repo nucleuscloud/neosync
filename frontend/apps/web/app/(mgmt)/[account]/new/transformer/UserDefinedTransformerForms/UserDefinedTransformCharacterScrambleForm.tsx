@@ -4,44 +4,25 @@ import Spinner from '@/components/Spinner';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
+import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@connectrpc/connect-query';
+import { TransformCharacterScramble } from '@neosync/sdk';
 import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
-import {
-  CreateUserDefinedTransformerFormValues,
-  UpdateUserDefinedTransformerFormValues,
-} from '../schema';
-interface Props {
-  isDisabled?: boolean;
-}
+import { TransformerConfigProps } from './util';
+
+interface Props extends TransformerConfigProps<TransformCharacterScramble> {}
 
 export type ValidRegex = 'valid' | 'invalid' | 'null';
 
 export default function UserDefinedTransformCharacterScrambleForm(
   props: Props
 ): ReactElement {
-  const { isDisabled } = props;
-
-  const fc = useFormContext<
-    | UpdateUserDefinedTransformerFormValues
-    | CreateUserDefinedTransformerFormValues
-  >();
-
-  const [userRegex, setRegex] = useState<string>(
-    fc.getValues('config.value.userProvidedRegex')
-  );
+  const { value, setValue, isDisabled } = props;
 
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
   const [isRegexValid, setIsRegexValid] = useState<ValidRegex>('null');
@@ -60,7 +41,7 @@ export default function UserDefinedTransformCharacterScrambleForm(
     try {
       const res = await validateUserRegexCodeAsync({
         accountId: account.id,
-        userProvidedRegex: userRegex,
+        userProvidedRegex: value.userProvidedRegex,
       });
       setIsValidatingRegex(false);
       if (res.valid === true) {
@@ -101,35 +82,32 @@ export default function UserDefinedTransformCharacterScrambleForm(
           />
         </Button>
       </div>
-      <FormField
-        name={`config.value.userProvidedRegex`}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Regular Expression</FormLabel>
-              <FormDescription className="w-[90%]">
-                Provide a Go regular expression to match and transform a
-                substring of the value. Leave this blank to transform the entire
-                value. Note: the regex needs to compile in Go.
-              </FormDescription>
-              <LearnMoreTag href="https://docs.neosync.dev/transformers/system#transform-character-scramble" />
-            </div>
-            <FormControl>
-              <div className="w-[300px]">
-                <Input
-                  type="string"
-                  value={field.value}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    setRegex(e.target.value ?? '');
-                  }}
-                  disabled={isDisabled}
-                />
-              </div>
-            </FormControl>
-          </FormItem>
-        )}
-      />
+      <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+        <div className="space-y-0.5">
+          <FormLabel>Regular Expression</FormLabel>
+          <FormDescription className="w-[90%]">
+            Provide a Go regular expression to match and transform a substring
+            of the value. Leave this blank to transform the entire value. Note:
+            the regex needs to compile in Go.
+          </FormDescription>
+          <LearnMoreTag href="https://docs.neosync.dev/transformers/system#transform-character-scramble" />
+        </div>
+        <div className="w-[300px]">
+          <Input
+            type="string"
+            value={value.userProvidedRegex}
+            onChange={(e) => {
+              setValue(
+                new TransformCharacterScramble({
+                  ...value,
+                  userProvidedRegex: e.target.value,
+                })
+              );
+            }}
+            disabled={isDisabled}
+          />
+        </div>
+      </div>
     </div>
   );
 }

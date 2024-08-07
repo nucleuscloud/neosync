@@ -11,6 +11,7 @@ import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
+import UserDefinedTransformCharacterScrambleForm from './UserDefinedTransformCharacterScrambleForm';
 import UserDefinedTransformE164NumberForm from './UserDefinedTransformE164PhoneNumberForm';
 import UserDefinedTransformEmailForm from './UserDefinedTransformEmailForm';
 import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameForm';
@@ -341,10 +342,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
           isDisabled={disabled}
         />
       );
-    // case TransformerSource.TRANSFORM_CHARACTER_SCRAMBLE:
-    //   return (
-    //     <UserDefinedTransformCharacterScrambleForm isDisabled={disabled} />
-    //   );
+    case 'transformCharacterScrambleConfig':
+      return (
+        <UserDefinedTransformCharacterScrambleForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.GENERATE_JAVASCRIPT:
     //   return <UserDefinedGenerateJavascriptForm isDisabled={disabled} />;
     default:
