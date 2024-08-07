@@ -2,6 +2,7 @@ import { TransformerConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
+import UserDefinedGenerateEmailForm from './UserDefinedGenerateEmailForm';
 
 interface Props {
   value: TransformerConfig;
@@ -67,8 +68,20 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
     //   return <UserDefinedTransformE164NumberForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_EMAIL:
     //   return <UserDefinedTransformEmailForm isDisabled={disabled} />;
-    // case TransformerSource.GENERATE_EMAIL:
-    //   return <UserDefinedGenerateEmailForm isDisabled={disabled} />;
+    case 'generateEmailConfig':
+      return (
+        <UserDefinedGenerateEmailForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+        />
+      );
     // case TransformerSource.TRANSFORM_FIRST_NAME:
     //   return <UserDefinedTransformFirstNameForm isDisabled={disabled} />;
     // case TransformerSource.TRANSFORM_FLOAT64:
