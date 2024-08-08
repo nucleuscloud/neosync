@@ -257,36 +257,11 @@ func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
 
 	actual, err := manager.GetTableInitStatements(
 		context.Background(),
-		[]*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "parent1"}, {Schema: schema, Table: "child1"}},
-	)
-
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), actual)
-	for _, stmt := range actual {
-		_, err = s.target.pool.ExecContext(context.Background(), stmt.CreateTableStatement)
-		require.NoError(s.T(), err)
-	}
-	for _, stmt := range actual {
-		for _, index := range stmt.IndexStatements {
-			_, err = s.target.pool.ExecContext(context.Background(), index)
-			require.NoError(s.T(), err)
-		}
-	}
-	for _, stmt := range actual {
-		for _, alter := range stmt.AlterTableStatements {
-			_, err = s.target.pool.ExecContext(context.Background(), alter.Statement)
-			require.NoError(s.T(), err)
-		}
-	}
-}
-
-func (s *IntegrationTestSuite) Test_GetTableInitStatements_ReservedWords() {
-	manager := NewManager(s.source.querier, s.source.pool, func() {})
-	schema := "sqlmanagermysql3"
-
-	actual, err := manager.GetTableInitStatements(
-		context.Background(),
-		[]*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "order"}},
+		[]*sqlmanager_shared.SchemaTable{
+			{Schema: schema, Table: "parent1"},
+			{Schema: schema, Table: "child1"},
+			{Schema: schema, Table: "order"},
+		},
 	)
 
 	require.NoError(s.T(), err)
