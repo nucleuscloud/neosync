@@ -764,7 +764,7 @@ func executeWorkflow(
 	require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
 
 	err := env.GetWorkflowError()
-	require.Nilf(t, err, fmt.Sprintf("Workflow error. Test: %s", testName))
+	require.NoError(t, err, "Received Temporal Workflow Error", "testName", testName)
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {

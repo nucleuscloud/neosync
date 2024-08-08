@@ -5,11 +5,18 @@
 package transformers
 
 import (
+	"fmt"
+	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type GenerateState struct{}
 
 type GenerateStateOpts struct {
+	randomizer     rng.Rand
+	
 	generateFullName bool
 }
 
@@ -46,6 +53,19 @@ func (t *GenerateState) ParseOptions(opts map[string]any) (any, error) {
 		generateFullName = false
 	}
 	transformerOpts.generateFullName = generateFullName
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

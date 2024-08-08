@@ -10,7 +10,7 @@ import (
 )
 
 func Test_GenerateRandomBool(t *testing.T) {
-	res := generateRandomizerBool(rng.New(time.Now().UnixNano()))
+	res := generateRandomBool(rng.New(time.Now().UnixNano()))
 	assert.IsType(t, res, false)
 }
 

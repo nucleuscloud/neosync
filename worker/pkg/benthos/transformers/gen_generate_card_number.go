@@ -7,11 +7,16 @@ package transformers
 import (
 	"fmt"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type GenerateCardNumber struct{}
 
 type GenerateCardNumberOpts struct {
+	randomizer     rng.Rand
+	
 	validLuhn bool
 }
 
@@ -43,6 +48,19 @@ func (t *GenerateCardNumber) ParseOptions(opts map[string]any) (any, error) {
 	}
 	validLuhn := opts["validLuhn"].(bool)
 	transformerOpts.validLuhn = validLuhn
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

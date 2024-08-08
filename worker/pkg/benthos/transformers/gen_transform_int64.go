@@ -7,11 +7,16 @@ package transformers
 import (
 	"fmt"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type TransformInt64 struct{}
 
 type TransformInt64Opts struct {
+	randomizer     rng.Rand
+	
 	randomizationRangeMin int64
 	randomizationRangeMax int64
 }
@@ -52,6 +57,19 @@ func (t *TransformInt64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	randomizationRangeMax := opts["randomizationRangeMax"].(int64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 	"unicode"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
@@ -20,7 +22,7 @@ func Test_ScrambleCharacter(t *testing.T) {
 
 	testRune := rune(testStringValue[0])
 
-	res := ScrambleChar(testRune)
+	res := scrambleChar(rng.New(time.Now().UnixNano()), testRune)
 
 	assert.IsType(t, "", string(res))
 	assert.Equal(t, len(testStringValue), len(string(res)), "The output string should be as long as the input string")
@@ -30,7 +32,7 @@ func Test_ScrambleCharacter(t *testing.T) {
 func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 	testStringValue := "he11o world"
 
-	res, err := transformCharacterScramble(testStringValue, "e11")
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, "e11")
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -41,7 +43,7 @@ func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 	testStringValue := "Hello"
 
-	res, err := transformCharacterScramble(testStringValue, helloWorldRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, helloWorldRegex)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, res, "Result should not be nil")
@@ -55,7 +57,7 @@ func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 	testStringValue := "41323421"
 
-	res, err := transformCharacterScramble(testStringValue, numberRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, numberRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -66,7 +68,7 @@ func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 	testStringValue := "hello wor23r2ld 221"
 
-	res, err := transformCharacterScramble(testStringValue, helloWorldRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, helloWorldRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -77,7 +79,7 @@ func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
-	res, err := transformCharacterScramble(testStringValue, `#\*\(&`)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, `#\*\(&`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -87,7 +89,7 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := transformCharacterScramble(helloTest, `ello`)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), helloTest, `ello`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -99,7 +101,7 @@ func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := transformCharacterScramble(helloTest, `123`)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), helloTest, `123`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -110,7 +112,7 @@ func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	res, err := transformCharacterScramble(testStringValue, ``)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, ``)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -124,7 +126,7 @@ func Test_TransformCharacterSubstitutionLettersMatchNumbers(t *testing.T) {
 	testStringValue := "MED-133-R123"
 	complexRegex := `\d+`
 
-	res, err := transformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -150,7 +152,7 @@ func Test_TransformCharacterSubstitutionLettersSemiComplexRegex(t *testing.T) {
 	testStringValue := "MED-133-L123"
 	complexRegex := `-(.+?)-`
 
-	res, err := transformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -165,7 +167,7 @@ func Test_TransformCharacterSubstitutionLettersComplexRegex(t *testing.T) {
 	testStringValue := "MED-133-A123"
 	complexRegex := `-(.+?)-`
 
-	res, err := transformCharacterScramble(testStringValue, complexRegex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testStringValue, complexRegex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -207,7 +209,7 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 
 	testEmail := "nick@gmail.com"
 
-	res, err := transformCharacterScramble(testEmail, emailregex)
+	res, err := transformCharacterScramble(rng.New(time.Now().UnixNano()), testEmail, emailregex)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)

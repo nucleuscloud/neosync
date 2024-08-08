@@ -3,13 +3,15 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateStreetAddress(t *testing.T) {
-	res, err := generateRandomStreetAddress(maxLength)
+	res, err := generateRandomStreetAddress(rng.New(time.Now().UnixMilli()), maxLength)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")
@@ -18,7 +20,7 @@ func Test_GenerateStreetAddress(t *testing.T) {
 }
 
 func Test_GenerateStreetAddressShortMax(t *testing.T) {
-	res, err := generateRandomStreetAddress(int64(5))
+	res, err := generateRandomStreetAddress(rng.New(time.Now().UnixMilli()), int64(5))
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")
@@ -27,7 +29,7 @@ func Test_GenerateStreetAddressShortMax(t *testing.T) {
 }
 
 func Test_GenerateStreetAddressSVeryhortMax(t *testing.T) {
-	res, err := generateRandomStreetAddress(int64(2))
+	res, err := generateRandomStreetAddress(rng.New(time.Now().UnixMilli()), int64(2))
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")

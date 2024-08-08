@@ -1,10 +1,11 @@
 package transformers
 
 import (
-	"errors"
-	"math/rand"
+	"fmt"
 	"strings"
 
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -13,7 +14,8 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly selects a value from a defined set of categorical values.").
-		Param(bloblang.NewStringParam("categories").Description("A list of comma-separated string values to randomly select from."))
+		Param(bloblang.NewStringParam("categories").Description("A list of comma-separated string values to randomly select from.")).
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_categorical", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		// get stringified categories
@@ -23,8 +25,19 @@ func init() {
 		}
 		categories := strings.Split(catString, ",")
 
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rng.New(seed)
+
 		return func() (any, error) {
-			res := generateCategorical(categories)
+			res := generateCategorical(randomizer, categories)
 			return res, nil
 		}, nil
 	})
@@ -36,18 +49,17 @@ func init() {
 func (t *GenerateCategorical) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateCategoricalOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	return generateCategorical(strings.Split(parsedOpts.categories, ",")), nil
+	return generateCategorical(parsedOpts.randomizer, strings.Split(parsedOpts.categories, ",")), nil
 }
 
 // Generates a randomly selected value from the user-provided list of categories. We don't account for the maxLength param here because the input is user-provided. We assume that they values they provide in the set abide by the maxCharacterLength constraint.
-func generateCategorical(categories []string) string {
+func generateCategorical(randomizer rng.Rand, categories []string) string {
 	if len(categories) == 0 {
 		return ""
 	}
-	//nolint:gosec
-	randomIndex := rand.Intn(len(categories))
+	randomIndex := randomizer.Intn(len(categories))
 	return categories[randomIndex]
 }

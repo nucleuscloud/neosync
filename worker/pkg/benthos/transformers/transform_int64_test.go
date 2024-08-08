@@ -3,7 +3,9 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
@@ -13,7 +15,7 @@ func Test_TransformIntInRange(t *testing.T) {
 	rMin := int64(5)
 	rMax := int64(5)
 
-	res, err := transformInt(&val, rMin, rMax)
+	res, err := transformInt(rng.New(time.Now().UnixNano()), &val, rMin, rMax)
 	require.NoError(t, err)
 
 	require.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")

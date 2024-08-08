@@ -2,14 +2,16 @@ package transformers
 
 import (
 	"testing"
+	"time"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateZipcode(t *testing.T) {
-	res := generateRandomZipcode()
+	res := generateRandomZipcode(rng.New(time.Now().UnixMilli()))
 
 	assert.IsType(t, "", res, "The returned zipcode should be a string")
 

@@ -3,7 +3,9 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
@@ -12,7 +14,7 @@ func Test_GenerateInternationalPhoneNumber(t *testing.T) {
 	minValue := int64(9)
 	maxValue := int64(12)
 
-	res, err := generateInternationalPhoneNumber(minValue, maxValue)
+	res, err := generateInternationalPhoneNumber(rng.New(time.Now().UnixNano()), minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(res), true, "The actual value should be a valid e164 number")
@@ -24,7 +26,7 @@ func Test_GenerateInternationalPhoneNumberPreserveLength(t *testing.T) {
 	minValue := int64(12)
 	maxValue := int64(12)
 
-	res, err := generateInternationalPhoneNumber(minValue, maxValue)
+	res, err := generateInternationalPhoneNumber(rng.New(time.Now().UnixNano()), minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(res), true, "The actual value should be a valid e164 number")

@@ -1,8 +1,7 @@
 package transformers
 
 import (
-	"errors"
-	"math/rand"
+	"fmt"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -29,7 +28,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			return generateRandomizerBool(randomizer), nil
+			return generateRandomBool(randomizer), nil
 		}, nil
 	})
 	if err != nil {
@@ -40,20 +39,13 @@ func init() {
 func (t *GenerateBool) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateBoolOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	return generateRandomizerBool(parsedOpts.randomizer), nil
+	return generateRandomBool(parsedOpts.randomizer), nil
 }
 
-// Generates a random bool value and returns it as a bool type.
-func generateRandomBool() bool {
-	//nolint:gosec
-	randInt := rand.Intn(2)
-	return randInt == 1
-}
-
-func generateRandomizerBool(randomizer rng.Rand) bool {
+func generateRandomBool(randomizer rng.Rand) bool {
 	randInt := randomizer.Intn(2)
 	return randInt == 1
 }

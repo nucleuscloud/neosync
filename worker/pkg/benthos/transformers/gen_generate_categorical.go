@@ -7,11 +7,16 @@ package transformers
 import (
 	"fmt"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type GenerateCategorical struct{}
 
 type GenerateCategoricalOpts struct {
+	randomizer     rng.Rand
+	
 	categories string
 }
 
@@ -43,6 +48,19 @@ func (t *GenerateCategorical) ParseOptions(opts map[string]any) (any, error) {
 	}
 	categories := opts["categories"].(string)
 	transformerOpts.categories = categories
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

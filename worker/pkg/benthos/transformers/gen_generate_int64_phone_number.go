@@ -5,11 +5,18 @@
 package transformers
 
 import (
+	"fmt"
+	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type GenerateInt64PhoneNumber struct{}
 
 type GenerateInt64PhoneNumberOpts struct {
+	randomizer     rng.Rand
+	
 }
 
 func NewGenerateInt64PhoneNumber() *GenerateInt64PhoneNumber {
@@ -32,6 +39,19 @@ func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 
 func (t *GenerateInt64PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateInt64PhoneNumberOpts{}
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

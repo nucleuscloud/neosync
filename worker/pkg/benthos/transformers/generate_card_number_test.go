@@ -3,13 +3,15 @@ package transformers
 import (
 	"strconv"
 	"testing"
+	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 func Test_GenerateValidLuhnCardNumber(t *testing.T) {
-	val, err := generateValidLuhnCheckCardNumber()
+	val, err := generateValidLuhnCheckCardNumber(rng.New(time.Now().UnixNano()))
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(strconv.FormatInt(val, 10)), 16, "The output card should be 16 characters long")
@@ -17,7 +19,7 @@ func Test_GenerateValidLuhnCardNumber(t *testing.T) {
 }
 
 func Test_GenerateCardNumber(t *testing.T) {
-	val, err := generateCardNumber(false)
+	val, err := generateCardNumber(rng.New(time.Now().UnixNano()), false)
 
 	assert.NoError(t, err)
 	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")

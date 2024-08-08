@@ -43,14 +43,16 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| userProvidedRegex | string |  | false | A custom regular expression. This regex is used to manipulate input data during the transformation process.<br/>
+| userProvidedRegex | string |  | false | A custom regular expression. This regex is used to manipulate input data during the transformation process.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
 ```javascript
 
 const newValue = neosync.transformCharacterScramble(value, { 
-	userProvidedRegex: "", 
+	userProvidedRegex: "",  
+	seed: 1, 
 });
 
 ```
@@ -76,7 +78,8 @@ Description: Value that will be transformed
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 |  | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.<br/>
+| maxLength | int64 |  | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
@@ -84,7 +87,8 @@ Description: Value that will be transformed
 
 const newValue = neosync.transformE164PhoneNumber(value, { 
 	preserveLength: false,  
-	maxLength: 1, 
+	maxLength: 1,  
+	seed: 1, 
 });
 
 ```
@@ -266,7 +270,8 @@ Description: Value that will be transformed
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | randomizationRangeMin | int64 |  | true | Specifies the minimum value for the range of the int.
-| randomizationRangeMax | int64 |  | true | Specifies the maximum value for the range of the int.<br/>
+| randomizationRangeMax | int64 |  | true | Specifies the maximum value for the range of the int.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
@@ -274,7 +279,8 @@ Description: Value that will be transformed
 
 const newValue = neosync.transformInt64(value, { 
 	randomizationRangeMin: 1,  
-	randomizationRangeMax: 1, 
+	randomizationRangeMax: 1,  
+	seed: 1, 
 });
 
 ```
@@ -299,14 +305,16 @@ Description: Value that will be transformed
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.<br/>
+| preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
 ```javascript
 
 const newValue = neosync.transformInt64PhoneNumber(value, { 
-	preserveLength: false, 
+	preserveLength: false,  
+	seed: 1, 
 });
 
 ```
@@ -369,7 +377,8 @@ Description: Value that will be transformed
 | -------- | ---- | ------- | -------- | ----------- |
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
 | minLength | int64 | 1 | false | Specifies the minimum length of the transformed value.
-| maxLength | int64 | 20 | false | Specifies the maximum length of the transformed value.<br/>
+| maxLength | int64 | 20 | false | Specifies the maximum length of the transformed value.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
@@ -378,7 +387,8 @@ Description: Value that will be transformed
 const newValue = neosync.transformString(value, { 
 	preserveLength: false, 
 	minLength: 1, 
-	maxLength: 20,
+	maxLength: 20, 
+	seed: 1, 
 });
 
 ```
@@ -404,7 +414,8 @@ Description: Value that will be transformed
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | preserveLength | bool |  | true | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 |  | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.<br/>
+| maxLength | int64 |  | true | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
 
@@ -412,7 +423,8 @@ Description: Value that will be transformed
 
 const newValue = neosync.transformStringPhoneNumber(value, { 
 	preserveLength: false,  
-	maxLength: 1, 
+	maxLength: 1,  
+	seed: 1, 
 });
 
 ```
@@ -472,6 +484,7 @@ Generates a card number.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | validLuhn | bool |  | true | A boolean indicating whether the generated value should pass the Luhn algorithm check.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -479,7 +492,8 @@ Generates a card number.
 ```javascript
 
 const newValue = neosync.generateCardNumber({ 
-	validLuhn: false, 
+	validLuhn: false,  
+	seed: 1, 
 });
 
 ```
@@ -501,6 +515,7 @@ Randomly selects a value from a defined set of categorical values.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | categories | string |  | true | A list of comma-separated string values to randomly select from.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -508,7 +523,8 @@ Randomly selects a value from a defined set of categorical values.
 ```javascript
 
 const newValue = neosync.generateCategorical({ 
-	categories: "", 
+	categories: "",  
+	seed: 1, 
 });
 
 ```
@@ -530,6 +546,7 @@ Randomly selects a city from a list of predefined US cities.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -537,7 +554,8 @@ Randomly selects a city from a list of predefined US cities.
 ```javascript
 
 const newValue = neosync.generateCity({ 
-	maxLength: 1, 
+	maxLength: 1,  
+	seed: 1, 
 });
 
 ```
@@ -662,6 +680,7 @@ Randomly generates a street address.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -669,7 +688,8 @@ Randomly generates a street address.
 ```javascript
 
 const newValue = neosync.generateFullAddress({ 
-	maxLength: 1, 
+	maxLength: 1,  
+	seed: 1, 
 });
 
 ```
@@ -757,6 +777,7 @@ Generates a random integer value with a default length of 4 unless the Integer L
 | randomizeSign | bool | false | false | A boolean indicating whether the sign of the float should be randomized.
 | min | int64 |  | true | Specifies the minimum value for the generated int.
 | max | int64 |  | true | Specifies the maximum value for the generated int.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -766,7 +787,8 @@ Generates a random integer value with a default length of 4 unless the Integer L
 const newValue = neosync.generateInt64({ 
 	randomizeSign: false, 
 	min: 1,  
-	max: 1, 
+	max: 1,  
+	seed: 1, 
 });
 
 ```
@@ -787,13 +809,16 @@ Generates a new phone number of type int64 with a default length of 10.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateInt64PhoneNumber({});
+const newValue = neosync.generateInt64PhoneNumber({ 
+	seed: 1, 
+});
 
 ```
 <br/>
@@ -815,6 +840,7 @@ Generates a Generate phone number in e164 format.
 | -------- | ---- | ------- | -------- | ----------- |
 | min | int64 |  | true | Specifies the minimum value for the generated phone number.
 | max | int64 |  | true | Specifies the maximum value for the generated phone number.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -823,7 +849,8 @@ Generates a Generate phone number in e164 format.
 
 const newValue = neosync.generateInternationalPhoneNumber({ 
 	min: 1,  
-	max: 1, 
+	max: 1,  
+	seed: 1, 
 });
 
 ```
@@ -877,6 +904,7 @@ Creates a randomly ordered alphanumeric string with a default length of 10 unles
 | -------- | ---- | ------- | -------- | ----------- |
 | min | int64 |  | true | Specifies the minimum length for the generated string.
 | max | int64 |  | true | Specifies the maximum length for the generated string.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -885,7 +913,8 @@ Creates a randomly ordered alphanumeric string with a default length of 10 unles
 
 const newValue = neosync.generateRandomString({ 
 	min: 1,  
-	max: 1, 
+	max: 1,  
+	seed: 1, 
 });
 
 ```
@@ -962,6 +991,7 @@ Randomly selects a US state and either returns the two character state code or t
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | generateFullName | bool | false | false | If true returns the full state name instead of the two character state code.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -969,7 +999,8 @@ Randomly selects a US state and either returns the two character state code or t
 ```javascript
 
 const newValue = neosync.generateState({ 
-	generateFullName: false,
+	generateFullName: false, 
+	seed: 1, 
 });
 
 ```
@@ -991,6 +1022,7 @@ Randomly generates a street address.
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | maxLength | int64 |  | true | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -998,7 +1030,8 @@ Randomly generates a street address.
 ```javascript
 
 const newValue = neosync.generateStreetAddress({ 
-	maxLength: 1, 
+	maxLength: 1,  
+	seed: 1, 
 });
 
 ```
@@ -1021,6 +1054,7 @@ Generates a Generate phone number and returns it as a string.
 | -------- | ---- | ------- | -------- | ----------- |
 | min | int64 |  | true | Specifies the minimum length for the generated phone number.
 | max | int64 |  | true | Specifies the maximum length for the generated phone number.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
@@ -1029,7 +1063,8 @@ Generates a Generate phone number and returns it as a string.
 
 const newValue = neosync.generateStringPhoneNumber({ 
 	min: 1,  
-	max: 1, 
+	max: 1,  
+	seed: 1, 
 });
 
 ```
@@ -1050,13 +1085,16 @@ Randomly generates a Unix timestamp.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateUnixTimestamp({});
+const newValue = neosync.generateUnixTimestamp({ 
+	seed: 1, 
+});
 
 ```
 <br/>
@@ -1107,13 +1145,16 @@ Randomly generates a UTC timestamp.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateUTCTimestamp({});
+const newValue = neosync.generateUTCTimestamp({ 
+	seed: 1, 
+});
 
 ```
 <br/>
@@ -1162,13 +1203,16 @@ Randomly selects a zip code from a list of predefined US zipcodes.
 
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
 **Example**
 
 ```javascript
 
-const newValue = neosync.generateZipcode({});
+const newValue = neosync.generateZipcode({ 
+	seed: 1, 
+});
 
 ```
 <br/>

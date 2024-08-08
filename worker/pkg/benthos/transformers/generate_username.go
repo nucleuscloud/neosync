@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -51,7 +50,7 @@ func init() {
 func (t *GenerateUsername) Generate(opts any) (any, error) {
 	parsedOpts, ok := opts.(*GenerateUsernameOpts)
 	if !ok {
-		return nil, errors.New("invalid parse opts")
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
 	return generateUsername(parsedOpts.randomizer, parsedOpts.maxLength)

@@ -7,11 +7,16 @@ package transformers
 import (
 	"fmt"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
+	
 )
 
 type TransformInt64PhoneNumber struct{}
 
 type TransformInt64PhoneNumberOpts struct {
+	randomizer     rng.Rand
+	
 	preserveLength bool
 }
 
@@ -43,6 +48,19 @@ func (t *TransformInt64PhoneNumber) ParseOptions(opts map[string]any) (any, erro
 	}
 	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
+
+	var seed int64
+	seedArg, ok := opts["seed"].(int64)
+	if ok {
+		seed = seedArg
+	} else {
+		var err error
+		seed, err = transformer_utils.GenerateCryptoSeed()
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate seed: %w", err)
+		}
+	}
+	transformerOpts.randomizer = rng.New(seed)
 
 	return transformerOpts, nil
 }

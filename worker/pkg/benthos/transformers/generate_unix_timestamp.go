@@ -1,26 +1,34 @@
 package transformers
 
 import (
-	"crypto/rand"
 	"fmt"
-	"math/big"
 	"time"
 
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
 // +neosyncTransformerBuilder:generate:generateUnixTimestamp
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly generates a Unix timestamp.")
+	spec := bloblang.NewPluginSpec().Description("Randomly generates a Unix timestamp.").
+		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+		seedArg, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+
+		seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rng.New(seed)
+
 		return func() (any, error) {
-			val, err := generateRandomUnixTimestamp()
-			if err != nil {
-				return false, fmt.Errorf("unable to run generate_unixtimestamp: %w", err)
-			}
-			return val, nil
+			return generateRandomUnixTimestamp(randomizer), nil
 		}, nil
 	})
 	if err != nil {
@@ -29,22 +37,22 @@ func init() {
 }
 
 func (t *GenerateUnixTimestamp) Generate(opts any) (any, error) {
-	return generateRandomUnixTimestamp()
+	parsedOpts, ok := opts.(*GenerateUnixTimestampOpts)
+	if !ok {
+		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
+	}
+	return generateRandomUnixTimestamp(parsedOpts.randomizer), nil
 }
 
-func generateRandomUnixTimestamp() (int64, error) {
+const (
+	secondsInYear = int64(365 * 24 * 60 * 60) // Max seconds in a year
+)
+
+func generateRandomUnixTimestamp(randomizer rng.Rand) int64 {
 	// get the current UTC time
 	currentTime := time.Now().Unix()
-
-	// generate a random number of seconds
-	maxSeconds := int64(365 * 24 * 60 * 60) // Max seconds in a year
-	randomSeconds, err := rand.Int(rand.Reader, big.NewInt(maxSeconds+1))
-	if err != nil {
-		return 0, err
-	}
-
+	randomSeconds := randomizer.Int63n(secondsInYear + 1)
 	// subtract the random number of seconds from the current time
-	randomUnixTimestamp := currentTime - randomSeconds.Int64()
-
-	return randomUnixTimestamp, nil
+	randomUnixTimestamp := currentTime - randomSeconds
+	return randomUnixTimestamp
 }

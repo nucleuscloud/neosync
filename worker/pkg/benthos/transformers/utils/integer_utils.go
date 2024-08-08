@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"math/rand"
 	"strconv"
+
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 )
 
 /* Generates a random int64 of length l. For example, given a length of 4, possible values will always have a length of 4 digits. */
-func GenerateRandomInt64FixedLength(l int64) (int64, error) {
+func GenerateRandomInt64FixedLength(randomizer rng.Rand, l int64) (int64, error) {
 	if l <= 0 {
 		return 0, fmt.Errorf("the length has to be greater than zero")
 	}
@@ -24,14 +25,13 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 	maxValue := int64(math.Pow10(int(l))) - 1
 
 	// Generate a random number in the range
-	//nolint:gosec
-	return minValue + rand.Int63n(maxValue-minValue+1), nil
+	return minValue + randomizer.Int63n(maxValue-minValue+1), nil
 }
 
 /*
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
-func GenerateRandomInt64InLengthRange(minValue, maxValue int64) (int64, error) {
+func GenerateRandomInt64InLengthRange(randomizer rng.Rand, minValue, maxValue int64) (int64, error) {
 	if minValue > maxValue {
 		minValue, maxValue = maxValue, minValue
 	}
@@ -41,12 +41,12 @@ func GenerateRandomInt64InLengthRange(minValue, maxValue int64) (int64, error) {
 		return 0, fmt.Errorf("length of integer must not exceed 19")
 	}
 
-	val, err := GenerateRandomInt64InValueRange(minValue, maxValue)
+	val, err := GenerateRandomInt64InValueRange(randomizer, minValue, maxValue)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a value in the range provided [%d:%d]: %w", minValue, maxValue, err)
 	}
 
-	res, err := GenerateRandomInt64FixedLength(val)
+	res, err := GenerateRandomInt64FixedLength(randomizer, val)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate fixed int64 in the range provided [%d:%d: %w]", minValue, maxValue, err)
 	}
@@ -55,7 +55,7 @@ func GenerateRandomInt64InLengthRange(minValue, maxValue int64) (int64, error) {
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
-func GenerateRandomInt64InValueRange(minValue, maxValue int64) (int64, error) {
+func GenerateRandomInt64InValueRange(randomizer rng.Rand, minValue, maxValue int64) (int64, error) {
 	if minValue > maxValue {
 		minValue, maxValue = maxValue, minValue
 	}
@@ -65,8 +65,7 @@ func GenerateRandomInt64InValueRange(minValue, maxValue int64) (int64, error) {
 	}
 
 	rangeVal := maxValue - minValue + 1
-	//nolint:gosec
-	return minValue + rand.Int63n(rangeVal), nil
+	return minValue + randomizer.Int63n(rangeVal), nil
 }
 
 // gets the number of digits in an int64
@@ -81,10 +80,6 @@ func IsLastIntDigitZero[T int | int64 | int32 | uint | uint32 | uint64](n T) boo
 	return n%10 == 0
 }
 
-func IsNegativeInt[T int | int64 | int32 | uint | uint32 | uint64](val T) bool {
-	return val < 0
-}
-
 func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 	if n < 0 {
 		return -n
@@ -94,13 +89,6 @@ func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 
 func MinInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
 	if a < b {
-		return a
-	}
-	return b
-}
-
-func MaxInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
-	if a > b {
 		return a
 	}
 	return b
@@ -153,4 +141,8 @@ func GetSeedOrDefault(seed *int64) (int64, error) {
 		return *seed, nil
 	}
 	return GenerateCryptoSeed()
+}
+
+func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
+	return minValue + randomizer.Int63n(maxValue-minValue+1)
 }
