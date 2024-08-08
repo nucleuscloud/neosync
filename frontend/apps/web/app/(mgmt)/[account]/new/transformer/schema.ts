@@ -651,7 +651,7 @@ export interface CreateUserDefinedTransformerFormContext {
     PartialMessage<IsTransformerNameAvailableRequest>,
     unknown
   >;
-  isJavascriptCodeValid: UseMutateAsyncFunction<
+  isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
     PartialMessage<ValidateUserJavascriptCodeRequest>,

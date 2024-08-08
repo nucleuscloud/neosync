@@ -68,7 +68,7 @@ export default function UpdateUserDefinedTransformerForm(
       name: currentTransformer?.name,
       accountId: account?.id ?? '',
       isTransformerNameAvailable: isTransformerNameAvailableAsync,
-      isJavascriptCodeValid: isJavascriptCodeValid,
+      isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
   const { mutateAsync } = useMutation(updateUserDefinedTransformer);

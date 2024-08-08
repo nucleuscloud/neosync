@@ -53,10 +53,8 @@ export default function UserDefinedTransformInt64Form(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage
-              message={errors?.randomizationRangeMin?.message}
-            />
           </div>
+          <FormErrorMessage message={errors?.randomizationRangeMin?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -92,10 +90,8 @@ export default function UserDefinedTransformInt64Form(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage
-              message={errors?.randomizationRangeMax?.message}
-            />
           </div>
+          <FormErrorMessage message={errors?.randomizationRangeMax?.message} />
         </div>
       </div>
     </div>

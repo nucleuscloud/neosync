@@ -30,7 +30,7 @@ export default function UserDefinedGenerateStringForm(
         </div>
         <div className="flex flex-col h-14">
           <div className="justify-end flex">
-            <div className="max-w-[180px]">
+            <div className="max-w-[300px]">
               <Input
                 value={value.min ? parseInt(value.min.toString(), 10) : 0}
                 type="number"
@@ -60,7 +60,7 @@ export default function UserDefinedGenerateStringForm(
         </div>
         <div className="flex flex-col h-14">
           <div className="justify-end flex">
-            <div className="w-[300px]">
+            <div className="max-w-[300px]">
               <Input
                 value={value.max ? parseInt(value.max.toString()) : 0}
                 type="number"
@@ -77,8 +77,8 @@ export default function UserDefinedGenerateStringForm(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage message={errors?.max?.message} />
           </div>
+          <FormErrorMessage message={errors?.max?.message} />
         </div>
       </div>
     </div>

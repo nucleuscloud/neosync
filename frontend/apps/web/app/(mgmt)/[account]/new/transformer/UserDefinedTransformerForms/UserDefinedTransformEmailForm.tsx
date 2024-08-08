@@ -82,12 +82,12 @@ export default function UserDefinedTransformEmailForm(
           <Input
             type="string"
             className="min-w-[300px]"
-            value={value.excludedDomains.join(',')}
+            value={value.excludedDomains.map((d) => d.trim()).join(',')}
             onChange={(e) =>
               setValue(
                 new TransformEmail({
                   ...value,
-                  excludedDomains: e.target.value.split(','),
+                  excludedDomains: e.target.value.split(',').filter((d) => !!d),
                 })
               )
             }
