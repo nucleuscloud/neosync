@@ -1099,17 +1099,7 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(
-                  new JobMappingTransformer({
-                    source: TransformerSource.PASSTHROUGH,
-                    config: new TransformerConfig({
-                      config: {
-                        case: 'passthroughConfig',
-                        value: new Passthrough(),
-                      },
-                    }),
-                  })
-                ),
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
           };
         }),
       };
@@ -1128,17 +1118,7 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(
-                  new JobMappingTransformer({
-                    source: TransformerSource.PASSTHROUGH,
-                    config: new TransformerConfig({
-                      config: {
-                        case: 'passthroughConfig',
-                        value: new Passthrough(),
-                      },
-                    }),
-                  })
-                ),
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
           };
         }),
         virtualForeignKeys: job.virtualForeignKeys.map((v) => {
@@ -1180,17 +1160,7 @@ function setDefaultSchemaFormValues(
             ...mapping,
             transformer: mapping.transformer
               ? convertJobMappingTransformerToForm(mapping.transformer)
-              : convertJobMappingTransformerToForm(
-                  new JobMappingTransformer({
-                    source: TransformerSource.PASSTHROUGH,
-                    config: new TransformerConfig({
-                      config: {
-                        case: 'passthroughConfig',
-                        value: new Passthrough(),
-                      },
-                    }),
-                  })
-                ),
+              : convertJobMappingTransformerToForm(new JobMappingTransformer()),
           };
         }),
         virtualForeignKeys: job.virtualForeignKeys.map((v) => {

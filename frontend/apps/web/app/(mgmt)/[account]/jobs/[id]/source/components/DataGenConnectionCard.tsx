@@ -42,9 +42,6 @@ import {
   Job,
   JobMapping,
   JobMappingTransformer,
-  Passthrough,
-  TransformerConfig,
-  TransformerSource,
   ValidateJobMappingsResponse,
 } from '@neosync/sdk';
 import {
@@ -188,15 +185,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             table: dbcol.table,
             column: dbcol.column,
             transformer: convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: TransformerSource.PASSTHROUGH,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough(),
-                  },
-                }),
-              })
+              new JobMappingTransformer()
             ),
           });
         }
@@ -493,14 +482,7 @@ function getJobSource(job?: Job): SingleTableEditSourceFormValues {
       column: mapping.column,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : convertJobMappingTransformerToForm(
-            new JobMappingTransformer({
-              source: TransformerSource.PASSTHROUGH,
-              config: new TransformerConfig({
-                config: { case: 'passthroughConfig', value: new Passthrough() },
-              }),
-            })
-          ),
+        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
     };
   });
 

@@ -301,17 +301,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
                       />
                     </div>
                     <EditTransformerOptions
-                      transformer={
-                        transformer ??
-                        new SystemTransformer({
-                          config: {
-                            config: {
-                              case: 'passthroughConfig',
-                              value: new Passthrough(),
-                            },
-                          },
-                        })
-                      }
+                      transformer={transformer ?? new SystemTransformer()}
                       value={fv}
                       onSubmit={(newvalue) => {
                         field.onChange(newvalue);
@@ -480,17 +470,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 />
               </div>
               <EditTransformerOptions
-                transformer={
-                  transformer ??
-                  new SystemTransformer({
-                    config: {
-                      config: {
-                        case: 'passthroughConfig',
-                        value: new Passthrough(),
-                      },
-                    },
-                  })
-                }
+                transformer={transformer ?? new SystemTransformer()}
                 value={fv}
                 onSubmit={(updatedTransformer) => {
                   onEdit({
