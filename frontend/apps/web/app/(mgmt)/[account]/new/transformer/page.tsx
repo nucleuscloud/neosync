@@ -171,7 +171,7 @@ export default function NewTransformer(): ReactElement {
 
     form.setValue('config', convertTransformerConfigToForm(base.config));
   }, [isLoading, base.source, configCase, transformerQueryParam]);
-  console.log(form.formState.errors, form.formState.isValid, form.getValues());
+
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a New Transformer" />}
