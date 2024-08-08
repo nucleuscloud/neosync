@@ -208,7 +208,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             })
           );
         } catch (e) {
-          toast.success('Unable too update onboarding status!', {
+          toast.error('Unable to update onboarding status!', {
             description: getErrorMessage(e),
           });
         }
