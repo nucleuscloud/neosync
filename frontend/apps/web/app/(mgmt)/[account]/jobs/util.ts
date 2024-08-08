@@ -749,7 +749,7 @@ function toDynamoDbSourceTableOptions(
   );
 }
 
-export function toDynamoDbSourceUnmappedOptions(
+function toDynamoDbSourceUnmappedOptions(
   dynamoSourceOpts: DynamoDBSourceOptionsFormValues
 ): DynamoDBSourceUnmappedTransformConfig {
   return new DynamoDBSourceUnmappedTransformConfig({
