@@ -13,7 +13,6 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
@@ -35,6 +34,7 @@ import {
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
+import { toast } from 'sonner';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
@@ -44,7 +44,6 @@ export default function Page({ params }: PageProps): ReactElement {
   const accountId = account?.id || '';
   const id = decodeURIComponent(params?.id ?? '');
   const router = useRouter();
-  const { toast } = useToast();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
   const {
@@ -90,16 +89,12 @@ export default function Page({ params }: PageProps): ReactElement {
   async function onDelete(): Promise<void> {
     try {
       await removeJobRunAsync({ accountId: accountId, jobRunId: id });
-      toast({
-        title: 'Job run removed successfully!',
-      });
+      toast.success('Job run removed successfully!');
       router.push(`/${account?.name}/runs`);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove job run',
+      toast.error('Unable to remove job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -107,17 +102,13 @@ export default function Page({ params }: PageProps): ReactElement {
   async function onCancel(): Promise<void> {
     try {
       await cancelJobRunAsync({ accountId, jobRunId: id });
-      toast({
-        title: 'Job run canceled successfully!',
-      });
+      toast.success('Job run canceled successfully!');
       mutate();
       eventMutate();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to cancel job run',
+      toast.error('Unable to cancel job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -125,17 +116,13 @@ export default function Page({ params }: PageProps): ReactElement {
   async function onTerminate(): Promise<void> {
     try {
       await terminateJobRunAsync({ accountId, jobRunId: id });
-      toast({
-        title: 'Job run terminated successfully!',
-      });
+      toast.success('Job run terminated successfully!');
       mutate();
       eventMutate();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to terminate job run',
+      toast.error('Unable to terminate job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

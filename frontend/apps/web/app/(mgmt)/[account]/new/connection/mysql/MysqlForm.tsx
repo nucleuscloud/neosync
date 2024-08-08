@@ -36,7 +36,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
@@ -68,6 +67,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { buildConnectionConfigMysql } from '../../../connections/util';
 
 type ActiveTab = 'host' | 'url';
@@ -153,10 +153,7 @@ export default function MysqlForm() {
         }),
       });
       posthog.capture('New Connection Created', { type: 'mysql' });
-      toast({
-        title: 'Successfully created connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully created connection!');
 
       // updates the onboarding data
       if (onboardingData?.config?.hasCreatedSourceConnection) {
@@ -180,9 +177,8 @@ export default function MysqlForm() {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       } else {
@@ -207,9 +203,8 @@ export default function MysqlForm() {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       }
@@ -234,10 +229,8 @@ export default function MysqlForm() {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create connection',
+      toast.error('Unable to create connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -322,10 +315,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
         setIsLoading(false);
-        toast({
-          title: 'Unable to retrieve connection data for clone!',
+        toast.error('Unable to retrieve connection data from clone!', {
           description: getErrorMessage(error),
-          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);

@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
@@ -35,6 +34,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { buildConnectionConfigOpenAi } from '../../../connections/util';
 
 interface Props {}
@@ -42,7 +42,6 @@ interface Props {}
 export default function OpenAiForm(props: Props): ReactElement {
   const {} = props;
   const { account } = useAccount();
-  const { toast } = useToast();
   const searchParams = useSearchParams();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -81,10 +80,7 @@ export default function OpenAiForm(props: Props): ReactElement {
         accountId: account.id,
         connectionConfig: buildConnectionConfigOpenAi(values),
       });
-      toast({
-        title: 'Successfully created OpenAI Connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully created OpenAI Connection!');
       queryclient.setQueryData(
         createConnectQueryKey(getConnection, {
           id: connectionResp.connection?.id,
@@ -103,10 +99,8 @@ export default function OpenAiForm(props: Props): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create OpenAI Connection',
+      toast.error('Unable to create OpenAI Connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -143,9 +137,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
         setIsLoading(false);
-        toast({
-          title: 'Unable to clone connection!',
-          variant: 'destructive',
+        toast.error('Unable to clone connection!', {
+          description: getErrorMessage(error),
         });
       } finally {
         setIsLoading(false);

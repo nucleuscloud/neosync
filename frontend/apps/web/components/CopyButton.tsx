@@ -1,6 +1,8 @@
 'use client';
+import { getErrorMessage } from '@/util/util';
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { Button, ButtonProps } from './ui/button';
 import {
@@ -9,7 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { useToast } from './ui/use-toast';
 
 interface Props {
   onHoverText: string;
@@ -25,7 +26,6 @@ export function CopyButton(props: Props): ReactElement {
   const [tooltipText, setTooltipText] = useState(onHoverText);
   const [justCopied, setJustCopied] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
-  const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -43,9 +43,8 @@ export function CopyButton(props: Props): ReactElement {
       .then(() => setJustCopied(true))
       .catch((err) => {
         console.error(err);
-        toast({
-          title: 'Unable to copy text',
-          variant: 'destructive',
+        toast.error('Unable to copy text', {
+          description: getErrorMessage(err),
         });
       });
   }

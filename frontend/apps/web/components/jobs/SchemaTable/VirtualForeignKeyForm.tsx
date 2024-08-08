@@ -8,11 +8,11 @@ import {
 } from '@/components/ui/card';
 
 import { FormDescription, FormLabel } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
 import { VirtualForeignConstraintFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { GoWorkflow } from 'react-icons/go';
+import { toast } from 'sonner';
 import { StringSelect } from './StringSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
 
@@ -163,10 +163,8 @@ export function VirtualForeignKeyForm(props: Props): ReactElement {
                           !targetTable ||
                           targetColumns.includes('')
                         ) {
-                          toast({
-                            title: 'Unable to add virtual foreign key',
+                          toast.error('Unable to add virtual foreign key', {
                             description: 'Missing required field',
-                            variant: 'destructive',
                           });
                           return;
                         }

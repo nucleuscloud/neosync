@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   CreateConnectionFormContext,
@@ -56,6 +55,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { buildConnectionConfigMongo } from '../../../connections/util';
 
 export default function MongoDBForm(): ReactElement {
@@ -103,7 +103,6 @@ export default function MongoDBForm(): ReactElement {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
-  const { toast } = useToast();
   const { mutateAsync: createMongoDbConnection } =
     useMutation(createConnection);
   const { mutateAsync: checkMongoDbConnection } = useMutation(
@@ -135,10 +134,8 @@ export default function MongoDBForm(): ReactElement {
         });
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
-        toast({
-          title: 'Unable to retrieve connection data for clone!',
+        toast.error('Unable to retrieve connection data for clone!', {
           description: getErrorMessage(error),
-          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -160,10 +157,7 @@ export default function MongoDBForm(): ReactElement {
         connectionConfig: buildConnectionConfigMongo(values),
       });
       posthog.capture('New Connection Created', { type: 'mongodb' });
-      toast({
-        title: 'Successfully created connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully created connection!');
 
       // updates the onboarding data
       try {
@@ -190,9 +184,8 @@ export default function MongoDBForm(): ReactElement {
           })
         );
       } catch (e) {
-        toast({
-          title: 'Unable to update onboarding status!',
-          variant: 'destructive',
+        toast.error('Unable to update onboarding status!', {
+          description: getErrorMessage(e),
         });
       }
 
@@ -215,10 +208,8 @@ export default function MongoDBForm(): ReactElement {
         router.push(`/${account.name}/connections`);
       }
     } catch (err) {
-      toast({
-        title: 'Unable to create connection',
+      toast.error('Unable to create connection!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

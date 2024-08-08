@@ -14,12 +14,11 @@ import { GearIcon } from '@radix-ui/react-icons';
 import { signOut, useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
-import { useToast } from '../ui/use-toast';
+import { toast } from 'sonner';
 
 export function UserNav(): ReactElement | null {
   const session = useSession();
   const posthog = usePostHog();
-  const { toast } = useToast();
 
   const avatarImageSrc = session.data?.user?.image ?? '';
   const avatarImageAlt = session.data?.user?.name ?? 'unknown';
@@ -74,10 +73,7 @@ export function UserNav(): ReactElement | null {
                   callbackUrl: `/api/auth/provider-sign-out?idToken=${session.data.idToken}`,
                 });
               } catch (err) {
-                toast({
-                  title: 'Unable to sign out of provider session',
-                  variant: 'destructive',
-                });
+                toast.error('Unable to sign out of provider session');
               }
             }}
           >

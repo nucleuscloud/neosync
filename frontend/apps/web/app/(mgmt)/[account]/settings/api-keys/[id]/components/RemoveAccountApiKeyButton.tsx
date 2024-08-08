@@ -2,12 +2,12 @@
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { deleteAccountApiKey } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   id: string;
@@ -17,25 +17,19 @@ interface Props {
 
 export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   const { id, trigger, onDeleted } = props;
-  const { toast } = useToast();
   const { mutateAsync } = useMutation(deleteAccountApiKey);
 
   async function onDelete(): Promise<void> {
     try {
       await mutateAsync({ id: id });
-      toast({
-        title: 'Successfully removed api key!',
-        variant: 'success',
-      });
+      toast.success('Successfully removed api key!');
       if (onDeleted) {
         onDeleted();
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove api key!',
+      toast.error('Unable to remove api key!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

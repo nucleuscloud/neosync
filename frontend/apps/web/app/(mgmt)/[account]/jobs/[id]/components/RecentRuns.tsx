@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toast } from '@/components/ui/use-toast';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
@@ -40,6 +39,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
+import { toast } from 'sonner';
 import JobRunStatus from '../../../runs/components/JobRunStatus';
 
 interface Props {
@@ -88,16 +88,11 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     try {
       await removeJobRunAsync({ accountId: account?.id, jobRunId: runId });
       onRefreshClick();
-      toast({
-        title: 'Removing Job Run. This may take a minute to delete!',
-        variant: 'success',
-      });
+      toast.success('Removing Job Run. This may take a minute to delete!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove job run',
+      toast.error('Unable to remove job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -105,17 +100,12 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   async function onCancel(runId: string): Promise<void> {
     try {
       await cancelJobRunAsync({ accountId: account?.id, jobRunId: runId });
-      toast({
-        title: 'Canceling Job Run. This may take a minute to cancel!',
-        variant: 'success',
-      });
+      toast.success('Canceling Job Run. This may take a minute to cancel!');
       onRefreshClick();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to cancel job run',
+      toast.error('Unable to cancel job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -123,17 +113,14 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   async function onTerminate(runId: string): Promise<void> {
     try {
       await terminateJobRunAsync({ accountId: account?.id, jobRunId: runId });
-      toast({
-        title: 'Terminating Job Run. This may take a minute to terminate!',
-        variant: 'success',
-      });
+      toast.success(
+        'Terminating Job Run. This may take a minute to terminate!'
+      );
       onRefreshClick();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to terminate job run',
+      toast.error('Unable to terminate job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

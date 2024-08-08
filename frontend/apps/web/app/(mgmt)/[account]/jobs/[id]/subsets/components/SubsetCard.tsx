@@ -17,7 +17,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   createConnectQueryKey,
@@ -40,6 +39,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { toJobSourceSqlSubsetSchemas } from '../../../util';
 import { getConnectionIdFromSource } from '../../source/components/util';
 import SubsetSkeleton from './SubsetSkeleton';
@@ -50,7 +50,6 @@ interface Props {
 
 export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
-  const { toast } = useToast();
   const { data, isLoading: isJobLoading } = useQuery(
     getJob,
     { id: jobId },
@@ -144,20 +143,15 @@ export default function SubsetCard(props: Props): ReactElement {
           values.subsetOptions.subsetByForeignKeyConstraints,
         schemas: toJobSourceSqlSubsetSchemas(values, connectionType),
       });
-      toast({
-        title: 'Successfully updated database subsets',
-        variant: 'success',
-      });
+      toast.success('Successfully updated database subsets');
       queryclient.setQueryData(
         createConnectQueryKey(getJob, { id: updatedJobRes.job?.id }),
         new GetJobResponse({ job: updatedJobRes.job })
       );
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update database subsets',
+      toast.error('Unable to update database subsets', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

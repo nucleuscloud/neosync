@@ -34,7 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -44,6 +43,7 @@ import {
   removeTeamAccountMember,
 } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { toast } from 'sonner';
 
 interface ColumnProps {
   onDeleted(id: string): void;
@@ -258,22 +258,17 @@ function DataTableRowActions<TData>({
   accountId,
 }: DataTableRowActionsProps<TData>) {
   const user = row.original as AccountUser;
-  const { toast } = useToast();
   const { mutateAsync } = useMutation(removeTeamAccountMember);
 
   async function onRemove(): Promise<void> {
     try {
       await mutateAsync({ accountId: accountId, userId: user.id });
-      toast({
-        title: 'User removed successfully!',
-      });
+      toast.success('User removed from account!');
       onDeleted();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove user from account',
+      toast.error('Unable to remove user from account!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

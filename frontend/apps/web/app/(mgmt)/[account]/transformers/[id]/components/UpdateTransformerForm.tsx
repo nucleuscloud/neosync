@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage, getTransformerSourceString } from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
@@ -34,6 +33,7 @@ import {
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface Props {
   currentTransformer: UserDefinedTransformer;
@@ -86,19 +86,14 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           values.config
         ),
       });
-      toast({
-        title: 'Successfully updated transformer!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated transformer!');
       if (transformer.transformer) {
         onUpdated(transformer.transformer);
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update transformer',
+      toast.error('Unable to update transformer', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

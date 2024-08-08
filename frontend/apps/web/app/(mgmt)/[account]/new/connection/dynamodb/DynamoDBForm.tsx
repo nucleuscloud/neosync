@@ -26,7 +26,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -58,6 +57,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { buildConnectionConfigDynamoDB } from '../../../connections/util';
 
 export default function NewDynamoDBForm(): ReactElement {
@@ -113,7 +113,6 @@ export default function NewDynamoDBForm(): ReactElement {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>();
   const posthog = usePostHog();
-  const { toast } = useToast();
   const { mutateAsync: createDbConnection } = useMutation(createConnection);
   const { mutateAsync: checkDbConnection } = useMutation(checkConnectionConfig);
   const { mutateAsync: getDbConnection } = useMutation(getConnection);
@@ -154,10 +153,8 @@ export default function NewDynamoDBForm(): ReactElement {
         });
       } catch (error) {
         console.error('Failed to fetch connection data:', error);
-        toast({
-          title: 'Unable to retrieve connection data for clone!',
+        toast.error('Unable to retrieve connection data for clone!', {
           description: getErrorMessage(error),
-          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -179,10 +176,7 @@ export default function NewDynamoDBForm(): ReactElement {
         connectionConfig: buildConnectionConfigDynamoDB(values),
       });
       posthog.capture('New Connection Created', { type: 'dynamodb' });
-      toast({
-        title: 'Successfully created connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully created connection!');
 
       // updates the onboarding data
       try {
@@ -209,9 +203,8 @@ export default function NewDynamoDBForm(): ReactElement {
           })
         );
       } catch (e) {
-        toast({
-          title: 'Unable to update onboarding status!',
-          variant: 'destructive',
+        toast.error('Unable to update onboarding status!', {
+          description: getErrorMessage(e),
         });
       }
 
@@ -234,10 +227,8 @@ export default function NewDynamoDBForm(): ReactElement {
         router.push(`/${account.name}/connections`);
       }
     } catch (err) {
-      toast({
-        title: 'Unable to create connection',
+      toast.error('Unable to create connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

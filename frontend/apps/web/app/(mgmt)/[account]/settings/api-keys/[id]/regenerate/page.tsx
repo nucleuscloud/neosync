@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
@@ -52,6 +51,7 @@ import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as Yup from 'yup';
 
 const FormValues = Yup.object({
@@ -64,7 +64,6 @@ export default function RegenerateAccountApiKey({
   params,
 }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { toast } = useToast();
   const router = useRouter();
   const { account } = useAccount();
   const { data, isLoading } = useQuery(
@@ -106,16 +105,11 @@ export default function RegenerateAccountApiKey({
         new GetAccountApiKeyResponse({ apiKey: updatedApiKey.apiKey })
       );
       router.push(`/${account?.name}/settings/api-keys/${id}`);
-      toast({
-        title: 'Successfully regenerated api key!',
-        variant: 'success',
-      });
+      toast.success('Successfully regenerated api key!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to regenerate api key!',
+      toast.error('Unable to regenerate api key!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

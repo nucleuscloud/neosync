@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
@@ -38,6 +37,7 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as Yup from 'yup';
 
 const FormValues = Yup.object({
@@ -70,7 +70,6 @@ export interface ApiKeyValueSessionStore {
 
 export default function NewApiKeyForm(): ReactElement {
   const { account } = useAccount();
-  const { toast } = useToast();
   const router = useRouter();
   const form = useForm<FormValues>({
     mode: 'onChange',
@@ -111,16 +110,11 @@ export default function NewApiKeyForm(): ReactElement {
         router.push(`/${account?.name}/settings/api-keys`);
       }
       posthog.capture('New API Key Created');
-      toast({
-        title: 'Successfully created API key!',
-        variant: 'success',
-      });
+      toast.success('Successfully created API key!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create api key',
+      toast.error('Unable to create api key', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

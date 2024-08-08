@@ -13,12 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { deleteConnection } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { getConnectionUrlSlugName } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
@@ -33,23 +33,17 @@ export function DataTableRowActions<TData>({
   const connection = row.original as Connection;
   const router = useRouter();
   const { account } = useAccount();
-  const { toast } = useToast();
   const { mutateAsync } = useMutation(deleteConnection);
 
   async function onDelete(): Promise<void> {
     try {
       await mutateAsync({ id: connection.id });
-      toast({
-        title: 'Connection removed successfully!',
-        variant: 'success',
-      });
+      toast.success('Connection removed successfully!');
       onDeleted();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove connection',
+      toast.error('Unable to remove connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

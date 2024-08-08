@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
+import { getErrorMessage } from '@/util/util';
 import {
   createConnectQueryKey,
   useMutation,
@@ -29,13 +30,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import NextLink from 'next/link';
 import { ReactElement, useEffect, useState } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
+import { toast } from 'sonner';
 import Spinner from '../Spinner';
 import { useAccount } from '../providers/account-provider';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { Skeleton } from '../ui/skeleton';
-import { toast } from '../ui/use-toast';
 
 interface OnboardingValues {
   hasCreatedSourceConnection: boolean;
@@ -154,9 +155,8 @@ export default function OnboardingChecklist(): ReactElement {
       );
       setIsOpen(false);
     } catch (e) {
-      toast({
-        title: 'Unable to complete onboarding',
-        variant: 'destructive',
+      toast.error('Unable to complete onboarding', {
+        description: getErrorMessage(e),
       });
     } finally {
       setIsSubmitting(false);

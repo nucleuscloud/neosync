@@ -7,7 +7,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { ReactElement, ReactNode } from 'react';
-import { useToast } from '../ui/use-toast';
+import { toast } from 'sonner';
 
 interface Props {
   children: ReactNode;
@@ -17,7 +17,6 @@ let browserQueryClient: QueryClient | undefined = undefined;
 
 export default function TanstackQueryProvider(props: Props): ReactElement {
   const { children } = props;
-  const { toast } = useToast();
 
   if (isServer) {
     const client = new QueryClient({
@@ -35,11 +34,9 @@ export default function TanstackQueryProvider(props: Props): ReactElement {
       queryCache: new QueryCache({
         // good blog here: https://tkdodo.eu/blog/react-query-error-handling
         onError(error, query) {
-          toast({
-            title: 'Something went wrong',
+          toast.error('Something went wrong', {
             description: getErrorMessage(error),
-            variant: 'destructive',
-            key: query.queryKey.toString(),
+            id: query.queryKey.toString(),
           });
         },
       }),

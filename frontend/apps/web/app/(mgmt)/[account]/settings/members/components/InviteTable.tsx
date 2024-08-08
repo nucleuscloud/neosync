@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -38,6 +37,7 @@ import {
   getTeamAccountInvites,
 } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
+import { toast } from 'sonner';
 import InviteUserForm, { buildInviteLink } from './InviteUserForm';
 
 interface ColumnProps {
@@ -232,22 +232,17 @@ interface DeleteInviteButtonProps {
 }
 
 function DeleteInviteButton({ inviteId, onDeleted }: DeleteInviteButtonProps) {
-  const { toast } = useToast();
   const { mutateAsync } = useMutation(deleteAccountApiKey);
 
   async function onRemove(): Promise<void> {
     try {
       await mutateAsync({ id: inviteId });
-      toast({
-        title: 'Invite deleted successfully!',
-      });
+      toast.success('Invite deleted successfully!');
       onDeleted(inviteId);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to delete invite',
+      toast.error('Unable to delete user invite', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
