@@ -30,7 +30,7 @@ import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 interface Props {
   value: TransformerConfig;
   setValue(newValue: TransformerConfig): void;
-  disabled: boolean;
+  disabled?: boolean;
 
   errors?: FieldErrors<PlainMessage<TransformerConfig>>;
 }

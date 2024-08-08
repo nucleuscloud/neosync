@@ -309,7 +309,7 @@ export default function NewTransformer(): ReactElement {
                   </FormControl>
                 </FormItem>
               )}
-            ></FormField>
+            />
           </div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
