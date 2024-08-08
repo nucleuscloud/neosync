@@ -35,6 +35,7 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GenerateBool,
+  Passthrough,
   SystemTransformer,
   TransformerConfig,
   TransformerSource,
@@ -155,7 +156,14 @@ export default function NewTransformer(): ReactElement {
 
   const base =
     transformers.find((t) => t.source === formSource) ??
-    new SystemTransformer();
+    new SystemTransformer({
+      config: {
+        config: {
+          case: 'passthroughConfig',
+          value: new Passthrough(),
+        },
+      },
+    });
 
   const configCase = form.watch('config.case');
 
