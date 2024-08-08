@@ -1,8 +1,7 @@
 import { FieldErrors, FieldValues } from 'react-hook-form';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface TransformerConfigProps<
-  T extends Record<string, any>,
+  T extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
   TError extends FieldValues = T,
 > {
   value: T;
