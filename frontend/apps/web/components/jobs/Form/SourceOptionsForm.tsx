@@ -35,7 +35,6 @@ export default function SourceOptionsForm(
               isChecked={value.postgres?.haltOnNewColumnAddition ?? false}
               onCheckedChange={(checked) => {
                 setValue({
-                  ...value,
                   postgres: {
                     ...(value.postgres ?? { haltOnNewColumnAddition: false }),
                     haltOnNewColumnAddition: checked,
@@ -56,7 +55,6 @@ export default function SourceOptionsForm(
               isChecked={value.mysql?.haltOnNewColumnAddition ?? false}
               onCheckedChange={(checked) => {
                 setValue({
-                  ...value,
                   mysql: {
                     ...(value.mysql ?? { haltOnNewColumnAddition: false }),
                     haltOnNewColumnAddition: checked,
@@ -87,7 +85,6 @@ export default function SourceOptionsForm(
           }
           setValue={(newVal) => {
             setValue({
-              ...value,
               dynamodb: {
                 ...(value.dynamodb ?? {}),
                 ...newVal,

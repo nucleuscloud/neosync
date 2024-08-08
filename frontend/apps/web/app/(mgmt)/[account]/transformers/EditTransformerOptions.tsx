@@ -54,7 +54,6 @@ interface Props {
 export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, disabled, value, onSubmit } = props;
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
