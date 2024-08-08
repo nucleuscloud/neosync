@@ -59,12 +59,12 @@ func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Res
 		mappedKeysMap[k] = struct{}{}
 	}
 
-	dtmStr, err := conf.FieldString("job_source_options_string")
+	jobSourceOptsStr, err := conf.FieldString("job_source_options_string")
 	if err != nil {
 		return nil, err
 	}
 	var jobSourceOptions mgmtv1alpha1.JobSourceOptions
-	err = protojson.Unmarshal([]byte(dtmStr), &jobSourceOptions)
+	err = protojson.Unmarshal([]byte(jobSourceOptsStr), &jobSourceOptions)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
@@ -86,6 +86,9 @@ func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) m
 	switch cfg := jobSourceOptions.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		unmappedTransformers := cfg.Dynamodb.UnmappedTransforms
+		if unmappedTransformers == nil {
+			return map[primitiveType]*mgmtv1alpha1.JobMappingTransformer{}
+		}
 		return map[primitiveType]*mgmtv1alpha1.JobMappingTransformer{
 			Boolean: unmappedTransformers.Boolean,
 			Byte:    unmappedTransformers.B,
