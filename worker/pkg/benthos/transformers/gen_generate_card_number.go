@@ -27,7 +27,6 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 func NewGenerateCardNumberOpts(
 	validLuhn bool,
   seedArg *int64,
-	
 ) (*GenerateCardNumberOpts, error) {
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
@@ -57,7 +56,10 @@ func (t *GenerateCardNumber) ParseOptions(opts map[string]any) (any, error) {
 	validLuhn := opts["validLuhn"].(bool)
 	transformerOpts.validLuhn = validLuhn
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

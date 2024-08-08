@@ -27,7 +27,6 @@ func NewGenerateLastName() *GenerateLastName {
 func NewGenerateLastNameOpts(
 	maxLengthArg *int64,
   seedArg *int64,
-	
 ) (*GenerateLastNameOpts, error) {
 	maxLength := int64(10000) 
 	if maxLengthArg != nil {
@@ -62,7 +61,10 @@ func (t *GenerateLastName) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

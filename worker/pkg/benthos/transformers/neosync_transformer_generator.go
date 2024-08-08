@@ -131,7 +131,7 @@ func New{{.StructName}}Opts(
 	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "seed"}}
   {{$param.Name}}Arg *{{$param.TypeStr}},
-	{{ else if and $param.IsOptional (not $param.HasDefault) }}
+	{{- else if and $param.IsOptional (not $param.HasDefault) }}
 	{{$param.Name}} *{{$param.TypeStr}},
 	{{- else if or $param.IsOptional $param.HasDefault }}
 	{{$param.Name}}Arg *{{$param.TypeStr}},
@@ -181,7 +181,10 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 
 	{{- if eq $param.Name "seed" }}
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

@@ -35,7 +35,6 @@ func NewGenerateFloat64Opts(
 	precision *int64,
 	scale *int64,
   seedArg *int64,
-	
 ) (*GenerateFloat64Opts, error) {
 	randomizeSign := bool(false) 
 	if randomizeSignArg != nil {
@@ -98,7 +97,10 @@ func (t *GenerateFloat64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.scale = scale
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

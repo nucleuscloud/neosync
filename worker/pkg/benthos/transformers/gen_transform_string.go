@@ -31,7 +31,6 @@ func NewTransformStringOpts(
 	minLengthArg *int64,
 	maxLengthArg *int64,
   seedArg *int64,
-	
 ) (*TransformStringOpts, error) {
 	preserveLength := bool(false) 
 	if preserveLengthArg != nil {
@@ -90,7 +89,10 @@ func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

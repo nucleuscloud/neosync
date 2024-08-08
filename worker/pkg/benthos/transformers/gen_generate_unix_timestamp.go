@@ -25,7 +25,6 @@ func NewGenerateUnixTimestamp() *GenerateUnixTimestamp {
 
 func NewGenerateUnixTimestampOpts(
   seedArg *int64,
-	
 ) (*GenerateUnixTimestampOpts, error) {
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
@@ -48,7 +47,10 @@ func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateUnixTimestamp) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateUnixTimestampOpts{}
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

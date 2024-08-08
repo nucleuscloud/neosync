@@ -31,7 +31,6 @@ func NewGenerateInt64Opts(
 	min int64,
 	max int64,
   seedArg *int64,
-	
 ) (*GenerateInt64Opts, error) {
 	randomizeSign := bool(false) 
 	if randomizeSignArg != nil {
@@ -80,7 +79,10 @@ func (t *GenerateInt64) ParseOptions(opts map[string]any) (any, error) {
 	max := opts["max"].(int64)
 	transformerOpts.max = max
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

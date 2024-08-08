@@ -27,7 +27,6 @@ func NewTransformInt64PhoneNumber() *TransformInt64PhoneNumber {
 func NewTransformInt64PhoneNumberOpts(
 	preserveLength bool,
   seedArg *int64,
-	
 ) (*TransformInt64PhoneNumberOpts, error) {
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
@@ -57,7 +56,10 @@ func (t *TransformInt64PhoneNumber) ParseOptions(opts map[string]any) (any, erro
 	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)

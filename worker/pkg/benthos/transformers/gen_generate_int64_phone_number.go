@@ -25,7 +25,6 @@ func NewGenerateInt64PhoneNumber() *GenerateInt64PhoneNumber {
 
 func NewGenerateInt64PhoneNumberOpts(
   seedArg *int64,
-	
 ) (*GenerateInt64PhoneNumberOpts, error) {
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
@@ -48,7 +47,10 @@ func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateInt64PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateInt64PhoneNumberOpts{}
 
-	seedArg := opts["seed"].(*int64)
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate seed: %w", err)
