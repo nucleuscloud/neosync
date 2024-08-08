@@ -3,19 +3,17 @@ import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformFullName } from '@neosync/sdk';
+import { TransformFirstName } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
 interface Props
   extends TransformerConfigProps<
-    TransformFullName,
-    PlainMessage<TransformFullName>
+    TransformFirstName,
+    PlainMessage<TransformFirstName>
   > {}
 
-export default function UserDefinedTransformFullNameForm(
-  props: Props
-): ReactElement {
+export default function TransformFirstNameForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -23,15 +21,14 @@ export default function UserDefinedTransformFullNameForm(
         <div className="space-y-0.5">
           <FormLabel>Preserve Length</FormLabel>
           <FormDescription className="w-[90%]">
-            Generates a full name which has the same first name and last name
-            length as the input first and last names
+            Set the length of the output first name to be the same as the input
           </FormDescription>
         </div>
         <Switch
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
             setValue(
-              new TransformFullName({ ...value, preserveLength: checked })
+              new TransformFirstName({ ...value, preserveLength: checked })
             )
           }
           disabled={isDisabled}

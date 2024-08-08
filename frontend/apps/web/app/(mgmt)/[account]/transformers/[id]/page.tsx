@@ -9,7 +9,7 @@ import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
 import { getUserDefinedTransformerById } from '@neosync/sdk/connectquery';
 import { useQueryClient } from '@tanstack/react-query';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
-import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
+import UpdateTransformerForm from './components/UpdateTransformerForm';
 
 export default function UpdateUserDefinedTransformerPage({
   params,
@@ -53,7 +53,7 @@ export default function UpdateUserDefinedTransformerPage({
           <div className="flex flex-col">
             <div>
               {data?.transformer && (
-                <UpdateUserDefinedTransformerForm
+                <UpdateTransformerForm
                   currentTransformer={data.transformer}
                   onUpdated={(updatedTransformer) => {
                     const key = createConnectQueryKey(

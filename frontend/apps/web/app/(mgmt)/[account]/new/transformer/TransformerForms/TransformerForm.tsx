@@ -2,30 +2,30 @@ import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformerConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { FieldErrors } from 'react-hook-form';
-import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
-import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
-import UserDefinedGenerateEmailForm from './UserDefinedGenerateEmailForm';
-import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
-import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
-import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
-import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
-import UserDefinedGenerateJavascriptForm from './UserDefinedGenerateJavascriptForm';
-import UserDefinedGenerateStateForm from './UserDefinedGenerateStateForm';
-import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
-import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
-import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
-import UserDefinedTransformCharacterScrambleForm from './UserDefinedTransformCharacterScrambleForm';
-import UserDefinedTransformE164NumberForm from './UserDefinedTransformE164PhoneNumberForm';
-import UserDefinedTransformEmailForm from './UserDefinedTransformEmailForm';
-import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameForm';
-import UserDefinedTransformFloat64Form from './UserDefinedTransformFloat64Form';
-import UserDefinedTransformFullNameForm from './UserDefinedTransformFullNameForm';
-import UserDefinedTransformInt64Form from './UserDefinedTransformInt64Form';
-import UserDefinedTransformIntPhoneNumberForm from './UserDefinedTransformInt64PhoneForm';
-import UserDefinedTransformJavascriptForm from './UserDefinedTransformJavascriptForm';
-import UserDefinedTransformLastNameForm from './UserDefinedTransformLastNameForm';
-import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
-import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
+import GenerateCardNumberForm from './GenerateCardNumber';
+import GenerateCategoricalForm from './GenerateCategoricalForm';
+import GenerateEmailForm from './GenerateEmailForm';
+import GenerateFloat64Form from './GenerateFloat64Form';
+import GenerateGenderForm from './GenerateGenderForm';
+import GenerateInt64Form from './GenerateInt64Form';
+import GenerateInternationalPhoneNumberForm from './GenerateInternationalPhoneNumberForm';
+import GenerateJavascriptForm from './GenerateJavascriptForm';
+import GenerateStateForm from './GenerateStateForm';
+import GenerateStringForm from './GenerateStringForm';
+import GenerateStringPhoneNumberNumberForm from './GenerateStringPhoneNumberForm';
+import GenerateUuidForm from './GenerateUuidForm';
+import TransformCharacterScrambleForm from './TransformCharacterScrambleForm';
+import TransformE164NumberForm from './TransformE164PhoneNumberForm';
+import TransformEmailForm from './TransformEmailForm';
+import TransformFirstNameForm from './TransformFirstNameForm';
+import TransformFloat64Form from './TransformFloat64Form';
+import TransformFullNameForm from './TransformFullNameForm';
+import TransformInt64Form from './TransformInt64Form';
+import TransformIntPhoneNumberForm from './TransformInt64PhoneForm';
+import TransformJavascriptForm from './TransformJavascriptForm';
+import TransformLastNameForm from './TransformLastNameForm';
+import TransformPhoneNumberForm from './TransformPhoneNumberForm';
+import TransformStringForm from './TransformStringForm';
 
 interface Props {
   value: TransformerConfig;
@@ -37,14 +37,14 @@ interface Props {
   NoConfigComponent?: ReactElement;
 }
 // handles rendering custom transformer configs
-export function UserDefinedTransformerForm(props: Props): ReactElement {
+export default function TransformerForm(props: Props): ReactElement {
   const { value, disabled, setValue, errors, NoConfigComponent } = props;
   const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
 
   switch (valConfig.case) {
     case 'generateCardNumberConfig':
       return (
-        <UserDefinedGenerateCardNumberForm
+        <GenerateCardNumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -59,7 +59,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateCategoricalConfig':
       return (
-        <UserDefinedGenerateCategoricalForm
+        <GenerateCategoricalForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -74,7 +74,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateE164PhoneNumberConfig':
       return (
-        <UserDefinedGenerateInternationalPhoneNumberForm
+        <GenerateInternationalPhoneNumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -89,7 +89,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateFloat64Config':
       return (
-        <UserDefinedGenerateFloat64Form
+        <GenerateFloat64Form
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -104,7 +104,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateGenderConfig':
       return (
-        <UserDefinedGenerateGenderForm
+        <GenerateGenderForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -119,7 +119,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateInt64Config':
       return (
-        <UserDefinedGenerateInt64Form
+        <GenerateInt64Form
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -134,7 +134,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateStringConfig':
       return (
-        <UserDefinedGenerateStringForm
+        <GenerateStringForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -149,7 +149,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateStringPhoneNumberConfig':
       return (
-        <UserDefinedGenerateStringPhoneNumberNumberForm
+        <GenerateStringPhoneNumberNumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -164,7 +164,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateStateConfig':
       return (
-        <UserDefinedGenerateStateForm
+        <GenerateStateForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -179,7 +179,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateUuidConfig':
       return (
-        <UserDefinedGenerateUuidForm
+        <GenerateUuidForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -194,7 +194,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformE164PhoneNumberConfig':
       return (
-        <UserDefinedTransformE164NumberForm
+        <TransformE164NumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -209,7 +209,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformEmailConfig':
       return (
-        <UserDefinedTransformEmailForm
+        <TransformEmailForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -224,7 +224,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateEmailConfig':
       return (
-        <UserDefinedGenerateEmailForm
+        <GenerateEmailForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -239,7 +239,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformFirstNameConfig':
       return (
-        <UserDefinedTransformFirstNameForm
+        <TransformFirstNameForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -254,7 +254,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformFloat64Config':
       return (
-        <UserDefinedTransformFloat64Form
+        <TransformFloat64Form
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -269,7 +269,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformFullNameConfig':
       return (
-        <UserDefinedTransformFullNameForm
+        <TransformFullNameForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -284,7 +284,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformInt64Config':
       return (
-        <UserDefinedTransformInt64Form
+        <TransformInt64Form
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -299,7 +299,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformInt64PhoneNumberConfig':
       return (
-        <UserDefinedTransformIntPhoneNumberForm
+        <TransformIntPhoneNumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -314,7 +314,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformLastNameConfig':
       return (
-        <UserDefinedTransformLastNameForm
+        <TransformLastNameForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -329,7 +329,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformPhoneNumberConfig':
       return (
-        <UserDefinedTransformPhoneNumberForm
+        <TransformPhoneNumberForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -344,7 +344,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformStringConfig':
       return (
-        <UserDefinedTransformStringForm
+        <TransformStringForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -359,7 +359,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformJavascriptConfig':
       return (
-        <UserDefinedTransformJavascriptForm
+        <TransformJavascriptForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -374,7 +374,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'transformCharacterScrambleConfig':
       return (
-        <UserDefinedTransformCharacterScrambleForm
+        <TransformCharacterScrambleForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(
@@ -389,7 +389,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       );
     case 'generateJavascriptConfig':
       return (
-        <UserDefinedGenerateJavascriptForm
+        <GenerateJavascriptForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(

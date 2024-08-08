@@ -25,7 +25,7 @@ interface Props
 
 type ValidRegex = 'valid' | 'invalid' | 'null';
 
-export default function UserDefinedTransformCharacterScrambleForm(
+export default function TransformCharacterScrambleForm(
   props: Props
 ): ReactElement {
   const { value, setValue, isDisabled, errors } = props;

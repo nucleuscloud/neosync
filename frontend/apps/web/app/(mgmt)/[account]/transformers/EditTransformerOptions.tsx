@@ -39,7 +39,7 @@ import {
   EditJobMappingTransformerConfigFormContext,
   EditJobMappingTransformerConfigFormValues,
 } from '../new/transformer/schema';
-import { UserDefinedTransformerForm } from '../new/transformer/UserDefinedTransformerForms/UserDefinedTransformerForm';
+import TransformerForm from '../new/transformer/TransformerForms/TransformerForm';
 
 interface Props {
   transformer: Transformer;
@@ -162,7 +162,7 @@ function EditTransformerConfig(
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <UserDefinedTransformerForm
+                <TransformerForm
                   value={convertTransformerConfigSchemaToTransformerConfig(
                     field.value
                   )}

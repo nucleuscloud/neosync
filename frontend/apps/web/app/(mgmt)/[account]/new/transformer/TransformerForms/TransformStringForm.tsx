@@ -1,21 +1,20 @@
 'use client';
-import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
+
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformE164PhoneNumber } from '@neosync/sdk';
+import { TransformString } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
 interface Props
   extends TransformerConfigProps<
-    TransformE164PhoneNumber,
-    PlainMessage<TransformE164PhoneNumber>
+    TransformString,
+    PlainMessage<TransformString>
   > {}
 
-export default function UserDefinedTransformE164NumberForm(
-  props: Props
-): ReactElement {
+export default function TransformStringForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
@@ -24,14 +23,13 @@ export default function UserDefinedTransformE164NumberForm(
         <div className="space-y-0.5">
           <FormLabel>Preserve Length</FormLabel>
           <FormDescription className="w-[90%]">
-            Set the length of the output e164 phone number to be the same as the
-            input e164 phone number.
+            Set the length of the output string to be the same as the input
           </FormDescription>
         </div>
         <Switch
           checked={value.preserveLength}
           onCheckedChange={(checked) =>
-            setValue(new TransformE164PhoneNumber({ preserveLength: checked }))
+            setValue(new TransformString({ ...value, preserveLength: checked }))
           }
           disabled={isDisabled}
         />

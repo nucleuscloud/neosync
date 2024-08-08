@@ -11,9 +11,7 @@ import { TransformerConfigProps } from './util';
 interface Props
   extends TransformerConfigProps<GenerateState, PlainMessage<GenerateState>> {}
 
-export default function UserDefinedGenerateStateForm(
-  props: Props
-): ReactElement {
+export default function GenerateStateForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

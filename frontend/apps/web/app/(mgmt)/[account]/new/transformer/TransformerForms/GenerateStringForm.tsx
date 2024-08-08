@@ -14,9 +14,7 @@ interface Props
     PlainMessage<GenerateString>
   > {}
 
-export default function UserDefinedGenerateStringForm(
-  props: Props
-): ReactElement {
+export default function GenerateStringForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
