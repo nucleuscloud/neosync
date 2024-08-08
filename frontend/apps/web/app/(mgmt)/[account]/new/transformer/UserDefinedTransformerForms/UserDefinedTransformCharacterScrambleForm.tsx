@@ -23,7 +23,7 @@ interface Props
     PlainMessage<TransformCharacterScramble>
   > {}
 
-export type ValidRegex = 'valid' | 'invalid' | 'null';
+type ValidRegex = 'valid' | 'invalid' | 'null';
 
 export default function UserDefinedTransformCharacterScrambleForm(
   props: Props

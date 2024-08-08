@@ -57,7 +57,10 @@ import {
   JobSourceOptions,
   MongoDBSourceConnectionOptions,
   MysqlSourceConnectionOptions,
+  Passthrough,
   PostgresSourceConnectionOptions,
+  TransformerConfig,
+  TransformerSource,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
   VirtualForeignKey,
@@ -918,7 +921,14 @@ function getJobSource(
       ...mapping,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+        : convertJobMappingTransformerToForm(
+            new JobMappingTransformer({
+              source: TransformerSource.PASSTHROUGH,
+              config: new TransformerConfig({
+                config: { case: 'passthroughConfig', value: new Passthrough() },
+              }),
+            })
+          ),
     };
   });
 
@@ -949,7 +959,15 @@ function getJobSource(
             table: dbcol.table,
             column: dbcol.column,
             transformer: convertJobMappingTransformerToForm(
-              new JobMappingTransformer()
+              new JobMappingTransformer({
+                source: TransformerSource.PASSTHROUGH,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: new Passthrough(),
+                  },
+                }),
+              })
             ),
           });
         }

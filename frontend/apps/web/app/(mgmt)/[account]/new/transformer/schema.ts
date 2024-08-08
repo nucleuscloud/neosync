@@ -10,7 +10,6 @@ import {
 } from '@neosync/sdk';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
-import { tryBigInt } from '../../transformers/Sheetforms/util';
 
 const bigIntValidator = Yup.mixed<bigint>()
   .default(BigInt(0))
@@ -497,7 +496,7 @@ const EMPTY_TRANSFORMER_VALUE_CONFIG = Yup.object({});
 
 // Using this "as const" allows typescript to infer the types based on the shape we've described in the Yup object
 // Ideally we can more explicitly type this in the future based on the Transformer types we get from @neosync/sdk
-export const TRANSFORMER_SCHEMA_CONFIGS = {
+const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBoolConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateCityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateDefaultConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
@@ -659,6 +658,23 @@ export interface CreateUserDefinedTransformerFormContext {
   >;
 }
 
+export const EditJobMappingTransformerConfigFormValues = Yup.object({
+  config: TransformerConfigSchema,
+});
+export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
+  typeof EditJobMappingTransformerConfigFormValues
+>;
+
+export interface EditJobMappingTransformerConfigFormContext {
+  accountId: string;
+  isUserJavascriptCodeValid: UseMutateAsyncFunction<
+    ValidateUserJavascriptCodeResponse,
+    ConnectError,
+    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    unknown
+  >;
+}
+
 export const UpdateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
@@ -673,4 +689,13 @@ export type UpdateUserDefinedTransformerFormValues = Yup.InferType<
 export interface EditUserDefinedTransformerFormContext
   extends CreateUserDefinedTransformerFormContext {
   name: string;
+}
+
+function tryBigInt(val: bigint | boolean | number | string): bigint | null {
+  try {
+    const newInt = BigInt(val);
+    return newInt;
+  } catch {
+    return null;
+  }
 }

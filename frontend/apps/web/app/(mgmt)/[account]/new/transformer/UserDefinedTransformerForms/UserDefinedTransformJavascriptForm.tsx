@@ -8,14 +8,15 @@ import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useReadNeosyncTransformerDeclarationFile } from '@/libs/hooks/useReadNeosyncTransfomerDeclarationFile';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
 interface Props
@@ -37,6 +38,16 @@ export default function UserDefinedTransformJavascriptForm(
   };
 
   const { resolvedTheme } = useTheme();
+  const monaco = useMonaco();
+  const { data: fileContent } = useReadNeosyncTransformerDeclarationFile();
+  useEffect(() => {
+    if (monaco && fileContent) {
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(
+        fileContent,
+        'neosync-transformer.d.ts'
+      );
+    }
+  }, [monaco, fileContent]);
 
   const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
   const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
