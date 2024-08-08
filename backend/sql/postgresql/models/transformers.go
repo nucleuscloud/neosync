@@ -384,6 +384,9 @@ func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMapping
 	} else {
 		source = mgmtv1alpha1.TransformerSource(t.Source)
 	}
+	if t.Config == nil {
+		t.Config = &TransformerConfigs{}
+	}
 	return &mgmtv1alpha1.JobMappingTransformer{
 		Source: source,
 		Config: t.Config.ToTransformerConfigDto(),
