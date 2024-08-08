@@ -1,5 +1,5 @@
 'use client';
-import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/UserDefinedTransformerForm';
+import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/UserDefinedTransformerForm';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';

@@ -39,7 +39,7 @@ import {
   EditJobMappingTransformerConfigFormContext,
   EditJobMappingTransformerConfigFormValues,
 } from '../new/transformer/schema';
-import { UserDefinedTransformerForm } from '../new/transformer/UserDefinedTransformerForms/UserDefinedTransformerForm';
+import { UserDefinedTransformerForm } from '../new/transformer/TransformerForms/UserDefinedTransformerForm';
 
 interface Props {
   transformer: Transformer;

@@ -51,7 +51,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
+import { UserDefinedTransformerForm } from './TransformerForms/UserDefinedTransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
