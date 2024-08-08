@@ -28,10 +28,18 @@ func NewTransformInt64() *TransformInt64 {
 func NewTransformInt64Opts(
 	randomizationRangeMin int64,
 	randomizationRangeMax int64,
+  seedArg *int64,
+	
 ) (*TransformInt64Opts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
 	return &TransformInt64Opts{
 		randomizationRangeMin: randomizationRangeMin,
-		randomizationRangeMax: randomizationRangeMax,	
+		randomizationRangeMax: randomizationRangeMax,
+		randomizer: rng.New(seed),	
 	}, nil
 }
 
@@ -58,16 +66,10 @@ func (t *TransformInt64) ParseOptions(opts map[string]any) (any, error) {
 	randomizationRangeMax := opts["randomizationRangeMax"].(int64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

@@ -26,9 +26,17 @@ func NewGenerateStreetAddress() *GenerateStreetAddress {
 
 func NewGenerateStreetAddressOpts(
 	maxLength int64,
+  seedArg *int64,
+	
 ) (*GenerateStreetAddressOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
 	return &GenerateStreetAddressOpts{
-		maxLength: maxLength,	
+		maxLength: maxLength,
+		randomizer: rng.New(seed),	
 	}, nil
 }
 
@@ -49,16 +57,10 @@ func (t *GenerateStreetAddress) ParseOptions(opts map[string]any) (any, error) {
 	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

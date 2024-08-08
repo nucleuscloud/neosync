@@ -30,6 +30,8 @@ func NewTransformStringOpts(
 	preserveLengthArg *bool,
 	minLengthArg *int64,
 	maxLengthArg *int64,
+  seedArg *int64,
+	
 ) (*TransformStringOpts, error) {
 	preserveLength := bool(false) 
 	if preserveLengthArg != nil {
@@ -46,10 +48,16 @@ func NewTransformStringOpts(
 		maxLength = *maxLengthArg
 	}
 	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
 	return &TransformStringOpts{
 		preserveLength: preserveLength,
 		minLength: minLength,
-		maxLength: maxLength,	
+		maxLength: maxLength,
+		randomizer: rng.New(seed),	
 	}, nil
 }
 
@@ -82,16 +90,10 @@ func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

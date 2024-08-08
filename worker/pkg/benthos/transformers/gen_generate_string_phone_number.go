@@ -28,10 +28,18 @@ func NewGenerateStringPhoneNumber() *GenerateStringPhoneNumber {
 func NewGenerateStringPhoneNumberOpts(
 	min int64,
 	max int64,
+  seedArg *int64,
+	
 ) (*GenerateStringPhoneNumberOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
 	return &GenerateStringPhoneNumberOpts{
 		min: min,
-		max: max,	
+		max: max,
+		randomizer: rng.New(seed),	
 	}, nil
 }
 
@@ -58,16 +66,10 @@ func (t *GenerateStringPhoneNumber) ParseOptions(opts map[string]any) (any, erro
 	max := opts["max"].(int64)
 	transformerOpts.max = max
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

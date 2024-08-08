@@ -11,20 +11,20 @@ declare namespace neosync {
   /**
 	 * Transformers
    */
-
+	
 	export interface TransformCharacterScrambleOptions {
 		/** A custom regular expression. This regex is used to manipulate input data during the transformation process. */
 		userProvidedRegex?: string;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing string value by scrambling the characters while maintaining the format.
    */
 	declare function transformCharacterScramble(value: any, options: TransformCharacterScrambleOptions): any;
 
-
+	
 	export interface TransformE164PhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength: boolean;
@@ -33,13 +33,13 @@ declare namespace neosync {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing E164 formatted phone number.
    */
 	declare function transformE164PhoneNumber(value: any, options: TransformE164PhoneNumberOptions): any;
 
-
+	
 	export interface TransformEmailOptions {
 		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
 		preserveLength?: boolean;
@@ -56,13 +56,13 @@ declare namespace neosync {
 		/** Specifies the action to take when an invalid email is encountered, with options including `reject`, `passthrough`, `null`, or `generate`. */
 		invalidEmailAction?: string;
 	}
-
+ 
   /**
    * Transforms an existing email address.
    */
 	declare function transformEmail(value: any, options: TransformEmailOptions): any;
 
-
+	
 	export interface TransformFirstNameOptions {
 		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -71,13 +71,13 @@ declare namespace neosync {
 		/** An optional seed value used for generating deterministic transformations. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing first name
    */
 	declare function transformFirstName(value: any, options: TransformFirstNameOptions): any;
 
-
+	
 	export interface TransformFloat64Options {
 		/** Specifies the minimum value for the range of the float. */
 		randomizationRangeMin: number;
@@ -90,13 +90,13 @@ declare namespace neosync {
 		/** An optional seed value used for generating deterministic transformations. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing float value.
    */
 	declare function transformFloat64(value: any, options: TransformFloat64Options): any;
 
-
+	
 	export interface TransformFullNameOptions {
 		/**  */
 		maxLength?: number;
@@ -105,13 +105,13 @@ declare namespace neosync {
 		/** An optional seed value used for generating deterministic transformations. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing full name.
    */
 	declare function transformFullName(value: any, options: TransformFullNameOptions): any;
 
-
+	
 	export interface TransformInt64Options {
 		/** Specifies the minimum value for the range of the int. */
 		randomizationRangeMin: number;
@@ -120,26 +120,26 @@ declare namespace neosync {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing integer value.
    */
 	declare function transformInt64(value: any, options: TransformInt64Options): any;
 
-
+	
 	export interface TransformInt64PhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength: boolean;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing phone number that is typed as an integer
    */
 	declare function transformInt64PhoneNumber(value: any, options: TransformInt64PhoneNumberOptions): any;
 
-
+	
 	export interface TransformLastNameOptions {
 		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -148,13 +148,13 @@ declare namespace neosync {
 		/** An optional seed value used for generating deterministic transformations. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing last name.
    */
 	declare function transformLastName(value: any, options: TransformLastNameOptions): any;
 
-
+	
 	export interface TransformStringOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength?: boolean;
@@ -165,13 +165,13 @@ declare namespace neosync {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing string value.
    */
 	declare function transformString(value: any, options: TransformStringOptions): any;
 
-
+	
 	export interface TransformStringPhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength: boolean;
@@ -180,19 +180,19 @@ declare namespace neosync {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
-
+ 
   /**
    * Transforms an existing phone number that is typed as a string.
    */
 	declare function transformStringPhoneNumber(value: any, options: TransformStringPhoneNumberOptions): any;
 
+	
 
-
-
+	
   /**
-	 * Generators
+	 * Generators 
    */
-
+	
 	export interface GenerateBoolOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -202,8 +202,8 @@ declare namespace neosync {
    * Generates a boolean value at random.
    */
 	declare function generateBool(options: GenerateBoolOptions): any;
-
-
+	
+	
 	export interface GenerateCardNumberOptions {
 		/** A boolean indicating whether the generated value should pass the Luhn algorithm check. */
 		validLuhn: boolean;
@@ -215,8 +215,8 @@ declare namespace neosync {
    * Generates a card number.
    */
 	declare function generateCardNumber(options: GenerateCardNumberOptions): any;
-
-
+	
+	
 	export interface GenerateCategoricalOptions {
 		/** A list of comma-separated string values to randomly select from. */
 		categories: string;
@@ -228,8 +228,8 @@ declare namespace neosync {
    * Randomly selects a value from a defined set of categorical values.
    */
 	declare function generateCategorical(options: GenerateCategoricalOptions): any;
-
-
+	
+	
 	export interface GenerateCityOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength: number;
@@ -241,8 +241,8 @@ declare namespace neosync {
    * Randomly selects a city from a list of predefined US cities.
    */
 	declare function generateCity(options: GenerateCityOptions): any;
-
-
+	
+	
 	export interface GenerateEmailOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -256,8 +256,8 @@ declare namespace neosync {
    * Generates a new randomized email address.
    */
 	declare function generateEmail(options: GenerateEmailOptions): any;
-
-
+	
+	
 	export interface GenerateFirstNameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -269,8 +269,8 @@ declare namespace neosync {
    * Generates a random first name.
    */
 	declare function generateFirstName(options: GenerateFirstNameOptions): any;
-
-
+	
+	
 	export interface GenerateFloat64Options {
 		/** A boolean indicating whether the sign of the float should be randomized. */
 		randomizeSign?: boolean;
@@ -290,8 +290,8 @@ declare namespace neosync {
    * Generates a random float64 value.
    */
 	declare function generateFloat64(options: GenerateFloat64Options): any;
-
-
+	
+	
 	export interface GenerateFullAddressOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength: number;
@@ -303,8 +303,8 @@ declare namespace neosync {
    * Randomly generates a street address.
    */
 	declare function generateFullAddress(options: GenerateFullAddressOptions): any;
-
-
+	
+	
 	export interface GenerateFullNameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -316,8 +316,8 @@ declare namespace neosync {
    * Generates a new full name consisting of a first and last name.
    */
 	declare function generateFullName(options: GenerateFullNameOptions): any;
-
-
+	
+	
 	export interface GenerateGenderOptions {
 		/** Shortens length of generated value to 1. */
 		abbreviate?: boolean;
@@ -331,8 +331,8 @@ declare namespace neosync {
    * Randomly generates one of the following genders: female, male, undefined, nonbinary.
    */
 	declare function generateGender(options: GenerateGenderOptions): any;
-
-
+	
+	
 	export interface GenerateInt64Options {
 		/** A boolean indicating whether the sign of the float should be randomized. */
 		randomizeSign?: boolean;
@@ -340,14 +340,16 @@ declare namespace neosync {
 		min: number;
 		/** Specifies the maximum value for the generated int. */
 		max: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
 	}
 
   /**
    * Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.
    */
 	declare function generateInt64(options: GenerateInt64Options): any;
-
-
+	
+	
 	export interface GenerateInt64PhoneNumberOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -357,8 +359,8 @@ declare namespace neosync {
    * Generates a new phone number of type int64 with a default length of 10.
    */
 	declare function generateInt64PhoneNumber(options: GenerateInt64PhoneNumberOptions): any;
-
-
+	
+	
 	export interface GenerateInternationalPhoneNumberOptions {
 		/** Specifies the minimum value for the generated phone number. */
 		min: number;
@@ -372,8 +374,8 @@ declare namespace neosync {
    * Generates a Generate phone number in e164 format.
    */
 	declare function generateInternationalPhoneNumber(options: GenerateInternationalPhoneNumberOptions): any;
-
-
+	
+	
 	export interface GenerateLastNameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -385,8 +387,8 @@ declare namespace neosync {
    * Generates a random last name.
    */
 	declare function generateLastName(options: GenerateLastNameOptions): any;
-
-
+	
+	
 	export interface GenerateRandomStringOptions {
 		/** Specifies the minimum length for the generated string. */
 		min: number;
@@ -400,8 +402,8 @@ declare namespace neosync {
    * Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.
    */
 	declare function generateRandomString(options: GenerateRandomStringOptions): any;
-
-
+	
+	
 	export interface GenerateSHA256HashOptions {
 	}
 
@@ -409,8 +411,8 @@ declare namespace neosync {
    * SHA256 hashes a randomly generated value.
    */
 	declare function generateSHA256Hash(options: GenerateSHA256HashOptions): any;
-
-
+	
+	
 	export interface GenerateSSNOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -420,8 +422,8 @@ declare namespace neosync {
    * Generates a completely random social security numbers including the hyphens in the format xxx-xx-xxxx.
    */
 	declare function generateSSN(options: GenerateSSNOptions): any;
-
-
+	
+	
 	export interface GenerateStateOptions {
 		/** If true returns the full state name instead of the two character state code. */
 		generateFullName?: boolean;
@@ -433,8 +435,8 @@ declare namespace neosync {
    * Randomly selects a US state and either returns the two character state code or the full state name.
    */
 	declare function generateState(options: GenerateStateOptions): any;
-
-
+	
+	
 	export interface GenerateStreetAddressOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength: number;
@@ -446,8 +448,8 @@ declare namespace neosync {
    * Randomly generates a street address.
    */
 	declare function generateStreetAddress(options: GenerateStreetAddressOptions): any;
-
-
+	
+	
 	export interface GenerateStringPhoneNumberOptions {
 		/** Specifies the minimum length for the generated phone number. */
 		min: number;
@@ -461,8 +463,8 @@ declare namespace neosync {
    * Generates a Generate phone number and returns it as a string.
    */
 	declare function generateStringPhoneNumber(options: GenerateStringPhoneNumberOptions): any;
-
-
+	
+	
 	export interface GenerateUnixTimestampOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -472,8 +474,8 @@ declare namespace neosync {
    * Randomly generates a Unix timestamp.
    */
 	declare function generateUnixTimestamp(options: GenerateUnixTimestampOptions): any;
-
-
+	
+	
 	export interface GenerateUsernameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -485,8 +487,8 @@ declare namespace neosync {
    * Randomly generates a username
    */
 	declare function generateUsername(options: GenerateUsernameOptions): any;
-
-
+	
+	
 	export interface GenerateUTCTimestampOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -496,8 +498,8 @@ declare namespace neosync {
    * Randomly generates a UTC timestamp.
    */
 	declare function generateUTCTimestamp(options: GenerateUTCTimestampOptions): any;
-
-
+	
+	
 	export interface GenerateUUIDOptions {
 		/** Determines whether the generated UUID should include hyphens. If set to true, the UUID will be formatted with hyphens (e.g., d853d251-e135-4fe4-a4eb-0aea6bfaf645). If set to false, the hyphens will be omitted (e.g., d853d251e1354fe4a4eb0aea6bfaf645). */
 		includeHyphens?: boolean;
@@ -507,8 +509,8 @@ declare namespace neosync {
    * Generates a new UUIDv4 id.
    */
 	declare function generateUUID(options: GenerateUUIDOptions): any;
-
-
+	
+	
 	export interface GenerateZipcodeOptions {
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
@@ -518,12 +520,6 @@ declare namespace neosync {
    * Randomly selects a zip code from a list of predefined US zipcodes.
    */
 	declare function generateZipcode(options: GenerateZipcodeOptions): any;
-<<<<<<< HEAD
 	
 	
 }
-=======
-
-
-}
->>>>>>> main

@@ -24,8 +24,16 @@ func NewGenerateUnixTimestamp() *GenerateUnixTimestamp {
 }
 
 func NewGenerateUnixTimestampOpts(
+  seedArg *int64,
+	
 ) (*GenerateUnixTimestampOpts, error) {
-	return &GenerateUnixTimestampOpts{	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateUnixTimestampOpts{
+		randomizer: rng.New(seed),	
 	}, nil
 }
 
@@ -40,16 +48,10 @@ func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateUnixTimestamp) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateUnixTimestampOpts{}
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	seedArg := opts["seed"].(*int64)
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 
