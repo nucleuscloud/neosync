@@ -201,26 +201,58 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 new ConnectionConfig()
                             );
                             if (connectionType === 'pgConfig') {
-                              form.setValue('sourceOptions', {
-                                postgres: {
-                                  haltOnNewColumnAddition: false,
+                              form.setValue(
+                                'sourceOptions',
+                                {
+                                  postgres: {
+                                    haltOnNewColumnAddition: false,
+                                  },
                                 },
-                              });
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             } else if (connectionType === 'mysqlConfig') {
-                              form.setValue('sourceOptions', {
-                                mysql: {
-                                  haltOnNewColumnAddition: false,
+                              form.setValue(
+                                'sourceOptions',
+                                {
+                                  mysql: {
+                                    haltOnNewColumnAddition: false,
+                                  },
                                 },
-                              });
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             } else if (connectionType === 'dynamodbConfig') {
-                              form.setValue('sourceOptions', {
-                                dynamodb: {
-                                  unmappedTransformConfig:
-                                    getDefaultUnmappedTransformConfig(),
+                              form.setValue(
+                                'sourceOptions',
+                                {
+                                  dynamodb: {
+                                    unmappedTransformConfig:
+                                      getDefaultUnmappedTransformConfig(),
+                                  },
                                 },
-                              });
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             } else {
-                              form.setValue('sourceOptions', {});
+                              form.setValue(
+                                'sourceOptions',
+                                {},
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             }
                           }}
                           value={field.value}
@@ -248,18 +280,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 )}
               />
 
-              <SourceOptionsForm
-                connection={connections.find(
-                  (c) => c.id === form.getValues().sourceId
+              <FormField
+                control={form.control}
+                name="sourceOptions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <SourceOptionsForm
+                        connection={connections.find(
+                          (c) => c.id === form.getValues().sourceId
+                        )}
+                        value={field.value}
+                        setValue={(newOpts) => field.onChange(newOpts)}
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-                value={form.watch('sourceOptions')}
-                setValue={(newOpts) =>
-                  form.setValue('sourceOptions', newOpts, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
-                }
               />
             </div>
           </div>
@@ -278,9 +314,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div className="space-y-12 col-span-2">
               {fields.map((val, index) => {
-                const destOpts = form.watch(
-                  `destinations.${index}.destinationOptions`
-                );
                 return (
                   <div className="space-y-4 col-span-2" key={val.id}>
                     <div className="flex flew-row space-x-4">
@@ -436,26 +469,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         </Button>
                       </div>
                     </div>
-                    <DestinationOptionsForm
-                      connection={connections.find(
-                        (c) =>
-                          c.id ==
-                          form.getValues().destinations[index].connectionId
+                    <FormField
+                      control={form.control}
+                      name={`destinations.${index}.destinationOptions`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <DestinationOptionsForm
+                              connection={connections.find(
+                                (c) =>
+                                  c.id ==
+                                  form.getValues().destinations[index]
+                                    .connectionId
+                              )}
+                              value={field.value}
+                              setValue={(newOpts) => {
+                                field.onChange(newOpts);
+                              }}
+                              hideDynamoDbTableMappings={true}
+                              destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
+                            />
+                          </FormControl>
+                        </FormItem>
                       )}
-                      value={destOpts}
-                      setValue={(newOpts) => {
-                        form.setValue(
-                          `destinations.${index}.destinationOptions`,
-                          newOpts,
-                          {
-                            shouldDirty: true,
-                            shouldTouch: true,
-                            shouldValidate: true,
-                          }
-                        );
-                      }}
-                      hideDynamoDbTableMappings={true}
-                      destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
                     />
                   </div>
                 );

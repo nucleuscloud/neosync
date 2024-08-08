@@ -1,5 +1,9 @@
 import { TransformerConfigSchema } from '@/app/(mgmt)/[account]/new/transformer/schema';
-import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
+import {
+  JobMappingTransformer,
+  Passthrough,
+  TransformerConfig,
+} from '@neosync/sdk';
 import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
@@ -54,11 +58,16 @@ export function convertTransformerConfigSchemaToTransformerConfig(
       value[key] = val.toString();
     }
   });
-  return tcs instanceof TransformerConfig
-    ? tcs
-    : TransformerConfig.fromJson({
-        [tcs.case ?? '']: tcs.value,
-      });
+  if (tcs instanceof TransformerConfig) {
+    return tcs;
+  } else {
+    if (tcs.case) {
+      return TransformerConfig.fromJson({ [tcs.case]: tcs.value });
+    }
+    return new TransformerConfig({
+      config: { case: 'passthroughConfig', value: new Passthrough() },
+    });
+  }
 }
 
 export const JobMappingFormValues = Yup.object({
@@ -132,7 +141,10 @@ export type SourceOptionsFormValues = Yup.InferType<
 
 export const SourceFormValues = Yup.object({
   sourceId: Yup.string().required('Source is required').uuid(),
-  sourceOptions: SourceOptionsFormValues.required('Source Options is required'),
+  // strict().noUnknown() seems to fix an issue with the discriminating types sometimes being seen as present, which results in bad validation.
+  sourceOptions: SourceOptionsFormValues.strict()
+    .noUnknown()
+    .required('Source Options is required'),
 });
 
 const DynamoDbDestinationOptionsFormValues = Yup.object({

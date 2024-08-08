@@ -11,6 +11,8 @@ import {
   JobDestination,
   JobMappingTransformer,
   JobSource,
+  Passthrough,
+  TransformerSource,
 } from '@neosync/sdk';
 
 export function getConnectionIdFromSource(
@@ -96,7 +98,15 @@ export function getOnSelectedTableToggle(
           table: dbcol.table,
           column: dbcol.column,
           transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer({})
+            new JobMappingTransformer({
+              source: TransformerSource.PASSTHROUGH,
+              config: {
+                config: {
+                  case: 'passthroughConfig',
+                  value: new Passthrough(),
+                },
+              },
+            })
           ),
         });
       });
