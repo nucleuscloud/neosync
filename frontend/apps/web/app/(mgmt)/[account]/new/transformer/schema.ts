@@ -134,7 +134,11 @@ const generateFloat64Config = Yup.object().shape({
   min: Yup.number()
     .required('This field is required.')
     .min(Number.MIN_SAFE_INTEGER)
-    .max(Number.MAX_SAFE_INTEGER),
+    .max(Number.MAX_SAFE_INTEGER)
+    .test('is-less-than-max', 'Min must be greater than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    }),
   max: Yup.number()
     .required('This field is required.')
     .min(Number.MIN_SAFE_INTEGER)
