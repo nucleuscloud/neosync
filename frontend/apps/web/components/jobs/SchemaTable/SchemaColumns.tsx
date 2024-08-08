@@ -15,11 +15,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import {
-  Passthrough,
-  SystemTransformer,
-  TransformerSource,
-} from '@neosync/sdk';
+import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -407,17 +403,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           />
                         </div>
                         <EditTransformerOptions
-                          transformer={
-                            transformer ??
-                            new SystemTransformer({
-                              config: {
-                                config: {
-                                  case: 'passthroughConfig',
-                                  value: new Passthrough(),
-                                },
-                              },
-                            })
-                          }
+                          transformer={transformer ?? new SystemTransformer()}
                           value={fv}
                           onSubmit={(newvalue) => {
                             field.onChange(newvalue);

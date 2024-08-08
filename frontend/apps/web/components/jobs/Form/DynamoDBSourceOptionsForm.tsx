@@ -6,11 +6,7 @@ import {
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import {
-  Passthrough,
-  SystemTransformer,
-  TransformerSource,
-} from '@neosync/sdk';
+import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { TransformerHandler } from '../SchemaTable/transformer-handler';
@@ -184,25 +180,11 @@ function getTransformerFromField(
   ) {
     return (
       handler.getUserDefinedTransformerById(value.config.value.id) ??
-      new SystemTransformer({
-        config: {
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough(),
-          },
-        },
-      })
+      new SystemTransformer()
     );
   }
   return (
     handler.getSystemTransformerBySource(value.source) ??
-    new SystemTransformer({
-      config: {
-        config: {
-          case: 'passthroughConfig',
-          value: new Passthrough(),
-        },
-      },
-    })
+    new SystemTransformer()
   );
 }

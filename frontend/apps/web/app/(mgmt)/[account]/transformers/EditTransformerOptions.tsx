@@ -25,7 +25,7 @@ import {
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
-import { Passthrough, TransformerConfig } from '@neosync/sdk';
+import { TransformerConfig } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
   Cross2Icon,
@@ -100,13 +100,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   ? convertTransformerConfigSchemaToTransformerConfig(
                       value.config
                     )
-                  : (transformer.config ??
-                    new TransformerConfig({
-                      config: {
-                        case: 'passthroughConfig',
-                        value: new Passthrough(),
-                      },
-                    }))
+                  : (transformer.config ?? new TransformerConfig())
               }
               onSubmit={(newval) => {
                 onSubmit({

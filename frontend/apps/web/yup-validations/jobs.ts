@@ -1,9 +1,5 @@
 import { TransformerConfigSchema } from '@/app/(mgmt)/[account]/new/transformer/schema';
-import {
-  JobMappingTransformer,
-  Passthrough,
-  TransformerConfig,
-} from '@neosync/sdk';
+import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
 import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
@@ -64,9 +60,7 @@ export function convertTransformerConfigSchemaToTransformerConfig(
     if (tcs.case) {
       return TransformerConfig.fromJson({ [tcs.case]: tcs.value });
     }
-    return new TransformerConfig({
-      config: { case: 'passthroughConfig', value: new Passthrough() },
-    });
+    return new TransformerConfig();
   }
 }
 
