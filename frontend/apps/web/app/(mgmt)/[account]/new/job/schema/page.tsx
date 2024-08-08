@@ -14,7 +14,6 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { toast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -58,6 +57,7 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
+import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import {
   getDestinationDetailsRecord,
@@ -228,10 +228,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         posthog.capture('New Job Flow Complete', {
           jobType: 'data-sync',
         });
-        toast({
-          title: 'Successfully created the job!',
-          variant: 'success',
-        });
+        toast.success('Successfully created job!');
 
         clearNewJobSession(window.sessionStorage, sessionPrefix);
 
@@ -260,9 +257,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               })
             );
           } catch (e) {
-            toast({
-              title: 'Unable to update onboarding status!',
-              variant: 'destructive',
+            toast.error('Unable to update onboarding status!', {
+              description: getErrorMessage(e),
             });
           }
         }
@@ -274,10 +270,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         }
       } catch (err) {
         console.error(err);
-        toast({
-          title: 'Unable to create job',
+        toast.error('Unable to create job', {
           description: getErrorMessage(err),
-          variant: 'destructive',
         });
       }
       return;
@@ -301,9 +295,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
-      toast({
-        title: 'Unable to validate job mappings',
-        variant: 'destructive',
+      toast.error('Unable to validate job mappings', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);
@@ -325,9 +318,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate virtual foreign keys:', error);
-      toast({
-        title: 'Unable to validate virtual foreign keys',
-        variant: 'destructive',
+      toast.error('Unable to validate virtual foreign keys', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);

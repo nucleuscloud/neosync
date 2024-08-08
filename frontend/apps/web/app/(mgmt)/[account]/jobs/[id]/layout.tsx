@@ -9,7 +9,6 @@ import { useAccount } from '@/components/providers/account-provider';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -24,6 +23,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobCloneButton from './components/JobCloneButton';
 import JobPauseButton from './components/JobPauseButton';
@@ -57,20 +57,15 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   async function onTriggerJobRun(): Promise<void> {
     try {
       await triggerJobRun({ jobId: id });
-      toast({
-        title: 'Job run triggered successfully!',
-        variant: 'success',
-      });
+      toast.success('Job run triggered successfully!');
       setTimeout(() => {
         mutateRecentRuns();
         mutateJobRunsByJob();
       }, 4000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to trigger job run',
+      toast.error('Uanble to trigger job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -81,17 +76,12 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     }
     try {
       await removeJob({ id });
-      toast({
-        title: 'Job removed successfully!',
-        variant: 'success',
-      });
+      toast.success('Job removed successfully!');
       router.push(`/${account?.name}/jobs`);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove job',
+      toast.error('Unable to remove job', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

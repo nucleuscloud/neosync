@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobRun, JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
@@ -24,6 +23,7 @@ import {
   terminateJobRun,
 } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -37,7 +37,6 @@ export function DataTableRowActions<TData>({
   const run = row.original as JobRun;
   const router = useRouter();
   const { account } = useAccount();
-  const { toast } = useToast();
   const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
   const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
   const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
@@ -45,17 +44,12 @@ export function DataTableRowActions<TData>({
   async function onDelete(): Promise<void> {
     try {
       await removeJobRunAsync({ accountId: account?.id, jobRunId: run.id });
-      toast({
-        title: 'Removing Job Run. This may take a minute to delete!',
-        variant: 'success',
-      });
+      toast.success('Removing Job Run. This may take a minute to delete!');
       onDeleted();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to remove job run',
+      toast.error('Unable to remove job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -63,17 +57,12 @@ export function DataTableRowActions<TData>({
   async function onCancel(): Promise<void> {
     try {
       await cancelJobRunAsync({ accountId: account?.id, jobRunId: run.id });
-      toast({
-        title: 'Canceling Job Run. This may take a minute to cancel!',
-        variant: 'success',
-      });
+      toast.success('Canceling Job Run. This may take a minute to cancel!');
       onDeleted();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to cancel job run',
+      toast.error('Unable to cancel job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -81,17 +70,14 @@ export function DataTableRowActions<TData>({
   async function onTerminate(): Promise<void> {
     try {
       await terminateJobRunAsync({ accountId: account?.id, jobRunId: run.id });
-      toast({
-        title: 'Terminating Job Run. This may take a minute to terminate!',
-        variant: 'success',
-      });
+      toast.success(
+        'Terminating Job Run. This may take a minute to terminate!'
+      );
       onDeleted();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to terminate job run',
+      toast.error('Unable to terminate job run', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

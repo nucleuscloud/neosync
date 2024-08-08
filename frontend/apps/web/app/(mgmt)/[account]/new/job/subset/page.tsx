@@ -18,7 +18,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { SchemaFormValues } from '@/yup-validations/jobs';
@@ -47,6 +46,7 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
+import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { getConnectionType } from '../../../connections/util';
 import { showSubsetOptions } from '../../../jobs/[id]/subsets/components/SubsetCard';
@@ -80,7 +80,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
-  const { toast } = useToast();
   const { data: connectionsData } = useQuery(
     getConnections,
     { accountId: account?.id },
@@ -197,10 +196,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       posthog.capture('New Job Flow Complete', {
         jobType: 'data-sync',
       });
-      toast({
-        title: 'Successfully created the job!',
-        variant: 'success',
-      });
+      toast.success('Successfully created the job!');
       clearNewJobSession(window.sessionStorage, sessionPrefix);
 
       // updates the onboarding data
@@ -227,9 +223,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       }
@@ -241,10 +236,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create job',
+      toast.error('Unable to create job', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

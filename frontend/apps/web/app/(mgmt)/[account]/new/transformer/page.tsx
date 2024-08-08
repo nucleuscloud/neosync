@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectTrigger } from '@/components/ui/select';
-import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -51,6 +50,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import TransformerForm from './TransformerForms/TransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
@@ -131,10 +131,7 @@ export default function NewTransformer(): ReactElement {
         source: values.source,
         sourceName: transformers.find((t) => t.source === values.source)?.name,
       });
-      toast({
-        title: 'Successfully created transformer!',
-        variant: 'success',
-      });
+      toast.success('Successfully created transformer!');
       if (transformer.transformer?.id) {
         router.push(
           `/${account?.name}/transformers/${transformer.transformer?.id}`
@@ -144,10 +141,8 @@ export default function NewTransformer(): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create transformer',
+      toast.error('Uanble to create transformer', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

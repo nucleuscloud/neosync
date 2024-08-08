@@ -33,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   createConnectQueryKey,
@@ -60,6 +59,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   fromStructToRecord,
   getSampleEditAiGeneratedRecordsRequest,
@@ -76,7 +76,6 @@ interface Props {
 export default function AiDataGenConnectionCard({
   jobId,
 }: Props): ReactElement {
-  const { toast } = useToast();
   const { account } = useAccount();
 
   const {
@@ -213,17 +212,12 @@ export default function AiDataGenConnectionCard({
         mappings: [],
         source: toSingleTableEditAiGenerateJobSource(values),
       });
-      toast({
-        title: 'Successfully updated job source connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated job source connection!');
       mutate();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update job source connection',
+      toast.error('Unable to update job source connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsUpdating(false);
@@ -241,10 +235,8 @@ export default function AiDataGenConnectionCard({
       );
       setaioutput(output.records.map((r) => fromStructToRecord(r)));
     } catch (err) {
-      toast({
-        title: 'Unable to generate sample data',
+      toast.error('Unable to generate sample data', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsSampling(false);
@@ -306,12 +298,12 @@ export default function AiDataGenConnectionCard({
         ...form.getValues(),
         source: { ...form.getValues('source'), fkSourceConnectionId: value },
       });
-      toast({
-        title:
-          'Unable to get connection schema on table constraint source change.',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
+      toast.error(
+        'Unable to get connection schema on table constraint source change.',
+        {
+          description: getErrorMessage(err),
+        }
+      );
     }
   }
 

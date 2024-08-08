@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
@@ -37,6 +36,7 @@ import {
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   getDefaultDestinationFormValues,
   toJobDestinationOptions,
@@ -61,7 +61,6 @@ export default function DestinationConnectionCard({
   isDeleteDisabled,
   jobSourceId,
 }: Props): ReactElement {
-  const { toast } = useToast();
   const { mutateAsync: setJobDestConnection } = useMutation(
     updateJobDestinationConnection
   );
@@ -86,16 +85,11 @@ export default function DestinationConnectionCard({
         ),
       });
       mutate();
-      toast({
-        title: 'Successfully updated job destination!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated job destination!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update job destination',
+      toast.error('Unable to update job destination', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -106,16 +100,11 @@ export default function DestinationConnectionCard({
         destinationId: destination.id,
       });
       mutate();
-      toast({
-        title: 'Successfully deleted job destination!',
-        variant: 'success',
-      });
+      toast.success('Successfully deleted job destination!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to delete job destination',
+      toast.error('Unable to delete job destination', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

@@ -7,7 +7,7 @@ import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import TanstackQueryProvider from '@/components/providers/query-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import SiteHeader from '@/components/site-header/SiteHeader';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 import { ReactElement, ReactNode, Suspense } from 'react';
 import { auth } from './api/auth/[...nextauth]/auth';
 import { getSystemAppConfig } from './api/config/config';
@@ -37,7 +37,8 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
                 {children}
               </div>
               <SiteFooter />
-              <Toaster />
+              {/* https://sonner.emilkowal.ski/styling for styling documentation */}
+              <Toaster richColors closeButton />
               <OnboardingChecklist />
             </div>
           </AccountProvider>

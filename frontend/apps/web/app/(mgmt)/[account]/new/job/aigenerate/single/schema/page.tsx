@@ -33,7 +33,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -59,6 +58,7 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -76,7 +76,6 @@ import { SampleRecord } from './types';
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
-  const { toast } = useToast();
   const { data: onboardingData } = useQuery(
     getAccountOnboardingConfig,
     { accountId: account?.id },
@@ -181,10 +180,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         )
       );
       posthog.capture('New Job Created', { jobType: 'ai-generate' });
-      toast({
-        title: 'Successfully created job!',
-        variant: 'success',
-      });
+      toast.success('Successfully created job!');
 
       clearNewJobSession(window.sessionStorage, sessionPrefix);
 
@@ -212,9 +208,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       }
@@ -226,10 +221,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create job',
+      toast.error('Unable to create job!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -278,10 +271,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       );
       setaioutput(output.records.map((r) => fromStructToRecord(r)));
     } catch (err) {
-      toast({
-        title: 'Unable to generate sample data',
+      toast.error('Unable to generate sample data', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsSampling(false);

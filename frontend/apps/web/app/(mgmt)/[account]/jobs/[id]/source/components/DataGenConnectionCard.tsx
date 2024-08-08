@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -61,6 +60,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   getSingleTableGenerateNumRows,
   toSingleTableEditGenerateJobSource,
@@ -74,7 +74,6 @@ interface Props {
 }
 
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
-  const { toast } = useToast();
   const { account } = useAccount();
 
   const [validateMappingsResponse, setValidateMappingsResponse] = useState<
@@ -256,17 +255,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         }),
         source: toSingleTableEditGenerateJobSource(values),
       });
-      toast({
-        title: 'Successfully updated job source connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated job source connection!');
       mutate();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update job source connection',
+      toast.error('Unable to update job source connection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -284,9 +278,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
-      toast({
-        title: 'Unable to validate job mappings',
-        variant: 'destructive',
+      toast.error('Unable to validate job mappings', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);
@@ -339,12 +332,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         ...form.getValues(),
         source: { ...form.getValues('source'), fkSourceConnectionId: value },
       });
-      toast({
-        title:
-          'Unable to get connection schema on table constraint source change.',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
+      toast.error(
+        'Unable to get connection schema on table constraint source change.',
+        {
+          description: getErrorMessage(err),
+        }
+      );
     }
   }
 

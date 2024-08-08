@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { NewDestinationFormValues } from '@/yup-validations/jobs';
@@ -47,6 +46,7 @@ import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as Yup from 'yup';
 import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 
@@ -58,7 +58,6 @@ type FormValues = Yup.InferType<typeof FormValues>;
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const { toast } = useToast();
   const router = useRouter();
   const { data, isLoading } = useQuery(getJob, { id }, { enabled: !!id });
   const { data: connectionsData, isLoading: isConnectionsLoading } = useQuery(
@@ -134,6 +133,7 @@ export default function Page({ params }: PageProps): ReactElement {
           });
         }),
       });
+      toast.success('Successfully created job destination(s)');
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}/destinations`);
       } else {
@@ -141,10 +141,8 @@ export default function Page({ params }: PageProps): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create job destinations',
+      toast.error('Unable to create job destination(s)', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage, toTitleCase } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -21,6 +20,7 @@ import Error from 'next/error';
 import Link from 'next/link';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const plans = [
   {
@@ -68,7 +68,6 @@ export default function Billing(): ReactElement {
   const { account } = useAccount();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
-  const { toast } = useToast();
   const [showNewTeamDialog, setShowNewTeamDialog] = useState<boolean>(false);
   const { refetch: mutate } = useQuery(getUserAccounts);
   const { mutateAsync: createTeamAccountAsync } =
@@ -78,15 +77,11 @@ export default function Billing(): ReactElement {
       await createTeamAccountAsync({ name: values.name });
       setShowNewTeamDialog(false);
       mutate();
-      toast({
-        title: 'Successfully created team!',
-      });
+      toast.success('Successfully created team!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create team',
+      toast.error('Unable to create team', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

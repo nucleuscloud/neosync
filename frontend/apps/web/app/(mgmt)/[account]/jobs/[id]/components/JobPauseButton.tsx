@@ -2,13 +2,13 @@
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { JobStatus } from '@neosync/sdk';
 import { pauseJob } from '@neosync/sdk/connectquery';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   jobId: string;
@@ -22,7 +22,6 @@ export default function JobPauseButton({
   jobId,
 }: Props): ReactElement {
   const { mutateAsync: setJobPaused } = useMutation(pauseJob);
-  const { toast } = useToast();
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
   );
@@ -50,17 +49,12 @@ export default function JobPauseButton({
         id: jobId,
         pause: isPaused,
       });
-      toast({
-        title: `Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`,
-        variant: 'success',
-      });
+      toast.success(`Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`);
       onNewStatus(isPaused ? JobStatus.PAUSED : JobStatus.ENABLED);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to pause',
+      toast.error('Unable to update job paused status', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     } finally {
       setIsTrying(false);

@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { UserDefinedTransformer } from '@neosync/sdk';
@@ -18,6 +17,7 @@ import { deleteUserDefinedTransformer } from '@neosync/sdk/connectquery';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -30,7 +30,6 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const transformer = row.original as UserDefinedTransformer;
   const router = useRouter();
-  const { toast } = useToast();
   const { account } = useAccount();
   const { mutateAsync: removeTransformer } = useMutation(
     deleteUserDefinedTransformer
@@ -39,16 +38,11 @@ export function DataTableRowActions<TData>({
   async function onDelete(): Promise<void> {
     try {
       await removeTransformer({ transformerId: transformer.id });
-      toast({
-        title: 'Transformer removed successfully!',
-        variant: 'success',
-      });
+      toast.success('Transformer removed successfully!');
       onDeleted();
     } catch (err) {
-      toast({
-        title: 'Unable to remove transformer',
+      toast.error('Unable to remove transformer', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

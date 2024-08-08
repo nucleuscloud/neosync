@@ -17,6 +17,7 @@ import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import Link from 'next/link';
 import { useState } from 'react';
 import { UseFormReturn, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -41,7 +42,6 @@ import {
 } from '../ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
-import { toast } from '../ui/use-toast';
 
 export const CreateTeamFormValues = Yup.object({
   name: Yup.string()
@@ -97,15 +97,11 @@ export default function AccountSwitcher(_: Props): ReactElement {
       });
       setShowNewTeamDialog(false);
       mutate();
-      toast({
-        title: 'Successfully created team!',
-      });
+      toast.success('Successfully created team!');
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create team',
+      toast.error('Unable to create team', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
 import { convertNanosecondsToMinutes, getErrorMessage } from '@/util/util';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,6 +19,7 @@ import { Job } from '@neosync/sdk';
 import { setJobWorkflowOptions } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { WorkflowSettingsSchema } from '../../../new/job/schema';
 import { toWorkflowOptions } from '../../util';
 
@@ -32,7 +32,6 @@ export default function WorkflowSettingsCard({
   job,
   mutate,
 }: Props): ReactElement {
-  const { toast } = useToast();
   const form = useForm<WorkflowSettingsSchema>({
     mode: 'onChange',
     resolver: yupResolver<WorkflowSettingsSchema>(WorkflowSettingsSchema),
@@ -56,19 +55,14 @@ export default function WorkflowSettingsCard({
         id: job.id,
         worfklowOptions: toWorkflowOptions(values),
       });
-      toast({
-        title: 'Successfully updated job workflow options!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated job workflow options!');
       if (resp.job) {
         mutate(resp.job);
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update job workflow options',
+      toast.error('Unable to update job workflow options', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }

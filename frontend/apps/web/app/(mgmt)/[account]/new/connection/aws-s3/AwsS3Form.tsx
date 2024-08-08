@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/util/util';
 import {
   AWSFormValues,
   AWS_FORM_SCHEMA,
@@ -48,6 +48,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
+import { toast } from 'sonner';
 import { buildConnectionConfigAwsS3 } from '../../../connections/util';
 
 export default function AwsS3Form() {
@@ -121,9 +122,8 @@ export default function AwsS3Form() {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       } else {
@@ -148,9 +148,8 @@ export default function AwsS3Form() {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       }
@@ -219,9 +218,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         } catch (error) {
           console.error('Failed to fetch connection data:', error);
           setIsLoading(false);
-          toast({
-            title: 'Unable to clone connection!',
-            variant: 'destructive',
+          toast.error('Unable to clone connection!', {
+            description: getErrorMessage(error),
           });
         } finally {
           setIsLoading(false);

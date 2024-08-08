@@ -15,7 +15,6 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
-import { toast, useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { createConnectQueryKey, useQuery } from '@connectrpc/connect-query';
@@ -33,6 +32,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
 import { useMemo } from 'react';
+import { toast } from 'sonner';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
 
@@ -71,7 +71,6 @@ export default function PermissionsPage({ params }: PageProps) {
     connectionConfig: data?.connection?.connectionConfig,
   });
 
-  const { toast } = useToast();
   const columns = useMemo(
     () =>
       getPermissionColumns(
@@ -105,16 +104,11 @@ export default function PermissionsPage({ params }: PageProps) {
           connection: resp.connection,
         })
       );
-      toast({
-        title: 'Successfully updated connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated connection!');
     },
     onSaveFailed: (err) =>
-      toast({
-        title: 'Unable to update connection',
+      toast.error('Unable to update connection!', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       }),
     extraPageHeading: (
       <div className="flex flex-row items-center gap-4">
@@ -204,9 +198,8 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
     try {
       await recheck();
     } catch (error) {
-      toast({
-        title: 'Unable to update Permissions table!',
-        variant: 'destructive',
+      toast.error('Unable to get update permissions table', {
+        description: getErrorMessage(error),
       });
     }
   }

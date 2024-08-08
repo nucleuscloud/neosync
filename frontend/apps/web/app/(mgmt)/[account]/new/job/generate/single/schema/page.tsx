@@ -28,7 +28,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
 import { getSingleOrUndefined } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -57,6 +56,7 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
+import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -71,7 +71,6 @@ const isBrowser = () => typeof window !== 'undefined';
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
-  const { toast } = useToast();
   const posthog = usePostHog();
   const { data: onboardingData } = useQuery(
     getAccountOnboardingConfig,
@@ -185,10 +184,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         jobType: 'generate',
       });
 
-      toast({
-        title: 'Successfully created job!',
-        variant: 'success',
-      });
+      toast.success('Successfully created job!');
 
       clearNewJobSession(window.sessionStorage, sessionPrefix);
 
@@ -216,9 +212,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             })
           );
         } catch (e) {
-          toast({
-            title: 'Unable to update onboarding status!',
-            variant: 'destructive',
+          toast.error('Unable to update onboarding status!', {
+            description: getErrorMessage(e),
           });
         }
       }
@@ -230,10 +225,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to create job',
+      toast.error('Unable to create job', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -252,9 +245,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
-      toast({
-        title: 'Unable to validate job mappings',
-        variant: 'destructive',
+      toast.error('Unable to validate job mappings', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);

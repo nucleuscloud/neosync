@@ -17,7 +17,6 @@ const config = {
     // '@radix-ui/react-separator',
     // '@radix-ui/react-slot',
     // '@radix-ui/react-switch',
-    // '@radix-ui/react-toast',
     // '@radix-ui/react-tabs',
     // '@radix-ui/react-tooltip',
     // '@radix-ui/react-radio-group',

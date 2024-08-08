@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
@@ -79,6 +78,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import {
   getDefaultUnmappedTransformConfig,
   toDynamoDbSourceUnmappedOptionsFormValues,
@@ -114,7 +114,6 @@ function getConnectionIdFromSource(
 }
 
 export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
-  const { toast } = useToast();
   const { account } = useAccount();
   const {
     data,
@@ -286,10 +285,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       form.reset(newValues);
     } catch (err) {
       form.reset({ ...form.getValues(), mappings: [], sourceId: value });
-      toast({
-        title: 'Unable to get connection schema',
+      toast.error('Unable to get connection schema', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -331,20 +328,15 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           options: toJobSourceOptions(values, job, connection, values.sourceId),
         }),
       });
-      toast({
-        title: 'Successfully updated job source connection!',
-        variant: 'success',
-      });
+      toast.success('Successfully updated source connection!');
       // hold off on mutating until after we update the job dest connections for dynamo conns
       if (connection.connectionConfig?.config.case !== 'dynamodbConfig') {
         mutate();
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update job source connection',
+      toast.error('Unable to update job source connnection', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
       return;
     }
@@ -375,17 +367,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           });
         })
       );
-      toast({
-        title: 'Successfully updated job destination connection(s)',
-        variant: 'success',
-      });
+      toast.success('Successfully updated job destination connection(s)');
       mutate();
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Unable to update one or all job destination connections',
+      toast.error('Unable to update one or all job destination connections', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
@@ -403,9 +390,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate job mappings:', error);
-      toast({
-        title: 'Unable to validate job mappings',
-        variant: 'destructive',
+      toast.error('Unable to validate job mappings', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);
@@ -427,9 +413,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       setValidateMappingsResponse(res);
     } catch (error) {
       console.error('Failed to validate virtual foreign keys:', error);
-      toast({
-        title: 'Unable to validate virtual foreign keys',
-        variant: 'destructive',
+      toast.error('Unable to validate virtual foreign keys', {
+        description: getErrorMessage(error),
       });
     } finally {
       setIsValidatingMappings(false);

@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -33,6 +32,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Error from 'next/error';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
@@ -68,7 +68,6 @@ export default function Temporal(): ReactElement {
       temporalUrl: tcData?.config?.url ?? 'localhost:7233',
     },
   });
-  const { toast } = useToast();
   async function onSubmit(values: FormValues): Promise<void> {
     if (!account) {
       return;
@@ -89,15 +88,10 @@ export default function Temporal(): ReactElement {
         key,
         new GetAccountTemporalConfigResponse({ config: updatedResp.config })
       );
-      toast({
-        title: 'Successfully updated temporal config',
-        variant: 'success',
-      });
+      toast.success('Successfully updated temporal config');
     } catch (err) {
-      toast({
-        title: 'Unable to submit temporal config',
+      toast.error('Unable to update temporal config', {
         description: getErrorMessage(err),
-        variant: 'destructive',
       });
     }
   }
