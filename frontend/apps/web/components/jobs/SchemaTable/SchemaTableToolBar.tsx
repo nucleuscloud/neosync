@@ -14,7 +14,9 @@ import {
 } from '@/yup-validations/jobs';
 import {
   JobMappingTransformer,
+  Passthrough,
   SystemTransformer,
+  TransformerConfig,
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -48,7 +50,14 @@ export function SchemaTableToolbar<TData>({
 
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>(
-      convertJobMappingTransformerToForm(new JobMappingTransformer())
+      convertJobMappingTransformerToForm(
+        new JobMappingTransformer({
+          source: TransformerSource.PASSTHROUGH,
+          config: new TransformerConfig({
+            config: { case: 'passthroughConfig', value: new Passthrough() },
+          }),
+        })
+      )
     );
 
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
@@ -131,7 +140,17 @@ export function SchemaTableToolbar<TData>({
                 );
               });
               setBulkTransformer(
-                convertJobMappingTransformerToForm(new JobMappingTransformer())
+                convertJobMappingTransformerToForm(
+                  new JobMappingTransformer({
+                    source: TransformerSource.PASSTHROUGH,
+                    config: new TransformerConfig({
+                      config: {
+                        case: 'passthroughConfig',
+                        value: new Passthrough(),
+                      },
+                    }),
+                  })
+                )
               );
               form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               table.resetRowSelection(true);
@@ -140,7 +159,17 @@ export function SchemaTableToolbar<TData>({
             <CheckIcon />
           </Button>
           <EditTransformerOptions
-            transformer={transformer ?? new SystemTransformer({})}
+            transformer={
+              transformer ??
+              new SystemTransformer({
+                config: {
+                  config: {
+                    case: 'passthroughConfig',
+                    value: new Passthrough(),
+                  },
+                },
+              })
+            }
             value={bulkTransformer}
             onSubmit={setBulkTransformer}
             disabled={!transformer}

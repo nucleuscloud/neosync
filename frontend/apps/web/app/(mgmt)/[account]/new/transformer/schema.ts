@@ -659,6 +659,23 @@ export interface CreateUserDefinedTransformerFormContext {
   >;
 }
 
+export const EditJobMappingTransformerConfigFormValues = Yup.object({
+  config: TransformerConfigSchema,
+});
+export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
+  typeof EditJobMappingTransformerConfigFormValues
+>;
+
+export interface EditJobMappingTransformerConfigFormContext {
+  accountId: string;
+  isUserJavascriptCodeValid: UseMutateAsyncFunction<
+    ValidateUserJavascriptCodeResponse,
+    ConnectError,
+    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    unknown
+  >;
+}
+
 export const UpdateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
