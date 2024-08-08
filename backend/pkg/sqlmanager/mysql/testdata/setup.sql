@@ -30,7 +30,7 @@ KEY `container_container_status_fk` (`container_status_id`),
 CONSTRAINT `container_container_status_fk` FOREIGN KEY (`container_status_id`) REFERENCES `container_status` (`id`)) ENGINE = InnoDB AUTO_INCREMENT = 530 DEFAULT CHARSET = utf8mb3;
 
 
-USE sqlmanagermysql3; 
+USE sqlmanagermysql3;
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -152,3 +152,16 @@ CREATE TABLE IF NOT EXISTS tablewithcount (
 );
 
 INSERT INTO tablewithcount(id) VALUES ('1'), ('2');
+
+-- Creates table that uses reserved MySQL words
+CREATE TABLE `order` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `select` VARCHAR(255) NOT NULL,
+  `from` DATE NOT NULL,
+  `where` VARCHAR(100),
+  `group` DECIMAL(10, 2),
+  `desc` TEXT
+);
+
+-- Creates an index that uses reserved MySQL words
+CREATE INDEX `order_index_on_reserved_words` ON `order` (`select`, `from`, `where`);

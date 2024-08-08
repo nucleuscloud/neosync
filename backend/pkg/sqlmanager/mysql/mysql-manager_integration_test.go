@@ -257,7 +257,11 @@ func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
 
 	actual, err := manager.GetTableInitStatements(
 		context.Background(),
-		[]*sqlmanager_shared.SchemaTable{{Schema: schema, Table: "parent1"}, {Schema: schema, Table: "child1"}},
+		[]*sqlmanager_shared.SchemaTable{
+			{Schema: schema, Table: "parent1"},
+			{Schema: schema, Table: "child1"},
+			{Schema: schema, Table: "order"},
+		},
 	)
 
 	require.NoError(s.T(), err)
