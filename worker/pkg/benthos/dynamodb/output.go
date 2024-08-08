@@ -212,9 +212,6 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case StringSet:
-			fmt.Println("output string set")
-			fmt.Println(key)
-			fmt.Println(root)
 			s, ok := getGenericSlice[string](root)
 			if ok {
 				return &types.AttributeValueMemberSS{
@@ -222,9 +219,6 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 				}
 			}
 		case NumberSet:
-			fmt.Println("output number set")
-			fmt.Println(key)
-			fmt.Println(root)
 			stringSlice, err := toStringSlice(root)
 			if err == nil {
 				return &types.AttributeValueMemberNS{
@@ -316,8 +310,6 @@ func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
-	jsonF, _ := json.MarshalIndent(keyTypeMap, "", " ")
-	fmt.Printf("keyTypeMap: %s \n", string(jsonF))
 	return anyToAttributeValue(key, gObj.Data(), keyTypeMap)
 }
 
@@ -374,8 +366,6 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				}
 			}
 		}
-		jsonF, _ := json.MarshalIndent(items, "", " ")
-		fmt.Printf("jsonToMap: %s \n", string(jsonF))
 		writeReqs = append(writeReqs, types.WriteRequest{
 			PutRequest: &types.PutRequest{
 				Item: items,
@@ -565,33 +555,29 @@ func toStringSlice(slice any) ([]string, error) {
 	result := make([]string, v.Len())
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
-		str, err := anyToString(elem)
-		if err != nil {
-			return nil, fmt.Errorf("error converting element at index %d: %v", i, err)
-		}
-		result[i] = str
+		result[i] = anyToString(elem)
 	}
 
 	return result, nil
 }
 
-func anyToString(value any) (string, error) {
+func anyToString(value any) string {
 	switch v := value.(type) {
 	case string:
-		return v, nil
+		return v
 	case int, int8, int16, int32, int64:
-		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10), nil
+		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
 	case uint, uint8, uint16, uint32, uint64:
-		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10), nil
+		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
 	case float32, float64:
-		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64), nil
+		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
 	case bool:
-		return strconv.FormatBool(v), nil
+		return strconv.FormatBool(v)
 	case []byte:
-		return string(v), nil
+		return string(v)
 	case nil:
-		return "null", nil
+		return "null"
 	default:
-		return fmt.Sprintf("%v", v), nil
+		return fmt.Sprintf("%v", v)
 	}
 }

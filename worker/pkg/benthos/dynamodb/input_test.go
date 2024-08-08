@@ -134,7 +134,7 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 				&types.AttributeValueMemberS{Value: "test"},
 				&types.AttributeValueMemberN{Value: "123"},
 			}},
-			expected: []any{"test", 123},
+			expected: []any{"test", int64(123)},
 		},
 		{
 			name: "Map",
@@ -142,17 +142,17 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 				"key1": &types.AttributeValueMemberS{Value: "value1"},
 				"key2": &types.AttributeValueMemberN{Value: "456"},
 			}},
-			expected: map[string]any{"key1": "value1", "key2": 456},
+			expected: map[string]any{"key1": "value1", "key2": int64(456)},
 		},
 		{
 			name:     "Number",
 			input:    &types.AttributeValueMemberN{Value: "789"},
-			expected: 789,
+			expected: int64(789),
 		},
 		{
 			name:     "Number Set",
 			input:    &types.AttributeValueMemberNS{Value: []string{"1", "2", "3"}},
-			expected: []any{"1", "2", "3"},
+			expected: []any{int64(1), int64(2), int64(3)},
 		},
 		{
 			name:     "Null",
@@ -175,7 +175,7 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ktm := map[string]KeyType{}
 			actual := attributeValueToStandardValue(tt.name, tt.input, ktm)
-			require.True(t, reflect.DeepEqual(actual, tt.expected), fmt.Sprintf("expected %v, got %v", tt.expected, actual))
+			require.True(t, reflect.DeepEqual(actual, tt.expected), fmt.Sprintf("expected %v %v, got %v %v", tt.expected, reflect.TypeOf(tt.expected), actual, reflect.TypeOf(actual)))
 		})
 	}
 }
@@ -210,7 +210,7 @@ func TestAttributeValueMapToStandardJSON(t *testing.T) {
 		"Bool":   true,
 		"Bin":    []byte("BinaryValue"),
 		"StrSet": []any{"Str1", "Str2"},
-		"NumSet": []any{"1", "2", "3"},
+		"NumSet": []any{int64(1), int64(2), int64(3)},
 		"BinSet": [][]byte{[]byte("Bin1"), []byte("Bin2")},
 		"Map": map[string]any{
 			"NestedStr": "NestedStringValue",

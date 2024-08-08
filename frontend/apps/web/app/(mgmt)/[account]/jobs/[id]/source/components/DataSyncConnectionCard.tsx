@@ -78,6 +78,7 @@ import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import {
   getDefaultUnmappedTransformConfig,
+  toDynamoDbSourceUnmappedOptionsFormValues,
   validateJobMapping,
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
@@ -1016,7 +1017,9 @@ function getJobSource(
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           dynamodb: {
-            unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+            unmappedTransformConfig: toDynamoDbSourceUnmappedOptionsFormValues(
+              job.source?.options?.config?.value.unmappedTransforms
+            ),
           },
         },
         destinationOptions: destOpts,

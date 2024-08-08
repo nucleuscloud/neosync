@@ -2,7 +2,6 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -280,8 +279,6 @@ func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) (stan
 		val := attributeValueToStandardValue(k, v, ktm)
 		standardJSON[k] = val
 	}
-	jsonF, _ := json.MarshalIndent(ktm, "", " ")
-	fmt.Printf("input ktm: %s \n", string(jsonF))
 	return standardJSON, ktm
 }
 

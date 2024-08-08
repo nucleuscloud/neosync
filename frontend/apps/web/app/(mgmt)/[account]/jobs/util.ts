@@ -749,7 +749,7 @@ function toDynamoDbSourceTableOptions(
   );
 }
 
-function toDynamoDbSourceUnmappedOptions(
+export function toDynamoDbSourceUnmappedOptions(
   dynamoSourceOpts: DynamoDBSourceOptionsFormValues
 ): DynamoDBSourceUnmappedTransformConfig {
   return new DynamoDBSourceUnmappedTransformConfig({
@@ -766,6 +766,64 @@ function toDynamoDbSourceUnmappedOptions(
       dynamoSourceOpts.unmappedTransformConfig.s
     ),
   });
+}
+
+export function toDynamoDbSourceUnmappedOptionsFormValues(
+  ut: DynamoDBSourceUnmappedTransformConfig | undefined
+): DynamoDBSourceUnmappedTransformConfigFormValues {
+  if (!ut) {
+    return getDefaultUnmappedTransformConfig();
+  }
+  return {
+    boolean: convertJobMappingTransformerToForm(
+      ut.boolean ||
+        new JobMappingTransformer({
+          source: TransformerSource.GENERATE_BOOL,
+          config: new TransformerConfig({
+            config: {
+              case: 'generateBoolConfig',
+              value: new GenerateBool(),
+            },
+          }),
+        })
+    ),
+    byte: convertJobMappingTransformerToForm(
+      ut.b ||
+        new JobMappingTransformer({
+          source: TransformerSource.PASSTHROUGH,
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough(),
+            },
+          }),
+        })
+    ),
+    n: convertJobMappingTransformerToForm(
+      ut.n ||
+        new JobMappingTransformer({
+          source: TransformerSource.PASSTHROUGH,
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough(),
+            },
+          }),
+        })
+    ),
+    s: convertJobMappingTransformerToForm(
+      ut.s ||
+        new JobMappingTransformer({
+          source: TransformerSource.GENERATE_RANDOM_STRING,
+          config: new TransformerConfig({
+            config: {
+              case: 'generateStringConfig',
+              value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
+            },
+          }),
+        })
+    ),
+  };
 }
 
 export function toActivityOptions(

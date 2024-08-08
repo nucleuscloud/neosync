@@ -75,15 +75,11 @@ func newDefaultTransformerProcessor(conf *service.ParsedConfig, mgr *service.Res
 		return nil, err
 	}
 
-	jsonF, _ := json.MarshalIndent(defaultTransformersInitMap, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
-
 	return &defaultTransformerProcessor{
 		mappedKeys:                 mappedKeysMap,
 		defaultTransformersInitMap: defaultTransformersInitMap,
 		logger:                     mgr.Logger(),
 	}, nil
-
 }
 
 func getDefaultTransformerMap(jobSourceOptions *mgmtv1alpha1.JobSourceOptions) map[primitiveType]*mgmtv1alpha1.JobMappingTransformer {
@@ -108,15 +104,10 @@ func (m *defaultTransformerProcessor) ProcessBatch(ctx context.Context, batch se
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ := json.MarshalIndent(root, "", " ")
-		fmt.Printf("root: %s \n", string(jsonF))
-
 		newRoot, err := m.transformRoot("", root)
 		if err != nil {
 			return nil, err
 		}
-		jsonF, _ = json.MarshalIndent(newRoot, "", " ")
-		fmt.Printf("newRoot: %s \n", string(jsonF))
 		newMsg := msg.Copy()
 		newMsg.SetStructured(newRoot)
 		newBatch = append(newBatch, newMsg)
@@ -145,7 +136,6 @@ func (m *defaultTransformerProcessor) transformRoot(path string, root any) (any,
 			}
 			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
-				fmt.Println("here")
 				return nil, err
 			}
 			newMap[k] = dereferenceValue(newValue)
@@ -160,12 +150,10 @@ func (m *defaultTransformerProcessor) transformRoot(path string, root any) (any,
 			}
 			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
-				fmt.Println("here1")
 				return nil, err
 			}
 			bits, err := toByteSlice(newValue)
 			if err != nil {
-				fmt.Println("here2")
 				return nil, err
 			}
 			newSlice[i] = bits
@@ -178,35 +166,26 @@ func (m *defaultTransformerProcessor) transformRoot(path string, root any) (any,
 			if path != "" {
 				p = fmt.Sprintf("%s[%d]", path, i)
 			}
-			fmt.Println(path)
-			fmt.Println(v2)
 			newValue, err := m.transformRoot(p, v2)
 			if err != nil {
-				fmt.Println("here3")
 				return nil, err
 			}
 			newSlice[i] = dereferenceValue(newValue)
 		}
 		return newSlice, nil
 	case []byte:
-		fmt.Printf("path: %s v: %s  []byte\n", path, string(v))
 		return m.getValue(Byte, v, !isMappedKey)
 	case string:
-		fmt.Printf("path: %s v: %s  string\n", path, v)
 		return m.getValue(String, v, !isMappedKey)
 	case json.Number:
 		return m.getValue(String, v, !isMappedKey)
 	case float64:
-		fmt.Printf("path: %s v: %f  float64\n", path, v)
 		return m.getValue(Number, v, !isMappedKey)
 	case int:
-		fmt.Printf("path: %s v: %d  int\n", path, v)
 		return m.getValue(Number, v, !isMappedKey)
 	case int64:
-		fmt.Printf("path: %s v: %d  int64\n", path, v)
 		return m.getValue(Number, v, !isMappedKey)
 	case bool:
-		fmt.Printf("path: %s v: %t  bool\n", path, v)
 		return m.getValue(Boolean, v, !isMappedKey)
 	default:
 		return v, nil
