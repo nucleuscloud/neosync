@@ -33,10 +33,12 @@ interface Props {
   disabled?: boolean;
 
   errors?: FieldErrors<PlainMessage<TransformerConfig>>;
+
+  NoConfigComponent?: ReactElement;
 }
 // handles rendering custom transformer configs
 export function UserDefinedTransformerForm(props: Props): ReactElement {
-  const { value, disabled, setValue, errors } = props;
+  const { value, disabled, setValue, errors, NoConfigComponent } = props;
   const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
 
   switch (valConfig.case) {
@@ -401,7 +403,6 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
         />
       );
     default:
-      <div>No transformer found</div>;
+      return NoConfigComponent ?? <div />;
   }
-  return <div></div>;
 }
