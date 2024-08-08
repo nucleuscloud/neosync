@@ -68,7 +68,7 @@ export default function UpdateUserDefinedTransformerForm(
       name: currentTransformer?.name,
       accountId: account?.id ?? '',
       isTransformerNameAvailable: isTransformerNameAvailableAsync,
-      isJavascriptCodeValid: isJavascriptCodeValid,
+      isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
   const { mutateAsync } = useMutation(updateUserDefinedTransformer);
@@ -171,7 +171,26 @@ export default function UpdateUserDefinedTransformerForm(
           </div>
         </div>
         <div>
-          <UserDefinedTransformerForm value={currentTransformer?.source} />
+          <FormField
+            control={form.control}
+            name="config"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <UserDefinedTransformerForm
+                    value={convertTransformerConfigSchemaToTransformerConfig(
+                      field.value
+                    )}
+                    setValue={(newValue) => {
+                      field.onChange(convertTransformerConfigToForm(newValue));
+                    }}
+                    disabled={false}
+                    errors={form.formState.errors}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
         <div className="flex flex-row justify-between">
           <NextLink href={`/${account?.name}/transformers?tab=ud`}>

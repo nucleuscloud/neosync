@@ -1,5 +1,7 @@
-import { TransformerSource } from '@neosync/sdk';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { TransformerConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { FieldErrors } from 'react-hook-form';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
 import UserDefinedGenerateEmailForm from './UserDefinedGenerateEmailForm';
@@ -26,69 +28,378 @@ import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumb
 import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 
 interface Props {
-  value: TransformerSource;
+  value: TransformerConfig;
+  setValue(newValue: TransformerConfig): void;
   disabled?: boolean;
+
+  errors?: FieldErrors<PlainMessage<TransformerConfig>>;
 }
 // handles rendering custom transformer configs
 export function UserDefinedTransformerForm(props: Props): ReactElement {
-  const { value, disabled } = props;
-  switch (value) {
-    case TransformerSource.GENERATE_CARD_NUMBER:
-      return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_CATEGORICAL:
-      return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_E164_PHONE_NUMBER:
+  const { value, disabled, setValue, errors } = props;
+  const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
+
+  switch (valConfig.case) {
+    case 'generateCardNumberConfig':
       return (
-        <UserDefinedGenerateInternationalPhoneNumberForm
+        <UserDefinedGenerateCardNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
-    case TransformerSource.GENERATE_FLOAT64:
-      return <UserDefinedGenerateFloat64Form isDisabled={disabled} />;
-    case TransformerSource.GENERATE_GENDER:
-      return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_INT64:
-      return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
-    case TransformerSource.GENERATE_RANDOM_STRING:
-      return <UserDefinedGenerateStringForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_STRING_PHONE_NUMBER:
+    case 'generateCategoricalConfig':
       return (
-        <UserDefinedGenerateStringPhoneNumberNumberForm isDisabled={disabled} />
+        <UserDefinedGenerateCategoricalForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
       );
-    case TransformerSource.GENERATE_STATE:
-      return <UserDefinedGenerateStateForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_UUID:
-      return <UserDefinedGenerateUuidForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:
-      return <UserDefinedTransformE164NumberForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_EMAIL:
-      return <UserDefinedTransformEmailForm isDisabled={disabled} />;
-    case TransformerSource.GENERATE_EMAIL:
-      return <UserDefinedGenerateEmailForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_FIRST_NAME:
-      return <UserDefinedTransformFirstNameForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_FLOAT64:
-      return <UserDefinedTransformFloat64Form isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_FULL_NAME:
-      return <UserDefinedTransformFullNameForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_INT64:
-      return <UserDefinedTransformInt64Form isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_INT64_PHONE_NUMBER:
-      return <UserDefinedTransformIntPhoneNumberForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_LAST_NAME:
-      return <UserDefinedTransformLastNameForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_PHONE_NUMBER:
-      return <UserDefinedTransformPhoneNumberForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_STRING:
-      return <UserDefinedTransformStringForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_JAVASCRIPT:
-      return <UserDefinedTransformJavascriptForm isDisabled={disabled} />;
-    case TransformerSource.TRANSFORM_CHARACTER_SCRAMBLE:
+    case 'generateE164PhoneNumberConfig':
       return (
-        <UserDefinedTransformCharacterScrambleForm isDisabled={disabled} />
+        <UserDefinedGenerateInternationalPhoneNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
       );
-    case TransformerSource.GENERATE_JAVASCRIPT:
-      return <UserDefinedGenerateJavascriptForm isDisabled={disabled} />;
+    case 'generateFloat64Config':
+      return (
+        <UserDefinedGenerateFloat64Form
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateGenderConfig':
+      return (
+        <UserDefinedGenerateGenderForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateInt64Config':
+      return (
+        <UserDefinedGenerateInt64Form
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateStringConfig':
+      return (
+        <UserDefinedGenerateStringForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateStringPhoneNumberConfig':
+      return (
+        <UserDefinedGenerateStringPhoneNumberNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateStateConfig':
+      return (
+        <UserDefinedGenerateStateForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateUuidConfig':
+      return (
+        <UserDefinedGenerateUuidForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformE164PhoneNumberConfig':
+      return (
+        <UserDefinedTransformE164NumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformEmailConfig':
+      return (
+        <UserDefinedTransformEmailForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateEmailConfig':
+      return (
+        <UserDefinedGenerateEmailForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformFirstNameConfig':
+      return (
+        <UserDefinedTransformFirstNameForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformFloat64Config':
+      return (
+        <UserDefinedTransformFloat64Form
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformFullNameConfig':
+      return (
+        <UserDefinedTransformFullNameForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformInt64Config':
+      return (
+        <UserDefinedTransformInt64Form
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformInt64PhoneNumberConfig':
+      return (
+        <UserDefinedTransformIntPhoneNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformLastNameConfig':
+      return (
+        <UserDefinedTransformLastNameForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformPhoneNumberConfig':
+      return (
+        <UserDefinedTransformPhoneNumberForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformStringConfig':
+      return (
+        <UserDefinedTransformStringForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformJavascriptConfig':
+      return (
+        <UserDefinedTransformJavascriptForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'transformCharacterScrambleConfig':
+      return (
+        <UserDefinedTransformCharacterScrambleForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateJavascriptConfig':
+      return (
+        <UserDefinedGenerateJavascriptForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
     default:
       <div>No transformer found</div>;
   }

@@ -12,10 +12,9 @@ import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 import { tryBigInt } from '../../transformers/Sheetforms/util';
 
-const bigIntValidator = Yup.mixed<bigint>().test(
-  'is-bigint',
-  'Value must be bigint',
-  (value) => {
+const bigIntValidator = Yup.mixed<bigint>()
+  .default(BigInt(0))
+  .test('is-bigint', 'Value must be bigint', (value) => {
     if (typeof value === 'bigint') {
       return true;
     } else if (typeof value === 'number') {
@@ -28,8 +27,7 @@ const bigIntValidator = Yup.mixed<bigint>().test(
         return false;
       }
     }
-  }
-);
+  });
 
 function getBigIntMinValidator(
   minVal: number | string | bigint
@@ -132,19 +130,35 @@ const generateInternationalPhoneNumberConfig = Yup.object().shape({
 const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false),
   min: Yup.number()
+    .default(0)
     .required('This field is required.')
     .min(Number.MIN_SAFE_INTEGER)
-    .max(Number.MAX_SAFE_INTEGER),
+    .max(Number.MAX_SAFE_INTEGER)
+    .test(
+      'is-less-than-max',
+      'Min must be less than or equal to Max',
+      function (value) {
+        if (value === undefined || value === null) {
+          return false;
+        }
+        const { max } = this.parent;
+        return max == null || value <= max;
+      }
+    ),
   max: Yup.number()
+    .default(0)
     .required('This field is required.')
     .min(Number.MIN_SAFE_INTEGER)
     .max(Number.MAX_SAFE_INTEGER)
     .test(
       'is-greater-than-min',
-      'Max must be greater than Min',
+      'Max must be greater than or equal to Min',
       function (value) {
+        if (value === undefined || value === null) {
+          return false;
+        }
         const { min } = this.parent;
-        return !min || !value || value >= min;
+        return min == null || value >= min;
       }
     ),
   precision: bigIntValidator
@@ -170,8 +184,8 @@ const generateInt64Config = Yup.object().shape({
   min: bigIntValidator
     .test(
       'min',
-      'Value must be greater than or equal to 1',
-      getBigIntMinValidator(1)
+      `Value must be greater than or equal to ${Number.MIN_SAFE_INTEGER}`,
+      getBigIntMinValidator(Number.MIN_SAFE_INTEGER)
     )
     .test(
       'max',
@@ -188,8 +202,8 @@ const generateInt64Config = Yup.object().shape({
   max: bigIntValidator
     .test(
       'min',
-      'Value must be greater than or equal to 1',
-      getBigIntMinValidator(1)
+      `Value must be greater than or equal to ${Number.MIN_SAFE_INTEGER}`,
+      getBigIntMinValidator(Number.MIN_SAFE_INTEGER)
     )
     .test(
       'max',
@@ -461,7 +475,9 @@ const JavascriptConfig = Yup.object().shape({
 });
 
 const generateCategoricalConfig = Yup.object().shape({
-  categories: Yup.string().required('This field is required.'),
+  categories: Yup.string()
+    .min(1, 'Must have at least one category')
+    .required('This field is required.'),
 });
 
 type ConfigType = TransformerConfig['config'];
@@ -635,7 +651,7 @@ export interface CreateUserDefinedTransformerFormContext {
     PartialMessage<IsTransformerNameAvailableRequest>,
     unknown
   >;
-  isJavascriptCodeValid: UseMutateAsyncFunction<
+  isUserJavascriptCodeValid: UseMutateAsyncFunction<
     ValidateUserJavascriptCodeResponse,
     ConnectError,
     PartialMessage<ValidateUserJavascriptCodeRequest>,

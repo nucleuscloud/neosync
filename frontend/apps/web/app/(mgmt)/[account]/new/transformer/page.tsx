@@ -34,6 +34,7 @@ import {
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  GenerateBool,
   SystemTransformer,
   TransformerConfig,
   TransformerSource,
@@ -92,13 +93,17 @@ export default function NewTransformer(): ReactElement {
     defaultValues: {
       name: '',
       source: transformerSource,
-      config: convertTransformerConfigToForm(new TransformerConfig()),
+      config: convertTransformerConfigToForm(
+        new TransformerConfig({
+          config: { case: 'generateBoolConfig', value: new GenerateBool() },
+        })
+      ),
       description: '',
     },
     context: {
       accountId: account?.id ?? '',
       isTransformerNameAvailable: isTransformerNameAvailableAsync,
-      isJavascriptCodeValid: isJavascriptCodeValid,
+      isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
 
@@ -283,8 +288,27 @@ export default function NewTransformer(): ReactElement {
             </div>
           )}
           <div>
-            <UserDefinedTransformerForm
-              value={formSource ?? TransformerSource.UNSPECIFIED}
+            <FormField
+              control={form.control}
+              name="config"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <UserDefinedTransformerForm
+                      value={convertTransformerConfigSchemaToTransformerConfig(
+                        field.value
+                      )}
+                      setValue={(newValue) => {
+                        field.onChange(
+                          convertTransformerConfigToForm(newValue)
+                        );
+                      }}
+                      disabled={false}
+                      errors={form.formState.errors}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
           </div>
           <div className="flex flex-row justify-end">

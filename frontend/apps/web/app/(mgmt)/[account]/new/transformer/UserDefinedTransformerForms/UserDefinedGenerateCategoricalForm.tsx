@@ -1,61 +1,45 @@
 'use client';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { GenerateCategorical } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { useFormContext } from 'react-hook-form';
-import {
-  CreateUserDefinedTransformerFormValues,
-  UpdateUserDefinedTransformerFormValues,
-} from '../schema';
-interface Props {
-  isDisabled?: boolean;
-}
+import { TransformerConfigProps } from './util';
+
+interface Props
+  extends TransformerConfigProps<
+    GenerateCategorical,
+    PlainMessage<GenerateCategorical>
+  > {}
 
 export default function UserDefinedGenerateCategoricalForm(
   props: Props
 ): ReactElement {
-  const fc = useFormContext<
-    | UpdateUserDefinedTransformerFormValues
-    | CreateUserDefinedTransformerFormValues
-  >();
-
-  const { isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <FormField
-        name={`config.value.categories`}
-        control={fc.control}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Categories</FormLabel>
-              <FormDescription>
-                Provide a list of comma-separated string values that you want to
-                randomly select from.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <div className="flex flex-col items-start w-[300px]">
-                <Input
-                  value={field.value}
-                  type="string"
-                  onChange={field.onChange}
-                  disabled={isDisabled}
-                />
-                <FormMessage />
-              </div>
-            </FormControl>
-          </FormItem>
-        )}
-      />
+      <div className="space-y-0.5">
+        <FormLabel>Categories</FormLabel>
+        <FormDescription>
+          Provide a list of comma-separated string values that you want to
+          randomly select from.
+        </FormDescription>
+      </div>
+      <div className="flex flex-col items-start w-[300px]">
+        <Input
+          value={value.categories}
+          type="string"
+          onChange={(e) =>
+            setValue(
+              new GenerateCategorical({ ...value, categories: e.target.value })
+            )
+          }
+          disabled={isDisabled}
+        />
+        <FormErrorMessage message={errors?.categories?.message} />
+      </div>
     </div>
   );
 }
