@@ -8,21 +8,27 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Button } from '@/components/ui/button';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { TransformCharacterScramble } from '@neosync/sdk';
 import { validateUserRegexCode } from '@neosync/sdk/connectquery';
 import { ReactElement, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformCharacterScramble> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformCharacterScramble,
+    PlainMessage<TransformCharacterScramble>
+  > {}
 
 export type ValidRegex = 'valid' | 'invalid' | 'null';
 
 export default function UserDefinedTransformCharacterScrambleForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
   const [isRegexValid, setIsRegexValid] = useState<ValidRegex>('null');
@@ -107,6 +113,7 @@ export default function UserDefinedTransformCharacterScrambleForm(
             disabled={isDisabled}
           />
         </div>
+        <FormErrorMessage message={errors?.userProvidedRegex?.message} />
       </div>
     </div>
   );

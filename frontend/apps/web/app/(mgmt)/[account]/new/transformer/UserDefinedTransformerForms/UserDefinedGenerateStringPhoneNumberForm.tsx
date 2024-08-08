@@ -1,16 +1,22 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateStringPhoneNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateStringPhoneNumber> {}
+interface Props
+  extends TransformerConfigProps<
+    GenerateStringPhoneNumber,
+    PlainMessage<GenerateStringPhoneNumber>
+  > {}
 
 export default function UserDefinedGenerateStringPhoneNumberNumberForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -40,6 +46,7 @@ export default function UserDefinedGenerateStringPhoneNumberNumberForm(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.min?.message} />
           </div>
         </div>
       </div>
@@ -69,6 +76,7 @@ export default function UserDefinedGenerateStringPhoneNumberNumberForm(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.max?.message} />
           </div>
         </div>
       </div>

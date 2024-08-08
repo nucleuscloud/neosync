@@ -3,16 +3,19 @@ import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateInt64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateInt64> {}
+interface Props
+  extends TransformerConfigProps<GenerateInt64, PlainMessage<GenerateInt64>> {}
 
 export default function UserDefinedGenerateInt64Form(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -37,6 +40,7 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.randomizeSign?.message} />
           </div>
         </div>
       </div>
@@ -66,6 +70,7 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.min?.message} />
           </div>
         </div>
       </div>
@@ -95,6 +100,7 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.max?.message} />
           </div>
         </div>
       </div>

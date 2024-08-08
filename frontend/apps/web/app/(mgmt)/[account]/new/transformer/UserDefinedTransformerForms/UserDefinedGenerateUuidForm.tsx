@@ -1,16 +1,19 @@
 'use client';
-import { FormControl, FormDescription, FormLabel } from '@/components/ui/form';
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateUuid } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateUuid> {}
+interface Props
+  extends TransformerConfigProps<GenerateUuid, PlainMessage<GenerateUuid>> {}
 
 export default function UserDefinedGenerateUuidForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -23,16 +26,15 @@ export default function UserDefinedGenerateUuidForm(
             hyphens to have hyphens when they store the data.
           </FormDescription>
         </div>
-        <FormControl>
-          <Switch
-            checked={value.includeHyphens}
-            onCheckedChange={(checked) =>
-              setValue(new GenerateUuid({ ...value, includeHyphens: checked }))
-            }
-            disabled={isDisabled}
-          />
-        </FormControl>
+        <Switch
+          checked={value.includeHyphens}
+          onCheckedChange={(checked) =>
+            setValue(new GenerateUuid({ ...value, includeHyphens: checked }))
+          }
+          disabled={isDisabled}
+        />
       </div>
+      <FormErrorMessage message={errors?.includeHyphens?.message} />
     </div>
   );
 }

@@ -1,24 +1,24 @@
 'use client';
-import {
-  FormControl,
-  FormDescription,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateFloat64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateFloat64> {}
+interface Props
+  extends TransformerConfigProps<
+    GenerateFloat64,
+    PlainMessage<GenerateFloat64>
+  > {}
 
 export default function UserDefinedGenerateFloat64Form(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -42,6 +42,7 @@ export default function UserDefinedGenerateFloat64Form(
                 }
                 disabled={isDisabled}
               />
+              <FormErrorMessage message={errors?.randomizeSign?.message} />
             </div>
           </div>
         </div>
@@ -71,6 +72,7 @@ export default function UserDefinedGenerateFloat64Form(
                 }}
                 disabled={isDisabled}
               />
+              <FormErrorMessage message={errors?.min?.message} />
             </div>
           </div>
         </div>
@@ -100,11 +102,12 @@ export default function UserDefinedGenerateFloat64Form(
                 }}
                 disabled={isDisabled}
               />
+              <FormErrorMessage message={errors?.max?.message} />
             </div>
           </div>
         </div>
       </div>
-      <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
           <FormLabel>Precision</FormLabel>
           <FormDescription>
@@ -115,33 +118,29 @@ export default function UserDefinedGenerateFloat64Form(
         </div>
         <div className="flex flex-col h-14">
           <div className="justify-end flex">
-            <FormControl>
-              <div className="w-[300px]">
-                <Input
-                  type="number"
-                  value={
-                    value.precision
-                      ? parseInt(value.precision.toString(), 10)
-                      : 1
+            <div className="w-[300px]">
+              <Input
+                type="number"
+                value={
+                  value.precision ? parseInt(value.precision.toString(), 10) : 1
+                }
+                onChange={(e) => {
+                  if (!isNaN(e.target.valueAsNumber)) {
+                    setValue(
+                      new GenerateFloat64({
+                        ...value,
+                        precision: BigInt(e.target.valueAsNumber),
+                      })
+                    );
                   }
-                  onChange={(e) => {
-                    if (!isNaN(e.target.valueAsNumber)) {
-                      setValue(
-                        new GenerateFloat64({
-                          ...value,
-                          precision: BigInt(e.target.valueAsNumber),
-                        })
-                      );
-                    }
-                  }}
-                  disabled={isDisabled}
-                />
-              </div>
-            </FormControl>
+                }}
+                disabled={isDisabled}
+              />
+            </div>
           </div>
-          <FormMessage />
+          <FormErrorMessage message={errors?.precision?.message} />
         </div>
-      </FormItem>
+      </div>
     </div>
   );
 }

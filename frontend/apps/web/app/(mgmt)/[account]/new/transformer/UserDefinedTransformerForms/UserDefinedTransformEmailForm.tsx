@@ -1,4 +1,5 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,6 +14,7 @@ import {
   getGenerateEmailTypeString,
   getInvalidEmailActionString,
 } from '@/util/util';
+import { PlainMessage } from '@bufbuild/protobuf';
 import {
   GenerateEmailType,
   InvalidEmailAction,
@@ -21,12 +23,16 @@ import {
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformEmail> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformEmail,
+    PlainMessage<TransformEmail>
+  > {}
 
 export default function UserDefinedTransformEmailForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -44,6 +50,7 @@ export default function UserDefinedTransformEmailForm(
           }
           disabled={isDisabled}
         />
+        <FormErrorMessage message={errors?.preserveLength?.message} />
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
@@ -61,6 +68,7 @@ export default function UserDefinedTransformEmailForm(
           }
           disabled={isDisabled}
         />
+        <FormErrorMessage message={errors?.preserveDomain?.message} />
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
@@ -86,6 +94,7 @@ export default function UserDefinedTransformEmailForm(
             disabled={isDisabled}
           />
         </div>
+        <FormErrorMessage message={errors?.excludedDomains?.message} />
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
         <div className="space-y-0.5">
@@ -126,6 +135,7 @@ export default function UserDefinedTransformEmailForm(
             )}
           </SelectContent>
         </Select>
+        <FormErrorMessage message={errors?.emailType?.message} />
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
         <div className="space-y-0.5">
@@ -171,6 +181,7 @@ export default function UserDefinedTransformEmailForm(
             ))}
           </SelectContent>
         </Select>
+        <FormErrorMessage message={errors?.invalidEmailAction?.message} />
       </div>
     </div>
   );

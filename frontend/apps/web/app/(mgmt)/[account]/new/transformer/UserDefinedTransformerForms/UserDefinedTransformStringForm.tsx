@@ -1,17 +1,23 @@
 'use client';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformString } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformString> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformString,
+    PlainMessage<TransformString>
+  > {}
 
 export default function UserDefinedTransformStringForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -30,6 +36,7 @@ export default function UserDefinedTransformStringForm(
           disabled={isDisabled}
         />
       </div>
+      <FormErrorMessage message={errors?.preserveLength?.message} />
     </div>
   );
 }

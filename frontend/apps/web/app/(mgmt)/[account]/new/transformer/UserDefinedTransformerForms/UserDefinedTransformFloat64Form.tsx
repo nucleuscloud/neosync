@@ -1,16 +1,22 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformFloat64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformFloat64> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformFloat64,
+    PlainMessage<TransformFloat64>
+  > {}
 
 export default function UserDefinedTransformFloat64Form(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -43,6 +49,9 @@ export default function UserDefinedTransformFloat64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage
+              message={errors?.randomizationRangeMin?.message}
+            />
           </div>
         </div>
       </div>
@@ -75,6 +84,9 @@ export default function UserDefinedTransformFloat64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage
+              message={errors?.randomizationRangeMax?.message}
+            />
           </div>
         </div>
       </div>

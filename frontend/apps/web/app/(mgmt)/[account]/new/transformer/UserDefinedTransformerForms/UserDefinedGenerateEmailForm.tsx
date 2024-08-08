@@ -1,4 +1,5 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import {
   Select,
@@ -8,19 +9,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getGenerateEmailTypeString } from '@/util/util';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateEmail, GenerateEmailType } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { TransformerConfigProps } from './util';
 
-interface Props {
-  value: GenerateEmail;
-  setValue(value: GenerateEmail): void;
-  isDisabled?: boolean;
-}
+interface Props
+  extends TransformerConfigProps<GenerateEmail, PlainMessage<GenerateEmail>> {}
 
 export default function UserDefinedGenerateEmailForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -60,6 +60,7 @@ export default function UserDefinedGenerateEmailForm(
           )}
         </SelectContent>
       </Select>
+      <FormErrorMessage message={errors?.emailType?.message} />
     </div>
   );
 }

@@ -2,11 +2,13 @@
 import { FormLabel } from '@/components/ui/form';
 
 import ButtonText from '@/components/ButtonText';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import Spinner from '@/components/Spinner';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
@@ -16,14 +18,18 @@ import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformJavascript> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformJavascript,
+    PlainMessage<TransformJavascript>
+  > {}
 
 export type ValidCode = 'valid' | 'invalid' | 'null';
 
 export default function UserDefinedTransformJavascriptForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   const options = {
     minimap: { enabled: false },
@@ -125,6 +131,7 @@ export default function UserDefinedTransformJavascriptForm(
             options={options}
           />
         </div>
+        <FormErrorMessage message={errors?.code?.message} />
       </div>
     </div>
   );

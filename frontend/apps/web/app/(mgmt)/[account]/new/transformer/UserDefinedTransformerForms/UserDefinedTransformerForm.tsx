@@ -1,5 +1,7 @@
+import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformerConfig } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { FieldErrors } from 'react-hook-form';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
 import UserDefinedGenerateEmailForm from './UserDefinedGenerateEmailForm';
@@ -29,11 +31,14 @@ interface Props {
   value: TransformerConfig;
   setValue(newValue: TransformerConfig): void;
   disabled: boolean;
+
+  errors?: FieldErrors<PlainMessage<TransformerConfig>>;
 }
 // handles rendering custom transformer configs
 export function UserDefinedTransformerForm(props: Props): ReactElement {
-  const { value, disabled, setValue } = props;
+  const { value, disabled, setValue, errors } = props;
   const valConfig = value.config; // de-refs so that typescript is able to keep the conditional typing as it doesn't work well if you keep it on value itself
+
   switch (valConfig.case) {
     case 'generateCardNumberConfig':
       return (
@@ -47,6 +52,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateCategoricalConfig':
@@ -61,6 +67,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateE164PhoneNumberConfig':
@@ -75,6 +82,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateFloat64Config':
@@ -89,6 +97,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateGenderConfig':
@@ -103,6 +112,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateInt64Config':
@@ -117,6 +127,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateStringConfig':
@@ -131,6 +142,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateStringPhoneNumberConfig':
@@ -145,6 +157,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateStateConfig':
@@ -159,6 +172,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateUuidConfig':
@@ -173,6 +187,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformE164PhoneNumberConfig':
@@ -187,6 +202,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformEmailConfig':
@@ -201,6 +217,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateEmailConfig':
@@ -215,6 +232,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformFirstNameConfig':
@@ -229,6 +247,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformFloat64Config':
@@ -243,6 +262,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformFullNameConfig':
@@ -257,6 +277,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformInt64Config':
@@ -271,6 +292,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformInt64PhoneNumberConfig':
@@ -285,6 +307,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformLastNameConfig':
@@ -299,6 +322,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformPhoneNumberConfig':
@@ -313,6 +337,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformStringConfig':
@@ -327,6 +352,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformJavascriptConfig':
@@ -341,6 +367,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'transformCharacterScrambleConfig':
@@ -355,6 +382,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     case 'generateJavascriptConfig':
@@ -369,6 +397,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
             )
           }
           isDisabled={disabled}
+          errors={errors?.config?.value}
         />
       );
     default:

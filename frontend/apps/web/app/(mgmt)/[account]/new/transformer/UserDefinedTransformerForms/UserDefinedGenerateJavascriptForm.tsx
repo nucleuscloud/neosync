@@ -2,11 +2,13 @@
 import { FormLabel } from '@/components/ui/form';
 
 import ButtonText from '@/components/ButtonText';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import Spinner from '@/components/Spinner';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import Editor from '@monaco-editor/react';
 import { GenerateJavascript } from '@neosync/sdk';
@@ -17,12 +19,16 @@ import { ReactElement, useState } from 'react';
 import { ValidCode } from './UserDefinedTransformJavascriptForm';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateJavascript> {}
+interface Props
+  extends TransformerConfigProps<
+    GenerateJavascript,
+    PlainMessage<GenerateJavascript>
+  > {}
 
 export default function UserDefinedGenerateJavascriptForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   const options = {
     minimap: { enabled: false },
@@ -113,6 +119,7 @@ export default function UserDefinedGenerateJavascriptForm(
             options={options}
           />
         </div>
+        <FormErrorMessage message={errors?.code?.message} />
       </div>
     </div>
   );

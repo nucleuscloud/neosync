@@ -2,16 +2,22 @@
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateString } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<GenerateString> {}
+interface Props
+  extends TransformerConfigProps<
+    GenerateString,
+    PlainMessage<GenerateString>
+  > {}
 
 export default function UserDefinedGenerateStringForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -42,6 +48,7 @@ export default function UserDefinedGenerateStringForm(
               />
             </div>
           </div>
+          <FormErrorMessage message={errors?.min?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -70,6 +77,7 @@ export default function UserDefinedGenerateStringForm(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.max?.message} />
           </div>
         </div>
       </div>

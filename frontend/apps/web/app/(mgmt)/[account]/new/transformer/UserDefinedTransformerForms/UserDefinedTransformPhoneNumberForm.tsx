@@ -1,15 +1,21 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformPhoneNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
-interface Props extends TransformerConfigProps<TransformPhoneNumber> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformPhoneNumber,
+    PlainMessage<TransformPhoneNumber>
+  > {}
 
 export default function UserDefinedTransformPhoneNumberForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -34,6 +40,7 @@ export default function UserDefinedTransformPhoneNumberForm(
           disabled={isDisabled}
         />
       </div>
+      <FormErrorMessage message={errors?.preserveLength?.message} />
     </div>
   );
 }

@@ -1,20 +1,23 @@
 'use client';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { GenerateCardNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { TransformerConfigProps } from './util';
 
-interface Props {
-  value: GenerateCardNumber;
-  setValue(value: GenerateCardNumber): void;
-  isDisabled?: boolean;
-}
+interface Props
+  extends TransformerConfigProps<
+    GenerateCardNumber,
+    PlainMessage<GenerateCardNumber>
+  > {}
 
 export default function UserDefinedGenerateCardNumberForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -31,6 +34,7 @@ export default function UserDefinedGenerateCardNumberForm(
         }}
         disabled={isDisabled}
       />
+      <FormErrorMessage message={errors?.validLuhn?.message} />
     </div>
   );
 }

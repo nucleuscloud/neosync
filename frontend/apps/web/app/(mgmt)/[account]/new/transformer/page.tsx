@@ -304,6 +304,7 @@ export default function NewTransformer(): ReactElement {
                         );
                       }}
                       disabled={false}
+                      errors={form.formState.errors}
                     />
                   </FormControl>
                 </FormItem>

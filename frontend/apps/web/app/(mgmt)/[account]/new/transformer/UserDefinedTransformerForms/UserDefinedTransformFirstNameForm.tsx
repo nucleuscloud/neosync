@@ -1,16 +1,22 @@
 'use client';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { TransformFirstName } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
-interface Props extends TransformerConfigProps<TransformFirstName> {}
+interface Props
+  extends TransformerConfigProps<
+    TransformFirstName,
+    PlainMessage<TransformFirstName>
+  > {}
 
 export default function UserDefinedTransformFirstNameForm(
   props: Props
 ): ReactElement {
-  const { value, setValue, isDisabled } = props;
+  const { value, setValue, isDisabled, errors } = props;
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -30,6 +36,7 @@ export default function UserDefinedTransformFirstNameForm(
           disabled={isDisabled}
         />
       </div>
+      <FormErrorMessage message={errors?.preserveLength?.message} />
     </div>
   );
 }
