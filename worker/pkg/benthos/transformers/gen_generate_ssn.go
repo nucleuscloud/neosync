@@ -23,6 +23,19 @@ func NewGenerateSSN() *GenerateSSN {
 	return &GenerateSSN{}
 }
 
+func NewGenerateSSNOpts(
+  seedArg *int64,
+) (*GenerateSSNOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateSSNOpts{
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateSSN) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateSSN",
@@ -34,16 +47,13 @@ func (t *GenerateSSN) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateSSN) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateSSNOpts{}
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

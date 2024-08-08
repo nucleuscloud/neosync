@@ -696,8 +696,53 @@ type JobSourceOptions struct {
 }
 
 type DynamoDBSourceOptions struct {
-	ConnectionId string                       `json:"connectionId"`
-	Tables       []*DynamoDBSourceTableOption `json:"tables"`
+	ConnectionId       string                                 `json:"connectionId"`
+	Tables             []*DynamoDBSourceTableOption           `json:"tables"`
+	UnmappedTransforms *DynamoDBSourceUnmappedTransformConfig `json:"unmappedTransforms"`
+}
+
+type DynamoDBSourceUnmappedTransformConfig struct {
+	B       *JobMappingTransformerModel `json:"b"`
+	Boolean *JobMappingTransformerModel `json:"boolean"`
+	N       *JobMappingTransformerModel `json:"n"`
+	S       *JobMappingTransformerModel `json:"s"`
+}
+
+func (s *DynamoDBSourceUnmappedTransformConfig) ToDto() *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig {
+	return &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{
+		B:       s.B.ToTransformerDto(),
+		Boolean: s.Boolean.ToTransformerDto(),
+		N:       s.N.ToTransformerDto(),
+		S:       s.S.ToTransformerDto(),
+	}
+}
+func (s *DynamoDBSourceUnmappedTransformConfig) FromDto(dto *mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig) error {
+	if dto == nil {
+		dto = &mgmtv1alpha1.DynamoDBSourceUnmappedTransformConfig{}
+	}
+	s.B = &JobMappingTransformerModel{}
+	err := s.B.FromTransformerDto(dto.GetB())
+	if err != nil {
+		return err
+	}
+	s.Boolean = &JobMappingTransformerModel{}
+	err = s.Boolean.FromTransformerDto(dto.GetBoolean())
+	if err != nil {
+		return err
+	}
+
+	s.N = &JobMappingTransformerModel{}
+	err = s.N.FromTransformerDto(dto.GetN())
+	if err != nil {
+		return err
+	}
+
+	s.S = &JobMappingTransformerModel{}
+	err = s.S.FromTransformerDto(dto.GetS())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type DynamoDBSourceTableOption struct {
@@ -724,18 +769,33 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 	for i, t := range s.Tables {
 		tables[i] = t.ToDto()
 	}
+	if s.UnmappedTransforms == nil {
+		s.UnmappedTransforms = &DynamoDBSourceUnmappedTransformConfig{
+			B:       &JobMappingTransformerModel{},
+			Boolean: &JobMappingTransformerModel{},
+			N:       &JobMappingTransformerModel{},
+			S:       &JobMappingTransformerModel{},
+		}
+	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
-		ConnectionId: s.ConnectionId,
-		Tables:       tables,
+		ConnectionId:       s.ConnectionId,
+		Tables:             tables,
+		UnmappedTransforms: s.UnmappedTransforms.ToDto(),
 	}
 }
 
-func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnectionOptions) {
+func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnectionOptions) error {
 	if dto == nil {
 		dto = &mgmtv1alpha1.DynamoDBSourceConnectionOptions{}
 	}
 	s.ConnectionId = dto.GetConnectionId()
 	s.Tables = FromDtoDynamoDBSourceTableOptions(dto.GetTables())
+	s.UnmappedTransforms = &DynamoDBSourceUnmappedTransformConfig{}
+	err := s.UnmappedTransforms.FromDto(dto.GetUnmappedTransforms())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type MongoDbSourceOptions struct {
@@ -1109,7 +1169,10 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		j.MongoDbOptions = opts
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		opts := &DynamoDBSourceOptions{}
-		opts.FromDto(dto.GetDynamodb())
+		err := opts.FromDto(dto.GetDynamodb())
+		if err != nil {
+			return err
+		}
 		j.DynamoDBOptions = opts
 	default:
 		return fmt.Errorf("invalid job source options config, received type: %T", config)

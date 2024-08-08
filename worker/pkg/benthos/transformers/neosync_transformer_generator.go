@@ -126,6 +126,46 @@ func New{{.StructName}}() *{{.StructName}} {
 	return &{{.StructName}}{}
 }
 
+func New{{.StructName}}Opts(
+{{- range $index, $param := .FunctInfo.Params }}
+	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+	{{- if eq $param.Name "seed"}}
+  {{$param.Name}}Arg *{{$param.TypeStr}},
+	{{- else if and $param.IsOptional (not $param.HasDefault) }}
+	{{$param.Name}} *{{$param.TypeStr}},
+	{{- else if or $param.IsOptional $param.HasDefault }}
+	{{$param.Name}}Arg *{{$param.TypeStr}},
+	{{- else }}
+	{{$param.Name}} {{$param.TypeStr}},
+	{{- end }}
+{{- end }}
+) (*{{.StructName}}Opts, error) {
+{{- range $index, $param := .FunctInfo.Params }}
+ 	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+ 	{{- if eq $param.Name "seed" }}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	{{ else if $param.HasDefault }}
+	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
+	if {{$param.Name}}Arg != nil {
+		{{$param.Name}} = *{{$param.Name}}Arg
+	}
+	{{ end }}
+{{- end }}
+	return &{{.StructName}}Opts{
+{{- range $index, $param := .FunctInfo.Params }}
+    {{- if eq $param.Name "value" }}{{ continue }}{{ end }}	
+		{{- if eq $param.Name "seed" }}
+		randomizer: rng.New(seed),	
+		{{- else }}
+		{{$param.Name}}: {{$param.Name}},
+    {{- end }}
+{{- end }}	
+	}, nil
+}
+
 func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "{{.FunctInfo.Name}}",
@@ -141,16 +181,13 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 
 	{{- if eq $param.Name "seed" }}
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

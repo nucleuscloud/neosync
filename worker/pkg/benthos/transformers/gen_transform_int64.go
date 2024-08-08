@@ -25,6 +25,23 @@ func NewTransformInt64() *TransformInt64 {
 	return &TransformInt64{}
 }
 
+func NewTransformInt64Opts(
+	randomizationRangeMin int64,
+	randomizationRangeMax int64,
+  seedArg *int64,
+) (*TransformInt64Opts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &TransformInt64Opts{
+		randomizationRangeMin: randomizationRangeMin,
+		randomizationRangeMax: randomizationRangeMax,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *TransformInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64",
@@ -48,16 +65,13 @@ func (t *TransformInt64) ParseOptions(opts map[string]any) (any, error) {
 	randomizationRangeMax := opts["randomizationRangeMax"].(int64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

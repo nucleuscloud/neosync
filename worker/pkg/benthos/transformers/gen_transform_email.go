@@ -29,6 +29,61 @@ func NewTransformEmail() *TransformEmail {
 	return &TransformEmail{}
 }
 
+func NewTransformEmailOpts(
+	preserveLengthArg *bool,
+	preserveDomainArg *bool,
+	excludedDomainsArg *any,
+	maxLengthArg *int64,
+  seedArg *int64,
+	emailTypeArg *string,
+	invalidEmailActionArg *string,
+) (*TransformEmailOpts, error) {
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	preserveDomain := bool(false) 
+	if preserveDomainArg != nil {
+		preserveDomain = *preserveDomainArg
+	}
+	
+	excludedDomains := any([]any{}) 
+	if excludedDomainsArg != nil {
+		excludedDomains = *excludedDomainsArg
+	}
+	
+	maxLength := int64(10000) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	emailType := string(GenerateEmailType_UuidV4.String()) 
+	if emailTypeArg != nil {
+		emailType = *emailTypeArg
+	}
+	
+	invalidEmailAction := string(InvalidEmailAction_Reject.String()) 
+	if invalidEmailActionArg != nil {
+		invalidEmailAction = *invalidEmailActionArg
+	}
+	
+	return &TransformEmailOpts{
+		preserveLength: preserveLength,
+		preserveDomain: preserveDomain,
+		excludedDomains: excludedDomains,
+		maxLength: maxLength,
+		randomizer: rng.New(seed),
+		emailType: emailType,
+		invalidEmailAction: invalidEmailAction,	
+	}, nil
+}
+
 func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformEmail",
@@ -64,16 +119,13 @@ func (t *TransformEmail) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

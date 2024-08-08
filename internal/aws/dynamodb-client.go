@@ -2,8 +2,10 @@ package awsmanager
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type DynamoDbClient struct {
@@ -33,4 +35,34 @@ func (d *DynamoDbClient) ListAllTables(ctx context.Context, input *dynamodb.List
 		done = output.LastEvaluatedTableName == nil
 	}
 	return tableNames, nil
+}
+
+type DynamoDbTableKey struct {
+	HashKey  string
+	RangeKey string
+}
+
+func (d *DynamoDbClient) GetTableKey(ctx context.Context, tableName string) (*DynamoDbTableKey, error) {
+	describeTableOutput, err := d.client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
+		TableName: &tableName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to describe table %s: %w", tableName, err)
+	}
+
+	if describeTableOutput == nil || describeTableOutput.Table == nil {
+		return nil, fmt.Errorf("invalid DescribeTableOutput for table %s", tableName)
+	}
+
+	dynamoKey := &DynamoDbTableKey{}
+	for _, key := range describeTableOutput.Table.KeySchema {
+		if key.KeyType == types.KeyTypeHash {
+			dynamoKey.HashKey = *key.AttributeName
+		}
+		if key.KeyType == types.KeyTypeRange {
+			dynamoKey.RangeKey = *key.AttributeName
+		}
+	}
+
+	return dynamoKey, nil
 }

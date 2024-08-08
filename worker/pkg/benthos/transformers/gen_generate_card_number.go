@@ -24,6 +24,21 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 	return &GenerateCardNumber{}
 }
 
+func NewGenerateCardNumberOpts(
+	validLuhn bool,
+  seedArg *int64,
+) (*GenerateCardNumberOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateCardNumberOpts{
+		validLuhn: validLuhn,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",
@@ -41,16 +56,13 @@ func (t *GenerateCardNumber) ParseOptions(opts map[string]any) (any, error) {
 	validLuhn := opts["validLuhn"].(bool)
 	transformerOpts.validLuhn = validLuhn
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

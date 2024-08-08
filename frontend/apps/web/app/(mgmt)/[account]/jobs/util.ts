@@ -4,6 +4,8 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
+  DynamoDBSourceOptionsFormValues,
+  DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
   NewDestinationFormValues,
   SchemaFormValues,
@@ -27,10 +29,13 @@ import {
   DynamoDBSourceConnectionOptions,
   DynamoDBSourceSchemaSubset,
   DynamoDBSourceTableOption,
+  DynamoDBSourceUnmappedTransformConfig,
   GcpCloudStorageDestinationConnectionOptions,
+  GenerateBool,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
+  GenerateString,
   GetAiGeneratedDataRequest,
   Job,
   JobDestination,
@@ -49,6 +54,7 @@ import {
   MysqlSourceSchemaSubset,
   MysqlSourceTableOption,
   MysqlTruncateTableConfig,
+  Passthrough,
   PostgresDestinationConnectionOptions,
   PostgresOnConflictConfig,
   PostgresSourceConnectionOptions,
@@ -58,6 +64,7 @@ import {
   PostgresTruncateTableConfig,
   RetryPolicy,
   TransformerConfig,
+  TransformerSource,
   ValidateJobMappingsRequest,
   ValidateJobMappingsResponse,
   VirtualForeignConstraint,
@@ -576,7 +583,8 @@ function toJobSourceOptions(
           value: new PostgresSourceConnectionOptions({
             connectionId: values.connect.sourceId,
             haltOnNewColumnAddition:
-              values.connect.sourceOptions.haltOnNewColumnAddition,
+              values.connect.sourceOptions.postgres?.haltOnNewColumnAddition ??
+              false,
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -592,7 +600,8 @@ function toJobSourceOptions(
           value: new MysqlSourceConnectionOptions({
             connectionId: values.connect.sourceId,
             haltOnNewColumnAddition:
-              values.connect.sourceOptions.haltOnNewColumnAddition,
+              values.connect.sourceOptions.mysql?.haltOnNewColumnAddition ??
+              false,
             subsetByForeignKeyConstraints:
               values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             schemas:
@@ -617,6 +626,11 @@ function toJobSourceOptions(
           value: new DynamoDBSourceConnectionOptions({
             connectionId: values.connect.sourceId,
             tables: toDynamoDbSourceTableOptions(values.subset?.subsets ?? []),
+            unmappedTransforms: toDynamoDbSourceUnmappedOptions(
+              values.connect.sourceOptions.dynamodb ?? {
+                unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+              }
+            ),
           }),
         },
       });
@@ -624,6 +638,55 @@ function toJobSourceOptions(
     default:
       throw new Error('unsupported connection type');
   }
+}
+
+export function getDefaultUnmappedTransformConfig(): DynamoDBSourceUnmappedTransformConfigFormValues {
+  return {
+    boolean: convertJobMappingTransformerToForm(
+      new JobMappingTransformer({
+        source: TransformerSource.GENERATE_BOOL,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateBoolConfig',
+            value: new GenerateBool(),
+          },
+        }),
+      })
+    ),
+    byte: convertJobMappingTransformerToForm(
+      new JobMappingTransformer({
+        source: TransformerSource.PASSTHROUGH,
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough(),
+          },
+        }),
+      })
+    ),
+    n: convertJobMappingTransformerToForm(
+      new JobMappingTransformer({
+        source: TransformerSource.PASSTHROUGH,
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough(),
+          },
+        }),
+      })
+    ),
+    s: convertJobMappingTransformerToForm(
+      new JobMappingTransformer({
+        source: TransformerSource.GENERATE_RANDOM_STRING,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateStringConfig',
+            value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
+          },
+        }),
+      })
+    ),
+  };
 }
 
 function toPostgresSourceSchemaOptions(
@@ -684,6 +747,83 @@ function toDynamoDbSourceTableOptions(
         whereClause: ss.whereClause,
       })
   );
+}
+
+function toDynamoDbSourceUnmappedOptions(
+  dynamoSourceOpts: DynamoDBSourceOptionsFormValues
+): DynamoDBSourceUnmappedTransformConfig {
+  return new DynamoDBSourceUnmappedTransformConfig({
+    b: convertJobMappingTransformerFormToJobMappingTransformer(
+      dynamoSourceOpts.unmappedTransformConfig.byte
+    ),
+    boolean: convertJobMappingTransformerFormToJobMappingTransformer(
+      dynamoSourceOpts.unmappedTransformConfig.boolean
+    ),
+    n: convertJobMappingTransformerFormToJobMappingTransformer(
+      dynamoSourceOpts.unmappedTransformConfig.n
+    ),
+    s: convertJobMappingTransformerFormToJobMappingTransformer(
+      dynamoSourceOpts.unmappedTransformConfig.s
+    ),
+  });
+}
+
+export function toDynamoDbSourceUnmappedOptionsFormValues(
+  ut: DynamoDBSourceUnmappedTransformConfig | undefined
+): DynamoDBSourceUnmappedTransformConfigFormValues {
+  if (!ut) {
+    return getDefaultUnmappedTransformConfig();
+  }
+  return {
+    boolean: convertJobMappingTransformerToForm(
+      ut.boolean ||
+        new JobMappingTransformer({
+          source: TransformerSource.GENERATE_BOOL,
+          config: new TransformerConfig({
+            config: {
+              case: 'generateBoolConfig',
+              value: new GenerateBool(),
+            },
+          }),
+        })
+    ),
+    byte: convertJobMappingTransformerToForm(
+      ut.b ||
+        new JobMappingTransformer({
+          source: TransformerSource.PASSTHROUGH,
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough(),
+            },
+          }),
+        })
+    ),
+    n: convertJobMappingTransformerToForm(
+      ut.n ||
+        new JobMappingTransformer({
+          source: TransformerSource.PASSTHROUGH,
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough(),
+            },
+          }),
+        })
+    ),
+    s: convertJobMappingTransformerToForm(
+      ut.s ||
+        new JobMappingTransformer({
+          source: TransformerSource.GENERATE_RANDOM_STRING,
+          config: new TransformerConfig({
+            config: {
+              case: 'generateStringConfig',
+              value: new GenerateString({ min: BigInt(1), max: BigInt(100) }),
+            },
+          }),
+        })
+    ),
+  };
 }
 
 export function toActivityOptions(
@@ -845,9 +985,36 @@ function setDefaultConnectFormValues(
       return;
     }
     case 'dynamodb': {
+      const defaultUnmappedConfig = getDefaultUnmappedTransformConfig();
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
-        sourceOptions: {},
+        sourceOptions: {
+          dynamodb: {
+            unmappedTransformConfig: {
+              byte: job.source.options.config.value.unmappedTransforms?.b
+                ? convertJobMappingTransformerToForm(
+                    job.source.options.config.value.unmappedTransforms.b
+                  )
+                : defaultUnmappedConfig.byte,
+              boolean: job.source.options.config.value.unmappedTransforms
+                ?.boolean
+                ? convertJobMappingTransformerToForm(
+                    job.source.options.config.value.unmappedTransforms.boolean
+                  )
+                : defaultUnmappedConfig.boolean,
+              n: job.source.options.config.value.unmappedTransforms?.n
+                ? convertJobMappingTransformerToForm(
+                    job.source.options.config.value.unmappedTransforms.n
+                  )
+                : defaultUnmappedConfig.n,
+              s: job.source.options.config.value.unmappedTransforms?.s
+                ? convertJobMappingTransformerToForm(
+                    job.source.options.config.value.unmappedTransforms.s
+                  )
+                : defaultUnmappedConfig.s,
+            },
+          },
+        },
         destinations: job.destinations.map((dest) =>
           getDefaultDestinationFormValues(dest)
         ),
@@ -859,8 +1026,10 @@ function setDefaultConnectFormValues(
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job.source.options.config.value.haltOnNewColumnAddition,
+          mysql: {
+            haltOnNewColumnAddition:
+              job.source.options.config.value.haltOnNewColumnAddition,
+          },
         },
         destinations: job.destinations.map((dest) =>
           getDefaultDestinationFormValues(dest)
@@ -874,8 +1043,10 @@ function setDefaultConnectFormValues(
       const values: ConnectFormValues = {
         sourceId: job.source.options.config.value.connectionId,
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job.source.options.config.value.haltOnNewColumnAddition,
+          postgres: {
+            haltOnNewColumnAddition:
+              job.source.options.config.value.haltOnNewColumnAddition,
+          },
         },
         destinations: job.destinations.map((dest) =>
           getDefaultDestinationFormValues(dest)

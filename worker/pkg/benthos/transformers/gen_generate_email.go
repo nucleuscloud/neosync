@@ -25,6 +25,33 @@ func NewGenerateEmail() *GenerateEmail {
 	return &GenerateEmail{}
 }
 
+func NewGenerateEmailOpts(
+	maxLengthArg *int64,
+	emailTypeArg *string,
+  seedArg *int64,
+) (*GenerateEmailOpts, error) {
+	maxLength := int64(100000) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	emailType := string(GenerateEmailType_UuidV4.String()) 
+	if emailTypeArg != nil {
+		emailType = *emailTypeArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateEmailOpts{
+		maxLength: maxLength,
+		emailType: emailType,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateEmail) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateEmail",
@@ -48,16 +75,13 @@ func (t *GenerateEmail) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.emailType = emailType
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

@@ -26,6 +26,40 @@ func NewTransformString() *TransformString {
 	return &TransformString{}
 }
 
+func NewTransformStringOpts(
+	preserveLengthArg *bool,
+	minLengthArg *int64,
+	maxLengthArg *int64,
+  seedArg *int64,
+) (*TransformStringOpts, error) {
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	minLength := int64(1) 
+	if minLengthArg != nil {
+		minLength = *minLengthArg
+	}
+	
+	maxLength := int64(20) 
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &TransformStringOpts{
+		preserveLength: preserveLength,
+		minLength: minLength,
+		maxLength: maxLength,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",
@@ -55,16 +89,13 @@ func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.maxLength = maxLength
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

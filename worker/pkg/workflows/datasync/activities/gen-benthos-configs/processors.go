@@ -17,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func buildSqlUpdateProcessorConfigs(
@@ -78,6 +79,8 @@ func buildProcessorConfigs(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 	runconfig *tabledependency.RunConfig,
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
+	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	// filter columns by config insert cols
 	filteredCols := []*mgmtv1alpha1.JobMapping{}
@@ -103,6 +106,10 @@ func buildProcessorConfigs(
 
 	pkMapping := buildPrimaryKeyMappingConfigs(filteredCols, fkSourceCols)
 
+	defaultTransformerConfig, err := buildDefaultTransformerConfigs(jobSourceOptions, mappedKeys)
+	if err != nil {
+		return nil, err
+	}
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &pkMapping})
@@ -118,6 +125,9 @@ func buildProcessorConfigs(
 			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: config})
 		}
 	}
+	if defaultTransformerConfig != nil {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncDefaultTransformer: defaultTransformerConfig})
+	}
 
 	if len(processorConfigs) > 0 {
 		// add catch and error processor
@@ -129,6 +139,25 @@ func buildProcessorConfigs(
 	}
 
 	return processorConfigs, err
+}
+
+func buildDefaultTransformerConfigs(
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
+	mappedKeys []string,
+) (*neosync_benthos.NeosyncDefaultTransformerConfig, error) {
+	// only available for dynamodb source
+	if jobSourceOptions == nil || jobSourceOptions.GetDynamodb() == nil {
+		return nil, nil
+	}
+
+	sourceOptBits, err := protojson.Marshal(jobSourceOptions)
+	if err != nil {
+		return nil, err
+	}
+	return &neosync_benthos.NeosyncDefaultTransformerConfig{
+		JobSourceOptionsString: string(sourceOptBits),
+		MappedKeys:             mappedKeys,
+	}, nil
 }
 
 func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping) (string, error) {

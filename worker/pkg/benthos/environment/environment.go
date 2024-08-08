@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	neosync_benthos_defaulttransform "github.com/nucleuscloud/neosync/worker/pkg/benthos/default_transform"
 	neosync_benthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
@@ -104,6 +105,11 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*serv
 	err = neosync_benthos_dynamodb.RegisterDynamoDbOutput(env)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register dynamodb output to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_defaulttransform.ReisterDefaultTransformerProcessor(env)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register default mapping processor to benthos instance: %w", err)
 	}
 
 	return env, nil

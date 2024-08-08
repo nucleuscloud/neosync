@@ -8683,6 +8683,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "unmapped_transforms",
+              "description": "Default transformations for any unmapped keys",
+              "label": "",
+              "type": "DynamoDBSourceUnmappedTransformConfig",
+              "longType": "DynamoDBSourceUnmappedTransformConfig",
+              "fullType": "mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -8742,6 +8754,66 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_where_clause",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "DynamoDBSourceUnmappedTransformConfig",
+          "longName": "DynamoDBSourceUnmappedTransformConfig",
+          "fullName": "mgmt.v1alpha1.DynamoDBSourceUnmappedTransformConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "b",
+              "description": "Byte",
+              "label": "",
+              "type": "JobMappingTransformer",
+              "longType": "JobMappingTransformer",
+              "fullType": "mgmt.v1alpha1.JobMappingTransformer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "boolean",
+              "description": "Boolean",
+              "label": "",
+              "type": "JobMappingTransformer",
+              "longType": "JobMappingTransformer",
+              "fullType": "mgmt.v1alpha1.JobMappingTransformer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "n",
+              "description": "Number",
+              "label": "",
+              "type": "JobMappingTransformer",
+              "longType": "JobMappingTransformer",
+              "fullType": "mgmt.v1alpha1.JobMappingTransformer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "s",
+              "description": "String",
+              "label": "",
+              "type": "JobMappingTransformer",
+              "longType": "JobMappingTransformer",
+              "fullType": "mgmt.v1alpha1.JobMappingTransformer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

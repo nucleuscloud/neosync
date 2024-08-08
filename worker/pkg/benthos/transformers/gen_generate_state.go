@@ -24,6 +24,26 @@ func NewGenerateState() *GenerateState {
 	return &GenerateState{}
 }
 
+func NewGenerateStateOpts(
+	generateFullNameArg *bool,
+  seedArg *int64,
+) (*GenerateStateOpts, error) {
+	generateFullName := bool(false) 
+	if generateFullNameArg != nil {
+		generateFullName = *generateFullNameArg
+	}
+	
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateStateOpts{
+		generateFullName: generateFullName,
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateState",
@@ -41,16 +61,13 @@ func (t *GenerateState) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.generateFullName = generateFullName
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

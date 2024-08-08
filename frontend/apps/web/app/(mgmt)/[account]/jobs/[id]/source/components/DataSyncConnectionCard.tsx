@@ -44,6 +44,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
   DynamoDBSourceConnectionOptions,
+  DynamoDBSourceUnmappedTransformConfig,
   GetConnectionResponse,
   GetConnectionSchemaMapRequest,
   GetConnectionSchemaMapResponse,
@@ -75,7 +76,11 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { validateJobMapping } from '../../../util';
+import {
+  getDefaultUnmappedTransformConfig,
+  toDynamoDbSourceUnmappedOptionsFormValues,
+  validateJobMapping,
+} from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import {
   getDestinationDetailsRecord,
@@ -555,6 +560,14 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             connection={connections.find(
               (c) => c.id === form.getValues().sourceId
             )}
+            value={form.watch('sourceOptions')}
+            setValue={(newOpts) => {
+              form.setValue('sourceOptions', newOpts, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
+            }}
           />
 
           {isNosqlSource(source ?? new Connection()) && (
@@ -776,7 +789,7 @@ function toJobSourceOptions(
             ...getExistingPostgresSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.haltOnNewColumnAddition,
+              values.sourceOptions.postgres?.haltOnNewColumnAddition,
           }),
         },
       });
@@ -788,7 +801,7 @@ function toJobSourceOptions(
             ...getExistingMysqlSourceConnectionOptions(job),
             connectionId: newSourceId,
             haltOnNewColumnAddition:
-              values.sourceOptions.haltOnNewColumnAddition,
+              values.sourceOptions.mysql?.haltOnNewColumnAddition,
           }),
         },
       });
@@ -809,6 +822,31 @@ function toJobSourceOptions(
           value: new DynamoDBSourceConnectionOptions({
             ...getExistingDynamoDBSourceConnectionOptions(job),
             connectionId: newSourceId,
+            unmappedTransforms: new DynamoDBSourceUnmappedTransformConfig({
+              b: values.sourceOptions.dynamodb?.unmappedTransformConfig?.byte
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.byte
+                  )
+                : undefined,
+              boolean: values.sourceOptions.dynamodb?.unmappedTransformConfig
+                ?.boolean
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig
+                      .boolean
+                  )
+                : undefined,
+              n: values.sourceOptions.dynamodb?.unmappedTransformConfig?.n
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.n
+                  )
+                : undefined,
+              s: values.sourceOptions.dynamodb?.unmappedTransformConfig?.s
+                ? convertJobMappingTransformerFormToJobMappingTransformer(
+                    values.sourceOptions.dynamodb.unmappedTransformConfig.s
+                  )
+                : undefined,
+            }),
+            //   // tables: [] // todo: fix this
           }),
         },
       });
@@ -857,9 +895,7 @@ function getJobSource(
   if (!job || !connSchemaMap) {
     return {
       sourceId: '',
-      sourceOptions: {
-        haltOnNewColumnAddition: false,
-      },
+      sourceOptions: {},
       mappings: [],
       virtualForeignKeys: [],
       connectionId: '',
@@ -940,8 +976,10 @@ function getJobSource(
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job?.source?.options?.config.value.haltOnNewColumnAddition,
+          postgres: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
         },
       };
     case 'mysql':
@@ -949,8 +987,10 @@ function getJobSource(
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
-          haltOnNewColumnAddition:
-            job?.source?.options?.config.value.haltOnNewColumnAddition,
+          mysql: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
         },
       };
     case 'mongodb':
@@ -975,7 +1015,13 @@ function getJobSource(
       return {
         ...yupValidationValues,
         sourceId: getConnectionIdFromSource(job.source) || '',
-        sourceOptions: {},
+        sourceOptions: {
+          dynamodb: {
+            unmappedTransformConfig: toDynamoDbSourceUnmappedOptionsFormValues(
+              job.source?.options?.config?.value.unmappedTransforms
+            ),
+          },
+        },
         destinationOptions: destOpts,
       };
     }
@@ -1016,7 +1062,6 @@ async function getUpdatedValues(
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
-    // destinationIds: originalValues.destinationIds,
     mappings,
     connectionId: connectionId || '',
     destinationOptions: [],
@@ -1027,9 +1072,31 @@ async function getUpdatedValues(
       return {
         ...values,
         sourceOptions: {
-          haltOnNewColumnAddition: false,
+          postgres: {
+            haltOnNewColumnAddition: false,
+          },
         },
       };
+    case 'mysqlConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          mysql: {
+            haltOnNewColumnAddition: false,
+          },
+        },
+      };
+    }
+    case 'dynamodbConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          dynamodb: {
+            unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+          },
+        },
+      };
+    }
     default:
       return values;
   }

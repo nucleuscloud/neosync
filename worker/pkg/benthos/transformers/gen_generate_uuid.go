@@ -17,6 +17,19 @@ func NewGenerateUUID() *GenerateUUID {
 	return &GenerateUUID{}
 }
 
+func NewGenerateUUIDOpts(
+	includeHyphensArg *bool,
+) (*GenerateUUIDOpts, error) {
+	includeHyphens := bool(true) 
+	if includeHyphensArg != nil {
+		includeHyphens = *includeHyphensArg
+	}
+	
+	return &GenerateUUIDOpts{
+		includeHyphens: includeHyphens,	
+	}, nil
+}
+
 func (t *GenerateUUID) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUUID",

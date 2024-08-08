@@ -23,6 +23,19 @@ func NewGenerateZipcode() *GenerateZipcode {
 	return &GenerateZipcode{}
 }
 
+func NewGenerateZipcodeOpts(
+  seedArg *int64,
+) (*GenerateZipcodeOpts, error) {
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+  if err != nil {
+    return nil, fmt.Errorf("unable to generate seed: %w", err)
+	}
+	
+	return &GenerateZipcodeOpts{
+		randomizer: rng.New(seed),	
+	}, nil
+}
+
 func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateZipcode",
@@ -34,16 +47,13 @@ func (t *GenerateZipcode) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateZipcode) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateZipcodeOpts{}
 
-	var seed int64
-	seedArg, ok := opts["seed"].(int64)
-	if ok {
-		seed = seedArg
-	} else {
-		var err error
-		seed, err = transformer_utils.GenerateCryptoSeed()
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate seed: %w", err)
-		}
+	var seedArg *int64
+	if seedValue, ok := opts["seed"].(int64); ok {
+			seedArg = &seedValue
+	}
+	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	transformerOpts.randomizer = rng.New(seed)
 

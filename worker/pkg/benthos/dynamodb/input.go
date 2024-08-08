@@ -296,7 +296,7 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 	case *types.AttributeValueMemberL:
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			val := attributeValueToStandardValue("", v, keyTypeMap)
+			val := attributeValueToStandardValue(fmt.Sprintf("%s[%d]", key, i), v, keyTypeMap)
 			lAny[i] = val
 		}
 		return lAny
@@ -317,7 +317,11 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 		keyTypeMap[key] = NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			lAny[i] = v
+			n, err := convertStringToNumber(v)
+			if err != nil {
+				return v
+			}
+			lAny[i] = n
 		}
 		return lAny
 	case *types.AttributeValueMemberNULL:
@@ -336,7 +340,7 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 }
 
 func convertStringToNumber(s string) (any, error) {
-	if i, err := strconv.Atoi(s); err == nil {
+	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
 		return i, nil
 	}
 

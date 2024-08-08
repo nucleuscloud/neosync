@@ -68,6 +68,8 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{"address"}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)
@@ -124,6 +126,8 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{"test"}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)
@@ -190,6 +194,8 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{nameCol, ageCol}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)
@@ -257,6 +263,8 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{nameCol, col2}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)
@@ -314,6 +322,8 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)
@@ -376,6 +386,8 @@ func Test_buildProcessorConfigsJavascript_Generate_DeepKeys_SetsNested(t *testin
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
 		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+		nil,
+		[]string{},
 	)
 
 	require.NoError(t, err)

@@ -101,6 +101,19 @@ message DynamoDBSourceConnectionOptions {
   // List of table option configurations for any mapped source table.
   // Any table listed in this must also be present as a job mapping table to be applied.
   repeated DynamoDBSourceTableOption tables = 2;
+  // Default transformations for any unmapped keys
+  DynamoDBSourceUnmappedTransformConfig unmapped_transforms = 3;
+}
+
+message DynamoDBSourceUnmappedTransformConfig {
+  // Byte
+  JobMappingTransformer b = 1;
+  // Boolean
+  JobMappingTransformer boolean = 2;
+  // Number
+  JobMappingTransformer n = 4;
+  // String
+  JobMappingTransformer s = 6;
 }
 
 message DynamoDBSourceTableOption {

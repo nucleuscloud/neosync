@@ -214,6 +214,8 @@ func buildBenthosSqlSourceConfigResponses(
 			redisConfig,
 			mappings.Mappings,
 			colInfoMap,
+			nil,
+			[]string{},
 		)
 		if err != nil {
 			return nil, err
@@ -299,6 +301,8 @@ func buildProcessorConfigsByRunType(
 	redisConfig *shared.RedisConfig,
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
+	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
+	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	if config.RunType == tabledependency.RunTypeUpdate {
 		// sql update processor configs
@@ -313,7 +317,20 @@ func buildProcessorConfigsByRunType(
 		for col := range columnForeignKeysMap {
 			fkSourceCols = append(fkSourceCols, col)
 		}
-		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings, columnInfoMap, transformedFktoPkMap, fkSourceCols, jobId, runId, redisConfig, config)
+		processorConfigs, err := buildProcessorConfigs(
+			ctx,
+			transformerclient,
+			mappings,
+			columnInfoMap,
+			transformedFktoPkMap,
+			fkSourceCols,
+			jobId,
+			runId,
+			redisConfig,
+			config,
+			jobSourceOptions,
+			mappedKeys,
+		)
 		if err != nil {
 			return nil, err
 		}

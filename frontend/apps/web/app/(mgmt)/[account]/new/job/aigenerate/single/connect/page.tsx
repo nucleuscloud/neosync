@@ -4,7 +4,6 @@ import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
-import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -187,12 +186,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-
-              <SourceOptionsForm
-                connection={connections.find(
-                  (c) => c.id === form.getValues().sourceId
                 )}
               />
             </div>

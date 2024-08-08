@@ -85,11 +85,54 @@ export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
 
+const PostgresSourceOptionsFormValues = Yup.object({
+  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+});
+const MysqlSourceOptionsFormValues = Yup.object({
+  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+});
+
+const DynamoDBSourceUnmappedTransformConfigFormValues = Yup.object({
+  byte: JobMappingTransformerForm.required(
+    'A default transformer config must be provided for the byte data type'
+  ),
+  boolean: JobMappingTransformerForm.required(
+    'A default transformer config must be provided for the boolean data type'
+  ),
+  n: JobMappingTransformerForm.required(
+    'A default transformer config must be provided for the number data type'
+  ),
+  s: JobMappingTransformerForm.required(
+    'A default transformer config must be provided for the string data type'
+  ),
+});
+export type DynamoDBSourceUnmappedTransformConfigFormValues = Yup.InferType<
+  typeof DynamoDBSourceUnmappedTransformConfigFormValues
+>;
+
+const DynamoDBSourceOptionsFormValues = Yup.object({
+  unmappedTransformConfig:
+    DynamoDBSourceUnmappedTransformConfigFormValues.required(
+      'Must provide a DynamoDB unmapped transform config'
+    ),
+});
+export type DynamoDBSourceOptionsFormValues = Yup.InferType<
+  typeof DynamoDBSourceOptionsFormValues
+>;
+
+export const SourceOptionsFormValues = Yup.object({
+  postgres: PostgresSourceOptionsFormValues.optional(),
+  mysql: MysqlSourceOptionsFormValues.optional(),
+  dynamodb: DynamoDBSourceOptionsFormValues.optional(),
+});
+
+export type SourceOptionsFormValues = Yup.InferType<
+  typeof SourceOptionsFormValues
+>;
+
 export const SourceFormValues = Yup.object({
   sourceId: Yup.string().required('Source is required').uuid(),
-  sourceOptions: Yup.object({
-    haltOnNewColumnAddition: Yup.boolean().optional(),
-  }),
+  sourceOptions: SourceOptionsFormValues.required('Source Options is required'),
 });
 
 const DynamoDbDestinationOptionsFormValues = Yup.object({
