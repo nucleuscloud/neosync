@@ -620,7 +620,7 @@ END;
 
 CALL NeosyncAddIndexIfNotExists();
 DROP PROCEDURE NeosyncAddIndexIfNotExists;
-`, schema, table, constraintname, EscapeMysqlColumn(constraintname), schema, table, col)
+`, schema, table, constraintname, EscapeMysqlColumn(constraintname), EscapeMysqlColumn(schema), EscapeMysqlColumn(table), EscapeMysqlColumn(col))
 	return strings.TrimSpace(stmt)
 }
 
