@@ -19,7 +19,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
@@ -28,6 +27,7 @@ import {
   NewJobType,
 } from '../schema';
 
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
   Accordion,
   AccordionContent,
@@ -42,8 +42,6 @@ import { isJobNameAvailable } from '@neosync/sdk/connectquery';
 import { usePostHog } from 'posthog-js/react';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 import { getNewJobSessionKeys } from '../../../jobs/util';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
@@ -91,12 +89,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     },
   });
 
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
-
   const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
   const posthog = usePostHog();
 
@@ -125,6 +117,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       id="newjobdefine"
       className="px-12 md:px-24 lg:px-48 xl:px-64 flex flex-col gap-5"
     >
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader

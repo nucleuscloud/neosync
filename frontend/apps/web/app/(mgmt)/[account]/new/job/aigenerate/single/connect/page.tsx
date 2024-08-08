@@ -1,4 +1,5 @@
 'use client';
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
 import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
@@ -31,7 +32,6 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
 import { Control, useForm, useWatch } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -72,11 +72,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues,
   });
 
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: window.sessionStorage,
-  });
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
     getConnections,
     { accountId: account?.id },
@@ -105,6 +100,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       id="newjobflowcontainer"
       className="px-12 md:px-24 lg:px-32 flex flex-col gap-5"
     >
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader

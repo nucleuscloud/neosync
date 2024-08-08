@@ -1,4 +1,5 @@
 'use client';
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
@@ -30,7 +31,6 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
 import {
@@ -47,8 +47,6 @@ import { ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -87,11 +85,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     name: 'destinations',
   });
 
-  useFormPersist(sessionKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
   const posthog = usePostHog();
 
   async function onSubmit(_values: ConnectFormValues) {
@@ -107,6 +100,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       id="newjobflowcontainer"
       className="px-12 md:px-24 lg:px-48 xl:px-64 flex flex-col gap-5"
     >
+      <FormPersist formKey={sessionKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader

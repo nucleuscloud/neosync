@@ -1,5 +1,6 @@
 'use client';
 
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
@@ -45,7 +46,6 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import { getConnectionType } from '../../../connections/util';
@@ -61,8 +61,6 @@ import {
   DefineFormValues,
   SubsetFormValues,
 } from '../schema';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -156,12 +154,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SubsetFormValues),
     defaultValues: subsetFormValues,
-  });
-
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
@@ -282,6 +274,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-5">
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader
