@@ -18,6 +18,9 @@ interface UseFormPersistResult {
   clear(): void;
 }
 
+// I copied this from the original react-hook-form-persist npm module so that we could take advantage of the useWatch() hook
+// This also lets use nest it in the component tree instead of being a pure hook.
+// This allows us to persist values without triggering a wholesale re-render of the entire component hierarchy
 export default function useFormPersist(
   name: string,
   {

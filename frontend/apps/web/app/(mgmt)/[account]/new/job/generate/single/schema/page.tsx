@@ -1,5 +1,6 @@
 'use client';
 
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import {
   clearNewJobSession,
@@ -55,7 +56,6 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -66,7 +66,6 @@ import {
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
 } from '../../../schema';
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -150,11 +149,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     context: { accountId: account?.id },
   });
 
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
@@ -312,6 +306,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-5">
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader

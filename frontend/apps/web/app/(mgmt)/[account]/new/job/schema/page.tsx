@@ -1,5 +1,6 @@
 'use client';
 
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
@@ -56,7 +57,6 @@ import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { toast } from 'sonner';
 import { useSessionStorage } from 'usehooks-ts';
 import {
@@ -75,8 +75,6 @@ import {
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues, DefineFormValues } from '../schema';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 export interface ColumnMetadata {
   pk: { [key: string]: PrimaryConstraint };
@@ -198,11 +196,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     context: { accountId: account?.id },
   });
 
-  useFormPersist(schemaFormKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
   const { mutateAsync: validateJobMappingsAsync } =
     useMutation(validateJobMappings);
 
@@ -457,6 +450,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-5">
+      <FormPersist formKey={schemaFormKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader
