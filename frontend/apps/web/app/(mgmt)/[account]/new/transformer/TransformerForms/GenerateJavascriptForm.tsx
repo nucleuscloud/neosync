@@ -17,7 +17,7 @@ import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useEffect, useState } from 'react';
-import { ValidCode } from './UserDefinedTransformJavascriptForm';
+import { ValidCode } from './TransformJavascriptForm';
 import { TransformerConfigProps } from './util';
 
 interface Props
@@ -26,9 +26,7 @@ interface Props
     PlainMessage<GenerateJavascript>
   > {}
 
-export default function UserDefinedGenerateJavascriptForm(
-  props: Props
-): ReactElement {
+export default function GenerateJavascriptForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   const options = {

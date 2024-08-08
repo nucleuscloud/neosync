@@ -14,9 +14,7 @@ interface Props
     PlainMessage<GenerateCardNumber>
   > {}
 
-export default function UserDefinedGenerateCardNumberForm(
-  props: Props
-): ReactElement {
+export default function GenerateCardNumberForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

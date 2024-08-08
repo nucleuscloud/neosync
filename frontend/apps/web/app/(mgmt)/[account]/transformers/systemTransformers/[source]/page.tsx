@@ -1,5 +1,5 @@
 'use client';
-import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/UserDefinedTransformerForm';
+import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/TransformerForm';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -161,7 +161,7 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div>
-            <UserDefinedTransformerForm
+            <TransformerForm
               value={convertTransformerConfigSchemaToTransformerConfig(cfg)}
               setValue={() => undefined}
               disabled={true}

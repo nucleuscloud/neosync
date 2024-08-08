@@ -3,17 +3,17 @@ import FormErrorMessage from '@/components/FormErrorMessage';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { TransformInt64 } from '@neosync/sdk';
+import { GenerateStringPhoneNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { TransformerConfigProps } from './util';
 
 interface Props
   extends TransformerConfigProps<
-    TransformInt64,
-    PlainMessage<TransformInt64>
+    GenerateStringPhoneNumber,
+    PlainMessage<GenerateStringPhoneNumber>
   > {}
 
-export default function UserDefinedTransformInt64Form(
+export default function GenerateStringPhoneNumberNumberForm(
   props: Props
 ): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
@@ -22,30 +22,23 @@ export default function UserDefinedTransformInt64Form(
     <div className="flex flex-col w-full space-y-4 pt-4">
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
-          <FormLabel>Relative Minimum Range Value</FormLabel>
-          <FormDescription className="w-[90%]">
-            Sets a relative minium lower range value. This will create a
-            lowerbound around the source input value. For example, if the input
-            value is 10, and you set this value to 5, then the maximum range
-            will be 5.
+          <FormLabel>Minimum Length</FormLabel>
+          <FormDescription>
+            Set the minimum length range of the output phone number.
           </FormDescription>
         </div>
         <div className="flex flex-col h-14">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
-                value={
-                  value.randomizationRangeMin
-                    ? parseInt(value.randomizationRangeMin.toString(), 10)
-                    : 0
-                }
+                value={value.min ? parseInt(value.min.toString(), 10) : 0}
                 type="number"
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new TransformInt64({
+                      new GenerateStringPhoneNumber({
                         ...value,
-                        randomizationRangeMin: BigInt(e.target.valueAsNumber),
+                        min: BigInt(e.target.valueAsNumber),
                       })
                     );
                   }
@@ -53,36 +46,29 @@ export default function UserDefinedTransformInt64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.min?.message} />
           </div>
-          <FormErrorMessage message={errors?.randomizationRangeMin?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5">
-          <FormLabel>Relative Maximum Range Value</FormLabel>
-          <FormDescription className="w-[90%]">
-            Sets a relative maximum upper range value. This will create an
-            upperbound around the source input value. For example, if the input
-            value is 10, and you set this value to 5, then the maximum range
-            will be 15.
+          <FormLabel>Maximum Length</FormLabel>
+          <FormDescription>
+            Set the maximum length range of the output phone number.
           </FormDescription>
         </div>
         <div className="flex flex-col h-14">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
-                value={
-                  value.randomizationRangeMax
-                    ? parseInt(value.randomizationRangeMax.toString(), 10)
-                    : 0
-                }
+                value={value.max ? parseInt(value.max.toString(), 10) : 0}
                 type="number"
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
-                      new TransformInt64({
+                      new GenerateStringPhoneNumber({
                         ...value,
-                        randomizationRangeMax: BigInt(e.target.valueAsNumber),
+                        max: BigInt(e.target.valueAsNumber),
                       })
                     );
                   }
@@ -90,8 +76,8 @@ export default function UserDefinedTransformInt64Form(
                 disabled={isDisabled}
               />
             </div>
+            <FormErrorMessage message={errors?.max?.message} />
           </div>
-          <FormErrorMessage message={errors?.randomizationRangeMax?.message} />
         </div>
       </div>
     </div>

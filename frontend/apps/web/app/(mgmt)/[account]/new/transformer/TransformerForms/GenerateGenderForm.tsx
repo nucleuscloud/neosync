@@ -14,9 +14,7 @@ interface Props
     PlainMessage<GenerateGender>
   > {}
 
-export default function UserDefinedGenerateGenderForm(
-  props: Props
-): ReactElement {
+export default function GenerateGenderForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

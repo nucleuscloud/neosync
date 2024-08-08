@@ -15,9 +15,7 @@ interface Props
     PlainMessage<GenerateFloat64>
   > {}
 
-export default function UserDefinedGenerateFloat64Form(
-  props: Props
-): ReactElement {
+export default function GenerateFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

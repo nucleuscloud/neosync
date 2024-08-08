@@ -1,5 +1,5 @@
 'use client';
-import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/UserDefinedTransformerForm';
+import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/TransformerForm';
 import {
   EditUserDefinedTransformerFormContext,
   UpdateUserDefinedTransformerFormValues,
@@ -40,9 +40,7 @@ interface Props {
   onUpdated(transformer: UserDefinedTransformer): void;
 }
 
-export default function UpdateUserDefinedTransformerForm(
-  props: Props
-): ReactElement {
+export default function UpdateTransformerForm(props: Props): ReactElement {
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
   const { mutateAsync: isTransformerNameAvailableAsync } = useMutation(
@@ -177,7 +175,7 @@ export default function UpdateUserDefinedTransformerForm(
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <UserDefinedTransformerForm
+                  <TransformerForm
                     value={convertTransformerConfigSchemaToTransformerConfig(
                       field.value
                     )}

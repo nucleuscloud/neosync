@@ -13,9 +13,7 @@ interface Props
     PlainMessage<TransformFloat64>
   > {}
 
-export default function UserDefinedTransformFloat64Form(
-  props: Props
-): ReactElement {
+export default function TransformFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

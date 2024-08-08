@@ -27,9 +27,7 @@ interface Props
 
 export type ValidCode = 'valid' | 'invalid' | 'null';
 
-export default function UserDefinedTransformJavascriptForm(
-  props: Props
-): ReactElement {
+export default function TransformJavascriptForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   const options = {

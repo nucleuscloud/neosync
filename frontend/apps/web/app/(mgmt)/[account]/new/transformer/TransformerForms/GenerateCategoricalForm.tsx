@@ -13,9 +13,7 @@ interface Props
     PlainMessage<GenerateCategorical>
   > {}
 
-export default function UserDefinedGenerateCategoricalForm(
-  props: Props
-): ReactElement {
+export default function GenerateCategoricalForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

@@ -13,7 +13,7 @@ interface Props
     PlainMessage<TransformInt64PhoneNumber>
   > {}
 
-export default function UserDefinedTransformIntPhoneNumberForm(
+export default function TransformIntPhoneNumberForm(
   props: Props
 ): ReactElement {
   const { value, setValue, isDisabled, errors } = props;

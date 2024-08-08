@@ -29,9 +29,7 @@ interface Props
     PlainMessage<TransformEmail>
   > {}
 
-export default function UserDefinedTransformEmailForm(
-  props: Props
-): ReactElement {
+export default function TransformEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (

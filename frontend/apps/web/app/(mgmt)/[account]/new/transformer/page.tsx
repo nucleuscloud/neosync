@@ -51,7 +51,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { UserDefinedTransformerForm } from './TransformerForms/UserDefinedTransformerForm';
+import TransformerForm from './TransformerForms/TransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
@@ -302,7 +302,7 @@ export default function NewTransformer(): ReactElement {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <UserDefinedTransformerForm
+                    <TransformerForm
                       value={convertTransformerConfigSchemaToTransformerConfig(
                         field.value
                       )}
