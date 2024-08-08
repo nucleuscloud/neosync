@@ -11,3 +11,4 @@ packages/sdk/src/client/
 packages/sdk/dist/
 package.json
 .next
+apps/web/@types/neosync-transformers.d.ts
