@@ -31,7 +31,7 @@ func defaultTransformerProcessorConfig() *service.ConfigSpec {
 
 func ReisterDefaultTransformerProcessor(env *service.Environment) error {
 	return env.RegisterBatchProcessor(
-		"neosync_default_mapping",
+		"neosync_default_transformer",
 		defaultTransformerProcessorConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
 			proc, err := newDefaultTransformerProcessor(conf, mgr)
@@ -203,6 +203,9 @@ func (m *defaultTransformerProcessor) getValue(transformerKey primitiveType, val
 func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alpha1.JobMappingTransformer) (map[primitiveType]*transformer.TransformerExecutor, error) {
 	transformersInit := map[primitiveType]*transformer.TransformerExecutor{}
 	for k, t := range defaultTransformerMap {
+		if !shouldProcess(t) {
+			continue
+		}
 		init, err := transformer.InitializeTransformer(t)
 		if err != nil {
 			return nil, err
@@ -210,6 +213,12 @@ func initDefaultTransformers(defaultTransformerMap map[primitiveType]*mgmtv1alph
 		transformersInit[k] = init
 	}
 	return transformersInit, nil
+}
+
+func shouldProcess(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	return t != nil &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
 }
 
 func dereferenceValue(value any) any {

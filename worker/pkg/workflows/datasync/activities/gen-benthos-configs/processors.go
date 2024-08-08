@@ -126,7 +126,7 @@ func buildProcessorConfigs(
 		}
 	}
 	if defaultTransformerConfig != nil {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncDefaultMapping: defaultTransformerConfig})
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{NeosyncDefaultTransformer: defaultTransformerConfig})
 	}
 
 	if len(processorConfigs) > 0 {
@@ -144,7 +144,7 @@ func buildProcessorConfigs(
 func buildDefaultTransformerConfigs(
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
-) (*neosync_benthos.NeosyncDefaultMappingConfig, error) {
+) (*neosync_benthos.NeosyncDefaultTransformerConfig, error) {
 	// only available for dynamodb source
 	if jobSourceOptions == nil || jobSourceOptions.GetDynamodb() == nil {
 		return nil, nil
@@ -154,7 +154,7 @@ func buildDefaultTransformerConfigs(
 	if err != nil {
 		return nil, err
 	}
-	return &neosync_benthos.NeosyncDefaultMappingConfig{
+	return &neosync_benthos.NeosyncDefaultTransformerConfig{
 		JobSourceOptionsString: string(sourceOptBits),
 		MappedKeys:             mappedKeys,
 	}, nil
