@@ -40,8 +40,8 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage message={errors?.randomizeSign?.message} />
           </div>
+          <FormErrorMessage message={errors?.randomizeSign?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -70,8 +70,8 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage message={errors?.min?.message} />
           </div>
+          <FormErrorMessage message={errors?.min?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -86,7 +86,7 @@ export default function UserDefinedGenerateInt64Form(
             <div className="w-[300px]">
               <Input
                 type="number"
-                value={value.max ? parseInt(value.max.toString(), 10) : 1}
+                value={value.max ? parseInt(value.max.toString(), 10) : 0}
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {
                     setValue(
@@ -100,8 +100,8 @@ export default function UserDefinedGenerateInt64Form(
                 disabled={isDisabled}
               />
             </div>
-            <FormErrorMessage message={errors?.max?.message} />
           </div>
+          <FormErrorMessage message={errors?.max?.message} />
         </div>
       </div>
     </div>

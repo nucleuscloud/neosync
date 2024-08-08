@@ -61,7 +61,7 @@ export default function UserDefinedGenerateStringPhoneNumberNumberForm(
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
-                value={value.max ? parseInt(value.max.toString(), 10) : 1}
+                value={value.max ? parseInt(value.max.toString(), 10) : 0}
                 type="number"
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {

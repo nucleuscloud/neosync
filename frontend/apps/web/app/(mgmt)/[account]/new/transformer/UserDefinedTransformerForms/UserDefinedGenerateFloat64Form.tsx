@@ -122,7 +122,7 @@ export default function UserDefinedGenerateFloat64Form(
               <Input
                 type="number"
                 value={
-                  value.precision ? parseInt(value.precision.toString(), 10) : 1
+                  value.precision ? parseInt(value.precision.toString(), 10) : 0
                 }
                 onChange={(e) => {
                   if (!isNaN(e.target.valueAsNumber)) {

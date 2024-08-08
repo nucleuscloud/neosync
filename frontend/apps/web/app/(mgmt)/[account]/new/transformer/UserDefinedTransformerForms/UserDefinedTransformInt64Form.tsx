@@ -76,7 +76,7 @@ export default function UserDefinedTransformInt64Form(
                 value={
                   value.randomizationRangeMax
                     ? parseInt(value.randomizationRangeMax.toString(), 10)
-                    : 1
+                    : 0
                 }
                 type="number"
                 onChange={(e) => {
