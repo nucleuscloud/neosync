@@ -2,7 +2,7 @@ import * as Yup from 'yup';
 
 type BigIntVal = number | string | bigint;
 
-export interface BigIntValidatorConfig {
+interface BigIntValidatorConfig {
   default?: BigIntVal;
   requiredMessage?: string;
   // Inclusive range [min, max]
