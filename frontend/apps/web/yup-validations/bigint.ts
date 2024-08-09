@@ -1,9 +1,11 @@
 import * as Yup from 'yup';
 
 type BigIntVal = number | string | bigint;
+
 export interface BigIntValidatorConfig {
   default?: BigIntVal;
   requiredMessage?: string;
+  // Inclusive range [min, max]
   range: [BigIntVal, BigIntVal];
 }
 export function getBigIntValidator(
@@ -61,27 +63,28 @@ function isBigIntable(
   return false;
 }
 
-// BigInt validator for Minimum values
+// Ensures that the bigint being validated is always less than or equal to a minimum value
 export function getBigIntValidateMinFn(
   minVal: number | string | bigint | undefined
 ): (value: bigint | undefined) => boolean {
+  const convertedMinValue = bigIntOrDefault(minVal, BigInt(0));
   return (value) => {
     const maxVal = bigIntOrDefault(value, BigInt(0));
-    const convertedMinValue = bigIntOrDefault(minVal, BigInt(0));
     return maxVal >= convertedMinValue;
   };
 }
-// BigInt validator for Maximum values
+// Ensures that the bigint being validated is always less than or equal to a maximum value
 export function getBigIntValidateMaxFn(
   maxVal: number | string | bigint | undefined
 ): (value: bigint | undefined) => boolean {
+  const convertedMaxValue = bigIntOrDefault(maxVal, BigInt(0));
   return (value) => {
     const minVal = bigIntOrDefault(value, BigInt(0));
-    const convertedMaxValue = bigIntOrDefault(maxVal, BigInt(0));
     return minVal <= convertedMaxValue;
   };
 }
 
+// Returns the input as a bigint, or falls back to the default if it isn't convertable
 function bigIntOrDefault(value: unknown, defaultVal: bigint): bigint {
   if (isBigIntable(value) && value != null) {
     return BigInt(value);
