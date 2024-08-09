@@ -1,5 +1,6 @@
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import Spinner from '@/components/Spinner';
+import TruncatedText from '@/components/TruncatedText';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -399,11 +400,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         <SchemaColumnHeader column={column} title="Collection" />
       ),
       cell: ({ getValue }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {getValue<string>()}
-          </span>
-        );
+        return <TruncatedText text={getValue<string>()} />;
       },
       maxSize: 500,
       size: 300,
@@ -414,11 +411,8 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         <SchemaColumnHeader column={column} title="Document Key" />
       ),
       cell: ({ row }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('column')}
-          </span>
-        );
+        const text = row.getValue<string>('column');
+        return <TruncatedText text={text} />;
       },
       maxSize: 500,
       size: 200,
