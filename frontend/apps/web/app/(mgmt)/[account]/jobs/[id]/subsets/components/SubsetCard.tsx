@@ -2,7 +2,7 @@ import {
   ConnectionConfigCase,
   getConnectionType,
 } from '@/app/(mgmt)/[account]/connections/util';
-import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';

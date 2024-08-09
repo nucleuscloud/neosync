@@ -2,7 +2,7 @@
 
 import { Row, Table } from '@tanstack/react-table';
 
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';

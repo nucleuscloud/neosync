@@ -1,6 +1,6 @@
 'use client';
 
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';

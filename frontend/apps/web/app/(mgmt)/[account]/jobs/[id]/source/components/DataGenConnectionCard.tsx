@@ -1,5 +1,5 @@
 'use client';
-import { SingleTableEditSourceFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableEditSourceFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import {
   SchemaTable,
   getAllFormErrors,
