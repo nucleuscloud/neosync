@@ -45,9 +45,6 @@ const generateCardNumberConfig = Yup.object().shape({
 
 const generateInternationalPhoneNumberConfig = Yup.object({
   min: getBigIntValidator({
-    default: 9,
-    requiredMessage:
-      'Must provide a minimum number for international phone number config.',
     range: [9, 15],
   }).test(
     'is-less-than-or-equal-to-max',
@@ -59,9 +56,6 @@ const generateInternationalPhoneNumberConfig = Yup.object({
     }
   ),
   max: getBigIntValidator({
-    default: 15,
-    requiredMessage:
-      'Must provide a maximum number for international phone number config.',
     range: [9, 15],
   }).test(
     'is-greater-than-or-equal-to-min',
@@ -77,8 +71,6 @@ const generateInternationalPhoneNumberConfig = Yup.object({
 const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false),
   min: Yup.number()
-    .default(0)
-    .required('Must provide min value for generate float64 config.')
     .min(Number.MIN_SAFE_INTEGER)
     .max(Number.MAX_SAFE_INTEGER)
     .test(
@@ -86,13 +78,11 @@ const generateFloat64Config = Yup.object().shape({
       'Min must be less than or equal to Max',
       function (value) {
         const { max } = this.parent;
-        const minValidator = getNumberValidateMinFn(max);
-        return minValidator(value);
+        const maxValidator = getNumberValidateMaxFn(max);
+        return maxValidator(value);
       }
     ),
   max: Yup.number()
-    .default(0)
-    .required('Must provide max value for generate float64 config')
     .min(Number.MIN_SAFE_INTEGER)
     .max(Number.MAX_SAFE_INTEGER)
     .test(
@@ -100,8 +90,8 @@ const generateFloat64Config = Yup.object().shape({
       'Max must be greater than or equal to Min',
       function (value) {
         const { min } = this.parent;
-        const maxValidator = getNumberValidateMaxFn(min);
-        return maxValidator(value);
+        const minValidator = getNumberValidateMinFn(min);
+        return minValidator(value);
       }
     ),
   precision: getBigIntValidator({
@@ -118,8 +108,6 @@ const generateGenderConfig = Yup.object().shape({
 const generateInt64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false).required('This field is required.'),
   min: getBigIntValidator({
-    default: 1,
-    requiredMessage: 'Must provide a minimum number for generate int64 config',
     range: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
   }).test(
     'is-less-than-or-equal-to-max',
@@ -127,12 +115,11 @@ const generateInt64Config = Yup.object().shape({
     function (value) {
       const { max } = this.parent;
       const maxValidator = getBigIntValidateMaxFn(max);
+      console.log(max, value);
       return maxValidator(value);
     }
   ),
   max: getBigIntValidator({
-    default: 100,
-    requiredMessage: 'Must provide a maximum number for generate int64 config',
     range: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
   }).test(
     'is-greater-than-or-equal-to-min',
@@ -147,9 +134,6 @@ const generateInt64Config = Yup.object().shape({
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
   min: getBigIntValidator({
-    default: 8,
-    requiredMessage:
-      'Must provide a minimum number for string phone number config.',
     range: [8, 12],
   }).test(
     'is-less-than-or-equal-to-max',
@@ -161,9 +145,6 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
     }
   ),
   max: getBigIntValidator({
-    default: 8,
-    requiredMessage:
-      'Must provide a maximum number for string phone number config.',
     range: [8, 12],
   }).test(
     'is-greater-than-or-equal-to-min',
@@ -226,28 +207,24 @@ const transformFirstNameConfig = Yup.object().shape({
 });
 
 const transformFloat64Config = Yup.object().shape({
-  randomizationRangeMin: Yup.number()
-    .required('This field is required.')
-    .test(
-      'is-less-than-or-equal-to-max',
-      'Min must be less than or equal to Max',
-      function (value) {
-        const { randomizationRangeMax } = this.parent;
-        const minValidator = getNumberValidateMinFn(randomizationRangeMax);
-        return minValidator(value);
-      }
-    ),
-  randomizationRangeMax: Yup.number()
-    .required('This field is required.')
-    .test(
-      'is-greater-than-or-equal-to-min',
-      'Max must be greater than or equal to Min',
-      function (value) {
-        const { randomizationRangeMin } = this.parent;
-        const maxValidator = getNumberValidateMaxFn(randomizationRangeMin);
-        return maxValidator(value);
-      }
-    ),
+  randomizationRangeMin: Yup.number().test(
+    'is-less-than-or-equal-to-max',
+    'Min must be less than or equal to Max',
+    function (value) {
+      const { randomizationRangeMax } = this.parent;
+      const maxValidator = getNumberValidateMaxFn(randomizationRangeMax);
+      return maxValidator(value);
+    }
+  ),
+  randomizationRangeMax: Yup.number().test(
+    'is-greater-than-or-equal-to-min',
+    'Max must be greater than or equal to Min',
+    function (value) {
+      const { randomizationRangeMin } = this.parent;
+      const minValidator = getNumberValidateMinFn(randomizationRangeMin);
+      return minValidator(value);
+    }
+  ),
 });
 
 const transformFullNameConfig = Yup.object().shape({
@@ -264,8 +241,6 @@ const transformInt64PhoneNumberConfig = Yup.object().shape({
 
 const transformInt64Config = Yup.object().shape({
   randomizationRangeMin: getBigIntValidator({
-    default: 5,
-    requiredMessage: 'Must provide a minimum number for transform int64 config',
     range: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
   }).test(
     'is-less-than-or-equal-to-max',
@@ -277,8 +252,6 @@ const transformInt64Config = Yup.object().shape({
     }
   ),
   randomizationRangeMax: getBigIntValidator({
-    default: 5,
-    requiredMessage: 'Must provide a maximum number for transform int64 config',
     range: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
   }).test(
     'is-greater-than-or-equal-to-min',
@@ -549,7 +522,7 @@ export interface CreateUserDefinedTransformerFormContext {
 
 export const EditJobMappingTransformerConfigFormValues = Yup.object({
   config: TransformerConfigSchema,
-});
+}).required();
 export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
   typeof EditJobMappingTransformerConfigFormValues
 >;
