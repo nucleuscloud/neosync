@@ -2,6 +2,7 @@
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import TruncatedText from '@/components/TruncatedText';
 import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
@@ -145,11 +146,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Column" />
       ),
       cell: ({ row }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('column')}
-          </span>
-        );
+        return <TruncatedText text={row.getValue<string>('column')} />;
       },
       maxSize: 500,
       size: 200,

@@ -1,39 +1,51 @@
 import { cn } from '@/libs/utils';
 import { ReactElement } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 
 interface Props {
   text: string;
 
-  parentClassName?: string;
   truncatedContainerClassName?: string;
   hoveredContainerClassName?: string;
+
+  delayDuration?: number;
 }
 
 export default function TruncatedText(props: Props): ReactElement {
   const {
     text,
-    parentClassName,
     truncatedContainerClassName,
     hoveredContainerClassName,
+    delayDuration = 100,
   } = props;
   return (
-    <div className={cn('group relative max-w-[200px]', parentClassName)}>
-      <div
-        className={cn(
-          'truncate transition-opacity duration-300 group-hover:opacity-0 font-medium',
-          truncatedContainerClassName
-        )}
-      >
-        {text}
-      </div>
-      <div
-        className={cn(
-          'absolute top-0 left-0 w-full font-medium opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto',
-          hoveredContainerClassName
-        )}
-      >
-        {text}
-      </div>
-    </div>
+    <TooltipProvider>
+      <Tooltip delayDuration={delayDuration}>
+        <TooltipTrigger asChild>
+          <div className={cn('relative max-w-[200px]')}>
+            <div
+              className={cn(
+                'truncate font-medium',
+                truncatedContainerClassName
+              )}
+            >
+              {text}
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div
+            className={cn('relative font-medium', hoveredContainerClassName)}
+          >
+            {text}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
