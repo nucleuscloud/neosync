@@ -34,7 +34,10 @@ func dynamoInputConfigSpec() *service.ConfigSpec {
 			Description("The table to retrieve items from.")).
 		Field(service.NewStringField("where").
 			Description("Optional PartiQL where clause that gets tacked on to the end of the select query").
-			Optional())
+			Optional()).
+		Field(service.NewBoolField("consistent_read").
+			Description("Optional field that enforces strong read consistency. Default is eventually consistent reads").
+			Default(false))
 
 	for _, f := range awsSessionFields() {
 		spec = spec.Field(f)
@@ -72,6 +75,11 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 		whereClause = &where
 	}
 
+	consistentRead, err := conf.FieldBool("consistent_read")
+	if err != nil {
+		return nil, err
+	}
+
 	sess, err := getAwsSession(context.Background(), conf)
 	if err != nil {
 		return nil, err
@@ -81,8 +89,9 @@ func newDynamoDbBatchInput(conf *service.ParsedConfig, logger *service.Logger) (
 		awsConfig: *sess,
 		logger:    logger,
 
-		table: table,
-		where: whereClause,
+		table:          table,
+		where:          whereClause,
+		consistentRead: consistentRead,
 	}, nil
 }
 
@@ -94,6 +103,8 @@ type dynamodbInput struct {
 
 	table string
 	where *string
+
+	consistentRead bool
 
 	nextToken *string
 	done      bool
@@ -143,7 +154,7 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 	result, err := d.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
 		Statement:      aws.String(buildExecStatement(d.table, d.where)),
 		NextToken:      d.nextToken,
-		ConsistentRead: aws.Bool(true),
+		ConsistentRead: aws.Bool(d.consistentRead),
 	})
 	if err != nil {
 		return nil, nil, err
