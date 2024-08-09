@@ -117,7 +117,6 @@ const generateInt64Config = Yup.object().shape({
     function (value) {
       const { max } = this.parent;
       const maxValidator = getBigIntValidateMaxFn(max);
-      console.log(max, value);
       return maxValidator(value);
     }
   ),

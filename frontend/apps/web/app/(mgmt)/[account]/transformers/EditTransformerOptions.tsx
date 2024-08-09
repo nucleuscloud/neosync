@@ -147,12 +147,6 @@ function EditTransformerConfig(
       isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
-  console.log(
-    'edit transformer options form',
-    form.formState.isValid,
-    form.formState.errors
-  );
-  // form.watch('config');
   return (
     <Form {...form}>
       <div className="flex flex-col gap-8">
@@ -167,10 +161,6 @@ function EditTransformerConfig(
                     field.value
                   )}
                   setValue={(newValue) => {
-                    console.log(
-                      'setting new value',
-                      convertTransformerConfigToForm(newValue)
-                    );
                     field.onChange(convertTransformerConfigToForm(newValue));
                   }}
                   disabled={isDisabled}

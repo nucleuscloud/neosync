@@ -215,7 +215,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
-  console.log(form.formState.errors, form.formState.errors.transformer);
+
   return (
     <div className="flex flex-col w-full space-y-4">
       <Form {...form}>
