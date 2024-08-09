@@ -141,7 +141,7 @@ function EditTransformerConfig(
   >({
     mode: 'onChange',
     resolver: yupResolver(EditJobMappingTransformerConfigFormValues),
-    values: { config: convertTransformerConfigToForm(value) },
+    defaultValues: { config: convertTransformerConfigToForm(value) },
     context: {
       accountId: account?.id ?? '',
       isUserJavascriptCodeValid: isJavascriptCodeValid,
