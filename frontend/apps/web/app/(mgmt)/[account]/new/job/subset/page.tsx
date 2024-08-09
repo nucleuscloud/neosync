@@ -55,12 +55,12 @@ import {
   getCreateNewSyncJobRequest,
   getNewJobSessionKeys,
 } from '../../../jobs/util';
-import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
   ConnectFormValues,
   DefineFormValues,
   SubsetFormValues,
-} from '../schema';
+} from '../job-form-validations';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();

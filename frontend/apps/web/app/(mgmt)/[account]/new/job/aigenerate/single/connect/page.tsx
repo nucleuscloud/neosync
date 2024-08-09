@@ -37,7 +37,7 @@ import JobsProgressSteps, {
   getJobProgressSteps,
 } from '../../../JobsProgressSteps';
 import ConnectionSelectContent from '../../../connect/ConnectionSelectContent';
-import { SingleTableAiConnectFormValues } from '../../../schema';
+import { SingleTableAiConnectFormValues } from '../../../job-form-validations';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 

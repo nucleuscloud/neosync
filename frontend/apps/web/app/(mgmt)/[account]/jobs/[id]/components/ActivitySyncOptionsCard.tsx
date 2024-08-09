@@ -20,7 +20,7 @@ import { setJobSyncOptions } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ActivityOptionsSchema } from '../../../new/job/schema';
+import { ActivityOptionsSchema } from '../../../new/job/job-form-validations';
 import { toActivityOptions } from '../../util';
 
 interface Props {

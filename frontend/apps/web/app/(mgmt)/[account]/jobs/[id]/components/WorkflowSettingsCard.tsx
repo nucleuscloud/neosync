@@ -20,7 +20,7 @@ import { setJobWorkflowOptions } from '@neosync/sdk/connectquery';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { WorkflowSettingsSchema } from '../../../new/job/schema';
+import { WorkflowSettingsSchema } from '../../../new/job/job-form-validations';
 import { toWorkflowOptions } from '../../util';
 
 interface Props {

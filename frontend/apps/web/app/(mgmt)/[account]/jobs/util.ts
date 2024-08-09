@@ -85,7 +85,7 @@ import {
   SingleTableSchemaFormValues,
   SubsetFormValues,
   WorkflowSettingsSchema,
-} from '../new/job/schema';
+} from '../new/job/job-form-validations';
 
 type GetConnectionById = (id: string) => Connection | undefined;
 

@@ -25,7 +25,7 @@ import {
   DefineFormValues,
   DefineFormValuesContext,
   NewJobType,
-} from '../schema';
+} from '../job-form-validations';
 
 import FormPersist from '@/app/(mgmt)/FormPersist';
 import {
