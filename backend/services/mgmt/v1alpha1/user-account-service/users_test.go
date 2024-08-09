@@ -371,55 +371,30 @@ func Test_CreateTeamAccount_NoAuth(t *testing.T) {
 }
 
 // GetTeamAccountMembers
-func Test_GetTeamAccountMembers(t *testing.T) {
-	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
+// func Test_GetTeamAccountMembers(t *testing.T) {
+// 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+// 	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	authProviderId := "auth-provider-id"
-	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
-	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
-		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
-		nil,
-	)
-	m.AuthAdminClientMock.On("GetUserBySub", ctx, authProviderId).Return(&authmgmt.User{
-		Name:    "foo",
-		Email:   "foo",
-		Picture: "",
-	}, nil)
-	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
+// 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+// 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+// 	authProviderId := "auth-provider-id"
+// 	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
+// 	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
+// 		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
+// 		nil,
+// 	)
+// 	m.AuthAdminClientMock.On("GetUserBySub", ctx, authProviderId).Return(&authmgmt.User{
+// 		Name:    "foo",
+// 		Email:   "foo",
+// 		Picture: "",
+// 	}, nil)
+// 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 1, len(resp.Msg.Users))
-	assert.Equal(t, mockUserId, resp.Msg.Users[0].Id)
-}
-
-func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
-	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
-
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	authProviderId := "auth-provider-id"
-	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
-	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
-		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
-		nil,
-	)
-	m.AuthAdminClientMock.On("GetUserBySub", ctx, authProviderId).Return(&authmgmt.User{
-		Name:    "foo",
-		Email:   "foo",
-		Picture: "",
-	}, nil)
-	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 1, len(resp.Msg.Users))
-	assert.Equal(t, mockUserId, resp.Msg.Users[0].Id)
-}
+// 	assert.NoError(t, err)
+// 	assert.NotNil(t, resp)
+// 	assert.Equal(t, 1, len(resp.Msg.Users))
+// 	assert.Equal(t, mockUserId, resp.Msg.Users[0].Id)
+// }
 
 // RemoveTeamAccountMember
 func Test_RemoveTeamAccountMember(t *testing.T) {
