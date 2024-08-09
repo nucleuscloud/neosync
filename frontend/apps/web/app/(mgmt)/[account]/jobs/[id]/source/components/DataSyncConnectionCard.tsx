@@ -483,7 +483,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const dynamoDBDestinations = getDynamoDbDestinations(
     data?.job?.destinations ?? []
   );
-
+  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -831,7 +831,8 @@ function toJobSourceOptions(
                   )
                 : undefined,
             }),
-            //   // tables: [] // todo: fix this
+            enableConsistentRead:
+              values.sourceOptions.dynamodb?.enableConsistentRead,
           }),
         },
       });
@@ -1005,6 +1006,8 @@ function getJobSource(
             unmappedTransformConfig: toDynamoDbSourceUnmappedOptionsFormValues(
               job.source?.options?.config?.value.unmappedTransforms
             ),
+            enableConsistentRead:
+              job.source.options.config.value.enableConsistentRead,
           },
         },
         destinationOptions: destOpts,
@@ -1078,6 +1081,7 @@ async function getUpdatedValues(
         sourceOptions: {
           dynamodb: {
             unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+            enableConsistentRead: false,
           },
         },
       };

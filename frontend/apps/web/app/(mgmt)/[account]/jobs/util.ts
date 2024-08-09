@@ -4,7 +4,6 @@ import {
   convertNanosecondsToMinutes,
 } from '@/util/util';
 import {
-  DynamoDBSourceOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingFormValues,
   NewDestinationFormValues,
@@ -627,10 +626,12 @@ function toJobSourceOptions(
             connectionId: values.connect.sourceId,
             tables: toDynamoDbSourceTableOptions(values.subset?.subsets ?? []),
             unmappedTransforms: toDynamoDbSourceUnmappedOptions(
-              values.connect.sourceOptions.dynamodb ?? {
-                unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
-              }
+              values.connect.sourceOptions.dynamodb?.unmappedTransformConfig ??
+                getDefaultUnmappedTransformConfig()
             ),
+            enableConsistentRead:
+              values.connect.sourceOptions.dynamodb?.enableConsistentRead ??
+              false,
           }),
         },
       });
@@ -750,20 +751,20 @@ function toDynamoDbSourceTableOptions(
 }
 
 function toDynamoDbSourceUnmappedOptions(
-  dynamoSourceOpts: DynamoDBSourceOptionsFormValues
+  unmappedTransformConfig: DynamoDBSourceUnmappedTransformConfigFormValues
 ): DynamoDBSourceUnmappedTransformConfig {
   return new DynamoDBSourceUnmappedTransformConfig({
     b: convertJobMappingTransformerFormToJobMappingTransformer(
-      dynamoSourceOpts.unmappedTransformConfig.byte
+      unmappedTransformConfig.byte
     ),
     boolean: convertJobMappingTransformerFormToJobMappingTransformer(
-      dynamoSourceOpts.unmappedTransformConfig.boolean
+      unmappedTransformConfig.boolean
     ),
     n: convertJobMappingTransformerFormToJobMappingTransformer(
-      dynamoSourceOpts.unmappedTransformConfig.n
+      unmappedTransformConfig.n
     ),
     s: convertJobMappingTransformerFormToJobMappingTransformer(
-      dynamoSourceOpts.unmappedTransformConfig.s
+      unmappedTransformConfig.s
     ),
   });
 }
@@ -1013,6 +1014,8 @@ function setDefaultConnectFormValues(
                   )
                 : defaultUnmappedConfig.s,
             },
+            enableConsistentRead:
+              job.source.options.config.value.enableConsistentRead,
           },
         },
         destinations: job.destinations.map((dest) =>

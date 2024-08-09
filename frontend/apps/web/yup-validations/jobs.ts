@@ -118,6 +118,7 @@ const DynamoDBSourceOptionsFormValues = Yup.object({
     DynamoDBSourceUnmappedTransformConfigFormValues.required(
       'Must provide a DynamoDB unmapped transform config'
     ),
+  enableConsistentRead: Yup.bool().default(false),
 });
 export type DynamoDBSourceOptionsFormValues = Yup.InferType<
   typeof DynamoDBSourceOptionsFormValues
