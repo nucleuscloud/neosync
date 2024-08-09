@@ -20,9 +20,9 @@ export function getBigIntValidator(
   const maxValidator = getBigIntValidateMaxFn(config.range[1]);
   const validator = Yup.mixed<bigint>()
     .test(
-      'is-bigint',
+      'is-bigint-like',
       'Value must be bigint or convertable to bigint',
-      isBigIntable
+      isBigIntLike
     )
     .test(
       'min-value',
@@ -43,7 +43,9 @@ export function getBigIntValidator(
   return validator;
 }
 
-function isBigIntable(
+// Checks the input value to see if it could be converted to a bigint.
+// If the input is nullish, it's still considered so as that is used as a default fallback of 0.
+function isBigIntLike(
   value: unknown
 ): value is bigint | number | string | null | undefined {
   if (typeof value === 'bigint') {
@@ -86,7 +88,7 @@ export function getBigIntValidateMaxFn(
 
 // Returns the input as a bigint, or falls back to the default if it isn't convertable
 function bigIntOrDefault(value: unknown, defaultVal: bigint): bigint {
-  if (isBigIntable(value) && value != null) {
+  if (isBigIntLike(value) && value != null) {
     return BigInt(value);
   }
   return defaultVal;
