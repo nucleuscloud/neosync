@@ -28,7 +28,11 @@ const transformEmailConfig = Yup.object().shape({
     .default(false)
     .required('This field is required.'),
   excludedDomains: Yup.array()
-    .of(Yup.string().required())
+    .of(
+      Yup.string().required(
+        'A non-empty domain is required in the excluded domains property'
+      )
+    )
     .optional()
     .default([]),
   emailType: Yup.string().default('GENERATE_EMAIL_TYPE_UUID_V4'),
@@ -95,8 +99,6 @@ const generateFloat64Config = Yup.object().shape({
       }
     ),
   precision: getBigIntValidator({
-    default: 2,
-    requiredMessage: 'Must provide valid precision',
     range: [1, 17],
   }),
 });
@@ -338,7 +340,9 @@ const JavascriptConfig = Yup.object().shape({
 const generateCategoricalConfig = Yup.object().shape({
   categories: Yup.string()
     .min(1, 'Must have at least one category')
-    .required('This field is required.'),
+    .required(
+      'categories is a required field in the Generate Categorical config.'
+    ),
 });
 
 type ConfigType = TransformerConfig['config'];
