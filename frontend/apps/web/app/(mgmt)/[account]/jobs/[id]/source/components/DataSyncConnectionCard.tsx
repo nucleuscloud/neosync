@@ -483,7 +483,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const dynamoDBDestinations = getDynamoDbDestinations(
     data?.job?.destinations ?? []
   );
-  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
