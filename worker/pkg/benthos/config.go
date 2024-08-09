@@ -64,8 +64,9 @@ type Inputs struct {
 }
 
 type InputAwsDynamoDB struct {
-	Table string  `json:"table" yaml:"table"`
-	Where *string `json:"where,omitempty" yaml:"where,omitempty"`
+	Table          string  `json:"table" yaml:"table"`
+	Where          *string `json:"where,omitempty" yaml:"where,omitempty"`
+	ConsistentRead bool    `json:"consistent_read" yaml:"consistent_read"`
 
 	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
 	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`

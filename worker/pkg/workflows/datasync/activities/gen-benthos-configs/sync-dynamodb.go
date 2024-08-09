@@ -53,11 +53,12 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
 						AwsDynamoDB: &neosync_benthos.InputAwsDynamoDB{
-							Table:       tableMapping.Table,
-							Where:       getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
-							Region:      dynamoSourceConfig.GetRegion(),
-							Endpoint:    dynamoSourceConfig.GetEndpoint(),
-							Credentials: buildBenthosS3Credentials(dynamoSourceConfig.GetCredentials()),
+							Table:          tableMapping.Table,
+							Where:          getWhereFromSourceTableOption(tableOptsMap[tableMapping.Table]),
+							ConsistentRead: dynamoJobSourceOpts.GetEnableConsistentRead(),
+							Region:         dynamoSourceConfig.GetRegion(),
+							Endpoint:       dynamoSourceConfig.GetEndpoint(),
+							Credentials:    buildBenthosS3Credentials(dynamoSourceConfig.GetCredentials()),
 						},
 					},
 				},
@@ -85,7 +86,7 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		if err != nil {
 			return nil, fmt.Errorf("failed to describe table %s: %w", tableMapping.Table, err)
 		}
-		mappedKeys := slices.Concat[[]string, string](columns, []string{tableKey.HashKey, tableKey.RangeKey})
+		mappedKeys := slices.Concat(columns, []string{tableKey.HashKey, tableKey.RangeKey})
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
