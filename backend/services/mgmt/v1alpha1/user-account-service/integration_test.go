@@ -39,9 +39,9 @@ type IntegrationTestSuite struct {
 	connstr       string
 	migrationsDir string
 
-	unauthUserClient       mgmtv1alpha1connect.UserAccountServiceClient
-	authUserClient         mgmtv1alpha1connect.UserAccountServiceClient
-	neosynccloudUserClient mgmtv1alpha1connect.UserAccountServiceClient
+	unauthUserClient   mgmtv1alpha1connect.UserAccountServiceClient
+	authUserClient     mgmtv1alpha1connect.UserAccountServiceClient
+	ncunauthUserClient mgmtv1alpha1connect.UserAccountServiceClient
 
 	mockTemporalClientMgr *clientmanager.MockTemporalClientManagerClient
 	mockAuthClient        *auth_client.MockInterface
@@ -97,8 +97,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mockAuthMgmtClient,
 	)
 
-	ncAuthService := New(
-		&Config{IsAuthEnabled: true, IsNeosyncCloud: true},
+	ncNoAuthService := New(
+		&Config{IsAuthEnabled: false, IsNeosyncCloud: true},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mockTemporalClientMgr,
 		s.mockAuthClient,
@@ -121,14 +121,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	ncauthmux := http.NewServeMux()
 	ncauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		ncAuthService,
+		ncNoAuthService,
 	))
-	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
+	rootmux.Handle("/ncnoauth/", http.StripPrefix("/ncnoauth", ncauthmux))
 
 	httpsrv := startHTTPServer(s.T(), rootmux)
 	s.unauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(httpsrv.Client(), httpsrv.URL+"/unauth")
 	s.authUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(httpsrv.Client(), httpsrv.URL+"/auth")
-	s.neosynccloudUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(httpsrv.Client(), httpsrv.URL+"/ncauth")
+	s.ncunauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(httpsrv.Client(), httpsrv.URL+"/ncnoauth")
 }
 
 // Runs before each test
