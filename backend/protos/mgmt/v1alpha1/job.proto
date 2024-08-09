@@ -103,6 +103,10 @@ message DynamoDBSourceConnectionOptions {
   repeated DynamoDBSourceTableOption tables = 2;
   // Default transformations for any unmapped keys
   DynamoDBSourceUnmappedTransformConfig unmapped_transforms = 3;
+  // Enforces strong read consistency
+  // False: Eventually Consistent Reads, True: Strongly Consistent Reads
+  // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html
+  bool enable_consistent_read = 4;
 }
 
 message DynamoDBSourceUnmappedTransformConfig {
