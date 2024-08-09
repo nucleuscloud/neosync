@@ -77,6 +77,49 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccount_NoAuth() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
+func (s *IntegrationTestSuite) Test_GetTeamAccountMembers_NoAuth_Personal() {
+	accountId := s.createPersonalAccount()
+
+	resp, err := s.userclient.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
+	requireErrResp(s.T(), resp, err)
+	requireConnectError(s.T(), err, connect.CodePermissionDenied)
+}
+
+func (s *IntegrationTestSuite) Test_RemoveTeamAccountMember_NoAuth_Personal() {
+	accountId := s.createPersonalAccount()
+
+	resp, err := s.userclient.RemoveTeamAccountMember(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: accountId, UserId: uuid.NewString()}))
+	requireErrResp(s.T(), resp, err)
+	requireConnectError(s.T(), err, connect.CodePermissionDenied)
+}
+
+func (s *IntegrationTestSuite) Test_InviteUserToTeamAccount_NoAuth_Personal() {
+	accountId := s.createPersonalAccount()
+
+	resp, err := s.userclient.InviteUserToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: accountId, Email: "test@example.com"}))
+	requireErrResp(s.T(), resp, err)
+	requireConnectError(s.T(), err, connect.CodePermissionDenied)
+}
+
+func (s *IntegrationTestSuite) Test_GetTeamAccountInvites_NoAuth_Personal() {
+	accountId := s.createPersonalAccount()
+
+	resp, err := s.userclient.GetTeamAccountInvites(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: accountId}))
+	requireErrResp(s.T(), resp, err)
+	requireConnectError(s.T(), err, connect.CodePermissionDenied)
+}
+
+func (s *IntegrationTestSuite) Test_RemoveTeamAccountInvite_NoAuth_Personal() {
+	resp, err := s.userclient.RemoveTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: uuid.NewString()}))
+	requireNoErrResp(s.T(), resp, err)
+}
+
+func (s *IntegrationTestSuite) Test_AcceptTeamAccountInvite_NoAuth_Personal() {
+	resp, err := s.userclient.AcceptTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.AcceptTeamAccountInviteRequest{Token: uuid.NewString()}))
+	requireErrResp(s.T(), resp, err)
+	requireConnectError(s.T(), err, connect.CodeUnauthenticated)
+}
+
 func (s *IntegrationTestSuite) Test_GetSystemInformation() {
 	resp, err := s.userclient.GetSystemInformation(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
 	requireNoErrResp(s.T(), resp, err)
