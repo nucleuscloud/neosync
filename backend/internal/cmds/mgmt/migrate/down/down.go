@@ -20,8 +20,8 @@ import (
 
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "up",
-		Short: "Run all database migrations up",
+		Use:   "down",
+		Short: "Run all database migrations down",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			schemaDir, err := cmd.Flags().GetString("source")
 			if err != nil {
@@ -45,7 +45,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			cmd.SilenceUsage = true
-			return Up(
+			return Down(
 				cmd.Context(),
 				dbUrl,
 				schemaDir,
@@ -89,7 +89,7 @@ func (m *migrateLogger) Printf(format string, v ...any) {
 	m.logger.Info(fmt.Sprintf("migrate: %s", fmt.Sprintf(format, v...)))
 }
 
-func Up(
+func Down(
 	ctx context.Context,
 	connStr string,
 	schemaDir string,
@@ -108,7 +108,7 @@ func Up(
 		return err
 	}
 	m.Log = newMigrateLogger(logger, false)
-	err = m.Up()
+	err = m.Down()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}

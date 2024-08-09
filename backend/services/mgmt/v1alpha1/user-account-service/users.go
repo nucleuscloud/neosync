@@ -255,6 +255,7 @@ func (s *Service) GetTeamAccountMembers(
 	if err != nil {
 		return nil, err
 	}
+
 	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, *accountId)
 	if err != nil {
 		return nil, err
