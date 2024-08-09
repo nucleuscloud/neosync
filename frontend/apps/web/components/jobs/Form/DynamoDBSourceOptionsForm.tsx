@@ -50,8 +50,8 @@ export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
             <p className="text-sm tracking-tight">
               Configures the read consistency, with the default being eventually
               consistent reads. <br />
-              Strongly consistent ensures the most up to date date data,
-              reflecting updates from all prior successfuly write operations.
+              Strongly consistent ensures the most up to date data, reflecting
+              updates from all prior successful write operations.
               <br />
               Read more on the{' '}
               <NextLink
