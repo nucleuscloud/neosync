@@ -696,9 +696,10 @@ type JobSourceOptions struct {
 }
 
 type DynamoDBSourceOptions struct {
-	ConnectionId       string                                 `json:"connectionId"`
-	Tables             []*DynamoDBSourceTableOption           `json:"tables"`
-	UnmappedTransforms *DynamoDBSourceUnmappedTransformConfig `json:"unmappedTransforms"`
+	ConnectionId         string                                 `json:"connectionId"`
+	Tables               []*DynamoDBSourceTableOption           `json:"tables"`
+	UnmappedTransforms   *DynamoDBSourceUnmappedTransformConfig `json:"unmappedTransforms"`
+	EnableConsistentRead bool                                   `json:"enableConsistentRead"`
 }
 
 type DynamoDBSourceUnmappedTransformConfig struct {
@@ -798,9 +799,10 @@ func (s *DynamoDBSourceOptions) ToDto() *mgmtv1alpha1.DynamoDBSourceConnectionOp
 		}
 	}
 	return &mgmtv1alpha1.DynamoDBSourceConnectionOptions{
-		ConnectionId:       s.ConnectionId,
-		Tables:             tables,
-		UnmappedTransforms: s.UnmappedTransforms.ToDto(),
+		ConnectionId:         s.ConnectionId,
+		Tables:               tables,
+		UnmappedTransforms:   s.UnmappedTransforms.ToDto(),
+		EnableConsistentRead: s.EnableConsistentRead,
 	}
 }
 
@@ -815,6 +817,7 @@ func (s *DynamoDBSourceOptions) FromDto(dto *mgmtv1alpha1.DynamoDBSourceConnecti
 	if err != nil {
 		return err
 	}
+	s.EnableConsistentRead = dto.GetEnableConsistentRead()
 	return nil
 }
 

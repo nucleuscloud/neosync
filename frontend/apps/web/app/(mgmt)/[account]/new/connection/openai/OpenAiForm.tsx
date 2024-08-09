@@ -208,13 +208,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 The api key to the API server. If you do not know how to create
                 an OpenAI Key, navigate to their{' '}
                 <NextLink
+                  className="hover:underline inline-flex gap-1 flex-row items-center"
                   href="https://platform.openai.com/docs/quickstart/account-setup"
                   target="_blank"
                 >
-                  <div className="inline-flex gap-1 flex-row">
-                    <p>Account Setup Docs</p>
-                    <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
-                  </div>
+                  Account Setup Docs
+                  <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
                 </NextLink>{' '}
                 to learn how to do so.{' '}
               </FormDescription>

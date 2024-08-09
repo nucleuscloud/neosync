@@ -267,17 +267,18 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
 
 const generateStringConfig = Yup.object().shape({
   min: bigIntValidator
+    .default(BigInt(0))
     .test(
       'min',
-      'Value must be greater than or equal to 1',
-      getBigIntMinValidator(1)
+      'Value must be greater than or equal to 0',
+      getBigIntMinValidator(0)
     )
     .test(
       'max',
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
     )
-    .required('This field is required.')
+    .required('Must provide a valid number for GenerateString min.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
       const maxBig = tryBigInt(max);
@@ -295,7 +296,7 @@ const generateStringConfig = Yup.object().shape({
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
     )
-    .required('This field is required.')
+    .required('Must provide a valid number for GenerateString Max.')
     .test(
       'is-greater-than-min',
       'Max must be greater than Min',

@@ -2031,6 +2031,8 @@ func (m *DynamoDBSourceConnectionOptions) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for EnableConsistentRead
+
 	if len(errors) > 0 {
 		return DynamoDBSourceConnectionOptionsMultiError(errors)
 	}

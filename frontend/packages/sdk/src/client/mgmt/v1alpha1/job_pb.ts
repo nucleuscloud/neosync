@@ -888,6 +888,15 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
    */
   unmappedTransforms?: DynamoDBSourceUnmappedTransformConfig;
 
+  /**
+   * Enforces strong read consistency
+   * False: Eventually Consistent Reads, True: Strongly Consistent Reads
+   * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html
+   *
+   * @generated from field: bool enable_consistent_read = 4;
+   */
+  enableConsistentRead = false;
+
   constructor(data?: PartialMessage<DynamoDBSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -899,6 +908,7 @@ export class DynamoDBSourceConnectionOptions extends Message<DynamoDBSourceConne
     { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tables", kind: "message", T: DynamoDBSourceTableOption, repeated: true },
     { no: 3, name: "unmapped_transforms", kind: "message", T: DynamoDBSourceUnmappedTransformConfig },
+    { no: 4, name: "enable_consistent_read", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamoDBSourceConnectionOptions {

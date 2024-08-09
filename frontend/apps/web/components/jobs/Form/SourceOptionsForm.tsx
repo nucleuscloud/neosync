@@ -81,6 +81,7 @@ export default function SourceOptionsForm(
           value={
             value.dynamodb ?? {
               unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
+              enableConsistentRead: false,
             }
           }
           setValue={(newVal) => {

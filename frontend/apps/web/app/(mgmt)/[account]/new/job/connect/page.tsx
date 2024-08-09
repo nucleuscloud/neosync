@@ -229,6 +229,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   dynamodb: {
                                     unmappedTransformConfig:
                                       getDefaultUnmappedTransformConfig(),
+                                    enableConsistentRead: false,
                                   },
                                 },
                                 {

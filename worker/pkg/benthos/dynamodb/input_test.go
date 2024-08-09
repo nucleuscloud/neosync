@@ -280,10 +280,11 @@ table: test-table
 	require.NotNil(t, conf)
 }
 
-func Test_InputBasic_Config_Where(t *testing.T) {
+func Test_InputBasic_Config_Opts(t *testing.T) {
 	conf, err := dynamoInputConfigSpec().ParseYAML(`
 table: test-table
 where: foo = '123'
+consistent_read: true
 `, service.NewEmptyEnvironment())
 	require.NoError(t, err)
 	require.NotNil(t, conf)

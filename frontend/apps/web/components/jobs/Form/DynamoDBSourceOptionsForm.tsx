@@ -1,5 +1,6 @@
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { FormDescription, FormLabel } from '@/components/ui/form';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Transformer } from '@/shared/transformers';
 import {
   DynamoDBSourceOptionsFormValues,
@@ -7,6 +8,8 @@ import {
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
 import { SystemTransformer, TransformerSource } from '@neosync/sdk';
+import { ExternalLinkIcon } from '@radix-ui/react-icons';
+import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { TransformerHandler } from '../SchemaTable/transformer-handler';
@@ -19,8 +22,8 @@ interface Props {
 export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
   const { value, setValue, transformerHandler } = props;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border p-3">
-      <div className="p-1 flex flex-col gap-2">
+    <div className="flex flex-col gap-6 rounded-lg border p-4">
+      <div className="flex flex-col gap-2">
         <div>
           <h2 className="text-md font-semibold tracking-tight">
             Unmapped Key Transformer Defaults
@@ -36,6 +39,37 @@ export default function DynamoDBSourceOptionsForm(props: Props): ReactElement {
             setValue({ ...value, unmappedTransformConfig: newVal })
           }
           transformerHandler={transformerHandler}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <div>
+          <h2 className="text-md font-semibold tracking-tight">
+            Read Consistency
+          </h2>
+          <div className="inline-flex gap-1 flex-row">
+            <p className="text-sm tracking-tight">
+              Configures the read consistency, with the default being eventually
+              consistent reads. <br />
+              Strongly consistent ensures the most up to date date data,
+              reflecting updates from all prior successfuly write operations.
+              <br />
+              Read more on the{' '}
+              <NextLink
+                className="hover:underline inline-flex gap-1 flex-row items-center"
+                href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html"
+                target="_blank"
+              >
+                AWS Docs
+                <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
+              </NextLink>
+            </p>
+          </div>
+        </div>
+        <ConsistentReadForm
+          value={value.enableConsistentRead}
+          setValue={(checked) =>
+            setValue({ ...value, enableConsistentRead: checked })
+          }
         />
       </div>
     </div>
@@ -186,5 +220,35 @@ function getTransformerFromField(
   return (
     handler.getSystemTransformerBySource(value.source) ??
     new SystemTransformer()
+  );
+}
+
+interface ConsistentReadFormProps {
+  value: boolean;
+  setValue(newValue: boolean): void;
+}
+
+function ConsistentReadForm(props: ConsistentReadFormProps): ReactElement {
+  const { value, setValue } = props;
+
+  return (
+    <ToggleGroup
+      type="single"
+      className="flex justify-start items-start flex-wrap"
+      onValueChange={(newValue) => {
+        // on value change is triggered with an empty string if the currently selected toggle is clicked
+        if (newValue) {
+          setValue(newValue === 'strong');
+        }
+      }}
+      value={value ? 'strong' : 'eventual'}
+    >
+      <ToggleGroupItem className="border" value="eventual">
+        Eventual
+      </ToggleGroupItem>
+      <ToggleGroupItem className="border" value="strong">
+        Strong
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 }
