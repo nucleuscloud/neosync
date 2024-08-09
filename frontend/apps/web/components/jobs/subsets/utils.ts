@@ -1,5 +1,5 @@
 import { ConnectionConfigCase } from '@/app/(mgmt)/[account]/connections/util';
-import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import { JobMapping } from '@neosync/sdk';
 import { TableRow } from './subset-table/column';
 

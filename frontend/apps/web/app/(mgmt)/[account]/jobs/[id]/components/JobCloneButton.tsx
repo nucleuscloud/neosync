@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { GrClone } from 'react-icons/gr';
-import { NewJobType } from '../../../new/job/schema';
+import { NewJobType } from '../../../new/job/job-form-validations';
 import { setDefaultNewJobFormValues } from '../../util';
 
 interface Props {

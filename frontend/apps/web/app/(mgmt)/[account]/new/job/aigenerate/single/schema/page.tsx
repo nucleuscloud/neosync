@@ -67,7 +67,7 @@ import {
   DefineFormValues,
   SingleTableAiConnectFormValues,
   SingleTableAiSchemaFormValues,
-} from '../../../schema';
+} from '../../../job-form-validations';
 import SampleTable from './SampleTable/SampleTable';
 import { getAiSampleTableColumns } from './SampleTable/SampleTableColumns';
 import SelectModelNames from './SelectModelNames';

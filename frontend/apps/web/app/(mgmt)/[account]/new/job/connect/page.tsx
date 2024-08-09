@@ -43,7 +43,7 @@ import {
   getNewJobSessionKeys,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { ConnectFormValues } from '../schema';
+import { ConnectFormValues } from '../job-form-validations';
 import ConnectionSelectContent from './ConnectionSelectContent';
 
 const NEW_CONNECTION_VALUE = 'new-connection';

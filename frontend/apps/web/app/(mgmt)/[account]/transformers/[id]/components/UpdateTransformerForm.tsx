@@ -3,7 +3,7 @@ import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerF
 import {
   EditUserDefinedTransformerFormContext,
   UpdateUserDefinedTransformerFormValues,
-} from '@/app/(mgmt)/[account]/new/transformer/schema';
+} from '@/app/(mgmt)/[account]/new/transformer/transform-form-validations';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {

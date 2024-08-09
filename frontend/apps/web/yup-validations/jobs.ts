@@ -1,4 +1,4 @@
-import { TransformerConfigSchema } from '@/app/(mgmt)/[account]/new/transformer/schema';
+import { TransformerConfigSchema } from '@/app/(mgmt)/[account]/new/transformer/transform-form-validations';
 import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
 import * as Yup from 'yup';
 

@@ -194,6 +194,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 
   const form = useForm<AddNewNosqlRecordFormValues>({
     resolver: yupResolver(AddNewNosqlRecordFormValues),
+    mode: 'onChange',
     defaultValues: {
       collection: '',
       key: '',
@@ -214,6 +215,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
+
   return (
     <div className="flex flex-col w-full space-y-4">
       <Form {...form}>

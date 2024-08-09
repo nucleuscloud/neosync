@@ -3,7 +3,7 @@ import SampleTable from '@/app/(mgmt)/[account]/new/job/aigenerate/single/schema
 import { getAiSampleTableColumns } from '@/app/(mgmt)/[account]/new/job/aigenerate/single/schema/SampleTable/SampleTableColumns';
 import SelectModelNames from '@/app/(mgmt)/[account]/new/job/aigenerate/single/schema/SelectModelNames';
 import { SampleRecord } from '@/app/(mgmt)/[account]/new/job/aigenerate/single/schema/types';
-import { SingleTableEditAiSourceFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableEditAiSourceFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import ButtonText from '@/components/ButtonText';
 import { Action } from '@/components/DualListBox/DualListBox';
 import Spinner from '@/components/Spinner';

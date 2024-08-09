@@ -25,6 +25,7 @@ import {
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformerConfig } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
@@ -38,7 +39,7 @@ import { useForm } from 'react-hook-form';
 import {
   EditJobMappingTransformerConfigFormContext,
   EditJobMappingTransformerConfigFormValues,
-} from '../new/transformer/schema';
+} from '../new/transformer/transform-form-validations';
 import TransformerForm from '../new/transformer/TransformerForms/TransformerForm';
 
 interface Props {
@@ -139,13 +140,13 @@ function EditTransformerConfig(
     EditJobMappingTransformerConfigFormContext
   >({
     mode: 'onChange',
+    resolver: yupResolver(EditJobMappingTransformerConfigFormValues),
     defaultValues: { config: convertTransformerConfigToForm(value) },
     context: {
       accountId: account?.id ?? '',
       isUserJavascriptCodeValid: isJavascriptCodeValid,
     },
   });
-
   return (
     <Form {...form}>
       <div className="flex flex-col gap-8">
@@ -159,9 +160,9 @@ function EditTransformerConfig(
                   value={convertTransformerConfigSchemaToTransformerConfig(
                     field.value
                   )}
-                  setValue={(newValue) =>
-                    field.onChange(convertTransformerConfigToForm(newValue))
-                  }
+                  setValue={(newValue) => {
+                    field.onChange(convertTransformerConfigToForm(newValue));
+                  }}
                   disabled={isDisabled}
                   errors={form.formState.errors}
                   NoConfigComponent={<NoAdditionalTransformerConfigurations />}

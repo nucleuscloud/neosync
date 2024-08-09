@@ -65,7 +65,7 @@ import {
   DefineFormValues,
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
-} from '../../../schema';
+} from '../../../job-form-validations';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();

@@ -74,7 +74,7 @@ import {
   validateJobMapping,
 } from '../../../jobs/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
-import { ConnectFormValues, DefineFormValues } from '../schema';
+import { ConnectFormValues, DefineFormValues } from '../job-form-validations';
 
 export interface ColumnMetadata {
   pk: { [key: string]: PrimaryConstraint };

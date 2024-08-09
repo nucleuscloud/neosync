@@ -1,6 +1,6 @@
 import Step from '@/components/progress-steps/Step';
 import { ReactElement } from 'react';
-import { NewJobType } from './schema';
+import { NewJobType } from './job-form-validations';
 
 const DATA_SYNC_STEPS_NO_SUBSET: JobProgressStep[] = [
   'define',

@@ -1,5 +1,5 @@
 'use client';
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import DualListBox, {
   Action,
   Option,

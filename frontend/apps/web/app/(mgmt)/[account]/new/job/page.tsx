@@ -19,7 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
-import { NewJobType } from './schema';
+import { NewJobType } from './job-form-validations';
 
 export default function NewJob({ params }: PageProps): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
