@@ -54,7 +54,7 @@ import TransformerForm from './TransformerForms/TransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
-} from './schema';
+} from './transform-form-validations';
 
 function getTransformerSource(sourceStr: string): TransformerSource {
   const sourceNum = parseInt(sourceStr, 10);
