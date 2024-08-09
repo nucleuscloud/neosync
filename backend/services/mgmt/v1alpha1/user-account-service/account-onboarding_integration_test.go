@@ -10,7 +10,7 @@ import (
 func (s *IntegrationTestSuite) Test_GetAccountOnboardingConfig() {
 	accountId := s.createPersonalAccount()
 
-	resp, err := s.userclient.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
+	resp, err := s.unauthUserClient.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
 	requireNoErrResp(s.T(), resp, err)
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
@@ -22,13 +22,13 @@ func (s *IntegrationTestSuite) Test_GetAccountOnboardingConfig() {
 }
 
 func (s *IntegrationTestSuite) Test_GetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.userclient.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: uuid.NewString()}))
+	resp, err := s.unauthUserClient.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_SetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.userclient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: uuid.NewString(), Config: &mgmtv1alpha1.AccountOnboardingConfig{}}))
+	resp, err := s.unauthUserClient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: uuid.NewString(), Config: &mgmtv1alpha1.AccountOnboardingConfig{}}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
@@ -36,7 +36,7 @@ func (s *IntegrationTestSuite) Test_SetAccountOnboardingConfig_NoAccount() {
 func (s *IntegrationTestSuite) Test_SetAccountOnboardingConfig_NoConfig() {
 	accountId := s.createPersonalAccount()
 
-	resp, err := s.userclient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
+	resp, err := s.unauthUserClient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
 	requireNoErrResp(s.T(), resp, err)
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
@@ -50,7 +50,7 @@ func (s *IntegrationTestSuite) Test_SetAccountOnboardingConfig_NoConfig() {
 func (s *IntegrationTestSuite) Test_SetAccountOnboardingConfig() {
 	accountId := s.createPersonalAccount()
 
-	resp, err := s.userclient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
+	resp, err := s.unauthUserClient.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountOnboardingConfig{
 			HasCreatedSourceConnection:      true,
 			HasCreatedDestinationConnection: true,
