@@ -24,6 +24,7 @@ func (s *IntegrationTestSuite) Test_SetUser() {
 
 	userId := resp.Msg.UserId
 	require.NotEmpty(s.T(), userId)
+	require.Equal(s.T(), "00000000-0000-0000-0000-000000000000", userId)
 }
 
 func (s *IntegrationTestSuite) Test_GetAccounts_Empty() {

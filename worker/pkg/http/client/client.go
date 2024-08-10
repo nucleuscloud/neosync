@@ -13,16 +13,29 @@ func NewWithAuth(token *string) *http.Client {
 	return NewWithHeaders(GetAuthHeaders(token))
 }
 
+func WithAuth(client *http.Client, token *string) *http.Client {
+	return WithHeaders(client, GetAuthHeaders(token))
+}
+
 // Returns a new http client that will send headers along with the request
 func NewWithHeaders(
 	headers map[string]string,
 ) *http.Client {
-	return &http.Client{
-		Transport: &headerTransport{
-			Transport: http.DefaultTransport,
-			Headers:   headers,
-		},
+	return WithHeaders(&http.Client{}, headers)
+}
+
+func WithHeaders(
+	client *http.Client,
+	headers map[string]string,
+) *http.Client {
+	if client.Transport == nil {
+		client.Transport = http.DefaultTransport
 	}
+	client.Transport = &headerTransport{
+		Transport: client.Transport,
+		Headers:   headers,
+	}
+	return client
 }
 
 type headerTransport struct {
