@@ -8,7 +8,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_GetUser_Auth() {
-	client := s.getAuthUserClient("test-user")
+	client := s.getAuthUserClient("test-user1")
 	userId := s.setUser(client)
 
 	resp, err := client.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))

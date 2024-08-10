@@ -2,11 +2,19 @@ package http_client
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
+
+func Test_WithAuth(t *testing.T) {
+	client := &http.Client{}
+	client = WithAuth(client, nil)
+	require.NotNil(t, client)
+}
 
 func Test_NewWithHeaders(t *testing.T) {
 	client := NewWithHeaders(map[string]string{
@@ -85,4 +93,63 @@ func Test_GetAuthHeaders(t *testing.T) {
 		GetAuthHeaders(&token),
 		map[string]string{"Authorization": "Bearer foo"},
 	)
+}
+
+func TestMergeMaps(t *testing.T) {
+	t.Run("merge empty maps", func(t *testing.T) {
+		result := MergeMaps()
+		expected := map[string]string{}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	})
+
+	t.Run("merge single map", func(t *testing.T) {
+		input := map[string]string{"a": "1", "b": "2"}
+		result := MergeMaps(input)
+		if !reflect.DeepEqual(result, input) {
+			t.Errorf("Expected %v, got %v", input, result)
+		}
+	})
+
+	t.Run("merge two maps", func(t *testing.T) {
+		map1 := map[string]string{"a": "1", "b": "2"}
+		map2 := map[string]string{"c": "3", "d": "4"}
+		result := MergeMaps(map1, map2)
+		expected := map[string]string{"a": "1", "b": "2", "c": "3", "d": "4"}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	})
+
+	t.Run("merge maps with overlapping keys", func(t *testing.T) {
+		map1 := map[string]string{"a": "1", "b": "2"}
+		map2 := map[string]string{"b": "3", "c": "4"}
+		result := MergeMaps(map1, map2)
+		expected := map[string]string{"a": "1", "b": "3", "c": "4"}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	})
+
+	t.Run("merge multiple maps", func(t *testing.T) {
+		map1 := map[string]string{"a": "1"}
+		map2 := map[string]string{"b": "2"}
+		map3 := map[string]string{"c": "3"}
+		result := MergeMaps(map1, map2, map3)
+		expected := map[string]string{"a": "1", "b": "2", "c": "3"}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	})
+
+	t.Run("merge with nil map", func(t *testing.T) {
+		map1 := map[string]string{"a": "1"}
+		var nilMap map[string]string
+		result := MergeMaps(map1, nilMap)
+		expected := map[string]string{"a": "1"}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Expected %v, got %v", expected, result)
+		}
+	})
 }
