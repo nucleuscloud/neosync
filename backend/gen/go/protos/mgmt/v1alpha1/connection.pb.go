@@ -929,7 +929,7 @@ func (x *ConnectionConfig) GetDynamodbConfig() *DynamoDBConnectionConfig {
 	return nil
 }
 
-func (x *ConnectionConfig) GetMssqlConfig() *MSSQLConnectionConfig {
+func (x *ConnectionConfig) GetMssqlConfig() *MssqlConnectionConfig {
 	if x, ok := x.GetConfig().(*ConnectionConfig_MssqlConfig); ok {
 		return x.MssqlConfig
 	}
@@ -981,8 +981,8 @@ type ConnectionConfig_DynamodbConfig struct {
 }
 
 type ConnectionConfig_MssqlConfig struct {
-	// Configures a Microsoft SQL Server (MSSQL) Connection
-	MssqlConfig *MSSQLConnectionConfig `protobuf:"bytes,9,opt,name=mssql_config,json=mssqlConfig,proto3,oneof"`
+	// Configures a Microsoft SQL Server (mssql) Connection
+	MssqlConfig *MssqlConnectionConfig `protobuf:"bytes,9,opt,name=mssql_config,json=mssqlConfig,proto3,oneof"`
 }
 
 func (*ConnectionConfig_PgConfig) isConnectionConfig_Config() {}
@@ -1003,8 +1003,8 @@ func (*ConnectionConfig_DynamodbConfig) isConnectionConfig_Config() {}
 
 func (*ConnectionConfig_MssqlConfig) isConnectionConfig_Config() {}
 
-// Configuration for a MSSQL Connection
-type MSSQLConnectionConfig struct {
+// Configuration for a Mssql Connection
+type MssqlConnectionConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -1013,12 +1013,12 @@ type MSSQLConnectionConfig struct {
 	//
 	// Types that are assignable to ConnectionConfig:
 	//
-	//	*MSSQLConnectionConfig_Url
-	ConnectionConfig isMSSQLConnectionConfig_ConnectionConfig `protobuf_oneof:"connection_config"`
+	//	*MssqlConnectionConfig_Url
+	ConnectionConfig isMssqlConnectionConfig_ConnectionConfig `protobuf_oneof:"connection_config"`
 }
 
-func (x *MSSQLConnectionConfig) Reset() {
-	*x = MSSQLConnectionConfig{}
+func (x *MssqlConnectionConfig) Reset() {
+	*x = MssqlConnectionConfig{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1026,13 +1026,13 @@ func (x *MSSQLConnectionConfig) Reset() {
 	}
 }
 
-func (x *MSSQLConnectionConfig) String() string {
+func (x *MssqlConnectionConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MSSQLConnectionConfig) ProtoMessage() {}
+func (*MssqlConnectionConfig) ProtoMessage() {}
 
-func (x *MSSQLConnectionConfig) ProtoReflect() protoreflect.Message {
+func (x *MssqlConnectionConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1044,35 +1044,35 @@ func (x *MSSQLConnectionConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MSSQLConnectionConfig.ProtoReflect.Descriptor instead.
-func (*MSSQLConnectionConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use MssqlConnectionConfig.ProtoReflect.Descriptor instead.
+func (*MssqlConnectionConfig) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{15}
 }
 
-func (m *MSSQLConnectionConfig) GetConnectionConfig() isMSSQLConnectionConfig_ConnectionConfig {
+func (m *MssqlConnectionConfig) GetConnectionConfig() isMssqlConnectionConfig_ConnectionConfig {
 	if m != nil {
 		return m.ConnectionConfig
 	}
 	return nil
 }
 
-func (x *MSSQLConnectionConfig) GetUrl() string {
-	if x, ok := x.GetConnectionConfig().(*MSSQLConnectionConfig_Url); ok {
+func (x *MssqlConnectionConfig) GetUrl() string {
+	if x, ok := x.GetConnectionConfig().(*MssqlConnectionConfig_Url); ok {
 		return x.Url
 	}
 	return ""
 }
 
-type isMSSQLConnectionConfig_ConnectionConfig interface {
-	isMSSQLConnectionConfig_ConnectionConfig()
+type isMssqlConnectionConfig_ConnectionConfig interface {
+	isMssqlConnectionConfig_ConnectionConfig()
 }
 
-type MSSQLConnectionConfig_Url struct {
+type MssqlConnectionConfig_Url struct {
 	// The URL with sqlserver scheme.
 	Url string `protobuf:"bytes,1,opt,name=url,proto3,oneof"`
 }
 
-func (*MSSQLConnectionConfig_Url) isMSSQLConnectionConfig_ConnectionConfig() {}
+func (*MssqlConnectionConfig_Url) isMssqlConnectionConfig_ConnectionConfig() {}
 
 // Configuration for a DynaomDB Connection
 type DynamoDBConnectionConfig struct {
@@ -2742,11 +2742,11 @@ var file_mgmt_v1alpha1_connection_proto_rawDesc = []byte{
 	0x0e, 0x64, 0x79, 0x6e, 0x61, 0x6d, 0x6f, 0x64, 0x62, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12,
 	0x49, 0x0a, 0x0c, 0x6d, 0x73, 0x73, 0x71, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18,
 	0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
-	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x53, 0x53, 0x51, 0x4c, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x73, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
 	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x48, 0x00, 0x52, 0x0b, 0x6d,
 	0x73, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x47, 0x0a, 0x15, 0x4d,
-	0x53, 0x53, 0x51, 0x4c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f,
+	0x73, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x12, 0x12, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x48, 0x00, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x42, 0x1a, 0x0a, 0x11, 0x63, 0x6f, 0x6e, 0x6e,
 	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba,
@@ -3081,7 +3081,7 @@ var file_mgmt_v1alpha1_connection_proto_goTypes = []interface{}{
 	(*ConnectionRolePrivilege)(nil),           // 12: mgmt.v1alpha1.ConnectionRolePrivilege
 	(*Connection)(nil),                        // 13: mgmt.v1alpha1.Connection
 	(*ConnectionConfig)(nil),                  // 14: mgmt.v1alpha1.ConnectionConfig
-	(*MSSQLConnectionConfig)(nil),             // 15: mgmt.v1alpha1.MSSQLConnectionConfig
+	(*MssqlConnectionConfig)(nil),             // 15: mgmt.v1alpha1.MssqlConnectionConfig
 	(*DynamoDBConnectionConfig)(nil),          // 16: mgmt.v1alpha1.DynamoDBConnectionConfig
 	(*MongoConnectionConfig)(nil),             // 17: mgmt.v1alpha1.MongoConnectionConfig
 	(*OpenAiConnectionConfig)(nil),            // 18: mgmt.v1alpha1.OpenAiConnectionConfig
@@ -3125,7 +3125,7 @@ var file_mgmt_v1alpha1_connection_proto_depIdxs = []int32{
 	17, // 16: mgmt.v1alpha1.ConnectionConfig.mongo_config:type_name -> mgmt.v1alpha1.MongoConnectionConfig
 	32, // 17: mgmt.v1alpha1.ConnectionConfig.gcp_cloudstorage_config:type_name -> mgmt.v1alpha1.GcpCloudStorageConnectionConfig
 	16, // 18: mgmt.v1alpha1.ConnectionConfig.dynamodb_config:type_name -> mgmt.v1alpha1.DynamoDBConnectionConfig
-	15, // 19: mgmt.v1alpha1.ConnectionConfig.mssql_config:type_name -> mgmt.v1alpha1.MSSQLConnectionConfig
+	15, // 19: mgmt.v1alpha1.ConnectionConfig.mssql_config:type_name -> mgmt.v1alpha1.MssqlConnectionConfig
 	31, // 20: mgmt.v1alpha1.DynamoDBConnectionConfig.credentials:type_name -> mgmt.v1alpha1.AwsS3Credentials
 	23, // 21: mgmt.v1alpha1.MongoConnectionConfig.tunnel:type_name -> mgmt.v1alpha1.SSHTunnel
 	21, // 22: mgmt.v1alpha1.MongoConnectionConfig.client_tls:type_name -> mgmt.v1alpha1.ClientTlsConfig
@@ -3350,7 +3350,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MSSQLConnectionConfig); i {
+			switch v := v.(*MssqlConnectionConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3627,7 +3627,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 		(*ConnectionConfig_MssqlConfig)(nil),
 	}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[15].OneofWrappers = []interface{}{
-		(*MSSQLConnectionConfig_Url)(nil),
+		(*MssqlConnectionConfig_Url)(nil),
 	}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[16].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[17].OneofWrappers = []interface{}{

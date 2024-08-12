@@ -1543,11 +1543,11 @@
             },
             {
               "name": "mssql_config",
-              "description": "Configures a Microsoft SQL Server (MSSQL) Connection",
+              "description": "Configures a Microsoft SQL Server (mssql) Connection",
               "label": "",
-              "type": "MSSQLConnectionConfig",
-              "longType": "MSSQLConnectionConfig",
-              "fullType": "mgmt.v1alpha1.MSSQLConnectionConfig",
+              "type": "MssqlConnectionConfig",
+              "longType": "MssqlConnectionConfig",
+              "fullType": "mgmt.v1alpha1.MssqlConnectionConfig",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -1999,30 +1999,6 @@
           ]
         },
         {
-          "name": "MSSQLConnectionConfig",
-          "longName": "MSSQLConnectionConfig",
-          "fullName": "mgmt.v1alpha1.MSSQLConnectionConfig",
-          "description": "Configuration for a MSSQL Connection",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": true,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "url",
-              "description": "The URL with sqlserver scheme.",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "connection_config",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "MongoConnectionConfig",
           "longName": "MongoConnectionConfig",
           "fullName": "mgmt.v1alpha1.MongoConnectionConfig",
@@ -2066,6 +2042,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlConnectionConfig",
+          "longName": "MssqlConnectionConfig",
+          "fullName": "mgmt.v1alpha1.MssqlConnectionConfig",
+          "description": "Configuration for a Mssql Connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL with sqlserver scheme.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
               "defaultValue": ""
             }
           ]

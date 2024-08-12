@@ -2301,22 +2301,22 @@ var _ interface {
 	ErrorName() string
 } = ConnectionConfigValidationError{}
 
-// Validate checks the field values on MSSQLConnectionConfig with the rules
+// Validate checks the field values on MssqlConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *MSSQLConnectionConfig) Validate() error {
+func (m *MssqlConnectionConfig) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on MSSQLConnectionConfig with the rules
+// ValidateAll checks the field values on MssqlConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// MSSQLConnectionConfigMultiError, or nil if none found.
-func (m *MSSQLConnectionConfig) ValidateAll() error {
+// MssqlConnectionConfigMultiError, or nil if none found.
+func (m *MssqlConnectionConfig) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *MSSQLConnectionConfig) validate(all bool) error {
+func (m *MssqlConnectionConfig) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -2324,9 +2324,9 @@ func (m *MSSQLConnectionConfig) validate(all bool) error {
 	var errors []error
 
 	switch v := m.ConnectionConfig.(type) {
-	case *MSSQLConnectionConfig_Url:
+	case *MssqlConnectionConfig_Url:
 		if v == nil {
-			err := MSSQLConnectionConfigValidationError{
+			err := MssqlConnectionConfigValidationError{
 				field:  "ConnectionConfig",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -2341,19 +2341,19 @@ func (m *MSSQLConnectionConfig) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return MSSQLConnectionConfigMultiError(errors)
+		return MssqlConnectionConfigMultiError(errors)
 	}
 
 	return nil
 }
 
-// MSSQLConnectionConfigMultiError is an error wrapping multiple validation
-// errors returned by MSSQLConnectionConfig.ValidateAll() if the designated
+// MssqlConnectionConfigMultiError is an error wrapping multiple validation
+// errors returned by MssqlConnectionConfig.ValidateAll() if the designated
 // constraints aren't met.
-type MSSQLConnectionConfigMultiError []error
+type MssqlConnectionConfigMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m MSSQLConnectionConfigMultiError) Error() string {
+func (m MssqlConnectionConfigMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2362,11 +2362,11 @@ func (m MSSQLConnectionConfigMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m MSSQLConnectionConfigMultiError) AllErrors() []error { return m }
+func (m MssqlConnectionConfigMultiError) AllErrors() []error { return m }
 
-// MSSQLConnectionConfigValidationError is the validation error returned by
-// MSSQLConnectionConfig.Validate if the designated constraints aren't met.
-type MSSQLConnectionConfigValidationError struct {
+// MssqlConnectionConfigValidationError is the validation error returned by
+// MssqlConnectionConfig.Validate if the designated constraints aren't met.
+type MssqlConnectionConfigValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2374,24 +2374,24 @@ type MSSQLConnectionConfigValidationError struct {
 }
 
 // Field function returns field value.
-func (e MSSQLConnectionConfigValidationError) Field() string { return e.field }
+func (e MssqlConnectionConfigValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e MSSQLConnectionConfigValidationError) Reason() string { return e.reason }
+func (e MssqlConnectionConfigValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e MSSQLConnectionConfigValidationError) Cause() error { return e.cause }
+func (e MssqlConnectionConfigValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e MSSQLConnectionConfigValidationError) Key() bool { return e.key }
+func (e MssqlConnectionConfigValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e MSSQLConnectionConfigValidationError) ErrorName() string {
-	return "MSSQLConnectionConfigValidationError"
+func (e MssqlConnectionConfigValidationError) ErrorName() string {
+	return "MssqlConnectionConfigValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e MSSQLConnectionConfigValidationError) Error() string {
+func (e MssqlConnectionConfigValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2403,14 +2403,14 @@ func (e MSSQLConnectionConfigValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sMSSQLConnectionConfig.%s: %s%s",
+		"invalid %sMssqlConnectionConfig.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = MSSQLConnectionConfigValidationError{}
+var _ error = MssqlConnectionConfigValidationError{}
 
 var _ interface {
 	Field() string
@@ -2418,7 +2418,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = MSSQLConnectionConfigValidationError{}
+} = MssqlConnectionConfigValidationError{}
 
 // Validate checks the field values on DynamoDBConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are
