@@ -11,16 +11,21 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	down_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/down"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
+	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -39,11 +44,14 @@ type IntegrationTestSuite struct {
 	connstr       string
 	migrationsDir string
 
-	service *Service
-
 	httpsrv *httptest.Server
 
-	userclient mgmtv1alpha1connect.UserAccountServiceClient
+	unauthUserClient   mgmtv1alpha1connect.UserAccountServiceClient
+	ncunauthUserClient mgmtv1alpha1connect.UserAccountServiceClient
+
+	mockTemporalClientMgr *clientmanager.MockTemporalClientManagerClient
+	mockAuthClient        *auth_client.MockInterface
+	mockAuthMgmtClient    *authmgmt.MockInterface
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
@@ -75,20 +83,73 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.querier = pg_queries.New()
 	s.migrationsDir = "../../../../sql/postgresql/schema"
 
-	s.service = New(
+	s.mockTemporalClientMgr = clientmanager.NewMockTemporalClientManagerClient(s.T())
+	s.mockAuthClient = auth_client.NewMockInterface(s.T())
+	s.mockAuthMgmtClient = authmgmt.NewMockInterface(s.T())
+
+	unauthService := New(
 		&Config{IsAuthEnabled: false, IsNeosyncCloud: false},
 		nucleusdb.New(pool, db_queries.New()),
-		clientmanager.NewMockTemporalClientManagerClient(s.T()),
-		auth_client.NewMockInterface(s.T()),
-		authmgmt.NewMockInterface(s.T()),
+		s.mockTemporalClientMgr,
+		s.mockAuthClient,
+		s.mockAuthMgmtClient,
 	)
 
-	mux := http.NewServeMux()
-	mux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		s.service,
+	authService := New(
+		&Config{IsAuthEnabled: true, IsNeosyncCloud: false},
+		nucleusdb.New(pool, db_queries.New()),
+		s.mockTemporalClientMgr,
+		s.mockAuthClient,
+		s.mockAuthMgmtClient,
+	)
+
+	ncNoAuthService := New(
+		&Config{IsAuthEnabled: false, IsNeosyncCloud: true},
+		nucleusdb.New(pool, db_queries.New()),
+		s.mockTemporalClientMgr,
+		s.mockAuthClient,
+		s.mockAuthMgmtClient,
+	)
+
+	rootmux := http.NewServeMux()
+
+	unauthmux := http.NewServeMux()
+	unauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
+		unauthService,
 	))
-	s.httpsrv = startHTTPServer(s.T(), mux)
-	s.userclient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL)
+	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
+
+	authmux := http.NewServeMux()
+	authmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
+		authService,
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+				// will need to further fill this out as the tests grow
+				authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
+				if err != nil {
+					return nil, err
+				}
+				return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
+					AuthUserId: authuserid,
+				}), nil
+			}),
+		),
+	))
+	rootmux.Handle("/auth/", http.StripPrefix("/auth", authmux))
+
+	ncnoauthmux := http.NewServeMux()
+	ncnoauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
+		ncNoAuthService,
+	))
+	rootmux.Handle("/ncnoauth/", http.StripPrefix("/ncnoauth", ncnoauthmux))
+
+	s.httpsrv = startHTTPServer(s.T(), rootmux)
+	s.unauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth")
+	s.ncunauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/ncnoauth")
+}
+
+func (s *IntegrationTestSuite) getAuthUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+"/auth")
 }
 
 // Runs before each test

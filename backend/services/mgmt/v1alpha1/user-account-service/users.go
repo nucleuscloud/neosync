@@ -256,6 +256,10 @@ func (s *Service) GetTeamAccountMembers(
 		return nil, err
 	}
 
+	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
+		return nil, err
+	}
+
 	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, *accountId)
 	if err != nil {
 		return nil, err
@@ -267,14 +271,14 @@ func (s *Service) GetTeamAccountMembers(
 		i := i
 		user := userIdentities[i]
 		group.Go(func() error {
+			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+				Id: nucleusdb.UUIDString(user.UserID),
+			}
 			if user.ProviderSub == "" {
 				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", nucleusdb.UUIDString(user.UserID)))
 				return nil
 			}
 			if user.ProviderSub != "" {
-				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-					Id: nucleusdb.UUIDString(user.UserID),
-				}
 				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
 				if err != nil {
 					logger.Warn(fmt.Sprintf("unable to retrieve user by sub: %s", err.Error()))

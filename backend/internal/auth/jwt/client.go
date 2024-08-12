@@ -130,7 +130,7 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 	scopes := getCombinedScopesAndPermissions(claims.Scope, claims.Permissions)
 	userId := parsedToken.RegisteredClaims.Subject
 
-	newCtx := context.WithValue(ctx, TokenContextKey{}, &TokenContextData{
+	return SetTokenData(ctx, &TokenContextData{
 		ParsedToken: parsedToken,
 		RawToken:    token,
 
@@ -138,9 +138,7 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 
 		AuthUserId: userId,
 		Scopes:     scopes,
-	})
-
-	return newCtx, nil
+	}), nil
 }
 
 func getCombinedScopesAndPermissions(scope string, permissions []string) []string {
@@ -166,4 +164,8 @@ func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
 		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("ctx does not contain TokenContextData or unable to cast struct: %T", val))
 	}
 	return data, nil
+}
+
+func SetTokenData(ctx context.Context, data *TokenContextData) context.Context {
+	return context.WithValue(ctx, TokenContextKey{}, data)
 }
