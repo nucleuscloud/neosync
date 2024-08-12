@@ -1,0 +1,24 @@
+# connection-id: 4ec55921-932a-4a77-bba1-73d69a1b3a53
+# connection-opts:
+#   job-run-id: 314b3868-4c80-4942-abaf-3d10c7e88b49-2024-01-23T23:35:01Z
+
+# source:
+#   connection-id: 1599e19d-0e7e-4729-a2a3-c5da27786d28
+# destination:
+#   connection-url: postgresql://postgres:foofar@localhost:5434/nucleus?sslmode=disable
+#   driver: postgres
+#   init-schema: true
+#   truncate-before-insert: true
+#   truncate-cascade: false
+
+# mysql
+source:
+  connection-id: eb66f20b-11e3-41dc-b3c5-c6dbe1a67ec5
+
+destination:
+  connection-url: root:example@tcp(127.0.0.1:3306)/neosync?timeout=5s
+  driver: mysql
+  init-schema: true
+  truncate-before-insert: true
+  on-conflict:
+    do-nothing: false

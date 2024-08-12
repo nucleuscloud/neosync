@@ -61,6 +61,7 @@ const (
 	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
 	postgresConnection        ConnectionType = "postgres"
 	mysqlConnection           ConnectionType = "mysql"
+	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
 
 	batchSize = 20
 )
@@ -75,6 +76,7 @@ var (
 type cmdConfig struct {
 	Source      *sourceConfig      `yaml:"source"`
 	Destination *destinationConfig `yaml:"destination"`
+	AwsDynamoDB *dynamoDBConfig    `yaml:"aws-dynamodb,omitempty"`
 }
 
 type sourceConfig struct {
@@ -98,6 +100,17 @@ type destinationConfig struct {
 	TruncateBeforeInsert bool             `yaml:"truncate-before-insert,omitempty"`
 	TruncateCascade      bool             `yaml:"truncate-cascade,omitempty"`
 	OnConflict           onConflictConfig `yaml:"on-conflict,omitempty"`
+}
+
+type dynamoDBConfig struct {
+	Region          string `yaml:"region"`
+	AccessKeyID     string `yaml:"access-key-id,omitempty"`
+	SecretAccessKey string `yaml:"secret-access-key,omitempty"`
+	SessionToken    string `yaml:"session-token,omitempty"`
+	RoleARN         string `yaml:"role-arn,omitempty"`
+	RoleExternalID  string `yaml:"role-external-id,omitempty"`
+	Endpoint        string `yaml:"endpoint,omitempty"`
+	Profile         string `yaml:"profile,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -253,6 +266,16 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
 	cmd.Flags().Bool("on-conflict-do-nothing", false, "If there is a conflict when inserting data do not insert")
+
+	// dynamo flags
+	cmd.Flags().String("dynamodb-access-key-id", "", "AWS Access Key ID for DynamoDB")
+	cmd.Flags().String("dynamodb-secret-access-key", "", "AWS Secret Access Key for DynamoDB")
+	cmd.Flags().String("dynamodb-session-token", "", "AWS Session Token for DynamoDB")
+	cmd.Flags().String("dynamodb-role-arn", "", "AWS Role ARN for DynamoDB")
+	cmd.Flags().String("dynamodb-role-external-id", "", "AWS Role External ID for DynamoDB")
+	cmd.Flags().String("dynamodb-profile", "", "AWS Profile for DynamoDB")
+	cmd.Flags().String("dynamodb-endpoint", "", "Custom endpoint for DynamoDB")
+	cmd.Flags().String("dynamodb-region", "", "AWS Region for DynamoDB")
 	output.AttachOutputFlag(cmd)
 
 	return cmd

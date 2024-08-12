@@ -1,0 +1,13 @@
+# connection-id: 4ec55921-932a-4a77-bba1-73d69a1b3a53
+# connection-opts:
+#   job-run-id: 314b3868-4c80-4942-abaf-3d10c7e88b49-2024-01-23T23:35:01Z
+
+source:
+  # connection-id: 12618f46-caf8-4b92-8bba-418ad5871340
+  connection-id: 274d671f-ec16-4f44-8c20-d6b7df7f680f
+destination:
+  connection-url: postgresql://postgres:foofar@localhost:5434/hr?sslmode=disable
+  driver: postgres
+  init-schema: false
+  truncate-before-insert: false
+  truncate-cascade: false
