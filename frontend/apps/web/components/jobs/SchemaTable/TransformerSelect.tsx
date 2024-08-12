@@ -85,7 +85,7 @@ export default function TransformerSelect(props: Props): ReactElement {
       >
         <Command>
           <CommandInput placeholder={'Search...'} />
-          <div className="max-h-[450px] overflow-y-scroll">
+          <div className="max-h-[450px]">
             <CommandList>
               <CommandEmpty>No transformers found.</CommandEmpty>
               {userDefined.length > 0 && (
