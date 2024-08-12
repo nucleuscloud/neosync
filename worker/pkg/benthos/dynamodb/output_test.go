@@ -342,7 +342,8 @@ string_columns:
 	}
 
 	expErr := service.NewBatchError(msg, errors.New("woop"))
-	expErr.Failed(1, barErr)
+	err := expErr.Failed(1, barErr)
+	require.NotNil(t, err)
 	require.Equal(t, expErr, db.WriteBatch(context.Background(), msg))
 
 	batchExpected := []types.WriteRequest{
