@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -148,6 +149,18 @@ func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
 }
 
 func AnyToInt64(value any) (int64, error) {
+	if value == nil {
+		return 0, fmt.Errorf("nil value")
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return 0, fmt.Errorf("nil pointer")
+		}
+		value = v.Elem().Interface()
+	}
+
 	switch v := value.(type) {
 	case float32:
 		return int64(v), nil

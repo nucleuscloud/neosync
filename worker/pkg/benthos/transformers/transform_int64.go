@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"reflect"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -72,6 +73,13 @@ func (t *TransformInt64) Transform(value, opts any) (any, error) {
 func transformInt(randomizer rng.Rand, value any, rMin, rMax int64) (*int64, error) {
 	if value == nil {
 		return nil, nil
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil, nil
+		}
 	}
 
 	valueInt, err := transformer_utils.AnyToInt64(value)
