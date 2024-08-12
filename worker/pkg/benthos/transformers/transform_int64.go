@@ -1,8 +1,8 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
+	"reflect"
 
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -67,21 +67,28 @@ func (t *TransformInt64) Transform(value, opts any) (any, error) {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	valueInt, ok := value.(int64)
-	if !ok {
-		return nil, errors.New("value is not a string")
-	}
-
-	return transformInt(parsedOpts.randomizer, &valueInt, parsedOpts.randomizationRangeMin, parsedOpts.randomizationRangeMax)
+	return transformInt(parsedOpts.randomizer, value, parsedOpts.randomizationRangeMin, parsedOpts.randomizationRangeMax)
 }
 
-func transformInt(randomizer rng.Rand, value *int64, rMin, rMax int64) (*int64, error) {
+func transformInt(randomizer rng.Rand, value any, rMin, rMax int64) (*int64, error) {
 	if value == nil {
 		return nil, nil
 	}
 
-	minRange := *value - rMin
-	maxRange := *value + rMax
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil, nil
+		}
+	}
+
+	valueInt, err := transformer_utils.AnyToInt64(value)
+	if err != nil {
+		return nil, err
+	}
+
+	minRange := valueInt - rMin
+	maxRange := valueInt + rMax
 
 	val, err := transformer_utils.GenerateRandomInt64InValueRange(randomizer, minRange, maxRange)
 	if err != nil {

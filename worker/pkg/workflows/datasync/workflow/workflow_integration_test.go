@@ -516,6 +516,46 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 						{
 							"id": &dyntypes.AttributeValueMemberS{Value: "1"},
 							"a":  &dyntypes.AttributeValueMemberBOOL{Value: true},
+							"NestedMap": &dyntypes.AttributeValueMemberM{
+								Value: map[string]dyntypes.AttributeValue{
+									"Level1": &dyntypes.AttributeValueMemberM{
+										Value: map[string]dyntypes.AttributeValue{
+											"Level2": &dyntypes.AttributeValueMemberM{
+												Value: map[string]dyntypes.AttributeValue{
+													"Attribute1": &dyntypes.AttributeValueMemberS{Value: "Value1"},
+													"NumberSet":  &dyntypes.AttributeValueMemberNS{Value: []string{"1", "2", "3"}},
+													"BinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("U29tZUJpbmFyeURhdGE=")},
+													"Level3": &dyntypes.AttributeValueMemberM{
+														Value: map[string]dyntypes.AttributeValue{
+															"Attribute2": &dyntypes.AttributeValueMemberS{Value: "Value2"},
+															"StringSet":  &dyntypes.AttributeValueMemberSS{Value: []string{"Item1", "Item2", "Item3"}},
+															"BinarySet": &dyntypes.AttributeValueMemberBS{
+																Value: [][]byte{
+																	[]byte("U29tZUJpbmFyeQ=="),
+																	[]byte("QW5vdGhlckJpbmFyeQ=="),
+																},
+															},
+															"Level4": &dyntypes.AttributeValueMemberM{
+																Value: map[string]dyntypes.AttributeValue{
+																	"Attribute3":     &dyntypes.AttributeValueMemberS{Value: "Value3"},
+																	"Boolean":        &dyntypes.AttributeValueMemberBOOL{Value: true},
+																	"MoreBinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("TW9yZUJpbmFyeURhdGE=")},
+																	"MoreBinarySet": &dyntypes.AttributeValueMemberBS{
+																		Value: [][]byte{
+																			[]byte("TW9yZUJpbmFyeQ=="),
+																			[]byte("QW5vdGhlck1vcmVCaW5hcnk="),
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 						{
 							"id": &dyntypes.AttributeValueMemberS{Value: "2"},
@@ -703,6 +743,67 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"test-sync-source": {RowCount: 2},
 				"test-sync-dest":   {RowCount: 1},
+			},
+		},
+		{
+			Name: "Default Transformer Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "a",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{
+				DefaultTransformers: &workflow_testdata.DefaultTransformers{
+					Boolean: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
+						},
+					},
+					Number: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: 10, RandomizationRangeMax: 1000},
+							},
+						},
+					},
+					String: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+								TransformStringConfig: &mgmtv1alpha1.TransformString{},
+							},
+						},
+					},
+					Byte: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{},
+					},
+				},
+			},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync-source": {RowCount: 2},
+				"test-sync-dest":   {RowCount: 2},
 			},
 		},
 	}

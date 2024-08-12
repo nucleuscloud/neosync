@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -145,4 +146,50 @@ func GetSeedOrDefault(seed *int64) (int64, error) {
 
 func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
 	return minValue + randomizer.Int63n(maxValue-minValue+1)
+}
+
+func AnyToInt64(value any) (int64, error) {
+	if value == nil {
+		return 0, fmt.Errorf("nil value")
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return 0, fmt.Errorf("nil pointer")
+		}
+		value = v.Elem().Interface()
+	}
+
+	switch v := value.(type) {
+	case float32:
+		return int64(v), nil
+	case float64:
+		return int64(v), nil
+	case int:
+		return int64(v), nil
+	case int8:
+		return int64(v), nil
+	case int16:
+		return int64(v), nil
+	case int32:
+		return int64(v), nil
+	case int64:
+		return v, nil
+	case uint:
+		return int64(v), nil
+	case uint8:
+		return int64(v), nil
+	case uint16:
+		return int64(v), nil
+	case uint32:
+		return int64(v), nil
+	case uint64:
+		if v > math.MaxInt64 {
+			return 0, fmt.Errorf("value %d overflows int64", v)
+		}
+		return int64(v), nil
+	default:
+		return 0, fmt.Errorf("unsupported type: %T", value)
+	}
 }

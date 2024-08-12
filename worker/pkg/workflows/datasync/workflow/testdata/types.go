@@ -6,11 +6,19 @@ type ExpectedOutput struct {
 	RowCount int
 }
 
+type DefaultTransformers struct {
+	Boolean *mgmtv1alpha1.JobMappingTransformer
+	String  *mgmtv1alpha1.JobMappingTransformer
+	Number  *mgmtv1alpha1.JobMappingTransformer
+	Byte    *mgmtv1alpha1.JobMappingTransformer
+}
+
 type TestJobOptions struct {
 	SubsetByForeignKeyConstraints bool
 	InitSchema                    bool
 	Truncate                      bool
 	TruncateCascade               bool
+	DefaultTransformers           *DefaultTransformers
 }
 type IntegrationTest struct {
 	Name               string
