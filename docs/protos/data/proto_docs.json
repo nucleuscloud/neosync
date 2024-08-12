@@ -1540,6 +1540,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql_config",
+              "description": "Configures a Microsoft SQL Server (MSSQL) Connection",
+              "label": "",
+              "type": "MSSQLConnectionConfig",
+              "longType": "MSSQLConnectionConfig",
+              "fullType": "mgmt.v1alpha1.MSSQLConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1982,6 +1994,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MSSQLConnectionConfig",
+          "longName": "MSSQLConnectionConfig",
+          "fullName": "mgmt.v1alpha1.MSSQLConnectionConfig",
+          "description": "Configuration for a MSSQL Connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL with sqlserver scheme.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
               "defaultValue": ""
             }
           ]

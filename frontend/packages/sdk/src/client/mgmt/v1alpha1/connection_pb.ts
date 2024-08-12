@@ -717,6 +717,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: DynamoDBConnectionConfig;
     case: "dynamodbConfig";
+  } | {
+    /**
+     * Configures a Microsoft SQL Server (MSSQL) Connection
+     *
+     * @generated from field: mgmt.v1alpha1.MSSQLConnectionConfig mssql_config = 9;
+     */
+    value: MSSQLConnectionConfig;
+    case: "mssqlConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -735,6 +743,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 6, name: "mongo_config", kind: "message", T: MongoConnectionConfig, oneof: "config" },
     { no: 7, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageConnectionConfig, oneof: "config" },
     { no: 8, name: "dynamodb_config", kind: "message", T: DynamoDBConnectionConfig, oneof: "config" },
+    { no: 9, name: "mssql_config", kind: "message", T: MSSQLConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -751,6 +760,55 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
 
   static equals(a: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined, b: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined): boolean {
     return proto3.util.equals(ConnectionConfig, a, b);
+  }
+}
+
+/**
+ * Configuration for a MSSQL Connection
+ *
+ * @generated from message mgmt.v1alpha1.MSSQLConnectionConfig
+ */
+export class MSSQLConnectionConfig extends Message<MSSQLConnectionConfig> {
+  /**
+   * May provide a raw string url or in the future other methods of connection
+   *
+   * @generated from oneof mgmt.v1alpha1.MSSQLConnectionConfig.connection_config
+   */
+  connectionConfig: {
+    /**
+     * The URL with sqlserver scheme.
+     *
+     * @generated from field: string url = 1;
+     */
+    value: string;
+    case: "url";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<MSSQLConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MSSQLConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MSSQLConnectionConfig {
+    return new MSSQLConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MSSQLConnectionConfig {
+    return new MSSQLConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MSSQLConnectionConfig {
+    return new MSSQLConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MSSQLConnectionConfig | PlainMessage<MSSQLConnectionConfig> | undefined, b: MSSQLConnectionConfig | PlainMessage<MSSQLConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(MSSQLConnectionConfig, a, b);
   }
 }
 
