@@ -514,79 +514,48 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 
 					err = s.InsertDynamoDBRecords(sourceTableName, []map[string]dyntypes.AttributeValue{
 						{
-							"id":  &dyntypes.AttributeValueMemberS{Value: "1"},
-							"a":   &dyntypes.AttributeValueMemberBOOL{Value: true},
-							"Str": &dyntypes.AttributeValueMemberS{Value: "StringValue"},
-							"StrSet": &dyntypes.AttributeValueMemberSS{
-								Value: []string{"Str1", "Str2"},
-							},
-							"Num":  &dyntypes.AttributeValueMemberN{Value: "123.45"},
-							"nick": &dyntypes.AttributeValueMemberS{Value: "1"},
-							"Bin":  &dyntypes.AttributeValueMemberB{Value: []byte("QmluYXJ5VmFsdWU=")},
-							"SK":   &dyntypes.AttributeValueMemberS{Value: "SortKey"},
-							"Map": &dyntypes.AttributeValueMemberM{
+							"id": &dyntypes.AttributeValueMemberS{Value: "1"},
+							"a":  &dyntypes.AttributeValueMemberBOOL{Value: true},
+							"NestedMap": &dyntypes.AttributeValueMemberM{
 								Value: map[string]dyntypes.AttributeValue{
-									"NestedNum": &dyntypes.AttributeValueMemberN{Value: "456.78"},
-									"NestedStr": &dyntypes.AttributeValueMemberS{Value: "NestedStringValue"},
+									"Level1": &dyntypes.AttributeValueMemberM{
+										Value: map[string]dyntypes.AttributeValue{
+											"Level2": &dyntypes.AttributeValueMemberM{
+												Value: map[string]dyntypes.AttributeValue{
+													"Attribute1": &dyntypes.AttributeValueMemberS{Value: "Value1"},
+													"NumberSet":  &dyntypes.AttributeValueMemberNS{Value: []string{"1", "2", "3"}},
+													"BinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("U29tZUJpbmFyeURhdGE=")},
+													"Level3": &dyntypes.AttributeValueMemberM{
+														Value: map[string]dyntypes.AttributeValue{
+															"Attribute2": &dyntypes.AttributeValueMemberS{Value: "Value2"},
+															"StringSet":  &dyntypes.AttributeValueMemberSS{Value: []string{"Item1", "Item2", "Item3"}},
+															"BinarySet": &dyntypes.AttributeValueMemberBS{
+																Value: [][]byte{
+																	[]byte("U29tZUJpbmFyeQ=="),
+																	[]byte("QW5vdGhlckJpbmFyeQ=="),
+																},
+															},
+															"Level4": &dyntypes.AttributeValueMemberM{
+																Value: map[string]dyntypes.AttributeValue{
+																	"Attribute3":     &dyntypes.AttributeValueMemberS{Value: "Value3"},
+																	"Boolean":        &dyntypes.AttributeValueMemberBOOL{Value: true},
+																	"MoreBinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("TW9yZUJpbmFyeURhdGE=")},
+																	"MoreBinarySet": &dyntypes.AttributeValueMemberBS{
+																		Value: [][]byte{
+																			[]byte("TW9yZUJpbmFyeQ=="),
+																			[]byte("QW5vdGhlck1vcmVCaW5hcnk="),
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 								},
 							},
-							"Null": &dyntypes.AttributeValueMemberNULL{Value: true},
-							"BinSet": &dyntypes.AttributeValueMemberBS{
-								Value: [][]byte{
-									[]byte("QmluMQ=="),
-									[]byte("QmluMg=="),
-								},
-							},
-							"PK": &dyntypes.AttributeValueMemberS{Value: "PrimaryKey"},
-							"List": &dyntypes.AttributeValueMemberL{
-								Value: []dyntypes.AttributeValue{
-									&dyntypes.AttributeValueMemberS{Value: "ListStr"},
-									&dyntypes.AttributeValueMemberN{Value: "789.01"},
-								},
-							},
-							"NumSet": &dyntypes.AttributeValueMemberNS{
-								Value: []string{"3", "2", "1"},
-							},
-							// "NestedMap": &dyntypes.AttributeValueMemberM{
-							// 	Value: map[string]dyntypes.AttributeValue{
-							// 		"Level1": &dyntypes.AttributeValueMemberM{
-							// 			Value: map[string]dyntypes.AttributeValue{
-							// 				"Level2": &dyntypes.AttributeValueMemberM{
-							// 					Value: map[string]dyntypes.AttributeValue{
-							// 						"Attribute1": &dyntypes.AttributeValueMemberS{Value: "Value1"},
-							// 						"NumberSet":  &dyntypes.AttributeValueMemberNS{Value: []string{"1", "2", "3"}},
-							// 						"BinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("U29tZUJpbmFyeURhdGE=")},
-							// 						"Level3": &dyntypes.AttributeValueMemberM{
-							// 							Value: map[string]dyntypes.AttributeValue{
-							// 								"Attribute2": &dyntypes.AttributeValueMemberS{Value: "Value2"},
-							// 								"StringSet":  &dyntypes.AttributeValueMemberSS{Value: []string{"Item1", "Item2", "Item3"}},
-							// 								"BinarySet": &dyntypes.AttributeValueMemberBS{
-							// 									Value: [][]byte{
-							// 										[]byte("U29tZUJpbmFyeQ=="),
-							// 										[]byte("QW5vdGhlckJpbmFyeQ=="),
-							// 									},
-							// 								},
-							// 								"Level4": &dyntypes.AttributeValueMemberM{
-							// 									Value: map[string]dyntypes.AttributeValue{
-							// 										"Attribute3":     &dyntypes.AttributeValueMemberS{Value: "Value3"},
-							// 										"Boolean":        &dyntypes.AttributeValueMemberBOOL{Value: true},
-							// 										"MoreBinaryData": &dyntypes.AttributeValueMemberB{Value: []byte("TW9yZUJpbmFyeURhdGE=")},
-							// 										"MoreBinarySet": &dyntypes.AttributeValueMemberBS{
-							// 											Value: [][]byte{
-							// 												[]byte("TW9yZUJpbmFyeQ=="),
-							// 												[]byte("QW5vdGhlck1vcmVCaW5hcnk="),
-							// 											},
-							// 										},
-							// 									},
-							// 								},
-							// 							},
-							// 						},
-							// 					},
-							// 				},
-							// 			},
-							// 		},
-							// 	},
-							// },
 						},
 						{
 							"id": &dyntypes.AttributeValueMemberS{Value: "2"},
@@ -710,72 +679,72 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 
 	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
-		// {
-		// 	Name: "Passthrough Sync",
-		// 	JobMappings: []*mgmtv1alpha1.JobMapping{
-		// 		{
-		// 			Schema: "aws",
-		// 			Table:  "test-sync-source",
-		// 			Column: "id",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 		{
-		// 			Schema: "aws",
-		// 			Table:  "test-sync-source",
-		// 			Column: "a",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	JobOptions: &workflow_testdata.TestJobOptions{},
-		// 	Expected: map[string]*workflow_testdata.ExpectedOutput{
-		// 		"test-sync-source": {RowCount: 2},
-		// 		"test-sync-dest":   {RowCount: 2},
-		// 	},
-		// },
-		// {
-		// 	Name: "Subset Sync",
-		// 	JobMappings: []*mgmtv1alpha1.JobMapping{
-		// 		{
-		// 			Schema: "aws",
-		// 			Table:  "test-sync-source",
-		// 			Column: "id",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 		{
-		// 			Schema: "aws",
-		// 			Table:  "test-sync-source",
-		// 			Column: "a",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	SubsetMap: map[string]string{
-		// 		"test-sync-source": "id = '1'",
-		// 	},
-		// 	Expected: map[string]*workflow_testdata.ExpectedOutput{
-		// 		"test-sync-source": {RowCount: 2},
-		// 		"test-sync-dest":   {RowCount: 1},
-		// 	},
-		// },
+		{
+			Name: "Passthrough Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "a",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync-source": {RowCount: 2},
+				"test-sync-dest":   {RowCount: 2},
+			},
+		},
+		{
+			Name: "Subset Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "aws",
+					Table:  "test-sync-source",
+					Column: "a",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			SubsetMap: map[string]string{
+				"test-sync-source": "id = '1'",
+			},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync-source": {RowCount: 2},
+				"test-sync-dest":   {RowCount: 1},
+			},
+		},
 		{
 			Name: "Default Transformer Sync",
 			JobMappings: []*mgmtv1alpha1.JobMapping{
@@ -810,23 +779,19 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 							Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 						},
 					},
-					// Number: &mgmtv1alpha1.JobMappingTransformer{
-					// 	Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
-					// 	Config: &mgmtv1alpha1.TransformerConfig{
-					// 		Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
-					// 			TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: 10, RandomizationRangeMax: 1000},
-					// 		},
-					// 	},
-					// },
 					Number: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{},
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: 10, RandomizationRangeMax: 1000},
+							},
+						},
 					},
 					String: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
 						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-								GenerateStringConfig: &mgmtv1alpha1.GenerateString{Min: 3, Max: 20},
+							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+								TransformStringConfig: &mgmtv1alpha1.TransformString{},
 							},
 						},
 					},
