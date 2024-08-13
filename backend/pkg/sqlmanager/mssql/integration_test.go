@@ -246,6 +246,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 	if err != nil {
 		panic(err)
 	}
+	// We have to initialize this because every test creates a fresh database so it must be reconnected to.
 	sourceTestDbPool, err := sql.Open(sqlmanager_shared.MssqlDriver, s.source.testDbConnStr)
 	if err != nil {
 		panic(fmt.Errorf("unable to open source testdb mssql connection: %w", err))
@@ -260,6 +261,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
+	// We have to close these connections prior to tearing down so that the database can be closed cleanly
 	if s.target != nil && s.target.testDb != nil {
 		s.target.testDb.Close()
 		s.target.testDb = nil
