@@ -456,6 +456,7 @@ func sync(
 			return nil
 		}
 		schemaConfig = schemaCfg
+	// case awsDynamoDBConnection:
 
 	default:
 		return fmt.Errorf("this connection type is not currently supported")

@@ -2754,6 +2754,17 @@
       "extensions": [],
       "messages": [
         {
+          "name": "AwsDynamoDBStreamConfig",
+          "longName": "AwsDynamoDBStreamConfig",
+          "fullName": "mgmt.v1alpha1.AwsDynamoDBStreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "AwsS3SchemaConfig",
           "longName": "AwsS3SchemaConfig",
           "fullName": "mgmt.v1alpha1.AwsS3SchemaConfig",
@@ -2962,6 +2973,18 @@
               "type": "GcpCloudStorageStreamConfig",
               "longType": "GcpCloudStorageStreamConfig",
               "fullType": "mgmt.v1alpha1.GcpCloudStorageStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_config",
+              "description": "",
+              "label": "",
+              "type": "AwsDynamoDBStreamConfig",
+              "longType": "AwsDynamoDBStreamConfig",
+              "fullType": "mgmt.v1alpha1.AwsDynamoDBStreamConfig",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

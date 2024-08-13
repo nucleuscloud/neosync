@@ -239,6 +239,108 @@ var _ interface {
 	ErrorName() string
 } = MysqlStreamConfigValidationError{}
 
+// Validate checks the field values on AwsDynamoDBStreamConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AwsDynamoDBStreamConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AwsDynamoDBStreamConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AwsDynamoDBStreamConfigMultiError, or nil if none found.
+func (m *AwsDynamoDBStreamConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AwsDynamoDBStreamConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AwsDynamoDBStreamConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// AwsDynamoDBStreamConfigMultiError is an error wrapping multiple validation
+// errors returned by AwsDynamoDBStreamConfig.ValidateAll() if the designated
+// constraints aren't met.
+type AwsDynamoDBStreamConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AwsDynamoDBStreamConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AwsDynamoDBStreamConfigMultiError) AllErrors() []error { return m }
+
+// AwsDynamoDBStreamConfigValidationError is the validation error returned by
+// AwsDynamoDBStreamConfig.Validate if the designated constraints aren't met.
+type AwsDynamoDBStreamConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AwsDynamoDBStreamConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AwsDynamoDBStreamConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AwsDynamoDBStreamConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AwsDynamoDBStreamConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AwsDynamoDBStreamConfigValidationError) ErrorName() string {
+	return "AwsDynamoDBStreamConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AwsDynamoDBStreamConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAwsDynamoDBStreamConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AwsDynamoDBStreamConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AwsDynamoDBStreamConfigValidationError{}
+
 // Validate checks the field values on AwsS3StreamConfig with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -683,6 +785,47 @@ func (m *ConnectionStreamConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ConnectionStreamConfigValidationError{
 					field:  "GcpCloudstorageConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ConnectionStreamConfig_DynamodbConfig:
+		if v == nil {
+			err := ConnectionStreamConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetDynamodbConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionStreamConfigValidationError{
+						field:  "DynamodbConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionStreamConfigValidationError{
+						field:  "DynamodbConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDynamodbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionStreamConfigValidationError{
+					field:  "DynamodbConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

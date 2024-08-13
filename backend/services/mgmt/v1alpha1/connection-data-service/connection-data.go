@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -388,6 +389,49 @@ func (s *Service) GetConnectionDataStream(
 		if err != nil {
 			return fmt.Errorf("unable to finish sending record stream: %w", err)
 		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		dynamoclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
+		if err != nil {
+			return fmt.Errorf("unable to create dynamodb client from connection: %w", err)
+		}
+		var lastEvaluatedKey map[string]dynamotypes.AttributeValue
+
+		for {
+			output, err := dynamoclient.ScanTable(ctx, req.Msg.Table, lastEvaluatedKey)
+			if err != nil {
+				return fmt.Errorf("failed to scan table %s: %w", req.Msg.Table, err)
+			}
+
+			for _, item := range output.Items {
+				row := make(map[string][]byte)
+				for key, value := range item {
+					switch v := value.(type) {
+					case *dynamotypes.AttributeValueMemberS:
+						row[key] = []byte(v.Value)
+					case *dynamotypes.AttributeValueMemberN:
+						row[key] = []byte(v.Value)
+					case *dynamotypes.AttributeValueMemberB:
+						row[key] = v.Value
+					default:
+						jsonBytes, err := json.Marshal(v)
+						if err != nil {
+							return fmt.Errorf("failed to marshal DynamoDB attribute: %w", err)
+						}
+						row[key] = jsonBytes
+					}
+				}
+
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+					return fmt.Errorf("failed to send stream response: %w", err)
+				}
+			}
+
+			lastEvaluatedKey = output.LastEvaluatedKey
+			if lastEvaluatedKey == nil {
+				break
+			}
+		}
+
 	default:
 		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}

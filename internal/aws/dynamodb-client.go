@@ -66,3 +66,22 @@ func (d *DynamoDbClient) GetTableKey(ctx context.Context, tableName string) (*Dy
 
 	return dynamoKey, nil
 }
+
+func (d *DynamoDbClient) ScanTable(
+	ctx context.Context,
+	tableName string,
+	lastEvaluatedKey map[string]types.AttributeValue,
+) (*dynamodb.ScanOutput, error) {
+
+	input := &dynamodb.ScanInput{
+		TableName:         &tableName,
+		ExclusiveStartKey: lastEvaluatedKey,
+	}
+
+	output, err := d.client.Scan(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table %s: %w", tableName, err)
+	}
+
+	return output, nil
+}
