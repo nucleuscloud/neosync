@@ -5,10 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"sync"
 	"testing"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/microsoft/go-mssqldb"
 	"golang.org/x/sync/errgroup"
 
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -20,9 +25,10 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	initSql     string
-	setupSql    string
-	teardownSql string
+	sourceSetupStatements []string
+	destSetupStatements   []string
+
+	teardownStatements []string
 
 	ctx context.Context
 
@@ -31,9 +37,13 @@ type IntegrationTestSuite struct {
 }
 
 type mssqlTestContainer struct {
-	pool      *sql.DB
-	querier   mssql_queries.Querier
-	container *testmssql.MSSQLServerContainer
+	// master db connection
+	defaultDb *sql.DB
+	// test db connection
+	testDb        *sql.DB
+	testDbConnStr string
+	querier       mssql_queries.Querier
+	container     *testmssql.MSSQLServerContainer
 	// url       string
 	close func()
 }
@@ -49,18 +59,18 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
-		sourcecontainer, err := createMssqlTestContainer(s.ctx, "datasync", "pass-source")
+		sourcecontainer, err := createMssqlTestContainer(s.ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to start mssql source container: %w", err)
 		}
 		source = sourcecontainer
 		return nil
 	})
 
 	errgrp.Go(func() error {
-		targetcontainer, err := createMssqlTestContainer(s.ctx, "datasync", "pass-target")
+		targetcontainer, err := createMssqlTestContainer(s.ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to start mssql dest container: %w", err)
 		}
 		target = targetcontainer
 		return nil
@@ -79,28 +89,31 @@ func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
 
 func createMssqlTestContainer(
 	ctx context.Context,
-	database, password string,
 ) (*mssqlTestContainer, error) {
 	container, err := testmssql.Run(ctx,
 		"mcr.microsoft.com/mssql/server:2022-latest",
 		testmssql.WithAcceptEULA(),
-		testmssql.WithPassword(password),
 		// testcontainers.WithWaitStrategy(
-		// 	wait.ForLog("port: 3306  MySQL Community Server").
+		// 	wait.ForLog("SQL Server is now ready for client connections.").
 		// 		WithOccurrence(1).WithStartupTimeout(20*time.Second),
 		// ),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to start container: %w", err)
 	}
 	connstr, err := container.ConnectionString(ctx)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to get mssql connection str: %w", err)
 	}
+
 	pool, err := sql.Open(sqlmanager_shared.MssqlDriver, connstr)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unable to open mssql connection: %w", err)
 	}
+
+	queryvals := url.Values{}
+	queryvals.Add("database", "testdb")
+
 	// containerPort, err := container.MappedPort(ctx, "1433/tcp")
 	// if err != nil {
 	// 	return nil, err
@@ -112,16 +125,68 @@ func createMssqlTestContainer(
 
 	// connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
 	return &mssqlTestContainer{
-		pool:    pool,
-		querier: mssql_queries.New(),
+		defaultDb: pool,
+		// testDb:        testdbPool,
+		testDbConnStr: connstr + queryvals.Encode(),
+		querier:       mssql_queries.New(),
 		// url:       connUrl,
 		container: container,
 		close: func() {
 			if pool != nil {
 				pool.Close()
 			}
+			// if testdbPool != nil {
+			// 	testdbPool.Close()
+			// }
 		},
 	}, nil
+}
+
+func readSqlFiles(dir string) ([]string, error) {
+	// Read all files in the directory
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("error reading directory %s: %v", dir, err)
+	}
+
+	// Filter and sort SQL files
+	var sqlFiles []string
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".sql") {
+			sqlFiles = append(sqlFiles, file.Name())
+		}
+	}
+	sort.Strings(sqlFiles)
+
+	// Prepare a slice to store results
+	sqlContents := make([]string, len(sqlFiles))
+
+	// Use errgroup for concurrent file reading
+	var eg errgroup.Group
+	var mu sync.Mutex
+
+	for i, file := range sqlFiles {
+		i, file := i, file
+		eg.Go(func() error {
+			content, err := os.ReadFile(filepath.Join(dir, file))
+			if err != nil {
+				return fmt.Errorf("error reading file %s: %w", file, err)
+			}
+
+			mu.Lock()
+			sqlContents[i] = string(content)
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	// Wait for all goroutines to complete and check for errors
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return sqlContents, nil
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
@@ -134,53 +199,107 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.source = m.source
 	s.target = m.target
 
-	initSql, err := os.ReadFile("./testdata/init.sql")
-	if err != nil {
-		panic(err)
-	}
-	s.initSql = string(initSql)
+	baseDir := "testdata"
 
-	setupSql, err := os.ReadFile("./testdata/setup.sql")
+	sourceSetupContents, err := readSqlFiles(filepath.Join(baseDir, "source-setup"))
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("unable to read source setup files: %w", err))
 	}
-	s.setupSql = string(setupSql)
+	s.sourceSetupStatements = sourceSetupContents
 
-	teardownSql, err := os.ReadFile("./testdata/teardown.sql")
+	destSetupContents, err := readSqlFiles(filepath.Join(baseDir, "dest-setup"))
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("unable to read dest setup files: %w", err))
 	}
-	s.teardownSql = string(teardownSql)
+	s.destSetupStatements = destSetupContents
+
+	teardownContents, err := readSqlFiles(filepath.Join(baseDir, "teardown"))
+	if err != nil {
+		panic(fmt.Errorf("unable to read teardown files: %w", err))
+	}
+	s.teardownStatements = teardownContents
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.target.pool.ExecContext(s.ctx, s.initSql)
+	errgrp, errctx := errgroup.WithContext(s.ctx)
+	errgrp.Go(func() error {
+		for i, stmt := range s.sourceSetupStatements {
+			_, err := s.source.defaultDb.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing source setup statement %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		for i, stmt := range s.destSetupStatements {
+			_, err := s.target.defaultDb.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing dest setup statemetn: %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+
+	err := errgrp.Wait()
 	if err != nil {
 		panic(err)
 	}
-	_, err = s.source.pool.ExecContext(s.ctx, s.setupSql)
+	sourceTestDbPool, err := sql.Open(sqlmanager_shared.MssqlDriver, s.source.testDbConnStr)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("unable to open source testdb mssql connection: %w", err))
 	}
+	s.source.testDb = sourceTestDbPool
+
+	targetTestDbPool, err := sql.Open(sqlmanager_shared.MssqlDriver, s.target.testDbConnStr)
+	if err != nil {
+		panic(fmt.Errorf("unable to open target testdb mssql connection: %w", err))
+	}
+	s.target.testDb = targetTestDbPool
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	_, err := s.target.pool.ExecContext(s.ctx, s.teardownSql)
-	if err != nil {
-		panic(err)
+	if s.target != nil && s.target.testDb != nil {
+		s.target.testDb.Close()
+		s.target.testDb = nil
 	}
-	_, err = s.source.pool.ExecContext(s.ctx, s.teardownSql)
+	if s.source != nil && s.source.testDb != nil {
+		s.source.testDb.Close()
+		s.source.testDb = nil
+	}
+
+	errgrp, errctx := errgroup.WithContext(s.ctx)
+	errgrp.Go(func() error {
+		for i, stmt := range s.teardownStatements {
+			_, err := s.source.defaultDb.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing source teardown statement %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		for i, stmt := range s.teardownStatements {
+			_, err := s.target.defaultDb.ExecContext(errctx, stmt)
+			if err != nil {
+				return fmt.Errorf("encountered error when executing dest teardown statemetn: %d: %w", i+1, err)
+			}
+		}
+		return nil
+	})
+
+	err := errgrp.Wait()
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.source.pool != nil {
+	if s.source.defaultDb != nil {
 		s.source.close()
 	}
-	if s.target.pool != nil {
+	if s.target.defaultDb != nil {
 		s.target.close()
 	}
 	if s.source != nil {
@@ -207,7 +326,6 @@ func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
-//nolint:unparam
-func (s *IntegrationTestSuite) buildTable(schema, tableName string) string {
+func buildTable(schema, tableName string) string {
 	return fmt.Sprintf("%s.%s", schema, tableName)
 }
