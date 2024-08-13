@@ -103,7 +103,8 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 							Url: *c.MysqlConfig.Url,
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}, nil
@@ -342,17 +343,23 @@ func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnect
 }
 
 type MssqlConfig struct {
-	Url *string `json:"url,omitempty"`
+	Url               *string            `json:"url,omitempty"`
+	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
 }
 
 func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	if d.Url == nil {
 		return nil, errors.New("mssql connection does not contain url")
 	}
+	var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
+	if d.ConnectionOptions != nil {
+		connectionOptions = d.ConnectionOptions.ToDto()
+	}
 	return &mgmtv1alpha1.MssqlConnectionConfig{
 		ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 			Url: *d.Url,
 		},
+		ConnectionOptions: connectionOptions,
 	}, nil
 }
 
@@ -367,6 +374,11 @@ func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
 
 	url := dto.GetUrl()
 	d.Url = &url
+
+	if dto.GetConnectionConfig() != nil {
+		d.ConnectionOptions = &ConnectionOptions{}
+		d.ConnectionOptions.FromDto(dto.GetConnectionOptions())
+	}
 
 	return nil
 }
@@ -427,6 +439,9 @@ func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {
 }
 
 func (s *ConnectionOptions) FromDto(dto *mgmtv1alpha1.SqlConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.SqlConnectionOptions{}
+	}
 	s.MaxConnectionLimit = dto.MaxConnectionLimit
 }
 

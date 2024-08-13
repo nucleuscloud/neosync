@@ -221,7 +221,10 @@ func GetConnectionDetails(
 			MaxConnectionLimit:     maxConnLimit,
 		}, nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		var maxConnLimit *int32 // todo
+		var maxConnLimit *int32
+		if config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit != nil {
+			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
+		}
 
 		connDetails, err := getGeneralDbConnectionConfigFromMssql(config, connectionTimeout)
 		if err != nil {

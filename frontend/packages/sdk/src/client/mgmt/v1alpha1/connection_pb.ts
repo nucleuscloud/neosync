@@ -784,6 +784,11 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
     case: "url";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 2;
+   */
+  connectionOptions?: SqlConnectionOptions;
+
   constructor(data?: PartialMessage<MssqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -793,6 +798,7 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
   static readonly typeName = "mgmt.v1alpha1.MssqlConnectionConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
+    { no: 2, name: "connection_options", kind: "message", T: SqlConnectionOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlConnectionConfig {

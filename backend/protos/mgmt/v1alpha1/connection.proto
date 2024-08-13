@@ -120,6 +120,8 @@ message MssqlConnectionConfig {
     // The URL with sqlserver scheme.
     string url = 1;
   }
+
+  SqlConnectionOptions connection_options = 2;
 }
 
 // Configuration for a DynaomDB Connection

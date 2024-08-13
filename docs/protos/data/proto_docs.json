@@ -2067,6 +2067,18 @@
               "isoneof": true,
               "oneofdecl": "connection_config",
               "defaultValue": ""
+            },
+            {
+              "name": "connection_options",
+              "description": "",
+              "label": "",
+              "type": "SqlConnectionOptions",
+              "longType": "SqlConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
