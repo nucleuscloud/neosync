@@ -44,8 +44,7 @@ type mssqlTestContainer struct {
 	testDbConnStr string
 	querier       mssql_queries.Querier
 	container     *testmssql.MSSQLServerContainer
-	// url       string
-	close func()
+	close         func()
 }
 
 type mssqlTest struct {
@@ -93,10 +92,6 @@ func createMssqlTestContainer(
 	container, err := testmssql.Run(ctx,
 		"mcr.microsoft.com/mssql/server:2022-latest",
 		testmssql.WithAcceptEULA(),
-		// testcontainers.WithWaitStrategy(
-		// 	wait.ForLog("SQL Server is now ready for client connections.").
-		// 		WithOccurrence(1).WithStartupTimeout(20*time.Second),
-		// ),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to start container: %w", err)
@@ -114,30 +109,15 @@ func createMssqlTestContainer(
 	queryvals := url.Values{}
 	queryvals.Add("database", "testdb")
 
-	// containerPort, err := container.MappedPort(ctx, "1433/tcp")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// containerHost, err := container.Host(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
 	return &mssqlTestContainer{
-		defaultDb: pool,
-		// testDb:        testdbPool,
+		defaultDb:     pool,
 		testDbConnStr: connstr + queryvals.Encode(),
 		querier:       mssql_queries.New(),
-		// url:       connUrl,
-		container: container,
+		container:     container,
 		close: func() {
 			if pool != nil {
 				pool.Close()
 			}
-			// if testdbPool != nil {
-			// 	testdbPool.Close()
-			// }
 		},
 	}, nil
 }
