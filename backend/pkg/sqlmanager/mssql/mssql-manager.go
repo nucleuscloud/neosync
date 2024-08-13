@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
@@ -41,7 +42,19 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 }
 
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
-	return map[string][]string{}, nil
+	rows, err := m.querier.GetRolePermissions(ctx, m.db)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return map[string][]string{}, nil
+	}
+
+	schemaTablePrivsMap := map[string][]string{}
+	for _, permission := range rows {
+		key := sqlmanager_shared.BuildTable(permission.TableSchema, permission.TableName)
+		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
+	}
+	return schemaTablePrivsMap, err
 }
 
 func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
