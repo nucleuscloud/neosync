@@ -7,7 +7,13 @@ import {
   DynamoDBSourceUnmappedTransformConfigFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import { SystemTransformer, TransformerSource } from '@neosync/sdk';
+import {
+  SupportedJobType,
+  SystemTransformer,
+  TransformerDataType,
+  TransformerSource,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -106,7 +112,12 @@ function UnmappedTransformConfigForm(
         </div>
         <div className="flex flex-row gap-2">
           <TransformerSelect
-            getTransformers={() => transformerHandler.getTransformers()} // todo: filter this by type
+            getTransformers={() =>
+              getFilterdTransformersByType(
+                transformerHandler,
+                TransformerDataType.ANY
+              )
+            }
             buttonText={getButtonText(byteTransformer)}
             value={value.byte}
             onSelect={(newVal) => setValue({ ...value, byte: newVal })}
@@ -129,7 +140,12 @@ function UnmappedTransformConfigForm(
         </div>
         <div className="flex flex-row gap-2">
           <TransformerSelect
-            getTransformers={() => transformerHandler.getTransformers()} // todo: filter this by type
+            getTransformers={() =>
+              getFilterdTransformersByType(
+                transformerHandler,
+                TransformerDataType.BOOLEAN
+              )
+            }
             buttonText={getButtonText(boolTransformer)}
             value={value.boolean}
             onSelect={(newVal) => setValue({ ...value, boolean: newVal })}
@@ -152,7 +168,12 @@ function UnmappedTransformConfigForm(
         </div>
         <div className="flex flex-row gap-2">
           <TransformerSelect
-            getTransformers={() => transformerHandler.getTransformers()} // todo: filter this by type
+            getTransformers={() =>
+              getFilterdTransformersByType(
+                transformerHandler,
+                TransformerDataType.INT64
+              )
+            }
             buttonText={getButtonText(numTransformer)}
             value={value.n}
             onSelect={(newVal) => setValue({ ...value, n: newVal })}
@@ -175,7 +196,12 @@ function UnmappedTransformConfigForm(
         </div>
         <div className="flex flex-row gap-2">
           <TransformerSelect
-            getTransformers={() => transformerHandler.getTransformers()} // todo: filter this by type
+            getTransformers={() =>
+              getFilterdTransformersByType(
+                transformerHandler,
+                TransformerDataType.STRING
+              )
+            } // todo: filter this by type
             buttonText={getButtonText(strTransformer)}
             value={value.s}
             onSelect={(newVal) => setValue({ ...value, s: newVal })}
@@ -191,6 +217,24 @@ function UnmappedTransformConfigForm(
       </div>
     </div>
   );
+}
+
+function getFilterdTransformersByType(
+  transformerHandler: TransformerHandler,
+  datatype: TransformerDataType
+): {
+  system: SystemTransformer[];
+  userDefined: UserDefinedTransformer[];
+} {
+  return transformerHandler.getFilteredTransformers({
+    isForeignKey: false,
+    isVirtualForeignKey: false,
+    hasDefault: false,
+    isNullable: true,
+    isGenerated: false,
+    dataType: datatype,
+    jobType: SupportedJobType.SYNC,
+  });
 }
 
 function isInvalidTransformer(transformer: Transformer): boolean {
