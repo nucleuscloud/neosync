@@ -698,7 +698,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	}
 
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
-		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMysqlquerier, mockMongoConnector, mockAwsManager)
+		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMssqlQuerier, mockMongoConnector, mockAwsManager)
 
 	return &serviceMocks{
 		Service:                service,
