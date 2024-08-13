@@ -39,6 +39,7 @@ import (
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
@@ -308,10 +309,12 @@ func serve(ctx context.Context) error {
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+	mssqlpoolmap := &sync.Map{}
+	mssqlquerier := mssql_queries.New()
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
 	mongoconnector := mongoconnect.NewConnector()
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
-		mysqlquerier, mongoconnector, awsManager)
+		mysqlquerier, mssqlquerier, mongoconnector, awsManager)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,

@@ -12,6 +12,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	mock "github.com/stretchr/testify/mock"
@@ -25,7 +26,9 @@ func Test_NewPooledSqlDb_NewPostgresConnection(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockPgPoolContainer(t)
 
 	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(mockPool, nil)
@@ -64,7 +67,9 @@ func Test_NewPooledSqlDb_ExistingPostgresConnection(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockPgPoolContainer(t)
 
 	mockSqlConnector.AssertNotCalled(t, "NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything)
@@ -101,7 +106,9 @@ func Test_NewPooledSqlDb_NewMysqlConnection(t *testing.T) {
 	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
 
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockSqlDbContainer(t)
 	sqlDbMock, _, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
 	if err != nil {
@@ -145,7 +152,9 @@ func Test_NewPooledSqlDb_ExistingMysqlConnection(t *testing.T) {
 	mysqlcache := &sync.Map{}
 	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockSqlDbContainer(t)
 
 	mockSqlConnector.AssertNotCalled(t, "NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything)
@@ -179,7 +188,9 @@ func Test_NewSqlDbFromConnectionConfig_PostgresConnection(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockPgPoolContainer(t)
 
 	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(mockPool, nil)
@@ -217,7 +228,9 @@ func Test_NewSqlDbFromConnectionConfig_MysqlConnection(t *testing.T) {
 	mysqlcache := &sync.Map{}
 
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 	mockPool := sqlconnect.NewMockSqlDbContainer(t)
 	sqlDbMock, _, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
 	if err != nil {
@@ -279,7 +292,9 @@ func Test_NewSqlDbFromUrl(t *testing.T) {
 	mysqlcache := &sync.Map{}
 
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mssqlcache := &sync.Map{}
+	mssqlquerier := mssql_queries.NewMockQuerier(t)
+	mockSqlmanager := NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mssqlcache, mssqlquerier, mockSqlConnector)
 
 	// Test for PostgreSQL
 	postgresURL := "postgres://user:password@localhost/db"
