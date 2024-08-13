@@ -86,7 +86,13 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		if err != nil {
 			return nil, fmt.Errorf("failed to describe table %s: %w", tableMapping.Table, err)
 		}
-		mappedKeys := slices.Concat(columns, []string{tableKey.HashKey, tableKey.RangeKey})
+
+		tableKeyList := []string{tableKey.HashKey}
+		if tableKey.RangeKey != "" {
+			tableKeyList = append(tableKeyList, tableKey.RangeKey)
+		}
+
+		mappedKeys := slices.Concat(columns, tableKeyList)
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
