@@ -27,6 +27,7 @@ message JobSourceOptions {
     AiGenerateSourceOptions ai_generate = 5;
     MongoDBSourceConnectionOptions mongodb = 6;
     DynamoDBSourceConnectionOptions dynamodb = 7;
+    MssqlSourceConnectionOptions mssql = 8;
   }
 }
 
@@ -160,6 +161,22 @@ message MysqlSourceTableOption {
   optional string where_clause = 2;
 }
 
+message MssqlSourceConnectionOptions {
+  bool halt_on_new_column_addition = 1;
+  repeated MssqlSourceSchemaOption schemas = 2;
+  string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  bool subset_by_foreign_key_constraints = 4;
+}
+
+message MssqlSourceSchemaOption {
+  string schema = 1;
+  repeated MssqlSourceTableOption tables = 2;
+}
+message MssqlSourceTableOption {
+  string table = 1;
+  optional string where_clause = 2;
+}
+
 message AwsS3SourceConnectionOptions {
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -175,6 +192,8 @@ message JobDestinationOptions {
     GcpCloudStorageDestinationConnectionOptions gcp_cloudstorage_options = 5;
     // Destination Connection options for DynamoDB
     DynamoDBDestinationConnectionOptions dynamodb_options = 6;
+    // Destination Connection options for Microsoft SQL Server
+    MssqlDestinationConnectionOptions mssql_options = 7;
   }
 }
 
@@ -221,6 +240,18 @@ message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
 }
 message MysqlOnConflictConfig {
+  bool do_nothing = 1;
+}
+
+message MssqlDestinationConnectionOptions {
+  MssqlTruncateTableConfig truncate_table = 1;
+  bool init_table_schema = 2;
+  MssqlOnConflictConfig on_conflict = 3;
+}
+message MssqlTruncateTableConfig {
+  bool truncate_before_insert = 1;
+}
+message MssqlOnConflictConfig {
   bool do_nothing = 1;
 }
 
@@ -349,12 +380,17 @@ message DynamoDBSourceSchemaSubset {
   repeated DynamoDBSourceTableOption tables = 1;
 }
 
+message MssqlSourceSchemaSubset {
+  repeated MssqlSourceSchemaOption mssql_schemas = 1;
+}
+
 message JobSourceSqlSubetSchemas {
   oneof schemas {
     option (buf.validate.oneof).required = true;
     PostgresSourceSchemaSubset postgres_subset = 2;
     MysqlSourceSchemaSubset mysql_subset = 3;
     DynamoDBSourceSchemaSubset dynamodb_subset = 4;
+    MssqlSourceSchemaSubset mssql_subset = 5;
   }
 }
 

@@ -389,6 +389,12 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
      */
     value: DynamoDBSourceConnectionOptions;
     case: "dynamodb";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MssqlSourceConnectionOptions mssql = 8;
+     */
+    value: MssqlSourceConnectionOptions;
+    case: "mssql";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceOptions>) {
@@ -406,6 +412,7 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
     { no: 5, name: "ai_generate", kind: "message", T: AiGenerateSourceOptions, oneof: "config" },
     { no: 6, name: "mongodb", kind: "message", T: MongoDBSourceConnectionOptions, oneof: "config" },
     { no: 7, name: "dynamodb", kind: "message", T: DynamoDBSourceConnectionOptions, oneof: "config" },
+    { no: 8, name: "mssql", kind: "message", T: MssqlSourceConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
@@ -1322,6 +1329,147 @@ export class MysqlSourceTableOption extends Message<MysqlSourceTableOption> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.MssqlSourceConnectionOptions
+ */
+export class MssqlSourceConnectionOptions extends Message<MssqlSourceConnectionOptions> {
+  /**
+   * @generated from field: bool halt_on_new_column_addition = 1;
+   */
+  haltOnNewColumnAddition = false;
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MssqlSourceSchemaOption schemas = 2;
+   */
+  schemas: MssqlSourceSchemaOption[] = [];
+
+  /**
+   * @generated from field: string connection_id = 3;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: bool subset_by_foreign_key_constraints = 4;
+   */
+  subsetByForeignKeyConstraints = false;
+
+  constructor(data?: PartialMessage<MssqlSourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlSourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "schemas", kind: "message", T: MssqlSourceSchemaOption, repeated: true },
+    { no: 3, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "subset_by_foreign_key_constraints", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlSourceConnectionOptions {
+    return new MssqlSourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlSourceConnectionOptions {
+    return new MssqlSourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlSourceConnectionOptions {
+    return new MssqlSourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlSourceConnectionOptions | PlainMessage<MssqlSourceConnectionOptions> | undefined, b: MssqlSourceConnectionOptions | PlainMessage<MssqlSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MssqlSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MssqlSourceSchemaOption
+ */
+export class MssqlSourceSchemaOption extends Message<MssqlSourceSchemaOption> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MssqlSourceTableOption tables = 2;
+   */
+  tables: MssqlSourceTableOption[] = [];
+
+  constructor(data?: PartialMessage<MssqlSourceSchemaOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlSourceSchemaOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "tables", kind: "message", T: MssqlSourceTableOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlSourceSchemaOption {
+    return new MssqlSourceSchemaOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlSourceSchemaOption {
+    return new MssqlSourceSchemaOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlSourceSchemaOption {
+    return new MssqlSourceSchemaOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlSourceSchemaOption | PlainMessage<MssqlSourceSchemaOption> | undefined, b: MssqlSourceSchemaOption | PlainMessage<MssqlSourceSchemaOption> | undefined): boolean {
+    return proto3.util.equals(MssqlSourceSchemaOption, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MssqlSourceTableOption
+ */
+export class MssqlSourceTableOption extends Message<MssqlSourceTableOption> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: optional string where_clause = 2;
+   */
+  whereClause?: string;
+
+  constructor(data?: PartialMessage<MssqlSourceTableOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlSourceTableOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlSourceTableOption {
+    return new MssqlSourceTableOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlSourceTableOption {
+    return new MssqlSourceTableOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlSourceTableOption {
+    return new MssqlSourceTableOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlSourceTableOption | PlainMessage<MssqlSourceTableOption> | undefined, b: MssqlSourceTableOption | PlainMessage<MssqlSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(MssqlSourceTableOption, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.AwsS3SourceConnectionOptions
  */
 export class AwsS3SourceConnectionOptions extends Message<AwsS3SourceConnectionOptions> {
@@ -1405,6 +1553,14 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
      */
     value: DynamoDBDestinationConnectionOptions;
     case: "dynamodbOptions";
+  } | {
+    /**
+     * Destination Connection options for Microsoft SQL Server
+     *
+     * @generated from field: mgmt.v1alpha1.MssqlDestinationConnectionOptions mssql_options = 7;
+     */
+    value: MssqlDestinationConnectionOptions;
+    case: "mssqlOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobDestinationOptions>) {
@@ -1421,6 +1577,7 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
     { no: 4, name: "mongodb_options", kind: "message", T: MongoDBDestinationConnectionOptions, oneof: "config" },
     { no: 5, name: "gcp_cloudstorage_options", kind: "message", T: GcpCloudStorageDestinationConnectionOptions, oneof: "config" },
     { no: 6, name: "dynamodb_options", kind: "message", T: DynamoDBDestinationConnectionOptions, oneof: "config" },
+    { no: 7, name: "mssql_options", kind: "message", T: MssqlDestinationConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
@@ -1843,6 +2000,129 @@ export class MysqlOnConflictConfig extends Message<MysqlOnConflictConfig> {
 
   static equals(a: MysqlOnConflictConfig | PlainMessage<MysqlOnConflictConfig> | undefined, b: MysqlOnConflictConfig | PlainMessage<MysqlOnConflictConfig> | undefined): boolean {
     return proto3.util.equals(MysqlOnConflictConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MssqlDestinationConnectionOptions
+ */
+export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationConnectionOptions> {
+  /**
+   * @generated from field: mgmt.v1alpha1.MssqlTruncateTableConfig truncate_table = 1;
+   */
+  truncateTable?: MssqlTruncateTableConfig;
+
+  /**
+   * @generated from field: bool init_table_schema = 2;
+   */
+  initTableSchema = false;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.MssqlOnConflictConfig on_conflict = 3;
+   */
+  onConflict?: MssqlOnConflictConfig;
+
+  constructor(data?: PartialMessage<MssqlDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_table", kind: "message", T: MssqlTruncateTableConfig },
+    { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "on_conflict", kind: "message", T: MssqlOnConflictConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlDestinationConnectionOptions {
+    return new MssqlDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlDestinationConnectionOptions {
+    return new MssqlDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlDestinationConnectionOptions {
+    return new MssqlDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlDestinationConnectionOptions | PlainMessage<MssqlDestinationConnectionOptions> | undefined, b: MssqlDestinationConnectionOptions | PlainMessage<MssqlDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MssqlDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MssqlTruncateTableConfig
+ */
+export class MssqlTruncateTableConfig extends Message<MssqlTruncateTableConfig> {
+  /**
+   * @generated from field: bool truncate_before_insert = 1;
+   */
+  truncateBeforeInsert = false;
+
+  constructor(data?: PartialMessage<MssqlTruncateTableConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlTruncateTableConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlTruncateTableConfig {
+    return new MssqlTruncateTableConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlTruncateTableConfig {
+    return new MssqlTruncateTableConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlTruncateTableConfig {
+    return new MssqlTruncateTableConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlTruncateTableConfig | PlainMessage<MssqlTruncateTableConfig> | undefined, b: MssqlTruncateTableConfig | PlainMessage<MssqlTruncateTableConfig> | undefined): boolean {
+    return proto3.util.equals(MssqlTruncateTableConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MssqlOnConflictConfig
+ */
+export class MssqlOnConflictConfig extends Message<MssqlOnConflictConfig> {
+  /**
+   * @generated from field: bool do_nothing = 1;
+   */
+  doNothing = false;
+
+  constructor(data?: PartialMessage<MssqlOnConflictConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlOnConflictConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "do_nothing", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlOnConflictConfig {
+    return new MssqlOnConflictConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlOnConflictConfig {
+    return new MssqlOnConflictConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlOnConflictConfig {
+    return new MssqlOnConflictConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlOnConflictConfig | PlainMessage<MssqlOnConflictConfig> | undefined, b: MssqlOnConflictConfig | PlainMessage<MssqlOnConflictConfig> | undefined): boolean {
+    return proto3.util.equals(MssqlOnConflictConfig, a, b);
   }
 }
 
@@ -2708,6 +2988,43 @@ export class DynamoDBSourceSchemaSubset extends Message<DynamoDBSourceSchemaSubs
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.MssqlSourceSchemaSubset
+ */
+export class MssqlSourceSchemaSubset extends Message<MssqlSourceSchemaSubset> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MssqlSourceSchemaOption mssql_schemas = 1;
+   */
+  mssqlSchemas: MssqlSourceSchemaOption[] = [];
+
+  constructor(data?: PartialMessage<MssqlSourceSchemaSubset>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlSourceSchemaSubset";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mssql_schemas", kind: "message", T: MssqlSourceSchemaOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlSourceSchemaSubset {
+    return new MssqlSourceSchemaSubset().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlSourceSchemaSubset {
+    return new MssqlSourceSchemaSubset().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlSourceSchemaSubset {
+    return new MssqlSourceSchemaSubset().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlSourceSchemaSubset | PlainMessage<MssqlSourceSchemaSubset> | undefined, b: MssqlSourceSchemaSubset | PlainMessage<MssqlSourceSchemaSubset> | undefined): boolean {
+    return proto3.util.equals(MssqlSourceSchemaSubset, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.JobSourceSqlSubetSchemas
  */
 export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> {
@@ -2732,6 +3049,12 @@ export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> 
      */
     value: DynamoDBSourceSchemaSubset;
     case: "dynamodbSubset";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MssqlSourceSchemaSubset mssql_subset = 5;
+     */
+    value: MssqlSourceSchemaSubset;
+    case: "mssqlSubset";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceSqlSubetSchemas>) {
@@ -2745,6 +3068,7 @@ export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> 
     { no: 2, name: "postgres_subset", kind: "message", T: PostgresSourceSchemaSubset, oneof: "schemas" },
     { no: 3, name: "mysql_subset", kind: "message", T: MysqlSourceSchemaSubset, oneof: "schemas" },
     { no: 4, name: "dynamodb_subset", kind: "message", T: DynamoDBSourceSchemaSubset, oneof: "schemas" },
+    { no: 5, name: "mssql_subset", kind: "message", T: MssqlSourceSchemaSubset, oneof: "schemas" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceSqlSubetSchemas {
