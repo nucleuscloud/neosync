@@ -320,11 +320,13 @@ func Test_getDriverFromConnection(t *testing.T) {
 
 func getPgGenDbConfig(t *testing.T) sqlconnect.GeneralDbConnectConfig {
 	t.Helper()
+	port := int32(5432)
+	db := "test"
 	return sqlconnect.GeneralDbConnectConfig{
 		Driver:   "postgres",
 		Host:     "localhost",
-		Port:     5432,
-		Database: "test",
+		Port:     &port,
+		Database: &db,
 		User:     "foo",
 		Pass:     "bar",
 	}

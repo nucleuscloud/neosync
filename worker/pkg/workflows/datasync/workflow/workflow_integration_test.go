@@ -15,6 +15,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -831,9 +832,11 @@ func executeWorkflow(
 	temporalClientMock := temporalmocks.NewClient(t)
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
+	mssqlpoolmap := &sync.Map{}
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlconnector)
+	mssqlquerier := mssql_queries.New()
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
 
 	// temporal workflow
 	testSuite := &testsuite.WorkflowTestSuite{}
