@@ -755,6 +755,93 @@ type JobSourceOptions struct {
 	AiGenerateOptions *AiGenerateSourceOptions `json:"aiGenerateOptions,omitempty"`
 	MongoDbOptions    *MongoDbSourceOptions    `json:"mongoOptions,omitempty"`
 	DynamoDBOptions   *DynamoDBSourceOptions   `json:"dynamoDBOptions,omitempty"`
+	MssqlOptions      *MssqlSourceOptions      `json:"mssqlOptions,omitempty"`
+}
+
+type MssqlSourceOptions struct {
+	HaltOnNewColumnAddition       bool                       `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                       `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MssqlSourceSchemaOption `json:"schemas"`
+	ConnectionId                  string                     `json:"connectionId"`
+}
+
+func (m *MssqlSourceOptions) ToDto() *mgmtv1alpha1.MssqlSourceConnectionOptions {
+	dto := &mgmtv1alpha1.MssqlSourceConnectionOptions{
+		HaltOnNewColumnAddition:       m.HaltOnNewColumnAddition,
+		ConnectionId:                  m.ConnectionId,
+		Schemas:                       make([]*mgmtv1alpha1.MssqlSourceSchemaOption, len(m.Schemas)),
+		SubsetByForeignKeyConstraints: m.SubsetByForeignKeyConstraints,
+	}
+	for idx := range m.Schemas {
+		dto.Schemas[idx] = m.Schemas[idx].ToDto()
+	}
+	return dto
+}
+func (m *MssqlSourceOptions) FromDto(dto *mgmtv1alpha1.MssqlSourceConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlSourceConnectionOptions{}
+	}
+	m.HaltOnNewColumnAddition = dto.GetHaltOnNewColumnAddition()
+	m.ConnectionId = dto.GetConnectionId()
+	m.SubsetByForeignKeyConstraints = dto.GetSubsetByForeignKeyConstraints()
+	m.Schemas = FromDtoMssqlSourceSchemaOptions(dto.GetSchemas())
+}
+
+type MssqlSourceSchemaOption struct {
+	Schema string                    `json:"schema"`
+	Tables []*MssqlSourceTableOption `json:"tables"`
+}
+
+func (m *MssqlSourceSchemaOption) ToDto() *mgmtv1alpha1.MssqlSourceSchemaOption {
+	dto := &mgmtv1alpha1.MssqlSourceSchemaOption{
+		Schema: m.Schema,
+		Tables: make([]*mgmtv1alpha1.MssqlSourceTableOption, 0, len(m.Tables)),
+	}
+	for _, table := range m.Tables {
+		dto.Tables = append(dto.Tables, table.ToDto())
+	}
+	return dto
+}
+func (m *MssqlSourceSchemaOption) FromDto(dto *mgmtv1alpha1.MssqlSourceSchemaOption) {
+	m.Schema = dto.GetSchema()
+	m.Tables = FromDtoMssqlSourceTableOption(dto.GetTables())
+}
+
+func FromDtoMssqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MssqlSourceSchemaOption) []*MssqlSourceSchemaOption {
+	output := make([]*MssqlSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		output[idx] = &MssqlSourceSchemaOption{}
+		output[idx].FromDto(dtos[idx])
+	}
+	return output
+}
+
+func FromDtoMssqlSourceTableOption(dtos []*mgmtv1alpha1.MssqlSourceTableOption) []*MssqlSourceTableOption {
+	output := make([]*MssqlSourceTableOption, len(dtos))
+	for idx := range dtos {
+		output[idx] = &MssqlSourceTableOption{}
+		output[idx].FromDto(dtos[idx])
+	}
+	return output
+}
+
+type MssqlSourceTableOption struct {
+	Table       string  `json:"table"`
+	WhereClause *string `json:"whereClause,omitempty"`
+}
+
+func (m *MssqlSourceTableOption) ToDto() *mgmtv1alpha1.MssqlSourceTableOption {
+	return &mgmtv1alpha1.MssqlSourceTableOption{
+		Table:       m.Table,
+		WhereClause: m.WhereClause,
+	}
+}
+func (m *MssqlSourceTableOption) FromDto(dto *mgmtv1alpha1.MssqlSourceTableOption) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlSourceTableOption{}
+	}
+	m.Table = dto.GetTable()
+	m.WhereClause = dto.WhereClause
 }
 
 type DynamoDBSourceOptions struct {
