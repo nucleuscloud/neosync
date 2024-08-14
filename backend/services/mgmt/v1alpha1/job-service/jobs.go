@@ -364,6 +364,8 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Mongodb.GetConnectionId())
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		connectionIds = append(connectionIds, config.Dynamodb.GetConnectionId())
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		connectionIds = append(connectionIds, config.Mssql.GetConnectionId())
 	default:
 	}
 
@@ -898,6 +900,8 @@ func (s *Service) UpdateJobSourceConnection(
 		connectionIdToVerify = config.Mongodb.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		connectionIdToVerify = config.Dynamodb.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		connectionIdToVerify = config.Mssql.GetConnectionId()
 	default:
 		return nil, fmt.Errorf("unable to find connection id to verify for config: %T", config)
 	}
@@ -945,6 +949,13 @@ func (s *Service) UpdateJobSourceConnection(
 		}
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 		dbConf := req.Msg.GetSource().GetOptions().GetDynamodb()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		dbConf := req.Msg.GetSource().GetOptions().GetMssql()
 		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
 		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
 		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
@@ -1069,6 +1080,8 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 			connectionId = &job.ConnectionOptions.PostgresOptions.ConnectionId
 		} else if job.ConnectionOptions.DynamoDBOptions != nil {
 			connectionId = &job.ConnectionOptions.DynamoDBOptions.ConnectionId
+		} else if job.ConnectionOptions.MssqlOptions != nil {
+			connectionId = &job.ConnectionOptions.MssqlOptions.ConnectionId
 		} else {
 			return nil, nucleuserrors.NewBadRequest("only jobs with a valid source connection id may be subset")
 		}
@@ -1086,7 +1099,7 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 	connection := connectionResp.Msg.Connection
 
 	if connection.ConnectionConfig == nil ||
-		(connection.ConnectionConfig.GetPgConfig() == nil && connection.ConnectionConfig.GetMysqlConfig() == nil && connection.ConnectionConfig.GetDynamodbConfig() == nil) {
+		(connection.ConnectionConfig.GetPgConfig() == nil && connection.ConnectionConfig.GetMysqlConfig() == nil && connection.ConnectionConfig.GetDynamodbConfig() == nil && connection.ConnectionConfig.GetMssqlConfig() == nil) {
 		return nil, nucleuserrors.NewBadRequest("may only update subsets for select source connections")
 	}
 
@@ -1405,6 +1418,9 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 		}
 		if sourceConnection.ConnectionConfig.DynamoDBConfig != nil && d.ConnectionConfig.DynamoDBConfig == nil {
 			// invalid DynamoDB source cannot have anything other than dynamodb to start
+			return false, nil
+		}
+		if sourceConnection.ConnectionConfig.MssqlConfig != nil && d.ConnectionConfig.MssqlConfig == nil {
 			return false, nil
 		}
 	}
@@ -1968,6 +1984,9 @@ func getJobSourceConnectionId(jobSource *mgmtv1alpha1.JobSource) (*string, error
 		}
 	case *mgmtv1alpha1.JobSourceOptions_Dynamodb:
 		connId := config.Dynamodb.GetConnectionId()
+		connectionIdToVerify = &connId
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		connId := config.Mssql.GetConnectionId()
 		connectionIdToVerify = &connId
 	default:
 		return nil, fmt.Errorf("unsupported source option config type: %T", config)
