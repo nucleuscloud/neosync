@@ -48,7 +48,7 @@ func (p *Provider) GetConnectionDetails(
 
 func (p *Provider) GetConnectionClient(driver, connectionString string, opts any) (any, error) {
 	switch driver {
-	case "mysql", "postgres", "postgresql":
+	case "mysql", "postgres", "postgresql", "sqlserver":
 		typedopts, ok := opts.(*sqlprovider.ConnectionClientConfig)
 		if !ok {
 			return nil, fmt.Errorf("opts was not *sqlprovider.ConnectionClientConfig, was %T", opts)
@@ -75,7 +75,7 @@ func (p *Provider) GetConnectionClientConfig(cc *mgmtv1alpha1.ConnectionConfig) 
 	switch cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		return p.mp.GetConnectionClientConfig(cc)
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		return p.sp.GetConnectionClientConfig(cc)
 	default:
 		return nil, fmt.Errorf("unsupported connection config: %T", cc.GetConfig())
