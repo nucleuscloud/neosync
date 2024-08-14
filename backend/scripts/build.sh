@@ -2,7 +2,7 @@
 
 BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 GIT_COMMIT=$(git rev-parse HEAD)
-VERSION=$(git describe --tags --abbrev=0 | tr -d '\n')
+VERSION=$(echo $(git describe --tags --abbrev=0 2> /dev/null || echo "untagged" ) | tr -d '\n')
 
 if [ ! -z "${TILT_HOST}" ]; then
   # when invoked by tilt set the OS so that binary will run on linux container

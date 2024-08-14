@@ -13,7 +13,8 @@ help:
 
 BUILD_DATE ?= $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
-VERSION ?= $(shell git describe --tags --abbrev=0 | tr -d '\n')
+VERSION ?=$(shell echo $(shell git describe --tags --abbrev=0 2> /dev/null || echo "untagged" ) | tr -d '\n')
+
 
 vet:
 	go vet ./...
