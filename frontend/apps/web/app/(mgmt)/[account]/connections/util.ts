@@ -124,7 +124,8 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
 export function getConnectionsMetadata(
   connectionTypes: Set<string>,
   isGcpCloudStorageConnectionsEnabled: boolean,
-  isDynamoDbConnectionsEnabled: boolean
+  isDynamoDbConnectionsEnabled: boolean,
+  isMssqlConnectionsEnabled: boolean
 ): ConnectionMeta[] {
   let connections = CONNECTIONS_METADATA;
   if (!isGcpCloudStorageConnectionsEnabled) {
@@ -136,6 +137,9 @@ export function getConnectionsMetadata(
     connections = connections.filter(
       (c) => c.connectionType !== 'dynamodbConfig'
     );
+  }
+  if (!isMssqlConnectionsEnabled) {
+    connections = connections.filter((c) => c.connectionType !== 'mssqlConfig');
   }
   if (connectionTypes.size > 0) {
     connections = connections.filter((c) =>
