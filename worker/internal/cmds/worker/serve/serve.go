@@ -18,6 +18,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -128,8 +129,10 @@ func serve(ctx context.Context) error {
 
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
+	mssqlpoolmap := &sync.Map{}
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
+	mssqlquerier := mssql_queries.New()
 
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
@@ -137,7 +140,7 @@ func serve(ctx context.Context) error {
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl)
 	sqlconnector := &sqlconnect.SqlOpenConnector{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlconnector)
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
 	redisconfig := shared.GetRedisConfig()
 
 	genbenthosActivity := genbenthosconfigs_activity.New(

@@ -15,6 +15,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -77,7 +78,7 @@ func (c *ConnectionDetails) String() string {
 		// todo: would be great to check if tunnel has been started...
 		localhost, port := c.Tunnel.GetLocalHostPort()
 		c.GeneralDbConnectConfig.Host = localhost
-		c.GeneralDbConnectConfig.Port = int32(port)
+		c.GeneralDbConnectConfig.Port = shared.Ptr(int32(port))
 	}
 	return c.GeneralDbConnectConfig.String()
 }
@@ -92,6 +93,7 @@ type ClientCertConfig struct {
 const (
 	mysqlDriver    = "mysql"
 	postgresDriver = "postgres"
+	mssqlDriver    = "sqlserver"
 	localhost      = "localhost"
 	randomPort     = 0
 )
@@ -149,7 +151,7 @@ func GetConnectionDetails(
 			}
 			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = portValue
+			connDetails.Port = &portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -202,7 +204,7 @@ func GetConnectionDetails(
 
 			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = portValue
+			connDetails.Port = &portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -218,8 +220,22 @@ func GetConnectionDetails(
 			GeneralDbConnectConfig: *connDetails,
 			MaxConnectionLimit:     maxConnLimit,
 		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		var maxConnLimit *int32
+		if config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit != nil {
+			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
+		}
+
+		connDetails, err := getGeneralDbConnectionConfigFromMssql(config, connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
+		return &ConnectionDetails{
+			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
+		}, nil
 	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config (%T) is not currently supported", config))
 	}
 }
 
@@ -232,7 +248,11 @@ func getEndpointFromPgConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_PgC
 		if err != nil {
 			return nil, err
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, int(details.Port), details.User), nil
+		port := 0
+		if details.Port != nil {
+			port = int(*details.Port)
+		}
+		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
 	}
@@ -247,7 +267,11 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		if err != nil {
 			return nil, err
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, int(details.Port), details.User), nil
+		port := 0
+		if details.Port != nil {
+			port = int(*details.Port)
+		}
+		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
@@ -256,9 +280,10 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 type GeneralDbConnectConfig struct {
 	Driver string
 
-	Host     string
-	Port     int32
-	Database string
+	Host string
+	Port *int32
+	// For mssql this is actually the path..the database is provided as a query parameter
+	Database *string
 	User     string
 	Pass     string
 
@@ -271,8 +296,10 @@ func (g *GeneralDbConnectConfig) String() string {
 	if g.Driver == postgresDriver {
 		u := url.URL{
 			Scheme: "postgres",
-			Host:   fmt.Sprintf("%s:%d", g.Host, g.Port),
-			Path:   g.Database,
+			Host:   buildDbUrlHost(g.Host, g.Port),
+		}
+		if g.Database != nil {
+			u.Path = *g.Database
 		}
 
 		// Add user info
@@ -287,13 +314,16 @@ func (g *GeneralDbConnectConfig) String() string {
 		if g.Protocol != nil {
 			protocol = *g.Protocol
 		}
-		address := fmt.Sprintf("(%s:%d)", g.Host, g.Port)
+		address := fmt.Sprintf("(%s)", buildDbUrlHost(g.Host, g.Port))
 
 		// User info
 		userInfo := url.UserPassword(g.User, g.Pass).String()
 
 		// Base DSN
-		dsn := fmt.Sprintf("%s@%s%s/%s", userInfo, protocol, address, g.Database)
+		dsn := fmt.Sprintf("%s@%s%s", userInfo, protocol, address)
+		if g.Database != nil {
+			dsn = fmt.Sprintf("%s/%s", dsn, *g.Database)
+		}
 
 		// Append query parameters if any
 		if len(g.QueryParams) > 0 {
@@ -302,7 +332,29 @@ func (g *GeneralDbConnectConfig) String() string {
 		}
 		return dsn
 	}
+	if g.Driver == mssqlDriver {
+		u := url.URL{
+			Scheme: mssqlDriver,
+			Host:   buildDbUrlHost(g.Host, g.Port),
+		}
+		if g.Database != nil {
+			u.Path = *g.Database
+		}
+		// Add user info
+		if g.User != "" || g.Pass != "" {
+			u.User = url.UserPassword(g.User, g.Pass)
+		}
+		u.RawQuery = g.QueryParams.Encode()
+		return u.String()
+	}
 	return ""
+}
+
+func buildDbUrlHost(host string, port *int32) string {
+	if port != nil {
+		return fmt.Sprintf("%s:%d", host, *port)
+	}
+	return host
 }
 
 func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, connectionTimeout *uint32) (*GeneralDbConnectConfig, error) {
@@ -316,8 +368,8 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 		return &GeneralDbConnectConfig{
 			Driver:      mysqlDriver,
 			Host:        cc.Connection.Host,
-			Port:        cc.Connection.Port,
-			Database:    cc.Connection.Name,
+			Port:        &cc.Connection.Port,
+			Database:    &cc.Connection.Name,
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
 			Protocol:    &cc.Connection.Protocol,
@@ -373,8 +425,8 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 		return &GeneralDbConnectConfig{
 			Driver:      u.Scheme,
 			Host:        u.Hostname(),
-			Port:        port,
-			Database:    database,
+			Port:        &port,
+			Database:    &database,
 			User:        user,
 			Pass:        pass,
 			Protocol:    nil,
@@ -408,8 +460,8 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        cc.Connection.Host,
-			Port:        cc.Connection.Port,
-			Database:    cc.Connection.Name,
+			Port:        &cc.Connection.Port,
+			Database:    &cc.Connection.Name,
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
 			QueryParams: query,
@@ -453,17 +505,69 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 				query.Add("sslkey", *filenames.ClientKey)
 			}
 		}
-
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        host,
-			Port:        int32(port),
-			Database:    strings.TrimPrefix(u.Path, "/"),
+			Port:        shared.Ptr(int32(port)),
+			Database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
 			User:        user,
 			Pass:        pass,
 			QueryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
+	}
+}
+
+func getGeneralDbConnectionConfigFromMssql(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, connectionTimeout *uint32) (*GeneralDbConnectConfig, error) {
+	switch cc := config.MssqlConfig.ConnectionConfig.(type) {
+	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
+		u, err := url.Parse(cc.Url)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return nil, fmt.Errorf("unable to parse mssql url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return nil, fmt.Errorf("unable to parse mssql url: %w", err)
+		}
+		user := u.User.Username()
+		pass, _ := u.User.Password()
+
+		host, portStr := u.Hostname(), u.Port()
+
+		query := u.Query()
+
+		var port *int32
+		if portStr != "" {
+			parsedPort, err := strconv.ParseInt(portStr, 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("invalid port when processing mssql connection url: %w", err)
+			}
+			port = shared.Ptr(int32(parsedPort))
+		}
+
+		var instance *string
+		if u.Path != "" {
+			trimmed := strings.TrimPrefix(u.Path, "/")
+			if trimmed != "" {
+				instance = &trimmed
+			}
+		}
+
+		if connectionTimeout != nil {
+			query.Add("connection timeout", fmt.Sprintf("%d", *connectionTimeout))
+		}
+
+		return &GeneralDbConnectConfig{
+			Driver:      mssqlDriver,
+			Host:        host,
+			Port:        port,
+			Database:    instance,
+			User:        user,
+			Pass:        pass,
+			QueryParams: query,
+		}, nil
+	default:
+		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}
 }

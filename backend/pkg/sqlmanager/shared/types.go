@@ -93,6 +93,7 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 const (
 	PostgresDriver = "postgres"
 	MysqlDriver    = "mysql"
+	MssqlDriver    = "sqlserver"
 )
 
 type BatchExecOpts struct {

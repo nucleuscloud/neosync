@@ -10,7 +10,7 @@ import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
 import { DiMongodb, DiMysql, DiPostgresql } from 'react-icons/di';
 import { FaAws } from 'react-icons/fa';
-import { SiGooglecloud } from 'react-icons/si';
+import { SiGooglecloud, SiMicrosoftsqlserver } from 'react-icons/si';
 
 interface Props {
   connectionType: ConnectionConfigCase;
@@ -85,6 +85,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <SiGooglecloud />
+        </IconContext.Provider>
+      );
+    }
+    case 'mssqlConfig': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <SiMicrosoftsqlserver />
         </IconContext.Provider>
       );
     }

@@ -15,12 +15,15 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	pgxslog "github.com/nucleuscloud/neosync/backend/internal/pgx-slog"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/microsoft/go-mssqldb" // This is commented out because one of our dependencies is importing this already and it panics if called more than once.
 )
 
 type SqlDatabase interface {
@@ -46,6 +49,9 @@ type SqlManager struct {
 	mysqlpool    *sync.Map
 	mysqlquerier mysql_queries.Querier
 
+	mssqlpool    *sync.Map
+	mssqlquerier mssql_queries.Querier
+
 	sqlconnector sqlconnect.SqlConnector
 }
 
@@ -54,6 +60,8 @@ func NewSqlManager(
 	pgquerier pg_queries.Querier,
 	mysqlpool *sync.Map,
 	mysqlquerier mysql_queries.Querier,
+	mssqlpool *sync.Map,
+	mssqlquerier mssql_queries.Querier,
 	sqlconnector sqlconnect.SqlConnector,
 ) *SqlManager {
 	return &SqlManager{
@@ -61,6 +69,8 @@ func NewSqlManager(
 		pgquerier:    pgquerier,
 		mysqlpool:    mysqlpool,
 		mysqlquerier: mysqlquerier,
+		mssqlpool:    mssqlpool,
+		mssqlquerier: mssqlquerier,
 		sqlconnector: sqlconnector,
 	}
 }
@@ -164,6 +174,36 @@ func (s *SqlManager) NewPooledSqlDb(
 
 		db = sqlmanager_mysql.NewManager(s.mysqlquerier, pool, closer)
 		driver = sqlmanager_shared.MysqlDriver
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		var closer func()
+		if _, ok := s.mssqlpool.Load(connection.Id); !ok {
+			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
+			if err != nil {
+				return nil, fmt.Errorf("unable to create new mssql pool from connection config: %w", err)
+			}
+			pool, err := conn.Open()
+			if err != nil {
+				return nil, fmt.Errorf("unable to open mssql connection: %w", err)
+			}
+			s.mssqlpool.Store(connection.Id, pool)
+			closer = func() {
+				if conn != nil {
+					err := conn.Close()
+					if err != nil {
+						slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+					}
+					s.mssqlpool.Delete(connection.Id)
+				}
+			}
+		}
+		val, _ := s.mssqlpool.Load(connection.Id)
+		pool, ok := val.(mysql_queries.DBTX)
+		if !ok {
+			return nil, fmt.Errorf("pool found, but type assertion to mssql_queries.DBTX failed")
+		}
+
+		db = sqlmanager_mssql.NewManager(s.mssqlquerier, pool, closer)
+		driver = sqlmanager_shared.MssqlDriver
 	default:
 		return nil, fmt.Errorf("unsupported sql database connection: %T", connection.ConnectionConfig.Config)
 	}
@@ -235,6 +275,24 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 			}
 		})
 		driver = sqlmanager_shared.MysqlDriver
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new mssql client from connection config: %w", err)
+		}
+		pool, err := conn.Open()
+		if err != nil {
+			return nil, fmt.Errorf("unable to open mssql connection: %w", err)
+		}
+		db = sqlmanager_mssql.NewManager(s.mssqlquerier, pool, func() {
+			if conn != nil {
+				err := conn.Close()
+				if err != nil {
+					slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+				}
+			}
+		})
+		driver = sqlmanager_shared.MssqlDriver
 	default:
 		return nil, fmt.Errorf("unsupported sql database connection: %T", connectionConfig.Config)
 	}
@@ -288,6 +346,17 @@ func (s *SqlManager) NewSqlDbFromUrl(
 			}
 		})
 		driver = sqlmanager_shared.MysqlDriver
+	case sqlmanager_shared.MssqlDriver:
+		conn, err := sql.Open(sqlmanager_shared.MssqlDriver, connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		db = sqlmanager_mssql.NewManager(s.mssqlquerier, conn, func() {
+			if conn != nil {
+				conn.Close()
+			}
+		})
+		driver = sqlmanager_shared.MssqlDriver
 	default:
 		return nil, fmt.Errorf("unsupported sql driver: %s", driver)
 	}

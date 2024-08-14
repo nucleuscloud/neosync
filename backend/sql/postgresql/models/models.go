@@ -17,6 +17,7 @@ type ConnectionConfig struct {
 	MongoConfig           *MongoConnectionConfig          `json:"mongoConfig,omitempty"`
 	GcpCloudStorageConfig *GcpCloudStorageConfig          `json:"gcpCloudStorageConfig,omitempty"`
 	DynamoDBConfig        *DynamoDBConfig                 `json:"dynamoDBConfig,omitempty"`
+	MssqlConfig           *MssqlConfig                    `json:"mssqlConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
@@ -102,7 +103,8 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 							Url: *c.MysqlConfig.Url,
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}, nil
@@ -155,6 +157,16 @@ func (c *ConnectionConfig) ToDto() (*mgmtv1alpha1.ConnectionConfig, error) {
 				DynamodbConfig: dto,
 			},
 		}, nil
+	} else if c.MssqlConfig != nil {
+		mdto, err := c.MssqlConfig.ToDto()
+		if err != nil {
+			return nil, err
+		}
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+				MssqlConfig: mdto,
+			},
+		}, nil
 	}
 	return nil, errors.ErrUnsupported
 }
@@ -191,7 +203,7 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 			c.PgConfig.Url = &pgcfg.Url
 		default:
-			return fmt.Errorf("invalid postgres format")
+			return fmt.Errorf("invalid postgres format: %T", pgcfg)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		c.MysqlConfig = &MysqlConnectionConfig{}
@@ -216,7 +228,7 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 			c.MysqlConfig.Url = &mysqlcfg.Url
 		default:
-			return fmt.Errorf("invalid mysql format")
+			return fmt.Errorf("invalid mysql format: %T", mysqlcfg)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		c.AwsS3Config = &AwsS3ConnectionConfig{}
@@ -245,6 +257,12 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 		c.DynamoDBConfig = &DynamoDBConfig{}
 		err := c.DynamoDBConfig.FromDto(config.DynamodbConfig)
+		if err != nil {
+			return err
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		c.MssqlConfig = &MssqlConfig{}
+		err := c.MssqlConfig.FromDto(config.MssqlConfig)
 		if err != nil {
 			return err
 		}
@@ -324,10 +342,51 @@ func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnect
 	return nil
 }
 
+type MssqlConfig struct {
+	Url               *string            `json:"url,omitempty"`
+	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
+}
+
+func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
+	if d.Url == nil {
+		return nil, errors.New("mssql connection does not contain url")
+	}
+	var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
+	if d.ConnectionOptions != nil {
+		connectionOptions = d.ConnectionOptions.ToDto()
+	}
+	return &mgmtv1alpha1.MssqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+			Url: *d.Url,
+		},
+		ConnectionOptions: connectionOptions,
+	}, nil
+}
+
+func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlConnectionConfig{}
+	}
+
+	if dto.GetUrl() == "" {
+		return errors.New("mssql connection config dto url was empty")
+	}
+
+	url := dto.GetUrl()
+	d.Url = &url
+
+	if dto.GetConnectionConfig() != nil {
+		d.ConnectionOptions = &ConnectionOptions{}
+		d.ConnectionOptions.FromDto(dto.GetConnectionOptions())
+	}
+
+	return nil
+}
+
 type DynamoDBConfig struct {
-	Credentials *AwsS3Credentials
-	Region      *string
-	Endpoint    *string
+	Credentials *AwsS3Credentials `json:"Credentials,omitempty"`
+	Region      *string           `json:"Region,omitempty"`
+	Endpoint    *string           `json:"Endpoint,omitempty"`
 }
 
 func (d *DynamoDBConfig) ToDto() (*mgmtv1alpha1.DynamoDBConnectionConfig, error) {
@@ -380,6 +439,9 @@ func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {
 }
 
 func (s *ConnectionOptions) FromDto(dto *mgmtv1alpha1.SqlConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.SqlConnectionOptions{}
+	}
 	s.MaxConnectionLimit = dto.MaxConnectionLimit
 }
 

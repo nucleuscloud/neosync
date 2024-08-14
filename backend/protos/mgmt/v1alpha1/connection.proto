@@ -107,7 +107,21 @@ message ConnectionConfig {
     GcpCloudStorageConnectionConfig gcp_cloudstorage_config = 7;
     // Configures a DynamoDB Connection
     DynamoDBConnectionConfig dynamodb_config = 8;
+    // Configures a Microsoft SQL Server (mssql) Connection
+    MssqlConnectionConfig mssql_config = 9;
   }
+}
+
+// Configuration for a Mssql Connection
+message MssqlConnectionConfig {
+  // May provide a raw string url or in the future other methods of connection
+  oneof connection_config {
+    option (buf.validate.oneof).required = true;
+    // The URL with sqlserver scheme.
+    string url = 1;
+  }
+
+  SqlConnectionOptions connection_options = 2;
 }
 
 // Configuration for a DynaomDB Connection

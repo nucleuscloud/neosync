@@ -1540,6 +1540,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql_config",
+              "description": "Configures a Microsoft SQL Server (mssql) Connection",
+              "label": "",
+              "type": "MssqlConnectionConfig",
+              "longType": "MssqlConnectionConfig",
+              "fullType": "mgmt.v1alpha1.MssqlConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -2027,6 +2039,42 @@
               "type": "ClientTlsConfig",
               "longType": "ClientTlsConfig",
               "fullType": "mgmt.v1alpha1.ClientTlsConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlConnectionConfig",
+          "longName": "MssqlConnectionConfig",
+          "fullName": "mgmt.v1alpha1.MssqlConnectionConfig",
+          "description": "Configuration for a Mssql Connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL with sqlserver scheme.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_options",
+              "description": "",
+              "label": "",
+              "type": "SqlConnectionOptions",
+              "longType": "SqlConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

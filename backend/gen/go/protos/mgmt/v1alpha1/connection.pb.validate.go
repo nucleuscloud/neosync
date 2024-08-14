@@ -2178,6 +2178,47 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 		}
 
+	case *ConnectionConfig_MssqlConfig:
+		if v == nil {
+			err := ConnectionConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMssqlConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MssqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MssqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMssqlConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionConfigValidationError{
+					field:  "MssqlConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2259,6 +2300,154 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ConnectionConfigValidationError{}
+
+// Validate checks the field values on MssqlConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlConnectionConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlConnectionConfigMultiError, or nil if none found.
+func (m *MssqlConnectionConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlConnectionConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetConnectionOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MssqlConnectionConfigValidationError{
+					field:  "ConnectionOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MssqlConnectionConfigValidationError{
+					field:  "ConnectionOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConnectionOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MssqlConnectionConfigValidationError{
+				field:  "ConnectionOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	switch v := m.ConnectionConfig.(type) {
+	case *MssqlConnectionConfig_Url:
+		if v == nil {
+			err := MssqlConnectionConfigValidationError{
+				field:  "ConnectionConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Url
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return MssqlConnectionConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlConnectionConfigMultiError is an error wrapping multiple validation
+// errors returned by MssqlConnectionConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlConnectionConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlConnectionConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlConnectionConfigMultiError) AllErrors() []error { return m }
+
+// MssqlConnectionConfigValidationError is the validation error returned by
+// MssqlConnectionConfig.Validate if the designated constraints aren't met.
+type MssqlConnectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlConnectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlConnectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlConnectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlConnectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlConnectionConfigValidationError) ErrorName() string {
+	return "MssqlConnectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlConnectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlConnectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlConnectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlConnectionConfigValidationError{}
 
 // Validate checks the field values on DynamoDBConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are

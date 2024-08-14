@@ -8,6 +8,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
@@ -38,12 +39,14 @@ func New(
 	sqlConnector sqlconnect.SqlConnector,
 	pgquerier pg_queries.Querier,
 	mysqlquerier mysql_queries.Querier,
+	mssqlquerier mssql_queries.Querier,
 	mongoconnector mongoconnect.Interface,
 	awsManager awsmanager.NeosyncAwsManagerClient,
 ) *Service {
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
-	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+	mssqlpoolmap := &sync.Map{}
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
 	return &Service{
 		cfg:                cfg,
 		db:                 db,
