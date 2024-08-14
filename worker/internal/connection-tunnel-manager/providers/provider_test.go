@@ -73,6 +73,23 @@ func Test_Provider_GetConnectionDetails(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 	})
+
+	t.Run("mssql", func(t *testing.T) {
+		t.Parallel()
+		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
+		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
+
+		provider := NewProvider(mockMp, mockSp)
+
+		mockSp.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
+			Return(&sqlconnect.ConnectionDetails{}, nil)
+
+		result, err := provider.GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{},
+		}, nil, nil)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
 }
 
 func Test_Provider_GetConnectionClient(t *testing.T) {
@@ -148,6 +165,36 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 
 		var opts any = struct{}{}
 		result, err := provider.GetConnectionClient("mysql", "test-str", opts)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		t.Parallel()
+		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
+		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
+		mockDbtx := neosync_benthos_sql.NewMockSqlDbtx(t)
+
+		provider := NewProvider(mockMp, mockSp)
+
+		mockSp.On("GetConnectionClient", mock.Anything, mock.Anything, mock.Anything).
+			Return(mockDbtx, nil)
+
+		opts := &sqlprovider.ConnectionClientConfig{}
+		result, err := provider.GetConnectionClient("sqlserver", "test-str", opts)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+	})
+
+	t.Run("mssql-bad", func(t *testing.T) {
+		t.Parallel()
+		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
+		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
+
+		provider := NewProvider(mockMp, mockSp)
+
+		var opts any = struct{}{}
+		result, err := provider.GetConnectionClient("sqlserver", "test-str", opts)
 		require.Error(t, err)
 		require.Nil(t, result)
 	})
@@ -231,6 +278,25 @@ func Test_Provider_GetConnectionClientConfig(t *testing.T) {
 
 		cc := &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},
+		}
+
+		result := &sqlprovider.ConnectionClientConfig{}
+		mockSp.On("GetConnectionClientConfig", cc).Return(result, nil)
+
+		config, err := provider.GetConnectionClientConfig(cc)
+		require.NoError(t, err)
+		require.Equal(t, result, config)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		t.Parallel()
+		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient, any](t)
+		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx, *sqlprovider.ConnectionClientConfig](t)
+
+		provider := NewProvider(mockMp, mockSp)
+
+		cc := &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{},
 		}
 
 		result := &sqlprovider.ConnectionClientConfig{}

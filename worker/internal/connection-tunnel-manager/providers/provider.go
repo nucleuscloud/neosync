@@ -39,7 +39,7 @@ func (p *Provider) GetConnectionDetails(
 	switch cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		return p.mp.GetConnectionDetails(cc, connectionTimeout, logger)
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		return p.sp.GetConnectionDetails(cc, connectionTimeout, logger)
 	default:
 		return nil, fmt.Errorf("unsupported connection config: %T", cc.GetConfig())

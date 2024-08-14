@@ -278,13 +278,15 @@ func getDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error
 	if connection == nil {
 		return "", errors.New("connection was nil")
 	}
-	switch connection.ConnectionConfig.Config.(type) {
+	switch connection.GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return "mysql", nil
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		return "postgres", nil
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		return "mongodb", nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return "sqlserver", nil
 	}
-	return "", errors.New("unsupported connection type when computing driver")
+	return "", fmt.Errorf("unsupported connection type when computing driver: %T", connection.GetConnectionConfig().Config)
 }
