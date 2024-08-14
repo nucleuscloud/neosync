@@ -284,7 +284,7 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if err != nil {
 			return nil, fmt.Errorf("unable to open mssql connection: %w", err)
 		}
-		db = sqlmanager_mssql.NewManager(nil, pool, func() {
+		db = sqlmanager_mssql.NewManager(s.mssqlquerier, pool, func() {
 			if conn != nil {
 				err := conn.Close()
 				if err != nil {
@@ -351,7 +351,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		if err != nil {
 			return nil, err
 		}
-		db = sqlmanager_mssql.NewManager(nil, conn, func() {
+		db = sqlmanager_mssql.NewManager(s.mssqlquerier, conn, func() {
 			if conn != nil {
 				conn.Close()
 			}
