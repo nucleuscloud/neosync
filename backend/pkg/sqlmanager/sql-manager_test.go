@@ -17,6 +17,8 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	_ "github.com/microsoft/go-mssqldb"
 )
 
 func Test_NewPooledSqlDb_NewPostgresConnection(t *testing.T) {
@@ -313,6 +315,14 @@ func Test_NewSqlDbFromUrl(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sqlConnection)
 	require.Equal(t, sqlmanager_shared.MysqlDriver, sqlConnection.Driver)
+
+	// Test for MSSQL
+	mssqlURl := "sqlserver://user:password@localhost?database=master"
+
+	sqlConnection, err = mockSqlmanager.NewSqlDbFromUrl(context.Background(), sqlmanager_shared.MssqlDriver, mssqlURl)
+	require.NoError(t, err)
+	require.NotNil(t, sqlConnection)
+	require.Equal(t, sqlmanager_shared.MssqlDriver, sqlConnection.Driver)
 
 	// Test for unsupported driver
 	unsupportedURL := "unsupported://user:password@localhost/db"
