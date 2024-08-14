@@ -302,6 +302,8 @@ export interface MysqlEditConnectionFormContext
   activeTab: ActiveConnectionTab;
 }
 
+export type MssqlEditConnectionFormContext = EditConnectionFormContext;
+
 export const OpenAiFormValues = Yup.object({
   connectionName: connectionNameSchema,
   sdk: Yup.object({

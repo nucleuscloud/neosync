@@ -13,6 +13,7 @@ import AwsS3Form from './AwsS3Form';
 import DynamoDBForm from './DynamoDBForm';
 import GcpCloudStorageForm from './GcpCloudStorageForm';
 import MongoDbForm from './MongoDbForm';
+import MssqlForm from './MssqlForm';
 import MysqlForm from './MysqlForm';
 import OpenAiForm from './OpenAiForm';
 import PostgresForm from './PostgresForm';
@@ -470,6 +471,53 @@ export function getConnectionComponentDetails(
                 },
                 endpoint: connection.connectionConfig.config.value.endpoint,
                 region: connection.connectionConfig.config.value.region,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    }
+    case 'mssqlConfig': {
+      const mssqlValue = connection.connectionConfig.config.value;
+
+      let mssqlConfig: string | undefined;
+
+      switch (mssqlValue.connectionConfig.case) {
+        case 'url':
+          mssqlConfig = mssqlValue.connectionConfig.value;
+          break;
+        default:
+          mssqlConfig = mssqlValue.connectionConfig.value;
+      }
+
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="Microsoft SQL Server"
+            leftIcon={<ConnectionIcon connectionType="mssqlConfig" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <MssqlForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              db: {
+                url: typeof mssqlConfig === 'string' ? mssqlConfig : '',
+              },
+              options: {
+                maxConnectionLimit:
+                  mssqlValue.connectionOptions?.maxConnectionLimit,
               },
             }}
             onSaved={(resp) => onSaved(resp)}
