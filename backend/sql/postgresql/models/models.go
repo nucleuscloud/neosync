@@ -1314,6 +1314,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 			},
 		}
 	}
+	if j.MssqlOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_Mssql{
+				Mssql: j.MssqlOptions.ToDto(),
+			},
+		}
+	}
 	return nil
 }
 
@@ -1346,6 +1353,10 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 			return err
 		}
 		j.DynamoDBOptions = opts
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		opts := &MssqlSourceOptions{}
+		opts.FromDto(dto.GetMssql())
+		j.MssqlOptions = opts
 	default:
 		return fmt.Errorf("invalid job source options config, received type: %T", config)
 	}
@@ -1359,6 +1370,7 @@ type JobDestinationOptions struct {
 	MongoOptions           *MongoDestinationOptions           `json:"mongoOptions,omitempty"`
 	GcpCloudStorageOptions *GcpCloudStorageDestinationOptions `json:"gcpCloudStorageOptions,omitempty"`
 	DynamoDBOptions        *DynamoDBDestinationOptions        `json:"dynamoDBOptions,omitempty"`
+	MssqlOptions           *MssqlDestinationOptions           `json:"mssqlOptions,omitempty"`
 }
 
 type DynamoDBDestinationOptions struct {
@@ -1476,6 +1488,77 @@ func (t *MysqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MysqlTruncateTableC
 	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
 }
 
+type MssqlDestinationOptions struct {
+	TruncateTableConfig *MssqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
+	InitTableSchema     bool                      `json:"initTableSchema"`
+	OnConflictConfig    *MssqlOnConflictConfig    `json:"onConflict,omitempty"`
+}
+
+func (m *MssqlDestinationOptions) ToDto() *mgmtv1alpha1.MssqlDestinationConnectionOptions {
+	var truncateTableConfig *mgmtv1alpha1.MssqlTruncateTableConfig
+	if m.TruncateTableConfig != nil {
+		truncateTableConfig = m.TruncateTableConfig.ToDto()
+	}
+	var onconflictConfig *mgmtv1alpha1.MssqlOnConflictConfig
+	if m.OnConflictConfig != nil {
+		onconflictConfig = m.OnConflictConfig.ToDto()
+	}
+
+	return &mgmtv1alpha1.MssqlDestinationConnectionOptions{
+		TruncateTable:   truncateTableConfig,
+		InitTableSchema: m.InitTableSchema,
+		OnConflict:      onconflictConfig,
+	}
+}
+func (m *MssqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MssqlDestinationConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlDestinationConnectionOptions{}
+	}
+	m.InitTableSchema = dto.GetInitTableSchema()
+	if dto.GetOnConflict() != nil {
+		m.OnConflictConfig = &MssqlOnConflictConfig{}
+		m.OnConflictConfig.FromDto(dto.GetOnConflict())
+	}
+	if dto.GetTruncateTable() != nil {
+		m.TruncateTableConfig = &MssqlTruncateTableConfig{}
+		m.TruncateTableConfig.FromDto(dto.GetTruncateTable())
+	}
+}
+
+type MssqlOnConflictConfig struct {
+	DoNothing bool `json:"doNothing"`
+}
+
+func (t *MssqlOnConflictConfig) ToDto() *mgmtv1alpha1.MssqlOnConflictConfig {
+	return &mgmtv1alpha1.MssqlOnConflictConfig{
+		DoNothing: t.DoNothing,
+	}
+}
+
+func (t *MssqlOnConflictConfig) FromDto(dto *mgmtv1alpha1.MssqlOnConflictConfig) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlOnConflictConfig{}
+	}
+	t.DoNothing = dto.DoNothing
+}
+
+type MssqlTruncateTableConfig struct {
+	TruncateBeforeInsert bool `json:"truncateBeforeInsert"`
+}
+
+func (t *MssqlTruncateTableConfig) ToDto() *mgmtv1alpha1.MssqlTruncateTableConfig {
+	return &mgmtv1alpha1.MssqlTruncateTableConfig{
+		TruncateBeforeInsert: t.TruncateBeforeInsert,
+	}
+}
+
+func (t *MssqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MssqlTruncateTableConfig) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.MssqlTruncateTableConfig{}
+	}
+	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
+}
+
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.PostgresOptions != nil {
 		if j.PostgresOptions.TruncateTableConfig == nil {
@@ -1539,6 +1622,13 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 			},
 		}
 	}
+	if j.MssqlOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{
+				MssqlOptions: j.MssqlOptions.ToDto(),
+			},
+		}
+	}
 
 	return nil
 }
@@ -1581,8 +1671,11 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_DynamodbOptions:
 		j.DynamoDBOptions = &DynamoDBDestinationOptions{}
 		j.DynamoDBOptions.FromDto(config.DynamodbOptions)
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		j.MssqlOptions = &MssqlDestinationOptions{}
+		j.MssqlOptions.FromDto(config.MssqlOptions)
 	default:
-		return fmt.Errorf("invalid job destination options config")
+		return fmt.Errorf("invalid job destination options config: %T", config)
 	}
 	return nil
 }
