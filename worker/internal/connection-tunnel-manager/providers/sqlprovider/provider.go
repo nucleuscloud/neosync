@@ -67,6 +67,11 @@ func getMaxConnectionLimitFromConnection(cc *mgmtv1alpha1.ConnectionConfig) *int
 			return config.PgConfig.ConnectionOptions.MaxConnectionLimit
 		}
 		return nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		if config.MssqlConfig != nil && config.MssqlConfig.GetConnectionOptions() != nil {
+			return config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
+		}
+		return nil
 	}
 	return nil
 }
