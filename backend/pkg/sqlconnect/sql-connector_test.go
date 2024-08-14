@@ -3,6 +3,7 @@ package sqlconnect
 import (
 	"log/slog"
 	"net/url"
+	"reflect"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -258,6 +259,45 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 			},
 			expected: "test-user:test-pass@tcp(localhost:3309)/mydb?foo=bar",
 		},
+		{
+			name: "mssql",
+			input: GeneralDbConnectConfig{
+				Driver:      "sqlserver",
+				Host:        "localhost",
+				Port:        ptr(int32(1433)),
+				Database:    ptr("myinstance"),
+				User:        "sa",
+				Pass:        "myStr0ngP@assword",
+				QueryParams: url.Values{"database": []string{"master"}},
+			},
+			expected: "sqlserver://sa:myStr0ngP%40assword@localhost:1433/myinstance?database=master",
+		},
+		{
+			name: "mssql-noinstance",
+			input: GeneralDbConnectConfig{
+				Driver:      "sqlserver",
+				Host:        "localhost",
+				Port:        ptr(int32(1433)),
+				Database:    nil,
+				User:        "sa",
+				Pass:        "myStr0ngP@assword",
+				QueryParams: url.Values{"database": []string{"master"}},
+			},
+			expected: "sqlserver://sa:myStr0ngP%40assword@localhost:1433?database=master",
+		},
+		{
+			name: "mssql-noinstance-noport",
+			input: GeneralDbConnectConfig{
+				Driver:      "sqlserver",
+				Host:        "localhost",
+				Port:        nil,
+				Database:    nil,
+				User:        "sa",
+				Pass:        "myStr0ngP@assword",
+				QueryParams: url.Values{"database": []string{"master"}},
+			},
+			expected: "sqlserver://sa:myStr0ngP%40assword@localhost?database=master",
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -370,4 +410,31 @@ func Test_getConnectionDetails_Mysql_Tunnel(t *testing.T) {
 
 func ptr[T any](val T) *T {
 	return &val
+}
+
+func Test_getGeneralDbConnectConfigFromMssql(t *testing.T) {
+	t.Run("standard string url", func(t *testing.T) {
+		out, err := getGeneralDbConnectionConfigFromMssql(&mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+			MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+				ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+					Url: "sqlserver://test-user:test-pass@localhost:1433/myinstance?database=master",
+				},
+			},
+		}, ptr(uint32(5)))
+
+		assert.NoError(t, err)
+		assert.NotNil(t, out)
+		expected := &GeneralDbConnectConfig{
+			Driver:      "sqlserver",
+			Host:        "localhost",
+			Port:        ptr(int32(1433)),
+			Database:    ptr("myinstance"),
+			User:        "test-user",
+			Pass:        "test-pass",
+			QueryParams: url.Values{"database": []string{"master"}, "connection timeout": []string{"5"}},
+		}
+		if !reflect.DeepEqual(out, expected) {
+			t.Errorf("Expected %v, got %v", expected, out)
+		}
+	})
 }

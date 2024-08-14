@@ -280,8 +280,9 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 type GeneralDbConnectConfig struct {
 	Driver string
 
-	Host     string
-	Port     *int32
+	Host string
+	Port *int32
+	// For mssql this is actually the path..the database is provided as a query parameter
 	Database *string
 	User     string
 	Pass     string
@@ -545,11 +546,11 @@ func getGeneralDbConnectionConfigFromMssql(config *mgmtv1alpha1.ConnectionConfig
 			port = shared.Ptr(int32(parsedPort))
 		}
 
-		var database *string
+		var instance *string
 		if u.Path != "" {
 			trimmed := strings.TrimPrefix(u.Path, "/")
 			if trimmed != "" {
-				database = &trimmed
+				instance = &trimmed
 			}
 		}
 
@@ -561,7 +562,7 @@ func getGeneralDbConnectionConfigFromMssql(config *mgmtv1alpha1.ConnectionConfig
 			Driver:      mssqlDriver,
 			Host:        host,
 			Port:        port,
-			Database:    database,
+			Database:    instance,
 			User:        user,
 			Pass:        pass,
 			QueryParams: query,
