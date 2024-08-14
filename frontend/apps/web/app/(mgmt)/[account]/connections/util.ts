@@ -5,6 +5,7 @@ import {
   DynamoDbFormValues,
   GcpCloudStorageFormValues,
   MongoDbFormValues,
+  MssqlFormValues,
   MysqlFormValues,
   OpenAiFormValues,
   PostgresFormValues,
@@ -20,6 +21,7 @@ import {
   DynamoDBConnectionConfig,
   GcpCloudStorageConnectionConfig,
   MongoConnectionConfig,
+  MssqlConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
   OpenAiConnectionConfig,
@@ -109,6 +111,14 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     connectionType: 'dynamodbConfig',
     isExperimental: true,
   },
+  {
+    urlSlug: 'mssql',
+    name: 'Microsoft SQL Server',
+    description:
+      'Microsoft SQL Server is a proprietary relational database management system developed by Microsoft.',
+    connectionType: 'mssqlConfig',
+    isExperimental: true,
+  },
 ];
 
 export function getConnectionsMetadata(
@@ -164,6 +174,7 @@ const ALLOWED_SYNC_SOURCE_CONNECTION_PAIRS: Record<
     'awsS3Config',
     'gcpCloudstorageConfig',
   ]),
+  mssqlConfig: new Set<ConnectionConfigCase>(['mssqlConfig']),
 };
 function reverseConfigCaseMap(
   originalMap: Record<ConnectionConfigCase, Set<ConnectionConfigCase>>
@@ -177,6 +188,7 @@ function reverseConfigCaseMap(
     mysqlConfig: new Set<ConnectionConfigCase>(),
     openaiConfig: new Set<ConnectionConfigCase>(),
     pgConfig: new Set<ConnectionConfigCase>(),
+    mssqlConfig: new Set<ConnectionConfigCase>(),
   };
 
   Object.entries(originalMap).forEach(([source, destinations]) => {
@@ -280,6 +292,7 @@ const CONNECTION_CATEGORY_MAP: Record<ConnectionConfigCase, string> = {
   mysqlConfig: 'MySQL',
   openaiConfig: 'OpenAI',
   pgConfig: 'PostgreSQL',
+  mssqlConfig: 'Microsoft SQL Server',
 };
 
 // Used for the connections data table
@@ -385,6 +398,31 @@ export function buildConnectionConfigMysql(
       case: 'mysqlConfig',
       value: buildMysqlConnectionConfig(values),
     },
+  });
+}
+
+export function buildConnectionConfigMssql(
+  values: MssqlFormValues
+): ConnectionConfig {
+  return new ConnectionConfig({
+    config: {
+      case: 'mssqlConfig',
+      value: buildMssqlConnectionConfig(values),
+    },
+  });
+}
+
+function buildMssqlConnectionConfig(
+  values: MssqlFormValues
+): MssqlConnectionConfig {
+  return new MssqlConnectionConfig({
+    connectionConfig: {
+      case: 'url',
+      value: values.db.url,
+    },
+    connectionOptions: new SqlConnectionOptions({
+      ...values.options,
+    }),
   });
 }
 

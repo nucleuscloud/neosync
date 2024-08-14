@@ -90,7 +90,7 @@ export const SshTunnelFormValues = Yup.object({
 });
 export type SshTunnelFormValues = Yup.InferType<typeof SshTunnelFormValues>;
 
-const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
+const SqlOptionsFormValues = Yup.object({
   maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
 });
 
@@ -156,7 +156,7 @@ export const MysqlFormValues = Yup.object({
     otherwise: (schema) => schema.notRequired(),
   }),
   tunnel: SshTunnelFormValues,
-  options: SQL_OPTIONS_FORM_SCHEMA,
+  options: SqlOptionsFormValues,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MysqlFormValues>;
@@ -199,7 +199,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
     then: (schema) => schema.required('The connection url is required'),
   }),
   tunnel: SshTunnelFormValues,
-  options: SQL_OPTIONS_FORM_SCHEMA,
+  options: SqlOptionsFormValues,
   clientTls: ClientTlsFormValues,
 });
 
@@ -242,6 +242,16 @@ export const DynamoDbFormValues = Yup.object({
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
 
+export const MssqlFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+  db: Yup.object({
+    url: Yup.string().required('Must provide a Mssql connection url'),
+  }).required(),
+  options: SqlOptionsFormValues,
+});
+
+export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
+
 export const GcpCloudStorageFormValues = Yup.object({
   connectionName: connectionNameSchema,
   gcp: Yup.object({
@@ -270,6 +280,8 @@ export interface MysqlCreateConnectionFormContext
   extends CreateConnectionFormContext {
   activeTab: ActiveConnectionTab;
 }
+
+export type MssqlCreateConnectionFormContext = CreateConnectionFormContext;
 
 export interface PostgresCreateConnectionFormContext
   extends CreateConnectionFormContext {
