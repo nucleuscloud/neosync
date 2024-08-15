@@ -1,5 +1,5 @@
 ---
-title: 8/01 - DynamoDB
+title: 8/15 - DynamoDB Upgrades
 hide_table_of_contents: false
 slug: /dynamodb
 authors:
@@ -9,13 +9,13 @@ authors:
     image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
 ---
 
-1. First class support for integrating with DynamoDB
-2. Fixed a bug that was causing some Redis values to not get cleaned up
-3. Update generate_state transformer to return full state names as an option
-4. Add role permissions to MYSQL connection
-5. Improve mysql init schema options to resolve circular dependencies
-6. Add auto-complete to custom javascript transformers
-7. Update Connect page to ensure that users only select valid destinations based on the source connection
-8. Support subsetting within DynamoDB
-9. Update integration tests to parallelize
-10. Fix a rare data race issue that occurs in Benthos
+1. Update default GPT models in Neosync
+2. Added initial support for SQL Server
+3. Added support for ConsistentReads in DynamoDB
+4. Support seeds for all transformers for deterministic outputs
+5. Add support for DynamoDB key deep linking
+6. Add support for configuring app resources in helm chart
+7. Fix benthos issue from main lib that was causing type loss in DynamoDB
+8. Add subsetting to DynamoDB
+9. Add support to DynamoDB for default transformations of unmapped types
+10. Fix a bug in Mysql that occurred when a column was named with a reserved keyword
