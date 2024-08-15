@@ -3,7 +3,9 @@ package sqlmanager_mssql
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
@@ -92,7 +94,23 @@ func (m *Manager) GetTableRowCount(
 	schema, table string,
 	whereClause *string,
 ) (int64, error) {
-	return -1, errors.ErrUnsupported
+	tableName := sqlmanager_shared.BuildTable(schema, table)
+	builder := goqu.Dialect(sqlmanager_shared.MssqlDriver)
+	// sqltable := goqu.I(tableName)
+	query := builder.From(goqu.I(tableName)).Select(goqu.COUNT("*"))
+	if whereClause != nil && *whereClause != "" {
+		query = query.Where(goqu.L(*whereClause))
+	}
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return 0, fmt.Errorf("unable to build table row count statement for mssql: %w", err)
+	}
+	var count int64
+	err = m.db.QueryRowContext(ctx, sql).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("unable to query table row count for mssql: %w", err)
+	}
+	return count, err
 }
 
 func (m *Manager) Exec(ctx context.Context, statement string) error {
