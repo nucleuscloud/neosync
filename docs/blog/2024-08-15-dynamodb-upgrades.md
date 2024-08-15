@@ -1,7 +1,7 @@
 ---
 title: 8/15 - DynamoDB Upgrades
 hide_table_of_contents: false
-slug: /dynamodb
+slug: /dynamodb-upgrades
 authors:
   - name: Evis Drenova
     title: Co-Founder/CEO, Neosync
