@@ -145,7 +145,7 @@ func requireNoConnErr(t testing.TB, conn *SqlConnection, err error) {
 	require.NotNil(t, conn)
 }
 
-func requireValidDatabase(t testing.TB, ctx context.Context, conn *SqlConnection, driver, statement string) {
+func requireValidDatabase(t testing.TB, ctx context.Context, conn *SqlConnection, driver, statement string) { //nolint
 	require.Equal(t, conn.Driver, driver)
 	err := conn.Db.Exec(ctx, statement)
 	require.NoError(t, err)
