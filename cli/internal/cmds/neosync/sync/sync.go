@@ -141,7 +141,8 @@ func NewCmd() *cobra.Command {
 					ConnectionOpts: &connectionOpts{},
 				},
 				Destination: &destinationConfig{
-					SqlConfig: &sqlDestinationConfig{},
+					SqlConfig:         &sqlDestinationConfig{},
+					AwsDynamoDbConfig: &dynamoDbDestinationConfig{},
 				},
 			}
 			configPath, err := cmd.Flags().GetString("config")
@@ -233,31 +234,14 @@ func NewCmd() *cobra.Command {
 				config.Source.ConnectionOpts.JobRunId = &jobRunId
 			}
 
-			awsCredConfig, err := buildAwsCredConfig(cmd)
+			config, err = buildAwsCredConfig(cmd, config)
 			if err != nil {
 				return err
-			}
-			config.Destination.AwsDynamoDbConfig = &dynamoDbDestinationConfig{
-				AwsCredConfig: awsCredConfig,
 			}
 
 			if config.Source.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
 			}
-			// if config.Destination.SqlConfig.Driver == "" {
-			// 	return fmt.Errorf("must provide destination-driver")
-			// }
-			// if config.Destination.SqlConfig.ConnectionUrl == "" {
-			// 	return fmt.Errorf("must provide destination-connection-url")
-			// }
-
-			// if config.Destination.SqlConfig.TruncateCascade && config.Destination.SqlConfig.Driver != postgresDriver {
-			// 	return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
-			// }
-
-			// if config.Destination.SqlConfig.Driver != mysqlDriver && config.Destination.SqlConfig.Driver != postgresDriver {
-			// 	return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
-			// }
 
 			accountId, err := cmd.Flags().GetString("account-id")
 			if err != nil {
@@ -356,6 +340,7 @@ func sync(
 	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
+	fmt.Println(connectionType)
 
 	if connectionType == mysqlConnection || connectionType == postgresConnection {
 		if cmd.Destination.SqlConfig.Driver == "" {
@@ -591,7 +576,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 		if destinationDriver != mysqlDriver {
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 	default:
 		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 	}
@@ -1208,6 +1193,9 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 	}
 	if connection.ConnectionConfig.GetPgConfig() != nil {
 		return postgresConnection, nil
+	}
+	if connection.ConnectionConfig.GetDynamodbConfig() != nil {
+		return awsDynamoDBConnection, nil
 	}
 	return "", errors.New("unsupported connection type")
 }

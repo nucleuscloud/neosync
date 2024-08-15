@@ -6,55 +6,56 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func buildAwsCredConfig(cmd *cobra.Command) (*AwsCredConfig, error) {
+func buildAwsCredConfig(cmd *cobra.Command, config *cmdConfig) (*cmdConfig, error) {
 	region, err := cmd.Flags().GetString("aws-region")
 	if err != nil {
 		return nil, err
 	}
-	config := &AwsCredConfig{
-		Region: region,
+	if region != "" {
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.Region = region
 	}
+
 	dynamoDBAccessKeyID, err := cmd.Flags().GetString("aws-access-key-id")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBAccessKeyID != "" {
-		config.AccessKeyID = &dynamoDBAccessKeyID
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.AccessKeyID = &dynamoDBAccessKeyID
 	}
 	dynamoDBSecretAccessKey, err := cmd.Flags().GetString("aws-secret-access-key")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBSecretAccessKey != "" {
-		config.SecretAccessKey = &dynamoDBSecretAccessKey
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.SecretAccessKey = &dynamoDBSecretAccessKey
 	}
 	dynamoDBSessionToken, err := cmd.Flags().GetString("aws-session-token")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBSessionToken != "" {
-		config.SessionToken = &dynamoDBSessionToken
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.SessionToken = &dynamoDBSessionToken
 	}
 	dynamoDBRoleARN, err := cmd.Flags().GetString("aws-role-arn")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBRoleARN != "" {
-		config.RoleARN = &dynamoDBRoleARN
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.RoleARN = &dynamoDBRoleARN
 	}
 	dynamoDBRoleExternalID, err := cmd.Flags().GetString("aws-role-external-id")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBRoleExternalID != "" {
-		config.RoleExternalID = &dynamoDBRoleExternalID
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.RoleExternalID = &dynamoDBRoleExternalID
 	}
 	dynamoDBEndpoint, err := cmd.Flags().GetString("aws-endpoint")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBEndpoint != "" {
-		config.Endpoint = &dynamoDBEndpoint
+		config.Destination.AwsDynamoDbConfig.AwsCredConfig.Endpoint = &dynamoDBEndpoint
 	}
 	return config, nil
 }

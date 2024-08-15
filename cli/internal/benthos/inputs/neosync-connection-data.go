@@ -2,9 +2,12 @@ package input
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 
 	"connectrpc.com/connect"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
@@ -200,8 +203,17 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	}
 	row := g.resp.Msg().Row
 
+	fmt.Println()
 	valuesMap := map[string]any{}
 	for col, val := range row {
+		fmt.Printf("%s: %s \n", col, string(val))
+		var item map[string]map[string]*dynamodb.AttributeValue
+		err := json.Unmarshal(val, &item)
+		if err != nil {
+			return nil, nil, err
+		}
+		jsonF, _ := json.MarshalIndent(item, "", " ")
+		fmt.Printf("%s \n", string(jsonF))
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
