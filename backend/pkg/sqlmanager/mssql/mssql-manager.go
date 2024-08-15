@@ -23,7 +23,44 @@ func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer fun
 }
 
 func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
-	return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
+	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
+	}
+
+	output := []*sqlmanager_shared.DatabaseSchemaRow{}
+	for _, row := range dbSchemas {
+		charMaxLength := int32(-1)
+		if row.CharacterMaximumLength.Valid {
+			charMaxLength = row.CharacterMaximumLength.Int32
+		}
+		numericPrecision := int32(-1)
+		if row.NumericPrecision.Valid {
+			numericPrecision = int32(row.NumericPrecision.Int16)
+		}
+		numericScale := int32(-1)
+		if row.NumericScale.Valid {
+			numericScale = int32(row.NumericScale.Int16)
+		}
+		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
+			TableSchema:            row.TableSchema,
+			TableName:              row.TableName,
+			ColumnName:             row.ColumnName,
+			DataType:               row.DataType,
+			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
+			IsNullable:             row.IsNullable,
+			GeneratedType:          nil, // todo
+			OrdinalPosition:        int16(row.OrdinalPosition),
+			CharacterMaximumLength: charMaxLength,
+			NumericPrecision:       numericPrecision,
+			NumericScale:           numericScale,
+			IdentityGeneration:     nil, // todo: will have to update the downstream logic for this
+		})
+	}
+
+	return output, nil
 }
 
 func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*sqlmanager_shared.ColumnInfo, error) {
