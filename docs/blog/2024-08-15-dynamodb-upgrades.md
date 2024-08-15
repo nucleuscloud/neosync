@@ -1,5 +1,5 @@
 ---
-title: 8/01 - DynamoDB
+title: 8/15 - DynamoDB Upgrades
 hide_table_of_contents: false
 slug: /dynamodb
 authors:
