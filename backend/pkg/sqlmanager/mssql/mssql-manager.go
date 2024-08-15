@@ -86,7 +86,15 @@ func (m *Manager) GetCreateTableStatement(ctx context.Context, schema, table str
 }
 
 func (m *Manager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error {
-	return errors.ErrUnsupported
+	// mssql does not support batching statements
+	total := len(statements)
+	for idx, stmt := range statements {
+		err := m.Exec(ctx, stmt)
+		if err != nil {
+			return fmt.Errorf("failed to execute batch statement %d/%d: %w", idx+1, total, err)
+		}
+	}
+	return nil
 }
 
 func (m *Manager) GetTableRowCount(
@@ -96,7 +104,7 @@ func (m *Manager) GetTableRowCount(
 ) (int64, error) {
 	tableName := sqlmanager_shared.BuildTable(schema, table)
 	builder := goqu.Dialect(sqlmanager_shared.MssqlDriver)
-	// sqltable := goqu.I(tableName)
+
 	query := builder.From(goqu.I(tableName)).Select(goqu.COUNT("*"))
 	if whereClause != nil && *whereClause != "" {
 		query = query.Where(goqu.L(*whereClause))
