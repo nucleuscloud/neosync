@@ -18,4 +18,4 @@ authors:
 7. Fix benthos issue from main lib that was causing type loss in DynamoDB
 8. Add subsetting to DynamoDB
 9. Add support to DynamoDB for default transformations of unmapped types
-10. Fix a bug in Mysql that occured when a column was named with a reserved keyword
+10. Fix a bug in Mysql that occurred when a column was named with a reserved keyword
