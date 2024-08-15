@@ -11,7 +11,8 @@ export type PermissionConnectionType =
   | 'mongodb'
   | 'mysql'
   | 'postgres'
-  | 'dynamodb';
+  | 'dynamodb'
+  | 'mssql';
 
 export function getPermissionColumns(
   connectionType: PermissionConnectionType

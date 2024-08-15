@@ -1540,6 +1540,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql_config",
+              "description": "Configures a Microsoft SQL Server (mssql) Connection",
+              "label": "",
+              "type": "MssqlConnectionConfig",
+              "longType": "MssqlConnectionConfig",
+              "fullType": "mgmt.v1alpha1.MssqlConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -2027,6 +2039,42 @@
               "type": "ClientTlsConfig",
               "longType": "ClientTlsConfig",
               "fullType": "mgmt.v1alpha1.ClientTlsConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlConnectionConfig",
+          "longName": "MssqlConnectionConfig",
+          "fullName": "mgmt.v1alpha1.MssqlConnectionConfig",
+          "description": "Configuration for a Mssql Connection",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "url",
+              "description": "The URL with sqlserver scheme.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_options",
+              "description": "",
+              "label": "",
+              "type": "SqlConnectionOptions",
+              "longType": "SqlConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -9941,6 +9989,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql_options",
+              "description": "Destination Connection options for Microsoft SQL Server",
+              "label": "",
+              "type": "MssqlDestinationConnectionOptions",
+              "longType": "MssqlDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MssqlDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -10553,6 +10613,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql",
+              "description": "",
+              "label": "",
+              "type": "MssqlSourceConnectionOptions",
+              "longType": "MssqlSourceConnectionOptions",
+              "fullType": "mgmt.v1alpha1.MssqlSourceConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -10597,6 +10669,18 @@
               "type": "DynamoDBSourceSchemaSubset",
               "longType": "DynamoDBSourceSchemaSubset",
               "fullType": "mgmt.v1alpha1.DynamoDBSourceSchemaSubset",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "schemas",
+              "defaultValue": ""
+            },
+            {
+              "name": "mssql_subset",
+              "description": "",
+              "label": "",
+              "type": "MssqlSourceSchemaSubset",
+              "longType": "MssqlSourceSchemaSubset",
+              "fullType": "mgmt.v1alpha1.MssqlSourceSchemaSubset",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "schemas",
@@ -10668,6 +10752,258 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlDestinationConnectionOptions",
+          "longName": "MssqlDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MssqlDestinationConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "truncate_table",
+              "description": "",
+              "label": "",
+              "type": "MssqlTruncateTableConfig",
+              "longType": "MssqlTruncateTableConfig",
+              "fullType": "mgmt.v1alpha1.MssqlTruncateTableConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "init_table_schema",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "on_conflict",
+              "description": "",
+              "label": "",
+              "type": "MssqlOnConflictConfig",
+              "longType": "MssqlOnConflictConfig",
+              "fullType": "mgmt.v1alpha1.MssqlOnConflictConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlOnConflictConfig",
+          "longName": "MssqlOnConflictConfig",
+          "fullName": "mgmt.v1alpha1.MssqlOnConflictConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "do_nothing",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlSourceConnectionOptions",
+          "longName": "MssqlSourceConnectionOptions",
+          "fullName": "mgmt.v1alpha1.MssqlSourceConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "halt_on_new_column_addition",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schemas",
+              "description": "",
+              "label": "repeated",
+              "type": "MssqlSourceSchemaOption",
+              "longType": "MssqlSourceSchemaOption",
+              "fullType": "mgmt.v1alpha1.MssqlSourceSchemaOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "subset_by_foreign_key_constraints",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlSourceSchemaOption",
+          "longName": "MssqlSourceSchemaOption",
+          "fullName": "mgmt.v1alpha1.MssqlSourceSchemaOption",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "",
+              "label": "repeated",
+              "type": "MssqlSourceTableOption",
+              "longType": "MssqlSourceTableOption",
+              "fullType": "mgmt.v1alpha1.MssqlSourceTableOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlSourceSchemaSubset",
+          "longName": "MssqlSourceSchemaSubset",
+          "fullName": "mgmt.v1alpha1.MssqlSourceSchemaSubset",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "mssql_schemas",
+              "description": "",
+              "label": "repeated",
+              "type": "MssqlSourceSchemaOption",
+              "longType": "MssqlSourceSchemaOption",
+              "fullType": "mgmt.v1alpha1.MssqlSourceSchemaOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlSourceTableOption",
+          "longName": "MssqlSourceTableOption",
+          "fullName": "mgmt.v1alpha1.MssqlSourceTableOption",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "where_clause",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_where_clause",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MssqlTruncateTableConfig",
+          "longName": "MssqlTruncateTableConfig",
+          "fullName": "mgmt.v1alpha1.MssqlTruncateTableConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "truncate_before_insert",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

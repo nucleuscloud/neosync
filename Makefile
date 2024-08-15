@@ -31,18 +31,22 @@ cluster/destroy: ## Destroys a local K8s Cluster
 
 # Building
 build: ## Builds the project (except the frontend)
-	make build/backend &
-	make build/worker &
-	make build/cli &
-	make install/frontend &
-	wait
+	( \
+	make build/backend & \
+	make build/worker & \
+	make build/cli & \
+	make install/frontend & \
+	wait \
+	)
 
 dbuild: ## Builds the project specifically for Linux
-	make dbuild/backend &
-	make dbuild/worker &
-	make dbuild/cli &
-	make install/frontend &
-	wait
+	( \
+	make dbuild/backend & \
+	make dbuild/worker & \
+	make dbuild/cli & \
+	make install/frontend & \
+	wait \
+	)
 
 build/backend: ## Builds the backend
 	@cd ./backend && make build
@@ -70,9 +74,11 @@ build/frontend: ## Builds the frontend (don't do this if intending to develop lo
 
 # Linting
 lint: ## Lints the project
-	make lint/go &
-	make lint/frontend &
-	wait
+	( \
+	make lint/go & \
+	make lint/frontend & \
+	wait \
+	)
 
 lint/go: ## Lints the Go Module
 	golangci-lint run
@@ -82,10 +88,12 @@ lint/frontend: ## Lints the frontend
 
 # Cleaning
 clean: ## Cleans the project
-	make clean/backend &
-	make clean/worker &
-	make clean/cli &
-	wait
+	( \
+	make clean/backend & \
+	make clean/worker & \
+	make clean/cli & \
+	wait \
+	)
 
 clean/backend: ## Cleans the backend
 	@cd ./backend && make clean

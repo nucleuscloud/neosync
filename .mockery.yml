@@ -55,6 +55,10 @@ packages:
     interfaces:
       Querier:
       DBTX:
+  github.com/nucleuscloud/neosync/backend/pkg/mssql-querier:
+    # config:
+    interfaces:
+      Querier:
   github.com/nucleuscloud/neosync/backend/pkg/sqlconnect:
     interfaces:
       SqlConnector:

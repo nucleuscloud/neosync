@@ -30,7 +30,7 @@ func (s *Service) CheckConnectionConfig(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
 	switch req.Msg.GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		role, err := getDbRoleFromConnectionConfig(req.Msg.GetConnectionConfig())
 		if err != nil {
 			return nil, err
@@ -173,8 +173,11 @@ func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig) (stri
 		return getPostgresUserFromConnectionConfig(typedconfig.PgConfig)
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return getMysqlUserFromConnectionConfig(typedconfig.MysqlConfig)
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return getMssqlUserFromConnectionConfig(typedconfig.MssqlConfig)
+	default:
+		return "", fmt.Errorf("invalid database connection config (%T) for retrieving db role: %w", typedconfig, errors.ErrUnsupported)
 	}
-	return "", fmt.Errorf("invalid database connection config for retrieving db role: %w", errors.ErrUnsupported)
 }
 
 func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig) (string, error) {
@@ -208,6 +211,23 @@ func getMysqlUserFromConnectionConfig(pgconfig *mgmtv1alpha1.MysqlConnectionConf
 				return "", fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
 			}
 			return "", fmt.Errorf("unable to parse mysql url: %w", err)
+		}
+		return u.User.Username(), nil
+	default:
+		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
+	}
+}
+
+func getMssqlUserFromConnectionConfig(ccfg *mgmtv1alpha1.MssqlConnectionConfig) (string, error) {
+	switch config := ccfg.ConnectionConfig.(type) {
+	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
+		u, err := url.Parse(config.Url)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return "", fmt.Errorf("unable to parse mssql url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return "", fmt.Errorf("unable to parse mssql url: %w", err)
 		}
 		return u.User.Username(), nil
 	default:

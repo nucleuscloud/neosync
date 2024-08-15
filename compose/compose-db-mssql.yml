@@ -1,0 +1,24 @@
+services:
+  test-prod-db-mssql:
+    container_name: test-prod-db-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    networks:
+      - neosync-network
+
+  test-stage-db-mssql:
+    container_name: test-stage-db-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 1434:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    networks:
+      - neosync-network

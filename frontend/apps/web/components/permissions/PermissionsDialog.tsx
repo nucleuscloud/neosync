@@ -104,7 +104,7 @@ export function TestConnectionResult(
   } else if (isConnected) {
     return (
       <SuccessAlert
-        description={`Successfully connected to connection: ${connectionName}!`}
+        description={`Successfully connected to: ${connectionName}!`}
       />
     );
   }

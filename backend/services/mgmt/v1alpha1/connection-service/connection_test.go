@@ -22,6 +22,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
@@ -675,6 +676,7 @@ type serviceMocks struct {
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
 	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQuerierMock          *pg_queries.MockQuerier
+	MssqlQuerierMock       *mssql_queries.MockQuerier
 	MysqlQuerierMock       *mysql_queries.MockQuerier
 	MongoConnectorMock     *mongoconnect.MockInterface
 }
@@ -686,6 +688,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	mockPgquerier := pg_queries.NewMockQuerier(t)
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockMssqlQuerier := mssql_queries.NewMockQuerier(t)
 	mockMongoConnector := mongoconnect.NewMockInterface(t)
 	mockAwsManager := awsmanager.NewMockNeosyncAwsManagerClient(t)
 
@@ -695,7 +698,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	}
 
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
-		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMongoConnector, mockAwsManager)
+		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMssqlQuerier, mockMongoConnector, mockAwsManager)
 
 	return &serviceMocks{
 		Service:                service,
@@ -710,6 +713,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		PgQuerierMock:          mockPgquerier,
 		MysqlQuerierMock:       mockMysqlquerier,
 		MongoConnectorMock:     mockMongoConnector,
+		MssqlQuerierMock:       mockMssqlQuerier,
 	}
 }
 

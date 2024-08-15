@@ -709,6 +709,47 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobSourceOptions_Mssql:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMssql()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Mssql",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "Mssql",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMssql()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "Mssql",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -3221,6 +3262,395 @@ var _ interface {
 	ErrorName() string
 } = MysqlSourceTableOptionValidationError{}
 
+// Validate checks the field values on MssqlSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlSourceConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlSourceConnectionOptionsMultiError, or nil if none found.
+func (m *MssqlSourceConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlSourceConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for HaltOnNewColumnAddition
+
+	for idx, item := range m.GetSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MssqlSourceConnectionOptionsValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MssqlSourceConnectionOptionsValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MssqlSourceConnectionOptionsValidationError{
+					field:  fmt.Sprintf("Schemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for ConnectionId
+
+	// no validation rules for SubsetByForeignKeyConstraints
+
+	if len(errors) > 0 {
+		return MssqlSourceConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlSourceConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by MssqlSourceConnectionOptions.ValidateAll() if
+// the designated constraints aren't met.
+type MssqlSourceConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlSourceConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlSourceConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// MssqlSourceConnectionOptionsValidationError is the validation error returned
+// by MssqlSourceConnectionOptions.Validate if the designated constraints
+// aren't met.
+type MssqlSourceConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlSourceConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlSourceConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlSourceConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlSourceConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlSourceConnectionOptionsValidationError) ErrorName() string {
+	return "MssqlSourceConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlSourceConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlSourceConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlSourceConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlSourceConnectionOptionsValidationError{}
+
+// Validate checks the field values on MssqlSourceSchemaOption with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlSourceSchemaOption) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlSourceSchemaOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlSourceSchemaOptionMultiError, or nil if none found.
+func (m *MssqlSourceSchemaOption) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlSourceSchemaOption) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	for idx, item := range m.GetTables() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MssqlSourceSchemaOptionValidationError{
+						field:  fmt.Sprintf("Tables[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MssqlSourceSchemaOptionValidationError{
+						field:  fmt.Sprintf("Tables[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MssqlSourceSchemaOptionValidationError{
+					field:  fmt.Sprintf("Tables[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return MssqlSourceSchemaOptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlSourceSchemaOptionMultiError is an error wrapping multiple validation
+// errors returned by MssqlSourceSchemaOption.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlSourceSchemaOptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlSourceSchemaOptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlSourceSchemaOptionMultiError) AllErrors() []error { return m }
+
+// MssqlSourceSchemaOptionValidationError is the validation error returned by
+// MssqlSourceSchemaOption.Validate if the designated constraints aren't met.
+type MssqlSourceSchemaOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlSourceSchemaOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlSourceSchemaOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlSourceSchemaOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlSourceSchemaOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlSourceSchemaOptionValidationError) ErrorName() string {
+	return "MssqlSourceSchemaOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlSourceSchemaOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlSourceSchemaOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlSourceSchemaOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlSourceSchemaOptionValidationError{}
+
+// Validate checks the field values on MssqlSourceTableOption with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlSourceTableOption) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlSourceTableOption with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlSourceTableOptionMultiError, or nil if none found.
+func (m *MssqlSourceTableOption) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlSourceTableOption) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Table
+
+	if m.WhereClause != nil {
+		// no validation rules for WhereClause
+	}
+
+	if len(errors) > 0 {
+		return MssqlSourceTableOptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlSourceTableOptionMultiError is an error wrapping multiple validation
+// errors returned by MssqlSourceTableOption.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlSourceTableOptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlSourceTableOptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlSourceTableOptionMultiError) AllErrors() []error { return m }
+
+// MssqlSourceTableOptionValidationError is the validation error returned by
+// MssqlSourceTableOption.Validate if the designated constraints aren't met.
+type MssqlSourceTableOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlSourceTableOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlSourceTableOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlSourceTableOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlSourceTableOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlSourceTableOptionValidationError) ErrorName() string {
+	return "MssqlSourceTableOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlSourceTableOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlSourceTableOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlSourceTableOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlSourceTableOptionValidationError{}
+
 // Validate checks the field values on AwsS3SourceConnectionOptions with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -3589,6 +4019,47 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return JobDestinationOptionsValidationError{
 					field:  "DynamodbOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobDestinationOptions_MssqlOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMssqlOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "MssqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "MssqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMssqlOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "MssqlOptions",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -4884,6 +5355,379 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MysqlOnConflictConfigValidationError{}
+
+// Validate checks the field values on MssqlDestinationConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *MssqlDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlDestinationConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// MssqlDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *MssqlDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetTruncateTable()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MssqlDestinationConnectionOptionsValidationError{
+					field:  "TruncateTable",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MssqlDestinationConnectionOptionsValidationError{
+					field:  "TruncateTable",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTruncateTable()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MssqlDestinationConnectionOptionsValidationError{
+				field:  "TruncateTable",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for InitTableSchema
+
+	if all {
+		switch v := interface{}(m.GetOnConflict()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MssqlDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MssqlDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOnConflict()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MssqlDestinationConnectionOptionsValidationError{
+				field:  "OnConflict",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MssqlDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlDestinationConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// MssqlDestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// MssqlDestinationConnectionOptionsValidationError is the validation error
+// returned by MssqlDestinationConnectionOptions.Validate if the designated
+// constraints aren't met.
+type MssqlDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "MssqlDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on MssqlTruncateTableConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlTruncateTableConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlTruncateTableConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlTruncateTableConfigMultiError, or nil if none found.
+func (m *MssqlTruncateTableConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlTruncateTableConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TruncateBeforeInsert
+
+	if len(errors) > 0 {
+		return MssqlTruncateTableConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlTruncateTableConfigMultiError is an error wrapping multiple validation
+// errors returned by MssqlTruncateTableConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlTruncateTableConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlTruncateTableConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlTruncateTableConfigMultiError) AllErrors() []error { return m }
+
+// MssqlTruncateTableConfigValidationError is the validation error returned by
+// MssqlTruncateTableConfig.Validate if the designated constraints aren't met.
+type MssqlTruncateTableConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlTruncateTableConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlTruncateTableConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlTruncateTableConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlTruncateTableConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlTruncateTableConfigValidationError) ErrorName() string {
+	return "MssqlTruncateTableConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlTruncateTableConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlTruncateTableConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlTruncateTableConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlTruncateTableConfigValidationError{}
+
+// Validate checks the field values on MssqlOnConflictConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlOnConflictConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlOnConflictConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlOnConflictConfigMultiError, or nil if none found.
+func (m *MssqlOnConflictConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlOnConflictConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DoNothing
+
+	if len(errors) > 0 {
+		return MssqlOnConflictConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlOnConflictConfigMultiError is an error wrapping multiple validation
+// errors returned by MssqlOnConflictConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlOnConflictConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlOnConflictConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlOnConflictConfigMultiError) AllErrors() []error { return m }
+
+// MssqlOnConflictConfigValidationError is the validation error returned by
+// MssqlOnConflictConfig.Validate if the designated constraints aren't met.
+type MssqlOnConflictConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlOnConflictConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlOnConflictConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlOnConflictConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlOnConflictConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlOnConflictConfigValidationError) ErrorName() string {
+	return "MssqlOnConflictConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlOnConflictConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlOnConflictConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlOnConflictConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlOnConflictConfigValidationError{}
 
 // Validate checks the field values on AwsS3DestinationConnectionOptions with
 // the rules defined in the proto definition for this message. If any rules
@@ -7484,6 +8328,142 @@ var _ interface {
 	ErrorName() string
 } = DynamoDBSourceSchemaSubsetValidationError{}
 
+// Validate checks the field values on MssqlSourceSchemaSubset with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MssqlSourceSchemaSubset) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlSourceSchemaSubset with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlSourceSchemaSubsetMultiError, or nil if none found.
+func (m *MssqlSourceSchemaSubset) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlSourceSchemaSubset) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetMssqlSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MssqlSourceSchemaSubsetValidationError{
+						field:  fmt.Sprintf("MssqlSchemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MssqlSourceSchemaSubsetValidationError{
+						field:  fmt.Sprintf("MssqlSchemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MssqlSourceSchemaSubsetValidationError{
+					field:  fmt.Sprintf("MssqlSchemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return MssqlSourceSchemaSubsetMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlSourceSchemaSubsetMultiError is an error wrapping multiple validation
+// errors returned by MssqlSourceSchemaSubset.ValidateAll() if the designated
+// constraints aren't met.
+type MssqlSourceSchemaSubsetMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlSourceSchemaSubsetMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlSourceSchemaSubsetMultiError) AllErrors() []error { return m }
+
+// MssqlSourceSchemaSubsetValidationError is the validation error returned by
+// MssqlSourceSchemaSubset.Validate if the designated constraints aren't met.
+type MssqlSourceSchemaSubsetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlSourceSchemaSubsetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlSourceSchemaSubsetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlSourceSchemaSubsetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlSourceSchemaSubsetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlSourceSchemaSubsetValidationError) ErrorName() string {
+	return "MssqlSourceSchemaSubsetValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlSourceSchemaSubsetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlSourceSchemaSubset.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlSourceSchemaSubsetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlSourceSchemaSubsetValidationError{}
+
 // Validate checks the field values on JobSourceSqlSubetSchemas with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -7624,6 +8604,47 @@ func (m *JobSourceSqlSubetSchemas) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return JobSourceSqlSubetSchemasValidationError{
 					field:  "DynamodbSubset",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceSqlSubetSchemas_MssqlSubset:
+		if v == nil {
+			err := JobSourceSqlSubetSchemasValidationError{
+				field:  "Schemas",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMssqlSubset()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "MssqlSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "MssqlSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMssqlSubset()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceSqlSubetSchemasValidationError{
+					field:  "MssqlSubset",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
