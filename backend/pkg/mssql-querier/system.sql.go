@@ -3,6 +3,7 @@ package mssql_queries
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 )
@@ -162,6 +163,136 @@ func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX)
 	for rows.Next() {
 		var i GetRolePermissionsRow
 		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType, &i.GrantType); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTableConstraintsBySchemas = `
+WITH ConstraintColumns AS (
+    SELECT
+        kc.parent_object_id,
+        kc.object_id AS constraint_object_id,
+        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY ic.key_ordinal) AS columns
+    FROM sys.key_constraints kc
+    JOIN sys.index_columns ic ON kc.parent_object_id = ic.object_id AND kc.unique_index_id = ic.index_id
+    JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+    GROUP BY kc.parent_object_id, kc.object_id
+
+    UNION ALL
+
+    SELECT
+        fkc.parent_object_id,
+        fkc.constraint_object_id,
+        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY fkc.constraint_column_id) AS columns
+    FROM sys.foreign_key_columns fkc
+    JOIN sys.columns c ON fkc.parent_object_id = c.object_id AND fkc.parent_column_id = c.column_id
+    GROUP BY fkc.parent_object_id, fkc.constraint_object_id
+
+    UNION ALL
+
+    SELECT
+        cc.parent_object_id,
+        cc.object_id,
+        STUFF((
+            SELECT ', ' + c.name
+            FROM sys.columns c
+            WHERE c.object_id = cc.parent_object_id
+              AND CHARINDEX(QUOTENAME(c.name), cc.definition) > 0
+            FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS columns
+    FROM sys.check_constraints cc
+)
+SELECT
+    s.name AS schema_name,
+    t.name AS table_name,
+    o.name AS constraint_name,
+    CASE
+        WHEN o.type = 'PK' THEN 'PRIMARY KEY'
+        WHEN o.type = 'UQ' THEN 'UNIQUE'
+        WHEN o.type = 'F' THEN 'FOREIGN KEY'
+        WHEN o.type = 'C' THEN 'CHECK'
+    END AS constraint_type,
+    cc.columns AS constraint_columns,
+    CASE WHEN o.type = 'F'
+        THEN OBJECT_SCHEMA_NAME(fk.referenced_object_id) + '.' + OBJECT_NAME(fk.referenced_object_id)
+        ELSE NULL
+    END AS referenced_table,
+    CASE WHEN o.type = 'F'
+        THEN (SELECT STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY fc.constraint_column_id)
+              FROM sys.foreign_key_columns fc
+              JOIN sys.columns c ON fc.referenced_object_id = c.object_id AND fc.referenced_column_id = c.column_id
+              WHERE fc.constraint_object_id = o.object_id)
+        ELSE NULL
+    END AS referenced_columns,
+    CASE WHEN o.type = 'F'
+        THEN 'ON UPDATE ' + UPPER(fk.update_referential_action_desc) + ', ON DELETE ' + UPPER(fk.delete_referential_action_desc)
+        ELSE NULL
+    END AS fk_actions,
+    CASE WHEN o.type = 'C' THEN cc_def.definition ELSE NULL END AS check_clause
+FROM
+    sys.objects o
+JOIN
+    sys.tables t ON o.parent_object_id = t.object_id
+JOIN
+    sys.schemas s ON t.schema_id = s.schema_id
+LEFT JOIN
+    ConstraintColumns cc ON o.object_id = cc.constraint_object_id
+LEFT JOIN
+    sys.foreign_keys fk ON o.object_id = fk.object_id
+LEFT JOIN
+    sys.check_constraints cc_def ON o.object_id = cc_def.object_id
+WHERE
+    o.type IN ('PK', 'UQ', 'F', 'C')
+    AND s.name IN (SELECT value FROM STRING_SPLIT(@schemas, ','))
+ORDER BY
+    s.name, t.name, o.name;
+`
+
+type GetTableConstraintsBySchemasRow struct {
+	SchemaName        string
+	TableName         string
+	ConstraintName    string
+	ConstraintType    string
+	ConstraintColumns string
+	ReferencedTable   sql.NullString
+	ReferencedColumns sql.NullString
+	FKActions         sql.NullString
+	CheckClause       sql.NullString
+}
+
+func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
+	// Join schemas into a comma-separated string
+	schemaList := strings.Join(schemas, ",")
+
+	// Execute the query with the schema list as a parameter
+	rows, err := db.QueryContext(ctx, getTableConstraintsBySchemas, sql.Named("schemas", schemaList))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*GetTableConstraintsBySchemasRow
+	for rows.Next() {
+		var i GetTableConstraintsBySchemasRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.ConstraintColumns,
+			&i.ReferencedTable,
+			&i.ReferencedColumns,
+			&i.FKActions,
+			&i.CheckClause,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
