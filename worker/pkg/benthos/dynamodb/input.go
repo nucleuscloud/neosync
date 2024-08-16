@@ -2,9 +2,7 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strconv"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,17 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/warpstreamlabs/bento/public/service"
-)
-
-const (
-	metaTypeMapStr = "neosync_key_type_map"
-)
-
-type KeyType int
-
-const (
-	StringSet KeyType = iota
-	NumberSet
 )
 
 func dynamoInputConfigSpec() *service.ConfigSpec {
@@ -167,7 +154,7 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 
 		resMap, keyTypeMap := attributeValueMapToStandardJSON(item)
 		msg := service.NewMessage(nil)
-		msg.MetaSetMut(metaTypeMapStr, keyTypeMap)
+		msg.MetaSetMut(MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
@@ -314,12 +301,16 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 	case *types.AttributeValueMemberM:
 		mAny := make(map[string]any, len(t.Value))
 		for k, v := range t.Value {
-			val := attributeValueToStandardValue(k, v, keyTypeMap)
+			path := k
+			if key != "" {
+				path = fmt.Sprintf("%s.%s", key, k)
+			}
+			val := attributeValueToStandardValue(path, v, keyTypeMap)
 			mAny[k] = val
 		}
 		return mAny
 	case *types.AttributeValueMemberN:
-		n, err := convertStringToNumber(t.Value)
+		n, err := ConvertStringToNumber(t.Value)
 		if err != nil {
 			return t.Value
 		}
@@ -328,7 +319,7 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 		keyTypeMap[key] = NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			n, err := convertStringToNumber(v)
+			n, err := ConvertStringToNumber(v)
 			if err != nil {
 				return v
 			}
@@ -348,16 +339,4 @@ func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 		return lAny
 	}
 	return nil
-}
-
-func convertStringToNumber(s string) (any, error) {
-	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return i, nil
-	}
-
-	if f, err := strconv.ParseFloat(s, 64); err == nil {
-		return f, nil
-	}
-
-	return nil, errors.New("input string is neither a valid int nor a float")
 }

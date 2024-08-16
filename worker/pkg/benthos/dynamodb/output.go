@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -231,7 +232,11 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	case map[string]any:
 		m := make(map[string]types.AttributeValue, len(v))
 		for k, v2 := range v {
-			m[k] = anyToAttributeValue(k, v2, keyTypeMap)
+			path := k
+			if key != "" {
+				path = fmt.Sprintf("%s.%s", key, k)
+			}
+			m[k] = anyToAttributeValue(path, v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberM{
 			Value: m,
@@ -262,7 +267,7 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 		}
 	case float64:
 		return &types.AttributeValueMemberN{
-			Value: strconv.FormatFloat(v, 'f', -1, 64),
+			Value: formatFloat(v),
 		}
 	case int:
 		return &types.AttributeValueMemberN{
@@ -284,6 +289,15 @@ func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	return &types.AttributeValueMemberS{
 		Value: fmt.Sprintf("%v", root),
 	}
+}
+
+func formatFloat(f float64) string {
+	s := strconv.FormatFloat(f, 'f', 4, 64)
+	s = strings.TrimRight(s, "0")
+	if strings.HasSuffix(s, ".") {
+		s += "0"
+	}
+	return s
 }
 
 func getGenericSlice[T any](v any) ([]T, bool) {
@@ -460,7 +474,7 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 
 func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
 	keyTypeMap := map[string]KeyType{}
-	meta, ok := p.MetaGetMut(metaTypeMapStr)
+	meta, ok := p.MetaGetMut(MetaTypeMapStr)
 	if ok {
 		kt, err := convertToMapStringKeyType(meta)
 		if err != nil {

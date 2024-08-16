@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"strings"
@@ -32,6 +31,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
+	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -47,8 +47,6 @@ import (
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 
 	"github.com/warpstreamlabs/bento/public/service"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type ConnectionType string
@@ -75,8 +73,9 @@ var (
 )
 
 type cmdConfig struct {
-	Source      *sourceConfig      `yaml:"source"`
-	Destination *destinationConfig `yaml:"destination"`
+	Source                 *sourceConfig              `yaml:"source"`
+	Destination            *sqlDestinationConfig      `yaml:"destination"`
+	AwsDynamoDbDestination *dynamoDbDestinationConfig `yaml:"aws-dynamodb-destination,omitempty"`
 }
 
 type sourceConfig struct {
@@ -95,11 +94,6 @@ type onConflictConfig struct {
 
 type dynamoDbDestinationConfig struct {
 	AwsCredConfig *AwsCredConfig `yaml:"aws-cred-config"`
-}
-
-type destinationConfig struct {
-	SqlConfig         *sqlDestinationConfig      `yaml:"sql-config,omitempty"`
-	AwsDynamoDbConfig *dynamoDbDestinationConfig `yaml:"aws-dynamodb-config,omitempty"`
 }
 
 type sqlDestinationConfig struct {
@@ -141,10 +135,8 @@ func NewCmd() *cobra.Command {
 				Source: &sourceConfig{
 					ConnectionOpts: &connectionOpts{},
 				},
-				Destination: &destinationConfig{
-					SqlConfig:         &sqlDestinationConfig{},
-					AwsDynamoDbConfig: &dynamoDbDestinationConfig{},
-				},
+				Destination:            &sqlDestinationConfig{},
+				AwsDynamoDbDestination: &dynamoDbDestinationConfig{},
 			}
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
@@ -175,7 +167,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if destConnUrl != "" {
-				config.Destination.SqlConfig.ConnectionUrl = destConnUrl
+				config.Destination.ConnectionUrl = destConnUrl
 			}
 
 			driver, err := cmd.Flags().GetString("destination-driver")
@@ -184,7 +176,7 @@ func NewCmd() *cobra.Command {
 			}
 			pDriver, ok := parseDriverString(driver)
 			if ok {
-				config.Destination.SqlConfig.Driver = pDriver
+				config.Destination.Driver = pDriver
 			}
 
 			initSchema, err := cmd.Flags().GetBool("init-schema")
@@ -192,7 +184,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if initSchema {
-				config.Destination.SqlConfig.InitSchema = initSchema
+				config.Destination.InitSchema = initSchema
 			}
 
 			truncateBeforeInsert, err := cmd.Flags().GetBool("truncate-before-insert")
@@ -200,7 +192,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if truncateBeforeInsert {
-				config.Destination.SqlConfig.TruncateBeforeInsert = truncateBeforeInsert
+				config.Destination.TruncateBeforeInsert = truncateBeforeInsert
 			}
 
 			truncateCascade, err := cmd.Flags().GetBool("truncate-cascade")
@@ -208,7 +200,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if truncateBeforeInsert {
-				config.Destination.SqlConfig.TruncateCascade = truncateCascade
+				config.Destination.TruncateCascade = truncateCascade
 			}
 
 			onConflictDoNothing, err := cmd.Flags().GetBool("on-conflict-do-nothing")
@@ -216,7 +208,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if onConflictDoNothing {
-				config.Destination.SqlConfig.OnConflict.DoNothing = onConflictDoNothing
+				config.Destination.OnConflict.DoNothing = onConflictDoNothing
 			}
 
 			jobId, err := cmd.Flags().GetString("job-id")
@@ -343,31 +335,30 @@ func sync(
 	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
-	fmt.Println(connectionType)
 
 	if connectionType == mysqlConnection || connectionType == postgresConnection {
-		if cmd.Destination.SqlConfig.Driver == "" {
+		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")
 		}
-		if cmd.Destination.SqlConfig.ConnectionUrl == "" {
+		if cmd.Destination.ConnectionUrl == "" {
 			return fmt.Errorf("must provide destination-connection-url")
 		}
 
-		if cmd.Destination.SqlConfig.TruncateCascade && cmd.Destination.SqlConfig.Driver != postgresDriver {
+		if cmd.Destination.TruncateCascade && cmd.Destination.Driver != postgresDriver {
 			return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
 		}
 
-		if cmd.Destination.SqlConfig.Driver != mysqlDriver && cmd.Destination.SqlConfig.Driver != postgresDriver {
+		if cmd.Destination.Driver != mysqlDriver && cmd.Destination.Driver != postgresDriver {
 			return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 		}
 	}
 
 	if connectionType == awsDynamoDBConnection {
-		if cmd.Destination.AwsDynamoDbConfig == nil {
+		if cmd.AwsDynamoDbDestination == nil {
 			return fmt.Errorf("must provide destination aws credentials")
 		}
 
-		if cmd.Destination.AwsDynamoDbConfig.AwsCredConfig.Region == "" {
+		if cmd.AwsDynamoDbDestination.AwsCredConfig.Region == "" {
 			return fmt.Errorf("must provide destination aws region")
 		}
 	}
@@ -403,7 +394,7 @@ func sync(
 		}
 	}
 
-	err = areSourceAndDestCompatible(connection, cmd.Destination.SqlConfig.Driver)
+	err = areSourceAndDestCompatible(connection, cmd.Destination.Driver)
 	if err != nil {
 		return err
 	}
@@ -511,19 +502,8 @@ func sync(
 			benthosConfig := generateDynamoDbBenthosConfig(cmd, serverconfig.GetApiBaseUrl(), token, t)
 			configs = append(configs, benthosConfig)
 		}
-		var opts []tea.ProgramOption
-		if outputType == output.PlainOutput {
-			// Plain mode don't render the TUI
-			opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
-		} else {
-			fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
-			// TUI mode, discard log output
-			logger.SetOutput(io.Discard)
-		}
-		if _, err := tea.NewProgram(newModel(ctx, [][]*benthosConfigResponse{configs}, logger), opts...).Run(); err != nil {
-			logger.Error("Error syncing data:", err)
-			os.Exit(1)
-		}
+
+		return runSync(ctx, outputType, [][]*benthosConfigResponse{configs}, logger)
 	default:
 		return fmt.Errorf("this connection type is not currently supported")
 	}
@@ -552,21 +532,7 @@ func sync(
 		return nil
 	}
 
-	var opts []tea.ProgramOption
-	if outputType == output.PlainOutput {
-		// Plain mode don't render the TUI
-		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
-	} else {
-		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
-		// TUI mode, discard log output
-		logger.SetOutput(io.Discard)
-	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
-		logger.Error("Error syncing data:", err)
-		os.Exit(1)
-	}
-
-	return nil
+	return runSync(ctx, outputType, groupedConfigs, logger)
 }
 
 func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {
@@ -592,6 +558,13 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 		return err
 	}
 
+	env := service.NewEnvironment()
+
+	err = neosyncbenthos_dynamodb.RegisterDynamoDbOutput(env)
+	if err != nil {
+		return fmt.Errorf("unable to register dynamodb output to benthos instance: %w", err)
+	}
+
 	var benthosStream *service.Stream
 	go func() {
 		for { //nolint
@@ -610,7 +583,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 		}
 	}()
 
-	streambldr := service.NewStreamBuilder()
+	streambldr := env.NewStreamBuilder()
 
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
@@ -640,12 +613,12 @@ func runDestinationInitStatements(
 	schemaConfig *schemaConfig,
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
-	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.SqlConfig.Driver), cmd.Destination.SqlConfig.ConnectionUrl)
+	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
 		return err
 	}
 	defer db.Db.Close()
-	if cmd.Destination.SqlConfig.InitSchema {
+	if cmd.Destination.InitSchema {
 		if len(schemaConfig.InitSchemaStatements) != 0 {
 			for _, block := range schemaConfig.InitSchemaStatements {
 				logger.Infof("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements))
@@ -679,8 +652,8 @@ func runDestinationInitStatements(
 			}
 		}
 	}
-	if cmd.Destination.SqlConfig.Driver == postgresDriver {
-		if cmd.Destination.SqlConfig.TruncateCascade {
+	if cmd.Destination.Driver == postgresDriver {
+		if cmd.Destination.TruncateCascade {
 			truncateCascadeStmts := []string{}
 			for _, syncCfg := range syncConfigs {
 				stmt, ok := schemaConfig.TruncateTableStatementsMap[syncCfg.Table]
@@ -693,7 +666,7 @@ func runDestinationInitStatements(
 				logger.Error("Error truncate cascade tables:", err)
 				return err
 			}
-		} else if cmd.Destination.SqlConfig.TruncateBeforeInsert {
+		} else if cmd.Destination.TruncateBeforeInsert {
 			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 			if err != nil {
 				return err
@@ -705,7 +678,7 @@ func runDestinationInitStatements(
 				return err
 			}
 		}
-	} else if cmd.Destination.SqlConfig.Driver == mysqlDriver {
+	} else if cmd.Destination.Driver == mysqlDriver {
 		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
@@ -869,8 +842,8 @@ func generateBenthosConfig(
 		bc.Output = &cli_neosync_benthos.OutputConfig{
 			Outputs: cli_neosync_benthos.Outputs{
 				PooledSqlUpdate: &cli_neosync_benthos.PooledSqlUpdate{
-					Driver: string(cmd.Destination.SqlConfig.Driver),
-					Dsn:    cmd.Destination.SqlConfig.ConnectionUrl,
+					Driver: string(cmd.Destination.Driver),
+					Dsn:    cmd.Destination.ConnectionUrl,
 
 					Schema:       schema,
 					Table:        table,
@@ -889,13 +862,13 @@ func generateBenthosConfig(
 		bc.Output = &cli_neosync_benthos.OutputConfig{
 			Outputs: cli_neosync_benthos.Outputs{
 				PooledSqlInsert: &cli_neosync_benthos.PooledSqlInsert{
-					Driver: string(cmd.Destination.SqlConfig.Driver),
-					Dsn:    cmd.Destination.SqlConfig.ConnectionUrl,
+					Driver: string(cmd.Destination.Driver),
+					Dsn:    cmd.Destination.ConnectionUrl,
 
 					Schema:              schema,
 					Table:               table,
 					Columns:             syncConfig.SelectColumns,
-					OnConflictDoNothing: cmd.Destination.SqlConfig.OnConflict.DoNothing,
+					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
 					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns),
 
 					Batching: &cli_neosync_benthos.Batching{
@@ -1023,7 +996,7 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		initStatementsResp, err := getTableInitStatementMap(errctx, logger, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination.SqlConfig)
+		initStatementsResp, err := getTableInitStatementMap(errctx, logger, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
 		if err != nil {
 			return err
 		}
@@ -1098,7 +1071,7 @@ func getDestinationSchemaConfig(
 	}
 
 	logger.Info("Building table constraints...")
-	tableConstraints, err := getDestinationTableConstraints(ctx, sqlmanagerclient, cmd.Destination.SqlConfig.Driver, cmd.Destination.SqlConfig.ConnectionUrl, schemas)
+	tableConstraints, err := getDestinationTableConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1111,8 +1084,8 @@ func getDestinationSchemaConfig(
 	}
 
 	truncateTableStatementsMap := map[string]string{}
-	if cmd.Destination.SqlConfig.Driver == postgresDriver {
-		if cmd.Destination.SqlConfig.TruncateCascade {
+	if cmd.Destination.Driver == postgresDriver {
+		if cmd.Destination.TruncateCascade {
 			for t := range tableColMap {
 				schema, table := sqlmanager_shared.SplitTableKey(t)
 				stmt, err := sqlmanager_postgres.BuildPgTruncateCascadeStatement(schema, table)
@@ -1124,7 +1097,7 @@ func getDestinationSchemaConfig(
 		}
 		// truncate before insert handled in runDestinationInitStatements
 	} else {
-		if cmd.Destination.SqlConfig.TruncateBeforeInsert {
+		if cmd.Destination.TruncateBeforeInsert {
 			for t := range tableColMap {
 				schema, table := sqlmanager_shared.SplitTableKey(t)
 				stmt, err := sqlmanager_mysql.BuildMysqlTruncateStatement(schema, table)

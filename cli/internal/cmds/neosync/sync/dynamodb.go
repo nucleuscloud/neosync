@@ -12,7 +12,7 @@ func buildAwsCredConfig(cmd *cobra.Command, config *cmdConfig) (*cmdConfig, erro
 		return nil, err
 	}
 	if region != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.Region = region
+		config.AwsDynamoDbDestination.AwsCredConfig.Region = region
 	}
 
 	dynamoDBAccessKeyID, err := cmd.Flags().GetString("aws-access-key-id")
@@ -20,42 +20,42 @@ func buildAwsCredConfig(cmd *cobra.Command, config *cmdConfig) (*cmdConfig, erro
 		return nil, err
 	}
 	if dynamoDBAccessKeyID != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.AccessKeyID = &dynamoDBAccessKeyID
+		config.AwsDynamoDbDestination.AwsCredConfig.AccessKeyID = &dynamoDBAccessKeyID
 	}
 	dynamoDBSecretAccessKey, err := cmd.Flags().GetString("aws-secret-access-key")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBSecretAccessKey != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.SecretAccessKey = &dynamoDBSecretAccessKey
+		config.AwsDynamoDbDestination.AwsCredConfig.SecretAccessKey = &dynamoDBSecretAccessKey
 	}
 	dynamoDBSessionToken, err := cmd.Flags().GetString("aws-session-token")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBSessionToken != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.SessionToken = &dynamoDBSessionToken
+		config.AwsDynamoDbDestination.AwsCredConfig.SessionToken = &dynamoDBSessionToken
 	}
 	dynamoDBRoleARN, err := cmd.Flags().GetString("aws-role-arn")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBRoleARN != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.RoleARN = &dynamoDBRoleARN
+		config.AwsDynamoDbDestination.AwsCredConfig.RoleARN = &dynamoDBRoleARN
 	}
 	dynamoDBRoleExternalID, err := cmd.Flags().GetString("aws-role-external-id")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBRoleExternalID != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.RoleExternalID = &dynamoDBRoleExternalID
+		config.AwsDynamoDbDestination.AwsCredConfig.RoleExternalID = &dynamoDBRoleExternalID
 	}
 	dynamoDBEndpoint, err := cmd.Flags().GetString("aws-endpoint")
 	if err != nil {
 		return nil, err
 	}
 	if dynamoDBEndpoint != "" {
-		config.Destination.AwsDynamoDbConfig.AwsCredConfig.Endpoint = &dynamoDBEndpoint
+		config.AwsDynamoDbDestination.AwsCredConfig.Endpoint = &dynamoDBEndpoint
 	}
 	return config, nil
 }
@@ -102,8 +102,8 @@ func generateDynamoDbBenthosConfig(
 							Count:  25,
 						},
 
-						Region:      cmd.Destination.AwsDynamoDbConfig.AwsCredConfig.Region,
-						Endpoint:    *cmd.Destination.AwsDynamoDbConfig.AwsCredConfig.Endpoint,
+						Region:      cmd.AwsDynamoDbDestination.AwsCredConfig.Region,
+						Endpoint:    *cmd.AwsDynamoDbDestination.AwsCredConfig.Endpoint,
 						Credentials: buildBenthosAwsCredentials(cmd),
 					},
 				},
@@ -120,10 +120,10 @@ func generateDynamoDbBenthosConfig(
 }
 
 func buildBenthosAwsCredentials(cmd *cmdConfig) *cli_neosync_benthos.AwsCredentials {
-	if cmd.Destination.AwsDynamoDbConfig == nil || cmd.Destination.AwsDynamoDbConfig.AwsCredConfig == nil {
+	if cmd.AwsDynamoDbDestination == nil || cmd.AwsDynamoDbDestination.AwsCredConfig == nil {
 		return nil
 	}
-	cc := cmd.Destination.AwsDynamoDbConfig.AwsCredConfig
+	cc := cmd.AwsDynamoDbDestination.AwsCredConfig
 	creds := &cli_neosync_benthos.AwsCredentials{}
 	if cc.Profile != nil {
 		creds.Profile = *cc.Profile

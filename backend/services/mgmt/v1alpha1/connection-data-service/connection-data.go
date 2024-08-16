@@ -410,23 +410,6 @@ func (s *Service) GetConnectionDataStream(
 					return err
 				}
 				row["item"] = itemBits
-				// for key, value := range item {
-				// 	switch v := value.(type) {
-				// 	case *dynamotypes.AttributeValueMemberS:
-				// 		row[key] = []byte(v.Value)
-				// 	case *dynamotypes.AttributeValueMemberN:
-				// 		row[key] = []byte(v.Value)
-				// 	case *dynamotypes.AttributeValueMemberB:
-				// 		row[key] = v.Value
-				// 	default:
-				// 		jsonBytes, err := json.Marshal(v)
-				// 		if err != nil {
-				// 			return fmt.Errorf("failed to marshal DynamoDB attribute: %w", err)
-				// 		}
-				// 		row[key] = jsonBytes
-				// 	}
-				// }
-
 				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
 					return fmt.Errorf("failed to send stream response: %w", err)
 				}
@@ -444,18 +427,20 @@ func (s *Service) GetConnectionDataStream(
 	return nil
 }
 
-func convertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[string]interface{}, error) {
+func convertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[string]any, error) {
 	switch v := av.(type) {
 	case *dynamotypes.AttributeValueMemberS:
-		return map[string]interface{}{"S": v.Value}, nil
+		return map[string]any{"S": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberB:
+		return map[string]any{"B": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberN:
-		return map[string]interface{}{"N": v.Value}, nil
+		return map[string]any{"N": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberBOOL:
-		return map[string]interface{}{"BOOL": v.Value}, nil
+		return map[string]any{"BOOL": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberNULL:
-		return map[string]interface{}{"NULL": v.Value}, nil
+		return map[string]any{"NULL": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberM:
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 		for k, val := range v.Value {
 			var err error
 			m[k], err = convertAttributeValueToDynamoDBJSON(val)
@@ -463,9 +448,9 @@ func convertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[str
 				return nil, err
 			}
 		}
-		return map[string]interface{}{"M": m}, nil
+		return map[string]any{"M": m}, nil
 	case *dynamotypes.AttributeValueMemberL:
-		l := make([]interface{}, len(v.Value))
+		l := make([]any, len(v.Value))
 		for i, val := range v.Value {
 			var err error
 			l[i], err = convertAttributeValueToDynamoDBJSON(val)
@@ -473,20 +458,20 @@ func convertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[str
 				return nil, err
 			}
 		}
-		return map[string]interface{}{"L": l}, nil
+		return map[string]any{"L": l}, nil
 	case *dynamotypes.AttributeValueMemberSS:
-		return map[string]interface{}{"SS": v.Value}, nil
+		return map[string]any{"SS": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberNS:
-		return map[string]interface{}{"NS": v.Value}, nil
+		return map[string]any{"NS": v.Value}, nil
 	case *dynamotypes.AttributeValueMemberBS:
-		return map[string]interface{}{"BS": v.Value}, nil
+		return map[string]any{"BS": v.Value}, nil
 	default:
 		return nil, fmt.Errorf("unsupported AttributeValue type")
 	}
 }
 
 func convertMapToJSONBytes(input map[string]dynamotypes.AttributeValue) ([]byte, error) {
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	for key, av := range input {
 		dynamoDBJSON, err := convertAttributeValueToDynamoDBJSON(av)

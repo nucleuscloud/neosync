@@ -2,17 +2,18 @@ package input
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"sync"
 
 	"connectrpc.com/connect"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
+	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -203,17 +204,26 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	}
 	row := g.resp.Msg().Row
 
-	fmt.Println()
+	if g.connectionType == "awsDynamoDB" {
+		for _, val := range row {
+			var dynamoDBItem map[string]any
+			err := json.Unmarshal(val, &dynamoDBItem)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			resMap, keyTypeMap := convertDynamoDBItemToMap(dynamoDBItem)
+			msg := service.NewMessage(nil)
+			msg.MetaSetMut(neosyncbenthos_dynamodb.MetaTypeMapStr, keyTypeMap)
+			msg.SetStructuredMut(resMap)
+			return msg, func(ctx context.Context, err error) error {
+				// Nacks are retried automatically when we use service.AutoRetryNacks
+				return nil
+			}, nil
+		}
+	}
 	valuesMap := map[string]any{}
 	for col, val := range row {
-		fmt.Printf("%s: %s \n", col, string(val))
-		var item map[string]map[string]*dynamodb.AttributeValue
-		err := json.Unmarshal(val, &item)
-		if err != nil {
-			return nil, nil, err
-		}
-		jsonF, _ := json.MarshalIndent(item, "", " ")
-		fmt.Printf("%s \n", string(jsonF))
 		if len(val) == 0 {
 			valuesMap[col] = nil
 		} else {
@@ -242,4 +252,94 @@ func (g *neosyncInput) Close(ctx context.Context) error {
 
 	g.neosyncConnectApi = nil // idk if this really matters
 	return nil
+}
+
+func convertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosyncbenthos_dynamodb.KeyType) {
+	result := make(map[string]any)
+	ktm := make(map[string]neosyncbenthos_dynamodb.KeyType)
+	for key, value := range item {
+		result[key] = convertDynamoDBValue(key, value, ktm)
+	}
+
+	return result, ktm
+}
+
+func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosyncbenthos_dynamodb.KeyType) any {
+	if m, ok := value.(map[string]any); ok {
+		for dynamoType, dynamoValue := range m {
+			switch dynamoType {
+			case "S":
+				return dynamoValue.(string)
+			case "B":
+				s := dynamoValue.(string)
+				byteSlice, err := base64.StdEncoding.DecodeString(s)
+				if err != nil {
+					return dynamoValue
+				}
+				return byteSlice
+			case "N":
+				n, err := neosyncbenthos_dynamodb.ConvertStringToNumber(dynamoValue.(string))
+				if err != nil {
+					return dynamoValue
+				}
+				return n
+			case "BOOL":
+				return dynamoValue.(bool)
+			case "NULL":
+				return nil
+			case "L":
+				list := dynamoValue.([]any)
+				result := make([]any, len(list))
+				for i, item := range list {
+					result[i] = convertDynamoDBValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+				}
+				return result
+			case "M":
+				mAny := map[string]any{}
+				for k, v := range dynamoValue.(map[string]any) {
+					path := k
+					if key != "" {
+						path = fmt.Sprintf("%s.%s", key, k)
+					}
+					val := convertDynamoDBValue(path, v, keyTypeMap)
+					mAny[k] = val
+				}
+				return mAny
+			case "BS":
+				bytes := dynamoValue.([]any)
+				result := make([][]byte, len(bytes))
+				for i, b := range bytes {
+					s := b.(string)
+					byteSlice, err := base64.StdEncoding.DecodeString(s)
+					if err != nil {
+						return dynamoValue
+					}
+
+					result[i] = byteSlice
+				}
+				return result
+			case "SS":
+				keyTypeMap[key] = neosyncbenthos_dynamodb.StringSet
+				ss := dynamoValue.([]any)
+				result := make([]string, len(ss))
+				for i, s := range ss {
+					result[i] = s.(string)
+				}
+				return result
+			case "NS":
+				keyTypeMap[key] = neosyncbenthos_dynamodb.NumberSet
+				numbers := dynamoValue.([]any)
+				result := make([]any, len(numbers))
+				for i, num := range numbers {
+					n, err := neosyncbenthos_dynamodb.ConvertStringToNumber(num.(string))
+					if err != nil {
+						result[i] = num
+					}
+					result[i] = n
+				}
+				return result
+			}
+		}
+	}
+	return value
 }

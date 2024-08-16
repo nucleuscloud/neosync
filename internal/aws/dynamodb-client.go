@@ -72,7 +72,6 @@ func (d *DynamoDbClient) ScanTable(
 	tableName string,
 	lastEvaluatedKey map[string]types.AttributeValue,
 ) (*dynamodb.ScanOutput, error) {
-
 	input := &dynamodb.ScanInput{
 		TableName:         &tableName,
 		ExclusiveStartKey: lastEvaluatedKey,
