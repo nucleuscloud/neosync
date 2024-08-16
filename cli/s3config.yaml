@@ -1,9 +1,0 @@
-source:
-  connection-id: 88a94688-6e3a-4963-83d1-f5fea4d8fa36
-  connection-opts:
-    job-id: 18f3b4df-a03e-425f-8de3-94c1255beeb7
-destination:
-  connection-url: postgresql://postgres:foofar@localhost:5434/nucleus?sslmode=disable
-  driver: postgres
-  truncate-before-insert: true
-  truncate-cascade: true
