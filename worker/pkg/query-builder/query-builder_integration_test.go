@@ -64,6 +64,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		fmt.Println()
+		fmt.Println(sql)
 		require.NotEmpty(s.T(), sql)
 		rows, err := s.pgpool.Query(s.ctx, sql)
 		require.NoError(s.T(), err)
@@ -160,6 +162,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference_Complex() {
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		fmt.Println()
+		fmt.Println(sql)
 		require.NotEmpty(s.T(), sql)
 		rows, err := s.pgpool.Query(s.ctx, sql)
 		require.NoError(s.T(), err)

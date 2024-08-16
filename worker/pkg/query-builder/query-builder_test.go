@@ -1,7 +1,9 @@
 package querybuilder
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -627,4 +629,118 @@ func Test_BuildInsertQuery(t *testing.T) {
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+// func Test_buildAliasReferences(t *testing.T) {
+// 	tests := []struct {
+// 		name           string
+// 		driver         string
+// 		constraints    map[string][]*sqlmanager_shared.ForeignConstraint
+// 		whereClauses   map[string]string
+// 		expectedResult *subsetConstraints
+// 		expectedError  string
+// 	}{
+// 		{
+// 			name:   "Case with aliases",
+// 			driver: "postgres",
+// 			constraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+// 				"table1": {
+// 					{
+// 						Columns: []string{"col1"},
+// 						ForeignKey: &sqlmanager_shared.ForeignKey{
+// 							Table:   "table2",
+// 							Columns: []string{"col2"},
+// 						},
+// 					},
+// 					{
+// 						Columns: []string{"col3"},
+// 						ForeignKey: &sqlmanager_shared.ForeignKey{
+// 							Table:   "table2",
+// 							Columns: []string{"col4"},
+// 						},
+// 					},
+// 				},
+// 			},
+// 			whereClauses: map[string]string{
+// 				"table1": "col1 > 0",
+// 				"table2": "col2 < 10",
+// 			},
+// 			expectedResult: &subsetConstraints{
+// 				ColumnConstraints: map[string][]*SubsetColumnConstraint{
+// 					"table1": {
+// 						{
+// 							Columns: []string{"col1"},
+// 							ForeignKey: &SubsetReferenceKey{
+// 								Table:         "03d9b17db603a9",
+// 								OriginalTable: stringPtr("table2"),
+// 								Columns:       []string{"col2"},
+// 							},
+// 						},
+// 						{
+// 							Columns: []string{"col3"},
+// 							ForeignKey: &SubsetReferenceKey{
+// 								Table:         "db8b8fee407335",
+// 								OriginalTable: stringPtr("table2"),
+// 								Columns:       []string{"col4"},
+// 							},
+// 						},
+// 					},
+// 					"03d9b17db603a9": {},
+// 					"db8b8fee407335": {},
+// 				},
+// 				WhereClauses: map[string]string{
+// 					"table1":         "col1 > 0",
+// 					"table2":         "col2 < 10",
+// 					"03d9b17db603a9": "\"03d9b17db603a9\".col2 < 10",
+// 					"db8b8fee407335": "db8b8fee407335.col2 < 10",
+// 				},
+// 			},
+// 			expectedError: "",
+// 		},
+// 	}
+
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			result, err := buildAliasReferences(tt.driver, tt.constraints, tt.whereClauses)
+// 			jsonF, _ := json.MarshalIndent(result, "", " ")
+// 			fmt.Printf("%s \n", string(jsonF))
+
+// 			if tt.expectedError != "" {
+// 				require.EqualError(t, err, tt.expectedError)
+// 			} else {
+// 				require.NoError(t, err)
+// 				require.Equal(t, tt.expectedResult, result)
+// 			}
+// 		})
+// 	}
+// }
+
+func stringPtr(s string) *string {
+	return &s
+}
+
+func Test_BuildSelectQueryMap_Campus(t *testing.T) {
+	driver := "postgres"
+	_ = driver
+	tableDeps := map[string][]*sqlmanager_shared.ForeignConstraint{}
+
+	bits, err := os.ReadFile("./tabledeps.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(bits, &tableDeps)
+	require.NoError(t, err)
+
+	runConfigs := []*tabledependency.RunConfig{}
+	bits, err = os.ReadFile("./runconfigs.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(bits, &runConfigs)
+	require.NoError(t, err)
+
+	groupedColInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
+	bits, err = os.ReadFile("./groupedcolinfo.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(bits, &groupedColInfo)
+	require.NoError(t, err)
+
+	_, err = BuildSelectQueryMap(driver, tableDeps, runConfigs, true, groupedColInfo)
+	require.NoError(t, err)
 }
