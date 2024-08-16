@@ -13,7 +13,7 @@ export interface FormStep {
 
 export default function WelcomeDialog(): ReactElement {
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(true); //revert after testing
 
   const multiStepForm: FormStep[] = [
     {

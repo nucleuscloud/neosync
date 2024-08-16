@@ -1,4 +1,4 @@
-import { NewJobType } from '@/app/(mgmt)/[account]/new/job/schema';
+import { NewJobType } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -60,8 +60,7 @@ export default function WelcomeRouter({
   const jobData = [
     {
       name: 'Data Synchronization',
-      description:
-        'Synchronize and anonymize data between a source and destination. ',
+      description: 'Sync and anonymize data between a source and destination. ',
       href: `/${account?.name}/new/job/define?${dataSyncParams.toString()}`,
       icon: <SymbolIcon />,
       type: 'data-sync',
@@ -69,8 +68,7 @@ export default function WelcomeRouter({
     },
     {
       name: 'Data Generation',
-      description:
-        'Generate synthetic data from scratch for a chosen destination.',
+      description: 'Generate synthetic data from using Neosync Transformers.',
       href: `/${account?.name}/new/job/define?${dataGenParams.toString()}`,
       icon: <AiOutlineExperiment />,
       type: 'generate-table',
@@ -101,11 +99,11 @@ export default function WelcomeRouter({
 
   return (
     <div className="flex flex-col gap-8 justify-center items-center text-center ">
-      <h1 className="font-semibold text-2xl"></h1>
+      <h1 className="font-semibold text-2xl">Select a Job type</h1>
       <p className="text-sm px-10">
         Select the type of job that you would like to create.
       </p>
-      <div className="flex flex-col justify-center gap-6 ">
+      <div className="flex flex-col justify-center">
         <RadioGroup value={selectedJobType} onChange={() => setSelectedJobType}>
           {jobData.map((jd) => (
             <Card
@@ -143,7 +141,7 @@ export default function WelcomeRouter({
           ))}
         </RadioGroup>
       </div>
-      <div className="flex flex-row justify-between gap-1 w-full">
+      <div className="flex flex-row justify-between w-full py-6">
         <Button
           variant="outline"
           type="reset"
