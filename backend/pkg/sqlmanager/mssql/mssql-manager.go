@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -73,6 +74,62 @@ func (m *Manager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string
 }
 
 func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
+	if len(schemas) == 0 {
+		return &sqlmanager_shared.TableConstraints{}, nil
+	}
+	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.db, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return &sqlmanager_shared.TableConstraints{}, nil
+	}
+
+	foreignKeyMap := map[string][]*sqlmanager_shared.ForeignConstraint{}
+	primaryKeyMap := map[string][]string{}
+	uniqueConstraintsMap := map[string][][]string{}
+
+	for _, row := range rows {
+		tableName := sqlmanager_shared.BuildTable(row.SchemaName, row.TableName)
+		constraintCols := splitAndStrip(row.ConstraintColumns, ", ")
+
+		switch row.ConstraintType {
+		case "FOREIGN KEY":
+			if row.ReferencedColumns.Valid && row.ReferencedTable.Valid {
+				fkCols := splitAndStrip(row.ReferencedColumns.String, ", ")
+
+				notNullableInts := splitAndStrip("", ", ")
+				notNullable := []bool{}
+				for _, notNullableInt := range notNullableInts {
+					notNullable = append(notNullable, notNullableInt == "1")
+				}
+				if len(constraintCols) != len(fkCols) {
+					return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
+				}
+				if len(constraintCols) != len(notNullable) {
+					return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(constraintCols), len(notNullable))
+				}
+
+				foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &sqlmanager_shared.ForeignConstraint{
+					Columns:     constraintCols,
+					NotNullable: notNullable,
+					ForeignKey: &sqlmanager_shared.ForeignKey{
+						Table:   sqlmanager_shared.BuildTable(row.SchemaName, row.ReferencedTable.String),
+						Columns: fkCols,
+					},
+				})
+			}
+
+		case "PRIMARY KEY":
+			if _, exists := primaryKeyMap[tableName]; !exists {
+				primaryKeyMap[tableName] = []string{}
+			}
+			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], sqlmanager_shared.DedupeSlice(constraintCols)...)
+		case "UNIQUE":
+			columns := sqlmanager_shared.DedupeSlice(constraintCols)
+			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
+		}
+	}
+
 	return &sqlmanager_shared.TableConstraints{
 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{},
 		PrimaryKeyConstraints: map[string][]string{},
@@ -94,6 +151,18 @@ func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]strin
 		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err
+}
+
+func splitAndStrip(input, delim string) []string {
+	output := []string{}
+
+	for _, piece := range strings.Split(input, delim) {
+		if strings.TrimSpace(piece) != "" {
+			output = append(output, piece)
+		}
+	}
+
+	return output
 }
 
 func (m *Manager) GetTableInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableInitStatement, error) {
