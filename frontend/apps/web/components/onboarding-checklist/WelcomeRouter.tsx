@@ -22,6 +22,7 @@ interface Props {
   currentStep: number;
   setCurrentStep: (val: number) => void;
   setIsDialogOpen: (val: boolean) => void;
+  completeForm: () => Promise<void>;
 }
 
 export default function WelcomeRouter({
@@ -29,6 +30,7 @@ export default function WelcomeRouter({
   currentStep,
   setIsDialogOpen,
   setCurrentStep,
+  completeForm,
 }: Props & PageProps): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
@@ -154,6 +156,7 @@ export default function WelcomeRouter({
           disabled={!selectedJobType}
           onClick={() => {
             setIsDialogOpen(false);
+            completeForm();
             setCurrentStep(currentStep - 1);
             router.push(
               href ??

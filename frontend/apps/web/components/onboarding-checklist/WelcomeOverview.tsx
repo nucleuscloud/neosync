@@ -9,28 +9,30 @@ interface Props {
   currentStep: number;
   setCurrentStep: (val: number) => void;
   setIsDialogOpen: (val: boolean) => void;
+  completeForm: () => Promise<void>;
 }
 
 export default function WelcomeOverview(props: Props): ReactElement {
-  const { currentStep, setCurrentStep, setIsDialogOpen } = props;
+  const { currentStep, setCurrentStep, setIsDialogOpen, completeForm } = props;
   const theme = useTheme();
-
-  console.log('theme', theme);
 
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Welcome to Neosync</h1>
       {theme.resolvedTheme == 'light' ? <Welcome /> : <WelcomeDarkMode />}
-      <p className="text-sm px-10">
+      <p className="text-sm px-12">
         Neosync makes it easy to anonymize sensitive data, generate synthetic
         data and sync data across environments. Click{' '}
-        <span className="font-semibold">Next</span> to create a Job.
+        <span className="font-semibold">Next</span> to learn how Neosync works.
       </p>
       <div className="flex flex-row justify-between w-full py-6">
         <Button
           type="button"
           variant="outline"
-          onClick={() => setIsDialogOpen(false)}
+          onClick={() => {
+            completeForm();
+            setIsDialogOpen(false);
+          }}
         >
           Skip
         </Button>

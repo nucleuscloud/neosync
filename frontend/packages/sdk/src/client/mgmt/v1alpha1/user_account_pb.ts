@@ -1711,24 +1711,9 @@ export class SetAccountOnboardingConfigResponse extends Message<SetAccountOnboar
  */
 export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
   /**
-   * @generated from field: bool has_created_source_connection = 1;
+   * @generated from field: bool has_completed_onboarding = 1;
    */
-  hasCreatedSourceConnection = false;
-
-  /**
-   * @generated from field: bool has_created_destination_connection = 2;
-   */
-  hasCreatedDestinationConnection = false;
-
-  /**
-   * @generated from field: bool has_created_job = 3;
-   */
-  hasCreatedJob = false;
-
-  /**
-   * @generated from field: bool has_invited_members = 4;
-   */
-  hasInvitedMembers = false;
+  hasCompletedOnboarding = false;
 
   constructor(data?: PartialMessage<AccountOnboardingConfig>) {
     super();
@@ -1738,10 +1723,7 @@ export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.AccountOnboardingConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "has_created_source_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "has_created_destination_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 3, name: "has_created_job", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 4, name: "has_invited_members", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "has_completed_onboarding", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountOnboardingConfig {

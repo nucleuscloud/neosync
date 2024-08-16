@@ -13756,43 +13756,7 @@
           "extensions": [],
           "fields": [
             {
-              "name": "has_created_source_connection",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_created_destination_connection",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_created_job",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "has_invited_members",
+              "name": "has_completed_onboarding",
               "description": "",
               "label": "",
               "type": "bool",
