@@ -2,7 +2,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
 } from '@/components/ui/form';
 import {
   Table,
@@ -43,7 +43,7 @@ export default function SampleTable(props: Props): ReactElement {
           <FormLabel>Synthetic Data Sample</FormLabel>
           <FormDescription>
             A sample of synthetic data given the inputs above. Returns at most
-             10 records.
+            10 records.
           </FormDescription>
           <div className="rounded-md border overflow-auto dark:border-gray-700">
             <Table>
@@ -55,9 +55,9 @@ export default function SampleTable(props: Props): ReactElement {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     ))}
                   </TableRow>
