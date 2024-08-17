@@ -871,7 +871,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.bosses": {
 			{Columns: []string{"manager_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"id"}}},
-			{Columns: []string{"big_boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"id"}}},
+			{Columns: []string{"big_boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"manager_id"}}}, // todo: should the FK here be id instead of manager_id?
 		},
 		"genbenthosconfigs_querybuilder.minions": {
 			{Columns: []string{"boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"big_boss_id"}}},
@@ -905,7 +905,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
-
+		fmt.Println(table, sql)
 		require.NotEmpty(s.T(), sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
