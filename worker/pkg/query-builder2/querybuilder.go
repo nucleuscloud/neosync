@@ -122,32 +122,35 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 		}
 	}
 
-	// Recursively build and join queries for related tables
-	for _, fk := range table.ForeignKeys {
-		subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
-		if err != nil {
-			return "", nil, err
+	// Only join and apply subsetting if subsetByForeignKeyConstraints is true
+	if qb.subsetByForeignKeyConstraints {
+		// Recursively build and join queries for related tables
+		for _, fk := range table.ForeignKeys {
+			subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
+			if err != nil {
+				return "", nil, err
+			}
+			if subQuery != "" {
+				joinCount[fk.ReferenceTable]++
+				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
+				joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
+				query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
+					subQuery,
+					quoteIdentifier(qb.driver, subQueryAlias),
+					joinCondition))
+				allArgs = append(allArgs, subArgs...)
+			}
 		}
-		if subQuery != "" {
-			joinCount[fk.ReferenceTable]++
-			subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-			joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
-			query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
-				subQuery,
-				quoteIdentifier(qb.driver, subQueryAlias),
-				joinCondition))
-			allArgs = append(allArgs, subArgs...)
-		}
-	}
 
-	// Apply subsetting based on parent table's where conditions
-	if parentTable != nil && qb.subsetByForeignKeyConstraints {
-		parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
-		if parentConditions, ok := qb.whereConditions[parentKey]; ok {
-			for _, parentCond := range parentConditions {
-				subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
-				if subsetCondition != "" {
-					query = query.Where(subsetCondition)
+		// Apply subsetting based on parent table's where conditions
+		if parentTable != nil {
+			parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
+			if parentConditions, ok := qb.whereConditions[parentKey]; ok {
+				for _, parentCond := range parentConditions {
+					subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
+					if subsetCondition != "" {
+						query = query.Where(subsetCondition)
+					}
 				}
 			}
 		}
