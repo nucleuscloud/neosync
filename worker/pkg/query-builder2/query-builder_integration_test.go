@@ -905,7 +905,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
-		fmt.Println(table, sql)
 		require.NotEmpty(s.T(), sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
