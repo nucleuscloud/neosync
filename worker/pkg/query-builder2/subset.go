@@ -24,11 +24,16 @@ func BuildSelectQueryMap(
 	}
 	for _, rc := range runConfigs {
 		td, ok := tableDependencies[rc.Table]
-		if ok {
-			td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
-				Columns: rc.PrimaryKeys,
-			})
+		if !ok {
+			td = &TableConstraints{
+				PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
+				ForeignKeys: []*sqlmanager_shared.ForeignConstraint{},
+			}
+			tableDependencies[rc.Table] = td
 		}
+		td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
+			Columns: rc.PrimaryKeys,
+		})
 	}
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver)
 
