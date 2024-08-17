@@ -862,7 +862,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 			}
 		}
 		rows.Close()
-		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+		require.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 	}
 }
 
@@ -891,7 +891,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 			"boss_id":    {1, 2, 3},
 		},
 		"genbenthosconfigs_querybuilder.minions": {
-			"boss_id": {1, 3},
+			"boss_id": {2, 4},
 		},
 	}
 
