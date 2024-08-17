@@ -294,7 +294,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 	}
 }
 
-// broken
 func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 	whereId := "id = 1"
 	whereId4 := "id in (4,5)"
@@ -675,7 +674,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 	}
 }
 
-// broken
 func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 	whereId := "id in (1,5)"
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
@@ -750,7 +748,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 	}
 }
 
-// broken
 func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	dependencyConfigs := []*tabledependency.RunConfig{
