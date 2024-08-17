@@ -100,6 +100,14 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 	if len(columnsToInclude) == 0 {
 		columnsToInclude = qb.getRequiredColumns(table)
 	}
+	// If still no columns, select all columns
+	if len(columnsToInclude) == 0 {
+		columnsToInclude = table.Columns
+	}
+	// If still no columns, select '*'
+	if len(columnsToInclude) == 0 {
+		columnsToInclude = []string{"*"}
+	}
 
 	query := squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
 
