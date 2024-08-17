@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
 type TableInfo struct {
@@ -24,7 +25,7 @@ type ForeignKey struct {
 
 type WhereCondition struct {
 	Condition string
-	Args      []any
+	Args      []interface{}
 }
 
 type QueryBuilder struct {
@@ -32,14 +33,16 @@ type QueryBuilder struct {
 	whereConditions map[string][]WhereCondition
 	defaultSchema   string
 	visitedTables   map[string]bool
+	driver          string
 }
 
-func NewQueryBuilder(defaultSchema string) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string) *QueryBuilder {
 	return &QueryBuilder{
 		tables:          make(map[string]*TableInfo),
 		whereConditions: make(map[string][]WhereCondition),
 		defaultSchema:   defaultSchema,
 		visitedTables:   make(map[string]bool),
+		driver:          driver,
 	}
 }
 
@@ -48,17 +51,38 @@ func (qb *QueryBuilder) AddTable(table *TableInfo) {
 	qb.tables[key] = table
 }
 
-func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
+func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
+	columns := make([]string, 0)
+	// Add primary keys
+	columns = append(columns, table.PrimaryKeys...)
+	// Add foreign key columns
+	for _, fk := range table.ForeignKeys {
+		columns = append(columns, fk.Columns...)
+	}
+	// Add columns used in WHERE conditions
+	if conditions, ok := qb.whereConditions[qb.getTableKey(table.Schema, table.Name)]; ok {
+		for _, cond := range conditions {
+			parts := strings.Fields(cond.Condition)
+			if len(parts) > 0 {
+				columns = append(columns, parts[0])
+			}
+		}
+	}
+	// Remove duplicates
+	return uniqueStrings(columns)
+}
+
+func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...interface{}) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []any, error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []interface{}, error) {
 	qb.visitedTables = make(map[string]bool) // Reset visited tables
-	return qb.buildQueryRecursive(schema, tableName, false)
+	return qb.buildQueryRecursive(schema, tableName, nil, nil)
 }
 
-func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, isSubquery bool) (string, []any, error) {
+func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTable *TableInfo, columnsToInclude []string) (string, []interface{}, error) {
 	key := qb.getTableKey(schema, tableName)
 	if qb.visitedTables[key] {
 		return "", nil, nil // Avoid circular dependencies
@@ -70,41 +94,53 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, isSubquery
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
 
-	query := squirrel.Select(qb.getQualifiedColumns(table)...).From(qb.getQualifiedTableName(table))
+	if len(columnsToInclude) == 0 {
+		columnsToInclude = qb.getRequiredColumns(table)
+	}
+
+	query := squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
+
+	var allArgs []interface{}
 
 	// Add WHERE conditions for this table
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
 			qualifiedCondition := qb.qualifyWhereCondition(table, cond.Condition)
 			query = query.Where(qualifiedCondition, cond.Args...)
+			allArgs = append(allArgs, cond.Args...)
 		}
 	}
 
-	var allArgs []any
-
 	// Recursively build and join queries for related tables
 	for _, fk := range table.ForeignKeys {
-		subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, true)
+		subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns)
 		if err != nil {
 			return "", nil, err
 		}
 		if subQuery != "" {
 			joinCondition := qb.buildJoinCondition(table, fk)
-			query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s", subQuery, qb.getQualifiedTableName(&TableInfo{Schema: fk.ReferenceSchema, Name: fk.ReferenceTable}), joinCondition))
+			subQueryAlias := fmt.Sprintf("%s_%s", fk.ReferenceSchema, fk.ReferenceTable)
+			query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
+				subQuery,
+				quoteIdentifier(qb.driver, subQueryAlias),
+				joinCondition))
 			allArgs = append(allArgs, subArgs...)
 		}
 	}
 
-	// If this is a subquery, wrap it and return
-	if isSubquery {
-		sql, args, err := query.ToSql()
-		if err != nil {
-			return "", nil, err
+	// Apply subsetting based on parent table's where conditions
+	if parentTable != nil {
+		parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
+		if parentConditions, ok := qb.whereConditions[parentKey]; ok {
+			for _, parentCond := range parentConditions {
+				subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
+				if subsetCondition != "" {
+					query = query.Where(subsetCondition)
+				}
+			}
 		}
-		return sql, append(allArgs, args...), nil
 	}
 
-	// This is the main query, convert to SQL and return
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return "", nil, err
@@ -114,43 +150,59 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, isSubquery
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string) string {
-	// Split the condition into parts
 	parts := strings.Fields(condition)
-
-	// Qualify the column name (assumed to be the first part)
 	if len(parts) > 0 {
-		parts[0] = fmt.Sprintf("%s.%s", qb.getQualifiedTableName(table), parts[0])
+		parts[0] = fmt.Sprintf("%s.%s", qb.getQualifiedTableName(table), quoteIdentifier(qb.driver, parts[0]))
 	}
-
-	// Rejoin the condition
 	return strings.Join(parts, " ")
-}
-
-func (qb *QueryBuilder) getQualifiedColumns(table *TableInfo) []string {
-	qualifiedColumns := make([]string, len(table.Columns))
-	for i, col := range table.Columns {
-		qualifiedColumns[i] = fmt.Sprintf("%s.%s", qb.getQualifiedTableName(table), col)
-	}
-	return qualifiedColumns
 }
 
 func (qb *QueryBuilder) getQualifiedTableName(table *TableInfo) string {
 	if table.Schema == "" || table.Schema == qb.defaultSchema {
-		return table.Name
+		return quoteIdentifier(qb.driver, table.Name)
 	}
-	return fmt.Sprintf("%s.%s", table.Schema, table.Name)
+	return fmt.Sprintf("%s.%s",
+		quoteIdentifier(qb.driver, table.Schema),
+		quoteIdentifier(qb.driver, table.Name))
+}
+
+func (qb *QueryBuilder) getQualifiedColumns(table *TableInfo, columnsToInclude []string) []string {
+	qualifiedColumns := make([]string, len(columnsToInclude))
+	for i, col := range columnsToInclude {
+		qualifiedColumns[i] = fmt.Sprintf("%s.%s",
+			qb.getQualifiedTableName(table),
+			quoteIdentifier(qb.driver, col))
+	}
+	return qualifiedColumns
 }
 
 func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk ForeignKey) string {
 	conditions := make([]string, len(fk.Columns))
 	for i := range fk.Columns {
-		conditions[i] = fmt.Sprintf("%s.%s = %s.%s",
+		conditions[i] = fmt.Sprintf("%s.%s = %s_%s.%s",
 			qb.getQualifiedTableName(table),
-			fk.Columns[i],
-			qb.getQualifiedTableName(&TableInfo{Schema: fk.ReferenceSchema, Name: fk.ReferenceTable}),
-			fk.ReferenceColumns[i])
+			quoteIdentifier(qb.driver, fk.Columns[i]),
+			fk.ReferenceSchema,
+			fk.ReferenceTable,
+			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
 	}
 	return strings.Join(conditions, " AND ")
+}
+
+func (qb *QueryBuilder) buildSubsetCondition(childTable, parentTable *TableInfo, parentCondition string) string {
+	for _, fk := range childTable.ForeignKeys {
+		if fk.ReferenceSchema == parentTable.Schema && fk.ReferenceTable == parentTable.Name {
+			parts := strings.Fields(parentCondition)
+			if len(parts) > 2 && (parts[1] == "=" || parts[1] == "IN") {
+				return fmt.Sprintf("%s.%s %s %s",
+					qb.getQualifiedTableName(childTable),
+					quoteIdentifier(qb.driver, fk.Columns[0]),
+					parts[1],
+					strings.Join(parts[2:], " "))
+			}
+		}
+	}
+	return ""
 }
 
 func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
@@ -158,4 +210,15 @@ func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
 		schema = qb.defaultSchema
 	}
 	return fmt.Sprintf("%s.%s", schema, tableName)
+}
+
+func quoteIdentifier(driver, identifier string) string {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver:
+		return fmt.Sprintf("\"%s\"", strings.Replace(identifier, "\"", "\"\"", -1))
+	case sqlmanager_shared.MysqlDriver:
+		return fmt.Sprintf("`%s`", strings.Replace(identifier, "`", "``", -1))
+	default:
+		return identifier
+	}
 }
