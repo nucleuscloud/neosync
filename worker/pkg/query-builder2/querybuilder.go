@@ -84,6 +84,15 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []interfac
 	return qb.buildQueryRecursive(schema, tableName, nil, nil, map[string]int{})
 }
 
+func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
+	for _, fk := range table.ForeignKeys {
+		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+			return true
+		}
+	}
+	return false
+}
+
 func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTable *TableInfo, columnsToInclude []string, joinCount map[string]int) (string, []interface{}, error) {
 	key := qb.getTableKey(schema, tableName)
 	if qb.visitedTables[key] {
@@ -100,56 +109,76 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 	if len(columnsToInclude) == 0 {
 		columnsToInclude = qb.getRequiredColumns(table)
 	}
-	// If still no columns, select all columns
 	if len(columnsToInclude) == 0 {
 		columnsToInclude = table.Columns
 	}
-	// If still no columns, select '*'
 	if len(columnsToInclude) == 0 {
 		columnsToInclude = []string{"*"}
 	}
 
-	query := squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
-
+	var query squirrel.SelectBuilder
 	var allArgs []interface{}
 
-	// Add WHERE conditions for this table
-	if conditions, ok := qb.whereConditions[key]; ok {
-		for _, cond := range conditions {
-			qualifiedCondition := qb.qualifyWhereCondition(table, cond.Condition)
-			query = query.Where(qualifiedCondition, cond.Args...)
-			allArgs = append(allArgs, cond.Args...)
+	if qb.isSelfReferencing(table) && qb.subsetByForeignKeyConstraints && parentTable == nil {
+		whereConditions := []string{}
+		whereArgs := []interface{}{}
+		for _, cond := range qb.whereConditions[key] {
+			whereConditions = append(whereConditions, cond.Condition)
+			whereArgs = append(whereArgs, cond.Args...)
 		}
-	}
+		whereClause := strings.Join(whereConditions, " AND ")
+		cteQuery := qb.buildRecursiveCTE(table, &whereClause)
 
-	// Only join and apply subsetting if subsetByForeignKeyConstraints is true
-	if qb.subsetByForeignKeyConstraints {
-		// Recursively build and join queries for related tables
-		for _, fk := range table.ForeignKeys {
-			subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
-			if err != nil {
-				return "", nil, err
-			}
-			if subQuery != "" {
-				joinCount[fk.ReferenceTable]++
-				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-				joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
-				query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
-					subQuery,
-					quoteIdentifier(qb.driver, subQueryAlias),
-					joinCondition))
-				allArgs = append(allArgs, subArgs...)
+		// Create a new SelectBuilder with the CTE
+
+		// Use the CTE select as a subquery
+		// squirrel.SelectBuilder{}.From(cteQuery)
+		query = squirrel.Select("*").From(fmt.Sprintf("(%s) as recursive_cte", cteQuery))
+		allArgs = append(allArgs, whereArgs...)
+	} else {
+		query = squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
+
+		// Add WHERE conditions for this table
+		if conditions, ok := qb.whereConditions[key]; ok {
+			for _, cond := range conditions {
+				qualifiedCondition := qb.qualifyWhereCondition(table, cond.Condition)
+				query = query.Where(qualifiedCondition, cond.Args...)
+				allArgs = append(allArgs, cond.Args...)
 			}
 		}
 
-		// Apply subsetting based on parent table's where conditions
-		if parentTable != nil {
-			parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
-			if parentConditions, ok := qb.whereConditions[parentKey]; ok {
-				for _, parentCond := range parentConditions {
-					subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
-					if subsetCondition != "" {
-						query = query.Where(subsetCondition)
+		// Only join and apply subsetting if subsetByForeignKeyConstraints is true
+		if qb.subsetByForeignKeyConstraints {
+			// Recursively build and join queries for related tables
+			for _, fk := range table.ForeignKeys {
+				if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+					continue // Skip self-referencing foreign keys here
+				}
+				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
+				if err != nil {
+					return "", nil, err
+				}
+				if subQuery != "" {
+					joinCount[fk.ReferenceTable]++
+					subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
+					joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
+					query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
+						subQuery,
+						quoteIdentifier(qb.driver, subQueryAlias),
+						joinCondition))
+					allArgs = append(allArgs, subArgs...)
+				}
+			}
+
+			// Apply subsetting based on parent table's where conditions
+			if parentTable != nil {
+				parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
+				if parentConditions, ok := qb.whereConditions[parentKey]; ok {
+					for _, parentCond := range parentConditions {
+						subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
+						if subsetCondition != "" {
+							query = query.Where(subsetCondition)
+						}
 					}
 				}
 			}
@@ -224,6 +253,58 @@ func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
 		schema = qb.defaultSchema
 	}
 	return fmt.Sprintf("%s.%s", schema, tableName)
+}
+
+func (qb *QueryBuilder) buildRecursiveCTE(table *TableInfo, whereCondition *string) string {
+	columns := qb.getQualifiedColumns(table, table.Columns)
+
+	baseCase := fmt.Sprintf(`
+        SELECT %s
+        FROM %s`,
+		strings.Join(columns, ", "),
+		qb.getQualifiedTableName(table))
+	if whereCondition != nil && *whereCondition != "" {
+		baseCase = fmt.Sprintf("%s\nWHERE %s", baseCase, *whereCondition)
+	}
+
+	recursiveCase := fmt.Sprintf(`
+        SELECT %s
+        FROM %s AS b
+        INNER JOIN hierarchy h ON `,
+		strings.Join(qb.getAliasedColumns("b", table.Columns), ", "),
+		qb.getQualifiedTableName(table))
+
+	joinConditions := []string{}
+	for _, fk := range table.ForeignKeys {
+		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+			for i, col := range fk.Columns {
+				joinConditions = append(
+					joinConditions,
+					fmt.Sprintf("b.%s = h.%s",
+						quoteIdentifier(qb.driver, fk.ReferenceColumns[i]),
+						quoteIdentifier(qb.driver, col),
+					),
+				)
+			}
+		}
+	}
+	recursiveCase += strings.Join(joinConditions, " OR ")
+
+	return fmt.Sprintf(`
+    WITH RECURSIVE hierarchy AS (
+        %s
+        UNION ALL
+        %s
+    )
+    SELECT DISTINCT * FROM hierarchy`, baseCase, recursiveCase)
+}
+
+func (qb *QueryBuilder) getAliasedColumns(alias string, columns []string) []string {
+	aliasedColumns := make([]string, len(columns))
+	for i, col := range columns {
+		aliasedColumns[i] = fmt.Sprintf("%s.%s", alias, quoteIdentifier(qb.driver, col))
+	}
+	return aliasedColumns
 }
 
 func quoteIdentifier(driver, identifier string) string {

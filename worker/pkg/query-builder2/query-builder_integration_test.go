@@ -866,13 +866,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 	}
 }
 
-// broken
 func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 	whereId := "id in (3,5)"
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.bosses": {
 			{Columns: []string{"manager_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"id"}}},
-			{Columns: []string{"big_boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"manager_id"}}},
+			{Columns: []string{"big_boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"id"}}},
 		},
 		"genbenthosconfigs_querybuilder.minions": {
 			{Columns: []string{"boss_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.bosses", Columns: []string{"big_boss_id"}}},
@@ -891,7 +890,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 			"boss_id":    {1, 2, 3},
 		},
 		"genbenthosconfigs_querybuilder.minions": {
-			"boss_id": {2, 4},
+			"boss_id": {1, 3},
 		},
 	}
 
@@ -903,8 +902,10 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfo)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+
 		require.NotEmpty(s.T(), sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
@@ -912,7 +913,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 
 		columnDescriptions := rows.FieldDescriptions()
 		tableExpectedValues, ok := expectedValues[table]
-		require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+		require.True(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 		rowCount := 0
 		for rows.Next() {
@@ -928,11 +929,11 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 				allowedValues, ok := tableExpectedValues[colName]
 				if ok {
 					value := col.(int64)
-					require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+					require.Contains(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 				}
 			}
 		}
 		rows.Close()
-		require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+		require.Equal(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 	}
 }
