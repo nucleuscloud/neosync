@@ -27,7 +27,7 @@ func BuildSelectQueryMap(
 		if !ok {
 			td = &TableConstraints{
 				PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-				ForeignKeys: []*sqlmanager_shared.ForeignConstraint{},
+				ForeignKeys: tableFkConstraints[rc.Table],
 			}
 			tableDependencies[rc.Table] = td
 		}
@@ -35,7 +35,7 @@ func BuildSelectQueryMap(
 			Columns: rc.PrimaryKeys,
 		})
 	}
-	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver)
+	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
 
 	for _, cfg := range runConfigs {
 		if cfg.RunType != tabledependency.RunTypeInsert || cfg.WhereClause == nil || *cfg.WhereClause == "" {
@@ -71,8 +71,9 @@ func NewQueryBuilderFromSchemaDefinition(
 	tableDependencies map[string]*TableConstraints,
 	defaultSchema string,
 	driver string,
+	subsetByForeignKeyConstraints bool,
 ) *QueryBuilder {
-	qb := NewQueryBuilder(defaultSchema, driver)
+	qb := NewQueryBuilder(defaultSchema, driver, subsetByForeignKeyConstraints)
 
 	for table, columns := range groupedColumnInfo {
 		schema, tableName := splitTable(table)

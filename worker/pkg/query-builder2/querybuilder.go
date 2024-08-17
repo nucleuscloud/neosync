@@ -29,20 +29,22 @@ type WhereCondition struct {
 }
 
 type QueryBuilder struct {
-	tables          map[string]*TableInfo
-	whereConditions map[string][]WhereCondition
-	defaultSchema   string
-	visitedTables   map[string]bool
-	driver          string
+	tables                        map[string]*TableInfo
+	whereConditions               map[string][]WhereCondition
+	defaultSchema                 string
+	visitedTables                 map[string]bool
+	driver                        string
+	subsetByForeignKeyConstraints bool
 }
 
-func NewQueryBuilder(defaultSchema, driver string) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool) *QueryBuilder {
 	return &QueryBuilder{
-		tables:          make(map[string]*TableInfo),
-		whereConditions: make(map[string][]WhereCondition),
-		defaultSchema:   defaultSchema,
-		visitedTables:   make(map[string]bool),
-		driver:          driver,
+		tables:                        make(map[string]*TableInfo),
+		whereConditions:               make(map[string][]WhereCondition),
+		defaultSchema:                 defaultSchema,
+		visitedTables:                 make(map[string]bool),
+		driver:                        driver,
+		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 	}
 }
 
@@ -79,15 +81,16 @@ func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, a
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []interface{}, error) {
 	qb.visitedTables = make(map[string]bool) // Reset visited tables
-	return qb.buildQueryRecursive(schema, tableName, nil, nil)
+	return qb.buildQueryRecursive(schema, tableName, nil, nil, map[string]int{})
 }
 
-func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTable *TableInfo, columnsToInclude []string) (string, []interface{}, error) {
+func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTable *TableInfo, columnsToInclude []string, joinCount map[string]int) (string, []interface{}, error) {
 	key := qb.getTableKey(schema, tableName)
 	if qb.visitedTables[key] {
 		return "", nil, nil // Avoid circular dependencies
 	}
 	qb.visitedTables[key] = true
+	defer delete(qb.visitedTables, key) // Remove from visited after processing
 
 	table, ok := qb.tables[key]
 	if !ok {
@@ -113,13 +116,14 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 
 	// Recursively build and join queries for related tables
 	for _, fk := range table.ForeignKeys {
-		subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns)
+		subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
 		if err != nil {
 			return "", nil, err
 		}
 		if subQuery != "" {
-			joinCondition := qb.buildJoinCondition(table, fk)
-			subQueryAlias := fmt.Sprintf("%s_%s", fk.ReferenceSchema, fk.ReferenceTable)
+			joinCount[fk.ReferenceTable]++
+			subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
+			joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
 			query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
 				subQuery,
 				quoteIdentifier(qb.driver, subQueryAlias),
@@ -129,7 +133,7 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 	}
 
 	// Apply subsetting based on parent table's where conditions
-	if parentTable != nil {
+	if parentTable != nil && qb.subsetByForeignKeyConstraints {
 		parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
 		if parentConditions, ok := qb.whereConditions[parentKey]; ok {
 			for _, parentCond := range parentConditions {
@@ -176,14 +180,13 @@ func (qb *QueryBuilder) getQualifiedColumns(table *TableInfo, columnsToInclude [
 	return qualifiedColumns
 }
 
-func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk ForeignKey) string {
+func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk ForeignKey, joinCount int) string {
 	conditions := make([]string, len(fk.Columns))
 	for i := range fk.Columns {
-		conditions[i] = fmt.Sprintf("%s.%s = %s_%s.%s",
+		conditions[i] = fmt.Sprintf("%s.%s = %s.%s",
 			qb.getQualifiedTableName(table),
 			quoteIdentifier(qb.driver, fk.Columns[i]),
-			fk.ReferenceSchema,
-			fk.ReferenceTable,
+			quoteIdentifier(qb.driver, fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)),
 			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
 	}
 	return strings.Join(conditions, " AND ")
