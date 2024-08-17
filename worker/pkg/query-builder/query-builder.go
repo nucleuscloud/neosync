@@ -2,7 +2,6 @@ package querybuilder
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -28,10 +27,10 @@ const (
 type joinType string
 
 type sqlJoin struct {
-	JoinType  joinType
-	JoinTable string
-	BaseTable string
-	// Alias          *string
+	JoinType       joinType
+	JoinTable      string
+	BaseTable      string
+	Alias          *string
 	JoinColumnsMap map[string]string // map of joinColumn to baseColumn
 }
 
@@ -89,67 +88,44 @@ func BuildSelectJoinQuery(
 	columns []string,
 	joins []*sqlJoin,
 	whereClauses []string,
-	aliasReference map[string]string,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
-
-	mainTableAlias := aliasReference[table]
-	if mainTableAlias == "" {
-		mainTableAlias = table
-	}
-	// Split the table name into schema and table parts
-	schemaAndTable := strings.SplitN(table, ".", 2)
-	var sqltable exp.Expression
-	if len(schemaAndTable) == 2 {
-		sqltable = goqu.S(schemaAndTable[0]).Table(schemaAndTable[1])
-	} else {
-		sqltable = goqu.T(table)
-	}
-	if mainTableAlias != table {
-		sqltable = sqltable.(exp.IdentifierExpression).As(mainTableAlias)
-	}
+	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
 		selectColumns[i] = buildSqlIdentifier(table, col)
 	}
 	query := builder.From(sqltable).Select(selectColumns...)
-
 	// joins
 	for _, j := range joins {
 		if j == nil {
 			continue
 		}
-		joinTableAlias := aliasReference[j.JoinTable]
-		if joinTableAlias == "" {
-			joinTableAlias = j.JoinTable
+		joinConditionTable := j.JoinTable
+		if j.Alias != nil && *j.Alias != "" {
+			joinConditionTable = *j.Alias
 		}
-		var joinTable exp.Expression
-		joinSchemaAndTable := strings.SplitN(j.JoinTable, ".", 2)
-		if len(joinSchemaAndTable) == 2 {
-			joinTable = goqu.S(joinSchemaAndTable[0]).Table(joinSchemaAndTable[1])
-		} else {
-			joinTable = goqu.T(j.JoinTable)
-		}
-		if joinTableAlias != j.JoinTable {
-			joinTable = joinTable.(exp.IdentifierExpression).As(joinTableAlias)
-		}
-
-		joinConditions := make([]exp.Expression, 0, len(j.JoinColumnsMap))
+		joinCondition := goqu.Ex{}
 		for joinCol, baseCol := range j.JoinColumnsMap {
-			joinConditions = append(joinConditions, goqu.I(buildSqlIdentifier(joinTableAlias, joinCol)).Eq(buildSqlIdentifier(mainTableAlias, baseCol)))
+			joinCondition[buildSqlIdentifier(joinConditionTable, joinCol)] = goqu.I(buildSqlIdentifier(j.BaseTable, baseCol))
 		}
 		if j.JoinType == innerJoin {
+			var joinTable exp.Expression
+			joinTable = goqu.I(j.JoinTable)
+			if j.Alias != nil && *j.Alias != "" {
+				joinTable = goqu.I(j.JoinTable).As(*j.Alias)
+			}
 			query = query.InnerJoin(
 				joinTable,
-				goqu.On(joinConditions...),
+				goqu.On(joinCondition),
 			)
 		}
 	}
 	// where
-	goquWhere := make([]exp.Expression, len(whereClauses))
-	for i, w := range whereClauses {
-		goquWhere[i] = goqu.L(w)
+	goquWhere := []exp.Expression{}
+	for _, w := range whereClauses {
+		goquWhere = append(goquWhere, goqu.L(w))
 	}
 	query = query.Where(goqu.And(goquWhere...))
 
@@ -332,15 +308,6 @@ func BuildTruncateQuery(
 	return query, nil
 }
 
-func print(label string, input any) {
-	bits, _ := json.Marshal(input)
-	fmt.Println("======================")
-	fmt.Println(label)
-	fmt.Println(string(bits))
-	fmt.Println("======================")
-
-}
-
 // returns map of schema.table -> select query
 func BuildSelectQueryMap(
 	driver string,
@@ -349,12 +316,6 @@ func BuildSelectQueryMap(
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 ) (map[string]map[tabledependency.RunType]string, error) {
-	// print("driver", driver)
-	// print("table dependencies", tableDependencies)
-	// print("runConfigs", runConfigs)
-	// print("subsetByFKConstraints", subsetByForeignKeyConstraints)
-	// print("grouped column info", groupedColumnInfo)
-
 	insertRunConfigMap := map[string]*tabledependency.RunConfig{}
 	for _, cfg := range runConfigs {
 		if cfg.RunType == tabledependency.RunTypeInsert {
@@ -382,7 +343,7 @@ func BuildSelectQueryMap(
 		return queryRunTypeMap, nil
 	}
 
-	subsetConfigs, aliasReference, err := buildTableSubsetQueryConfigs(driver, tableDependencies, tableWhereMap, insertRunConfigMap)
+	subsetConfigs, err := buildTableSubsetQueryConfigs(driver, tableDependencies, tableWhereMap, insertRunConfigMap)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +356,7 @@ func BuildSelectQueryMap(
 		columns := runConfig.SelectColumns
 		subsetConfig := subsetConfigs[runConfig.Table]
 		columnInfoMap := groupedColumnInfo[runConfig.Table]
-		sql, err := buildTableQuery(driver, runConfig.Table, columns, subsetConfig, columnInfoMap, aliasReference)
+		sql, err := buildTableQuery(driver, runConfig.Table, columns, subsetConfig, columnInfoMap)
 		if err != nil {
 			return nil, err
 		}
@@ -409,7 +370,6 @@ func buildTableQuery(
 	columns []string,
 	config *subsetQueryConfig,
 	columnInfoMap map[string]*sqlmanager_shared.ColumnInfo,
-	aliasReference map[string]string,
 ) (string, error) {
 	if len(config.SelfReferencingCircularDependency) != 0 {
 		sql, err := BuildSelectRecursiveQuery(
@@ -433,7 +393,7 @@ func buildTableQuery(
 		}
 		return sql, nil
 	} else {
-		sql, err := BuildSelectJoinQuery(driver, table, columns, config.Joins, config.WhereClauses, aliasReference)
+		sql, err := BuildSelectJoinQuery(driver, table, columns, config.Joins, config.WhereClauses)
 		if err != nil {
 			return "", fmt.Errorf("unable to build select query with joins: %w", err)
 		}
@@ -488,10 +448,10 @@ func buildSubsetJoins(table string, data map[string][]*SubsetColumnConstraint, w
 			}
 			if !visited[col.ForeignKey.Table] {
 				// handle aliased table
-				// var alias *string
+				var alias *string
 				joinTable := col.ForeignKey.Table
 				if col.ForeignKey.OriginalTable != nil && *col.ForeignKey.OriginalTable != "" {
-					// alias = &col.ForeignKey.Table
+					alias = &col.ForeignKey.Table
 					joinTable = *col.ForeignKey.OriginalTable
 				}
 
@@ -500,10 +460,10 @@ func buildSubsetJoins(table string, data map[string][]*SubsetColumnConstraint, w
 					joinColMap[c] = col.Columns[idx]
 				}
 				joins = append(joins, &sqlJoin{
-					JoinType:  innerJoin,
-					JoinTable: joinTable,
-					BaseTable: table,
-					// Alias:          alias,
+					JoinType:       innerJoin,
+					JoinTable:      joinTable,
+					BaseTable:      table,
+					Alias:          alias,
 					JoinColumnsMap: joinColMap,
 				})
 
@@ -525,17 +485,13 @@ type subsetQueryConfig struct {
 	SelfReferencingCircularDependency []*selfReferencingCircularDependency
 }
 
-func buildTableSubsetQueryConfigs(
-	driver string,
-	tableConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
-	whereClauses map[string]string,
-	runConfigMap map[string]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, map[string]string, error) {
+func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
 	configs := map[string]*subsetQueryConfig{}
 
 	filteredConstraints := filterForeignKeysWithSubset(runConfigMap, tableConstraints, whereClauses)
 	subset, err := buildAliasReferences(driver, filteredConstraints, whereClauses)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	for table := range subset.ColumnConstraints {
@@ -549,15 +505,12 @@ func buildTableSubsetQueryConfigs(
 			SelfReferencingCircularDependency: selfRefCd,
 		}
 	}
-
-	// Populate aliasReference based on the subset information
-	return configs, subset.AliasReferences, nil
+	return configs, nil
 }
 
 type subsetConstraints struct {
 	ColumnConstraints map[string][]*SubsetColumnConstraint
 	WhereClauses      map[string]string
-	AliasReferences   map[string]string
 }
 
 func buildAliasReferences(driver string, constraints map[string][]*sqlmanager_shared.ForeignConstraint, whereClauses map[string]string) (*subsetConstraints, error) {
@@ -569,11 +522,11 @@ func buildAliasReferences(driver string, constraints map[string][]*sqlmanager_sh
 		updatedWheres[table] = where
 	}
 
-	for table, fkConstrantDefs := range constraints {
-		if len(fkConstrantDefs) == 0 {
+	for table, colDefs := range constraints {
+		if len(colDefs) == 0 {
 			updatedConstraints[table] = []*SubsetColumnConstraint{}
 		} else {
-			updatedConstraints[table] = processAliasConstraints(table, fkConstrantDefs, updatedConstraints, aliasReference)
+			updatedConstraints[table] = processAliasConstraints(table, colDefs, updatedConstraints, aliasReference)
 		}
 	}
 
@@ -584,31 +537,30 @@ func buildAliasReferences(driver string, constraints map[string][]*sqlmanager_sh
 	return &subsetConstraints{
 		ColumnConstraints: updatedConstraints,
 		WhereClauses:      updatedWheres,
-		AliasReferences:   aliasReference,
 	}, nil
 }
 
 // creates alias table reference if there is a double reference
 func processAliasConstraints(
 	table string,
-	fkConstraintDefs []*sqlmanager_shared.ForeignConstraint,
-	subsetConstraintsMap map[string][]*SubsetColumnConstraint,
-	aliasReferenceMap map[string]string,
+	colDefs []*sqlmanager_shared.ForeignConstraint,
+	updatedConstraints map[string][]*SubsetColumnConstraint,
+	aliasReference map[string]string,
 	// seenTables map[string]struct{},
 ) []*SubsetColumnConstraint {
-	if _, exists := subsetConstraintsMap[table]; exists {
-		return subsetConstraintsMap[table]
+	if _, exists := updatedConstraints[table]; exists {
+		return updatedConstraints[table]
 	}
 
 	tableCount := map[string]int{}
-	for _, colDef := range fkConstraintDefs {
+	for _, colDef := range colDefs {
 		if colDef.ForeignKey != nil {
 			tableCount[colDef.ForeignKey.Table]++
 		}
 	}
 
 	newColDefs := []*SubsetColumnConstraint{}
-	for _, colDef := range fkConstraintDefs {
+	for _, colDef := range colDefs {
 		if colDef.ForeignKey.Table == table {
 			continue // self reference skip
 		}
@@ -617,7 +569,7 @@ func processAliasConstraints(
 			// create aliased table
 			newTable := fmt.Sprintf("%s_%s", strings.ReplaceAll(colDef.ForeignKey.Table, ".", "_"), strings.Join(colDef.Columns, "_"))
 			alias := aliasHash(newTable)
-			aliasReferenceMap[alias] = colDef.ForeignKey.Table
+			aliasReference[alias] = colDef.ForeignKey.Table
 			newColDefs = append(newColDefs, &SubsetColumnConstraint{
 				Columns: colDef.Columns,
 				ForeignKey: &SubsetReferenceKey{
@@ -637,93 +589,28 @@ func processAliasConstraints(
 		}
 	}
 
-	subsetConstraintsMap[table] = newColDefs
+	updatedConstraints[table] = newColDefs
 	return newColDefs
 }
 
-type aliasNode struct {
-	alias string
-	table string
-	edges []*aliasNode
-	color int // 0: white (unvisited), 1: gray (visiting), 2: black (visited)
-}
-
+// follows constraints and updates references to alias tables that were created
 func updateAliasReferences(
 	driver string,
 	updatedConstraints map[string][]*SubsetColumnConstraint,
 	aliasReference map[string]string,
 	updatedWheres map[string]string,
 ) error {
-	// Build the graph
-	graph := make(map[string]*aliasNode)
 	for alias, table := range aliasReference {
-		if _, exists := graph[alias]; !exists {
-			graph[alias] = &aliasNode{alias: alias, table: table}
+		if _, exists := updatedConstraints[alias]; exists {
+			continue
 		}
-		colDefs := updatedConstraints[table]
-		for _, c := range colDefs {
-			if c.ForeignKey != nil && c.ForeignKey.Table != "" {
-				newAlias := aliasHash(fmt.Sprintf("%s_%s", alias, strings.ReplaceAll(c.ForeignKey.Table, ".", "_")))
-				if _, exists := graph[newAlias]; !exists {
-					graph[newAlias] = &aliasNode{alias: newAlias, table: c.ForeignKey.Table}
-				}
-				graph[alias].edges = append(graph[alias].edges, graph[newAlias])
-			}
-		}
-	}
-
-	// Perform topological sort
-	sorted := make([]*aliasNode, 0, len(graph))
-	visited := make(map[string]bool)
-
-	var visit func(*aliasNode) error
-	visit = func(node *aliasNode) error {
-		if visited[node.alias] {
-			return nil
-		}
-		if node.color == 1 {
-			return fmt.Errorf("cyclic dependency detected at alias: %s", node.alias)
-		}
-		node.color = 1
-		for _, edge := range node.edges {
-			if err := visit(edge); err != nil {
-				return err
-			}
-		}
-		node.color = 2
-		visited[node.alias] = true
-		sorted = append(sorted, node)
-		return nil
-	}
-
-	for _, node := range graph {
-		if !visited[node.alias] {
-			if err := visit(node); err != nil {
-				// If we detect a cycle, we'll break it by removing the edge
-				fmt.Printf("Warning: Cyclic dependency detected. Breaking cycle at %s\n", node.alias)
-				node.edges = nil
-				if err := visit(node); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	// Process aliases in topological order
-	for i := len(sorted) - 1; i >= 0; i-- {
-		node := sorted[i]
-		alias, table := node.alias, node.table
 
 		colDefs := updatedConstraints[table]
 		newColDefs := []*SubsetColumnConstraint{}
 
 		for _, c := range colDefs {
-			if c.ForeignKey == nil || c.ForeignKey.Table == "" {
-				newColDefs = append(newColDefs, c)
-				continue
-			}
-
 			newAlias := aliasHash(fmt.Sprintf("%s_%s", alias, strings.ReplaceAll(c.ForeignKey.Table, ".", "_")))
+			aliasReference[newAlias] = c.ForeignKey.Table
 			newColDefs = append(newColDefs, &SubsetColumnConstraint{
 				Columns: c.Columns,
 				ForeignKey: &SubsetReferenceKey{
@@ -736,47 +623,21 @@ func updateAliasReferences(
 
 		updatedConstraints[alias] = newColDefs
 
-		// Update the where clause
-		if where, exists := updatedWheres[table]; exists && where != "" {
+		where := updatedWheres[table]
+		if where != "" {
 			aliasedWhere, err := qualifyWhereWithTableAlias(driver, where, alias)
 			if err != nil {
 				return err
 			}
-			// Store the aliased where clause with the alias as the key
 			updatedWheres[alias] = aliasedWhere
-			// Remove the original where clause
-			delete(updatedWheres, table)
 		}
 
-		// Update aliasReference to use the original table name as the key
-		aliasReference[table] = alias
-		// Remove the old entry if the alias is different from the table name
-		if alias != table {
-			delete(aliasReference, alias)
+		delete(aliasReference, alias)
+		if err := updateAliasReferences(driver, updatedConstraints, aliasReference, updatedWheres); err != nil {
+			return err
 		}
 	}
-
 	return nil
-}
-
-// Helper function to create a valid PostgreSQL alias
-func createValidAlias(name string) string {
-	// Remove any non-alphanumeric characters and prepend 'a_' to ensure it starts with a letter
-	return "a_" + strings.Map(func(r rune) rune {
-		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' {
-			return r
-		}
-		return -1
-	}, name)
-}
-
-// Update the aliasHash function to use createValidAlias
-func aliasHash(input string) string {
-	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
-	if len(hash) > 10 {
-		hash = hash[:10]
-	}
-	return createValidAlias(hash)
 }
 
 // check if table or any parent table has a where clause
@@ -823,13 +684,13 @@ func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunCon
 	return filteredConstraints
 }
 
-// func aliasHash(input string) string {
-// 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
-// 	if len(hash) > 14 {
-// 		hash = hash[:14]
-// 	}
-// 	return hash
-// }
+func aliasHash(input string) string {
+	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
+	if len(hash) > 14 {
+		hash = hash[:14]
+	}
+	return hash
+}
 
 func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
 	query := goqu.Dialect(driver).From(goqu.T(alias)).Select("*").Where(goqu.L(where))

@@ -1,13 +1,9 @@
 package querybuilder
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
@@ -151,7 +147,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := BuildSelectJoinQuery(tt.driver, tt.table, tt.columns, tt.joins, tt.whereClauses, map[string]string{})
+			response, err := BuildSelectJoinQuery(tt.driver, tt.table, tt.columns, tt.joins, tt.whereClauses)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -630,47 +626,5 @@ func Test_BuildInsertQuery(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 		})
-	}
-}
-
-func Test_BuildSelectQueryMap_Campus(t *testing.T) {
-	driver := "postgres"
-	_ = driver
-	tableDeps := map[string][]*sqlmanager_shared.ForeignConstraint{}
-
-	bits, err := os.ReadFile("./tabledeps.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(bits, &tableDeps)
-	require.NoError(t, err)
-
-	runConfigs := []*tabledependency.RunConfig{}
-	bits, err = os.ReadFile("./runconfigs.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(bits, &runConfigs)
-	require.NoError(t, err)
-
-	groupedColInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
-	bits, err = os.ReadFile("./groupedcolinfo.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(bits, &groupedColInfo)
-	require.NoError(t, err)
-
-	output, err := BuildSelectQueryMap(driver, tableDeps, runConfigs, true, groupedColInfo)
-	require.NoError(t, err)
-
-	bits, _ = json.Marshal(output)
-	fmt.Println(string(bits))
-
-	db, err := pgxpool.New(context.Background(), "postgres://postgres:postgres@localhost:5434/postgres?sslmode=disable")
-	require.NoError(t, err)
-
-	for table, selectQueryrunType := range output {
-		_ = table
-		statement := selectQueryrunType[tabledependency.RunTypeInsert]
-		require.NotEmpty(t, statement)
-		fmt.Println("===========")
-		fmt.Println(statement)
-		_, err := db.Exec(context.Background(), statement)
-		require.NoError(t, err, "failed on table", "table", table)
 	}
 }
