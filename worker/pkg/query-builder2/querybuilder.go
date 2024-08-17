@@ -25,24 +25,24 @@ type ForeignKey struct {
 
 type WhereCondition struct {
 	Condition string
-	Args      []interface{}
+	Args      []any
 }
 
 type QueryBuilder struct {
-	tables                        map[string]*TableInfo
-	whereConditions               map[string][]WhereCondition
-	defaultSchema                 string
-	visitedTables                 map[string]bool
+	tables          map[string]*TableInfo
+	whereConditions map[string][]WhereCondition
+	defaultSchema   string
+	// visitedTables                 map[string]bool
 	driver                        string
 	subsetByForeignKeyConstraints bool
 }
 
 func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool) *QueryBuilder {
 	return &QueryBuilder{
-		tables:                        make(map[string]*TableInfo),
-		whereConditions:               make(map[string][]WhereCondition),
-		defaultSchema:                 defaultSchema,
-		visitedTables:                 make(map[string]bool),
+		tables:          make(map[string]*TableInfo),
+		whereConditions: make(map[string][]WhereCondition),
+		defaultSchema:   defaultSchema,
+		// visitedTables:                 make(map[string]bool),
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 	}
@@ -74,14 +74,13 @@ func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
 	return uniqueStrings(columns)
 }
 
-func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...interface{}) {
+func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []interface{}, error) {
-	qb.visitedTables = make(map[string]bool) // Reset visited tables
-	return qb.buildQueryRecursive(schema, tableName, nil, nil, map[string]int{})
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []any, error) {
+	return qb.buildQueryRecursive(schema, tableName, nil, nil, map[string]int{}, map[string]bool{})
 }
 
 func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
@@ -93,13 +92,17 @@ func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
 	return false
 }
 
-func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTable *TableInfo, columnsToInclude []string, joinCount map[string]int) (string, []interface{}, error) {
+func (qb *QueryBuilder) buildQueryRecursive(
+	schema, tableName string, parentTable *TableInfo,
+	columnsToInclude []string, joinCount map[string]int,
+	visitedTables map[string]bool,
+) (string, []any, error) {
 	key := qb.getTableKey(schema, tableName)
-	if qb.visitedTables[key] {
+	if visitedTables[key] {
 		return "", nil, nil // Avoid circular dependencies
 	}
-	qb.visitedTables[key] = true
-	defer delete(qb.visitedTables, key) // Remove from visited after processing
+	visitedTables[key] = true
+	defer delete(visitedTables, key) // Remove from visited after processing
 
 	table, ok := qb.tables[key]
 	if !ok {
@@ -117,11 +120,11 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 	}
 
 	var query squirrel.SelectBuilder
-	var allArgs []interface{}
+	var allArgs []any
 
 	if qb.isSelfReferencing(table) && qb.subsetByForeignKeyConstraints && parentTable == nil {
 		whereConditions := []string{}
-		whereArgs := []interface{}{}
+		whereArgs := []any{}
 		for _, cond := range qb.whereConditions[key] {
 			whereConditions = append(whereConditions, cond.Condition)
 			whereArgs = append(whereArgs, cond.Args...)
@@ -154,7 +157,7 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 				if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 					continue // Skip self-referencing foreign keys here
 				}
-				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount)
+				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
 				if err != nil {
 					return "", nil, err
 				}
@@ -170,18 +173,19 @@ func (qb *QueryBuilder) buildQueryRecursive(schema, tableName string, parentTabl
 				}
 			}
 
+			// This seems to put the subset in the wrong spot.
 			// Apply subsetting based on parent table's where conditions
-			if parentTable != nil {
-				parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
-				if parentConditions, ok := qb.whereConditions[parentKey]; ok {
-					for _, parentCond := range parentConditions {
-						subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
-						if subsetCondition != "" {
-							query = query.Where(subsetCondition)
-						}
-					}
-				}
-			}
+			// if parentTable != nil {
+			// 	parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
+			// 	if parentConditions, ok := qb.whereConditions[parentKey]; ok {
+			// 		for _, parentCond := range parentConditions {
+			// 			subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
+			// 			if subsetCondition != "" {
+			// 				query = query.Where(subsetCondition)
+			// 			}
+			// 		}
+			// 	}
+			// }
 		}
 	}
 
