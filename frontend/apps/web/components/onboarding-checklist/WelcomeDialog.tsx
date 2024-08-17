@@ -44,9 +44,8 @@ export default function WelcomeDialog(): ReactElement {
     setAccountOnboardingConfig
   );
 
-  const [currentStep, setCurrentStep] = useState<number>(0); // controls progress through the welcome modal
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isComplete, setIsComplete] = useState<boolean>(false);
   const [showGuide, setShowGuide] = useState<boolean>(false);
 
   const multiStepForm: FormStep[] = [
@@ -89,7 +88,7 @@ export default function WelcomeDialog(): ReactElement {
       const resp = await setOnboardingConfigAsync({
         accountId: account.id,
         config: {
-          hasCompletedOnboarding: isComplete,
+          hasCompletedOnboarding: true,
         },
       });
       queryclient.setQueryData(
@@ -101,14 +100,12 @@ export default function WelcomeDialog(): ReactElement {
         })
       );
       setShowGuide(false);
-      setIsComplete(true);
     } catch (e) {
       toast.error('Unable to complete onboarding', {
         description: getErrorMessage(e),
       });
     } finally {
       setIsSubmitting(false);
-      setIsComplete(false);
     }
   }
 
@@ -117,17 +114,8 @@ export default function WelcomeDialog(): ReactElement {
       return;
     }
 
-    setIsComplete(data?.config?.hasCompletedOnboarding ?? false);
-    if (isComplete) {
-      {
-        setTimeout(() => setShowGuide(false), 1000);
-        return;
-      }
-    }
-    if (!isComplete) {
-      setShowGuide(true);
-    }
-  }, [isLoading, isValidating, error, isComplete]);
+    setShowGuide(!data?.config?.hasCompletedOnboarding);
+  }, [isLoading, isValidating, error, data?.config?.hasCompletedOnboarding]);
 
   if (isLoading) {
     return <Skeleton />;
@@ -136,11 +124,14 @@ export default function WelcomeDialog(): ReactElement {
     return <></>;
   }
 
-  console.log('isCOmplete', isComplete);
-
   return (
     <Dialog open={showGuide} onOpenChange={setShowGuide}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent
+        className="max-w-2xl"
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
+      >
         <DialogTitle />
         <DialogDescription />
         <div className="flex flex-col gap-8 pt-6">

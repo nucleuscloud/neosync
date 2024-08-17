@@ -1786,5 +1786,5 @@ func (t *AccountOnboardingConfig) ToDto() *mgmtv1alpha1.AccountOnboardingConfig 
 }
 
 func (t *AccountOnboardingConfig) FromDto(dto *mgmtv1alpha1.AccountOnboardingConfig) {
-	t.ToDto().HasCompletedOnboarding = dto.GetHasCompletedOnboarding()
+	t.HasCompletedOnboarding = dto.GetHasCompletedOnboarding()
 }

@@ -39,7 +39,6 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
               <SiteFooter />
               {/* https://sonner.emilkowal.ski/styling for styling documentation */}
               <Toaster richColors closeButton />
-              {/* <OnboardingChecklist /> */}
               <WelcomeDialog />
             </div>
           </AccountProvider>
