@@ -10,38 +10,23 @@ import (
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 	whereId := "id = 1"
-	tableDependencies := map[string]*TableConstraints{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.department": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.transaction": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.expense_report": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
 				{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
 				{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.expense": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"report_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.item": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"expense_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}},
-			},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -115,38 +100,23 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference_Complex() {
 	whereId := "id = 1"
-	tableDependencies := map[string]*TableConstraints{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.department": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.transaction": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.expense_report": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
 				{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}},
 				{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.expense": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"report_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.item": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"expense_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}},
-			},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -229,31 +199,19 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference_Complex() {
 
 func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 	whereCreated := "created > '2023-06-03'"
-	tableDependencies := map[string]*TableConstraints{
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.test_2_c": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}},
 				{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.test_2_d": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.test_2_e": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}},
-			},
 		},
 		"genbenthosconfigs_querybuilder.test_2_a": {
-			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{{Columns: []string{"id"}}},
-			ForeignKeys: []*sqlmanager_shared.ForeignConstraint{
 				{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}},
-			},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{

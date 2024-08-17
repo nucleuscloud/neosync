@@ -7,16 +7,29 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 )
 
-type ForeignKeyTableConstraints = map[string][]*sqlmanager_shared.ForeignConstraint
-
 // returns map of schema.table -> select query
 func BuildSelectQueryMap(
 	driver string,
-	tableDependencies map[string]*TableConstraints,
+	tableFkConstraints map[string][]*sqlmanager_shared.ForeignConstraint,
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 ) (map[string]map[tabledependency.RunType]string, error) {
+	tableDependencies := map[string]*TableConstraints{}
+	for tableName, fkConstraints := range tableFkConstraints {
+		tableDependencies[tableName] = &TableConstraints{
+			PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
+			ForeignKeys: fkConstraints,
+		}
+	}
+	for _, rc := range runConfigs {
+		td, ok := tableDependencies[rc.Table]
+		if ok {
+			td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
+				Columns: rc.PrimaryKeys,
+			})
+		}
+	}
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver)
 
 	for _, cfg := range runConfigs {
@@ -82,6 +95,7 @@ func NewQueryBuilderFromSchemaDefinition(
 				tableInfo.Columns = append(tableInfo.Columns, pk.Columns...)
 				tableInfo.PrimaryKeys = append(tableInfo.PrimaryKeys, pk.Columns...)
 			}
+			tableInfo.PrimaryKeys = uniqueStrings(tableInfo.PrimaryKeys)
 			qb.AddTable(tableInfo)
 		}
 
