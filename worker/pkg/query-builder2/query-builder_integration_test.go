@@ -502,7 +502,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 	}
 }
 
-// broken
 func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForeignKeysOff() {
 	whereId := "id in (4,5)"
 	whereId4 := "id = 4"
