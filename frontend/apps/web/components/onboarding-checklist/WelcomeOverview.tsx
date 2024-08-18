@@ -2,8 +2,8 @@ import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
 import { Button } from '../ui/button';
-import { Welcome } from './Welcome';
-import { WelcomeDarkMode } from './WelcomeDarkMode';
+import { ConnectDarkMode } from './ConnectDarkMode';
+import { ConnectLightMode } from './ConnectLightMode';
 
 interface Props {
   currentStep: number;
@@ -19,7 +19,11 @@ export default function WelcomeOverview(props: Props): ReactElement {
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Welcome to Neosync</h1>
-      {theme.resolvedTheme == 'light' ? <Welcome /> : <WelcomeDarkMode />}
+      {theme.resolvedTheme == 'light' ? (
+        <ConnectLightMode />
+      ) : (
+        <ConnectDarkMode />
+      )}
       <p className="text-sm px-12">
         Neosync makes it easy to anonymize sensitive data, generate synthetic
         data and sync data across environments. Click{' '}

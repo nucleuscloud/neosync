@@ -1,4 +1,4 @@
-export const Welcome = () => {
+export const ConnectLightMode = () => {
   return (
     <div>
       <svg

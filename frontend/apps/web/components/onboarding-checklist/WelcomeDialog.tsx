@@ -17,7 +17,9 @@ import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAccount } from '../providers/account-provider';
 import { Skeleton } from '../ui/skeleton';
-import HowItWorks from './HowItWorks';
+import Configure from './Configure';
+import Connect from './Connect';
+import Execute from './Execute';
 import StepProgress from './StepProgress';
 import WelcomeOverview from './WelcomeOverview';
 import WelcomeRouter from './WelcomeRouter';
@@ -61,9 +63,21 @@ export default function WelcomeDialog(): ReactElement {
       ),
     },
     {
-      name: 'how-it-works',
+      name: 'connect',
       component: (
-        <HowItWorks currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Connect currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      ),
+    },
+    {
+      name: 'configure',
+      component: (
+        <Configure currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      ),
+    },
+    {
+      name: 'execute',
+      component: (
+        <Execute currentStep={currentStep} setCurrentStep={setCurrentStep} />
       ),
     },
     {
