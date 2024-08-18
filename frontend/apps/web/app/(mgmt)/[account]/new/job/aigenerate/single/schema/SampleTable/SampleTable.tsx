@@ -14,12 +14,14 @@ import {
 } from '@tanstack/react-table';
 import { ReactElement } from 'react';
 import { SampleRecord } from '../types';
+
 interface Props {
   columns: ColumnDef<SampleRecord>[];
   records: SampleRecord[];
 }
 export default function SampleTable(props: Props): ReactElement {
   const { records, columns } = props;
+
   const table = useReactTable({
     data: records,
     columns: columns,
