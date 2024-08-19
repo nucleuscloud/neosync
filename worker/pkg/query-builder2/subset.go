@@ -121,7 +121,7 @@ func NewQueryBuilderFromSchemaDefinition(
 	return qb
 }
 
-func splitTable(fullTableName string) (string, string) {
+func splitTable(fullTableName string) (schema, table string) {
 	parts := strings.SplitN(fullTableName, ".", 2)
 	if len(parts) == 1 {
 		return "", parts[0]
