@@ -38,7 +38,7 @@ export default function SampleTable(props: Props): ReactElement {
           </h2>
         </div>
         <div>
-          <p className="font-sm tracking-tight">
+          <p className="font-xs tracking-tight">
             A sample of synthetic data given the inputs above. Returns at most
             10 records.
           </p>
