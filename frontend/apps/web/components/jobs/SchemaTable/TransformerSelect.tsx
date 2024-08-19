@@ -79,14 +79,14 @@ export default function TransformerSelect(props: Props): ReactElement {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[350px] p-0"
+        className="w-[350px] p-0 min-h-[600px]"
         avoidCollisions={true} // this prevents the popover from overflowing out of the viewport (meaning there is content the user isn't able to access)
         side={side}
       >
         <Command>
           <CommandInput placeholder={'Search...'} />
-          <div className="max-h-[450px]">
-            <CommandList>
+          <div className="min-h-[600px]">
+            <CommandList className="max-h-[600px]">
               <CommandEmpty>No transformers found.</CommandEmpty>
               {userDefined.length > 0 && (
                 <CommandGroup heading="Custom">
