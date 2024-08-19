@@ -39,5 +39,10 @@
 		"folder": "mysql/init-schema",
 		"sql_file": "create.sql",
 		"driver": "mysql"
+	},
+	{
+		"folder": "postgres/subsetting",
+		"sql_file": "setup.sql", 
+		"driver": "postgres"
 	}
 ]

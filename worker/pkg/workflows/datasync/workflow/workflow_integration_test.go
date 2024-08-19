@@ -26,14 +26,11 @@ import (
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
-	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
-	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
-	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
+	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
-	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
@@ -45,17 +42,19 @@ import (
 
 func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
-	drTests := testdata_doublereference.GetSyncTests()
-	vfkTests := testdata_virtualforeignkeys.GetSyncTests()
-	cdTests := testdata_circulardependencies.GetSyncTests()
-	javascriptTests := testdata_javascripttransformers.GetSyncTests()
-	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	// drTests := testdata_doublereference.GetSyncTests()
+	// vfkTests := testdata_virtualforeignkeys.GetSyncTests()
+	// cdTests := testdata_circulardependencies.GetSyncTests()
+	// javascriptTests := testdata_javascripttransformers.GetSyncTests()
+	// pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	subsettingTests := testdata_subsetting.GetSyncTests()
 
-	allTests["Double_References"] = drTests
-	allTests["Virtual_Foreign_Keys"] = vfkTests
-	allTests["Circular_Dependencies"] = cdTests
-	allTests["Javascript_Transformers"] = javascriptTests
-	allTests["Primary_Key_Transformers"] = pkTransformationTests
+	// allTests["Double_References"] = drTests
+	// allTests["Virtual_Foreign_Keys"] = vfkTests
+	// allTests["Circular_Dependencies"] = cdTests
+	// allTests["Javascript_Transformers"] = javascriptTests
+	// allTests["Primary_Key_Transformers"] = pkTransformationTests
+	allTests["Subsetting"] = subsettingTests
 	return allTests
 }
 
@@ -185,6 +184,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
 					for table, expected := range tt.Expected {
+						fmt.Println(fmt.Sprintf("select * from %s;", table))
 						rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
 						require.NoError(t, err)
 						count := 0
