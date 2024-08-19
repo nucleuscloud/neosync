@@ -41,6 +41,11 @@ export default function Connect(props: Props): ReactElement {
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Connect</h1>
+      <p className="text-sm px-10">
+        Create <span className="font-semibold">Connections</span> to your
+        upstream and downstream data sources. Neosync supports a variety of
+        databases and types of object storage.
+      </p>
       <div className="grid grid-cols-3 gap-2">
         {integrations.map((item) => (
           <div
@@ -52,11 +57,7 @@ export default function Connect(props: Props): ReactElement {
           </div>
         ))}
       </div>
-      <p className="text-sm px-10">
-        Create <span className="font-semibold">Connections</span> to your
-        upstream and downstream data sources. Neosync supports a variety of
-        databases and types of object storage.
-      </p>
+
       <div className="flex flex-row justify-between w-full py-6">
         <Button
           variant="outline"

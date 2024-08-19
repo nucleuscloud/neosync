@@ -14,54 +14,55 @@ export default function Config(props: Props): ReactElement {
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Configure</h1>
-      <div className=" flex flex-col gap-4 p-4 border border-gray-900 dark:border-gray-700 rounded-lg text-xs shadow-lg">
+      <p className="text-sm px-10">
+        Configure your schema, transformers and subsetting rules in order to
+        anonymize and generate data to sync to lower level environments.
+      </p>
+      <div className=" flex flex-col gap-4 p-4 border border-gray-300 dark:dark:border-[#0D47F0] rounded-lg text-xs shadow-lg">
         <div className="flex flex-row gap-4 justify-between" id="header">
-          <div className="w-[100px]">Table</div>
-          <div className="w-[100px]">Constraints</div>
-          <div className="w-[100px]">Data Type</div>
-          <div className="w-[100px]">Transformer</div>
+          <div className="w-[100px] font-semibold">Column</div>
+          <div className="w-[100px] font-semibold">Constraints</div>
+          <div className="w-[100px] font-semibold">Data Type</div>
+          <div className="w-[100px] font-semibold">Transformer</div>
         </div>
         <div className="flex flex-row items-center gap-4 justify-between">
-          <div className="w-[100px]">public.users</div>
+          <div className="w-[100px]">id</div>
           <Badge variant="outline" className="w-[100px]">
             Primary Key
           </Badge>
           <Badge variant="outline" className="w-[100px]">
             UUID
           </Badge>
-          <TransformerSelector text="Generate UUID ..." />
+          <TransformerSelector text="UUID ..." />
         </div>
         <div className="flex flex-row items-center gap-4">
-          <div className="w-[100px]">public.users</div>
+          <div className="w-[100px]">first_name</div>
           <div className="w-[100px]" />
           <Badge variant="outline" className="w-[100px]">
             varchar(255)
           </Badge>
-          <TransformerSelector text="Generate First Name" />
+          <TransformerSelector text="First Name" />
         </div>
         <div className="flex flex-row items-center gap-4">
-          <div className="w-[100px]">public.users</div>
+          <div className="w-[100px]">last_name</div>
+          <div className="w-[100px]" />
+          <Badge variant="outline" className="w-[100px]">
+            varchar(255)
+          </Badge>
+          <TransformerSelector text="Last Name ..." />
+        </div>
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-[100px]">email</div>
+
           <Badge variant="outline" className="w-[100px]">
             Foreign Key
           </Badge>
           <Badge variant="outline" className="w-[100px]">
             varchar(255)
           </Badge>
-          <TransformerSelector text="Generate Last Name ..." />
-        </div>
-        <div className="flex flex-row items-center gap-4">
-          <div className="w-[100px]">public.users</div>
-          <div className="w-[100px]" />
-          <Badge variant="outline" className="w-[100px]">
-            varchar(255)
-          </Badge>
-          <TransformerSelector text="Transform Email ..." />
+          <TransformerSelector text="Email ..." />
         </div>
       </div>
-      <p className="text-sm px-10">
-        Configure your schema, transformers and subsetting rules in order to
-        anonymize and generate data to sync to lower level environments.
-      </p>
       <div className="flex flex-row justify-between w-full py-6">
         <Button
           variant="outline"
@@ -87,7 +88,7 @@ interface TransformerSelectorProps {
 function TransformerSelector(props: TransformerSelectorProps): ReactElement {
   const { text } = props;
   return (
-    <div className="flex justify-between border border-gray-700 dark:border-gray-600 p-2 rounded w-[150px]">
+    <div className="flex justify-between border border-gray-300 dark:border-gray-600 p-2 rounded w-[100px]">
       <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
         {text}{' '}
       </div>

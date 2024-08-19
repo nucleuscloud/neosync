@@ -19,8 +19,8 @@ import { useAccount } from '../providers/account-provider';
 import { Skeleton } from '../ui/skeleton';
 import Configure from './Configure';
 import Connect from './Connect';
-import Execute from './Execute';
 import StepProgress from './StepProgress';
+import Sync from './Sync';
 import WelcomeOverview from './WelcomeOverview';
 import WelcomeRouter from './WelcomeRouter';
 
@@ -77,7 +77,7 @@ export default function WelcomeDialog(): ReactElement {
     {
       name: 'execute',
       component: (
-        <Execute currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Sync currentStep={currentStep} setCurrentStep={setCurrentStep} />
       ),
     },
     {
