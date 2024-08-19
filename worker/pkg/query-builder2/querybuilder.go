@@ -153,7 +153,10 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		// Add WHERE conditions for this table
 		if conditions, ok := qb.whereConditions[key]; ok {
 			for _, cond := range conditions {
-				qualifiedCondition := qb.qualifyWhereCondition(table, cond.Condition)
+				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition, qb.driver)
+				if err != nil {
+					return "", nil, err
+				}
 				query = query.Where(qualifiedCondition, cond.Args...)
 				allArgs = append(allArgs, cond.Args...)
 			}
