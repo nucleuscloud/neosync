@@ -34,6 +34,10 @@ func IsCriticalError(errMsg string) bool {
 		"violates not-null constraint",
 		"failed to send message to redis_hash_output",
 		"mapping returned invalid key type",
+		"invalid input syntax",
+		"incorrect datetime value",
+		"incorrect date value",
+		"incorrect time value",
 	}
 
 	for _, errStr := range criticalErrors {
