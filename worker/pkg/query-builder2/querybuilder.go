@@ -131,7 +131,10 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	var query squirrel.SelectBuilder
 	var allArgs []any
 
-	if qb.isSelfReferencing(table) && qb.subsetByForeignKeyConstraints && parentTable == nil {
+	isSelfReferencing := qb.isSelfReferencing(table)
+
+	if isSelfReferencing && qb.subsetByForeignKeyConstraints && parentTable == nil {
+		// Handle self-referencing table with possible additional foreign keys
 		whereConditions := []string{}
 		whereArgs := []any{}
 		for _, cond := range qb.whereConditions[key] {
@@ -140,13 +143,29 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		}
 		whereClause := strings.Join(whereConditions, " AND ")
 		cteQuery := qb.buildRecursiveCTE(table, &whereClause)
-
-		// Create a new SelectBuilder with the CTE
-
-		// Use the CTE select as a subquery
-		// squirrel.SelectBuilder{}.From(cteQuery)
-		query = squirrel.Select("*").From(fmt.Sprintf("(%s) as recursive_cte", cteQuery))
+		query = squirrel.Select("recursive_cte.*").From(fmt.Sprintf("(%s) as recursive_cte", cteQuery))
 		allArgs = append(allArgs, whereArgs...)
+
+		// Add joins for other foreign keys
+		for _, fk := range table.ForeignKeys {
+			if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+				continue // Skip the self-referencing foreign key
+			}
+			subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
+			if err != nil {
+				return "", nil, err
+			}
+			if subQuery != "" {
+				joinCount[fk.ReferenceTable]++
+				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
+				joinCondition := qb.buildJoinConditionForCTE(table, fk, joinCount[fk.ReferenceTable])
+				query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
+					subQuery,
+					quoteIdentifier(qb.driver, subQueryAlias),
+					joinCondition))
+				allArgs = append(allArgs, subArgs...)
+			}
+		}
 	} else {
 		query = squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
 
@@ -166,7 +185,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		if qb.subsetByForeignKeyConstraints {
 			// Recursively build and join queries for related tables
 			for _, fk := range table.ForeignKeys {
-				if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+				if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 					continue // Skip self-referencing foreign keys here
 				}
 				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
@@ -193,6 +212,17 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	}
 
 	return sql, append(allArgs, args...), nil
+}
+
+func (qb *QueryBuilder) buildJoinConditionForCTE(table *TableInfo, fk ForeignKey, joinCount int) string {
+	conditions := make([]string, len(fk.Columns))
+	for i := range fk.Columns {
+		conditions[i] = fmt.Sprintf("recursive_cte.%s = %s.%s",
+			quoteIdentifier(qb.driver, fk.Columns[i]),
+			quoteIdentifier(qb.driver, fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)),
+			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
+	}
+	return strings.Join(conditions, " AND ")
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, driver string) (string, error) {
