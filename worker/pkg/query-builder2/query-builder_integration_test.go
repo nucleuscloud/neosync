@@ -936,3 +936,178 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 		require.Equal(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 	}
 }
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"genbenthosconfigs_querybuilder.attachments": {
+			{Columns: []string{"uploaded_by"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}},
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.comments": {
+			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}},
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"parent_comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.initiatives": {
+			{Columns: []string{"lead_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"client_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.tasks": {
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"assignee_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"reviewer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.user_skills": {
+			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"skill_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}}},
+		},
+		"genbenthosconfigs_querybuilder.users": {
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"mentor_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
+		},
+	}
+
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"}, InsertColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}, {Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "parent_comment_id"}, InsertColumns: []string{"parent_comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"}, InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "manager_id", "mentor_id"}, InsertColumns: []string{"manager_id", "mentor_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.initiatives", SelectColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, InsertColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"initiative_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.skills", SelectColumns: []string{"skill_id", "name", "category"}, InsertColumns: []string{"skill_id", "name", "category"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.tasks", SelectColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, InsertColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}, {Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"task_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.user_skills", SelectColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, InsertColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.attachments", SelectColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, InsertColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}, {Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}, {Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"attachment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+	}
+
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"genbenthosconfigs_querybuilder.attachments": {
+			"attachment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"comment_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"file_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptrInt32(255), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"file_path":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptrInt32(255), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"uploaded_by":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.comments": {
+			"comment_id":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"content":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"created_at":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"parent_comment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"task_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.initiatives": {
+			"client_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"lead_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+		},
+		"genbenthosconfigs_querybuilder.skills": {
+			"category": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"skill_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.tasks": {
+			"assignee_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"reviewer_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"status":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: ptrInt32(50), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"title":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: ptrInt32(200), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+		},
+		"genbenthosconfigs_querybuilder.user_skills": {
+			"proficiency_level": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"skill_id":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_skill_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.users": {
+			"email":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"manager_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"mentor_id":  &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"user_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+	}
+
+	// expectedValues := map[string]map[string][]int64{
+	// 	"genbenthosconfigs_querybuilder.test_2_x": {
+	// 		"id": {3, 4, 5},
+	// 	},
+	// 	"genbenthosconfigs_querybuilder.test_2_b": {
+	// 		"id": {3, 4, 5},
+	// 	},
+	// 	"genbenthosconfigs_querybuilder.test_2_a": {
+	// 		"x_id": {3, 4, 5},
+	// 	},
+	// 	"genbenthosconfigs_querybuilder.test_2_c": {
+	// 		"a_id": {3, 4},
+	// 		"x_id": {3, 4},
+	// 	},
+	// 	"genbenthosconfigs_querybuilder.test_2_d": {
+	// 		"c_id": {3, 4},
+	// 	},
+	// 	"genbenthosconfigs_querybuilder.test_2_e": {
+	// 		"c_id": {3, 4},
+	// 	},
+	// }
+
+	// expectedCount := map[string]int{
+	// 	"genbenthosconfigs_querybuilder.test_2_x": 3,
+	// 	"genbenthosconfigs_querybuilder.test_2_b": 3,
+	// 	"genbenthosconfigs_querybuilder.test_2_a": 4,
+	// 	"genbenthosconfigs_querybuilder.test_2_c": 2,
+	// 	"genbenthosconfigs_querybuilder.test_2_d": 2,
+	// 	"genbenthosconfigs_querybuilder.test_2_e": 2,
+	// }
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	require.NoError(s.T(), err)
+	// require.Equal(s.T(), len(expectedValues), len(sqlMap))
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		fmt.Println(table, sql)
+		require.NotEmpty(s.T(), sql)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		require.NoError(s.T(), err)
+
+		// columnDescriptions := rows.FieldDescriptions()
+
+		// tableExpectedValues, ok := expectedValues[table]
+		// require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			// values, err := rows.Values()
+			// require.NoError(s.T(), err)
+
+			// for i, col := range values {
+			// colName := columnDescriptions[i].Name
+			// allowedValues, ok := tableExpectedValues[colName]
+			// if ok {
+			// 	value := col.(int64)
+			// 	require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+			// }
+			// }
+		}
+		rows.Close()
+		fmt.Printf("table: %s rowCount: %d\n", table, rowCount)
+		// require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}
+func ptrString(s string) *string {
+	return &s
+}
+
+func ptrInt32(i int32) *int32 {
+	return &i
+}
