@@ -17,7 +17,7 @@ type TableInfo struct {
 	Name        string
 	Columns     []string
 	PrimaryKeys []string
-	ForeignKeys []ForeignKey
+	ForeignKeys []*ForeignKey
 }
 
 type ForeignKey struct {
@@ -83,7 +83,7 @@ func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, a
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
 }
 
-func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []any, error) {
+func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, err error) {
 	key := qb.getTableKey(schema, tableName)
 	table, ok := qb.tables[key]
 	if !ok {
@@ -105,7 +105,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	schema, tableName string, parentTable *TableInfo,
 	columnsToInclude []string, joinCount map[string]int,
 	visitedTables map[string]bool,
-) (string, []any, error) {
+) (sqlstatement string, args []any, err error) {
 	key := qb.getTableKey(schema, tableName)
 	if visitedTables[key] {
 		return "", nil, nil // Avoid circular dependencies
@@ -158,7 +158,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 			if subQuery != "" {
 				joinCount[fk.ReferenceTable]++
 				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-				joinCondition := qb.buildJoinConditionForCTE(table, fk, joinCount[fk.ReferenceTable])
+				joinCondition := qb.buildJoinConditionForCTE(fk, joinCount[fk.ReferenceTable])
 				query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
 					subQuery,
 					quoteIdentifier(qb.driver, subQueryAlias),
@@ -214,7 +214,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return sql, append(allArgs, args...), nil
 }
 
-func (qb *QueryBuilder) buildJoinConditionForCTE(table *TableInfo, fk ForeignKey, joinCount int) string {
+func (qb *QueryBuilder) buildJoinConditionForCTE(fk *ForeignKey, joinCount int) string {
 	conditions := make([]string, len(fk.Columns))
 	for i := range fk.Columns {
 		conditions[i] = fmt.Sprintf("recursive_cte.%s = %s.%s",
@@ -360,7 +360,7 @@ func (qb *QueryBuilder) getQualifiedColumns(table *TableInfo, columnsToInclude [
 	return qualifiedColumns
 }
 
-func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk ForeignKey, joinCount int) string {
+func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk *ForeignKey, joinCount int) string {
 	conditions := make([]string, len(fk.Columns))
 	for i := range fk.Columns {
 		conditions[i] = fmt.Sprintf("%s.%s = %s.%s",
@@ -370,22 +370,6 @@ func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk ForeignKey, join
 			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
 	}
 	return strings.Join(conditions, " AND ")
-}
-
-func (qb *QueryBuilder) buildSubsetCondition(childTable, parentTable *TableInfo, parentCondition string) string {
-	for _, fk := range childTable.ForeignKeys {
-		if fk.ReferenceSchema == parentTable.Schema && fk.ReferenceTable == parentTable.Name {
-			parts := strings.Fields(parentCondition)
-			if len(parts) > 2 && (parts[1] == "=" || parts[1] == "IN") {
-				return fmt.Sprintf("%s.%s %s %s",
-					qb.getQualifiedTableName(childTable),
-					quoteIdentifier(qb.driver, fk.Columns[0]),
-					parts[1],
-					strings.Join(parts[2:], " "))
-			}
-		}
-	}
-	return ""
 }
 
 func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
@@ -450,9 +434,9 @@ func (qb *QueryBuilder) getAliasedColumns(alias string, columns []string) []stri
 func quoteIdentifier(driver, identifier string) string {
 	switch driver {
 	case sqlmanager_shared.PostgresDriver:
-		return fmt.Sprintf("\"%s\"", strings.Replace(identifier, "\"", "\"\"", -1))
+		return fmt.Sprintf("%q", strings.ReplaceAll(identifier, "\"", "\"\""))
 	case sqlmanager_shared.MysqlDriver:
-		return fmt.Sprintf("`%s`", strings.Replace(identifier, "`", "``", -1))
+		return fmt.Sprintf("`%s`", strings.ReplaceAll(identifier, "`", "``"))
 	default:
 		return identifier
 	}

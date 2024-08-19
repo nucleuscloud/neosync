@@ -107,7 +107,7 @@ func NewQueryBuilderFromSchemaDefinition(
 
 		for _, fk := range constraints.ForeignKeys {
 			refSchema, refTable := splitTable(fk.ForeignKey.Table)
-			tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, ForeignKey{
+			tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, &ForeignKey{
 				Columns:          fk.Columns,
 				ReferenceSchema:  refSchema,
 				ReferenceTable:   refTable,
