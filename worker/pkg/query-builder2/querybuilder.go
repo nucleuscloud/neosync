@@ -5,7 +5,11 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/doug-martin/goqu/v9"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pgquery "github.com/wasilibs/go-pgquery"
+	"github.com/xwb1989/sqlparser"
 )
 
 type TableInfo struct {
@@ -80,7 +84,12 @@ func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, a
 }
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (string, []any, error) {
-	return qb.buildQueryRecursive(schema, tableName, nil, nil, map[string]int{}, map[string]bool{})
+	key := qb.getTableKey(schema, tableName)
+	table, ok := qb.tables[key]
+	if !ok {
+		return "", nil, fmt.Errorf("table not found: %s", key)
+	}
+	return qb.buildQueryRecursive(schema, tableName, nil, table.Columns, map[string]int{}, map[string]bool{})
 }
 
 func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
@@ -172,20 +181,6 @@ func (qb *QueryBuilder) buildQueryRecursive(
 					allArgs = append(allArgs, subArgs...)
 				}
 			}
-
-			// This seems to put the subset in the wrong spot.
-			// Apply subsetting based on parent table's where conditions
-			// if parentTable != nil {
-			// 	parentKey := qb.getTableKey(parentTable.Schema, parentTable.Name)
-			// 	if parentConditions, ok := qb.whereConditions[parentKey]; ok {
-			// 		for _, parentCond := range parentConditions {
-			// 			subsetCondition := qb.buildSubsetCondition(table, parentTable, parentCond.Condition)
-			// 			if subsetCondition != "" {
-			// 				query = query.Where(subsetCondition)
-			// 			}
-			// 		}
-			// 	}
-			// }
 		}
 	}
 
@@ -197,12 +192,120 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return sql, append(allArgs, args...), nil
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string) string {
-	parts := strings.Fields(condition)
-	if len(parts) > 0 {
-		parts[0] = fmt.Sprintf("%s.%s", qb.getQualifiedTableName(table), quoteIdentifier(qb.driver, parts[0]))
+func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, driver string) (string, error) {
+	query := goqu.Dialect(driver).From(goqu.T(table.Name)).Select("*").Where(goqu.L(condition))
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return "", fmt.Errorf("unable to build where condition: %w", err)
 	}
-	return strings.Join(parts, " ")
+
+	var updatedSql string
+	switch driver {
+	case sqlmanager_shared.MysqlDriver:
+		sql, err := qualifyMysqlWhereColumnNames(sql, &table.Schema, table.Name)
+		if err != nil {
+			return "", err
+		}
+		updatedSql = sql
+	case sqlmanager_shared.PostgresDriver:
+		tree, err := pgquery.Parse(sql)
+		if err != nil {
+			return "", fmt.Errorf("unable to parse where condition for postgres query: %w", err)
+		}
+		for _, stmt := range tree.GetStmts() {
+			selectStmt := stmt.GetStmt().GetSelectStmt()
+			if selectStmt.WhereClause != nil {
+				updatePostgresExpr(&table.Schema, table.Name, selectStmt.WhereClause)
+			}
+		}
+		sql, err := pgquery.Deparse(tree)
+		if err != nil {
+			return "", err
+		}
+		updatedSql = sql
+	default:
+		return "", fmt.Errorf("unsupported driver %q when qualifying where condition", driver)
+	}
+	index := strings.Index(strings.ToLower(updatedSql), "where")
+	if index == -1 {
+		// "where" not found
+		return "", fmt.Errorf("unable to qualify where column names")
+	}
+	startIndex := index + len("where")
+	return strings.TrimSpace(updatedSql[startIndex:]), nil
+}
+
+func updatePostgresExpr(schema *string, table string, node *pg_query.Node) {
+	switch expr := node.Node.(type) {
+	case *pg_query.Node_SubLink:
+		updatePostgresExpr(schema, table, node.GetSubLink().GetTestexpr())
+	case *pg_query.Node_BoolExpr:
+		for _, arg := range expr.BoolExpr.GetArgs() {
+			updatePostgresExpr(schema, table, arg)
+		}
+	case *pg_query.Node_AExpr:
+		updatePostgresExpr(schema, table, expr.AExpr.GetLexpr())
+		updatePostgresExpr(schema, table, expr.AExpr.Rexpr)
+	case *pg_query.Node_ColumnDef:
+	case *pg_query.Node_ColumnRef:
+		col := node.GetColumnRef()
+		isQualified := false
+		var colName *string
+		// find col name and check if already has schema + table name
+		for _, f := range col.Fields {
+			val := f.GetString_().GetSval()
+			if schema != nil && val == *schema {
+				continue
+			}
+			if val == table {
+				isQualified = true
+				break
+			}
+			colName = &val
+		}
+		if !isQualified && colName != nil && *colName != "" {
+			fields := []*pg_query.Node{}
+			if schema != nil && *schema != "" {
+				fields = append(fields, pg_query.MakeStrNode(*schema))
+			}
+			fields = append(fields, []*pg_query.Node{
+				pg_query.MakeStrNode(table),
+				pg_query.MakeStrNode(*colName),
+			}...)
+			col.Fields = fields
+		}
+	}
+}
+
+func qualifyMysqlWhereColumnNames(sql string, schema *string, table string) (string, error) {
+	stmt, err := sqlparser.Parse(sql)
+	if err != nil {
+		return "", err
+	}
+
+	switch stmt := stmt.(type) { //nolint:gocritic
+	case *sqlparser.Select:
+		err = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+			switch node := node.(type) { //nolint:gocritic
+			case *sqlparser.ComparisonExpr:
+				if col, ok := node.Left.(*sqlparser.ColName); ok {
+					s := ""
+					if schema != nil && *schema != "" {
+						s = *schema
+					}
+					col.Qualifier.Qualifier = sqlparser.NewTableIdent(s)
+					col.Qualifier.Name = sqlparser.NewTableIdent(table)
+				}
+				return false, nil
+			}
+			return true, nil
+		}, stmt)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return sqlparser.String(stmt), nil
 }
 
 func (qb *QueryBuilder) getQualifiedTableName(table *TableInfo) string {
