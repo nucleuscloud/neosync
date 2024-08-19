@@ -1,5 +1,4 @@
 import { ArrowRightIcon, CheckIcon } from '@radix-ui/react-icons';
-import { useTheme } from 'next-themes';
 import { ReactElement } from 'react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -12,21 +11,15 @@ interface Props {
 
 export default function Sync(props: Props): ReactElement {
   const { currentStep, setCurrentStep } = props;
-  const theme = useTheme();
 
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Sync</h1>
       <p className="text-sm px-10">
-        Run your job on a set schedule or run it ad-hoc whenever you'd like. Now
-        that you have an idea of Neosync works, click{' '}
+        Run your job on a set schedule or run it ad-hoc whenever you&apos;d
+        like. Now that you have an idea of Neosync works, click{' '}
         <span className="font-semibold">Next</span> to create a Job.
       </p>
-      {/* {theme.resolvedTheme == 'light' ? (
-        <ConnectLightMode />
-      ) : (
-        <ConnectDarkMode />
-      )} */}
       <div className=" flex flex-col gap-8">
         <div className=" flex flex-col gap-2 text-left">
           <p className="text-sm font-semibold">Schedule</p>
