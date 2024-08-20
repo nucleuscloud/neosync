@@ -177,9 +177,9 @@ func AnyToInt64(value any) (int64, error) {
 	case int64:
 		return v, nil
 	case uint:
-		return int64(v), nil
+		return int64(v), nil //nolint:gosec // Ignoring for now
 	case uint8:
-		return int64(v), nil
+		return int64(v), nil //nolint:gosec // Ignoring for now
 	case uint16:
 		return int64(v), nil
 	case uint32:
@@ -188,7 +188,7 @@ func AnyToInt64(value any) (int64, error) {
 		if v > math.MaxInt64 {
 			return 0, fmt.Errorf("value %d overflows int64", v)
 		}
-		return int64(v), nil
+		return int64(v), nil //nolint:gosec // Ignoring for now
 	default:
 		return 0, fmt.Errorf("unsupported type: %T", value)
 	}
