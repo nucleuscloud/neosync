@@ -58,21 +58,35 @@ type WhereCondition struct {
 }
 
 type QueryBuilder struct {
-	tables                        map[string]*TableInfo
-	whereConditions               map[string][]WhereCondition
+	tables          map[string]*TableInfo
+	whereConditions map[string][]WhereCondition
+	// schema.table -> column -> { column info }
+	columnInfo                    map[string]map[string]*sqlmanager_shared.ColumnInfo
 	defaultSchema                 string
 	driver                        string
 	subsetByForeignKeyConstraints bool
 }
 
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) *QueryBuilder {
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
 		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+		columnInfo:                    columnInfo,
 	}
+}
+
+func (qb *QueryBuilder) isJsonColumn(schematable, column string) bool {
+	tableInfo, ok := qb.columnInfo[schematable]
+	if ok {
+		colInfo, ok := tableInfo[column]
+		if ok {
+			return colInfo.DataType == "json"
+		}
+	}
+	return false
 }
 
 func (qb *QueryBuilder) AddTable(table *TableInfo) {
@@ -392,7 +406,6 @@ const (
 	hierarchyTableName = "hierarchy"
 )
 
-// todo: support jsonb, possibly custom mysql driver?
 func (qb *QueryBuilder) buildRecursiveCTE(
 	table *TableInfo,
 	whereConditions []WhereCondition,
@@ -401,9 +414,15 @@ func (qb *QueryBuilder) buildRecursiveCTE(
 
 	// not using an alias here because qualifyWhereCondition does not currently work with aliasing
 	baseTable := qb.getQualifiedTableName(table)
-	baseColumns := make([]exp.IdentifierExpression, len(table.Columns))
+	baseColumns := make([]exp.Expression, len(table.Columns))
+	tableKey := qb.getTableKey(table.Schema, table.Name)
 	for i, col := range table.Columns {
-		baseColumns[i] = baseTable.Col(col)
+		if qb.isJsonColumn(tableKey, col) {
+			// json the type has no comparison operator and thus can't union but jsonb does
+			baseColumns[i] = goqu.L("to_jsonb(?)", baseTable.Col(col)).As(col)
+		} else {
+			baseColumns[i] = baseTable.Col(col)
+		}
 	}
 
 	// Base case
