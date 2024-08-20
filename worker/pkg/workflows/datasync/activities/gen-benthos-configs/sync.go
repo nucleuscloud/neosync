@@ -14,7 +14,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
-	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
+	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder2"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -79,7 +79,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
 
-	tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
+	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
 	runConfigs, err := tabledependency.GetRunConfigs(foreignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
 	if err != nil {
@@ -839,9 +839,12 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
+func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions, tableMap map[string]*tableMapping) map[string]string {
 	tableSubsetMap := map[string]string{}
 	for table, opts := range tableOpts {
+		if _, ok := tableMap[table]; !ok {
+			continue
+		}
 		if opts != nil && opts.WhereClause != nil && *opts.WhereClause != "" {
 			tableSubsetMap[table] = *opts.WhereClause
 		}

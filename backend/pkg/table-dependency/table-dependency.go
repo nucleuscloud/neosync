@@ -1,6 +1,7 @@
 package tabledependency
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -57,6 +58,9 @@ func GetRunConfigs(
 	foreignKeyMap := map[string]map[string][]string{}               // map: table -> foreign key table -> foreign key column
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
+
+	jsonF, _ := json.MarshalIndent(subsets, "", " ")
+	fmt.Printf("subsets: %s \n", string(jsonF))
 
 	// dedupe table columns
 	for table, cols := range tableColumnsMap {
@@ -120,12 +124,72 @@ func GetRunConfigs(
 	insertConfigs := processTables(processed, filteredDepsMap, foreignKeyMap, tableColumnsMap, primaryKeyMap, subsets)
 	configs = append(configs, insertConfigs...)
 
+	// filter configs by subset
+	if len(subsets) > 0 {
+		fmt.Println()
+		fmt.Println("filtering configs by subset")
+		fmt.Println()
+		configs = filterConfigsWithWhereClause(configs)
+	}
+
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
 	}
 
 	return configs, nil
+}
+
+// removes update configs that have where clause
+// breaks circular dependencies and self references when subset is applied
+func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
+	result := make([]*RunConfig, 0)
+	visited := make(map[string]bool)
+	hasWhereClause := make(map[string]bool)
+
+	var checkConfig func(*RunConfig) bool
+	checkConfig = func(config *RunConfig) bool {
+		if hasWhereClause[config.Table] {
+			return true
+		}
+
+		key := fmt.Sprintf("%s.%s", config.Table, config.RunType)
+		if visited[key] {
+			return false
+		}
+		visited[key] = true
+
+		if config.WhereClause != nil {
+			hasWhereClause[key] = true
+			return true
+		}
+
+		for _, dep := range config.DependsOn {
+			for _, c := range configs {
+				if c.Table == dep.Table {
+					if checkConfig(c) {
+						hasWhereClause[key] = true
+						return true
+					}
+					break
+				}
+			}
+		}
+
+		return false
+	}
+
+	for _, config := range configs {
+		if checkConfig(config) {
+			if config.RunType == RunTypeInsert {
+				result = append(result, config)
+			}
+		} else {
+			result = append(result, config)
+		}
+	}
+
+	return result
 }
 
 func processCycles(
