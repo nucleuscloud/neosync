@@ -6,11 +6,28 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
 	"github.com/xwb1989/sqlparser"
 )
+
+const (
+	mysqlDialect = "custom-mysql-dialect"
+)
+
+func init() {
+	goqu.RegisterDialect(mysqlDialect, buildMysqlDialect())
+}
+
+func buildMysqlDialect() *sqlgen.SQLDialectOptions {
+	opts := goqu.DefaultDialectOptions()
+	opts.QuoteRune = '`'
+	opts.SupportsWithCTERecursive = true
+	opts.SupportsWithCTE = true
+	return opts
+}
 
 type TableInfo struct {
 	Schema      string
@@ -41,20 +58,18 @@ type WhereCondition struct {
 }
 
 type QueryBuilder struct {
-	tables          map[string]*TableInfo
-	whereConditions map[string][]WhereCondition
-	defaultSchema   string
-	// visitedTables                 map[string]bool
+	tables                        map[string]*TableInfo
+	whereConditions               map[string][]WhereCondition
+	defaultSchema                 string
 	driver                        string
 	subsetByForeignKeyConstraints bool
 }
 
 func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool) *QueryBuilder {
 	return &QueryBuilder{
-		tables:          make(map[string]*TableInfo),
-		whereConditions: make(map[string][]WhereCondition),
-		defaultSchema:   defaultSchema,
-		// visitedTables:                 make(map[string]bool),
+		tables:                        make(map[string]*TableInfo),
+		whereConditions:               make(map[string][]WhereCondition),
+		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 	}
@@ -63,6 +78,15 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 func (qb *QueryBuilder) AddTable(table *TableInfo) {
 	key := qb.getTableKey(table.Schema, table.Name)
 	qb.tables[key] = table
+}
+
+func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
+	switch qb.driver {
+	case sqlmanager_shared.MysqlDriver:
+		return goqu.Dialect(mysqlDialect)
+	default:
+		return goqu.Dialect(qb.driver)
+	}
 }
 
 func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
@@ -136,7 +160,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		columnsToInclude = []string{"*"}
 	}
 
-	dialect := goqu.Dialect(qb.driver)
+	dialect := qb.getDialect()
 	var query *goqu.SelectDataset
 	var allArgs []any
 
@@ -186,7 +210,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		// Add WHERE conditions for this table
 		if conditions, ok := qb.whereConditions[key]; ok {
 			for _, cond := range conditions {
-				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition, qb.driver)
+				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
 				if err != nil {
 					return "", nil, err
 				}
@@ -233,15 +257,15 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return sql, append(allArgs, args...), nil
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, driver string) (string, error) {
-	query := goqu.Dialect(driver).From(goqu.T(table.Name)).Select(goqu.Star()).Where(goqu.L(condition))
+func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string) (string, error) {
+	query := qb.getDialect().From(goqu.T(table.Name)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("unable to build where condition: %w", err)
 	}
 
 	var updatedSql string
-	switch driver {
+	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
 		sql, err := qualifyMysqlWhereColumnNames(sql, &table.Schema, table.Name)
 		if err != nil {
@@ -265,7 +289,7 @@ func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, drive
 		}
 		updatedSql = sql
 	default:
-		return "", fmt.Errorf("unsupported driver %q when qualifying where condition", driver)
+		return "", fmt.Errorf("unsupported driver %q when qualifying where condition", qb.driver)
 	}
 	index := strings.Index(strings.ToLower(updatedSql), "where")
 	if index == -1 {
@@ -357,32 +381,6 @@ func (qb *QueryBuilder) getQualifiedTableName(table *TableInfo) exp.IdentifierEx
 	return goqu.T(table.Name).Schema(schema)
 }
 
-// func (qb *QueryBuilder) buildJoinConditionForCTE(fk *ForeignKey, joinCount int) exp.Expression {
-// 	qualTable := goqu.I("recursive_cte")
-
-// 	conditions := make([]goqu.Expression, len(fk.Columns))
-// 	for i := range fk.Columns {
-// 		alias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)
-// 		conditions[i] = qualTable.Col(fk.Columns[i]).Eq(
-// 			goqu.I(fmt.Sprintf("%s.%s", alias, fk.ReferenceColumns[i])),
-// 		)
-// 	}
-// 	return goqu.And(conditions...)
-// }
-
-// func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk *ForeignKey, joinCount int) exp.Expression {
-// 	qualTable := qb.getQualifiedTableName(table)
-
-// 	conditions := make([]goqu.Expression, len(fk.Columns))
-// 	for i := range fk.Columns {
-// 		alias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)
-// 		conditions[i] = qualTable.Col(fk.Columns[i]).Eq(
-// 			goqu.I(fmt.Sprintf("%s.%s", alias, fk.ReferenceColumns[i])),
-// 		)
-// 	}
-// 	return goqu.And(conditions...)
-// }
-
 func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
 	if schema == "" {
 		schema = qb.defaultSchema
@@ -399,7 +397,7 @@ func (qb *QueryBuilder) buildRecursiveCTE(
 	table *TableInfo,
 	whereConditions []WhereCondition,
 ) (*goqu.SelectDataset, error) {
-	dialect := goqu.Dialect(qb.driver)
+	dialect := qb.getDialect()
 
 	// not using an alias here because qualifyWhereCondition does not currently work with aliasing
 	baseTable := qb.getQualifiedTableName(table)
@@ -414,7 +412,7 @@ func (qb *QueryBuilder) buildRecursiveCTE(
 		Select(toAnySlice(baseColumns)...)
 	qualifiedWheres := []goqu.Expression{}
 	for _, whereCond := range whereConditions {
-		qualifiedCondition, err := qb.qualifyWhereCondition(table, whereCond.Condition, qb.driver)
+		qualifiedCondition, err := qb.qualifyWhereCondition(table, whereCond.Condition)
 		if err != nil {
 			return nil, err
 		}
