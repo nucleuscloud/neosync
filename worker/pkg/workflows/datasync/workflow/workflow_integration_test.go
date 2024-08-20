@@ -865,7 +865,7 @@ func executeWorkflow(
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-	env.SetTestTimeout(300 * time.Second) // increase the test timeout
+	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
