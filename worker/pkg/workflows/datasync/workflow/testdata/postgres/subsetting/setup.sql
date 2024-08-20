@@ -1,7 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS subsetting;
 
 SET search_path TO subsetting;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Test_BuildQueryMap_DoubleRootSubset
 CREATE TABLE test_2_x (
