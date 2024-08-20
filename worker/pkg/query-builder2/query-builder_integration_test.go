@@ -6,6 +6,7 @@ import (
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,20 +71,20 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err, "error running query: %s", sql)
+			assert.NoError(s.T(), err, "error running query: %s", sql)
 
 			columnDescriptions := rows.FieldDescriptions()
 
 			tableExpectedValues, ok := expectedValues[table]
-			require.True(s.T(), ok)
+			assert.True(s.T(), ok)
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
@@ -91,12 +92,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -172,32 +173,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference_Complex() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 
 			tableExpectedValues, ok := expectedValues[table]
-			require.True(s.T(), ok)
+			assert.True(s.T(), ok)
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -270,33 +271,33 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -391,20 +392,20 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
@@ -412,12 +413,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -483,32 +484,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -574,32 +575,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -658,32 +659,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -734,32 +735,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -793,10 +794,10 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 		require.Equal(s.T(), len(expectedCount), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			rowCount := 0
 			for rows.Next() {
@@ -805,8 +806,8 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 			rows.Close()
 
 			tableExpectedCount, ok := expectedCount[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected row counts", table))
-			require.Equalf(s.T(), rowCount, tableExpectedCount, fmt.Sprintf("table: %s ", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected row counts", table))
+			assert.Equalf(s.T(), rowCount, tableExpectedCount, fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -857,32 +858,32 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -927,20 +928,20 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 			tableExpectedValues, ok := expectedValues[table]
-			require.True(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.True(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
@@ -950,12 +951,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetSelfReferencing() {
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int64)
-						require.Contains(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Contains(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equal(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
+			assert.Equal(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
@@ -1102,33 +1103,33 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 		require.Equal(s.T(), len(expectedValues), len(sqlMap))
 		for table, selectQueryRunType := range sqlMap {
 			sql := selectQueryRunType[tabledependency.RunTypeInsert]
-			require.NotEmpty(s.T(), sql)
+			assert.NotEmpty(s.T(), sql)
 
 			rows, err := s.pgpool.Query(s.ctx, sql)
-			require.NoError(s.T(), err)
+			assert.NoError(s.T(), err)
 
 			columnDescriptions := rows.FieldDescriptions()
 
 			tableExpectedValues, ok := expectedValues[table]
-			require.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+			assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
 
 			rowCount := 0
 			for rows.Next() {
 				rowCount++
 				values, err := rows.Values()
-				require.NoError(s.T(), err)
+				assert.NoError(s.T(), err)
 
 				for i, col := range values {
 					colName := columnDescriptions[i].Name
 					allowedValues, ok := tableExpectedValues[colName]
 					if ok {
 						value := col.(int32)
-						require.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+						assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 					}
 				}
 			}
 			rows.Close()
-			require.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+			assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 		}
 	})
 }
