@@ -13,7 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
-	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
+	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -214,7 +214,7 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 
 			resMap, keyTypeMap := convertDynamoDBItemToMap(dynamoDBItem)
 			msg := service.NewMessage(nil)
-			msg.MetaSetMut(neosyncbenthos_dynamodb.MetaTypeMapStr, keyTypeMap)
+			msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
 			msg.SetStructuredMut(resMap)
 			return msg, func(ctx context.Context, err error) error {
 				// Nacks are retried automatically when we use service.AutoRetryNacks
@@ -254,9 +254,9 @@ func (g *neosyncInput) Close(ctx context.Context) error {
 	return nil
 }
 
-func convertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosyncbenthos_dynamodb.KeyType) {
+func convertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_dynamodb.KeyType) {
 	result := make(map[string]any)
-	ktm := make(map[string]neosyncbenthos_dynamodb.KeyType)
+	ktm := make(map[string]neosync_dynamodb.KeyType)
 	for key, value := range item {
 		result[key] = convertDynamoDBValue(key, value, ktm)
 	}
@@ -264,7 +264,7 @@ func convertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, 
 	return result, ktm
 }
 
-func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosyncbenthos_dynamodb.KeyType) any {
+func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosync_dynamodb.KeyType) any {
 	if m, ok := value.(map[string]any); ok {
 		for dynamoType, dynamoValue := range m {
 			switch dynamoType {
@@ -278,7 +278,7 @@ func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosyncbe
 				}
 				return byteSlice
 			case "N":
-				n, err := neosyncbenthos_dynamodb.ConvertStringToNumber(dynamoValue.(string))
+				n, err := neosync_dynamodb.ConvertStringToNumber(dynamoValue.(string))
 				if err != nil {
 					return dynamoValue
 				}
@@ -319,7 +319,7 @@ func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosyncbe
 				}
 				return result
 			case "SS":
-				keyTypeMap[key] = neosyncbenthos_dynamodb.StringSet
+				keyTypeMap[key] = neosync_dynamodb.StringSet
 				ss := dynamoValue.([]any)
 				result := make([]string, len(ss))
 				for i, s := range ss {
@@ -327,11 +327,11 @@ func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosyncbe
 				}
 				return result
 			case "NS":
-				keyTypeMap[key] = neosyncbenthos_dynamodb.NumberSet
+				keyTypeMap[key] = neosync_dynamodb.NumberSet
 				numbers := dynamoValue.([]any)
 				result := make([]any, len(numbers))
 				for i, num := range numbers {
-					n, err := neosyncbenthos_dynamodb.ConvertStringToNumber(num.(string))
+					n, err := neosync_dynamodb.ConvertStringToNumber(num.(string))
 					if err != nil {
 						result[i] = num
 					}

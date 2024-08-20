@@ -2,16 +2,13 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -207,124 +204,6 @@ func (d *dynamoDBWriter) Connect(ctx context.Context) error {
 
 	d.client = client
 	return nil
-}
-
-func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
-	if typeStr, ok := keyTypeMap[key]; ok {
-		switch typeStr {
-		case StringSet:
-			s, ok := getGenericSlice[string](root)
-			if ok {
-				return &types.AttributeValueMemberSS{
-					Value: s,
-				}
-			}
-		case NumberSet:
-			stringSlice, err := toStringSlice(root)
-			if err == nil {
-				return &types.AttributeValueMemberNS{
-					Value: stringSlice,
-				}
-			}
-		}
-	}
-	switch v := root.(type) {
-	case map[string]any:
-		m := make(map[string]types.AttributeValue, len(v))
-		for k, v2 := range v {
-			path := k
-			if key != "" {
-				path = fmt.Sprintf("%s.%s", key, k)
-			}
-			m[k] = anyToAttributeValue(path, v2, keyTypeMap)
-		}
-		return &types.AttributeValueMemberM{
-			Value: m,
-		}
-	case []byte:
-		return &types.AttributeValueMemberB{
-			Value: v,
-		}
-	case [][]byte:
-		return &types.AttributeValueMemberBS{
-			Value: v,
-		}
-	case []any:
-		l := make([]types.AttributeValue, len(v))
-		for i, v2 := range v {
-			l[i] = anyToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
-		}
-		return &types.AttributeValueMemberL{
-			Value: l,
-		}
-	case string:
-		return &types.AttributeValueMemberS{
-			Value: v,
-		}
-	case json.Number:
-		return &types.AttributeValueMemberS{
-			Value: v.String(),
-		}
-	case float64:
-		return &types.AttributeValueMemberN{
-			Value: formatFloat(v),
-		}
-	case int:
-		return &types.AttributeValueMemberN{
-			Value: strconv.Itoa(v),
-		}
-	case int64:
-		return &types.AttributeValueMemberN{
-			Value: strconv.Itoa(int(v)),
-		}
-	case bool:
-		return &types.AttributeValueMemberBOOL{
-			Value: v,
-		}
-	case nil:
-		return &types.AttributeValueMemberNULL{
-			Value: true,
-		}
-	}
-	return &types.AttributeValueMemberS{
-		Value: fmt.Sprintf("%v", root),
-	}
-}
-
-func formatFloat(f float64) string {
-	s := strconv.FormatFloat(f, 'f', 4, 64)
-	s = strings.TrimRight(s, "0")
-	if strings.HasSuffix(s, ".") {
-		s += "0"
-	}
-	return s
-}
-
-func getGenericSlice[T any](v any) ([]T, bool) {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Slice {
-		return nil, false
-	}
-
-	genericSlice := make([]T, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		elem := val.Index(i).Interface()
-		if tElem, ok := elem.(T); ok {
-			genericSlice[i] = tElem
-		} else {
-			return nil, false
-		}
-	}
-
-	return genericSlice, true
-}
-
-func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
-	gObj := gabs.Wrap(root)
-	if path != "" {
-		gObj = gObj.Path(path)
-	}
-	return anyToAttributeValue(key, gObj.Data(), keyTypeMap)
 }
 
 func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch) error {
