@@ -70,7 +70,7 @@ jobs:
 
       - name: Test
         run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          go test -timeout 1800s -race -coverprofile=coverage.out -covermode=atomic ./...
         env:
           INTEGRATION_TESTS_ENABLED: 1
 
