@@ -4,13 +4,30 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
 	"github.com/xwb1989/sqlparser"
 )
+
+const (
+	mysqlDialect = "custom-mysql-dialect"
+)
+
+func init() {
+	goqu.RegisterDialect(mysqlDialect, buildMysqlDialect())
+}
+
+func buildMysqlDialect() *sqlgen.SQLDialectOptions {
+	opts := goqu.DefaultDialectOptions()
+	opts.QuoteRune = '`'
+	opts.SupportsWithCTERecursive = true
+	opts.SupportsWithCTE = true
+	return opts
+}
 
 type TableInfo struct {
 	Schema      string
@@ -18,6 +35,44 @@ type TableInfo struct {
 	Columns     []string
 	PrimaryKeys []string
 	ForeignKeys []*ForeignKey
+}
+
+type AliasTableInfo struct {
+	Name string
+}
+
+// Returns table info with just the table name
+func newTableInfoAlias(alias string) *AliasTableInfo {
+	return &AliasTableInfo{Name: alias}
+}
+func (t *AliasTableInfo) GetSchema() *string {
+	return nil
+}
+func (t *AliasTableInfo) GetName() string {
+	return t.Name
+}
+
+type TableIdentity interface {
+	GetSchema() *string
+	GetName() string
+}
+
+func (t *TableInfo) GetSchema() *string {
+	if t.Schema == "" {
+		return nil
+	}
+	return &t.Schema
+}
+func (t *TableInfo) GetName() string {
+	return t.Name
+}
+
+func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
+	table := goqu.T(t.Name)
+	if t.Schema == "" {
+		return table
+	}
+	return table.Schema(t.Schema)
 }
 
 type ForeignKey struct {
@@ -35,26 +90,47 @@ type WhereCondition struct {
 type QueryBuilder struct {
 	tables          map[string]*TableInfo
 	whereConditions map[string][]WhereCondition
-	defaultSchema   string
-	// visitedTables                 map[string]bool
+	// schema.table -> column -> { column info }
+	columnInfo                    map[string]map[string]*sqlmanager_shared.ColumnInfo
+	defaultSchema                 string
 	driver                        string
 	subsetByForeignKeyConstraints bool
 }
 
-func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool) *QueryBuilder {
+func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) *QueryBuilder {
 	return &QueryBuilder{
-		tables:          make(map[string]*TableInfo),
-		whereConditions: make(map[string][]WhereCondition),
-		defaultSchema:   defaultSchema,
-		// visitedTables:                 make(map[string]bool),
+		tables:                        make(map[string]*TableInfo),
+		whereConditions:               make(map[string][]WhereCondition),
+		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+		columnInfo:                    columnInfo,
 	}
+}
+
+func (qb *QueryBuilder) isJsonColumn(schematable, column string) bool {
+	tableInfo, ok := qb.columnInfo[schematable]
+	if ok {
+		colInfo, ok := tableInfo[column]
+		if ok {
+			return colInfo.DataType == "json"
+		}
+	}
+	return false
 }
 
 func (qb *QueryBuilder) AddTable(table *TableInfo) {
 	key := qb.getTableKey(table.Schema, table.Name)
 	qb.tables[key] = table
+}
+
+func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
+	switch qb.driver {
+	case sqlmanager_shared.MysqlDriver:
+		return goqu.Dialect(mysqlDialect)
+	default:
+		return goqu.Dialect(qb.driver)
+	}
 }
 
 func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
@@ -89,7 +165,18 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if !ok {
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
-	return qb.buildQueryRecursive(schema, tableName, nil, table.Columns, map[string]int{}, map[string]bool{})
+	query, err := qb.buildQueryRecursive(schema, tableName, nil, table.Columns, map[string]int{}, map[string]bool{})
+	if err != nil {
+		return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
+	}
+	if query == nil {
+		return "", nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+	}
+	sql, args, err := query.ToSQL()
+	if err != nil {
+		return "", nil, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+	}
+	return sql, args, nil
 }
 
 func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
@@ -105,17 +192,17 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	schema, tableName string, parentTable *TableInfo,
 	columnsToInclude []string, joinCount map[string]int,
 	visitedTables map[string]bool,
-) (sqlstatement string, args []any, err error) {
+) (*goqu.SelectDataset, error) {
 	key := qb.getTableKey(schema, tableName)
 	if visitedTables[key] {
-		return "", nil, nil // Avoid circular dependencies
+		return nil, nil // Avoid circular dependencies
 	}
 	visitedTables[key] = true
 	defer delete(visitedTables, key) // Remove from visited after processing
 
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, fmt.Errorf("table not found: %s", key)
+		return nil, fmt.Errorf("table not found: %s", key)
 	}
 
 	if len(columnsToInclude) == 0 {
@@ -128,56 +215,59 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		columnsToInclude = []string{"*"}
 	}
 
-	var query squirrel.SelectBuilder
-	var allArgs []any
+	dialect := qb.getDialect()
+	var query *goqu.SelectDataset
 
 	isSelfReferencing := qb.isSelfReferencing(table)
 
 	if isSelfReferencing && qb.subsetByForeignKeyConstraints && parentTable == nil {
 		// Handle self-referencing table with possible additional foreign keys
-		whereConditions := []string{}
-		whereArgs := []any{}
-		for _, cond := range qb.whereConditions[key] {
-			whereConditions = append(whereConditions, cond.Condition)
-			whereArgs = append(whereArgs, cond.Args...)
+		cteQuery, err := qb.buildRecursiveCTE(table, qb.whereConditions[key])
+		if err != nil {
+			return nil, err
 		}
-		whereClause := strings.Join(whereConditions, " AND ")
-		cteQuery := qb.buildRecursiveCTE(table, &whereClause)
-		query = squirrel.Select("recursive_cte.*").From(fmt.Sprintf("(%s) as recursive_cte", cteQuery))
-		allArgs = append(allArgs, whereArgs...)
+		query = dialect.From(cteQuery.As("recursive_cte"))
 
 		// Add joins for other foreign keys
 		for _, fk := range table.ForeignKeys {
 			if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 				continue // Skip the self-referencing foreign key
 			}
-			subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
+			subQuery, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
-			if subQuery != "" {
+			if subQuery != nil {
 				joinCount[fk.ReferenceTable]++
-				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-				joinCondition := qb.buildJoinConditionForCTE(fk, joinCount[fk.ReferenceTable])
-				query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
-					subQuery,
-					quoteIdentifier(qb.driver, subQueryAlias),
-					joinCondition))
-				allArgs = append(allArgs, subArgs...)
+				subqueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
+				conditions := make([]goqu.Expression, len(fk.Columns))
+				for i := range fk.Columns {
+					conditions[i] = goqu.T("recursive_cte").Col(fk.Columns[i]).Eq(
+						goqu.T(subqueryAlias).Col(fk.ReferenceColumns[i]),
+					)
+				}
+				query = query.Join(
+					goqu.L("(?)", subQuery).As(subqueryAlias),
+					goqu.On(goqu.And(conditions...)),
+				)
 			}
 		}
 	} else {
-		query = squirrel.Select(qb.getQualifiedColumns(table, columnsToInclude)...).From(qb.getQualifiedTableName(table))
+		t := table.GetIdentifierExpression()
+		cols := make([]exp.Expression, len(columnsToInclude))
+		for i := range columnsToInclude {
+			cols[i] = t.Col(columnsToInclude[i])
+		}
+		query = dialect.From(t).Select(toAnySlice(cols)...)
 
 		// Add WHERE conditions for this table
 		if conditions, ok := qb.whereConditions[key]; ok {
 			for _, cond := range conditions {
-				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition, qb.driver)
+				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
 				if err != nil {
-					return "", nil, err
+					return nil, err
 				}
-				query = query.Where(qualifiedCondition, cond.Args...)
-				allArgs = append(allArgs, cond.Args...)
+				query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 			}
 		}
 
@@ -188,76 +278,55 @@ func (qb *QueryBuilder) buildQueryRecursive(
 				if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 					continue // Skip self-referencing foreign keys here
 				}
-				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
+				subQuery, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
 				if err != nil {
-					return "", nil, err
+					return nil, err
 				}
-				if subQuery != "" {
+
+				if subQuery != nil {
 					joinCount[fk.ReferenceTable]++
 					subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-					joinCondition := qb.buildJoinCondition(table, fk, joinCount[fk.ReferenceTable])
-					query = query.JoinClause(fmt.Sprintf("INNER JOIN (%s) AS %s ON %s",
-						subQuery,
-						quoteIdentifier(qb.driver, subQueryAlias),
-						joinCondition))
-					allArgs = append(allArgs, subArgs...)
+					conditions := make([]goqu.Expression, len(fk.Columns))
+					for i := range fk.Columns {
+						conditions[i] = t.Col(fk.Columns[i]).Eq(
+							goqu.T(subQueryAlias).Col(fk.ReferenceColumns[i]),
+						)
+					}
+					query = query.Join(
+						goqu.L("(?)", subQuery).As(subQueryAlias),
+						goqu.On(goqu.And(conditions...)),
+					)
 				}
 			}
 		}
 	}
 
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return "", nil, err
-	}
-
-	return sql, append(allArgs, args...), nil
+	return query, nil
 }
 
-func (qb *QueryBuilder) buildJoinConditionForCTE(fk *ForeignKey, joinCount int) string {
-	conditions := make([]string, len(fk.Columns))
-	for i := range fk.Columns {
-		conditions[i] = fmt.Sprintf("recursive_cte.%s = %s.%s",
-			quoteIdentifier(qb.driver, fk.Columns[i]),
-			quoteIdentifier(qb.driver, fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)),
-			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
-	}
-	return strings.Join(conditions, " AND ")
-}
-
-func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, driver string) (string, error) {
-	query := goqu.Dialect(driver).From(goqu.T(table.Name)).Select("*").Where(goqu.L(condition))
+func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition string) (string, error) {
+	query := qb.getDialect().From(goqu.T(table.GetName())).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("unable to build where condition: %w", err)
 	}
 
 	var updatedSql string
-	switch driver {
+	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, &table.Schema, table.Name)
+		sql, err := qualifyMysqlWhereColumnNames(sql, table.GetSchema(), table.GetName())
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
-		tree, err := pgquery.Parse(sql)
-		if err != nil {
-			return "", fmt.Errorf("unable to parse where condition for postgres query: %w", err)
-		}
-		for _, stmt := range tree.GetStmts() {
-			selectStmt := stmt.GetStmt().GetSelectStmt()
-			if selectStmt.WhereClause != nil {
-				updatePostgresExpr(&table.Schema, table.Name, selectStmt.WhereClause)
-			}
-		}
-		sql, err := pgquery.Deparse(tree)
+		sql, err := qualifyPostgresWhereColumnNames(sql, table.GetSchema(), table.GetName())
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	default:
-		return "", fmt.Errorf("unsupported driver %q when qualifying where condition", driver)
+		return "", fmt.Errorf("unsupported driver %q when qualifying where condition", qb.driver)
 	}
 	index := strings.Index(strings.ToLower(updatedSql), "where")
 	if index == -1 {
@@ -266,6 +335,26 @@ func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition, drive
 	}
 	startIndex := index + len("where")
 	return strings.TrimSpace(updatedSql[startIndex:]), nil
+}
+
+func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
+	tree, err := pgquery.Parse(sql)
+	if err != nil {
+		return "", err
+	}
+
+	for _, stmt := range tree.GetStmts() {
+		selectStmt := stmt.GetStmt().GetSelectStmt()
+
+		if selectStmt.WhereClause != nil {
+			updatePostgresExpr(schema, table, selectStmt.WhereClause)
+		}
+	}
+	updatedSql, err := pgquery.Deparse(tree)
+	if err != nil {
+		return "", err
+	}
+	return updatedSql, nil
 }
 
 func updatePostgresExpr(schema *string, table string, node *pg_query.Node) {
@@ -341,35 +430,12 @@ func qualifyMysqlWhereColumnNames(sql string, schema *string, table string) (str
 	return sqlparser.String(stmt), nil
 }
 
-func (qb *QueryBuilder) getQualifiedTableName(table *TableInfo) string {
-	if table.Schema == "" || table.Schema == qb.defaultSchema {
-		return quoteIdentifier(qb.driver, table.Name)
+func (qb *QueryBuilder) getQualifiedTableName(table *TableInfo) exp.IdentifierExpression {
+	schema := table.Schema
+	if schema == "" {
+		schema = qb.defaultSchema
 	}
-	return fmt.Sprintf("%s.%s",
-		quoteIdentifier(qb.driver, table.Schema),
-		quoteIdentifier(qb.driver, table.Name))
-}
-
-func (qb *QueryBuilder) getQualifiedColumns(table *TableInfo, columnsToInclude []string) []string {
-	qualifiedColumns := make([]string, len(columnsToInclude))
-	for i, col := range columnsToInclude {
-		qualifiedColumns[i] = fmt.Sprintf("%s.%s",
-			qb.getQualifiedTableName(table),
-			quoteIdentifier(qb.driver, col))
-	}
-	return qualifiedColumns
-}
-
-func (qb *QueryBuilder) buildJoinCondition(table *TableInfo, fk *ForeignKey, joinCount int) string {
-	conditions := make([]string, len(fk.Columns))
-	for i := range fk.Columns {
-		conditions[i] = fmt.Sprintf("%s.%s = %s.%s",
-			qb.getQualifiedTableName(table),
-			quoteIdentifier(qb.driver, fk.Columns[i]),
-			quoteIdentifier(qb.driver, fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount)),
-			quoteIdentifier(qb.driver, fk.ReferenceColumns[i]))
-	}
-	return strings.Join(conditions, " AND ")
+	return goqu.T(table.Name).Schema(schema)
 }
 
 func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
@@ -379,65 +445,85 @@ func (qb *QueryBuilder) getTableKey(schema, tableName string) string {
 	return fmt.Sprintf("%s.%s", schema, tableName)
 }
 
-func (qb *QueryBuilder) buildRecursiveCTE(table *TableInfo, whereCondition *string) string {
-	columns := qb.getQualifiedColumns(table, table.Columns)
+const (
+	hierarchyTableName = "hierarchy"
+)
 
-	baseCase := fmt.Sprintf(`
-        SELECT %s
-        FROM %s`,
-		strings.Join(columns, ", "),
-		qb.getQualifiedTableName(table))
-	if whereCondition != nil && *whereCondition != "" {
-		baseCase = fmt.Sprintf("%s\nWHERE %s", baseCase, *whereCondition)
+func (qb *QueryBuilder) buildRecursiveCTE(
+	table *TableInfo,
+	whereConditions []WhereCondition,
+) (*goqu.SelectDataset, error) {
+	dialect := qb.getDialect()
+
+	baseTable := qb.getQualifiedTableName(table).As("b")
+	baseColumns := make([]exp.Expression, len(table.Columns))
+	tableKey := qb.getTableKey(table.Schema, table.Name)
+	for i, col := range table.Columns {
+		if qb.isJsonColumn(tableKey, col) {
+			// json the type has no comparison operator and thus can't union but jsonb does
+			baseColumns[i] = goqu.L("to_jsonb(?)", baseTable.Col(col)).As(col)
+		} else {
+			baseColumns[i] = baseTable.Col(col)
+		}
 	}
 
-	recursiveCase := fmt.Sprintf(`
-        SELECT %s
-        FROM %s AS b
-        INNER JOIN hierarchy h ON `,
-		strings.Join(qb.getAliasedColumns("b", table.Columns), ", "),
-		qb.getQualifiedTableName(table))
+	// Base case
+	baseQuery := dialect.
+		From(baseTable).
+		Select(toAnySlice(baseColumns)...)
+	qualifiedWheres := []goqu.Expression{}
+	for _, whereCond := range whereConditions {
+		qualifiedCondition, err := qb.qualifyWhereCondition(newTableInfoAlias("b"), whereCond.Condition)
+		if err != nil {
+			return nil, err
+		}
+		qualifiedWheres = append(qualifiedWheres, goqu.L(qualifiedCondition, whereCond.Args...))
+	}
+	if len(qualifiedWheres) > 0 {
+		baseQuery = baseQuery.Where(goqu.And(qualifiedWheres...))
+	}
 
-	joinConditions := []string{}
+	recursiveTable := qb.getQualifiedTableName(table).As("r")
+	hierarchicalTable := goqu.T(hierarchyTableName).As("h")
+
+	recursiveColumns := make([]exp.IdentifierExpression, len(table.Columns))
+	for i, col := range table.Columns {
+		recursiveColumns[i] = recursiveTable.Col(col)
+	}
+
+	joinConditions := []exp.Expression{}
 	for _, fk := range table.ForeignKeys {
 		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 			for i, col := range fk.Columns {
-				joinConditions = append(
-					joinConditions,
-					fmt.Sprintf("b.%s = h.%s",
-						quoteIdentifier(qb.driver, fk.ReferenceColumns[i]),
-						quoteIdentifier(qb.driver, col),
-					),
+				joinConditions = append(joinConditions,
+					recursiveTable.Col(fk.ReferenceColumns[i]).Eq(hierarchicalTable.Col(col)),
 				)
 			}
 		}
 	}
-	recursiveCase += strings.Join(joinConditions, " OR ")
 
-	return fmt.Sprintf(`
-    WITH RECURSIVE hierarchy AS (
-        %s
-        UNION ALL
-        %s
-    )
-    SELECT DISTINCT * FROM hierarchy`, baseCase, recursiveCase)
+	recursiveQuery := dialect.
+		From(recursiveTable).
+		Select(toAnySlice(recursiveColumns)...).
+		Join(
+			hierarchicalTable,
+			goqu.On(
+				goqu.Or(joinConditions...),
+			),
+		)
+
+	cte := dialect.
+		From(hierarchyTableName).
+		Select(goqu.Star()).
+		Distinct().
+		WithRecursive(hierarchyTableName, baseQuery.Union(recursiveQuery))
+	return cte, nil
 }
 
-func (qb *QueryBuilder) getAliasedColumns(alias string, columns []string) []string {
-	aliasedColumns := make([]string, len(columns))
-	for i, col := range columns {
-		aliasedColumns[i] = fmt.Sprintf("%s.%s", alias, quoteIdentifier(qb.driver, col))
+func toAnySlice[T any](input []T) []any {
+	anys := make([]any, len(input))
+	for i := range input {
+		anys[i] = input[i]
 	}
-	return aliasedColumns
-}
-
-func quoteIdentifier(driver, identifier string) string {
-	switch driver {
-	case sqlmanager_shared.PostgresDriver:
-		return fmt.Sprintf("%q", strings.ReplaceAll(identifier, "\"", "\"\""))
-	case sqlmanager_shared.MysqlDriver:
-		return fmt.Sprintf("`%s`", strings.ReplaceAll(identifier, "`", "``"))
-	default:
-		return identifier
-	}
+	return anys
 }

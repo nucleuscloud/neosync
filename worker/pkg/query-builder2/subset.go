@@ -73,7 +73,7 @@ func NewQueryBuilderFromSchemaDefinition(
 	driver string,
 	subsetByForeignKeyConstraints bool,
 ) *QueryBuilder {
-	qb := NewQueryBuilder(defaultSchema, driver, subsetByForeignKeyConstraints)
+	qb := NewQueryBuilder(defaultSchema, driver, subsetByForeignKeyConstraints, groupedColumnInfo)
 
 	for table, columns := range groupedColumnInfo {
 		schema, tableName := splitTable(table)
