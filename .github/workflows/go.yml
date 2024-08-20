@@ -57,7 +57,7 @@ jobs:
 
   test:
     name: test
-    runs-on: ubuntu-latest-4-cores
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
