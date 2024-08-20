@@ -1,7 +1,6 @@
 package tabledependency
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -58,9 +57,6 @@ func GetRunConfigs(
 	foreignKeyMap := map[string]map[string][]string{}               // map: table -> foreign key table -> foreign key column
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
-
-	jsonF, _ := json.MarshalIndent(subsets, "", " ")
-	fmt.Printf("subsets: %s \n", string(jsonF))
 
 	// dedupe table columns
 	for table, cols := range tableColumnsMap {
@@ -126,9 +122,6 @@ func GetRunConfigs(
 
 	// filter configs by subset
 	if len(subsets) > 0 {
-		fmt.Println()
-		fmt.Println("filtering configs by subset")
-		fmt.Println()
 		configs = filterConfigsWithWhereClause(configs)
 	}
 
@@ -147,8 +140,8 @@ func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
 	visited := make(map[string]bool)
 	hasWhereClause := make(map[string]bool)
 
-	var checkConfig func(*RunConfig) bool
-	checkConfig = func(config *RunConfig) bool {
+	var isSubset func(*RunConfig) bool
+	isSubset = func(config *RunConfig) bool {
 		if hasWhereClause[config.Table] {
 			return true
 		}
@@ -160,15 +153,15 @@ func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
 		visited[key] = true
 
 		if config.WhereClause != nil {
-			hasWhereClause[key] = true
+			hasWhereClause[config.Table] = true
 			return true
 		}
 
 		for _, dep := range config.DependsOn {
 			for _, c := range configs {
 				if c.Table == dep.Table {
-					if checkConfig(c) {
-						hasWhereClause[key] = true
+					if isSubset(c) {
+						hasWhereClause[config.Table] = true
 						return true
 					}
 					break
@@ -180,7 +173,7 @@ func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
 	}
 
 	for _, config := range configs {
-		if checkConfig(config) {
+		if isSubset(config) {
 			if config.RunType == RunTypeInsert {
 				result = append(result, config)
 			}

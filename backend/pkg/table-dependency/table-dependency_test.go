@@ -589,7 +589,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			},
 			expect: []*RunConfig{
 				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
 				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
@@ -626,7 +625,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			expect: []*RunConfig{
 				{Table: "public.x", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
 				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
 				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
@@ -1478,6 +1476,136 @@ func Test_isValidRunOrder(t *testing.T) {
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func TestFilterConfigsWithWhereClause(t *testing.T) {
+	t.Run("Basic filtering", func(t *testing.T) {
+		t.Parallel()
+		whereClause := "id > 10"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause},
+			{Table: "table2", RunType: RunTypeInsert},
+			{Table: "table2", RunType: RunTypeUpdate},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 3)
+		require.Contains(t, filtered, configs[0])
+		require.Contains(t, filtered, configs[2])
+		require.Contains(t, filtered, configs[3])
+	})
+
+	t.Run("Circular dependency", func(t *testing.T) {
+		t.Parallel()
+		whereClause := "id > 10"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert, WhereClause: &whereClause},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause, DependsOn: []*DependsOn{{Table: "table1"}}},
+			{Table: "table2", RunType: RunTypeInsert, DependsOn: []*DependsOn{{Table: "table1"}}},
+			{Table: "table2", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table1"}, {Table: "table2"}}},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 2)
+		require.Contains(t, filtered, configs[0])
+		require.Contains(t, filtered, configs[2])
+	})
+
+	t.Run("Self-reference", func(t *testing.T) {
+		t.Parallel()
+		whereClause := "id > 10"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert, WhereClause: &whereClause},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause, DependsOn: []*DependsOn{{Table: "table1"}}},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 1)
+		require.Contains(t, filtered, configs[0])
+	})
+
+	t.Run("Complex dependency chain", func(t *testing.T) {
+		t.Parallel()
+		whereClause := "id > 10"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert, WhereClause: &whereClause},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause},
+			{Table: "table2", RunType: RunTypeInsert},
+			{Table: "table2", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table1"}}},
+			{Table: "table3", RunType: RunTypeInsert},
+			{Table: "table3", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table2"}}},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 3)
+		require.Contains(t, filtered, configs[0])
+		require.Contains(t, filtered, configs[2])
+		require.Contains(t, filtered, configs[4])
+	})
+
+	t.Run("Mixed where clauses", func(t *testing.T) {
+		t.Parallel()
+		whereClause1 := "id > 10"
+		whereClause2 := "name LIKE 'test%'"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert, WhereClause: &whereClause1},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause1},
+			{Table: "table2", RunType: RunTypeInsert, WhereClause: &whereClause2},
+			{Table: "table2", RunType: RunTypeUpdate, WhereClause: &whereClause2},
+			{Table: "table3", RunType: RunTypeInsert},
+			{Table: "table3", RunType: RunTypeUpdate},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 4)
+		require.Contains(t, filtered, configs[0])
+		require.Contains(t, filtered, configs[2])
+		require.Contains(t, filtered, configs[4])
+		require.Contains(t, filtered, configs[5])
+	})
+
+	t.Run("All inserts, no updates", func(t *testing.T) {
+		t.Parallel()
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert},
+			{Table: "table2", RunType: RunTypeInsert},
+			{Table: "table3", RunType: RunTypeInsert},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 3)
+		require.Equal(t, configs, filtered)
+	})
+
+	t.Run("Complex scenario with multiple dependencies", func(t *testing.T) {
+		t.Parallel()
+		whereClause := "id > 10"
+		configs := []*RunConfig{
+			{Table: "table1", RunType: RunTypeInsert, WhereClause: &whereClause},
+			{Table: "table1", RunType: RunTypeUpdate, WhereClause: &whereClause},
+			{Table: "table2", RunType: RunTypeInsert, DependsOn: []*DependsOn{{Table: "table1"}, {Table: "table3"}}},
+			{Table: "table2", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table1"}, {Table: "table3"}, {Table: "table2"}}},
+			{Table: "table3", RunType: RunTypeInsert, DependsOn: []*DependsOn{{Table: "table1"}}},
+			{Table: "table3", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table1"}, {Table: "table3"}}},
+			{Table: "table4", RunType: RunTypeInsert, DependsOn: []*DependsOn{{Table: "table2"}, {Table: "table3"}}},
+			{Table: "table4", RunType: RunTypeUpdate, DependsOn: []*DependsOn{{Table: "table2"}, {Table: "table3"}, {Table: "table4"}}},
+		}
+
+		filtered := filterConfigsWithWhereClause(configs)
+
+		require.Len(t, filtered, 4)
+		require.Contains(t, filtered, configs[0])
+		require.Contains(t, filtered, configs[2])
+		require.Contains(t, filtered, configs[4])
+		require.Contains(t, filtered, configs[6])
+	})
 }
 
 func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,6 +31,8 @@ type IntegrationTestSuite struct {
 	pgcontainer *testpg.PostgresContainer
 
 	schema string
+
+	wg sync.WaitGroup
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
@@ -71,24 +74,27 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.pgpool = pool
 	s.querier = pg_queries.New()
+	_, err = s.pgpool.Exec(s.ctx, s.setupSql)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.pgpool.Exec(s.ctx, s.setupSql)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
+}
+
+func (s *IntegrationTestSuite) TearDownSuite() {
+	s.T().Log("waiting for all tests to complete")
+	s.wg.Wait()
+	s.T().Log("all tests completed, tearing down suite")
 	_, err := s.pgpool.Exec(s.ctx, s.teardownSql)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func (s *IntegrationTestSuite) TearDownSuite() {
 	if s.pgpool != nil {
 		s.pgpool.Close()
 	}
