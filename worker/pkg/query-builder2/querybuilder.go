@@ -135,7 +135,18 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if !ok {
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
-	return qb.buildQueryRecursive(schema, tableName, nil, table.Columns, map[string]int{}, map[string]bool{})
+	query, err := qb.buildQueryRecursive(schema, tableName, nil, table.Columns, map[string]int{}, map[string]bool{})
+	if err != nil {
+		return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
+	}
+	if query == nil {
+		return "", nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+	}
+	sql, args, err := query.ToSQL()
+	if err != nil {
+		return "", nil, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
+	}
+	return sql, args, nil
 }
 
 func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
@@ -151,17 +162,17 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	schema, tableName string, parentTable *TableInfo,
 	columnsToInclude []string, joinCount map[string]int,
 	visitedTables map[string]bool,
-) (sqlstatement string, args []any, err error) {
+) (*goqu.SelectDataset, error) {
 	key := qb.getTableKey(schema, tableName)
 	if visitedTables[key] {
-		return "", nil, nil // Avoid circular dependencies
+		return nil, nil // Avoid circular dependencies
 	}
 	visitedTables[key] = true
 	defer delete(visitedTables, key) // Remove from visited after processing
 
 	table, ok := qb.tables[key]
 	if !ok {
-		return "", nil, fmt.Errorf("table not found: %s", key)
+		return nil, fmt.Errorf("table not found: %s", key)
 	}
 
 	if len(columnsToInclude) == 0 {
@@ -176,7 +187,6 @@ func (qb *QueryBuilder) buildQueryRecursive(
 
 	dialect := qb.getDialect()
 	var query *goqu.SelectDataset
-	var allArgs []any
 
 	isSelfReferencing := qb.isSelfReferencing(table)
 
@@ -184,7 +194,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		// Handle self-referencing table with possible additional foreign keys
 		cteQuery, err := qb.buildRecursiveCTE(table, qb.whereConditions[key])
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 		query = dialect.From(cteQuery.As("recursive_cte"))
 
@@ -193,11 +203,11 @@ func (qb *QueryBuilder) buildQueryRecursive(
 			if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 				continue // Skip the self-referencing foreign key
 			}
-			subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
+			subQuery, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
-			if subQuery != "" {
+			if subQuery != nil {
 				joinCount[fk.ReferenceTable]++
 				subqueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
 				conditions := make([]goqu.Expression, len(fk.Columns))
@@ -207,10 +217,9 @@ func (qb *QueryBuilder) buildQueryRecursive(
 					)
 				}
 				query = query.Join(
-					goqu.L(fmt.Sprintf("(%s)", subQuery)).As(subqueryAlias),
+					goqu.L("(?)", subQuery).As(subqueryAlias),
 					goqu.On(goqu.And(conditions...)),
 				)
-				allArgs = append(allArgs, subArgs...)
 			}
 		}
 	} else {
@@ -226,7 +235,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 			for _, cond := range conditions {
 				qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
 				if err != nil {
-					return "", nil, err
+					return nil, err
 				}
 				query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 			}
@@ -239,12 +248,12 @@ func (qb *QueryBuilder) buildQueryRecursive(
 				if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 					continue // Skip self-referencing foreign keys here
 				}
-				subQuery, subArgs, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
+				subQuery, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, table, fk.ReferenceColumns, joinCount, visitedTables)
 				if err != nil {
-					return "", nil, err
+					return nil, err
 				}
 
-				if subQuery != "" {
+				if subQuery != nil {
 					joinCount[fk.ReferenceTable]++
 					subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
 					conditions := make([]goqu.Expression, len(fk.Columns))
@@ -254,21 +263,15 @@ func (qb *QueryBuilder) buildQueryRecursive(
 						)
 					}
 					query = query.Join(
-						goqu.L(fmt.Sprintf("(%s)", subQuery)).As(subQueryAlias),
+						goqu.L("(?)", subQuery).As(subQueryAlias),
 						goqu.On(goqu.And(conditions...)),
 					)
-					allArgs = append(allArgs, subArgs...)
 				}
 			}
 		}
 	}
 
-	sql, args, err := query.ToSQL()
-	if err != nil {
-		return "", nil, err
-	}
-
-	return sql, append(allArgs, args...), nil
+	return query, nil
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string) (string, error) {
