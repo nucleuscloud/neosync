@@ -37,15 +37,24 @@ type TableInfo struct {
 	ForeignKeys []*ForeignKey
 }
 
+type AliasTableInfo struct {
+	Name string
+}
+
 // Returns table info with just the table name
-func newTableInfoAlias(alias string) *TableInfo {
-	return &TableInfo{Name: alias}
+func newTableInfoAlias(alias string) *AliasTableInfo {
+	return &AliasTableInfo{Name: alias}
+}
+func (t *AliasTableInfo) GetSchema() *string {
+	return nil
+}
+func (t *AliasTableInfo) GetName() string {
+	return t.Name
 }
 
 type TableIdentity interface {
 	GetSchema() *string
 	GetName() string
-	GetIdentifierExpression() exp.IdentifierExpression
 }
 
 func (t *TableInfo) GetSchema() *string {
