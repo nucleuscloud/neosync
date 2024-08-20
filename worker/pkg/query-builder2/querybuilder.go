@@ -37,7 +37,28 @@ type TableInfo struct {
 	ForeignKeys []*ForeignKey
 }
 
-func (t *TableInfo) ToGoquIdentifier() exp.IdentifierExpression {
+// Returns table info with just the table name
+func newTableInfoAlias(alias string) *TableInfo {
+	return &TableInfo{Name: alias}
+}
+
+type TableIdentity interface {
+	GetSchema() *string
+	GetName() string
+	GetIdentifierExpression() exp.IdentifierExpression
+}
+
+func (t *TableInfo) GetSchema() *string {
+	if t.Schema == "" {
+		return nil
+	}
+	return &t.Schema
+}
+func (t *TableInfo) GetName() string {
+	return t.Name
+}
+
+func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
 	table := goqu.T(t.Name)
 	if t.Schema == "" {
 		return table
@@ -223,7 +244,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 			}
 		}
 	} else {
-		t := table.ToGoquIdentifier()
+		t := table.GetIdentifierExpression()
 		cols := make([]exp.Expression, len(columnsToInclude))
 		for i := range columnsToInclude {
 			cols[i] = t.Col(columnsToInclude[i])
@@ -274,8 +295,8 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return query, nil
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string) (string, error) {
-	query := qb.getDialect().From(goqu.T(table.Name)).Select(goqu.Star()).Where(goqu.L(condition))
+func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition string) (string, error) {
+	query := qb.getDialect().From(goqu.T(table.GetName())).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("unable to build where condition: %w", err)
@@ -284,23 +305,13 @@ func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string
 	var updatedSql string
 	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, &table.Schema, table.Name)
+		sql, err := qualifyMysqlWhereColumnNames(sql, table.GetSchema(), table.GetName())
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
-		tree, err := pgquery.Parse(sql)
-		if err != nil {
-			return "", fmt.Errorf("unable to parse where condition for postgres query: %w", err)
-		}
-		for _, stmt := range tree.GetStmts() {
-			selectStmt := stmt.GetStmt().GetSelectStmt()
-			if selectStmt.WhereClause != nil {
-				updatePostgresExpr(&table.Schema, table.Name, selectStmt.WhereClause)
-			}
-		}
-		sql, err := pgquery.Deparse(tree)
+		sql, err := qualifyPostgresWhereColumnNames(sql, table.GetSchema(), table.GetName())
 		if err != nil {
 			return "", err
 		}
@@ -315,6 +326,26 @@ func (qb *QueryBuilder) qualifyWhereCondition(table *TableInfo, condition string
 	}
 	startIndex := index + len("where")
 	return strings.TrimSpace(updatedSql[startIndex:]), nil
+}
+
+func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
+	tree, err := pgquery.Parse(sql)
+	if err != nil {
+		return "", err
+	}
+
+	for _, stmt := range tree.GetStmts() {
+		selectStmt := stmt.GetStmt().GetSelectStmt()
+
+		if selectStmt.WhereClause != nil {
+			updatePostgresExpr(schema, table, selectStmt.WhereClause)
+		}
+	}
+	updatedSql, err := pgquery.Deparse(tree)
+	if err != nil {
+		return "", err
+	}
+	return updatedSql, nil
 }
 
 func updatePostgresExpr(schema *string, table string, node *pg_query.Node) {
@@ -415,8 +446,7 @@ func (qb *QueryBuilder) buildRecursiveCTE(
 ) (*goqu.SelectDataset, error) {
 	dialect := qb.getDialect()
 
-	// not using an alias here because qualifyWhereCondition does not currently work with aliasing
-	baseTable := qb.getQualifiedTableName(table)
+	baseTable := qb.getQualifiedTableName(table).As("b")
 	baseColumns := make([]exp.Expression, len(table.Columns))
 	tableKey := qb.getTableKey(table.Schema, table.Name)
 	for i, col := range table.Columns {
@@ -434,7 +464,7 @@ func (qb *QueryBuilder) buildRecursiveCTE(
 		Select(toAnySlice(baseColumns)...)
 	qualifiedWheres := []goqu.Expression{}
 	for _, whereCond := range whereConditions {
-		qualifiedCondition, err := qb.qualifyWhereCondition(table, whereCond.Condition)
+		qualifiedCondition, err := qb.qualifyWhereCondition(newTableInfoAlias("b"), whereCond.Condition)
 		if err != nil {
 			return nil, err
 		}
