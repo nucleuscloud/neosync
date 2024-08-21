@@ -813,7 +813,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"}, InsertColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}, {Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
 		{Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "parent_comment_id"}, InsertColumns: []string{"parent_comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"}, InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id in (1,2,3,4,5)"), SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"}, InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id in (1,2,5,6,7,8)"), SelectQuery: nil, SplitColumnPaths: false},
 		{Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "manager_id", "mentor_id"}, InsertColumns: []string{"manager_id", "mentor_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false},
 		{Table: "genbenthosconfigs_querybuilder.initiatives", SelectColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, InsertColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"initiative_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
 		{Table: "genbenthosconfigs_querybuilder.skills", SelectColumns: []string{"skill_id", "name", "category"}, InsertColumns: []string{"skill_id", "name", "category"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
@@ -879,38 +879,38 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 
 	expectedValues := map[string]map[string][]int32{
 		"genbenthosconfigs_querybuilder.users": {
-			"user_id": {1, 2, 3, 4, 5},
+			"user_id": {1, 2, 5, 6, 7, 8},
 		},
 		"genbenthosconfigs_querybuilder.user_skills": {
-			"user_skill_id": {1, 2, 3, 4, 5},
-			"skill_id":      {1, 2, 3, 4, 5},
-			"user_id":       {1, 2, 3, 4, 5},
+			"user_skill_id": {1, 2, 5, 6, 7, 8},
+			"skill_id":      {1, 2, 5, 6, 7, 8},
+			"user_id":       {1, 2, 5, 6, 7, 8},
 		},
 		"genbenthosconfigs_querybuilder.tasks": {
-			"task_id": {1, 2, 3},
+			"task_id": {5, 6},
 		},
 		"genbenthosconfigs_querybuilder.skills": {
 			"skill_id": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
 		},
 		"genbenthosconfigs_querybuilder.initiatives": {
-			"initiative_id": {1, 2, 3, 4},
+			"initiative_id": {1, 5, 6, 7},
 		},
 		"genbenthosconfigs_querybuilder.comments": {
-			"comment_id": {1, 2, 3, 4, 5, 6},
+			"comment_id": {9, 10, 11, 12},
 		},
 		"genbenthosconfigs_querybuilder.attachments": {
-			"attachment_id": {1, 2, 3},
+			"attachment_id": {5, 6},
 		},
 	}
 
 	expectedCount := map[string]int{
-		"genbenthosconfigs_querybuilder.users":       5,
-		"genbenthosconfigs_querybuilder.user_skills": 5,
-		"genbenthosconfigs_querybuilder.tasks":       3,
+		"genbenthosconfigs_querybuilder.users":       6,
+		"genbenthosconfigs_querybuilder.user_skills": 6,
+		"genbenthosconfigs_querybuilder.tasks":       2,
 		"genbenthosconfigs_querybuilder.skills":      10,
 		"genbenthosconfigs_querybuilder.initiatives": 4,
-		"genbenthosconfigs_querybuilder.comments":    6,
-		"genbenthosconfigs_querybuilder.attachments": 3,
+		"genbenthosconfigs_querybuilder.comments":    4,
+		"genbenthosconfigs_querybuilder.attachments": 2,
 	}
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
