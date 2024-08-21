@@ -84,9 +84,8 @@ type WhereCondition struct {
 }
 
 type QueryBuilder struct {
-	tables            map[string]*TableInfo
-	whereConditions   map[string][]WhereCondition
-	qualifiedWhereMap map[string]string
+	tables          map[string]*TableInfo
+	whereConditions map[string][]WhereCondition
 	// schema.table -> column -> { column info }
 	columnInfo                    map[string]map[string]*sqlmanager_shared.ColumnInfo
 	defaultSchema                 string
@@ -228,7 +227,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return query, nil
 }
 
-func (qb *QueryBuilder) QualifyWhereCondition(schema *string, table, condition string) (string, error) {
+func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
 	query := qb.getDialect().From(goqu.T(table)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
