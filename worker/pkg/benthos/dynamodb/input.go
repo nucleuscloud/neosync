@@ -153,9 +153,9 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 			continue
 		}
 
-		resMap, keyTypeMap := neosync_dynamodb.AttributeValueMapToStandardJSON(item)
+		resMap, keyTypeMap := neosync_dynamodb.UnmarshalAttributeValueMap(item)
 		msg := service.NewMessage(nil)
-		msg.MetaSetMut(MetaTypeMapStr, keyTypeMap)
+		msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}

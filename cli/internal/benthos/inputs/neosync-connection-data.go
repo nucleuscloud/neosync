@@ -2,9 +2,7 @@ package input
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"sync"
 
 	"connectrpc.com/connect"
@@ -212,7 +210,7 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 				return nil, nil, err
 			}
 
-			resMap, keyTypeMap := convertDynamoDBItemToMap(dynamoDBItem)
+			resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
 			msg := service.NewMessage(nil)
 			msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
 			msg.SetStructuredMut(resMap)
@@ -252,94 +250,4 @@ func (g *neosyncInput) Close(ctx context.Context) error {
 
 	g.neosyncConnectApi = nil // idk if this really matters
 	return nil
-}
-
-func convertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_dynamodb.KeyType) {
-	result := make(map[string]any)
-	ktm := make(map[string]neosync_dynamodb.KeyType)
-	for key, value := range item {
-		result[key] = convertDynamoDBValue(key, value, ktm)
-	}
-
-	return result, ktm
-}
-
-func convertDynamoDBValue(key string, value any, keyTypeMap map[string]neosync_dynamodb.KeyType) any {
-	if m, ok := value.(map[string]any); ok {
-		for dynamoType, dynamoValue := range m {
-			switch dynamoType {
-			case "S":
-				return dynamoValue.(string)
-			case "B":
-				s := dynamoValue.(string)
-				byteSlice, err := base64.StdEncoding.DecodeString(s)
-				if err != nil {
-					return dynamoValue
-				}
-				return byteSlice
-			case "N":
-				n, err := neosync_dynamodb.ConvertStringToNumber(dynamoValue.(string))
-				if err != nil {
-					return dynamoValue
-				}
-				return n
-			case "BOOL":
-				return dynamoValue.(bool)
-			case "NULL":
-				return nil
-			case "L":
-				list := dynamoValue.([]any)
-				result := make([]any, len(list))
-				for i, item := range list {
-					result[i] = convertDynamoDBValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
-				}
-				return result
-			case "M":
-				mAny := map[string]any{}
-				for k, v := range dynamoValue.(map[string]any) {
-					path := k
-					if key != "" {
-						path = fmt.Sprintf("%s.%s", key, k)
-					}
-					val := convertDynamoDBValue(path, v, keyTypeMap)
-					mAny[k] = val
-				}
-				return mAny
-			case "BS":
-				bytes := dynamoValue.([]any)
-				result := make([][]byte, len(bytes))
-				for i, b := range bytes {
-					s := b.(string)
-					byteSlice, err := base64.StdEncoding.DecodeString(s)
-					if err != nil {
-						return dynamoValue
-					}
-
-					result[i] = byteSlice
-				}
-				return result
-			case "SS":
-				keyTypeMap[key] = neosync_dynamodb.StringSet
-				ss := dynamoValue.([]any)
-				result := make([]string, len(ss))
-				for i, s := range ss {
-					result[i] = s.(string)
-				}
-				return result
-			case "NS":
-				keyTypeMap[key] = neosync_dynamodb.NumberSet
-				numbers := dynamoValue.([]any)
-				result := make([]any, len(numbers))
-				for i, num := range numbers {
-					n, err := neosync_dynamodb.ConvertStringToNumber(num.(string))
-					if err != nil {
-						result[i] = num
-					}
-					result[i] = n
-				}
-				return result
-			}
-		}
-	}
-	return value
 }

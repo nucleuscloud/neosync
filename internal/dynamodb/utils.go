@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Jeffail/gabs/v2"
+	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -24,7 +24,7 @@ const (
 	NumberSet
 )
 
-func ConvertStringToNumber(s string) (any, error) {
+func ParseStringAsNumber(s string) (any, error) {
 	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
 		return i, nil
 	}
@@ -36,17 +36,17 @@ func ConvertStringToNumber(s string) (any, error) {
 	return nil, errors.New("input string is neither a valid int nor a float")
 }
 
-func ConvertDynamoDBItemToMap(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+func UnmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
 	result := make(map[string]any)
 	ktm := make(map[string]KeyType)
 	for key, value := range item {
-		result[key] = ConvertDynamoDBValue(key, value, ktm)
+		result[key] = ParseDynamoDBAttributeValue(key, value, ktm)
 	}
 
 	return result, ktm
 }
 
-func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) any {
+func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]KeyType) any {
 	if m, ok := value.(map[string]any); ok {
 		for dynamoType, dynamoValue := range m {
 			switch dynamoType {
@@ -60,7 +60,7 @@ func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) 
 				}
 				return byteSlice
 			case "N":
-				n, err := ConvertStringToNumber(dynamoValue.(string))
+				n, err := ParseStringAsNumber(dynamoValue.(string))
 				if err != nil {
 					return dynamoValue
 				}
@@ -73,7 +73,7 @@ func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) 
 				list := dynamoValue.([]any)
 				result := make([]any, len(list))
 				for i, item := range list {
-					result[i] = ConvertDynamoDBValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+					result[i] = ParseDynamoDBAttributeValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
 				}
 				return result
 			case "M":
@@ -83,7 +83,7 @@ func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) 
 					if key != "" {
 						path = fmt.Sprintf("%s.%s", key, k)
 					}
-					val := ConvertDynamoDBValue(path, v, keyTypeMap)
+					val := ParseDynamoDBAttributeValue(path, v, keyTypeMap)
 					mAny[k] = val
 				}
 				return mAny
@@ -113,7 +113,7 @@ func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) 
 				numbers := dynamoValue.([]any)
 				result := make([]any, len(numbers))
 				for i, num := range numbers {
-					n, err := ConvertStringToNumber(num.(string))
+					n, err := ParseStringAsNumber(num.(string))
 					if err != nil {
 						result[i] = num
 					}
@@ -126,18 +126,18 @@ func ConvertDynamoDBValue(key string, value any, keyTypeMap map[string]KeyType) 
 	return value
 }
 
-func AttributeValueMapToStandardJSON(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+func UnmarshalAttributeValueMap(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
 	standardJSON := make(map[string]any)
 	ktm := make(map[string]KeyType)
 	for k, v := range item {
-		val := AttributeValueToStandardValue(k, v, ktm)
+		val := ParseAttributeValue(k, v, ktm)
 		standardJSON[k] = val
 	}
 	return standardJSON, ktm
 }
 
-// attributeValueToStandardValue converts a DynamoDB AttributeValue to a standard value
-func AttributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMap map[string]KeyType) any {
+// ParseAttributeValue converts a DynamoDB AttributeValue to a standard value
+func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[string]KeyType) any {
 	switch t := v.(type) {
 	case *types.AttributeValueMemberB:
 		return t.Value
@@ -148,7 +148,7 @@ func AttributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 	case *types.AttributeValueMemberL:
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			val := AttributeValueToStandardValue(fmt.Sprintf("%s[%d]", key, i), v, keyTypeMap)
+			val := ParseAttributeValue(fmt.Sprintf("%s[%d]", key, i), v, keyTypeMap)
 			lAny[i] = val
 		}
 		return lAny
@@ -159,12 +159,12 @@ func AttributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, k)
 			}
-			val := AttributeValueToStandardValue(path, v, keyTypeMap)
+			val := ParseAttributeValue(path, v, keyTypeMap)
 			mAny[k] = val
 		}
 		return mAny
 	case *types.AttributeValueMemberN:
-		n, err := ConvertStringToNumber(t.Value)
+		n, err := ParseStringAsNumber(t.Value)
 		if err != nil {
 			return t.Value
 		}
@@ -173,7 +173,7 @@ func AttributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 		keyTypeMap[key] = NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			n, err := ConvertStringToNumber(v)
+			n, err := ParseStringAsNumber(v)
 			if err != nil {
 				return v
 			}
@@ -195,19 +195,19 @@ func AttributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMa
 	return nil
 }
 
-func AnyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
+func MarshalToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case StringSet:
-			s, ok := ConvertToStringSlice(root)
-			if ok {
+			s, err := ConvertToStringSlice(root)
+			if err == nil {
 				return &types.AttributeValueMemberSS{
 					Value: s,
 				}
 			}
 		case NumberSet:
-			s, ok := ConvertToStringSlice(root)
-			if ok {
+			s, err := ConvertToStringSlice(root)
+			if err == nil {
 				return &types.AttributeValueMemberNS{
 					Value: s,
 				}
@@ -222,7 +222,7 @@ func AnyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, k)
 			}
-			m[k] = AnyToAttributeValue(path, v2, keyTypeMap)
+			m[k] = MarshalToAttributeValue(path, v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberM{
 			Value: m,
@@ -238,7 +238,7 @@ func AnyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	case []any:
 		l := make([]types.AttributeValue, len(v))
 		for i, v2 := range v {
-			l[i] = AnyToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
+			l[i] = MarshalToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
 		}
 		return &types.AttributeValueMemberL{
 			Value: l,
@@ -291,33 +291,43 @@ func MarshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[s
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
-	return AnyToAttributeValue(key, gObj.Data(), keyTypeMap)
+	return MarshalToAttributeValue(key, gObj.Data(), keyTypeMap)
 }
 
-func ConvertToStringSlice(input any) ([]string, bool) {
-	val := reflect.ValueOf(input)
-	if val.Kind() != reflect.Slice {
-		return nil, false
+func ConvertToStringSlice(slice any) ([]string, error) {
+	v := reflect.ValueOf(slice)
+	if v.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("input is not a slice")
 	}
-	result := make([]string, 0, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		elem := val.Index(i).Interface()
-		switch value := elem.(type) {
-		case string:
-			result = append(result, value)
-		case fmt.Stringer:
-			result = append(result, value.String())
-		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			result = append(result, fmt.Sprintf("%d", value))
-		case float64:
-			result = append(result, fmt.Sprintf("%f", value))
-		case bool:
-			result = append(result, strconv.FormatBool(value))
-		case nil:
-			result = append(result, "")
-		default:
-			result = append(result, fmt.Sprintf("%v", value))
-		}
+
+	result := make([]string, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i).Interface()
+		result[i] = anyToString(elem)
 	}
-	return result, true
+
+	return result, nil
+}
+
+func anyToString(value any) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case fmt.Stringer:
+		return v.String()
+	case int, int8, int16, int32, int64:
+		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
+	case float32, float64:
+		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
+	case bool:
+		return strconv.FormatBool(v)
+	case []byte:
+		return string(v)
+	case nil:
+		return "null"
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

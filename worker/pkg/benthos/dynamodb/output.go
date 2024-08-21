@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -354,7 +353,7 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 
 func getKeyTypMap(p *service.Message) (map[string]neosync_dynamodb.KeyType, error) {
 	keyTypeMap := map[string]neosync_dynamodb.KeyType{}
-	meta, ok := p.MetaGetMut(MetaTypeMapStr)
+	meta, ok := p.MetaGetMut(neosync_dynamodb.MetaTypeMapStr)
 	if ok {
 		kt, err := convertToMapStringKeyType(meta)
 		if err != nil {
@@ -438,40 +437,4 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 		return 0, nil
 	}
 	return pConf.FieldDuration(path...)
-}
-
-func toStringSlice(slice any) ([]string, error) {
-	v := reflect.ValueOf(slice)
-	if v.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("input is not a slice")
-	}
-
-	result := make([]string, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		elem := v.Index(i).Interface()
-		result[i] = anyToString(elem)
-	}
-
-	return result, nil
-}
-
-func anyToString(value any) string {
-	switch v := value.(type) {
-	case string:
-		return v
-	case int, int8, int16, int32, int64:
-		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
-	case uint, uint8, uint16, uint32, uint64:
-		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
-	case float32, float64:
-		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
-	case bool:
-		return strconv.FormatBool(v)
-	case []byte:
-		return string(v)
-	case nil:
-		return "null"
-	default:
-		return fmt.Sprintf("%v", v)
-	}
 }
