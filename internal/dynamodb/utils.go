@@ -199,17 +199,17 @@ func AnyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) ty
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case StringSet:
-			s, ok := getGenericSlice[string](root)
+			s, ok := ConvertToStringSlice(root)
 			if ok {
 				return &types.AttributeValueMemberSS{
 					Value: s,
 				}
 			}
 		case NumberSet:
-			stringSlice, err := toStringSlice(root)
-			if err == nil {
+			s, ok := ConvertToStringSlice(root)
+			if ok {
 				return &types.AttributeValueMemberNS{
-					Value: stringSlice,
+					Value: s,
 				}
 			}
 		}
@@ -286,29 +286,38 @@ func formatFloat(f float64) string {
 	return s
 }
 
-func getGenericSlice[T any](v any) ([]T, bool) {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Slice {
-		return nil, false
-	}
-
-	genericSlice := make([]T, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		elem := val.Index(i).Interface()
-		if tElem, ok := elem.(T); ok {
-			genericSlice[i] = tElem
-		} else {
-			return nil, false
-		}
-	}
-
-	return genericSlice, true
-}
-
-func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
+func MarshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
 	gObj := gabs.Wrap(root)
 	if path != "" {
 		gObj = gObj.Path(path)
 	}
 	return AnyToAttributeValue(key, gObj.Data(), keyTypeMap)
+}
+
+func ConvertToStringSlice(input any) ([]string, bool) {
+	val := reflect.ValueOf(input)
+	if val.Kind() != reflect.Slice {
+		return nil, false
+	}
+	result := make([]string, 0, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		elem := val.Index(i).Interface()
+		switch value := elem.(type) {
+		case string:
+			result = append(result, value)
+		case fmt.Stringer:
+			result = append(result, value.String())
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+			result = append(result, fmt.Sprintf("%d", value))
+		case float64:
+			result = append(result, fmt.Sprintf("%f", value))
+		case bool:
+			result = append(result, strconv.FormatBool(value))
+		case nil:
+			result = append(result, "")
+		default:
+			result = append(result, fmt.Sprintf("%v", value))
+		}
+	}
+	return result, true
 }

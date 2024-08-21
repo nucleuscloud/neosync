@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cenkalti/backoff/v4"
 
+	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -245,7 +246,7 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				return err
 			}
 			for k, v := range d.conf.JSONMapColumns {
-				attr := jsonToMap(k, v, jRoot, keyTypeMap)
+				attr := neosync_dynamodb.MarshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
 				if k == "" {
 					if mv, ok := attr.(*types.AttributeValueMemberM); ok {
 						for ak, av := range mv.Value {
@@ -351,8 +352,8 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 	return nil
 }
 
-func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
-	keyTypeMap := map[string]KeyType{}
+func getKeyTypMap(p *service.Message) (map[string]neosync_dynamodb.KeyType, error) {
+	keyTypeMap := map[string]neosync_dynamodb.KeyType{}
 	meta, ok := p.MetaGetMut(MetaTypeMapStr)
 	if ok {
 		kt, err := convertToMapStringKeyType(meta)
@@ -364,8 +365,8 @@ func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
 	return keyTypeMap, nil
 }
 
-func convertToMapStringKeyType(i any) (map[string]KeyType, error) {
-	if m, ok := i.(map[string]KeyType); ok {
+func convertToMapStringKeyType(i any) (map[string]neosync_dynamodb.KeyType, error) {
+	if m, ok := i.(map[string]neosync_dynamodb.KeyType); ok {
 		return m, nil
 	}
 
