@@ -48,21 +48,6 @@ func (t *AliasTableInfo) GetName() string {
 	return t.Name
 }
 
-type TableIdentity interface {
-	GetSchema() *string
-	GetName() string
-}
-
-func (t *TableInfo) GetSchema() *string {
-	if t.Schema == "" {
-		return nil
-	}
-	return &t.Schema
-}
-func (t *TableInfo) GetName() string {
-	return t.Name
-}
-
 func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
 	table := goqu.T(t.Name)
 	if t.Schema == "" {
@@ -118,6 +103,18 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	}
 }
 
+func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
+	columns := make([]string, 0)
+	// Add primary keys
+	columns = append(columns, table.PrimaryKeys...)
+	// Add foreign key columns
+	for _, fk := range table.ForeignKeys {
+		columns = append(columns, fk.Columns...)
+	}
+	// Remove duplicates
+	return uniqueStrings(columns)
+}
+
 func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
@@ -169,6 +166,9 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		return nil, fmt.Errorf("table not found: %s", key)
 	}
 
+	if len(columnsToInclude) == 0 {
+		columnsToInclude = qb.getRequiredColumns(table)
+	}
 	if len(columnsToInclude) == 0 {
 		columnsToInclude = table.Columns
 	}
