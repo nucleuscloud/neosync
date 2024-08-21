@@ -120,12 +120,69 @@ func GetRunConfigs(
 	insertConfigs := processTables(processed, filteredDepsMap, foreignKeyMap, tableColumnsMap, primaryKeyMap, subsets)
 	configs = append(configs, insertConfigs...)
 
+	// filter configs by subset
+	if len(subsets) > 0 {
+		configs = filterConfigsWithWhereClause(configs)
+	}
+
 	// check run path
 	if !isValidRunOrder(configs) {
 		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
 	}
 
 	return configs, nil
+}
+
+// removes update configs that have where clause
+// breaks circular dependencies and self references when subset is applied
+func filterConfigsWithWhereClause(configs []*RunConfig) []*RunConfig {
+	result := make([]*RunConfig, 0)
+	visited := make(map[string]bool)
+	hasWhereClause := make(map[string]bool)
+
+	var isSubset func(*RunConfig) bool
+	isSubset = func(config *RunConfig) bool {
+		if hasWhereClause[config.Table] {
+			return true
+		}
+
+		key := fmt.Sprintf("%s.%s", config.Table, config.RunType)
+		if visited[key] {
+			return false
+		}
+		visited[key] = true
+
+		if config.WhereClause != nil {
+			hasWhereClause[config.Table] = true
+			return true
+		}
+
+		for _, dep := range config.DependsOn {
+			for _, c := range configs {
+				if c.Table == dep.Table {
+					if isSubset(c) {
+						hasWhereClause[config.Table] = true
+						return true
+					}
+					break
+				}
+			}
+		}
+
+		return false
+	}
+
+	for _, config := range configs {
+		if isSubset(config) {
+			if config.RunType == RunTypeInsert {
+				result = append(result, config)
+			}
+		} else {
+			result = append(result, config)
+		}
+	}
+
+	return result
 }
 
 func processCycles(

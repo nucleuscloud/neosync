@@ -43,7 +43,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				"vfk_hr.locations":   &workflow_testdata.ExpectedOutput{RowCount: 7},
 				"vfk_hr.departments": &workflow_testdata.ExpectedOutput{RowCount: 11},
 				"vfk_hr.dependents":  &workflow_testdata.ExpectedOutput{RowCount: 2},
-				"vfk_hr.employees":   &workflow_testdata.ExpectedOutput{RowCount: 5},
+				"vfk_hr.employees":   &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"vfk_hr.jobs":        &workflow_testdata.ExpectedOutput{RowCount: 19},
 			},
 		},

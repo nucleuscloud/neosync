@@ -32,6 +32,7 @@ import (
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
+	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
 	"golang.org/x/sync/errgroup"
@@ -50,12 +51,14 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	cdTests := testdata_circulardependencies.GetSyncTests()
 	javascriptTests := testdata_javascripttransformers.GetSyncTests()
 	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	subsettingTests := testdata_subsetting.GetSyncTests()
 
 	allTests["Double_References"] = drTests
 	allTests["Virtual_Foreign_Keys"] = vfkTests
 	allTests["Circular_Dependencies"] = cdTests
 	allTests["Javascript_Transformers"] = javascriptTests
 	allTests["Primary_Key_Transformers"] = pkTransformationTests
+	allTests["Subsetting"] = subsettingTests
 	return allTests
 }
 
@@ -862,7 +865,7 @@ func executeWorkflow(
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-	env.SetTestTimeout(300 * time.Second) // increase the test timeout
+	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))

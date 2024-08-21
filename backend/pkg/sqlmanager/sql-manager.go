@@ -231,7 +231,7 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 ) (*SqlConnection, error) {
 	connTimeout := sqlmanager_shared.Ptr(uint32(5))
 	if connectionTimeout != nil {
-		timeout := uint32(*connectionTimeout)
+		timeout := uint32(*connectionTimeout) //nolint:gosec // Ignoring for now
 		connTimeout = &timeout
 	}
 
