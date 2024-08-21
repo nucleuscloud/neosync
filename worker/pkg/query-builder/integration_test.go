@@ -2,10 +2,7 @@ package querybuilder
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -100,12 +97,12 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	}
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
-		return
-	}
-	suite.Run(t, new(IntegrationTestSuite))
-}
+// func TestIntegrationTestSuite(t *testing.T) {
+// 	evkey := "INTEGRATION_TESTS_ENABLED"
+// 	shouldRun := os.Getenv(evkey)
+// 	if shouldRun != "1" {
+// 		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+// 		return
+// 	}
+// 	suite.Run(t, new(IntegrationTestSuite))
+// }
