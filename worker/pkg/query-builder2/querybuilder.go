@@ -98,7 +98,6 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
-		qualifiedWhereMap:             make(map[string]string),
 		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
@@ -120,35 +119,9 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	}
 }
 
-func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
-	columns := make([]string, 0)
-	// Add primary keys
-	columns = append(columns, table.PrimaryKeys...)
-	// Add foreign key columns
-	for _, fk := range table.ForeignKeys {
-		columns = append(columns, fk.Columns...)
-	}
-	// Add columns used in WHERE conditions
-	if conditions, ok := qb.whereConditions[qb.getTableKey(table.Schema, table.Name)]; ok {
-		for _, cond := range conditions {
-			parts := strings.Fields(cond.Condition)
-			if len(parts) > 0 {
-				columns = append(columns, parts[0])
-			}
-		}
-	}
-	// Remove duplicates
-	return uniqueStrings(columns)
-}
-
 func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
-}
-
-func (qb *QueryBuilder) AddQualifiedWhereCondition(schema, tableName, condition string) {
-	key := qb.getTableKey(schema, tableName)
-	qb.qualifiedWhereMap[key] = condition
 }
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, err error) {
@@ -198,9 +171,6 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	}
 
 	if len(columnsToInclude) == 0 {
-		columnsToInclude = qb.getRequiredColumns(table)
-	}
-	if len(columnsToInclude) == 0 {
 		columnsToInclude = table.Columns
 	}
 	if len(columnsToInclude) == 0 {
@@ -222,15 +192,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	// Add WHERE conditions for this table
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
-			qualifiedCondition, ok := qb.qualifiedWhereMap[key]
-			if !ok {
-				var err error
-				qualifiedCondition, err = qb.QualifyWhereCondition(table.GetSchema(), table.GetName(), cond.Condition)
-				if err != nil {
-					return nil, err
-				}
-			}
-			query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
+			query = query.Where(goqu.L(cond.Condition, cond.Args...))
 		}
 	}
 
