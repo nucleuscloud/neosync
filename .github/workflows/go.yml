@@ -96,7 +96,7 @@ jobs:
         env:
           INTEGRATION_TESTS_ENABLED: 1
 
-      - name: Upload integration coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
