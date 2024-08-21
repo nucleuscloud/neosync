@@ -300,9 +300,9 @@ func getTotalUsageFromProm(ctx context.Context, api promv1.API, query string, da
 
 func timeToDate(t time.Time) mgmtv1alpha1.Date {
 	return mgmtv1alpha1.Date{
-		Year:  uint32(t.Year()),
-		Month: uint32(t.Month()),
-		Day:   uint32(t.Day()),
+		Year:  uint32(t.Year()),  //nolint:gosec // Ignoring for now
+		Month: uint32(t.Month()), //nolint:gosec // Ignoring for now
+		Day:   uint32(t.Day()),   //nolint:gosec // Ignoring for now
 	}
 }
 

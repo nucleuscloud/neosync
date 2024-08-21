@@ -151,7 +151,7 @@ func newMongoInput(conf *service.ParsedConfig, clientProvider MongoPoolProvider,
 		database:     database,
 		operation:    operation,
 		marshalCanon: marshalMode == string(JSONMarshalModeCanonical),
-		batchSize:    int32(batchSize),
+		batchSize:    int32(batchSize), //nolint:gosec // Ignoring for now
 		sort:         sort,
 		limit:        int64(limit),
 		count:        0,
