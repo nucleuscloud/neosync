@@ -41,8 +41,6 @@ type AliasTableInfo struct {
 	Name string
 }
 
-// Returns table info with just the table name
-
 func (t *AliasTableInfo) GetSchema() *string {
 	return nil
 }
@@ -224,11 +222,14 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	// Add WHERE conditions for this table
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
-			// qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			qualifiedCondition := qb.qualifiedWhereMap[key]
+			qualifiedCondition, ok := qb.qualifiedWhereMap[key]
+			if !ok {
+				var err error
+				qualifiedCondition, err = qb.QualifyWhereCondition(table.GetSchema(), table.GetName(), cond.Condition)
+				if err != nil {
+					return nil, err
+				}
+			}
 			query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 		}
 	}
@@ -266,7 +267,6 @@ func (qb *QueryBuilder) buildQueryRecursive(
 }
 
 func (qb *QueryBuilder) QualifyWhereCondition(schema *string, table, condition string) (string, error) {
-	fmt.Println("QualifyWhereCondition")
 	query := qb.getDialect().From(goqu.T(table)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
