@@ -272,7 +272,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		}
 
 		// Only join and apply subsetting if subsetByForeignKeyConstraints is true
-		if qb.subsetByForeignKeyConstraints {
+		if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
 			// Recursively build and join queries for related tables
 			for _, fk := range table.ForeignKeys {
 				if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
