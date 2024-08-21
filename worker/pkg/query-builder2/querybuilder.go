@@ -220,7 +220,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 
 	isSelfReferencing := qb.isSelfReferencing(table)
 
-	if isSelfReferencing && qb.subsetByForeignKeyConstraints && parentTable == nil {
+	if isSelfReferencing && qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 && parentTable == nil {
 		// Handle self-referencing table with possible additional foreign keys
 		cteQuery, err := qb.buildRecursiveCTE(table, qb.whereConditions[key])
 		if err != nil {
