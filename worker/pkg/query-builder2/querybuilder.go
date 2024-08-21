@@ -86,8 +86,9 @@ type WhereCondition struct {
 }
 
 type QueryBuilder struct {
-	tables          map[string]*TableInfo
-	whereConditions map[string][]WhereCondition
+	tables            map[string]*TableInfo
+	whereConditions   map[string][]WhereCondition
+	qualifiedWhereMap map[string]string
 	// schema.table -> column -> { column info }
 	columnInfo                    map[string]map[string]*sqlmanager_shared.ColumnInfo
 	defaultSchema                 string
@@ -99,6 +100,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 	return &QueryBuilder{
 		tables:                        make(map[string]*TableInfo),
 		whereConditions:               make(map[string][]WhereCondition),
+		qualifiedWhereMap:             make(map[string]string),
 		defaultSchema:                 defaultSchema,
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
@@ -144,6 +146,11 @@ func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
 func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
+}
+
+func (qb *QueryBuilder) AddQualifiedWhereCondition(schema, tableName, condition string) {
+	key := qb.getTableKey(schema, tableName)
+	qb.qualifiedWhereMap[key] = condition
 }
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, err error) {
@@ -217,10 +224,11 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	// Add WHERE conditions for this table
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
-			qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
-			if err != nil {
-				return nil, err
-			}
+			// qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			qualifiedCondition := qb.qualifiedWhereMap[key]
 			query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 		}
 	}
@@ -257,8 +265,9 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return query, nil
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition string) (string, error) {
-	query := qb.getDialect().From(goqu.T(table.GetName())).Select(goqu.Star()).Where(goqu.L(condition))
+func (qb *QueryBuilder) QualifyWhereCondition(schema *string, table, condition string) (string, error) {
+	fmt.Println("QualifyWhereCondition")
+	query := qb.getDialect().From(goqu.T(table)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("unable to build where condition: %w", err)
@@ -267,13 +276,13 @@ func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition str
 	var updatedSql string
 	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, table.GetSchema(), table.GetName())
+		sql, err := qualifyMysqlWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
-		sql, err := qualifyPostgresWhereColumnNames(sql, table.GetSchema(), table.GetName())
+		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
