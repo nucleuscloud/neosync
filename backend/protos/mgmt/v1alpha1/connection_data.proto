@@ -7,6 +7,7 @@ import "google/protobuf/struct.proto";
 
 message PostgresStreamConfig {}
 message MysqlStreamConfig {}
+message AwsDynamoDBStreamConfig {}
 message AwsS3StreamConfig {
   oneof id {
     string job_id = 1 [(buf.validate.field).string.uuid = true];
@@ -28,6 +29,7 @@ message ConnectionStreamConfig {
     AwsS3StreamConfig aws_s3_config = 2;
     MysqlStreamConfig mysql_config = 3;
     GcpCloudStorageStreamConfig gcp_cloudstorage_config = 4;
+    AwsDynamoDBStreamConfig dynamodb_config = 5;
   }
 }
 

@@ -69,6 +69,37 @@ export class MysqlStreamConfig extends Message<MysqlStreamConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.AwsDynamoDBStreamConfig
+ */
+export class AwsDynamoDBStreamConfig extends Message<AwsDynamoDBStreamConfig> {
+  constructor(data?: PartialMessage<AwsDynamoDBStreamConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AwsDynamoDBStreamConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsDynamoDBStreamConfig {
+    return new AwsDynamoDBStreamConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsDynamoDBStreamConfig {
+    return new AwsDynamoDBStreamConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsDynamoDBStreamConfig {
+    return new AwsDynamoDBStreamConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsDynamoDBStreamConfig | PlainMessage<AwsDynamoDBStreamConfig> | undefined, b: AwsDynamoDBStreamConfig | PlainMessage<AwsDynamoDBStreamConfig> | undefined): boolean {
+    return proto3.util.equals(AwsDynamoDBStreamConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.AwsS3StreamConfig
  */
 export class AwsS3StreamConfig extends Message<AwsS3StreamConfig> {
@@ -199,6 +230,12 @@ export class ConnectionStreamConfig extends Message<ConnectionStreamConfig> {
      */
     value: GcpCloudStorageStreamConfig;
     case: "gcpCloudstorageConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.AwsDynamoDBStreamConfig dynamodb_config = 5;
+     */
+    value: AwsDynamoDBStreamConfig;
+    case: "dynamodbConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionStreamConfig>) {
@@ -213,6 +250,7 @@ export class ConnectionStreamConfig extends Message<ConnectionStreamConfig> {
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3StreamConfig, oneof: "config" },
     { no: 3, name: "mysql_config", kind: "message", T: MysqlStreamConfig, oneof: "config" },
     { no: 4, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageStreamConfig, oneof: "config" },
+    { no: 5, name: "dynamodb_config", kind: "message", T: AwsDynamoDBStreamConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionStreamConfig {

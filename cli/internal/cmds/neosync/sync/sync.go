@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"strings"
@@ -32,6 +31,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
+	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -47,8 +47,6 @@ import (
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 
 	"github.com/warpstreamlabs/bento/public/service"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type ConnectionType string
@@ -62,6 +60,7 @@ const (
 	gcpCloudStorageConnection ConnectionType = "gcpCloudStorage"
 	postgresConnection        ConnectionType = "postgres"
 	mysqlConnection           ConnectionType = "mysql"
+	awsDynamoDBConnection     ConnectionType = "awsDynamoDB"
 
 	batchSize = 20
 )
@@ -74,8 +73,9 @@ var (
 )
 
 type cmdConfig struct {
-	Source      *sourceConfig      `yaml:"source"`
-	Destination *destinationConfig `yaml:"destination"`
+	Source                 *sourceConfig              `yaml:"source"`
+	Destination            *sqlDestinationConfig      `yaml:"destination"`
+	AwsDynamoDbDestination *dynamoDbDestinationConfig `yaml:"aws-dynamodb-destination,omitempty"`
 }
 
 type sourceConfig struct {
@@ -92,13 +92,28 @@ type onConflictConfig struct {
 	DoNothing bool `yaml:"do-nothing"`
 }
 
-type destinationConfig struct {
+type dynamoDbDestinationConfig struct {
+	AwsCredConfig *AwsCredConfig `yaml:"aws-cred-config"`
+}
+
+type sqlDestinationConfig struct {
 	ConnectionUrl        string           `yaml:"connection-url"`
 	Driver               DriverType       `yaml:"driver"`
 	InitSchema           bool             `yaml:"init-schema,omitempty"`
 	TruncateBeforeInsert bool             `yaml:"truncate-before-insert,omitempty"`
 	TruncateCascade      bool             `yaml:"truncate-cascade,omitempty"`
 	OnConflict           onConflictConfig `yaml:"on-conflict,omitempty"`
+}
+
+type AwsCredConfig struct {
+	Region          string  `yaml:"region"`
+	AccessKeyID     *string `yaml:"access-key-id,omitempty"`
+	SecretAccessKey *string `yaml:"secret-access-key,omitempty"`
+	SessionToken    *string `yaml:"session-token,omitempty"`
+	RoleARN         *string `yaml:"role-arn,omitempty"`
+	RoleExternalID  *string `yaml:"role-external-id,omitempty"`
+	Endpoint        *string `yaml:"endpoint,omitempty"`
+	Profile         *string `yaml:"profile,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -120,7 +135,8 @@ func NewCmd() *cobra.Command {
 				Source: &sourceConfig{
 					ConnectionOpts: &connectionOpts{},
 				},
-				Destination: &destinationConfig{},
+				Destination:            &sqlDestinationConfig{},
+				AwsDynamoDbDestination: &dynamoDbDestinationConfig{},
 			}
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
@@ -211,22 +227,13 @@ func NewCmd() *cobra.Command {
 				config.Source.ConnectionOpts.JobRunId = &jobRunId
 			}
 
+			config, err = buildAwsCredConfig(cmd, config)
+			if err != nil {
+				return err
+			}
+
 			if config.Source.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
-			}
-			if config.Destination.Driver == "" {
-				return fmt.Errorf("must provide destination-driver")
-			}
-			if config.Destination.ConnectionUrl == "" {
-				return fmt.Errorf("must provide destination-connection-url")
-			}
-
-			if config.Destination.TruncateCascade && config.Destination.Driver != postgresDriver {
-				return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
-			}
-
-			if config.Destination.Driver != mysqlDriver && config.Destination.Driver != postgresDriver {
-				return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 			}
 
 			accountId, err := cmd.Flags().GetString("account-id")
@@ -254,6 +261,16 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
 	cmd.Flags().Bool("on-conflict-do-nothing", false, "If there is a conflict when inserting data do not insert")
+
+	// dynamo flags
+	cmd.Flags().String("aws-access-key-id", "", "AWS Access Key ID for DynamoDB")
+	cmd.Flags().String("aws-secret-access-key", "", "AWS Secret Access Key for DynamoDB")
+	cmd.Flags().String("aws-session-token", "", "AWS Session Token for DynamoDB")
+	cmd.Flags().String("aws-role-arn", "", "AWS Role ARN for DynamoDB")
+	cmd.Flags().String("aws-role-external-id", "", "AWS Role External ID for DynamoDB")
+	cmd.Flags().String("aws-profile", "", "AWS Profile for DynamoDB")
+	cmd.Flags().String("aws-endpoint", "", "Custom endpoint for DynamoDB")
+	cmd.Flags().String("aws-region", "", "AWS Region for DynamoDB")
 	output.AttachOutputFlag(cmd)
 
 	return cmd
@@ -317,6 +334,33 @@ func sync(
 	}
 	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+	}
+
+	if connectionType == mysqlConnection || connectionType == postgresConnection {
+		if cmd.Destination.Driver == "" {
+			return fmt.Errorf("must provide destination-driver")
+		}
+		if cmd.Destination.ConnectionUrl == "" {
+			return fmt.Errorf("must provide destination-connection-url")
+		}
+
+		if cmd.Destination.TruncateCascade && cmd.Destination.Driver != postgresDriver {
+			return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
+		}
+
+		if cmd.Destination.Driver != mysqlDriver && cmd.Destination.Driver != postgresDriver {
+			return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
+		}
+	}
+
+	if connectionType == awsDynamoDBConnection {
+		if cmd.AwsDynamoDbDestination == nil {
+			return fmt.Errorf("must provide destination aws credentials")
+		}
+
+		if cmd.AwsDynamoDbDestination.AwsCredConfig.Region == "" {
+			return fmt.Errorf("must provide destination aws region")
+		}
 	}
 
 	var token *string
@@ -419,7 +463,6 @@ func sync(
 			return nil
 		}
 		schemaConfig = schemaCfg
-
 	case postgresConnection:
 		logger.Info("Building schema and table constraints...")
 		postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
@@ -436,7 +479,31 @@ func sync(
 			return nil
 		}
 		schemaConfig = schemaCfg
+	case awsDynamoDBConnection:
+		dynamoConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{
+				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
+			},
+		}
+		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, dynamoConfig)
+		if err != nil {
+			return err
+		}
+		if len(schemaCfg.Schemas) == 0 {
+			logger.Warn("No tables found.")
+			return nil
+		}
+		tableMap := map[string]struct{}{}
+		for _, s := range schemaCfg.Schemas {
+			tableMap[s.Table] = struct{}{}
+		}
+		configs := []*benthosConfigResponse{}
+		for t := range tableMap {
+			benthosConfig := generateDynamoDbBenthosConfig(cmd, serverconfig.GetApiBaseUrl(), token, t)
+			configs = append(configs, benthosConfig)
+		}
 
+		return runSync(ctx, outputType, [][]*benthosConfigResponse{configs}, logger)
 	default:
 		return fmt.Errorf("this connection type is not currently supported")
 	}
@@ -465,21 +532,7 @@ func sync(
 		return nil
 	}
 
-	var opts []tea.ProgramOption
-	if outputType == output.PlainOutput {
-		// Plain mode don't render the TUI
-		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
-	} else {
-		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
-		// TUI mode, discard log output
-		logger.SetOutput(io.Discard)
-	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
-		logger.Error("Error syncing data:", err)
-		os.Exit(1)
-	}
-
-	return nil
+	return runSync(ctx, outputType, groupedConfigs, logger)
 }
 
 func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {
@@ -492,7 +545,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 		if destinationDriver != mysqlDriver {
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig, *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
 	default:
 		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 	}
@@ -503,6 +556,13 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
+	}
+
+	env := service.NewEnvironment()
+
+	err = neosyncbenthos_dynamodb.RegisterDynamoDbOutput(env)
+	if err != nil {
+		return fmt.Errorf("unable to register dynamodb output to benthos instance: %w", err)
 	}
 
 	var benthosStream *service.Stream
@@ -523,7 +583,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 		}
 	}()
 
-	streambldr := service.NewStreamBuilder()
+	streambldr := env.NewStreamBuilder()
 
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
@@ -679,7 +739,7 @@ func getTableInitStatementMap(
 	logger *charmlog.Logger,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	connectionId string,
-	opts *destinationConfig,
+	opts *sqlDestinationConfig,
 ) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
 		logger.Info("Creating init statements...")
@@ -1109,6 +1169,9 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 	}
 	if connection.ConnectionConfig.GetPgConfig() != nil {
 		return postgresConnection, nil
+	}
+	if connection.ConnectionConfig.GetDynamodbConfig() != nil {
+		return awsDynamoDBConnection, nil
 	}
 	return "", errors.New("unsupported connection type")
 }

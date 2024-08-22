@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -388,10 +389,99 @@ func (s *Service) GetConnectionDataStream(
 		if err != nil {
 			return fmt.Errorf("unable to finish sending record stream: %w", err)
 		}
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		dynamoclient, err := s.awsManager.NewDynamoDbClient(ctx, config.DynamodbConfig)
+		if err != nil {
+			return fmt.Errorf("unable to create dynamodb client from connection: %w", err)
+		}
+		var lastEvaluatedKey map[string]dynamotypes.AttributeValue
+
+		for {
+			output, err := dynamoclient.ScanTable(ctx, req.Msg.Table, lastEvaluatedKey)
+			if err != nil {
+				return fmt.Errorf("failed to scan table %s: %w", req.Msg.Table, err)
+			}
+
+			for _, item := range output.Items {
+				row := make(map[string][]byte)
+
+				itemBits, err := convertMapToJSONBytes(item)
+				if err != nil {
+					return err
+				}
+				row["item"] = itemBits
+				if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
+					return fmt.Errorf("failed to send stream response: %w", err)
+				}
+			}
+
+			lastEvaluatedKey = output.LastEvaluatedKey
+			if lastEvaluatedKey == nil {
+				break
+			}
+		}
+
 	default:
 		return nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config is not currently supported: %T", config))
 	}
 	return nil
+}
+
+func convertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[string]any, error) {
+	switch v := av.(type) {
+	case *dynamotypes.AttributeValueMemberS:
+		return map[string]any{"S": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberB:
+		return map[string]any{"B": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberN:
+		return map[string]any{"N": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBOOL:
+		return map[string]any{"BOOL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNULL:
+		return map[string]any{"NULL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberM:
+		m := make(map[string]any)
+		for k, val := range v.Value {
+			var err error
+			m[k], err = convertAttributeValueToDynamoDBJSON(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"M": m}, nil
+	case *dynamotypes.AttributeValueMemberL:
+		l := make([]any, len(v.Value))
+		for i, val := range v.Value {
+			var err error
+			l[i], err = convertAttributeValueToDynamoDBJSON(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"L": l}, nil
+	case *dynamotypes.AttributeValueMemberSS:
+		return map[string]any{"SS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNS:
+		return map[string]any{"NS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBS:
+		return map[string]any{"BS": v.Value}, nil
+	default:
+		return nil, fmt.Errorf("unsupported AttributeValue type")
+	}
+}
+
+func convertMapToJSONBytes(input map[string]dynamotypes.AttributeValue) ([]byte, error) {
+	result := make(map[string]any)
+
+	for key, av := range input {
+		dynamoDBJSON, err := convertAttributeValueToDynamoDBJSON(av)
+		if err != nil {
+			return nil, fmt.Errorf("error converting key %s: %w", key, err)
+		}
+		result[key] = dynamoDBJSON
+	}
+
+	return json.Marshal(result)
 }
 
 func (s *Service) GetConnectionSchemaMaps(
