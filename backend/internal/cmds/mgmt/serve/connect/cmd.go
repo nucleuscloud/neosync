@@ -192,6 +192,9 @@ func serve(ctx context.Context) error {
 		}
 		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(getIsNeosyncCloud()), []string{
 			mgmtv1alpha1connect.JobServiceGetJobProcedure,
+			mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+			mgmtv1alpha1connect.JobServiceSetRunContextProcedure,
+			mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
 			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
 			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
@@ -330,8 +333,9 @@ func serve(ctx context.Context) error {
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		IsAuthEnabled: isAuthEnabled,
-		RunLogConfig:  runLogConfig,
+		IsAuthEnabled:  isAuthEnabled,
+		IsNeosyncCloud: getIsNeosyncCloud(),
+		RunLogConfig:   runLogConfig,
 	}
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,

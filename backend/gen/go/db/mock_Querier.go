@@ -2223,6 +2223,64 @@ func (_c *MockQuerier_GetPersonalAccountByUserId_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetRunContextByKey provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetRunContextByKey(ctx context.Context, db DBTX, arg GetRunContextByKeyParams) (NeosyncApiRuncontext, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRunContextByKey")
+	}
+
+	var r0 NeosyncApiRuncontext
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetRunContextByKeyParams) (NeosyncApiRuncontext, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetRunContextByKeyParams) NeosyncApiRuncontext); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiRuncontext)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, GetRunContextByKeyParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetRunContextByKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRunContextByKey'
+type MockQuerier_GetRunContextByKey_Call struct {
+	*mock.Call
+}
+
+// GetRunContextByKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg GetRunContextByKeyParams
+func (_e *MockQuerier_Expecter) GetRunContextByKey(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetRunContextByKey_Call {
+	return &MockQuerier_GetRunContextByKey_Call{Call: _e.mock.On("GetRunContextByKey", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetRunContextByKey_Call) Run(run func(ctx context.Context, db DBTX, arg GetRunContextByKeyParams)) *MockQuerier_GetRunContextByKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(GetRunContextByKeyParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetRunContextByKey_Call) Return(_a0 NeosyncApiRuncontext, _a1 error) *MockQuerier_GetRunContextByKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetRunContextByKey_Call) RunAndReturn(run func(context.Context, DBTX, GetRunContextByKeyParams) (NeosyncApiRuncontext, error)) *MockQuerier_GetRunContextByKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTeamAccountsByUserId provides a mock function with given fields: ctx, db, userid
 func (_m *MockQuerier) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, userid)
@@ -3774,6 +3832,54 @@ func (_c *MockQuerier_SetJobWorkflowOptions_Call) Return(_a0 NeosyncApiJob, _a1 
 }
 
 func (_c *MockQuerier_SetJobWorkflowOptions_Call) RunAndReturn(run func(context.Context, DBTX, SetJobWorkflowOptionsParams) (NeosyncApiJob, error)) *MockQuerier_SetJobWorkflowOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetRunContext provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetRunContext(ctx context.Context, db DBTX, arg SetRunContextParams) error {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetRunContext")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetRunContextParams) error); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_SetRunContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetRunContext'
+type MockQuerier_SetRunContext_Call struct {
+	*mock.Call
+}
+
+// SetRunContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetRunContextParams
+func (_e *MockQuerier_Expecter) SetRunContext(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetRunContext_Call {
+	return &MockQuerier_SetRunContext_Call{Call: _e.mock.On("SetRunContext", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetRunContext_Call) Run(run func(ctx context.Context, db DBTX, arg SetRunContextParams)) *MockQuerier_SetRunContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetRunContextParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetRunContext_Call) Return(_a0 error) *MockQuerier_SetRunContext_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_SetRunContext_Call) RunAndReturn(run func(context.Context, DBTX, SetRunContextParams) error) *MockQuerier_SetRunContext_Call {
 	_c.Call.Return(run)
 	return _c
 }

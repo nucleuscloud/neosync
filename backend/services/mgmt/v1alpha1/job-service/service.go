@@ -38,7 +38,8 @@ type LokiRunLogConfig struct {
 }
 
 type Config struct {
-	IsAuthEnabled bool
+	IsAuthEnabled  bool
+	IsNeosyncCloud bool
 
 	RunLogConfig *RunLogConfig
 }

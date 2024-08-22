@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -27,7 +29,7 @@ import (
 	"go.temporal.io/sdk/converter"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -513,9 +515,9 @@ func (s *Service) streamK8sWorkerPodLogs(
 			SinceTime: &metav1.Time{Time: getLogFilterTime(req.Msg.GetWindow(), time.Now())},
 		})
 		logstream, err := logsReq.Stream(ctx)
-		if err != nil && !errors.IsNotFound(err) {
+		if err != nil && !k8serrors.IsNotFound(err) {
 			return err
-		} else if err != nil && errors.IsNotFound(err) {
+		} else if err != nil && k8serrors.IsNotFound(err) {
 			return nucleuserrors.NewNotFound("pod no longer exists")
 		}
 
@@ -663,5 +665,107 @@ func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) time.Tim
 		return endTime.Add(-24 * time.Hour)
 	default:
 		return endTime.Add(-15 * time.Minute)
+	}
+}
+
+func (s *Service) GetRunContext(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetRunContextRequest],
+) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+	id := req.Msg.GetId()
+	accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+
+	runContext, err := s.db.Q.GetRunContextByKey(ctx, s.db.Db, db_queries.GetRunContextByKeyParams{
+		WorkflowId: id.GetJobRunId(),
+		ExternalId: id.GetExternalId(),
+		AccountId:  *accountUuid,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to retrieve run context by key: %w", err)
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("no run context exists with the provided key")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+		Value: runContext.Value,
+	}), nil
+}
+
+func (s *Service) SetRunContext(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetRunContextRequest],
+) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+	id := req.Msg.GetId()
+	accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
+		WorkflowID:  id.GetJobRunId(),
+		ExternalID:  id.GetExternalId(),
+		AccountID:   *accountUuid,
+		Value:       req.Msg.GetValue(),
+		CreatedByID: *userUuid,
+		UpdatedByID: *userUuid,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to set run context: %w", err)
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
+}
+
+func (s *Service) SetRunContexts(
+	ctx context.Context,
+	stream *connect.BidiStream[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse],
+) error {
+	for {
+		req, err := stream.Receive()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		id := req.GetId()
+		accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+		if err != nil {
+			return err
+		}
+		if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+			return nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		}
+
+		userUuid, err := s.getUserUuid(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
+			WorkflowID:  id.GetJobRunId(),
+			ExternalID:  id.GetExternalId(),
+			AccountID:   *accountUuid,
+			Value:       req.GetValue(),
+			CreatedByID: *userUuid,
+			UpdatedByID: *userUuid,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to set run context: %w", err)
+		}
 	}
 }
