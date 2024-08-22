@@ -1,3 +1,4 @@
+import { TransformerDataType } from '@neosync/sdk';
 import { format } from 'date-fns';
 import {
   convertMinutesToNanoseconds,
@@ -5,6 +6,7 @@ import {
   formatDateTime,
   formatDateTimeMilliseconds,
   getErrorMessage,
+  getTransformerDataTypesString,
   toTitleCase,
 } from './util';
 
@@ -169,14 +171,66 @@ describe('convertMinutesToNanoseconds', () => {
     const result = convertMinutesToNanoseconds(min);
     expect(result).toEqual(BigInt(2) * BigInt(1000000000) * BigInt(60));
   });
-  it('should convert  0 min to 0 nanoseconds', () => {
+  it('should convert 0 min to 0 nanoseconds', () => {
     const min = 0;
     const result = convertMinutesToNanoseconds(min);
-    expect(result).toEqual(BigInt(2) * BigInt(1000000000) * BigInt(60));
+    expect(result).toEqual(BigInt(0) * BigInt(1000000000) * BigInt(60));
   });
-  it('should convert  29833 min to max safe integer', () => {
-    const min = 29833;
-    const result = convertMinutesToNanoseconds(min);
-    expect(result).toEqual(BigInt(2) * BigInt(1000000000) * BigInt(60));
+});
+
+describe('getTransformerDataTypesString', () => {
+  it('should return the correct string for a single element array', () => {
+    const value = [TransformerDataType.STRING];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('string');
+  });
+  it('should return string for string data types', () => {
+    const value = [TransformerDataType.STRING, TransformerDataType.STRING];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('string | string');
+  });
+  it('should return string for string and int64 data types', () => {
+    const value = [TransformerDataType.STRING, TransformerDataType.INT64];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('string | int64');
+  });
+  it('should return string for boolean and float data types', () => {
+    const value = [TransformerDataType.BOOLEAN, TransformerDataType.FLOAT64];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('boolean | float64');
+  });
+  it('should return string for null and time data types', () => {
+    const value = [TransformerDataType.NULL, TransformerDataType.TIME];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('null | time');
+  });
+  it('should return string for any and uuid data types', () => {
+    const value = [
+      TransformerDataType.ANY,
+      TransformerDataType.UUID,
+      TransformerDataType.UNSPECIFIED,
+    ];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('any | uuid | unspecified');
+  });
+  it('should return empty string if empty array', () => {
+    const value: TransformerDataType[] = [];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('');
+  });
+  it('should return "unspecified" for any invalid values while returning the right value for valid values', () => {
+    const invalid = 'invalid' as unknown as TransformerDataType;
+    const value = [TransformerDataType.STRING, invalid];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('string | unspecified');
+  });
+  it('should return "unspecified" for an array with invalid types', () => {
+    const value = [
+      100,
+      'invalid',
+      undefined,
+    ] as unknown as TransformerDataType[];
+    const result = getTransformerDataTypesString(value);
+    expect(result).toBe('unspecified | unspecified | unspecified');
   });
 });
