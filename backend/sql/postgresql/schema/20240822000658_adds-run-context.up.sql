@@ -6,7 +6,9 @@ CREATE TABLE neosync_api.runcontexts (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by_id UUID NOT NULL,
     updated_by_id UUID NOT NULL,
-    PRIMARY KEY (workflow_id, external_id)
+    PRIMARY KEY (workflow_id, external_id),
+    FOREIGN KEY (account_id) REFERENCES neosync_api.accounts(id)
+
 );
 
 CREATE TRIGGER update_neosync_api_runcontexts_updated_at
