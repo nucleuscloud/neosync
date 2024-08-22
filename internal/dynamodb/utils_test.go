@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttributeValueToStandardValue(t *testing.T) {
+func Test_ParseAttributeValue(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    types.AttributeValue
@@ -82,7 +82,7 @@ func TestAttributeValueToStandardValue(t *testing.T) {
 	}
 }
 
-func TestAttributeValueMapToStandardJSON(t *testing.T) {
+func Test_UnmarshalAttributeValueMap(t *testing.T) {
 	input := map[string]types.AttributeValue{
 		"PK":     &types.AttributeValueMemberS{Value: "PrimaryKey"},
 		"SK":     &types.AttributeValueMemberS{Value: "SortKey"},
@@ -126,4 +126,233 @@ func TestAttributeValueMapToStandardJSON(t *testing.T) {
 	require.True(t, reflect.DeepEqual(actual, expected), fmt.Sprintf("expected %v, got %v", expected, actual))
 	require.Equal(t, keyTypeMap["StrSet"], StringSet)
 	require.Equal(t, keyTypeMap["NumSet"], NumberSet)
+}
+
+func Test_ParseStringAsNumber(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    any
+		wantErr bool
+	}{
+		{"Valid int", "123", int64(123), false},
+		{"Valid float", "123.45", float64(123.45), false},
+		{"Invalid number", "abc", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseStringAsNumber(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func Test_UnmarshalDynamoDBItem(t *testing.T) {
+	tests := []struct {
+		name            string
+		input           map[string]any
+		wantStandardMap map[string]any
+		wantKeyTypeMap  map[string]KeyType
+	}{
+		{
+			name: "Basic test",
+			input: map[string]any{
+				"StringKey": map[string]any{"S": "value"},
+				"NumberKey": map[string]any{"N": "123"},
+				"BoolKey":   map[string]any{"BOOL": true},
+			},
+			wantStandardMap: map[string]any{
+				"StringKey": "value",
+				"NumberKey": int64(123),
+				"BoolKey":   true,
+			},
+			wantKeyTypeMap: map[string]KeyType{},
+		},
+		{
+			name: "Complex test with sets",
+			input: map[string]any{
+				"StringSetKey": map[string]any{"SS": []any{"a", "b", "c"}},
+				"NumberSetKey": map[string]any{"NS": []any{"1", "2", "3"}},
+			},
+			wantStandardMap: map[string]any{
+				"StringSetKey": []string{"a", "b", "c"},
+				"NumberSetKey": []any{int64(1), int64(2), int64(3)},
+			},
+			wantKeyTypeMap: map[string]KeyType{
+				"StringSetKey": StringSet,
+				"NumberSetKey": NumberSet,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotStandardMap, gotKeyTypeMap := UnmarshalDynamoDBItem(tt.input)
+			require.Equal(t, tt.wantStandardMap, gotStandardMap)
+			require.Equal(t, tt.wantKeyTypeMap, gotKeyTypeMap)
+		})
+	}
+}
+
+func Test_ParseDynamoDBAttributeValue(t *testing.T) {
+	tests := []struct {
+		name        string
+		key         string
+		value       any
+		keyTypeMap  map[string]KeyType
+		want        any
+		wantKeyType KeyType
+	}{
+		{"String", "StrKey", map[string]any{"S": "value"}, map[string]KeyType{}, "value", 0},
+		{"Number", "NumKey", map[string]any{"N": "123"}, map[string]KeyType{}, int64(123), 0},
+		{"Boolean", "BoolKey", map[string]any{"BOOL": true}, map[string]KeyType{}, true, 0},
+		{"Null", "NullKey", map[string]any{"NULL": true}, map[string]KeyType{}, nil, 0},
+		{"StringSet", "SSKey", map[string]any{"SS": []any{"a", "b"}}, map[string]KeyType{}, []string{"a", "b"}, StringSet},
+		{"NumberSet", "NSKey", map[string]any{"NS": []any{"1", "2"}}, map[string]KeyType{}, []any{int64(1), int64(2)}, NumberSet},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ParseDynamoDBAttributeValue(tt.key, tt.value, tt.keyTypeMap)
+			require.Equalf(t, tt.want, got, fmt.Sprintf("ParseDynamoDBAttributeValue() = %v, want %v", got, tt.want))
+			if gotKeyType, ok := tt.keyTypeMap[tt.key]; ok {
+				require.Equalf(t, tt.wantKeyType, gotKeyType, fmt.Sprintf("ParseDynamoDBAttributeValue() key type = %v, want %v", gotKeyType, tt.wantKeyType))
+			}
+		})
+	}
+}
+
+func Test_MarshalToAttributeValue(t *testing.T) {
+	tests := []struct {
+		name       string
+		key        string
+		root       any
+		keyTypeMap map[string]KeyType
+		want       types.AttributeValue
+	}{
+		{
+			name:       "String",
+			key:        "StrKey",
+			root:       "value",
+			keyTypeMap: map[string]KeyType{},
+			want:       &types.AttributeValueMemberS{Value: "value"},
+		},
+		{
+			name:       "Number",
+			key:        "NumKey",
+			root:       123,
+			keyTypeMap: map[string]KeyType{},
+			want:       &types.AttributeValueMemberN{Value: "123"},
+		},
+		{
+			name:       "Boolean",
+			key:        "BoolKey",
+			root:       true,
+			keyTypeMap: map[string]KeyType{},
+			want:       &types.AttributeValueMemberBOOL{Value: true},
+		},
+		{
+			name:       "Null",
+			key:        "NullKey",
+			root:       nil,
+			keyTypeMap: map[string]KeyType{},
+			want:       &types.AttributeValueMemberNULL{Value: true},
+		},
+		{
+			name:       "StringSet",
+			key:        "SSKey",
+			root:       []string{"a", "b"},
+			keyTypeMap: map[string]KeyType{"SSKey": StringSet},
+			want:       &types.AttributeValueMemberSS{Value: []string{"a", "b"}},
+		},
+		{
+			name:       "NumberSet",
+			key:        "NSKey",
+			root:       []int{1, 2},
+			keyTypeMap: map[string]KeyType{"NSKey": NumberSet},
+			want:       &types.AttributeValueMemberNS{Value: []string{"1", "2"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MarshalToAttributeValue(tt.key, tt.root, tt.keyTypeMap)
+			require.Equalf(t, tt.want, got, fmt.Sprintf("MarshalToAttributeValue() = %v, want %v", got, tt.want))
+		})
+	}
+}
+
+func Test_FormatFloat(t *testing.T) {
+	tests := []struct {
+		name  string
+		input float64
+		want  string
+	}{
+		{"Integer", 123.0, "123.0"},
+		{"Decimal", 123.456, "123.456"},
+		{"Many decimal places", 123.4567890, "123.4568"},
+		{"Trailing zeros", 123.4000, "123.4"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := formatFloat(tt.input)
+			require.Equal(t, tt.want, got, fmt.Sprintf("formatFloat() = %v, want %v", got, tt.want))
+		})
+	}
+}
+
+func Test_ConvertToStringSlice(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   any
+		want    []string
+		wantErr bool
+	}{
+		{"String slice", []string{"a", "b", "c"}, []string{"a", "b", "c"}, false},
+		{"Int slice", []int{1, 2, 3}, []string{"1", "2", "3"}, false},
+		{"Float slice", []float64{1.12, 2.0, 3.43}, []string{"1.12", "2.0", "3.43"}, false},
+		{"Mixed slice", []any{"a", 1, true}, []string{"a", "1", "true"}, false},
+		{"Not a slice", "not a slice", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ConvertToStringSlice(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equalf(t, tt.want, got, fmt.Sprintf("ConvertToStringSlice() = %v, want %v", got, tt.want))
+			}
+		})
+	}
+}
+
+func Test_AnyToString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input any
+		want  string
+	}{
+		{"String", "hello", "hello"},
+		{"Int", 123, "123"},
+		{"Float", 123.456, "123.456"},
+		{"Boolean", true, "true"},
+		{"Byte slice", []byte("hello"), "hello"},
+		{"Nil", nil, "null"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := anyToString(tt.input)
+			require.Equalf(t, tt.want, got, fmt.Sprintf("anyToString() = %v, want %v", got, tt.want))
+		})
+	}
 }

@@ -320,7 +320,7 @@ func anyToString(value any) string {
 	case uint, uint8, uint16, uint32, uint64:
 		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
 	case float32, float64:
-		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
+		return formatFloat(reflect.ValueOf(v).Float())
 	case bool:
 		return strconv.FormatBool(v)
 	case []byte:
