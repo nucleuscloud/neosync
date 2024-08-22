@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -311,18 +310,6 @@ func (b *benthosBuilder) setRunContexts(
 		return nil, fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
 	}
 	return responses, nil
-}
-
-type combinedError struct {
-	errors []error
-}
-
-func (ce *combinedError) Error() string {
-	var errStrings []string
-	for _, err := range ce.errors {
-		errStrings = append(errStrings, err.Error())
-	}
-	return fmt.Sprintf("multiple send errors: %s", strings.Join(errStrings, "; "))
 }
 
 func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {
