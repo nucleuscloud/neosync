@@ -70,7 +70,7 @@ jobs:
 
       - name: Test
         run: |
-          go test -coverprofile=unit-coverage.out -covermode=atomic ./...
+          go test -race -coverprofile=unit-coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -92,7 +92,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          go test -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic -run TestIntegrationTestSuite ./...
+          go test -race -timeout 1800s -coverprofile=integration-coverage.out -covermode=atomic -run TestIntegrationTestSuite ./...
         env:
           INTEGRATION_TESTS_ENABLED: 1
 
