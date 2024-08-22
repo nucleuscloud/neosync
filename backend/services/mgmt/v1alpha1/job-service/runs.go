@@ -710,9 +710,19 @@ func (s *Service) SetRunContext(
 		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
 	}
 
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
+	var userId *pgtype.UUID
+	if isWorkerApiKey(ctx) {
+		uid, err := nucleusdb.ToUuid("00000000-0000-0000-0000-000000000000")
+		if err != nil {
+			return nil, err
+		}
+		userId = &uid
+	} else {
+		userUuid, err := s.getUserUuid(ctx)
+		if err != nil {
+			return nil, err
+		}
+		userId = userUuid
 	}
 
 	err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
@@ -720,8 +730,8 @@ func (s *Service) SetRunContext(
 		ExternalID:  id.GetExternalId(),
 		AccountID:   *accountUuid,
 		Value:       req.Msg.GetValue(),
-		CreatedByID: *userUuid,
-		UpdatedByID: *userUuid,
+		CreatedByID: *userId,
+		UpdatedByID: *userId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to set run context: %w", err)
