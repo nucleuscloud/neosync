@@ -18,7 +18,13 @@ import (
 const (
 	// The benthos value for null
 	NullString = "null"
+
+	runContext_ExternalId_BenthosConfig = "benthosconfig"
 )
+
+func GetBenthosConfigExternalId(identifier string) string {
+	return fmt.Sprintf("%s-%s", runContext_ExternalId_BenthosConfig, identifier)
+}
 
 // General workflow metadata struct that is intended to be common across activities
 type WorkflowMetadata struct {

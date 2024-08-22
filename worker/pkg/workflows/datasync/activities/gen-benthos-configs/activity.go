@@ -21,6 +21,7 @@ type GenerateBenthosConfigsRequest struct {
 }
 type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*BenthosConfigResponse
+	AccountId      string
 }
 
 type BenthosRedisConfig struct {
@@ -112,6 +113,7 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.connclient,
 		a.transformerclient,
 		req.JobId,
+		info.WorkflowExecution.ID,
 		info.WorkflowExecution.RunID,
 		a.redisConfig,
 		a.metricsEnabled,

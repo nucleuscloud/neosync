@@ -819,5 +819,5 @@ service JobService {
   // Sets a run context to be used by a workflow run
   rpc SetRunContext(SetRunContextRequest) returns (SetRunContextResponse) {}
   // Sets a stream of run contexts to be used by a workflow run
-  rpc SetRunContexts(stream SetRunContextsRequest) returns (stream SetRunContextsResponse) {}
+  rpc SetRunContexts(stream SetRunContextsRequest) returns (SetRunContextsResponse) {}
 }

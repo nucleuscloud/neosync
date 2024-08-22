@@ -12922,7 +12922,7 @@
               "responseType": "SetRunContextsResponse",
               "responseLongType": "SetRunContextsResponse",
               "responseFullType": "mgmt.v1alpha1.SetRunContextsResponse",
-              "responseStreaming": true
+              "responseStreaming": false
             }
           ]
         }

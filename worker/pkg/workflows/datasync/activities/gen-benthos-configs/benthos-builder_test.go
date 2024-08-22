@@ -40,8 +40,9 @@ import (
 )
 
 const (
-	mockJobId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
-	mockRunId = "26444272-0bb0-4325-ae60-17dcd9744785"
+	mockJobId      = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
+	mockWorkflowId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c-workflowid"
+	mockRunId      = "26444272-0bb0-4325-ae60-17dcd9744785"
 )
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) {
@@ -144,7 +145,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -324,7 +325,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, true)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, true)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -512,7 +513,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -727,7 +728,7 @@ output:
 // 		PrimaryKeyConstraints: map[string][]string{"public.users": {"id"},
 // 			"public.orders": {"id"}},
 // 	}, nil)
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, redisConfig, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -1000,7 +1001,7 @@ output:
 // 			"public.orders": {"id"}},
 // 	}, nil)
 
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -1238,7 +1239,7 @@ output:
 // 		PrimaryKeyConstraints: map[string][]string{"public.jobs": {"id"}},
 // 	}, nil)
 
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, redisConfig, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -1522,7 +1523,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		},
 	}, nil)
 
-	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1690,7 +1691,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 // 		},
 // 	}, nil)
 
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -2034,7 +2035,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 // 		},
 // 	}, nil)
 
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -2393,7 +2394,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 // 		},
 // 	}, nil)
 
-// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
+// 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 // 	resp, err := bbuilder.GenerateBenthosConfigs(
 // 		context.Background(),
@@ -2654,7 +2655,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		},
 	}, nil)
 
-	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockWorkflowId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),

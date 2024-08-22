@@ -1441,19 +1441,19 @@ func (_c *MockJobServiceClient_SetRunContext_Call) RunAndReturn(run func(context
 }
 
 // SetRunContexts provides a mock function with given fields: _a0
-func (_m *MockJobServiceClient) SetRunContexts(_a0 context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse] {
+func (_m *MockJobServiceClient) SetRunContexts(_a0 context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse] {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetRunContexts")
 	}
 
-	var r0 *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]
-	if rf, ok := ret.Get(0).(func(context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]); ok {
+	var r0 *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]
+	if rf, ok := ret.Get(0).(func(context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse])
+			r0 = ret.Get(0).(*connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse])
 		}
 	}
 
@@ -1478,12 +1478,12 @@ func (_c *MockJobServiceClient_SetRunContexts_Call) Run(run func(_a0 context.Con
 	return _c
 }
 
-func (_c *MockJobServiceClient_SetRunContexts_Call) Return(_a0 *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
+func (_c *MockJobServiceClient_SetRunContexts_Call) Return(_a0 *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockJobServiceClient_SetRunContexts_Call) RunAndReturn(run func(context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
+func (_c *MockJobServiceClient_SetRunContexts_Call) RunAndReturn(run func(context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
 	_c.Call.Return(run)
 	return _c
 }
