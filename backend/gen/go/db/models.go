@@ -92,6 +92,7 @@ type NeosyncApiJobDestinationConnectionAssociation struct {
 type NeosyncApiRuncontext struct {
 	WorkflowID  string
 	ExternalID  string
+	AccountID   pgtype.UUID
 	Value       []byte
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp

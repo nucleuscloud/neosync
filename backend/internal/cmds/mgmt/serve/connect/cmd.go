@@ -330,8 +330,9 @@ func serve(ctx context.Context) error {
 	}
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		IsAuthEnabled: isAuthEnabled,
-		RunLogConfig:  runLogConfig,
+		IsAuthEnabled:  isAuthEnabled,
+		IsNeosyncCloud: getIsNeosyncCloud(),
+		RunLogConfig:   runLogConfig,
 	}
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,

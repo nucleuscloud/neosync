@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -670,12 +671,60 @@ func (s *Service) GetRunContext(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetRunContextRequest],
 ) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{}), nil
+	id := req.Msg.GetId()
+	accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+
+	runContext, err := s.db.Q.GetRunContextByKey(ctx, s.db.Db, db_queries.GetRunContextByKeyParams{
+		WorkflowId: id.GetJobRunId(),
+		ExternalId: id.GetExternalId(),
+		AccountId:  *accountUuid,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, fmt.Errorf("unable to retrieve run context by key: %w", err)
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("no run context exists with the provided key")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+		Value: runContext.Value,
+	}), nil
 }
 
 func (s *Service) SetRunContext(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetRunContextRequest],
 ) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+	id := req.Msg.GetId()
+	accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
+		WorkflowID:  id.GetJobRunId(),
+		ExternalID:  id.GetExternalId(),
+		AccountID:   *accountUuid,
+		Value:       req.Msg.GetValue(),
+		CreatedByID: *userUuid,
+		UpdatedByID: *userUuid,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to set run context: %w", err)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
 }
