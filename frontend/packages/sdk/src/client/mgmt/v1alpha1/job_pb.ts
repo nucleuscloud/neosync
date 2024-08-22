@@ -5663,3 +5663,200 @@ export class VirtualForeignConstraint extends Message<VirtualForeignConstraint> 
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.RunContextKey
+ */
+export class RunContextKey extends Message<RunContextKey> {
+  /**
+   * The Neosync Run ID
+   *
+   * @generated from field: string job_run_id = 1;
+   */
+  jobRunId = "";
+
+  /**
+   * An opaque identifier that will be used to store specific items
+   *
+   * @generated from field: string external_id = 2;
+   */
+  externalId = "";
+
+  constructor(data?: PartialMessage<RunContextKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RunContextKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "external_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunContextKey {
+    return new RunContextKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RunContextKey {
+    return new RunContextKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RunContextKey {
+    return new RunContextKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RunContextKey | PlainMessage<RunContextKey> | undefined, b: RunContextKey | PlainMessage<RunContextKey> | undefined): boolean {
+    return proto3.util.equals(RunContextKey, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetRunContextRequest
+ */
+export class GetRunContextRequest extends Message<GetRunContextRequest> {
+  /**
+   * @generated from field: mgmt.v1alpha1.RunContextKey id = 1;
+   */
+  id?: RunContextKey;
+
+  constructor(data?: PartialMessage<GetRunContextRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetRunContextRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "message", T: RunContextKey },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRunContextRequest {
+    return new GetRunContextRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRunContextRequest {
+    return new GetRunContextRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRunContextRequest {
+    return new GetRunContextRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRunContextRequest | PlainMessage<GetRunContextRequest> | undefined, b: GetRunContextRequest | PlainMessage<GetRunContextRequest> | undefined): boolean {
+    return proto3.util.equals(GetRunContextRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetRunContextResponse
+ */
+export class GetRunContextResponse extends Message<GetRunContextResponse> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<GetRunContextResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetRunContextResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRunContextResponse {
+    return new GetRunContextResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRunContextResponse {
+    return new GetRunContextResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRunContextResponse {
+    return new GetRunContextResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRunContextResponse | PlainMessage<GetRunContextResponse> | undefined, b: GetRunContextResponse | PlainMessage<GetRunContextResponse> | undefined): boolean {
+    return proto3.util.equals(GetRunContextResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetRunContextRequest
+ */
+export class SetRunContextRequest extends Message<SetRunContextRequest> {
+  /**
+   * @generated from field: mgmt.v1alpha1.RunContextKey id = 1;
+   */
+  id?: RunContextKey;
+
+  /**
+   * An opaque value that is to be determined by the key
+   *
+   * @generated from field: bytes value = 2;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<SetRunContextRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetRunContextRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "message", T: RunContextKey },
+    { no: 2, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetRunContextRequest {
+    return new SetRunContextRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetRunContextRequest {
+    return new SetRunContextRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetRunContextRequest {
+    return new SetRunContextRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetRunContextRequest | PlainMessage<SetRunContextRequest> | undefined, b: SetRunContextRequest | PlainMessage<SetRunContextRequest> | undefined): boolean {
+    return proto3.util.equals(SetRunContextRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetRunContextResponse
+ */
+export class SetRunContextResponse extends Message<SetRunContextResponse> {
+  constructor(data?: PartialMessage<SetRunContextResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetRunContextResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetRunContextResponse {
+    return new SetRunContextResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetRunContextResponse {
+    return new SetRunContextResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetRunContextResponse {
+    return new SetRunContextResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetRunContextResponse | PlainMessage<SetRunContextResponse> | undefined, b: SetRunContextResponse | PlainMessage<SetRunContextResponse> | undefined): boolean {
+    return proto3.util.equals(SetRunContextResponse, a, b);
+  }
+}
+

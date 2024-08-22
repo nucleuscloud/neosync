@@ -1,7 +1,7 @@
 CREATE TABLE neosync_api.runcontexts (
     workflow_id TEXT NOT NULL,
     external_id TEXT NOT NULL,
-    value TEXT NOT NULL,
+    value bytea NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by_id UUID NOT NULL,

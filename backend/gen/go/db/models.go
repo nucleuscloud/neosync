@@ -89,6 +89,16 @@ type NeosyncApiJobDestinationConnectionAssociation struct {
 	Options      *pg_models.JobDestinationOptions
 }
 
+type NeosyncApiRuncontext struct {
+	WorkflowID  string
+	ExternalID  string
+	Value       []byte
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
+	CreatedByID pgtype.UUID
+	UpdatedByID pgtype.UUID
+}
+
 type NeosyncApiTransformer struct {
 	ID                pgtype.UUID
 	CreatedAt         pgtype.Timestamp
