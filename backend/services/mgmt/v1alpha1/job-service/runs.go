@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -732,28 +731,22 @@ func (s *Service) SetRunContext(
 
 func (s *Service) SetRunContexts(
 	ctx context.Context,
-	stream *connect.BidiStream[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse],
-) error {
-	for {
-		req, err := stream.Receive()
-		if errors.Is(err, io.EOF) {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
+	stream *connect.ClientStream[mgmtv1alpha1.SetRunContextsRequest],
+) (*connect.Response[mgmtv1alpha1.SetRunContextsResponse], error) {
+	for stream.Receive() {
+		req := stream.Msg()
 		id := req.GetId()
 		accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
-			return nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+			return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
 		}
 
 		userUuid, err := s.getUserUuid(ctx)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
@@ -765,7 +758,11 @@ func (s *Service) SetRunContexts(
 			UpdatedByID: *userUuid,
 		})
 		if err != nil {
-			return fmt.Errorf("unable to set run context: %w", err)
+			return nil, fmt.Errorf("unable to set run context: %w", err)
 		}
 	}
+	if err := stream.Err(); err != nil {
+		return nil, connect.NewError(connect.CodeUnknown, err)
+	}
+	return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
 }

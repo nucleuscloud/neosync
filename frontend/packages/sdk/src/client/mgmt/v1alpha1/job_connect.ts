@@ -302,7 +302,7 @@ export const JobService = {
       name: "SetRunContexts",
       I: SetRunContextsRequest,
       O: SetRunContextsResponse,
-      kind: MethodKind.BiDiStreaming,
+      kind: MethodKind.ClientStreaming,
     },
   }
 } as const;

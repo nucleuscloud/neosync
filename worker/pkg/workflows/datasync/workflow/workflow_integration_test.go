@@ -120,7 +120,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
@@ -184,6 +185,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 							return nil, nil
 						},
 					))
+
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
@@ -204,6 +207,43 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			}
 		})
 	}
+}
+
+func addRunContextProcedureMux(mux *http.ServeMux) {
+	rcmap := map[string][]byte{}
+	rcmu := sync.RWMutex{}
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			rcmu.RLock()
+			defer rcmu.RUnlock()
+			val, ok := rcmap[toRunContextKeyString(r.Msg.GetId())]
+			if !ok {
+				return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("unable to find key: %s", toRunContextKeyString(r.Msg.GetId())))
+			}
+			return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{Value: val}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceSetRunContextsProcedure, connect.NewClientStreamHandler(
+		mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
+		func(ctx context.Context, cs *connect.ClientStream[mgmtv1alpha1.SetRunContextsRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextsResponse], error) {
+			for cs.Receive() {
+				req := cs.Msg()
+				rcmu.Lock()
+				rcmap[toRunContextKeyString(req.GetId())] = req.GetValue()
+				rcmu.Unlock()
+			}
+			if err := cs.Err(); err != nil {
+				return nil, connect.NewError(connect.CodeUnknown, err)
+			}
+			return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
+		},
+	))
+}
+
+func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
+	return fmt.Sprintf("%s.%s.%s", id.GetJobRunId(), id.GetExternalId(), id.GetAccountId())
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
@@ -234,7 +274,8 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 				Job: &mgmtv1alpha1.Job{
-					Id: "fd4d8660-31a0-48b2-9adf-10f11b94898f",
+					Id:        "fd4d8660-31a0-48b2-9adf-10f11b94898f",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 					Source: &mgmtv1alpha1.JobSource{
 						Options: &mgmtv1alpha1.JobSourceOptions{
 							Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
@@ -296,6 +337,8 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 			return nil, nil
 		},
 	))
+
+	addRunContextProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f", "Virtual Foreign Key primary key transform")
 
@@ -411,7 +454,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
@@ -475,6 +519,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 							return nil, nil
 						},
 					))
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
@@ -591,7 +636,8 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: jobId,
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
@@ -656,6 +702,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 							return nil, fmt.Errorf("unknown test connection")
 						},
 					))
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
 
@@ -856,7 +903,7 @@ func executeWorkflow(
 	)
 	var activityMeter metric.Meter
 	disableReaper := true
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 	env.RegisterWorkflow(Workflow)

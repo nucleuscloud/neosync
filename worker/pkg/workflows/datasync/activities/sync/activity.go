@@ -49,24 +49,41 @@ type SyncMetadata struct {
 }
 
 type SyncRequest struct {
+	// Deprecated
 	BenthosConfig string
 	BenthosDsns   []*shared.BenthosDsn
+	// Identifier that is used in combination with the AccountId to retrieve the benthos config
+	Name      string
+	AccountId string
 }
-type SyncResponse struct{}
+type SyncResponse struct {
+	Schema string
+	Table  string
+}
 
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
 	meter metric.Meter,
 	benthosStreamManager BenthosStreamManagerClient,
 	disableReaper bool,
 ) *Activity {
-	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter, benthosStreamManager: benthosStreamManager, disableReaper: disableReaper}
+	return &Activity{
+		connclient:           connclient,
+		jobclient:            jobclient,
+		tunnelmanagermap:     tunnelmanagermap,
+		temporalclient:       temporalclient,
+		meter:                meter,
+		benthosStreamManager: benthosStreamManager,
+		disableReaper:        disableReaper,
+	}
 }
 
 type Activity struct {
 	connclient           mgmtv1alpha1connect.ConnectionServiceClient
+	jobclient            mgmtv1alpha1connect.JobServiceClient
 	tunnelmanagermap     *sync.Map
 	temporalclient       client.Client
 	meter                metric.Meter // optional
@@ -120,6 +137,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		"WorkflowID", info.WorkflowExecution.ID,
 		"RunID", info.WorkflowExecution.RunID,
 		"activitySession", session,
+	}
+	if req.AccountId != "" {
+		loggerKeyVals = append(loggerKeyVals, "accountId", req.AccountId)
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
@@ -181,6 +201,25 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			}
 		}
 	}()
+
+	var benthosConfig string
+	if req.AccountId != "" && req.Name != "" {
+		rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				JobRunId:   info.WorkflowExecution.ID,
+				ExternalId: shared.GetBenthosConfigExternalId(req.Name),
+				AccountId:  req.AccountId,
+			},
+		}))
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve benthosconfig runcontext for %s.%s: %w", metadata.Schema, metadata.Table, err)
+		}
+		benthosConfig = string(rcResp.Msg.GetValue())
+	} else if req.BenthosConfig != "" {
+		benthosConfig = req.BenthosConfig
+	} else {
+		return nil, fmt.Errorf("must provide means to retrieve benthos config either directly or via runcontext")
+	}
 
 	tunnelmanager, err := a.getTunnelManagerByRunId(info.WorkflowExecution.ID, info.WorkflowExecution.RunID)
 	if err != nil {
@@ -253,7 +292,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 
-	err = streambldr.SetYAML(req.BenthosConfig)
+	err = streambldr.SetYAML(benthosConfig)
 	if err != nil {
 		streamBuilderMu.Unlock()
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -291,7 +330,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	benthosStreamMutex.Unlock()
 
 	logger.Info("sync complete")
-	return &SyncResponse{}, nil
+	return &SyncResponse{Schema: metadata.Schema, Table: metadata.Table}, nil
 }
 
 func getConnectionsFromBenthosDsns(

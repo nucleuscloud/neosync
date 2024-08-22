@@ -191,7 +191,7 @@ type JobServiceClient interface {
 	// Sets a run context to be used by a workflow run
 	SetRunContext(context.Context, *connect.Request[v1alpha1.SetRunContextRequest]) (*connect.Response[v1alpha1.SetRunContextResponse], error)
 	// Sets a stream of run contexts to be used by a workflow run
-	SetRunContexts(context.Context) *connect.BidiStreamForClient[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
+	SetRunContexts(context.Context) *connect.ClientStreamForClient[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -567,8 +567,8 @@ func (c *jobServiceClient) SetRunContext(ctx context.Context, req *connect.Reque
 }
 
 // SetRunContexts calls mgmt.v1alpha1.JobService.SetRunContexts.
-func (c *jobServiceClient) SetRunContexts(ctx context.Context) *connect.BidiStreamForClient[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse] {
-	return c.setRunContexts.CallBidiStream(ctx)
+func (c *jobServiceClient) SetRunContexts(ctx context.Context) *connect.ClientStreamForClient[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse] {
+	return c.setRunContexts.CallClientStream(ctx)
 }
 
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
@@ -613,7 +613,7 @@ type JobServiceHandler interface {
 	// Sets a run context to be used by a workflow run
 	SetRunContext(context.Context, *connect.Request[v1alpha1.SetRunContextRequest]) (*connect.Response[v1alpha1.SetRunContextResponse], error)
 	// Sets a stream of run contexts to be used by a workflow run
-	SetRunContexts(context.Context, *connect.BidiStream[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]) error
+	SetRunContexts(context.Context, *connect.ClientStream[v1alpha1.SetRunContextsRequest]) (*connect.Response[v1alpha1.SetRunContextsResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -796,7 +796,7 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceSetRunContextMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	jobServiceSetRunContextsHandler := connect.NewBidiStreamHandler(
+	jobServiceSetRunContextsHandler := connect.NewClientStreamHandler(
 		JobServiceSetRunContextsProcedure,
 		svc.SetRunContexts,
 		connect.WithSchema(jobServiceSetRunContextsMethodDescriptor),
@@ -989,6 +989,6 @@ func (UnimplementedJobServiceHandler) SetRunContext(context.Context, *connect.Re
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetRunContext is not implemented"))
 }
 
-func (UnimplementedJobServiceHandler) SetRunContexts(context.Context, *connect.BidiStream[v1alpha1.SetRunContextsRequest, v1alpha1.SetRunContextsResponse]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetRunContexts is not implemented"))
+func (UnimplementedJobServiceHandler) SetRunContexts(context.Context, *connect.ClientStream[v1alpha1.SetRunContextsRequest]) (*connect.Response[v1alpha1.SetRunContextsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetRunContexts is not implemented"))
 }
