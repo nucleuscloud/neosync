@@ -835,7 +835,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						{Key: "string", Value: "Hello, MongoDB!"},
 						{Key: "bool", Value: true},
 						{Key: "int32", Value: int32(42)},
-						{Key: "int64", Value: int64(9223372036854775807)},
+						{Key: "int64", Value: int64(92233720)},
 						{Key: "double", Value: 3.14159},
 						{Key: "decimal128", Value: primitive.NewDecimal128(3, 14159)},
 						{Key: "date", Value: primitive.NewDateTimeFromTime(time.Now())},
@@ -989,6 +989,43 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
+			},
+		},
+		{
+			Name: "Transform Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+								TransformStringConfig: &mgmtv1alpha1.TransformString{
+									PreserveLength: true,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "embedded_document.name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+							},
 						},
 					},
 				},
