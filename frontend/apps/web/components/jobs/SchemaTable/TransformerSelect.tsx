@@ -61,6 +61,8 @@ export default function TransformerSelect(props: Props): ReactElement {
     ? getTransformers()
     : { system: [], userDefined: [] };
 
+  // const calcPopovere;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -79,13 +81,13 @@ export default function TransformerSelect(props: Props): ReactElement {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[350px] p-0 min-h-[600px]"
+        className="w-[350px] p-0"
         avoidCollisions={true} // this prevents the popover from overflowing out of the viewport (meaning there is content the user isn't able to access)
         side={side}
       >
         <Command>
           <CommandInput placeholder={'Search...'} />
-          <div className="min-h-[600px]">
+          <div>
             <CommandList className="max-h-[600px]">
               <CommandEmpty>No transformers found.</CommandEmpty>
               {userDefined.length > 0 && (
