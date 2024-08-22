@@ -16743,3 +16743,238 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SetRunContextResponseValidationError{}
+
+// Validate checks the field values on SetRunContextsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetRunContextsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetRunContextsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetRunContextsRequestMultiError, or nil if none found.
+func (m *SetRunContextsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetRunContextsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetRunContextsRequestValidationError{
+					field:  "Id",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetRunContextsRequestValidationError{
+					field:  "Id",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetRunContextsRequestValidationError{
+				field:  "Id",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return SetRunContextsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetRunContextsRequestMultiError is an error wrapping multiple validation
+// errors returned by SetRunContextsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetRunContextsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetRunContextsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetRunContextsRequestMultiError) AllErrors() []error { return m }
+
+// SetRunContextsRequestValidationError is the validation error returned by
+// SetRunContextsRequest.Validate if the designated constraints aren't met.
+type SetRunContextsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetRunContextsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetRunContextsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetRunContextsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetRunContextsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetRunContextsRequestValidationError) ErrorName() string {
+	return "SetRunContextsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetRunContextsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetRunContextsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetRunContextsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetRunContextsRequestValidationError{}
+
+// Validate checks the field values on SetRunContextsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetRunContextsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetRunContextsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetRunContextsResponseMultiError, or nil if none found.
+func (m *SetRunContextsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetRunContextsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SetRunContextsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetRunContextsResponseMultiError is an error wrapping multiple validation
+// errors returned by SetRunContextsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetRunContextsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetRunContextsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetRunContextsResponseMultiError) AllErrors() []error { return m }
+
+// SetRunContextsResponseValidationError is the validation error returned by
+// SetRunContextsResponse.Validate if the designated constraints aren't met.
+type SetRunContextsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetRunContextsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetRunContextsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetRunContextsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetRunContextsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetRunContextsResponseValidationError) ErrorName() string {
+	return "SetRunContextsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetRunContextsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetRunContextsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetRunContextsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetRunContextsResponseValidationError{}

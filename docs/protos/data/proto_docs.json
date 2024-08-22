@@ -12007,6 +12007,53 @@
           "fields": []
         },
         {
+          "name": "SetRunContextsRequest",
+          "longName": "SetRunContextsRequest",
+          "fullName": "mgmt.v1alpha1.SetRunContextsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "RunContextKey",
+              "longType": "RunContextKey",
+              "fullType": "mgmt.v1alpha1.RunContextKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "An opaque value that is to be determined by the key",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetRunContextsResponse",
+          "longName": "SetRunContextsResponse",
+          "fullName": "mgmt.v1alpha1.SetRunContextsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "TerminateJobRunRequest",
           "longName": "TerminateJobRunRequest",
           "fullName": "mgmt.v1alpha1.TerminateJobRunRequest",
@@ -12864,6 +12911,18 @@
               "responseLongType": "SetRunContextResponse",
               "responseFullType": "mgmt.v1alpha1.SetRunContextResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "SetRunContexts",
+              "description": "Sets a stream of run contexts to be used by a workflow run",
+              "requestType": "SetRunContextsRequest",
+              "requestLongType": "SetRunContextsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetRunContextsRequest",
+              "requestStreaming": true,
+              "responseType": "SetRunContextsResponse",
+              "responseLongType": "SetRunContextsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetRunContextsResponse",
+              "responseStreaming": true
             }
           ]
         }

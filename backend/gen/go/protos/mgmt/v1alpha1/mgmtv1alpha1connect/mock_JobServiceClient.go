@@ -1440,6 +1440,54 @@ func (_c *MockJobServiceClient_SetRunContext_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// SetRunContexts provides a mock function with given fields: _a0
+func (_m *MockJobServiceClient) SetRunContexts(_a0 context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse] {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetRunContexts")
+	}
+
+	var r0 *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]
+	if rf, ok := ret.Get(0).(func(context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse])
+		}
+	}
+
+	return r0
+}
+
+// MockJobServiceClient_SetRunContexts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetRunContexts'
+type MockJobServiceClient_SetRunContexts_Call struct {
+	*mock.Call
+}
+
+// SetRunContexts is a helper method to define mock.On call
+//   - _a0 context.Context
+func (_e *MockJobServiceClient_Expecter) SetRunContexts(_a0 interface{}) *MockJobServiceClient_SetRunContexts_Call {
+	return &MockJobServiceClient_SetRunContexts_Call{Call: _e.mock.On("SetRunContexts", _a0)}
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) Run(run func(_a0 context.Context)) *MockJobServiceClient_SetRunContexts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) Return(_a0 *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) RunAndReturn(run func(context.Context) *connect.BidiStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TerminateJobRun provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) TerminateJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.TerminateJobRunRequest]) (*connect.Response[mgmtv1alpha1.TerminateJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)

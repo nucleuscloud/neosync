@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -28,7 +29,7 @@ import (
 	"go.temporal.io/sdk/converter"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -514,9 +515,9 @@ func (s *Service) streamK8sWorkerPodLogs(
 			SinceTime: &metav1.Time{Time: getLogFilterTime(req.Msg.GetWindow(), time.Now())},
 		})
 		logstream, err := logsReq.Stream(ctx)
-		if err != nil && !errors.IsNotFound(err) {
+		if err != nil && !k8serrors.IsNotFound(err) {
 			return err
-		} else if err != nil && errors.IsNotFound(err) {
+		} else if err != nil && k8serrors.IsNotFound(err) {
 			return nucleuserrors.NewNotFound("pod no longer exists")
 		}
 
@@ -727,4 +728,44 @@ func (s *Service) SetRunContext(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
+}
+
+func (s *Service) SetRunContexts(
+	ctx context.Context,
+	stream *connect.BidiStream[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse],
+) error {
+	for {
+		req, err := stream.Receive()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		id := req.GetId()
+		accountUuid, err := s.verifyUserInAccount(ctx, id.GetAccountId())
+		if err != nil {
+			return err
+		}
+		if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+			return nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		}
+
+		userUuid, err := s.getUserUuid(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = s.db.Q.SetRunContext(ctx, s.db.Db, db_queries.SetRunContextParams{
+			WorkflowID:  id.GetJobRunId(),
+			ExternalID:  id.GetExternalId(),
+			AccountID:   *accountUuid,
+			Value:       req.GetValue(),
+			CreatedByID: *userUuid,
+			UpdatedByID: *userUuid,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to set run context: %w", err)
+		}
+	}
 }
