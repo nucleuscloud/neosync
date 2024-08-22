@@ -665,3 +665,17 @@ func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) time.Tim
 		return endTime.Add(-15 * time.Minute)
 	}
 }
+
+func (s *Service) GetRunContext(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetRunContextRequest],
+) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{}), nil
+}
+
+func (s *Service) SetRunContext(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetRunContextRequest],
+) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.SetRunContextResponse{}), nil
+}
