@@ -354,8 +354,7 @@ input:
     mapping: 'root = { "id": uuid_v4() }'
 output:
   label: ""
-  stdout:
-    codec: lines
+  drop: {}
 `),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.Error(t, err)

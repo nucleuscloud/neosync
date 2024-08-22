@@ -42,7 +42,11 @@ func BuildSelectQueryMap(
 			continue
 		}
 		schema, table := splitTable(cfg.Table)
-		qb.AddWhereCondition(schema, table, *cfg.WhereClause)
+		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(&schema, table, *cfg.WhereClause)
+		if err != nil {
+			return nil, err
+		}
+		qb.AddWhereCondition(schema, table, qualifiedWhereCaluse)
 	}
 
 	querymap := map[string]map[tabledependency.RunType]string{}

@@ -41,27 +41,10 @@ type AliasTableInfo struct {
 	Name string
 }
 
-// Returns table info with just the table name
-
 func (t *AliasTableInfo) GetSchema() *string {
 	return nil
 }
 func (t *AliasTableInfo) GetName() string {
-	return t.Name
-}
-
-type TableIdentity interface {
-	GetSchema() *string
-	GetName() string
-}
-
-func (t *TableInfo) GetSchema() *string {
-	if t.Schema == "" {
-		return nil
-	}
-	return &t.Schema
-}
-func (t *TableInfo) GetName() string {
 	return t.Name
 }
 
@@ -127,15 +110,6 @@ func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
 	// Add foreign key columns
 	for _, fk := range table.ForeignKeys {
 		columns = append(columns, fk.Columns...)
-	}
-	// Add columns used in WHERE conditions
-	if conditions, ok := qb.whereConditions[qb.getTableKey(table.Schema, table.Name)]; ok {
-		for _, cond := range conditions {
-			parts := strings.Fields(cond.Condition)
-			if len(parts) > 0 {
-				columns = append(columns, parts[0])
-			}
-		}
 	}
 	// Remove duplicates
 	return uniqueStrings(columns)
@@ -217,11 +191,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	// Add WHERE conditions for this table
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
-			qualifiedCondition, err := qb.qualifyWhereCondition(table, cond.Condition)
-			if err != nil {
-				return nil, err
-			}
-			query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
+			query = query.Where(goqu.L(cond.Condition, cond.Args...))
 		}
 	}
 
@@ -257,8 +227,8 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	return query, nil
 }
 
-func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition string) (string, error) {
-	query := qb.getDialect().From(goqu.T(table.GetName())).Select(goqu.Star()).Where(goqu.L(condition))
+func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
+	query := qb.getDialect().From(goqu.T(table)).Select(goqu.Star()).Where(goqu.L(condition))
 	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("unable to build where condition: %w", err)
@@ -267,13 +237,13 @@ func (qb *QueryBuilder) qualifyWhereCondition(table TableIdentity, condition str
 	var updatedSql string
 	switch qb.driver {
 	case sqlmanager_shared.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, table.GetSchema(), table.GetName())
+		sql, err := qualifyMysqlWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
-		sql, err := qualifyPostgresWhereColumnNames(sql, table.GetSchema(), table.GetName())
+		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
