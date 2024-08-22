@@ -750,6 +750,8 @@ message RunContextKey {
   string job_run_id = 1 [(buf.validate.field).string.min_len = 1];
   // An opaque identifier that will be used to store specific items
   string external_id = 2 [(buf.validate.field).string.min_len = 1];
+  // The Neosync Account ID
+  string account_id = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetRunContextRequest {

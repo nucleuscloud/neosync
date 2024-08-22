@@ -5681,6 +5681,13 @@ export class RunContextKey extends Message<RunContextKey> {
    */
   externalId = "";
 
+  /**
+   * The Neosync Account ID
+   *
+   * @generated from field: string account_id = 3;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<RunContextKey>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5691,6 +5698,7 @@ export class RunContextKey extends Message<RunContextKey> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "external_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunContextKey {
