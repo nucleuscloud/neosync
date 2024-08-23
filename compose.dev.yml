@@ -137,7 +137,6 @@ services:
         - action: rebuild
           path: worker/
           target: /workspace
-        - action: rebuild
     restart: on-failure
 
   redis:

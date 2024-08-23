@@ -1,5 +1,10 @@
 # Build the manager binary
-FROM golang:1.22 as builder
+FROM golang:1.22-bookworm as builder
+
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y \
+    build-essential
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -28,7 +33,11 @@ FROM debian:bookworm-slim
 WORKDIR /
 
 # Install CA certificates for HTTPS connections
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /workspace/worker/bin/worker .
 
 # Install any runtime dependencies if needed
