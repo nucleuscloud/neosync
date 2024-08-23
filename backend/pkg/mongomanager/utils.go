@@ -23,6 +23,8 @@ const (
 	NumberSet
 	ObjectID
 	Decimal128
+	Timestamp
+	Binary
 )
 
 func ParseStringAsNumber(s string) (any, error) {
@@ -35,6 +37,67 @@ func ParseStringAsNumber(s string) (any, error) {
 	}
 
 	return nil, errors.New("input string is neither a valid int nor a float")
+}
+
+func ParseTypes(doc map[string]any) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+	result := make(map[string]any)
+	ktm := make(map[string]KeyType)
+	for k, v := range doc {
+		result[k] = ParseTypeValue(k, v, ktm)
+	}
+	return doc, ktm
+}
+
+func ParseTypeValue(key string, value any, keyTypeMap map[string]KeyType) any {
+	fmt.Println(key, value)
+	switch v := value.(type) {
+	case nil:
+		return v
+	case string:
+		return v
+	case int32, int64, float64:
+		return v
+	case bool:
+		return v
+	case primitive.Decimal128:
+		keyTypeMap[key] = Decimal128
+		return v
+	case primitive.Binary:
+		keyTypeMap[key] = Binary
+		return v
+	case primitive.ObjectID:
+		keyTypeMap[key] = ObjectID
+		return v
+	case primitive.DateTime:
+		return v
+	case primitive.Timestamp:
+		keyTypeMap[key] = Timestamp
+		return v
+	case primitive.Null:
+		return v
+	case primitive.Undefined:
+		return v
+	case primitive.Regex:
+		return v
+	case bson.D:
+		m := make(map[string]any)
+		for _, elem := range v {
+			path := elem.Key
+			if key != "" {
+				path = fmt.Sprintf("%s.%s", key, elem.Key)
+			}
+			m[elem.Key] = ParseBSONValue(path, elem.Value, keyTypeMap)
+		}
+		return m
+	case bson.A:
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = ParseBSONValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+		}
+		return result
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 func UnmarshalBSONDocument(doc bson.D) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
@@ -124,19 +187,42 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
 		case Decimal128:
-			// return primitive.ParseDecimal128(root)
+			_, ok := root.(primitive.Decimal128)
+			if ok {
+				return root
+			}
 			vStr, ok := root.(string)
 			if ok {
 				d, err := primitive.ParseDecimal128(vStr)
 				if err == nil {
-					fmt.Println("returning decimal128")
 					return d
 				}
 			}
-			fmt.Println("returning decimal as string")
-			return fmt.Sprintf("%v", root)
+			vFloat, ok := root.(float64)
+			if ok {
+				d, err := primitive.ParseDecimal128(strconv.FormatFloat(vFloat, 'f', 4, 64))
+				if err == nil {
+					return d
+				}
+			}
+		case Timestamp:
+			_, ok := root.(primitive.Timestamp)
+			if ok {
+				return root
+			}
+			t, err := toUint32(root)
+			if err == nil {
+				return primitive.Timestamp{
+					T: t,
+					I: 1,
+				}
+			}
 
 		case ObjectID:
+			_, ok := root.(primitive.ObjectID)
+			if ok {
+				return root
+			}
 			vStr, ok := root.(string)
 			if ok {
 				if objectID, err := primitive.ObjectIDFromHex(vStr); err == nil {
@@ -144,7 +230,6 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 					return objectID
 				}
 			}
-			return fmt.Sprintf("%v", root)
 			// case DateTime:
 			// 	return root
 		}
@@ -152,31 +237,9 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 
 	switch v := root.(type) {
 	case map[string]any:
-		// Handle Binary
-		if base64Data, ok := v["base64"].([]byte); ok {
-			if subType, ok := v["subType"].(uint8); ok {
-				return primitive.Binary{Data: base64Data, Subtype: subType}
-			}
-		}
-
-		// Handle Timestamp
-		if t, ok := v["t"].(uint32); ok {
-			if i, ok := v["i"].(uint32); ok {
-				return primitive.Timestamp{T: t, I: i}
-			}
-		}
-
-		// Handle Regex
-		if pattern, ok := v["pattern"].(string); ok {
-			if options, ok := v["options"].(string); ok {
-				return primitive.Regex{Pattern: pattern, Options: options}
-			}
-		}
-
 		// Default map handling
 		doc := bson.D{}
 		for k, v2 := range v {
-
 			path := k
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, k)
@@ -226,7 +289,7 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 		return primitive.Null{}
 
 	default:
-		return fmt.Sprintf("%v", v)
+		return v
 	}
 }
 
@@ -262,4 +325,59 @@ func ConvertToSlice(slice any) ([]any, error) {
 // New function to convert a Timestamp to time.Time
 func TimestampToTime(ts primitive.Timestamp) time.Time {
 	return time.Unix(int64(ts.T), 0)
+}
+
+func toUint32(value any) (uint32, error) {
+	switch v := value.(type) {
+	case int:
+		if v < 0 {
+			return 0, errors.New("cannot convert negative int to uint32")
+		}
+		return uint32(v), nil
+	case int8:
+		if v < 0 {
+			return 0, errors.New("cannot convert negative int8 to uint32")
+		}
+		return uint32(v), nil
+	case int16:
+		if v < 0 {
+			return 0, errors.New("cannot convert negative int16 to uint32")
+		}
+		return uint32(v), nil
+	case int32:
+		if v < 0 {
+			return 0, errors.New("cannot convert negative int32 to uint32")
+		}
+		return uint32(v), nil
+	case int64:
+		if v < 0 || v > int64(^uint32(0)) {
+			return 0, errors.New("value out of range for uint32")
+		}
+		return uint32(v), nil
+	case uint8:
+		return uint32(v), nil
+	case uint16:
+		return uint32(v), nil
+	case uint32:
+		return v, nil
+	case uint64:
+		if v > uint64(^uint32(0)) {
+			return 0, errors.New("value out of range for uint32")
+		}
+		return uint32(v), nil
+	case float32:
+		if v < 0 || v > float32(^uint32(0)) {
+			return 0, errors.New("value out of range for uint32")
+		}
+		return uint32(v), nil
+	case float64:
+		if v < 0 || v > float64(^uint32(0)) {
+			return 0, errors.New("value out of range for uint32")
+		}
+		return uint32(v), nil
+	case string:
+		return 0, errors.New("cannot convert string to uint32")
+	default:
+		return 0, fmt.Errorf("unsupported type: %T", value)
+	}
 }

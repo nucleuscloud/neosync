@@ -362,12 +362,18 @@ func extJSONFromMap(b service.MessageBatch, i int, m *bloblang.Executor) (any, e
 	if err != nil {
 		return nil, err
 	}
+	// for k, v := range root.(map[string]any) {
+	// 	fmt.Printf("k: %s  v: %+v  t: %T\n", k, v, v)
+
+	// }
 	jsonF, _ := json.MarshalIndent(keyTypeMap, "", " ")
 	fmt.Printf("output keyTypeMap: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(root, "", " ")
-	fmt.Printf("output root: %s \n", string(jsonF))
+	// jsonF, _ = json.MarshalIndent(root, "", " ")
+	// fmt.Printf("output root: %s \n", string(jsonF))
 
 	bsonmap := neosync_mongodb.MarshalJSONToBSONDocument(root, keyTypeMap)
+	jsonF, _ = json.MarshalIndent(bsonmap, "", " ")
+	fmt.Printf("output bsonmap: %s \n", string(jsonF))
 	return bsonmap, nil
 }
 

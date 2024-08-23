@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -224,11 +223,11 @@ func (m *mongoInput) ReadBatch(ctx context.Context) (service.MessageBatch, servi
 		msg.MetaSet("mongo_collection", m.collection)
 
 		// var decoded any
-		var decoded bson.D
+		var decoded map[string]any
 		if err := m.cursor.Decode(&decoded); err != nil {
 			msg.SetError(err)
 		} else {
-			standardMap, keyTypeMap := neosync_mongodb.UnmarshalBSONDocument(decoded)
+			standardMap, keyTypeMap := neosync_mongodb.ParseTypes(decoded)
 
 			// Add the key type map to the message metadata
 			keyTypeMapJSON, err := json.Marshal(keyTypeMap)
@@ -242,7 +241,7 @@ func (m *mongoInput) ReadBatch(ctx context.Context) (service.MessageBatch, servi
 
 			// msg.SetBytes(data)
 			msg.MetaSetMut(neosync_mongodb.MetaTypeMapStr, keyTypeMap)
-			msg.SetStructuredMut(standardMap)
+			msg.SetStructuredMut(decoded)
 		}
 
 		batch = append(batch, msg)
