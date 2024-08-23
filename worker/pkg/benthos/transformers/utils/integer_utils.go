@@ -162,6 +162,8 @@ func AnyToInt64(value any) (int64, error) {
 	}
 
 	switch v := value.(type) {
+	case string:
+		return strconv.ParseInt(v, 10, 64)
 	case float32:
 		return int64(v), nil
 	case float64:

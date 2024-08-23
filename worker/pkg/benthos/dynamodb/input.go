@@ -2,6 +2,7 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -154,6 +155,8 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 		}
 
 		resMap, keyTypeMap := neosync_dynamodb.UnmarshalAttributeValueMap(item)
+		jsonF, _ := json.MarshalIndent(resMap, "", " ")
+		fmt.Printf("%s \n", string(jsonF))
 		msg := service.NewMessage(nil)
 		msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)

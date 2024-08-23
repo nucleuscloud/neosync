@@ -1,14 +1,15 @@
 package neosync_benthos_mongodb
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
+	neosync_mongodb "github.com/nucleuscloud/neosync/backend/pkg/mongomanager"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
@@ -341,14 +342,56 @@ func extJSONFromMap(b service.MessageBatch, i int, m *bloblang.Executor) (any, e
 		return nil, nil
 	}
 
-	valBytes, err := msg.AsBytes()
+	// valBytes, err := msg.AsBytes()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// var ejsonVal any
+	// if err := bson.UnmarshalExtJSON(valBytes, true, &ejsonVal); err != nil {
+	// 	return nil, err
+	// }
+	// jsonF, _ := json.MarshalIndent(ejsonVal, "", " ")
+	// fmt.Printf("output ejsonVal: %s \n", string(jsonF))
+	// return ejsonVal, nil
+	keyTypeMap, err := getKeyTypMap(msg)
 	if err != nil {
 		return nil, err
 	}
-
-	var ejsonVal any
-	if err := bson.UnmarshalExtJSON(valBytes, true, &ejsonVal); err != nil {
+	root, err := msg.AsStructured()
+	if err != nil {
 		return nil, err
 	}
-	return ejsonVal, nil
+	jsonF, _ := json.MarshalIndent(keyTypeMap, "", " ")
+	fmt.Printf("output keyTypeMap: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(root, "", " ")
+	fmt.Printf("output root: %s \n", string(jsonF))
+
+	bsonmap := neosync_mongodb.MarshalJSONToBSONDocument(root, keyTypeMap)
+	return bsonmap, nil
+}
+
+func getKeyTypMap(p *service.Message) (map[string]neosync_mongodb.KeyType, error) {
+	keyTypeMap := map[string]neosync_mongodb.KeyType{}
+	meta, ok := p.MetaGetMut(neosync_mongodb.MetaTypeMapStr)
+	if ok {
+		kt, err := convertToMapStringKeyType(meta)
+		if err != nil {
+			return nil, err
+		}
+		keyTypeMap = kt
+	}
+	ktm := map[string]neosync_mongodb.KeyType{}
+	for k, v := range keyTypeMap {
+		ktm[fmt.Sprintf("$set.%s", k)] = v
+	}
+	return ktm, nil
+}
+
+func convertToMapStringKeyType(i any) (map[string]neosync_mongodb.KeyType, error) {
+	if m, ok := i.(map[string]neosync_mongodb.KeyType); ok {
+		return m, nil
+	}
+
+	return nil, errors.New("input is not of type map[string]KeyType")
 }

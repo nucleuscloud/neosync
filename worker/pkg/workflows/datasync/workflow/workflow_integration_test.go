@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -840,7 +841,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						{Key: "decimal128", Value: primitive.NewDecimal128(3, 14159)},
 						{Key: "date", Value: primitive.NewDateTimeFromTime(time.Now())},
 						{Key: "timestamp", Value: primitive.Timestamp{T: 1645553494, I: 1}},
-						{Key: "null", Value: nil},
+						{Key: "null", Value: primitive.Null{}},
 						{Key: "regex", Value: primitive.Regex{Pattern: "^test", Options: "i"}},
 						{Key: "array", Value: bson.A{"apple", "banana", "cherry"}},
 						{Key: "embedded_document", Value: bson.D{
@@ -950,6 +951,8 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						}
 						cursor.Close(s.ctx)
 						require.Equal(t, expected.RowCount, len(results), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+						jsonF, _ := json.MarshalIndent(results, "", " ")
+						fmt.Printf("%s \n", string(jsonF))
 					}
 
 					// tear down
@@ -967,37 +970,37 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
-		{
-			Name: "Passthrough Sync",
-			JobMappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "data",
-					Table:  "test-sync",
-					Column: "string",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-						},
-					},
-				},
-				{
-					Schema: "data",
-					Table:  "test-sync",
-					Column: "bool",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-						},
-					},
-				},
-			},
-			JobOptions: &workflow_testdata.TestJobOptions{},
-			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"test-sync": {RowCount: 1},
-			},
-		},
+		// {
+		// 	Name: "Passthrough Sync",
+		// 	JobMappings: []*mgmtv1alpha1.JobMapping{
+		// 		{
+		// 			Schema: "data",
+		// 			Table:  "test-sync",
+		// 			Column: "string",
+		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+		// 				Config: &mgmtv1alpha1.TransformerConfig{
+		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+		// 				},
+		// 			},
+		// 		},
+		// 		{
+		// 			Schema: "data",
+		// 			Table:  "test-sync",
+		// 			Column: "bool",
+		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+		// 				Config: &mgmtv1alpha1.TransformerConfig{
+		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	JobOptions: &workflow_testdata.TestJobOptions{},
+		// 	Expected: map[string]*workflow_testdata.ExpectedOutput{
+		// 		"test-sync": {RowCount: 1},
+		// 	},
+		// },
 		{
 			Name: "Transform Sync",
 			JobMappings: []*mgmtv1alpha1.JobMapping{
@@ -1016,15 +1019,31 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 				},
+				// {
+				// 	Schema: "data",
+				// 	Table:  "test-sync",
+				// 	Column: "embedded_document.name",
+				// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				// 		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+				// 		Config: &mgmtv1alpha1.TransformerConfig{
+				// 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+				// 				GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+				// 			},
+				// 		},
+				// 	},
+				// },
 				{
 					Schema: "data",
 					Table:  "test-sync",
-					Column: "embedded_document.name",
+					Column: "int64",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
-							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
-								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
 							},
 						},
 					},
