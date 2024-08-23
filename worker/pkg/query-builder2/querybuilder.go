@@ -9,7 +9,6 @@ import (
 	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
-	pgquery "github.com/wasilibs/go-pgquery"
 	"github.com/xwb1989/sqlparser"
 )
 
@@ -261,7 +260,7 @@ func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition s
 }
 
 func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
-	tree, err := pgquery.Parse(sql)
+	tree, err := pg_query.Parse(sql)
 	if err != nil {
 		return "", err
 	}
@@ -273,7 +272,7 @@ func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (
 			updatePostgresExpr(schema, table, selectStmt.WhereClause)
 		}
 	}
-	updatedSql, err := pgquery.Deparse(tree)
+	updatedSql, err := pg_query.Deparse(tree)
 	if err != nil {
 		return "", err
 	}
