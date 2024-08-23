@@ -181,7 +181,7 @@ func AnyToInt64(value any) (int64, error) {
 	case uint:
 		return int64(v), nil //nolint:gosec // Ignoring for now
 	case uint8:
-		return int64(v), nil //nolint:gosec // Ignoring for now
+		return int64(v), nil
 	case uint16:
 		return int64(v), nil
 	case uint32:

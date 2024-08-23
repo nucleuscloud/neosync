@@ -207,7 +207,7 @@ func toUint32(value any) (uint32, error) {
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int8 to uint32")
 		}
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case int16:
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int16 to uint32")
@@ -229,7 +229,7 @@ func toUint32(value any) (uint32, error) {
 		}
 		return uint32(v), nil //nolint:gosec
 	case uint8:
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case uint16:
 		return uint32(v), nil
 	case uint32:
