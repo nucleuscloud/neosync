@@ -2,9 +2,7 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strconv"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,18 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
-)
-
-const (
-	metaTypeMapStr = "neosync_key_type_map"
-)
-
-type KeyType int
-
-const (
-	StringSet KeyType = iota
-	NumberSet
 )
 
 func dynamoInputConfigSpec() *service.ConfigSpec {
@@ -165,9 +154,9 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 			continue
 		}
 
-		resMap, keyTypeMap := attributeValueMapToStandardJSON(item)
+		resMap, keyTypeMap := neosync_dynamodb.UnmarshalAttributeValueMap(item)
 		msg := service.NewMessage(nil)
-		msg.MetaSetMut(metaTypeMapStr, keyTypeMap)
+		msg.MetaSetMut(neosync_benthos_metadata.MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}
@@ -283,81 +272,4 @@ func awsSessionFields() []*service.ConfigField {
 			Advanced().
 			Description("Optional manual configuration of AWS credentials to use. More information can be found [in this document](/docs/guides/cloud/aws)."),
 	}
-}
-
-func attributeValueMapToStandardJSON(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
-	standardJSON := make(map[string]any)
-	ktm := make(map[string]KeyType)
-	for k, v := range item {
-		val := attributeValueToStandardValue(k, v, ktm)
-		standardJSON[k] = val
-	}
-	return standardJSON, ktm
-}
-
-// attributeValueToStandardValue converts a DynamoDB AttributeValue to a standard value
-func attributeValueToStandardValue(key string, v types.AttributeValue, keyTypeMap map[string]KeyType) any {
-	switch t := v.(type) {
-	case *types.AttributeValueMemberB:
-		return t.Value
-	case *types.AttributeValueMemberBOOL:
-		return t.Value
-	case *types.AttributeValueMemberBS:
-		return t.Value
-	case *types.AttributeValueMemberL:
-		lAny := make([]any, len(t.Value))
-		for i, v := range t.Value {
-			val := attributeValueToStandardValue(fmt.Sprintf("%s[%d]", key, i), v, keyTypeMap)
-			lAny[i] = val
-		}
-		return lAny
-	case *types.AttributeValueMemberM:
-		mAny := make(map[string]any, len(t.Value))
-		for k, v := range t.Value {
-			val := attributeValueToStandardValue(k, v, keyTypeMap)
-			mAny[k] = val
-		}
-		return mAny
-	case *types.AttributeValueMemberN:
-		n, err := convertStringToNumber(t.Value)
-		if err != nil {
-			return t.Value
-		}
-		return n
-	case *types.AttributeValueMemberNS:
-		keyTypeMap[key] = NumberSet
-		lAny := make([]any, len(t.Value))
-		for i, v := range t.Value {
-			n, err := convertStringToNumber(v)
-			if err != nil {
-				return v
-			}
-			lAny[i] = n
-		}
-		return lAny
-	case *types.AttributeValueMemberNULL:
-		return nil
-	case *types.AttributeValueMemberS:
-		return t.Value
-	case *types.AttributeValueMemberSS:
-		keyTypeMap[key] = StringSet
-		lAny := make([]any, len(t.Value))
-		for i, v := range t.Value {
-			lAny[i] = v
-		}
-		return lAny
-	}
-	return nil
-}
-
-func convertStringToNumber(s string) (any, error) {
-	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return i, nil
-	}
-
-	if f, err := strconv.ParseFloat(s, 64); err == nil {
-		return f, nil
-	}
-
-	return nil, errors.New("input string is neither a valid int nor a float")
 }

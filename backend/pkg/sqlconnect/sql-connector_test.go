@@ -260,6 +260,20 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 			expected: "test-user:test-pass@tcp(localhost:3309)/mydb?foo=bar",
 		},
 		{
+			name: "mysql",
+			input: GeneralDbConnectConfig{
+				Driver:      "mysql",
+				Host:        "localhost",
+				Port:        ptr(int32(3309)),
+				Database:    ptr("mydb"),
+				User:        "specialuser!*-",
+				Pass:        "46!ZfMv3@Uh8*-<",
+				Protocol:    ptr("tcp"),
+				QueryParams: url.Values{"foo": []string{"bar"}},
+			},
+			expected: "specialuser!*-:46!ZfMv3@Uh8*-<@tcp(localhost:3309)/mydb?foo=bar",
+		},
+		{
 			name: "mssql",
 			input: GeneralDbConnectConfig{
 				Driver:      "sqlserver",

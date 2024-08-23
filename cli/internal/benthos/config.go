@@ -72,9 +72,23 @@ type OutputConfig struct {
 }
 
 type Outputs struct {
-	PooledSqlInsert *PooledSqlInsert `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
-	PooledSqlUpdate *PooledSqlUpdate `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
-	AwsS3           *AwsS3Insert     `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	PooledSqlInsert *PooledSqlInsert   `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
+	PooledSqlUpdate *PooledSqlUpdate   `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
+	AwsS3           *AwsS3Insert       `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	AwsDynamoDB     *OutputAwsDynamoDB `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
+}
+
+type OutputAwsDynamoDB struct {
+	Table          string            `json:"table" yaml:"table"`
+	JsonMapColumns map[string]string `json:"json_map_columns,omitempty" yaml:"json_map_columns,omitempty"`
+
+	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+
+	MaxInFlight *int      `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type PooledSqlUpdate struct {

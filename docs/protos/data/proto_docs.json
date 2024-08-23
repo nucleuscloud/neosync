@@ -2802,6 +2802,17 @@
       "extensions": [],
       "messages": [
         {
+          "name": "AwsDynamoDBStreamConfig",
+          "longName": "AwsDynamoDBStreamConfig",
+          "fullName": "mgmt.v1alpha1.AwsDynamoDBStreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "AwsS3SchemaConfig",
           "longName": "AwsS3SchemaConfig",
           "fullName": "mgmt.v1alpha1.AwsS3SchemaConfig",
@@ -3010,6 +3021,18 @@
               "type": "GcpCloudStorageStreamConfig",
               "longType": "GcpCloudStorageStreamConfig",
               "fullType": "mgmt.v1alpha1.GcpCloudStorageStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "dynamodb_config",
+              "description": "",
+              "label": "",
+              "type": "AwsDynamoDBStreamConfig",
+              "longType": "AwsDynamoDBStreamConfig",
+              "fullType": "mgmt.v1alpha1.AwsDynamoDBStreamConfig",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -9598,6 +9621,54 @@
           ]
         },
         {
+          "name": "GetRunContextRequest",
+          "longName": "GetRunContextRequest",
+          "fullName": "mgmt.v1alpha1.GetRunContextRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "RunContextKey",
+              "longType": "RunContextKey",
+              "fullType": "mgmt.v1alpha1.RunContextKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetRunContextResponse",
+          "longName": "GetRunContextResponse",
+          "fullName": "mgmt.v1alpha1.GetRunContextResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "IsJobNameAvailableRequest",
           "longName": "IsJobNameAvailableRequest",
           "fullName": "mgmt.v1alpha1.IsJobNameAvailableRequest",
@@ -11649,6 +11720,54 @@
           ]
         },
         {
+          "name": "RunContextKey",
+          "longName": "RunContextKey",
+          "fullName": "mgmt.v1alpha1.RunContextKey",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "The Neosync Run ID",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "external_id",
+              "description": "An opaque identifier that will be used to store specific items",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The Neosync Account ID",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SetJobSourceSqlConnectionSubsetsRequest",
           "longName": "SetJobSourceSqlConnectionSubsetsRequest",
           "fullName": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest",
@@ -11839,6 +11958,100 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "SetRunContextRequest",
+          "longName": "SetRunContextRequest",
+          "fullName": "mgmt.v1alpha1.SetRunContextRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "RunContextKey",
+              "longType": "RunContextKey",
+              "fullType": "mgmt.v1alpha1.RunContextKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "An opaque value that is to be determined by the key",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetRunContextResponse",
+          "longName": "SetRunContextResponse",
+          "fullName": "mgmt.v1alpha1.SetRunContextResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "SetRunContextsRequest",
+          "longName": "SetRunContextsRequest",
+          "fullName": "mgmt.v1alpha1.SetRunContextsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "label": "",
+              "type": "RunContextKey",
+              "longType": "RunContextKey",
+              "fullType": "mgmt.v1alpha1.RunContextKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "An opaque value that is to be determined by the key",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetRunContextsResponse",
+          "longName": "SetRunContextsResponse",
+          "fullName": "mgmt.v1alpha1.SetRunContextsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
         },
         {
           "name": "TerminateJobRunRequest",
@@ -12673,6 +12886,42 @@
               "responseType": "ValidateJobMappingsResponse",
               "responseLongType": "ValidateJobMappingsResponse",
               "responseFullType": "mgmt.v1alpha1.ValidateJobMappingsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetRunContext",
+              "description": "Gets a run context to be used by a workflow run",
+              "requestType": "GetRunContextRequest",
+              "requestLongType": "GetRunContextRequest",
+              "requestFullType": "mgmt.v1alpha1.GetRunContextRequest",
+              "requestStreaming": false,
+              "responseType": "GetRunContextResponse",
+              "responseLongType": "GetRunContextResponse",
+              "responseFullType": "mgmt.v1alpha1.GetRunContextResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetRunContext",
+              "description": "Sets a run context to be used by a workflow run",
+              "requestType": "SetRunContextRequest",
+              "requestLongType": "SetRunContextRequest",
+              "requestFullType": "mgmt.v1alpha1.SetRunContextRequest",
+              "requestStreaming": false,
+              "responseType": "SetRunContextResponse",
+              "responseLongType": "SetRunContextResponse",
+              "responseFullType": "mgmt.v1alpha1.SetRunContextResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetRunContexts",
+              "description": "Sets a stream of run contexts to be used by a workflow run",
+              "requestType": "SetRunContextsRequest",
+              "requestLongType": "SetRunContextsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetRunContextsRequest",
+              "requestStreaming": true,
+              "responseType": "SetRunContextsResponse",
+              "responseLongType": "SetRunContextsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetRunContextsResponse",
               "responseStreaming": false
             }
           ]

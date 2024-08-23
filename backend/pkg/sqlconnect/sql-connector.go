@@ -78,7 +78,7 @@ func (c *ConnectionDetails) String() string {
 		// todo: would be great to check if tunnel has been started...
 		localhost, port := c.Tunnel.GetLocalHostPort()
 		c.GeneralDbConnectConfig.Host = localhost
-		c.GeneralDbConnectConfig.Port = shared.Ptr(int32(port))
+		c.GeneralDbConnectConfig.Port = shared.Ptr(int32(port)) //nolint:gosec // Ignoring for now
 	}
 	return c.GeneralDbConnectConfig.String()
 }
@@ -316,8 +316,12 @@ func (g *GeneralDbConnectConfig) String() string {
 		address := fmt.Sprintf("(%s)", buildDbUrlHost(g.Host, g.Port))
 
 		// User info
-		userInfo := url.UserPassword(g.User, g.Pass).String()
-
+		// dont use url.UserPassword as it escapes the password
+		// host and password should not be escaped. even if they contain special characters
+		userInfo := g.User
+		if g.Pass != "" {
+			userInfo += ":" + g.Pass
+		}
 		// Base DSN
 		dsn := fmt.Sprintf("%s@%s%s", userInfo, protocol, address)
 		if g.Database != nil {
@@ -410,7 +414,7 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			// mysql ports are unsigned 16-bit numbers so they should never overflow in an in32
 			// https://stackoverflow.com/questions/20379491/what-is-the-optimal-way-to-store-port-numbers-in-a-mysql-database#:~:text=Port%20number%20is%20an%20unsinged,highest%20value%20can%20be%2065535.
 			// https://downloads.mysql.com/docs/mysql-port-reference-en.pdf
-			port = int32(portInt)
+			port = int32(portInt) //nolint:gosec // Ignoring for now
 		}
 
 		database := strings.TrimPrefix(u.Path, "/")
@@ -507,7 +511,7 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        host,
-			Port:        shared.Ptr(int32(port)),
+			Port:        shared.Ptr(int32(port)), //nolint:gosec // Ignoring for now
 			Database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
 			User:        user,
 			Pass:        pass,
@@ -542,7 +546,7 @@ func getGeneralDbConnectionConfigFromMssql(config *mgmtv1alpha1.ConnectionConfig
 			if err != nil {
 				return nil, fmt.Errorf("invalid port when processing mssql connection url: %w", err)
 			}
-			port = shared.Ptr(int32(parsedPort))
+			port = shared.Ptr(int32(parsedPort)) //nolint:gosec // Ignoring for now
 		}
 
 		var instance *string

@@ -162,6 +162,8 @@ func AnyToInt64(value any) (int64, error) {
 	}
 
 	switch v := value.(type) {
+	case string:
+		return strconv.ParseInt(v, 10, 64)
 	case float32:
 		return int64(v), nil
 	case float64:
@@ -177,7 +179,7 @@ func AnyToInt64(value any) (int64, error) {
 	case int64:
 		return v, nil
 	case uint:
-		return int64(v), nil
+		return int64(v), nil //nolint:gosec // Ignoring for now
 	case uint8:
 		return int64(v), nil
 	case uint16:
@@ -188,7 +190,7 @@ func AnyToInt64(value any) (int64, error) {
 		if v > math.MaxInt64 {
 			return 0, fmt.Errorf("value %d overflows int64", v)
 		}
-		return int64(v), nil
+		return int64(v), nil //nolint:gosec // Ignoring for now
 	default:
 		return 0, fmt.Errorf("unsupported type: %T", value)
 	}

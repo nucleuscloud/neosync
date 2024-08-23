@@ -1027,6 +1027,65 @@ func (_c *MockJobServiceClient_GetJobs_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetRunContext provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceClient) GetRunContext(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRunContext")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetRunContextResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetRunContextRequest]) *connect.Response[mgmtv1alpha1.GetRunContextResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetRunContextResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetRunContextRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceClient_GetRunContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRunContext'
+type MockJobServiceClient_GetRunContext_Call struct {
+	*mock.Call
+}
+
+// GetRunContext is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetRunContextRequest]
+func (_e *MockJobServiceClient_Expecter) GetRunContext(_a0 interface{}, _a1 interface{}) *MockJobServiceClient_GetRunContext_Call {
+	return &MockJobServiceClient_GetRunContext_Call{Call: _e.mock.On("GetRunContext", _a0, _a1)}
+}
+
+func (_c *MockJobServiceClient_GetRunContext_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetRunContextRequest])) *MockJobServiceClient_GetRunContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetRunContextRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceClient_GetRunContext_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetRunContextResponse], _a1 error) *MockJobServiceClient_GetRunContext_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceClient_GetRunContext_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error)) *MockJobServiceClient_GetRunContext_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsJobNameAvailable provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) IsJobNameAvailable(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -1318,6 +1377,113 @@ func (_c *MockJobServiceClient_SetJobWorkflowOptions_Call) Return(_a0 *connect.R
 }
 
 func (_c *MockJobServiceClient_SetJobWorkflowOptions_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error)) *MockJobServiceClient_SetJobWorkflowOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetRunContext provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceClient) SetRunContext(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetRunContext")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.SetRunContextResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetRunContextRequest]) *connect.Response[mgmtv1alpha1.SetRunContextResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetRunContextResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetRunContextRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceClient_SetRunContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetRunContext'
+type MockJobServiceClient_SetRunContext_Call struct {
+	*mock.Call
+}
+
+// SetRunContext is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetRunContextRequest]
+func (_e *MockJobServiceClient_Expecter) SetRunContext(_a0 interface{}, _a1 interface{}) *MockJobServiceClient_SetRunContext_Call {
+	return &MockJobServiceClient_SetRunContext_Call{Call: _e.mock.On("SetRunContext", _a0, _a1)}
+}
+
+func (_c *MockJobServiceClient_SetRunContext_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetRunContextRequest])) *MockJobServiceClient_SetRunContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetRunContextRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContext_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetRunContextResponse], _a1 error) *MockJobServiceClient_SetRunContext_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContext_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetRunContextRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextResponse], error)) *MockJobServiceClient_SetRunContext_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetRunContexts provides a mock function with given fields: _a0
+func (_m *MockJobServiceClient) SetRunContexts(_a0 context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse] {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetRunContexts")
+	}
+
+	var r0 *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]
+	if rf, ok := ret.Get(0).(func(context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse])
+		}
+	}
+
+	return r0
+}
+
+// MockJobServiceClient_SetRunContexts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetRunContexts'
+type MockJobServiceClient_SetRunContexts_Call struct {
+	*mock.Call
+}
+
+// SetRunContexts is a helper method to define mock.On call
+//   - _a0 context.Context
+func (_e *MockJobServiceClient_Expecter) SetRunContexts(_a0 interface{}) *MockJobServiceClient_SetRunContexts_Call {
+	return &MockJobServiceClient_SetRunContexts_Call{Call: _e.mock.On("SetRunContexts", _a0)}
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) Run(run func(_a0 context.Context)) *MockJobServiceClient_SetRunContexts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) Return(_a0 *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockJobServiceClient_SetRunContexts_Call) RunAndReturn(run func(context.Context) *connect.ClientStreamForClient[mgmtv1alpha1.SetRunContextsRequest, mgmtv1alpha1.SetRunContextsResponse]) *MockJobServiceClient_SetRunContexts_Call {
 	_c.Call.Return(run)
 	return _c
 }

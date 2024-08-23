@@ -128,6 +128,8 @@ func getCategory(cc *mgmtv1alpha1.ConnectionConfig) string {
 		return "MongoDB"
 	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
 		return "OpenAI"
+	case *mgmtv1alpha1.ConnectionConfig_DynamodbConfig:
+		return "DynamoDB"
 	default:
 		return "Unknown"
 	}

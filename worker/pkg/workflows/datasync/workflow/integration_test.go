@@ -21,11 +21,14 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
+	testmongodb "github.com/testcontainers/testcontainers-go/modules/mongodb"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,6 +63,16 @@ type redisTest struct {
 	testcontainer *redis.RedisContainer
 }
 
+type mongodbTestContainer struct {
+	testcontainer *testmongodb.MongoDBContainer
+	client        *mongo.Client
+	url           string
+}
+
+type mongodbTest struct {
+	source *mongodbTestContainer
+	target *mongodbTestContainer
+}
 type IntegrationTestSuite struct {
 	suite.Suite
 
@@ -69,6 +82,65 @@ type IntegrationTestSuite struct {
 	postgres *postgresTest
 	redis    *redisTest
 	dynamo   *dynamodbTest
+	mongodb  *mongodbTest
+}
+
+func (s *IntegrationTestSuite) SetupMongoDb() (*mongodbTest, error) {
+	var source *mongodbTestContainer
+	var target *mongodbTestContainer
+
+	errgrp := errgroup.Group{}
+	errgrp.Go(func() error {
+		sourcecontainer, err := createMongoTestContainer(s.ctx)
+		if err != nil {
+			return err
+		}
+		source = sourcecontainer
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		targetcontainer, err := createMongoTestContainer(s.ctx)
+		if err != nil {
+			return err
+		}
+		target = targetcontainer
+		return nil
+	})
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return &mongodbTest{
+		source: source,
+		target: target,
+	}, nil
+}
+
+func createMongoTestContainer(
+	ctx context.Context,
+) (*mongodbTestContainer, error) {
+	mongodbContainer, err := testmongodb.Run(ctx, "mongo:6")
+	if err != nil {
+		return nil, err
+	}
+	uri, err := mongodbContainer.ConnectionString(ctx)
+	if err != nil {
+		return nil, err
+	}
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mongodbTestContainer{
+		testcontainer: mongodbContainer,
+		client:        client,
+		url:           uri,
+	}, nil
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
@@ -307,6 +379,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	var mysqlTest *mysqlTest
 	var redisTest *redisTest
 	var dynamoTest *dynamodbTest
+	var mongodbTest *mongodbTest
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -345,6 +418,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		return nil
 	})
 
+	errgrp.Go(func() error {
+		m, err := s.SetupMongoDb()
+		if err != nil {
+			return err
+		}
+		mongodbTest = m
+		return nil
+	})
+
 	err := errgrp.Wait()
 	if err != nil {
 		panic(err)
@@ -354,6 +436,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.mysql = mysqlTest
 	s.redis = redisTest
 	s.dynamo = dynamoTest
+	s.mongodb = mongodbTest
 }
 
 func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolder string, files []string) {
@@ -470,6 +553,30 @@ func (s *IntegrationTestSuite) InsertDynamoDBRecords(tableName string, data []ma
 	return nil
 }
 
+func (s *IntegrationTestSuite) InsertMongoDbRecords(client *mongo.Client, database, collection string, documents []any) (int, error) {
+	db := client.Database(database)
+	col := db.Collection(collection)
+
+	result, err := col.InsertMany(s.ctx, documents)
+	if err != nil {
+		return 0, fmt.Errorf("failed to insert mongodb records: %v", err)
+	}
+
+	return len(result.InsertedIDs), nil
+}
+
+func (s *IntegrationTestSuite) DropMongoDbCollection(ctx context.Context, client *mongo.Client, database, collection string) error {
+	db := client.Database(database)
+	collections, err := db.ListCollectionNames(ctx, map[string]any{"name": collection})
+	if err != nil {
+		return err
+	}
+	if len(collections) == 0 {
+		return nil
+	}
+	return db.Collection(collection).Drop(ctx)
+}
+
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
 	// postgres
@@ -521,6 +628,28 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	// localstack
 	if s.dynamo.container != nil {
 		if err := s.dynamo.container.Terminate(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+
+	// mongodb
+	if s.mongodb.source.client != nil {
+		if err := s.mongodb.source.client.Disconnect(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+	if s.mongodb.source.testcontainer != nil {
+		if err := s.mongodb.source.testcontainer.Terminate(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+	if s.mongodb.target.client != nil {
+		if err := s.mongodb.target.client.Disconnect(s.ctx); err != nil {
+			panic(err)
+		}
+	}
+	if s.mongodb.target.testcontainer != nil {
+		if err := s.mongodb.target.testcontainer.Terminate(s.ctx); err != nil {
 			panic(err)
 		}
 	}

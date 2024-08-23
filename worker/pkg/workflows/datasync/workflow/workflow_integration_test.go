@@ -32,8 +32,11 @@ import (
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
+	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
@@ -50,12 +53,14 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	cdTests := testdata_circulardependencies.GetSyncTests()
 	javascriptTests := testdata_javascripttransformers.GetSyncTests()
 	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
+	subsettingTests := testdata_subsetting.GetSyncTests()
 
 	allTests["Double_References"] = drTests
 	allTests["Virtual_Foreign_Keys"] = vfkTests
 	allTests["Circular_Dependencies"] = cdTests
 	allTests["Javascript_Transformers"] = javascriptTests
 	allTests["Primary_Key_Transformers"] = pkTransformationTests
+	allTests["Subsetting"] = subsettingTests
 	return allTests
 }
 
@@ -117,7 +122,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
@@ -181,6 +187,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 							return nil, nil
 						},
 					))
+
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
@@ -201,6 +209,43 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 			}
 		})
 	}
+}
+
+func addRunContextProcedureMux(mux *http.ServeMux) {
+	rcmap := map[string][]byte{}
+	rcmu := sync.RWMutex{}
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			rcmu.RLock()
+			defer rcmu.RUnlock()
+			val, ok := rcmap[toRunContextKeyString(r.Msg.GetId())]
+			if !ok {
+				return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("unable to find key: %s", toRunContextKeyString(r.Msg.GetId())))
+			}
+			return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{Value: val}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceSetRunContextsProcedure, connect.NewClientStreamHandler(
+		mgmtv1alpha1connect.JobServiceSetRunContextsProcedure,
+		func(ctx context.Context, cs *connect.ClientStream[mgmtv1alpha1.SetRunContextsRequest]) (*connect.Response[mgmtv1alpha1.SetRunContextsResponse], error) {
+			for cs.Receive() {
+				req := cs.Msg()
+				rcmu.Lock()
+				rcmap[toRunContextKeyString(req.GetId())] = req.GetValue()
+				rcmu.Unlock()
+			}
+			if err := cs.Err(); err != nil {
+				return nil, connect.NewError(connect.CodeUnknown, err)
+			}
+			return connect.NewResponse(&mgmtv1alpha1.SetRunContextsResponse{}), nil
+		},
+	))
+}
+
+func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
+	return fmt.Sprintf("%s.%s.%s", id.GetJobRunId(), id.GetExternalId(), id.GetAccountId())
 }
 
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
@@ -231,7 +276,8 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 				Job: &mgmtv1alpha1.Job{
-					Id: "fd4d8660-31a0-48b2-9adf-10f11b94898f",
+					Id:        "fd4d8660-31a0-48b2-9adf-10f11b94898f",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 					Source: &mgmtv1alpha1.JobSource{
 						Options: &mgmtv1alpha1.JobSourceOptions{
 							Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
@@ -293,6 +339,8 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 			return nil, nil
 		},
 	))
+
+	addRunContextProcedureMux(mux)
 	srv := startHTTPServer(s.T(), mux)
 	executeWorkflow(s.T(), srv, s.redis.url, "fd4d8660-31a0-48b2-9adf-10f11b94898f", "Virtual Foreign Key primary key transform")
 
@@ -408,7 +456,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: "115aaf2c-776e-4847-8268-d914e3c15968",
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
@@ -472,6 +521,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 							return nil, nil
 						},
 					))
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
 
@@ -588,7 +638,8 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: jobId,
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Dynamodb{
@@ -653,6 +704,7 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 							return nil, fmt.Errorf("unknown test connection")
 						},
 					))
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
 
@@ -811,6 +863,277 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	return allTests
 }
 
+func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
+	tests := getAllMongoDBSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			// cannot run in parallel until we have each test create/delete its own tables.
+			// t.Parallel()
+			for _, tt := range group {
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					dbName := "data"
+					collectionName := "test-sync"
+
+					doc := bson.D{
+						{Key: "_id", Value: primitive.NewObjectID()},
+						{Key: "string", Value: "Hello, MongoDB!"},
+						{Key: "bool", Value: true},
+						{Key: "int32", Value: int32(42)},
+						{Key: "int64", Value: int64(92233720)},
+						{Key: "double", Value: 3.14159},
+						{Key: "decimal128", Value: primitive.NewDecimal128(3, 14159)},
+						{Key: "date", Value: primitive.NewDateTimeFromTime(time.Now())},
+						{Key: "timestamp", Value: primitive.Timestamp{T: 1645553494, I: 1}},
+						{Key: "null", Value: primitive.Null{}},
+						{Key: "regex", Value: primitive.Regex{Pattern: "^test", Options: "i"}},
+						{Key: "array", Value: bson.A{"apple", "banana", "cherry"}},
+						{Key: "embedded_document", Value: bson.D{
+							{Key: "name", Value: "John Doe"},
+							{Key: "age", Value: 30},
+						}},
+						{Key: "binary", Value: primitive.Binary{Subtype: 0x80, Data: []byte("binary data")}},
+						{Key: "undefined", Value: primitive.Undefined{}},
+						{Key: "object_id", Value: primitive.NewObjectID()},
+						{Key: "min_key", Value: primitive.MinKey{}},
+						{Key: "max_key", Value: primitive.MaxKey{}},
+					}
+					docs := []any{doc}
+
+					count, err := s.InsertMongoDbRecords(s.mongodb.source.client, dbName, collectionName, docs)
+					require.NoError(t, err)
+					require.Greater(t, count, 0)
+
+					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					sourceConnectionId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
+												Mongodb: &mgmtv1alpha1.MongoDBSourceConnectionOptions{
+													ConnectionId: sourceConnectionId,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: destConnectionId,
+											Options: &mgmtv1alpha1.JobDestinationOptions{
+												Config: &mgmtv1alpha1.JobDestinationOptions_MongodbOptions{
+													MongodbOptions: &mgmtv1alpha1.MongoDBDestinationConnectionOptions{},
+												},
+											},
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == sourceConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   sourceConnectionId,
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+												MongoConfig: &mgmtv1alpha1.MongoConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+														Url: s.mongodb.source.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == destConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   destConnectionId,
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+												MongoConfig: &mgmtv1alpha1.MongoConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+														Url: s.mongodb.target.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, fmt.Errorf("unknown test connection")
+						},
+					))
+					addRunContextProcedureMux(mux)
+					srv := startHTTPServer(t, mux)
+					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
+
+					for table, expected := range tt.Expected {
+						col := s.mongodb.target.client.Database(dbName).Collection(collectionName)
+						cursor, err := col.Find(s.ctx, bson.D{})
+						require.NoError(t, err)
+						var results []bson.M
+						for cursor.Next(s.ctx) {
+							var doc bson.M
+							err = cursor.Decode(&doc)
+							require.NoError(t, err)
+							results = append(results, doc)
+						}
+						cursor.Close(s.ctx)
+						require.Equal(t, expected.RowCount, len(results), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					errgrp, errctx := errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.DropMongoDbCollection(errctx, s.mongodb.source.client, dbName, collectionName) })
+					errgrp.Go(func() error { return s.DropMongoDbCollection(errctx, s.mongodb.target.client, dbName, collectionName) })
+					err = errgrp.Wait()
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
+}
+
+func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
+		{
+			Name: "Passthrough Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "bool",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
+			},
+		},
+		{
+			Name: "Transform Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+								TransformStringConfig: &mgmtv1alpha1.TransformString{
+									PreserveLength: true,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "embedded_document.name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "decimal128",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "int64",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "timestamp",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
+							},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
+			},
+		},
+	}
+	return allTests
+}
+
 func executeWorkflow(
 	t *testing.T,
 	srv *httptest.Server,
@@ -853,7 +1176,7 @@ func executeWorkflow(
 	)
 	var activityMeter metric.Meter
 	disableReaper := true
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 	env.RegisterWorkflow(Workflow)
@@ -862,7 +1185,7 @@ func executeWorkflow(
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
-	env.SetTestTimeout(300 * time.Second) // increase the test timeout
+	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})
 	require.Truef(t, env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))

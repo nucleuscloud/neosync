@@ -67,7 +67,7 @@ func isGithubAction() bool {
 }
 
 func GetStdoutFd() int {
-	return int(os.Stdout.Fd())
+	return int(os.Stdout.Fd()) //nolint:gosec // Ignoring for now
 }
 
 func IsTerminal() bool {

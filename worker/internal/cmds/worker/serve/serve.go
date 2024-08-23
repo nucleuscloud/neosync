@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -46,6 +47,8 @@ import (
 	"go.temporal.io/sdk/worker"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	"net/http/pprof"
 )
 
 func NewCmd() *cobra.Command {
@@ -152,7 +155,7 @@ func serve(ctx context.Context) error {
 		getIsOtelEnabled(),
 	)
 	disableReaper := false
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 
@@ -208,6 +211,13 @@ func getHttpServer(logger *log.Logger) *http.Server {
 
 	api := http.NewServeMux()
 
+	// Create a separate ServeMux for pprof
+
+	// Mount the pprof mux at /debug/
+	if viper.GetBool("ENABLE_PPROF") {
+		mux.Handle("/debug/", getPprofMux("/debug"))
+	}
+
 	mux.Handle("/", api)
 
 	httpServer := http.Server{
@@ -217,6 +227,25 @@ func getHttpServer(logger *log.Logger) *http.Server {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	return &httpServer
+}
+
+func getPprofMux(prefix string) *http.ServeMux {
+	mux := http.NewServeMux()
+
+	// Ensure the prefix starts with a slash and doesn't end with one
+	prefix = "/" + strings.Trim(prefix, "/")
+
+	mux.HandleFunc(prefix+"/pprof/", http.HandlerFunc(pprof.Index))
+	mux.HandleFunc(prefix+"/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc(prefix+"/pprof/profile", pprof.Profile)
+	mux.HandleFunc(prefix+"/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc(prefix+"/pprof/trace", pprof.Trace)
+	mux.Handle(prefix+"/pprof/goroutine", pprof.Handler("goroutine"))
+	mux.Handle(prefix+"/pprof/heap", pprof.Handler("heap"))
+	mux.Handle(prefix+"/pprof/threadcreate", pprof.Handler("threadcreate"))
+	mux.Handle(prefix+"/pprof/block", pprof.Handler("block"))
+
+	return mux
 }
 
 func getTemporalAuthCertificate() ([]tls.Certificate, error) {

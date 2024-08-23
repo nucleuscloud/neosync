@@ -2,6 +2,7 @@ package input
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 
 	"connectrpc.com/connect"
@@ -10,6 +11,8 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
+	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -200,6 +203,24 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 	}
 	row := g.resp.Msg().Row
 
+	if g.connectionType == "awsDynamoDB" {
+		for _, val := range row {
+			var dynamoDBItem map[string]any
+			err := json.Unmarshal(val, &dynamoDBItem)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
+			msg := service.NewMessage(nil)
+			msg.MetaSetMut(neosync_metadata.MetaTypeMapStr, keyTypeMap)
+			msg.SetStructuredMut(resMap)
+			return msg, func(ctx context.Context, err error) error {
+				// Nacks are retried automatically when we use service.AutoRetryNacks
+				return nil
+			}, nil
+		}
+	}
 	valuesMap := map[string]any{}
 	for col, val := range row {
 		if len(val) == 0 {

@@ -745,6 +745,37 @@ message VirtualForeignConstraint {
   VirtualForeignKey foreign_key = 4;
 }
 
+message RunContextKey {
+  // The Neosync Run ID
+  string job_run_id = 1 [(buf.validate.field).string.min_len = 1];
+  // An opaque identifier that will be used to store specific items
+  string external_id = 2 [(buf.validate.field).string.min_len = 1];
+  // The Neosync Account ID
+  string account_id = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetRunContextRequest {
+  RunContextKey id = 1;
+}
+
+message GetRunContextResponse {
+  bytes value = 1;
+}
+
+message SetRunContextRequest {
+  RunContextKey id = 1;
+  // An opaque value that is to be determined by the key
+  bytes value = 2;
+}
+message SetRunContextResponse {}
+
+message SetRunContextsRequest {
+  RunContextKey id = 1;
+  // An opaque value that is to be determined by the key
+  bytes value = 2;
+}
+message SetRunContextsResponse {}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -782,4 +813,11 @@ service JobService {
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
   // validates that the jobmapping configured can run with table constraints
   rpc ValidateJobMappings(ValidateJobMappingsRequest) returns (ValidateJobMappingsResponse) {}
+
+  // Gets a run context to be used by a workflow run
+  rpc GetRunContext(GetRunContextRequest) returns (GetRunContextResponse) {}
+  // Sets a run context to be used by a workflow run
+  rpc SetRunContext(SetRunContextRequest) returns (SetRunContextResponse) {}
+  // Sets a stream of run contexts to be used by a workflow run
+  rpc SetRunContexts(stream SetRunContextsRequest) returns (SetRunContextsResponse) {}
 }

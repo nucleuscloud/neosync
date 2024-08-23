@@ -3,6 +3,8 @@ package sync_cmd
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	syncmap "sync"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
+	"github.com/nucleuscloud/neosync/cli/internal/output"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
@@ -184,4 +187,21 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 		}
 	}
 	return count
+}
+
+func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
+	var opts []tea.ProgramOption
+	if outputType == output.PlainOutput {
+		// Plain mode don't render the TUI
+		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
+	} else {
+		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
+		// TUI mode, discard log output
+		logger.SetOutput(io.Discard)
+	}
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
+		logger.Error("Error syncing data:", err)
+		os.Exit(1)
+	}
+	return nil
 }

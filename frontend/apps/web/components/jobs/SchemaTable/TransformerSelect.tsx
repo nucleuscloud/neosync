@@ -61,6 +61,8 @@ export default function TransformerSelect(props: Props): ReactElement {
     ? getTransformers()
     : { system: [], userDefined: [] };
 
+  // const calcPopovere;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -85,8 +87,8 @@ export default function TransformerSelect(props: Props): ReactElement {
       >
         <Command>
           <CommandInput placeholder={'Search...'} />
-          <div className="max-h-[450px]">
-            <CommandList>
+          <div>
+            <CommandList className="max-h-[600px]">
               <CommandEmpty>No transformers found.</CommandEmpty>
               {userDefined.length > 0 && (
                 <CommandGroup heading="Custom">

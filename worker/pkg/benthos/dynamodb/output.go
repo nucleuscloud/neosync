@@ -2,20 +2,20 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cenkalti/backoff/v4"
 
+	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -208,111 +208,6 @@ func (d *dynamoDBWriter) Connect(ctx context.Context) error {
 	return nil
 }
 
-func anyToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
-	if typeStr, ok := keyTypeMap[key]; ok {
-		switch typeStr {
-		case StringSet:
-			s, ok := getGenericSlice[string](root)
-			if ok {
-				return &types.AttributeValueMemberSS{
-					Value: s,
-				}
-			}
-		case NumberSet:
-			stringSlice, err := toStringSlice(root)
-			if err == nil {
-				return &types.AttributeValueMemberNS{
-					Value: stringSlice,
-				}
-			}
-		}
-	}
-	switch v := root.(type) {
-	case map[string]any:
-		m := make(map[string]types.AttributeValue, len(v))
-		for k, v2 := range v {
-			m[k] = anyToAttributeValue(k, v2, keyTypeMap)
-		}
-		return &types.AttributeValueMemberM{
-			Value: m,
-		}
-	case []byte:
-		return &types.AttributeValueMemberB{
-			Value: v,
-		}
-	case [][]byte:
-		return &types.AttributeValueMemberBS{
-			Value: v,
-		}
-	case []any:
-		l := make([]types.AttributeValue, len(v))
-		for i, v2 := range v {
-			l[i] = anyToAttributeValue(fmt.Sprintf("%s[%d]", key, i), v2, keyTypeMap)
-		}
-		return &types.AttributeValueMemberL{
-			Value: l,
-		}
-	case string:
-		return &types.AttributeValueMemberS{
-			Value: v,
-		}
-	case json.Number:
-		return &types.AttributeValueMemberS{
-			Value: v.String(),
-		}
-	case float64:
-		return &types.AttributeValueMemberN{
-			Value: strconv.FormatFloat(v, 'f', -1, 64),
-		}
-	case int:
-		return &types.AttributeValueMemberN{
-			Value: strconv.Itoa(v),
-		}
-	case int64:
-		return &types.AttributeValueMemberN{
-			Value: strconv.Itoa(int(v)),
-		}
-	case bool:
-		return &types.AttributeValueMemberBOOL{
-			Value: v,
-		}
-	case nil:
-		return &types.AttributeValueMemberNULL{
-			Value: true,
-		}
-	}
-	return &types.AttributeValueMemberS{
-		Value: fmt.Sprintf("%v", root),
-	}
-}
-
-func getGenericSlice[T any](v any) ([]T, bool) {
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Slice {
-		return nil, false
-	}
-
-	genericSlice := make([]T, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		elem := val.Index(i).Interface()
-		if tElem, ok := elem.(T); ok {
-			genericSlice[i] = tElem
-		} else {
-			return nil, false
-		}
-	}
-
-	return genericSlice, true
-}
-
-func jsonToMap(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
-	gObj := gabs.Wrap(root)
-	if path != "" {
-		gObj = gObj.Path(path)
-	}
-	return anyToAttributeValue(key, gObj.Data(), keyTypeMap)
-}
-
 func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch) error {
 	if d.client == nil {
 		return service.ErrNotConnected
@@ -352,7 +247,7 @@ func (d *dynamoDBWriter) WriteBatch(ctx context.Context, b service.MessageBatch)
 				return err
 			}
 			for k, v := range d.conf.JSONMapColumns {
-				attr := jsonToMap(k, v, jRoot, keyTypeMap)
+				attr := neosync_dynamodb.MarshalJSONToDynamoDBAttribute(k, v, jRoot, keyTypeMap)
 				if k == "" {
 					if mv, ok := attr.(*types.AttributeValueMemberM); ok {
 						for ak, av := range mv.Value {
@@ -458,9 +353,9 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 	return nil
 }
 
-func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
-	keyTypeMap := map[string]KeyType{}
-	meta, ok := p.MetaGetMut(metaTypeMapStr)
+func getKeyTypMap(p *service.Message) (map[string]neosync_types.KeyType, error) {
+	keyTypeMap := map[string]neosync_types.KeyType{}
+	meta, ok := p.MetaGetMut(neosync_benthos_metadata.MetaTypeMapStr)
 	if ok {
 		kt, err := convertToMapStringKeyType(meta)
 		if err != nil {
@@ -471,8 +366,8 @@ func getKeyTypMap(p *service.Message) (map[string]KeyType, error) {
 	return keyTypeMap, nil
 }
 
-func convertToMapStringKeyType(i any) (map[string]KeyType, error) {
-	if m, ok := i.(map[string]KeyType); ok {
+func convertToMapStringKeyType(i any) (map[string]neosync_types.KeyType, error) {
+	if m, ok := i.(map[string]neosync_types.KeyType); ok {
 		return m, nil
 	}
 
@@ -544,40 +439,4 @@ func fieldDurationOrEmptyStr(pConf *service.ParsedConfig, path ...string) (time.
 		return 0, nil
 	}
 	return pConf.FieldDuration(path...)
-}
-
-func toStringSlice(slice any) ([]string, error) {
-	v := reflect.ValueOf(slice)
-	if v.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("input is not a slice")
-	}
-
-	result := make([]string, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		elem := v.Index(i).Interface()
-		result[i] = anyToString(elem)
-	}
-
-	return result, nil
-}
-
-func anyToString(value any) string {
-	switch v := value.(type) {
-	case string:
-		return v
-	case int, int8, int16, int32, int64:
-		return strconv.FormatInt(reflect.ValueOf(v).Int(), 10)
-	case uint, uint8, uint16, uint32, uint64:
-		return strconv.FormatUint(reflect.ValueOf(v).Uint(), 10)
-	case float32, float64:
-		return strconv.FormatFloat(reflect.ValueOf(v).Float(), 'f', -1, 64)
-	case bool:
-		return strconv.FormatBool(v)
-	case []byte:
-		return string(v)
-	case nil:
-		return "null"
-	default:
-		return fmt.Sprintf("%v", v)
-	}
 }
