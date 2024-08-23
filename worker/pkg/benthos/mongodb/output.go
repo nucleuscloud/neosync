@@ -2,7 +2,6 @@ package neosync_benthos_mongodb
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -195,15 +194,11 @@ func (m *outputWriter) WriteBatch(ctx context.Context, batch service.MessageBatc
 		if err != nil {
 			return fmt.Errorf("collection interpolation error: %w", err)
 		}
-		fmt.Println("collectionStr", collectionStr)
 
 		docJSON, filterJSON, hintJSON, err := m.writeMaps.extractFromMessage(m.operation, i, batch)
 		if err != nil {
 			return err
 		}
-
-		jsonF, _ := json.MarshalIndent(docJSON, "", " ")
-		fmt.Printf("output docJSON: %s \n", string(jsonF))
 
 		var writeModel mongo.WriteModel
 		switch m.operation {
@@ -236,9 +231,6 @@ func (m *outputWriter) WriteBatch(ctx context.Context, batch service.MessageBatc
 				Hint:   hintJSON,
 			}
 		}
-
-		jsonF, _ = json.MarshalIndent(writeModel, "", " ")
-		fmt.Printf("output writeModel: %s \n", string(jsonF))
 
 		if writeModel != nil {
 			writeModelsMap[collectionStr] = append(writeModelsMap[collectionStr], writeModel)

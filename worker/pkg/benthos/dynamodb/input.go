@@ -2,7 +2,6 @@ package neosync_benthos_dynamodb
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -155,10 +155,8 @@ func (d *dynamodbInput) ReadBatch(ctx context.Context) (service.MessageBatch, se
 		}
 
 		resMap, keyTypeMap := neosync_dynamodb.UnmarshalAttributeValueMap(item)
-		jsonF, _ := json.MarshalIndent(resMap, "", " ")
-		fmt.Printf("%s \n", string(jsonF))
 		msg := service.NewMessage(nil)
-		msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
+		msg.MetaSetMut(neosync_benthos_metadata.MetaTypeMapStr, keyTypeMap)
 		msg.SetStructuredMut(resMap)
 		batch = append(batch, msg)
 	}

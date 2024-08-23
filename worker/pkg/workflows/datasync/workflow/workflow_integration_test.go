@@ -2,7 +2,6 @@ package datasync_workflow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -38,7 +37,6 @@ import (
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
@@ -861,51 +859,6 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					require.NoError(t, err)
 					require.Greater(t, count, 0)
 
-					doc2 := bson.D{
-						{Key: "_id", Value: "alisha"},
-						{Key: "string", Value: "Hello, Alisha!"},
-						{Key: "bool", Value: true},
-						{Key: "int32", Value: int32(42)},
-						{Key: "int64", Value: int64(92233720)},
-						{Key: "double", Value: 3.14159},
-						{Key: "decimal128", Value: primitive.NewDecimal128(3, 14159)},
-						{Key: "date", Value: primitive.NewDateTimeFromTime(time.Now())},
-						{Key: "timestamp", Value: primitive.Timestamp{T: 1645553494, I: 1}},
-						{Key: "null", Value: primitive.Null{}},
-						{Key: "regex", Value: primitive.Regex{Pattern: "^test", Options: "i"}},
-						{Key: "array", Value: bson.A{"apple", "banana", "cherry"}},
-						{Key: "embedded_document", Value: bson.D{
-							{Key: "name", Value: "Alisha"},
-							{Key: "age", Value: 30},
-						}},
-						{Key: "binary", Value: primitive.Binary{Subtype: 0x80, Data: []byte("binary data")}},
-						{Key: "undefined", Value: primitive.Undefined{}},
-						{Key: "object_id", Value: primitive.NewObjectID()},
-						{Key: "min_key", Value: primitive.MinKey{}},
-						{Key: "max_key", Value: primitive.MaxKey{}},
-					}
-					updateDoc := bson.D{{Key: "$set", Value: doc2}}
-
-					// Remove _id from the $set operation
-					// for i, elem := range updateDoc[0].Value.(bson.D) {
-					// 	if elem.Key == "_id" {
-					// 		updateDoc[0].Value = append(updateDoc[0].Value.(bson.D)[:i], updateDoc[0].Value.(bson.D)[i+1:]...)
-					// 		break
-					// 	}
-					// }
-
-					upsert := true
-					writeModel := mongo.UpdateOneModel{
-						Upsert: &upsert,
-						Filter: bson.D{{Key: "_id", Value: "alisha"}},
-						Update: updateDoc,
-					}
-
-					res, err := s.mongodb.source.client.Database(dbName).Collection(collectionName).BulkWrite(s.ctx, []mongo.WriteModel{&writeModel})
-					require.NoError(t, err)
-					jsonF, _ := json.MarshalIndent(res, "", " ")
-					fmt.Printf("res: %s \n", string(jsonF))
-
 					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
 					sourceConnectionId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
 					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
@@ -998,8 +951,6 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						}
 						cursor.Close(s.ctx)
 						require.Equal(t, expected.RowCount, len(results), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
-						jsonF, _ := json.MarshalIndent(results, "", " ")
-						fmt.Printf("%s \n", string(jsonF))
 					}
 
 					// tear down
@@ -1017,37 +968,37 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests := map[string][]*workflow_testdata.IntegrationTest{}
 	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
-		// {
-		// 	Name: "Passthrough Sync",
-		// 	JobMappings: []*mgmtv1alpha1.JobMapping{
-		// 		{
-		// 			Schema: "data",
-		// 			Table:  "test-sync",
-		// 			Column: "string",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 		{
-		// 			Schema: "data",
-		// 			Table:  "test-sync",
-		// 			Column: "bool",
-		// 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-		// 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-		// 				Config: &mgmtv1alpha1.TransformerConfig{
-		// 					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	JobOptions: &workflow_testdata.TestJobOptions{},
-		// 	Expected: map[string]*workflow_testdata.ExpectedOutput{
-		// 		"test-sync": {RowCount: 1},
-		// 	},
-		// },
+		{
+			Name: "Passthrough Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "bool",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
+			},
+		},
 		{
 			Name: "Transform Sync",
 			JobMappings: []*mgmtv1alpha1.JobMapping{
@@ -1066,19 +1017,35 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						},
 					},
 				},
-				// {
-				// 	Schema: "data",
-				// 	Table:  "test-sync",
-				// 	Column: "embedded_document.name",
-				// 	Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				// 		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
-				// 		Config: &mgmtv1alpha1.TransformerConfig{
-				// 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
-				// 				GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
-				// 			},
-				// 		},
-				// 	},
-				// },
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "embedded_document.name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "decimal128",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
+							},
+						},
+					},
+				},
 				{
 					Schema: "data",
 					Table:  "test-sync",
@@ -1091,6 +1058,19 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 									RandomizationRangeMin: 0,
 									RandomizationRangeMax: 300,
 								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "timestamp",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
 							},
 						},
 					},

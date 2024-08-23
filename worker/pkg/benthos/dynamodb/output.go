@@ -14,6 +14,8 @@ import (
 	"github.com/cenkalti/backoff/v4"
 
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -351,9 +353,9 @@ func (d *dynamoDBWriter) Close(context.Context) error {
 	return nil
 }
 
-func getKeyTypMap(p *service.Message) (map[string]neosync_dynamodb.KeyType, error) {
-	keyTypeMap := map[string]neosync_dynamodb.KeyType{}
-	meta, ok := p.MetaGetMut(neosync_dynamodb.MetaTypeMapStr)
+func getKeyTypMap(p *service.Message) (map[string]neosync_types.KeyType, error) {
+	keyTypeMap := map[string]neosync_types.KeyType{}
+	meta, ok := p.MetaGetMut(neosync_benthos_metadata.MetaTypeMapStr)
 	if ok {
 		kt, err := convertToMapStringKeyType(meta)
 		if err != nil {
@@ -364,8 +366,8 @@ func getKeyTypMap(p *service.Message) (map[string]neosync_dynamodb.KeyType, erro
 	return keyTypeMap, nil
 }
 
-func convertToMapStringKeyType(i any) (map[string]neosync_dynamodb.KeyType, error) {
-	if m, ok := i.(map[string]neosync_dynamodb.KeyType); ok {
+func convertToMapStringKeyType(i any) (map[string]neosync_types.KeyType, error) {
+	if m, ok := i.(map[string]neosync_types.KeyType); ok {
 		return m, nil
 	}
 

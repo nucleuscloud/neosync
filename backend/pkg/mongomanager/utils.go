@@ -4,149 +4,43 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"reflect"
 	"strconv"
 	"time"
 
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	MetaTypeMapStr = "neosync_key_type_map"
-)
-
-type KeyType int
-
-const (
-	StringSet KeyType = iota
-	NumberSet
-	ObjectID
-	Decimal128
-	Timestamp
-	Binary
-)
-
-func ParseStringAsNumber(s string) (any, error) {
-	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return i, nil
-	}
-
-	if f, err := strconv.ParseFloat(s, 64); err == nil {
-		return f, nil
-	}
-
-	return nil, errors.New("input string is neither a valid int nor a float")
-}
-
-func ParseTypes(doc map[string]any) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+func UnmarshalPrimitives(doc map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
 	result := make(map[string]any)
-	ktm := make(map[string]KeyType)
+	ktm := make(map[string]neosync_types.KeyType)
 	for k, v := range doc {
-		result[k] = ParseTypeValue(k, v, ktm)
-	}
-	return doc, ktm
-}
-
-func ParseTypeValue(key string, value any, keyTypeMap map[string]KeyType) any {
-	fmt.Println(key, value)
-	switch v := value.(type) {
-	case nil:
-		return v
-	case string:
-		return v
-	case int32, int64, float64:
-		return v
-	case bool:
-		return v
-	case primitive.Decimal128:
-		keyTypeMap[key] = Decimal128
-		return v
-	case primitive.Binary:
-		keyTypeMap[key] = Binary
-		return v
-	case primitive.ObjectID:
-		keyTypeMap[key] = ObjectID
-		return v
-	case primitive.DateTime:
-		return v
-	case primitive.Timestamp:
-		keyTypeMap[key] = Timestamp
-		return v
-	case primitive.Null:
-		return v
-	case primitive.Undefined:
-		return v
-	case primitive.Regex:
-		return v
-	case bson.D:
-		m := make(map[string]any)
-		for _, elem := range v {
-			path := elem.Key
-			if key != "" {
-				path = fmt.Sprintf("%s.%s", key, elem.Key)
-			}
-			m[elem.Key] = ParseBSONValue(path, elem.Value, keyTypeMap)
-		}
-		return m
-	case bson.A:
-		result := make([]any, len(v))
-		for i, item := range v {
-			result[i] = ParseBSONValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
-		}
-		return result
-	default:
-		return fmt.Sprintf("%v", v)
-	}
-}
-
-func UnmarshalBSONDocument(doc bson.D) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
-	result := make(map[string]any)
-	ktm := make(map[string]KeyType)
-	for _, elem := range doc {
-		result[elem.Key] = ParseBSONValue(elem.Key, elem.Value, ktm)
+		result[k] = ParsePrimitives(k, v, ktm)
 	}
 	return result, ktm
 }
 
-func ParseBSONValue(key string, value any, keyTypeMap map[string]KeyType) any {
-	fmt.Println(key, value)
+func ParsePrimitives(key string, value any, keyTypeMap map[string]neosync_types.KeyType) any {
 	switch v := value.(type) {
-	case nil:
-		return nil
-	case string:
-		return v
-	case int32, int64, float64:
-		return v
-	case bool:
-		return v
 	case primitive.Decimal128:
-		keyTypeMap[key] = Decimal128
-		return v.String()
+		keyTypeMap[key] = neosync_types.Decimal128
+		floatVal, _, err := big.ParseFloat(v.String(), 10, 128, big.ToNearestEven)
+		if err == nil {
+			return floatVal
+		}
+		return v
 	case primitive.Binary:
-		return map[string]any{
-			"base64":  v.Data,
-			"subType": v.Subtype,
-		}
+		keyTypeMap[key] = neosync_types.Binary
+		return v
 	case primitive.ObjectID:
-		keyTypeMap[key] = ObjectID
-		return v.Hex()
-	case primitive.DateTime:
-		return v.Time()
+		keyTypeMap[key] = neosync_types.ObjectID
+		return v
 	case primitive.Timestamp:
-		return map[string]any{
-			"t": v.T,
-			"i": v.I,
-		}
-	case primitive.Null:
-		return nil
-	case primitive.Undefined:
-		return nil
-	case primitive.Regex:
-		return map[string]any{
-			"pattern": v.Pattern,
-			"options": v.Options,
-		}
+		keyTypeMap[key] = neosync_types.Timestamp
+		return v
 	case bson.D:
 		m := make(map[string]any)
 		for _, elem := range v {
@@ -154,23 +48,21 @@ func ParseBSONValue(key string, value any, keyTypeMap map[string]KeyType) any {
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, elem.Key)
 			}
-			m[elem.Key] = ParseBSONValue(path, elem.Value, keyTypeMap)
+			m[elem.Key] = ParsePrimitives(path, elem.Value, keyTypeMap)
 		}
 		return m
 	case bson.A:
 		result := make([]any, len(v))
 		for i, item := range v {
-			result[i] = ParseBSONValue(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
+			result[i] = ParsePrimitives(fmt.Sprintf("%s[%d]", key, i), item, keyTypeMap)
 		}
 		return result
 	default:
-		return fmt.Sprintf("%v", v)
+		return v
 	}
 }
 
-func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any {
-	fmt.Printf("key: %s  Type of root: %v\n", key, reflect.TypeOf(root))
-
+func MarshalToBSONValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) any {
 	if root == nil {
 		return nil
 	}
@@ -186,7 +78,7 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 	root = val.Interface()
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
-		case Decimal128:
+		case neosync_types.Decimal128:
 			_, ok := root.(primitive.Decimal128)
 			if ok {
 				return root
@@ -205,7 +97,14 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 					return d
 				}
 			}
-		case Timestamp:
+			vBigFloat, ok := root.(big.Float)
+			if ok {
+				d, err := primitive.ParseDecimal128(vBigFloat.String())
+				if err == nil {
+					return d
+				}
+			}
+		case neosync_types.Timestamp:
 			_, ok := root.(primitive.Timestamp)
 			if ok {
 				return root
@@ -218,7 +117,7 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 				}
 			}
 
-		case ObjectID:
+		case neosync_types.ObjectID:
 			_, ok := root.(primitive.ObjectID)
 			if ok {
 				return root
@@ -226,18 +125,14 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 			vStr, ok := root.(string)
 			if ok {
 				if objectID, err := primitive.ObjectIDFromHex(vStr); err == nil {
-					fmt.Println("object id", key)
 					return objectID
 				}
 			}
-			// case DateTime:
-			// 	return root
 		}
 	}
 
 	switch v := root.(type) {
 	case map[string]any:
-		// Default map handling
 		doc := bson.D{}
 		for k, v2 := range v {
 			path := k
@@ -245,7 +140,7 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 				path = fmt.Sprintf("%s.%s", key, k)
 			}
 			if path == "$set._id" {
-				fmt.Println("SET KEY ID FOUND")
+				// don't set _id
 				continue
 			}
 			doc = append(doc, bson.E{Key: k, Value: MarshalToBSONValue(path, v2, keyTypeMap)})
@@ -262,9 +157,6 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 		}
 		return a
 
-	case string:
-		return v
-
 	case json.Number:
 		n, err := v.Int64()
 		if err == nil {
@@ -275,12 +167,6 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 			return f
 		}
 		return v.String()
-
-	case float32, float64, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return v
-
-	case bool:
-		return v
 
 	case time.Time:
 		return primitive.NewDateTimeFromTime(v)
@@ -293,38 +179,17 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 	}
 }
 
-func MarshalJSONToBSONDocument(root any, keyTypeMap map[string]KeyType) bson.D {
+func MarshalJSONToBSONDocument(root any, keyTypeMap map[string]neosync_types.KeyType) bson.D {
 	m, ok := root.(map[string]any)
 	if !ok {
 		return bson.D{}
 	}
-	jsonF, _ := json.MarshalIndent(m, "", " ")
-	fmt.Printf("output map: %s \n", string(jsonF))
 
 	doc := bson.D{}
 	for k, v := range m {
 		doc = append(doc, bson.E{Key: k, Value: MarshalToBSONValue(k, v, keyTypeMap)})
 	}
 	return doc
-}
-
-func ConvertToSlice(slice any) ([]any, error) {
-	v := reflect.ValueOf(slice)
-	if v.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("input is not a slice")
-	}
-
-	result := make([]any, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		result[i] = v.Index(i).Interface()
-	}
-
-	return result, nil
-}
-
-// New function to convert a Timestamp to time.Time
-func TimestampToTime(ts primitive.Timestamp) time.Time {
-	return time.Unix(int64(ts.T), 0)
 }
 
 func toUint32(value any) (uint32, error) {

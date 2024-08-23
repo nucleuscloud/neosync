@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,7 +76,7 @@ func Test_ParseAttributeValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ktm := map[string]KeyType{}
+			ktm := map[string]neosync_types.KeyType{}
 			actual := ParseAttributeValue(tt.name, tt.input, ktm)
 			require.True(t, reflect.DeepEqual(actual, tt.expected), fmt.Sprintf("expected %v %v, got %v %v", tt.expected, reflect.TypeOf(tt.expected), actual, reflect.TypeOf(actual)))
 		})
@@ -124,8 +125,8 @@ func Test_UnmarshalAttributeValueMap(t *testing.T) {
 
 	actual, keyTypeMap := UnmarshalAttributeValueMap(input)
 	require.True(t, reflect.DeepEqual(actual, expected), fmt.Sprintf("expected %v, got %v", expected, actual))
-	require.Equal(t, keyTypeMap["StrSet"], StringSet)
-	require.Equal(t, keyTypeMap["NumSet"], NumberSet)
+	require.Equal(t, keyTypeMap["StrSet"], neosync_types.StringSet)
+	require.Equal(t, keyTypeMap["NumSet"], neosync_types.NumberSet)
 }
 
 func Test_ParseStringAsNumber(t *testing.T) {
@@ -158,7 +159,7 @@ func Test_UnmarshalDynamoDBItem(t *testing.T) {
 		name            string
 		input           map[string]any
 		wantStandardMap map[string]any
-		wantKeyTypeMap  map[string]KeyType
+		wantKeyTypeMap  map[string]neosync_types.KeyType
 	}{
 		{
 			name: "Basic test",
@@ -172,7 +173,7 @@ func Test_UnmarshalDynamoDBItem(t *testing.T) {
 				"NumberKey": int64(123),
 				"BoolKey":   true,
 			},
-			wantKeyTypeMap: map[string]KeyType{},
+			wantKeyTypeMap: map[string]neosync_types.KeyType{},
 		},
 		{
 			name: "Complex test with sets",
@@ -184,9 +185,9 @@ func Test_UnmarshalDynamoDBItem(t *testing.T) {
 				"StringSetKey": []string{"a", "b", "c"},
 				"NumberSetKey": []any{int64(1), int64(2), int64(3)},
 			},
-			wantKeyTypeMap: map[string]KeyType{
-				"StringSetKey": StringSet,
-				"NumberSetKey": NumberSet,
+			wantKeyTypeMap: map[string]neosync_types.KeyType{
+				"StringSetKey": neosync_types.StringSet,
+				"NumberSetKey": neosync_types.NumberSet,
 			},
 		},
 	}
@@ -205,16 +206,16 @@ func Test_ParseDynamoDBAttributeValue(t *testing.T) {
 		name        string
 		key         string
 		value       any
-		keyTypeMap  map[string]KeyType
+		keyTypeMap  map[string]neosync_types.KeyType
 		want        any
-		wantKeyType KeyType
+		wantKeyType neosync_types.KeyType
 	}{
-		{"String", "StrKey", map[string]any{"S": "value"}, map[string]KeyType{}, "value", 0},
-		{"Number", "NumKey", map[string]any{"N": "123"}, map[string]KeyType{}, int64(123), 0},
-		{"Boolean", "BoolKey", map[string]any{"BOOL": true}, map[string]KeyType{}, true, 0},
-		{"Null", "NullKey", map[string]any{"NULL": true}, map[string]KeyType{}, nil, 0},
-		{"StringSet", "SSKey", map[string]any{"SS": []any{"a", "b"}}, map[string]KeyType{}, []string{"a", "b"}, StringSet},
-		{"NumberSet", "NSKey", map[string]any{"NS": []any{"1", "2"}}, map[string]KeyType{}, []any{int64(1), int64(2)}, NumberSet},
+		{"String", "StrKey", map[string]any{"S": "value"}, map[string]neosync_types.KeyType{}, "value", 0},
+		{"Number", "NumKey", map[string]any{"N": "123"}, map[string]neosync_types.KeyType{}, int64(123), 0},
+		{"Boolean", "BoolKey", map[string]any{"BOOL": true}, map[string]neosync_types.KeyType{}, true, 0},
+		{"Null", "NullKey", map[string]any{"NULL": true}, map[string]neosync_types.KeyType{}, nil, 0},
+		{"StringSet", "SSKey", map[string]any{"SS": []any{"a", "b"}}, map[string]neosync_types.KeyType{}, []string{"a", "b"}, neosync_types.StringSet},
+		{"NumberSet", "NSKey", map[string]any{"NS": []any{"1", "2"}}, map[string]neosync_types.KeyType{}, []any{int64(1), int64(2)}, neosync_types.NumberSet},
 	}
 
 	for _, tt := range tests {
@@ -233,49 +234,49 @@ func Test_MarshalToAttributeValue(t *testing.T) {
 		name       string
 		key        string
 		root       any
-		keyTypeMap map[string]KeyType
+		keyTypeMap map[string]neosync_types.KeyType
 		want       types.AttributeValue
 	}{
 		{
 			name:       "String",
 			key:        "StrKey",
 			root:       "value",
-			keyTypeMap: map[string]KeyType{},
+			keyTypeMap: map[string]neosync_types.KeyType{},
 			want:       &types.AttributeValueMemberS{Value: "value"},
 		},
 		{
 			name:       "Number",
 			key:        "NumKey",
 			root:       123,
-			keyTypeMap: map[string]KeyType{},
+			keyTypeMap: map[string]neosync_types.KeyType{},
 			want:       &types.AttributeValueMemberN{Value: "123"},
 		},
 		{
 			name:       "Boolean",
 			key:        "BoolKey",
 			root:       true,
-			keyTypeMap: map[string]KeyType{},
+			keyTypeMap: map[string]neosync_types.KeyType{},
 			want:       &types.AttributeValueMemberBOOL{Value: true},
 		},
 		{
 			name:       "Null",
 			key:        "NullKey",
 			root:       nil,
-			keyTypeMap: map[string]KeyType{},
+			keyTypeMap: map[string]neosync_types.KeyType{},
 			want:       &types.AttributeValueMemberNULL{Value: true},
 		},
 		{
 			name:       "StringSet",
 			key:        "SSKey",
 			root:       []string{"a", "b"},
-			keyTypeMap: map[string]KeyType{"SSKey": StringSet},
+			keyTypeMap: map[string]neosync_types.KeyType{"SSKey": neosync_types.StringSet},
 			want:       &types.AttributeValueMemberSS{Value: []string{"a", "b"}},
 		},
 		{
 			name:       "NumberSet",
 			key:        "NSKey",
 			root:       []int{1, 2},
-			keyTypeMap: map[string]KeyType{"NSKey": NumberSet},
+			keyTypeMap: map[string]neosync_types.KeyType{"NSKey": neosync_types.NumberSet},
 			want:       &types.AttributeValueMemberNS{Value: []string{"1", "2"}},
 		},
 	}

@@ -3,6 +3,7 @@ package transformer_utils
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -84,6 +85,12 @@ func AnyToFloat64(val any) (float64, error) {
 		return t, nil
 	case *float64:
 		return *t, nil
+	case *big.Float:
+		float64Val, _ := t.Float64()
+		return float64Val, nil
+	case big.Float:
+		float64Val, _ := t.Float64()
+		return float64Val, nil
 	case bool:
 		if t {
 			return 1, nil

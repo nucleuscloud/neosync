@@ -11,17 +11,8 @@ import (
 
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-)
-
-const (
-	MetaTypeMapStr = "neosync_key_type_map"
-)
-
-type KeyType int
-
-const (
-	StringSet KeyType = iota
-	NumberSet
+	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
 func ParseStringAsNumber(s string) (any, error) {
@@ -36,9 +27,9 @@ func ParseStringAsNumber(s string) (any, error) {
 	return nil, errors.New("input string is neither a valid int nor a float")
 }
 
-func UnmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+func UnmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
 	result := make(map[string]any)
-	ktm := make(map[string]KeyType)
+	ktm := make(map[string]neosync_types.KeyType)
 	for key, value := range item {
 		result[key] = ParseDynamoDBAttributeValue(key, value, ktm)
 	}
@@ -46,7 +37,7 @@ func UnmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, key
 	return result, ktm
 }
 
-func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]KeyType) any {
+func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]neosync_types.KeyType) any {
 	if m, ok := value.(map[string]any); ok {
 		for dynamoType, dynamoValue := range m {
 			switch dynamoType {
@@ -101,7 +92,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]Ke
 				}
 				return result
 			case "SS":
-				keyTypeMap[key] = StringSet
+				keyTypeMap[key] = neosync_types.StringSet
 				ss := dynamoValue.([]any)
 				result := make([]string, len(ss))
 				for i, s := range ss {
@@ -109,7 +100,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]Ke
 				}
 				return result
 			case "NS":
-				keyTypeMap[key] = NumberSet
+				keyTypeMap[key] = neosync_types.NumberSet
 				numbers := dynamoValue.([]any)
 				result := make([]any, len(numbers))
 				for i, num := range numbers {
@@ -126,9 +117,9 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]Ke
 	return value
 }
 
-func UnmarshalAttributeValueMap(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]KeyType) {
+func UnmarshalAttributeValueMap(item map[string]types.AttributeValue) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
 	standardJSON := make(map[string]any)
-	ktm := make(map[string]KeyType)
+	ktm := make(map[string]neosync_types.KeyType)
 	for k, v := range item {
 		val := ParseAttributeValue(k, v, ktm)
 		standardJSON[k] = val
@@ -137,7 +128,7 @@ func UnmarshalAttributeValueMap(item map[string]types.AttributeValue) (standardM
 }
 
 // ParseAttributeValue converts a DynamoDB AttributeValue to a standard value
-func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[string]KeyType) any {
+func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[string]neosync_types.KeyType) any {
 	switch t := v.(type) {
 	case *types.AttributeValueMemberB:
 		return t.Value
@@ -170,7 +161,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 		}
 		return n
 	case *types.AttributeValueMemberNS:
-		keyTypeMap[key] = NumberSet
+		keyTypeMap[key] = neosync_types.NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			n, err := ParseStringAsNumber(v)
@@ -185,7 +176,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 	case *types.AttributeValueMemberS:
 		return t.Value
 	case *types.AttributeValueMemberSS:
-		keyTypeMap[key] = StringSet
+		keyTypeMap[key] = neosync_types.StringSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
 			lAny[i] = v
@@ -195,17 +186,17 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 	return nil
 }
 
-func MarshalToAttributeValue(key string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
+func MarshalToAttributeValue(key string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
 	if typeStr, ok := keyTypeMap[key]; ok {
 		switch typeStr {
-		case StringSet:
+		case neosync_types.StringSet:
 			s, err := ConvertToStringSlice(root)
 			if err == nil {
 				return &types.AttributeValueMemberSS{
 					Value: s,
 				}
 			}
-		case NumberSet:
+		case neosync_types.NumberSet:
 			s, err := ConvertToStringSlice(root)
 			if err == nil {
 				return &types.AttributeValueMemberNS{
@@ -286,7 +277,7 @@ func formatFloat(f float64) string {
 	return s
 }
 
-func MarshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]KeyType) types.AttributeValue {
+func MarshalJSONToDynamoDBAttribute(key, path string, root any, keyTypeMap map[string]neosync_types.KeyType) types.AttributeValue {
 	gObj := gabs.Wrap(root)
 	if path != "" {
 		gObj = gObj.Path(path)
@@ -330,4 +321,61 @@ func anyToString(value any) string {
 	default:
 		return fmt.Sprintf("%v", v)
 	}
+}
+
+func ConvertAttributeValueToDynamoDBJSON(av dynamotypes.AttributeValue) (map[string]any, error) {
+	switch v := av.(type) {
+	case *dynamotypes.AttributeValueMemberS:
+		return map[string]any{"S": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberB:
+		return map[string]any{"B": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberN:
+		return map[string]any{"N": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBOOL:
+		return map[string]any{"BOOL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNULL:
+		return map[string]any{"NULL": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberM:
+		m := make(map[string]any)
+		for k, val := range v.Value {
+			var err error
+			m[k], err = ConvertAttributeValueToDynamoDBJSON(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"M": m}, nil
+	case *dynamotypes.AttributeValueMemberL:
+		l := make([]any, len(v.Value))
+		for i, val := range v.Value {
+			var err error
+			l[i], err = ConvertAttributeValueToDynamoDBJSON(val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return map[string]any{"L": l}, nil
+	case *dynamotypes.AttributeValueMemberSS:
+		return map[string]any{"SS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberNS:
+		return map[string]any{"NS": v.Value}, nil
+	case *dynamotypes.AttributeValueMemberBS:
+		return map[string]any{"BS": v.Value}, nil
+	default:
+		return nil, fmt.Errorf("unsupported AttributeValue type")
+	}
+}
+
+func ConvertMapToJSONBytes(input map[string]dynamotypes.AttributeValue) ([]byte, error) {
+	result := make(map[string]any)
+
+	for key, av := range input {
+		dynamoDBJSON, err := ConvertAttributeValueToDynamoDBJSON(av)
+		if err != nil {
+			return nil, fmt.Errorf("error converting key %s: %w", key, err)
+		}
+		result[key] = dynamoDBJSON
+	}
+
+	return json.Marshal(result)
 }
