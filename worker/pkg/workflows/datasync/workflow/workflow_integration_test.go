@@ -831,7 +831,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					collectionName := "test-sync"
 
 					doc := bson.D{
-						{Key: "_id", Value: "alisha"},
+						{Key: "_id", Value: primitive.NewObjectID()},
 						{Key: "string", Value: "Hello, MongoDB!"},
 						{Key: "bool", Value: true},
 						{Key: "int32", Value: int32(42)},
