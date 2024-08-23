@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
@@ -54,10 +55,12 @@ func (s *Service) GetUser(
 	}
 
 	if tokenctxResp.ApiKeyContextData != nil {
-		// todo: check api key type here
-		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
-		}), nil
+		if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.AccountApiKey && tokenctxResp.ApiKeyContextData.ApiKey != nil {
+			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+				UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+			}), nil
+		}
+		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("invalid api key type when calling GetUser: %s", tokenctxResp.ApiKeyContextData.ApiKeyType))
 	} else if tokenctxResp.JwtContextData != nil {
 		user, err := s.db.Q.GetUserAssociationByProviderSub(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
 		if err != nil && !nucleusdb.IsNoRows(err) {

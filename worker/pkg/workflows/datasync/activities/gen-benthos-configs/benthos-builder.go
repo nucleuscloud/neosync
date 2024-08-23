@@ -15,6 +15,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -30,8 +31,9 @@ type benthosBuilder struct {
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 
-	jobId string
-	runId string
+	jobId      string
+	workflowId string
+	runId      string
 
 	redisConfig *shared.RedisConfig
 
@@ -45,7 +47,7 @@ func newBenthosBuilder(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 
-	jobId, runId string,
+	jobId, workflowId string, runId string,
 
 	redisConfig *shared.RedisConfig,
 
@@ -57,6 +59,7 @@ func newBenthosBuilder(
 		connclient:        connclient,
 		transformerclient: transformerclient,
 		jobId:             jobId,
+		workflowId:        workflowId,
 		runId:             runId,
 		redisConfig:       redisConfig,
 		metricsEnabled:    metricsEnabled,
@@ -250,24 +253,63 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 		}
 	}
+
+	var outputConfigs []*BenthosConfigResponse
 	// hack to remove update configs when only syncing to s3
 	if isOnlyBucketDestinations(job.Destinations) {
-		filteredResponses := []*BenthosConfigResponse{}
 		for _, r := range responses {
 			if r.RunType == tabledependency.RunTypeInsert {
-				filteredResponses = append(filteredResponses, r)
+				outputConfigs = append(outputConfigs, r)
 			}
 		}
-		slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(filteredResponses)))
-		return &GenerateBenthosConfigsResponse{
-			BenthosConfigs: filteredResponses,
-		}, nil
+	} else {
+		outputConfigs = responses
 	}
 
-	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
+	outputConfigs, err = b.setRunContexts(ctx, outputConfigs, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set all run contexts for benthos configs: %w", err)
+	}
+
+	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(outputConfigs)))
 	return &GenerateBenthosConfigsResponse{
-		BenthosConfigs: responses,
+		BenthosConfigs: outputConfigs,
+		AccountId:      job.GetAccountId(),
 	}, nil
+}
+
+// this method modifies the input responses by nilling out the benthos config. it returns the same slice for convenience
+func (b *benthosBuilder) setRunContexts(
+	ctx context.Context,
+	responses []*BenthosConfigResponse,
+	accountId string,
+) ([]*BenthosConfigResponse, error) {
+	rcstream := b.jobclient.SetRunContexts(ctx)
+
+	for _, config := range responses {
+		bits, err := yaml.Marshal(config.Config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal benthos config: %w", err)
+		}
+		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				JobRunId:   b.workflowId,
+				ExternalId: shared.GetBenthosConfigExternalId(config.Name),
+				AccountId:  accountId,
+			},
+			Value: bits,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to send run context: %w", err)
+		}
+		config.Config = nil // nilling this out so that it does not persist in temporal
+	}
+
+	_, err := rcstream.CloseAndReceive()
+	if err != nil {
+		return nil, fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
+	}
+	return responses, nil
 }
 
 func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {

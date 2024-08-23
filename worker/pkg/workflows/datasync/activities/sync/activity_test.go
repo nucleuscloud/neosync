@@ -1,14 +1,22 @@
 package sync_activity
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
+	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -16,12 +24,76 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
+func Test_Sync_RunContext_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	benthosStreamManager := NewBenthosStreamManager()
+
+	mux := http.NewServeMux()
+	benthosConfig := strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+	accountId := uuid.NewString()
+
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			if r.Msg.GetId().GetAccountId() == accountId && r.Msg.GetId().GetExternalId() == shared.GetBenthosConfigExternalId("test") {
+				return connect.NewResponse(&mgmtv1alpha1.GetRunContextResponse{
+					Value: []byte(benthosConfig),
+				}), nil
+			}
+			return nil, errors.New("invalid test account id")
+		},
+	))
+	srv := startHTTPServer(t, mux)
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+
+	activity := New(nil, jobclient, &sync.Map{}, nil, nil, benthosStreamManager, true)
+
+	env.RegisterActivity(activity.Sync)
+
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		AccountId: accountId,
+		Name:      "test",
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
+
+func Test_Sync_Run_No_BenthosConfig(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	benthosStreamManager := NewBenthosStreamManager()
+
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+
+	env.RegisterActivity(activity.Sync)
+
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Nil(t, val)
+}
+
 func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -51,7 +123,7 @@ func Test_Sync_Run_Metrics_Success(t *testing.T) {
 	meterProvider := metricsdk.NewMeterProvider()
 	meter := meterProvider.Meter("test")
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, meter, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, meter, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -81,7 +153,7 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -113,7 +185,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -169,7 +241,7 @@ func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -228,7 +300,7 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -259,7 +331,7 @@ func Test_Sync_Run_Output_Error(t *testing.T) {
 
 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
 	mockBenthosStream := NewMockBenthosStreamClient(t)
-	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -310,7 +382,7 @@ output:
 	mockBenthosStream.On("Run", mock.Anything).After(5 * time.Second).Return(nil)
 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil)
 
-	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 	env.RegisterActivity(activity.Sync)
 
 	stopCh := make(chan struct{})
@@ -333,7 +405,7 @@ func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, benthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 	stopCh := make(chan struct{})
@@ -384,7 +456,7 @@ output:
 	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
 
-	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
+	activity := New(nil, nil, &sync.Map{}, nil, nil, mockBenthosStreamManager, true)
 
 	env.RegisterActivity(activity.Sync)
 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -426,4 +498,13 @@ func Test_syncMapToStringMap(t *testing.T) {
 	assert.Equal(t, out["bar"], "baz")
 
 	assert.Empty(t, syncMapToStringMap(nil))
+}
+
+func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
+	tb.Helper()
+	srv := httptest.NewUnstartedServer(h)
+	srv.EnableHTTP2 = true
+	srv.Start()
+	tb.Cleanup(srv.Close)
+	return srv
 }

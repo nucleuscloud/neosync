@@ -7,10 +7,10 @@ services:
     networks:
       - neosync-network
 
-  # test-stage-db-mongo:
-  #   container_name: test-stage-db-mongo
-  #   image: mongo:latest
-  #   ports:
-  #     - 27217:27017
-  #   networks:
-  #     - neosync-network
+  test-stage-db-mongo:
+    container_name: test-stage-db-mongo
+    image: mongo:latest
+    ports:
+      - 27217:27017
+    networks:
+      - neosync-network

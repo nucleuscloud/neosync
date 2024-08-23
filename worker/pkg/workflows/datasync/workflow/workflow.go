@@ -56,6 +56,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	if err != nil {
 		return nil, err
 	}
+	logger = log.With(logger, "accountId", bcResp.AccountId)
 
 	if len(bcResp.BenthosConfigs) == 0 {
 		logger.Info("found 0 benthos configs, ending workflow.")
@@ -118,7 +119,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	for _, bc := range splitConfigs.Root {
 		bc := bc
 		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
-		future := invokeSync(bc, childctx, &started, &completed, logger)
+		future := invokeSync(bc, childctx, &started, &completed, logger, &bcResp.AccountId)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
@@ -167,7 +168,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				continue
 			}
 			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
-			future := invokeSync(bc, childctx, &started, &completed, logger)
+			future := invokeSync(bc, childctx, &started, &completed, logger, &bcResp.AccountId)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				var result sync_activity.SyncResponse
 				err := f.Get(childctx, &result)
@@ -260,26 +261,35 @@ func invokeSync(
 	ctx workflow.Context,
 	started, completed *sync.Map,
 	logger log.Logger,
+	accountId *string,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger.Debug("triggering config sync")
 	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
-		configbits, err := yaml.Marshal(config.Config)
-		if err != nil {
-			logger.Error("unable to marshal benthos config", "err", err)
-			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
-			return
+		var benthosConfig string
+		var accId string
+		if accountId != nil && *accountId != "" {
+			accId = *accountId
+		} else if config.Config != nil {
+			configbits, err := yaml.Marshal(config.Config)
+			if err != nil {
+				logger.Error("unable to marshal benthos config", "err", err)
+				settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
+				return
+			}
+			benthosConfig = string(configbits)
 		}
+
 		logger.Info("scheduling Sync for execution.")
 
 		var result sync_activity.SyncResponse
 		activity := sync_activity.Activity{}
-		err = workflow.ExecuteActivity(
+		err := workflow.ExecuteActivity(
 			ctx,
 			activity.Sync,
-			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
+			&sync_activity.SyncRequest{BenthosConfig: benthosConfig, AccountId: accId, Name: config.Name, BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
 		if err == nil {
 			tn := neosync_benthos.BuildBenthosTable(config.TableSchema, config.TableName)
 			err = updateCompletedMap(tn, completed, config.Columns)

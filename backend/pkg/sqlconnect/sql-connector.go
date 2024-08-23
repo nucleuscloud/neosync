@@ -316,8 +316,12 @@ func (g *GeneralDbConnectConfig) String() string {
 		address := fmt.Sprintf("(%s)", buildDbUrlHost(g.Host, g.Port))
 
 		// User info
-		userInfo := url.UserPassword(g.User, g.Pass).String()
-
+		// dont use url.UserPassword as it escapes the password
+		// host and password should not be escaped. even if they contain special characters
+		userInfo := g.User
+		if g.Pass != "" {
+			userInfo += ":" + g.Pass
+		}
 		// Base DSN
 		dsn := fmt.Sprintf("%s@%s%s", userInfo, protocol, address)
 		if g.Database != nil {
