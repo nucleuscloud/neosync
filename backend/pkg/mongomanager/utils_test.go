@@ -1,7 +1,6 @@
 package mongomanager
 
 import (
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -159,11 +158,13 @@ func Test_MarshalToBSONValue(t *testing.T) {
 }
 
 func Test_MarshalJSONToBSONDocument(t *testing.T) {
+	objId, _ := primitive.ObjectIDFromHex("5f63e6f0d51b0d0001c1b0a1")
+	dec128, _ := primitive.ParseDecimal128("123.45")
 	testCases := []struct {
 		name        string
 		input       any
 		keyTypeMap  map[string]neosync_types.KeyType
-		expected    bson.D
+		expected    bson.M
 		expectError bool
 	}{
 		{
@@ -174,10 +175,10 @@ func Test_MarshalJSONToBSONDocument(t *testing.T) {
 				"email": "john@example.com",
 			},
 			keyTypeMap: map[string]neosync_types.KeyType{},
-			expected: bson.D{
-				{Key: "name", Value: "John Doe"},
-				{Key: "age", Value: 30},
-				{Key: "email", Value: "john@example.com"},
+			expected: bson.M{
+				"name":  bson.E{Key: "name", Value: "John Doe"},
+				"age":   bson.E{Key: "age", Value: 30},
+				"email": bson.E{Key: "email", Value: "john@example.com"},
 			},
 			expectError: false,
 		},
@@ -185,7 +186,7 @@ func Test_MarshalJSONToBSONDocument(t *testing.T) {
 			name: "JSON with BSON types",
 			input: map[string]any{
 				"id":        "5f63e6f0d51b0d0001c1b0a1",
-				"amount":    json.Number("123.45"),
+				"amount":    getBigFloat(dec128.String()),
 				"timestamp": 1630000000,
 			},
 			keyTypeMap: map[string]neosync_types.KeyType{
@@ -193,10 +194,10 @@ func Test_MarshalJSONToBSONDocument(t *testing.T) {
 				"amount":    neosync_types.Decimal128,
 				"timestamp": neosync_types.Timestamp,
 			},
-			expected: bson.D{
-				{Key: "id", Value: primitive.ObjectID{}},
-				{Key: "amount", Value: primitive.Decimal128{}},
-				{Key: "timestamp", Value: primitive.Timestamp{}},
+			expected: bson.M{
+				"id":        bson.E{Key: "id", Value: objId},
+				"amount":    bson.E{Key: "amount", Value: dec128},
+				"timestamp": bson.E{Key: "timestamp", Value: primitive.Timestamp{T: 1630000000, I: 1}},
 			},
 			expectError: false,
 		},
@@ -206,13 +207,10 @@ func Test_MarshalJSONToBSONDocument(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := MarshalJSONToBSONDocument(tc.input, tc.keyTypeMap)
 
-			if len(result) != len(tc.expected) {
-				t.Errorf("Expected %d elements, got %d", len(tc.expected), len(result))
-			}
-
-			for i, elem := range result {
-				expectedElem := tc.expected[i]
-				require.Equal(t, expectedElem.Key, elem.Key)
+			require.Len(t, result, len(tc.expected))
+			for _, elem := range result {
+				expectedElem := tc.expected[elem.Key]
+				require.Equal(t, expectedElem, elem)
 			}
 		})
 	}
