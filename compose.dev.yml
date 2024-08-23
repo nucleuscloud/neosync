@@ -113,8 +113,8 @@ services:
     container_name: neosync-worker
     image: neosync-worker
     build:
-      context: ./worker
-      dockerfile: ./dev/build/Dockerfile.dev
+      context: ./
+      dockerfile: ./worker/dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
@@ -127,11 +127,17 @@ services:
     networks:
       - neosync-network
       - temporal-network
+    volumes:
+      - neosync_worker_build_cache:/root/.cache/go-build
     develop:
       watch:
-        - path: worker/bin
-          action: rebuild
-          target: /app
+        - action: rebuild
+          path: internal/
+          target: /workspacse
+        - action: rebuild
+          path: worker/
+          target: /workspace
+        - action: rebuild
     restart: on-failure
 
   redis:
@@ -148,6 +154,7 @@ services:
 volumes:
   neosync_redis_cache:
   neosync_pg_data:
+  neosync_worker_build_cache:
 
 networks:
   neosync-network:
