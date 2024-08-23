@@ -139,9 +139,6 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 		case ObjectID:
 			vStr, ok := root.(string)
 			if ok {
-				if key == "_id" || key == "$set._id" {
-					return vStr
-				}
 				if objectID, err := primitive.ObjectIDFromHex(vStr); err == nil {
 					fmt.Println("object id", key)
 					return objectID
@@ -179,9 +176,14 @@ func MarshalToBSONValue(key string, root any, keyTypeMap map[string]KeyType) any
 		// Default map handling
 		doc := bson.D{}
 		for k, v2 := range v {
+
 			path := k
 			if key != "" {
 				path = fmt.Sprintf("%s.%s", key, k)
+			}
+			if path == "$set._id" {
+				fmt.Println("SET KEY ID FOUND")
+				continue
 			}
 			doc = append(doc, bson.E{Key: k, Value: MarshalToBSONValue(path, v2, keyTypeMap)})
 		}
@@ -233,6 +235,8 @@ func MarshalJSONToBSONDocument(root any, keyTypeMap map[string]KeyType) bson.D {
 	if !ok {
 		return bson.D{}
 	}
+	jsonF, _ := json.MarshalIndent(m, "", " ")
+	fmt.Printf("output map: %s \n", string(jsonF))
 
 	doc := bson.D{}
 	for k, v := range m {

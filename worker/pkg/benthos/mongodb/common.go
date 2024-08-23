@@ -383,6 +383,9 @@ func getKeyTypMap(p *service.Message) (map[string]neosync_mongodb.KeyType, error
 	}
 	ktm := map[string]neosync_mongodb.KeyType{}
 	for k, v := range keyTypeMap {
+		if k == "_id" {
+			ktm[k] = v
+		}
 		ktm[fmt.Sprintf("$set.%s", k)] = v
 	}
 	return ktm, nil
