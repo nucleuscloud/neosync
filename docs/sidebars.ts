@@ -231,8 +231,8 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'guides/neosync-data-source-access',
-      label: 'Allow Neosync to Access Data Sources',
+      id: 'guides/neosync-ip-ranges',
+      label: 'Neosync IP Ranges',
     },
     {
       type: 'doc',

@@ -14,6 +14,7 @@ import React, { ReactElement } from 'react';
 import {
   AiOutlineExperiment,
   AiOutlineMail,
+  AiOutlinePartition,
   AiOutlinePhone,
   AiOutlineSolution,
 } from 'react-icons/ai';
@@ -21,17 +22,19 @@ import {
   BiDownload,
   BiLogInCircle,
   BiLogoPostgresql,
+  BiNetworkChart,
   BiSolidWrench,
   BiTerminal,
 } from 'react-icons/bi';
 import { BsFunnel } from 'react-icons/bs';
-import { CiMicrochip } from 'react-icons/ci';
+import { CiFilter, CiMicrochip, CiViewTable } from 'react-icons/ci';
 import { DiMongodb } from 'react-icons/di';
 import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
-import { GoLightBulb, GoSync } from 'react-icons/go';
+import { GoDatabase, GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
+import { IoMdCode } from 'react-icons/io';
 import { IoBuildOutline } from 'react-icons/io5';
 import {
   MdCenterFocusStrong,
@@ -39,10 +42,15 @@ import {
   MdPassword,
   MdStart,
 } from 'react-icons/md';
-import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
+import {
+  PiArrowsSplitLight,
+  PiBoundingBoxLight,
+  PiFlaskLight,
+} from 'react-icons/pi';
 import { RiOpenaiFill } from 'react-icons/ri';
 import {
   SiGo,
+  SiJavascript,
   SiKubernetes,
   SiMongodb,
   SiTerraform,
@@ -165,6 +173,25 @@ export function IconHandler(name: string): ReactElement {
       return <BiLogoPostgresql />;
     case 'Syncing data with MongoDB':
       return <SiMongodb />;
+    case 'Neosync IP Ranges':
+      return <BiNetworkChart />;
+    case 'Custom Code Transformers':
+      return <IoMdCode />;
+    case 'Javascript':
+      return <SiJavascript />;
+    case 'Foreign Keys':
+      return <CiViewTable />;
+    case 'Foreign Keys':
+      return <CiViewTable />;
+    case 'Virtual Foreign Keys':
+      return <AiOutlinePartition />;
+    case 'Circular Dependencies':
+      return <PiBoundingBoxLight />;
+    case 'Subsetting':
+      return <CiFilter />;
+    case 'Database Setup':
+      return <GoDatabase />;
+
     default:
       return <LayersIcon />;
   }
