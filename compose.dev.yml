@@ -69,8 +69,8 @@ services:
     container_name: neosync-api
     image: neosync-api
     build:
-      context: ./backend
-      dockerfile: ./dev/build/Dockerfile.dev
+      context: ./
+      dockerfile: ./backend/dev/build/Dockerfile.dev
     ports:
       - 8080:8080
     command: serve connect
@@ -80,7 +80,7 @@ services:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
-      - DB_SCHEMA_DIR=/app/migrations
+      - DB_SCHEMA_DIR=/migrations
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=nucleus
