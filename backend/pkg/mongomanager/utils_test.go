@@ -228,7 +228,8 @@ func TestToUint32(t *testing.T) {
 		{"Valid float64", 42.0, 42, false},
 		{"Negative int", -1, 0, true},
 		{"Out of range uint64", uint64(1 << 33), 0, true},
-		{"String", "42", 0, true},
+		{"String", "42", 42, false},
+		{"String", "othor", 0, true},
 	}
 
 	for _, tc := range testCases {
