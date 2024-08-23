@@ -14,7 +14,8 @@ COPY go.sum go.sum
 RUN go mod download
 
 WORKDIR /workspace
-COPY worker/ worker/
+COPY worker/internal/ worker/internal/
+COPY worker/pkg/ worker/pkg/
 COPY internal/ internal/
 
 WORKDIR /workspace/backend
@@ -28,27 +29,16 @@ COPY backend/internal/ internal/
 COPY backend/services/ services/
 COPY backend/pkg/ pkg/
 COPY backend/sql sql/
+COPY /backend/sql/postgresql/schema/ /migrations/
 
 # Build
-RUN go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
-
-# Use debian:bullseye-slim as the base image to include necessary C libraries
-FROM debian:bookworm-slim
-WORKDIR /
-
-# Install CA certificates for HTTPS connections
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive \
-  apt-get install --no-install-recommends -y ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /workspace/backend/bin/mgmt .
-COPY /backend/sql/postgresql/schema/ /migrations/
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
 
 # Create a non-root user
 RUN useradd -u 65532 -r nonroot
 USER nonroot
 
-ENTRYPOINT ["/mgmt"]
+ENTRYPOINT ["/workspace/backend/bin/mgmt"]
 
 CMD ["serve", "connect"]
