@@ -25,7 +25,7 @@ COPY worker/internal/ internal/
 COPY worker/pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
+RUN go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
 
 # Use debian:bullseye-slim as the base image to include necessary C libraries
 FROM debian:bookworm-slim
@@ -38,9 +38,6 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /workspace/worker/bin/worker .
-
-# Install any runtime dependencies if needed
-# RUN apt-get update && apt-get install -y <your-dependencies> && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
 RUN useradd -u 65532 -r nonroot

@@ -97,16 +97,23 @@ services:
     networks:
       - neosync-network
       - temporal-network
-
     depends_on:
       db:
         condition: service_healthy
         restart: true
+    volumes:
+      - neosync_backend_build_cache:/root/.cache/go-build
     develop:
       watch:
-        - path: backend/bin
-          action: rebuild
-          target: /app
+        - action: rebuild
+          path: internal/
+          target: /workspacse
+        - action: rebuild
+          path: backend/
+          target: /workspace
+        - action: rebuild
+          path: worker/
+          target: /workspace
     restart: on-failure
 
   worker:
@@ -137,6 +144,9 @@ services:
         - action: rebuild
           path: worker/
           target: /workspace
+        - action: rebuild
+          path: backend/
+          target: /workspace
     restart: on-failure
 
   redis:
@@ -154,6 +164,7 @@ volumes:
   neosync_redis_cache:
   neosync_pg_data:
   neosync_worker_build_cache:
+  neosync_backend_build_cache:
 
 networks:
   neosync-network:

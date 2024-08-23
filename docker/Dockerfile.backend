@@ -1,5 +1,10 @@
 # Build the manager binary
-FROM golang:1.22 as builder
+FROM golang:1.22-bookworm AS builder
+
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y \
+    build-essential
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -35,16 +40,24 @@ COPY backend/pkg/ pkg/
 COPY backend/sql sql/
 
 # Build
-RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/nucleuscloud/neosync/backend/internal/version.buildDate=$buildDate' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitCommit=$gitCommit' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitVersion=$gitVersion'" -o bin/mgmt cmd/mgmt/*.go
+RUN go build -ldflags="-s -w -X 'github.com/nucleuscloud/neosync/backend/internal/version.buildDate=$buildDate' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitCommit=$gitCommit' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitVersion=$gitVersion'" -o bin/mgmt cmd/mgmt/*.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
-
+# Use debian:bullseye-slim as the base image to include necessary C libraries
+FROM debian:bookworm-slim
 WORKDIR /
+
+# Install CA certificates for HTTPS connections
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /workspace/backend/bin/mgmt .
 COPY /backend/sql/postgresql/schema/ /migrations/
-USER 65532:65532
+
+# Create a non-root user
+RUN useradd -u 65532 -r nonroot
+USER nonroot
 
 ENTRYPOINT ["/mgmt"]
 
