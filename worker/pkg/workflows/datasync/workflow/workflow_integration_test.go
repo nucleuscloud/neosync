@@ -35,6 +35,8 @@ import (
 	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
 	testdata_virtualforeignkeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/virtual-foreign-keys"
 	testdata_primarykeytransformer "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/primary-key-transformer"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
 
 	"connectrpc.com/connect"
@@ -855,6 +857,277 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"test-sync-source": {RowCount: 2},
 				"test-sync-dest":   {RowCount: 2},
+			},
+		},
+	}
+	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
+	tests := getAllMongoDBSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			// cannot run in parallel until we have each test create/delete its own tables.
+			// t.Parallel()
+			for _, tt := range group {
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					dbName := "data"
+					collectionName := "test-sync"
+
+					doc := bson.D{
+						{Key: "_id", Value: primitive.NewObjectID()},
+						{Key: "string", Value: "Hello, MongoDB!"},
+						{Key: "bool", Value: true},
+						{Key: "int32", Value: int32(42)},
+						{Key: "int64", Value: int64(92233720)},
+						{Key: "double", Value: 3.14159},
+						{Key: "decimal128", Value: primitive.NewDecimal128(3, 14159)},
+						{Key: "date", Value: primitive.NewDateTimeFromTime(time.Now())},
+						{Key: "timestamp", Value: primitive.Timestamp{T: 1645553494, I: 1}},
+						{Key: "null", Value: primitive.Null{}},
+						{Key: "regex", Value: primitive.Regex{Pattern: "^test", Options: "i"}},
+						{Key: "array", Value: bson.A{"apple", "banana", "cherry"}},
+						{Key: "embedded_document", Value: bson.D{
+							{Key: "name", Value: "John Doe"},
+							{Key: "age", Value: 30},
+						}},
+						{Key: "binary", Value: primitive.Binary{Subtype: 0x80, Data: []byte("binary data")}},
+						{Key: "undefined", Value: primitive.Undefined{}},
+						{Key: "object_id", Value: primitive.NewObjectID()},
+						{Key: "min_key", Value: primitive.MinKey{}},
+						{Key: "max_key", Value: primitive.MaxKey{}},
+					}
+					docs := []any{doc}
+
+					count, err := s.InsertMongoDbRecords(s.mongodb.source.client, dbName, collectionName, docs)
+					require.NoError(t, err)
+					require.Greater(t, count, 0)
+
+					jobId := "115aaf2c-776e-4847-8268-d914e3c15968"
+					sourceConnectionId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
+												Mongodb: &mgmtv1alpha1.MongoDBSourceConnectionOptions{
+													ConnectionId: sourceConnectionId,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: destConnectionId,
+											Options: &mgmtv1alpha1.JobDestinationOptions{
+												Config: &mgmtv1alpha1.JobDestinationOptions_MongodbOptions{
+													MongodbOptions: &mgmtv1alpha1.MongoDBDestinationConnectionOptions{},
+												},
+											},
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == sourceConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   sourceConnectionId,
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+												MongoConfig: &mgmtv1alpha1.MongoConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+														Url: s.mongodb.source.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == destConnectionId {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   destConnectionId,
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{
+												MongoConfig: &mgmtv1alpha1.MongoConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MongoConnectionConfig_Url{
+														Url: s.mongodb.target.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, fmt.Errorf("unknown test connection")
+						},
+					))
+					addRunContextProcedureMux(mux)
+					srv := startHTTPServer(t, mux)
+					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
+
+					for table, expected := range tt.Expected {
+						col := s.mongodb.target.client.Database(dbName).Collection(collectionName)
+						cursor, err := col.Find(s.ctx, bson.D{})
+						require.NoError(t, err)
+						var results []bson.M
+						for cursor.Next(s.ctx) {
+							var doc bson.M
+							err = cursor.Decode(&doc)
+							require.NoError(t, err)
+							results = append(results, doc)
+						}
+						cursor.Close(s.ctx)
+						require.Equal(t, expected.RowCount, len(results), fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					errgrp, errctx := errgroup.WithContext(s.ctx)
+					errgrp.Go(func() error { return s.DropMongoDbCollection(errctx, s.mongodb.source.client, dbName, collectionName) })
+					errgrp.Go(func() error { return s.DropMongoDbCollection(errctx, s.mongodb.target.client, dbName, collectionName) })
+					err = errgrp.Wait()
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
+}
+
+func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+	allTests["Standard Sync"] = []*workflow_testdata.IntegrationTest{
+		{
+			Name: "Passthrough Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "bool",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
+			},
+		},
+		{
+			Name: "Transform Sync",
+			JobMappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "string",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+								TransformStringConfig: &mgmtv1alpha1.TransformString{
+									PreserveLength: true,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "embedded_document.name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+								GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "decimal128",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "int64",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+									RandomizationRangeMin: 0,
+									RandomizationRangeMax: 300,
+								},
+							},
+						},
+					},
+				},
+				{
+					Schema: "data",
+					Table:  "test-sync",
+					Column: "timestamp",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+								GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
+							},
+						},
+					},
+				},
+			},
+			JobOptions: &workflow_testdata.TestJobOptions{},
+			Expected: map[string]*workflow_testdata.ExpectedOutput{
+				"test-sync": {RowCount: 1},
 			},
 		},
 	}

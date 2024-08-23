@@ -6,9 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	neosync_mongodb "github.com/nucleuscloud/neosync/backend/pkg/mongomanager"
+	neosync_types "github.com/nucleuscloud/neosync/internal/types"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
@@ -341,14 +343,42 @@ func extJSONFromMap(b service.MessageBatch, i int, m *bloblang.Executor) (any, e
 		return nil, nil
 	}
 
-	valBytes, err := msg.AsBytes()
+	keyTypeMap, err := getKeyTypMap(msg)
 	if err != nil {
 		return nil, err
 	}
-
-	var ejsonVal any
-	if err := bson.UnmarshalExtJSON(valBytes, true, &ejsonVal); err != nil {
+	root, err := msg.AsStructured()
+	if err != nil {
 		return nil, err
 	}
-	return ejsonVal, nil
+	bsonmap := neosync_mongodb.MarshalJSONToBSONDocument(root, keyTypeMap)
+	return bsonmap, nil
+}
+
+func getKeyTypMap(p *service.Message) (map[string]neosync_types.KeyType, error) {
+	keyTypeMap := map[string]neosync_types.KeyType{}
+	meta, ok := p.MetaGetMut(neosync_benthos_metadata.MetaTypeMapStr)
+	if ok {
+		kt, err := convertToMapStringKeyType(meta)
+		if err != nil {
+			return nil, err
+		}
+		keyTypeMap = kt
+	}
+	ktm := map[string]neosync_types.KeyType{}
+	for k, v := range keyTypeMap {
+		if k == "_id" {
+			ktm[k] = v
+		}
+		ktm[fmt.Sprintf("$set.%s", k)] = v
+	}
+	return ktm, nil
+}
+
+func convertToMapStringKeyType(i any) (map[string]neosync_types.KeyType, error) {
+	if m, ok := i.(map[string]neosync_types.KeyType); ok {
+		return m, nil
+	}
+
+	return nil, errors.New("input is not of type map[string]KeyType")
 }

@@ -2,14 +2,16 @@ package neosync_benthos_mongodb
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
+	neosync_mongodb "github.com/nucleuscloud/neosync/backend/pkg/mongomanager"
+	neosync_benthos_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -221,15 +223,20 @@ func (m *mongoInput) ReadBatch(ctx context.Context) (service.MessageBatch, servi
 		msg.MetaSet("mongo_database", m.database.Name())
 		msg.MetaSet("mongo_collection", m.collection)
 
-		var decoded any
+		var decoded map[string]any
 		if err := m.cursor.Decode(&decoded); err != nil {
 			msg.SetError(err)
 		} else {
-			data, err := bson.MarshalExtJSON(decoded, m.marshalCanon, false)
-			if err != nil {
-				msg.SetError(err)
+			standardMap, keyTypeMap := neosync_mongodb.UnmarshalPrimitives(decoded)
+
+			// Add the key type map to the message metadata
+			keyTypeMapJSON, err := json.Marshal(keyTypeMap)
+			if err == nil {
+				msg.MetaSet("key_type_map", string(keyTypeMapJSON))
 			}
-			msg.SetBytes(data)
+
+			msg.MetaSetMut(neosync_benthos_metadata.MetaTypeMapStr, keyTypeMap)
+			msg.SetStructuredMut(standardMap)
 		}
 
 		batch = append(batch, msg)
