@@ -1,12 +1,52 @@
-FROM alpine:3.18
+# Build the manager binary
+FROM golang:1.22-bookworm as builder
 
-RUN mkdir -p .config/helm/registry
-RUN mkdir /app
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y \
+    build-essential
 
-WORKDIR /app
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-RUN echo 'NUCLEUS_ENV=dev' > /app/.env
+RUN go mod download
 
-COPY /bin/worker /app
+WORKDIR /workspace
+COPY backend/ backend/
+COPY internal/ internal/
 
-ENTRYPOINT ["/app/worker", "serve"]
+WORKDIR /workspace/worker
+
+# Copy the go source
+COPY worker/cmd/ cmd/
+COPY worker/internal/ internal/
+COPY worker/pkg/ pkg/
+
+# Build
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
+
+# Use debian:bullseye-slim as the base image to include necessary C libraries
+FROM debian:bookworm-slim
+WORKDIR /
+
+# Install CA certificates for HTTPS connections
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /workspace/worker/bin/worker .
+
+# Install any runtime dependencies if needed
+# RUN apt-get update && apt-get install -y <your-dependencies> && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user
+RUN useradd -u 65532 -r nonroot
+USER nonroot
+
+ENTRYPOINT ["/worker"]
+
+CMD ["serve"]
