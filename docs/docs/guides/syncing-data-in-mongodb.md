@@ -4,6 +4,7 @@ description: Learn how to create a data sync job to anonymize and transform data
 id: syncing-data-in-mongodb
 hide_title: false
 slug: /guides/syncing-data-in-mongodb
+# cSpell:words Neosync,mongodb
 ---
 
 ## Introduction
