@@ -4,7 +4,7 @@ description: MongoDB is a source-available, cross-platform, document-oriented da
 id: mongodb
 hide_title: false
 slug: /connections/mongodb
-# cSpell:words textareas,mongolocal,mongosh
+# cSpell:words textareas,mongolocal,mongosh,unauth
 ---
 
 ## Introduction
