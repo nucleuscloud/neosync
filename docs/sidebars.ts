@@ -235,6 +235,11 @@ const sidebars: SidebarsConfig = {
       label: 'Allow Neosync to Access Data Sources',
     },
     {
+      type: 'doc',
+      id: 'guides/syncing-data-in-mongodb',
+      label: 'Syncing data with MongoDB',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

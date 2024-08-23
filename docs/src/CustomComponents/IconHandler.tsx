@@ -41,7 +41,13 @@ import {
 } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 import { RiOpenaiFill } from 'react-icons/ri';
-import { SiGo, SiKubernetes, SiTerraform, SiTypescript } from 'react-icons/si';
+import {
+  SiGo,
+  SiKubernetes,
+  SiMongodb,
+  SiTerraform,
+  SiTypescript,
+} from 'react-icons/si';
 import { TbCloudLock, TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
@@ -157,6 +163,8 @@ export function IconHandler(name: string): ReactElement {
       return <MdCenterFocusStrong />;
     case 'Connect Postgres via Bastion Host':
       return <BiLogoPostgresql />;
+    case 'Syncing data with MongoDB':
+      return <SiMongodb />;
     default:
       return <LayersIcon />;
   }
