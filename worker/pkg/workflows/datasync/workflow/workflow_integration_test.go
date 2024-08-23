@@ -916,7 +916,8 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 								Job: &mgmtv1alpha1.Job{
-									Id: jobId,
+									Id:        jobId,
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
 									Source: &mgmtv1alpha1.JobSource{
 										Options: &mgmtv1alpha1.JobSourceOptions{
 											Config: &mgmtv1alpha1.JobSourceOptions_Mongodb{
@@ -982,6 +983,7 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 							return nil, fmt.Errorf("unknown test connection")
 						},
 					))
+					addRunContextProcedureMux(mux)
 					srv := startHTTPServer(t, mux)
 					executeWorkflow(t, srv, s.redis.url, jobId, tt.Name)
 
