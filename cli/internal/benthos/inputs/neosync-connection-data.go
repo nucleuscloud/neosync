@@ -12,6 +12,7 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
+	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/service"
 )
@@ -212,7 +213,7 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 
 			resMap, keyTypeMap := neosync_dynamodb.UnmarshalDynamoDBItem(dynamoDBItem)
 			msg := service.NewMessage(nil)
-			msg.MetaSetMut(neosync_dynamodb.MetaTypeMapStr, keyTypeMap)
+			msg.MetaSetMut(neosync_metadata.MetaTypeMapStr, keyTypeMap)
 			msg.SetStructuredMut(resMap)
 			return msg, func(ctx context.Context, err error) error {
 				// Nacks are retried automatically when we use service.AutoRetryNacks

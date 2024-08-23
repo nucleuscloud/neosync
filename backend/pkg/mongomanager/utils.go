@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -198,12 +199,15 @@ func toUint32(value any) (uint32, error) {
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int to uint32")
 		}
-		return uint32(v), nil
+		if v > math.MaxUint32 {
+			return 0, errors.New("int value out of range for uint32")
+		}
+		return uint32(v), nil //nolint:gosec
 	case int8:
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int8 to uint32")
 		}
-		return uint32(v), nil
+		return uint32(v), nil //nolint:gosec
 	case int16:
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int16 to uint32")
@@ -215,33 +219,42 @@ func toUint32(value any) (uint32, error) {
 		}
 		return uint32(v), nil
 	case int64:
-		if v < 0 || v > int64(^uint32(0)) {
-			return 0, errors.New("value out of range for uint32")
+		if v < 0 || v > math.MaxUint32 {
+			return 0, errors.New("int64 value out of range for uint32")
 		}
-		return uint32(v), nil
+		return uint32(v), nil //nolint:gosec
+	case uint:
+		if v > math.MaxUint32 {
+			return 0, errors.New("uint value out of range for uint32")
+		}
+		return uint32(v), nil //nolint:gosec
 	case uint8:
-		return uint32(v), nil
+		return uint32(v), nil //nolint:gosec
 	case uint16:
 		return uint32(v), nil
 	case uint32:
 		return v, nil
 	case uint64:
-		if v > uint64(^uint32(0)) {
-			return 0, errors.New("value out of range for uint32")
+		if v > math.MaxUint32 {
+			return 0, errors.New("uint64 value out of range for uint32")
 		}
-		return uint32(v), nil
+		return uint32(v), nil //nolint:gosec
 	case float32:
-		if v < 0 || v > float32(^uint32(0)) {
-			return 0, errors.New("value out of range for uint32")
+		if v < 0 || v > math.MaxUint32 || float32(uint32(v)) != v {
+			return 0, errors.New("float32 value out of range or not representable as uint32")
 		}
 		return uint32(v), nil
 	case float64:
-		if v < 0 || v > float64(^uint32(0)) {
-			return 0, errors.New("value out of range for uint32")
+		if v < 0 || v > math.MaxUint32 || float64(uint32(v)) != v {
+			return 0, errors.New("float64 value out of range or not representable as uint32")
 		}
 		return uint32(v), nil
 	case string:
-		return 0, errors.New("cannot convert string to uint32")
+		num, err := strconv.ParseUint(v, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("cannot convert string to uint32: %v", err)
+		}
+		return uint32(num), nil //nolint:gosec
 	default:
 		return 0, fmt.Errorf("unsupported type: %T", value)
 	}
