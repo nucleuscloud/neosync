@@ -15,7 +15,6 @@ RUN go mod download
 
 WORKDIR /workspace
 COPY backend/internal/ backend/internal/
-COPY backend/services/ backend/services/
 COPY backend/pkg/ backend/pkg/
 COPY backend/sql backend/sql/
 COPY backend/gen/ backend/gen/
