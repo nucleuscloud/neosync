@@ -107,13 +107,14 @@ services:
       watch:
         - action: rebuild
           path: internal/
-          target: /workspacse
         - action: rebuild
           path: backend/
-          target: /workspace
         - action: rebuild
           path: worker/
-          target: /workspace
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
     restart: on-failure
 
   worker:
@@ -140,13 +141,14 @@ services:
       watch:
         - action: rebuild
           path: internal/
-          target: /workspacse
         - action: rebuild
           path: worker/
-          target: /workspace
         - action: rebuild
           path: backend/
-          target: /workspace
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
     restart: on-failure
 
   redis:

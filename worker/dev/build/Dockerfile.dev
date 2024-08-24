@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.22-bookworm as builder
+FROM golang:1.22-bookworm AS builder
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
@@ -14,7 +14,10 @@ COPY go.sum go.sum
 RUN go mod download
 
 WORKDIR /workspace
-COPY backend/ backend/
+COPY backend/internal/ backend/internal/
+COPY backend/pkg/ backend/pkg/
+COPY backend/sql backend/sql/
+COPY backend/gen/ backend/gen/
 COPY internal/ internal/
 
 WORKDIR /workspace/worker
@@ -28,25 +31,10 @@ COPY worker/pkg/ pkg/
 RUN --mount=type=cache,target=/root/.cache/go-build \
   go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
 
-# Use debian:bullseye-slim as the base image to include necessary C libraries
-FROM debian:bookworm-slim
-WORKDIR /
-
-# Install CA certificates for HTTPS connections
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive \
-  apt-get install --no-install-recommends -y ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /workspace/worker/bin/worker .
-
-# Install any runtime dependencies if needed
-# RUN apt-get update && apt-get install -y <your-dependencies> && rm -rf /var/lib/apt/lists/*
-
 # Create a non-root user
 RUN useradd -u 65532 -r nonroot
 USER nonroot
 
-ENTRYPOINT ["/worker"]
+ENTRYPOINT ["/workspace/worker/bin/worker"]
 
 CMD ["serve"]

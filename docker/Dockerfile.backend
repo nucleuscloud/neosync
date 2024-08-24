@@ -14,7 +14,8 @@ COPY go.sum go.sum
 RUN go mod download
 
 WORKDIR /workspace
-COPY worker/ worker/
+COPY worker/internal/ worker/internal/
+COPY worker/pkg/ worker/pkg/
 COPY internal/ internal/
 
 # Define build arguments

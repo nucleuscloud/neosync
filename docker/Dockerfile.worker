@@ -14,7 +14,10 @@ COPY go.sum go.sum
 RUN go mod download
 
 WORKDIR /workspace
-COPY backend/ backend/
+COPY backend/internal/ backend/internal/
+COPY backend/pkg/ backend/pkg/
+COPY backend/sql backend/sql/
+COPY backend/gen/ backend/gen/
 COPY internal/ internal/
 
 WORKDIR /workspace/worker
