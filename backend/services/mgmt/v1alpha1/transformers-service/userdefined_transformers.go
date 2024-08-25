@@ -177,6 +177,7 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		UpdatedByID:       *userUuid,
 		ID:                tUuid,
 	}
+	// todo: must verify that this updated config is valid for the configured source
 	err = updateParams.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
 	if err != nil {
 		return nil, err
@@ -218,14 +219,9 @@ func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.R
 
 // use the goja library to validate that the javascript can compile and theoretically run
 func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
-	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
+	js := constructJavascriptCode(req.Msg.GetCode())
 
-	js := constructJavascriptCode(req.Msg.Code)
-
-	_, err = goja.Compile("test", js, true)
+	_, err := goja.Compile("test", js, true)
 	if err != nil {
 		return connect.NewResponse(&mgmtv1alpha1.ValidateUserJavascriptCodeResponse{
 			Valid: false,
@@ -249,15 +245,9 @@ func constructJavascriptCode(jsCode string) string {
 }
 
 func (s *Service) ValidateUserRegexCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
-	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	// validates the user provided regex
-	_, err = regexp.Compile(req.Msg.UserProvidedRegex)
-
+	_, err := regexp.Compile(req.Msg.GetUserProvidedRegex())
+	// todo: should return error message here and surface to user
 	return connect.NewResponse(&mgmtv1alpha1.ValidateUserRegexCodeResponse{
 		Valid: err == nil,
-	}), err
+	}), nil
 }

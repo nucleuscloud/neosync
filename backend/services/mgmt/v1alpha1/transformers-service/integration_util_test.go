@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +26,22 @@ func requireNoErrResp[T any](t testing.TB, resp *connect.Response[T], err error)
 	require.NotNil(t, resp)
 }
 
+func assertNoErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
+	t.Helper()
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
 func requireErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
 	t.Helper()
 	require.Error(t, err)
 	require.Nil(t, resp)
+}
+
+func assertErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
+	t.Helper()
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
 
 func requireConnectError(t testing.TB, err error, code connect.Code) {
