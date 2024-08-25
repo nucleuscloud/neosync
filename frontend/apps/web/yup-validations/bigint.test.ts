@@ -1,5 +1,4 @@
 import {
-  BigIntVal,
   getBigIntValidateMaxFn,
   getBigIntValidateMinFn,
   getBigIntValidator,
@@ -100,7 +99,7 @@ describe('getBigIntValidateMinFn', () => {
 describe('getBigIntValidator', () => {
   function createValidator(
     range: [number | string | bigint, number | string | bigint],
-    defaultValue?: BigIntVal,
+    defaultValue?: number | string | bigint,
     requiredMessage?: string
   ) {
     return getBigIntValidator({

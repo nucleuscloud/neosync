@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-export type BigIntVal = number | string | bigint;
+type BigIntVal = number | string | bigint;
 
 interface BigIntValidatorConfig {
   default?: BigIntVal;

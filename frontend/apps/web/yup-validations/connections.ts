@@ -88,6 +88,7 @@ export const SshTunnelFormValues = Yup.object({
   privateKey: Yup.string(),
   passphrase: Yup.string(),
 });
+
 export type SshTunnelFormValues = Yup.InferType<typeof SshTunnelFormValues>;
 
 const SqlOptionsFormValues = Yup.object({
