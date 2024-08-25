@@ -14,17 +14,15 @@ func (s *IntegrationTestSuite) Test_GetSystemTransformers() {
 	require.NotEmpty(s.T(), resp.Msg.GetTransformers())
 }
 
-func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource() {
+func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource_Ok() {
 	t := s.T()
-	t.Run("ok", func(t *testing.T) {
-		resp, err := s.transformerclient.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
-		}))
-		requireNoErrResp(t, resp, err)
-		transformer := resp.Msg.GetTransformer()
-		require.NotNil(t, transformer)
-		require.Equal(t, transformer.GetSource(), mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL)
-	})
+	resp, err := s.transformerclient.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
+	}))
+	requireNoErrResp(t, resp, err)
+	transformer := resp.Msg.GetTransformer()
+	require.NotNil(t, transformer)
+	require.Equal(t, transformer.GetSource(), mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL)
 
 	t.Run("not found", func(t *testing.T) {
 		resp, err := s.transformerclient.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
@@ -33,4 +31,13 @@ func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource() {
 		requireErrResp(t, resp, err)
 		requireConnectError(s.T(), err, connect.CodeNotFound)
 	})
+}
+
+func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource_NotFound() {
+	t := s.T()
+	resp, err := s.transformerclient.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
+	}))
+	requireErrResp(t, resp, err)
+	requireConnectError(s.T(), err, connect.CodeNotFound)
 }

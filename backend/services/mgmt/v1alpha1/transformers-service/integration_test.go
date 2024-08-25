@@ -46,6 +46,7 @@ type IntegrationTestSuite struct {
 	mockAuthClient        *auth_client.MockInterface
 	mockAuthMgmtClient    *authmgmt.MockInterface
 
+	userclient        mgmtv1alpha1connect.UserAccountServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 }
 
@@ -99,11 +100,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	rootmux := http.NewServeMux()
 
 	unauthmux := http.NewServeMux()
+	unauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(unauthUserService))
 	unauthmux.Handle(mgmtv1alpha1connect.NewTransformersServiceHandler(unauthTransformerService))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
 	s.httpsrv = startHTTPServer(s.T(), rootmux)
 
+	s.userclient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth")
 	s.transformerclient = mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth")
 }
 
