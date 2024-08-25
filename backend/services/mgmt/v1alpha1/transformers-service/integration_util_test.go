@@ -38,13 +38,7 @@ func requireErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
 	require.Nil(t, resp)
 }
 
-func assertErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
-	t.Helper()
-	assert.Error(t, err)
-	assert.Nil(t, resp)
-}
-
-func requireConnectError(t testing.TB, err error, code connect.Code) {
+func requireConnectError(t testing.TB, err error, code connect.Code) { //nolint:unparam
 	t.Helper()
 	connectErr, ok := err.(*connect.Error)
 	require.True(t, ok, fmt.Sprintf("error was not connect error %T", err))
