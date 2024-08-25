@@ -19,7 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
-	down_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/down"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
@@ -55,6 +54,7 @@ type IntegrationTestSuite struct {
 	mockAuthMgmtClient    *authmgmt.MockInterface
 
 	userclient mgmtv1alpha1connect.UserAccountServiceClient
+	connclient mgmtv1alpha1connect.ConnectionServiceClient
 	jobsclient mgmtv1alpha1connect.JobServiceClient
 }
 
@@ -98,7 +98,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mockAuthClient,
 		s.mockAuthMgmtClient,
 	)
-	unauthConnectionService := v1alpha1_connectionservice.New(
+	s.connclient = v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
 		nucleusdb.New(pool, db_queries.New()),
 		unauthUserService,
@@ -114,7 +114,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		&Config{IsAuthEnabled: false, IsNeosyncCloud: false, RunLogConfig: &RunLogConfig{IsEnabled: false}},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mockTemporalClientMgr,
-		unauthConnectionService,
+		s.connclient,
 		unauthUserService,
 		sqlmanager.NewSqlManager(
 			&sync.Map{}, s.querier,
@@ -128,7 +128,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthmux := http.NewServeMux()
 	unauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(unauthUserService))
-	unauthmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(unauthConnectionService))
+	unauthmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(s.connclient))
 	unauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(unauthJobsService))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
@@ -148,8 +148,10 @@ func (s *IntegrationTestSuite) SetupTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := down_cmd.Down(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+	// Dropping here because 1) more efficient and 2) we have a bad down migration
+	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
+	// we should do something about that at some point. Running this single drop is easier though
+	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
 	if err != nil {
 		panic(err)
 	}
