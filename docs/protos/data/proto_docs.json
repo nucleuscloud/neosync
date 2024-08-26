@@ -7436,7 +7436,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "@deprecated - an account isn't required to validate js code",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7496,7 +7496,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "@deprecated - an account isn't required to validate js code",
               "label": "",
               "type": "string",
               "longType": "string",

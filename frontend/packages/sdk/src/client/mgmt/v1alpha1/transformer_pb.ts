@@ -3030,6 +3030,8 @@ export class UserDefinedTransformerConfig extends Message<UserDefinedTransformer
  */
 export class ValidateUserJavascriptCodeRequest extends Message<ValidateUserJavascriptCodeRequest> {
   /**
+   * @deprecated - an account isn't required to validate js code
+   *
    * @generated from field: string account_id = 1;
    */
   accountId = "";
@@ -3223,6 +3225,8 @@ export class GenerateJavascript extends Message<GenerateJavascript> {
  */
 export class ValidateUserRegexCodeRequest extends Message<ValidateUserRegexCodeRequest> {
   /**
+   * @deprecated - an account isn't required to validate js code
+   *
    * @generated from field: string account_id = 1;
    */
   accountId = "";

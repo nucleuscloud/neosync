@@ -380,8 +380,9 @@ message UserDefinedTransformerConfig {
 }
 
 message ValidateUserJavascriptCodeRequest {
-  string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string code = 2;
+  // @deprecated - an account isn't required to validate js code
+  string account_id = 1;
+  string code = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message ValidateUserJavascriptCodeResponse {
@@ -402,7 +403,8 @@ message GenerateJavascript {
 }
 
 message ValidateUserRegexCodeRequest {
-  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // @deprecated - an account isn't required to validate js code
+  string account_id = 1;
   string user_provided_regex = 2;
 }
 
