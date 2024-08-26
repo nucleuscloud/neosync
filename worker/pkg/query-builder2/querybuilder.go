@@ -242,7 +242,12 @@ func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition s
 		}
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
-		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
+		// sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
+		// if err != nil {
+		// 	return "", err
+		// }
+		cq := NewColumnQualifier(*schema, table)
+		sql, err := cq.qualifyWhereClause(sql)
 		if err != nil {
 			return "", err
 		}
@@ -365,4 +370,174 @@ func toAnySlice[T any](input []T) []any {
 		anys[i] = input[i]
 	}
 	return anys
+}
+
+type ColumnQualifier struct {
+	schema string
+	table  string
+}
+
+func NewColumnQualifier(schema, table string) *ColumnQualifier {
+	return &ColumnQualifier{
+		schema: schema,
+		table:  table,
+	}
+}
+
+func (cq *ColumnQualifier) qualifyWhereClause(sqlStr string) (string, error) {
+	// Parse the WHERE clause
+	tree, err := pg_query.Parse(sqlStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse WHERE clause: %w", err)
+	}
+
+	// Get the first (and only) statement
+	if len(tree.Stmts) == 0 {
+		return "", fmt.Errorf("no statements found in parsed SQL")
+	}
+	stmt := tree.Stmts[0]
+
+	// Get the WHERE clause from the statement
+	selectStmt, ok := stmt.Stmt.Node.(*pg_query.Node_SelectStmt)
+	if !ok {
+		return "", fmt.Errorf("expected SELECT statement, got %T", stmt.Stmt.Node)
+	}
+
+	whereExpr := selectStmt.SelectStmt.WhereClause
+	if whereExpr == nil {
+		return "", fmt.Errorf("no WHERE clause found in statement")
+	}
+
+	// Qualify the columns in the WHERE clause
+	err = cq.qualifyExpr(whereExpr)
+	if err != nil {
+		return "", fmt.Errorf("failed to qualify columns: %w", err)
+	}
+
+	// Deparse the modified tree back to SQL
+	sql, err := pg_query.Deparse(tree)
+	if err != nil {
+		return "", fmt.Errorf("failed to deparse modified tree: %w", err)
+	}
+
+	// // Extract only the WHERE clause part
+	// parts := strings.SplitN(sql, "WHERE", 2)
+	// if len(parts) != 2 {
+	// 	return "", fmt.Errorf("failed to extract WHERE clause from deparsed SQL")
+	// }
+
+	return sql, nil
+}
+
+func (cq *ColumnQualifier) qualifyExpr(node *pg_query.Node) error {
+	if node == nil {
+		return nil
+	}
+
+	switch n := node.Node.(type) {
+	case *pg_query.Node_AExpr:
+		err := cq.qualifyExpr(n.AExpr.Lexpr)
+		if err != nil {
+			return err
+		}
+		return cq.qualifyExpr(n.AExpr.Rexpr)
+
+	case *pg_query.Node_BoolExpr:
+		for _, arg := range n.BoolExpr.Args {
+			err := cq.qualifyExpr(arg)
+			if err != nil {
+				return err
+			}
+		}
+
+	case *pg_query.Node_ColumnRef:
+		cq.qualifyColumnRef(n.ColumnRef)
+
+	case *pg_query.Node_FuncCall:
+		for _, arg := range n.FuncCall.Args {
+			err := cq.qualifyExpr(arg)
+			if err != nil {
+				return err
+			}
+		}
+
+	case *pg_query.Node_SubLink:
+		return cq.qualifyExpr(n.SubLink.Testexpr)
+
+	case *pg_query.Node_TypeCast:
+		return cq.qualifyExpr(n.TypeCast.Arg)
+
+	case *pg_query.Node_NullTest:
+		return cq.qualifyExpr(n.NullTest.Arg)
+
+	case *pg_query.Node_CaseExpr:
+		for _, when := range n.CaseExpr.Args {
+			err := cq.qualifyExpr(when)
+			if err != nil {
+				return err
+			}
+		}
+		err := cq.qualifyExpr(n.CaseExpr.Defresult)
+		if err != nil {
+			return err
+		}
+		return cq.qualifyExpr(n.CaseExpr.Arg)
+
+	case *pg_query.Node_CaseWhen:
+		err := cq.qualifyExpr(n.CaseWhen.Expr)
+		if err != nil {
+			return err
+		}
+		return cq.qualifyExpr(n.CaseWhen.Result)
+
+	case *pg_query.Node_AConst:
+		// Constants don't need qualification
+		return nil
+
+	default:
+		return fmt.Errorf("unsupported node type: %T", n)
+	}
+
+	return nil
+}
+
+func (cq *ColumnQualifier) qualifyColumnRef(columnRef *pg_query.ColumnRef) {
+	fields := columnRef.Fields
+	if len(fields) == 1 {
+		// Unqualified column, add table and schema
+		newFields := make([]*pg_query.Node, 0, 3)
+		if cq.schema != "" {
+			newFields = append(newFields, &pg_query.Node{Node: &pg_query.Node_String_{String_: &pg_query.String{Sval: cq.schema}}})
+		}
+		newFields = append(newFields, &pg_query.Node{Node: &pg_query.Node_String_{String_: &pg_query.String{Sval: cq.table}}})
+		newFields = append(newFields, fields[0])
+		columnRef.Fields = newFields
+	} else if len(fields) == 2 {
+		// Table qualified column, add schema if not present and if it matches our table
+		if cq.schema != "" && cq.isOurTable(fields[0]) {
+			newFields := make([]*pg_query.Node, 0, 3)
+			newFields = append(newFields, &pg_query.Node{Node: &pg_query.Node_String_{String_: &pg_query.String{Sval: cq.schema}}})
+			newFields = append(newFields, fields...)
+			columnRef.Fields = newFields
+		}
+	}
+	// If len(fields) >= 3, it's already fully qualified, so we don't modify it
+}
+
+func (cq *ColumnQualifier) isOurTable(node *pg_query.Node) bool {
+	if str, ok := node.Node.(*pg_query.Node_String_); ok {
+		return str.String_.GetSval() == cq.table
+	}
+	return false
+}
+
+// Helper function to create a string node
+func makeStringNode(s string) *pg_query.Node {
+	return &pg_query.Node{
+		Node: &pg_query.Node_String_{
+			String_: &pg_query.String{
+				Sval: s,
+			},
+		},
+	}
 }
