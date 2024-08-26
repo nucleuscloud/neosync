@@ -1,6 +1,6 @@
 import { ConnectionConfigCase } from '@/app/(mgmt)/[account]/connections/util';
 import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
-import { JobMapping } from '@neosync/sdk';
+import { Job, JobMapping } from '@neosync/sdk';
 import { TableRow } from './subset-table/column';
 
 // Valid ConnectionConfigCase types. Using Extract here to ensure they stay consistent with what is available in ConnectionConfigCase
@@ -57,24 +57,45 @@ export function GetColumnsForSqlAutocomplete(
   return cols;
 }
 
+export function isJobSubsettable(job: Job): boolean {
+  switch (job.source?.options?.config.case) {
+    case 'postgres':
+    case 'mysql':
+    case 'dynamodb':
+    case 'mssql':
+      return true;
+    default:
+      return false;
+  }
+}
+
 export function isValidSubsetType(
   connectionType: ConnectionConfigCase | null
 ): connectionType is ValidSubsetConnectionType {
   return (
     connectionType === 'pgConfig' ||
     connectionType === 'mysqlConfig' ||
-    connectionType === 'dynamodbConfig'
+    connectionType === 'dynamodbConfig' ||
+    connectionType === 'mssqlConfig'
   );
 }
 
 export function isSubsetRowCountSupported(
   connectionType: ConnectionConfigCase | null
 ): boolean {
-  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
+  return (
+    connectionType === 'pgConfig' ||
+    connectionType === 'mysqlConfig' ||
+    connectionType === 'mssqlConfig'
+  );
 }
 
 export function isSubsetValidationSupported(
   connectionType: ConnectionConfigCase | null
 ): boolean {
-  return connectionType === 'pgConfig' || connectionType === 'mysqlConfig';
+  return (
+    connectionType === 'pgConfig' ||
+    connectionType === 'mysqlConfig' ||
+    connectionType === 'mssqlConfig'
+  );
 }

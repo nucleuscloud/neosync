@@ -1,5 +1,6 @@
 import { Action } from '@/components/DualListBox/DualListBox';
 import { DestinationDetails } from '@/components/jobs/NosqlTable/TableMappings/Columns';
+import { isValidSubsetType } from '@/components/jobs/subsets/utils';
 import {
   JobMappingFormValues,
   convertJobMappingTransformerToForm,
@@ -21,7 +22,8 @@ export function getConnectionIdFromSource(
     js?.options?.config.case === 'mysql' ||
     js?.options?.config.case === 'awsS3' ||
     js?.options?.config.case === 'mongodb' ||
-    js?.options?.config.case === 'dynamodb'
+    js?.options?.config.case === 'dynamodb' ||
+    js?.options?.config.case === 'mssql'
   ) {
     return js.options.config.value.connectionId;
   }
@@ -123,15 +125,7 @@ export function isNosqlSource(connection: Connection): boolean {
 }
 
 export function isConnectionSubsettable(connection: Connection): boolean {
-  switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig':
-    case 'mysqlConfig':
-    case 'dynamodbConfig':
-      return true;
-    default: {
-      return false;
-    }
-  }
+  return isValidSubsetType(connection.connectionConfig?.config.case ?? null);
 }
 
 export function shouldShowDestinationTableMappings(

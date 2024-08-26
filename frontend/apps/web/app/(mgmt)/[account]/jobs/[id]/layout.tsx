@@ -5,6 +5,7 @@ import ResourceId from '@/components/ResourceId';
 import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { isJobSubsettable } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -243,7 +244,7 @@ function getSidebarNavItems(
     },
   ];
 
-  if (shouldEnableSubsettingNav(job)) {
+  if (isJobSubsettable(job)) {
     nav.push({
       title: 'Subsets',
       href: `${basePath}/subsets`,
@@ -257,15 +258,4 @@ function getSidebarNavItems(
     });
   }
   return nav;
-}
-
-function shouldEnableSubsettingNav(job?: Job): boolean {
-  switch (job?.source?.options?.config.case) {
-    case 'postgres':
-    case 'mysql':
-    case 'dynamodb':
-      return true;
-    default:
-      return false;
-  }
 }

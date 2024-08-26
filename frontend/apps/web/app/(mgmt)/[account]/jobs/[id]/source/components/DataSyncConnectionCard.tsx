@@ -85,6 +85,7 @@ import {
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import {
+  getConnectionIdFromSource,
   getDestinationDetailsRecord,
   getDynamoDbDestinations,
   getOnSelectedTableToggle,
@@ -95,22 +96,6 @@ import {
 
 interface Props {
   jobId: string;
-}
-
-function getConnectionIdFromSource(
-  js: JobSource | undefined
-): string | undefined {
-  if (
-    js?.options?.config.case === 'postgres' ||
-    js?.options?.config.case === 'mysql' ||
-    js?.options?.config.case === 'awsS3' ||
-    js?.options?.config.case === 'mongodb' ||
-    js?.options?.config.case === 'dynamodb' ||
-    js?.options?.config.case === 'mssql'
-  ) {
-    return js.options.config.value.connectionId;
-  }
-  return undefined;
 }
 
 export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
