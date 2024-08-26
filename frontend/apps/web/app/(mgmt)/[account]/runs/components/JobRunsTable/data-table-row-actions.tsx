@@ -113,8 +113,8 @@ export function DataTableRowActions<TData>({
                   Cancel
                 </DropdownMenuItem>
               }
-              headerText="Are you sure you want to cancel this job run?"
-              description=""
+              headerText="Cancel Job Run?"
+              description="Are you sure you want to cancel this job run?"
               onConfirm={async () => onCancel()}
               buttonText="Cancel"
               buttonVariant="default"
@@ -130,8 +130,8 @@ export function DataTableRowActions<TData>({
                   Terminate
                 </DropdownMenuItem>
               }
-              headerText="Are you sure you want to terminate this job run?"
-              description=""
+              headerText="Terminate Job Run?"
+              description="Are you sure you want to terminate this job run?"
               onConfirm={async () => onTerminate()}
               buttonText="Terminate"
               buttonVariant="default"
@@ -150,8 +150,8 @@ export function DataTableRowActions<TData>({
               Delete
             </DropdownMenuItem>
           }
-          headerText="Are you sure you want to delete this job run?"
-          description=""
+          headerText="Delete Job Run?"
+          description="Are you sure you want to delete this job run?"
           onConfirm={async () => {
             await onDelete();
           }}

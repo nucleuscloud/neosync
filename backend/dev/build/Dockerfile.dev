@@ -1,14 +1,44 @@
-FROM alpine:3.18
+# Build the manager binary
+FROM golang:1.22-bookworm AS builder
 
-RUN mkdir -p .config/helm/registry
-RUN mkdir /app
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  apt-get install --no-install-recommends -y \
+    build-essential
 
-WORKDIR /app
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-COPY /sql/postgresql/schema/ /app/migrations/
+RUN go mod download
 
-RUN echo 'NUCLEUS_ENV=dev' > /app/.env
+WORKDIR /workspace
+COPY worker/internal/ worker/internal/
+COPY worker/pkg/ worker/pkg/
+COPY internal/ internal/
 
-COPY /bin/mgmt /app
+WORKDIR /workspace/backend
 
-ENTRYPOINT ["/app/mgmt"]
+# Copy in generated code
+COPY backend/gen/ gen/
+
+# Copy the go source
+COPY backend/cmd/ cmd/
+COPY backend/internal/ internal/
+COPY backend/services/ services/
+COPY backend/pkg/ pkg/
+COPY backend/sql sql/
+COPY /backend/sql/postgresql/schema/ /migrations/
+
+# Build
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
+
+# Create a non-root user
+RUN useradd -u 65532 -r nonroot
+USER nonroot
+
+ENTRYPOINT ["/workspace/backend/bin/mgmt"]
+
+CMD ["serve", "connect"]

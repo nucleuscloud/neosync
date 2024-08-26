@@ -227,12 +227,15 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
             <FormItem>
               <FormLabel>Collection</FormLabel>
               <FormDescription>
-                The collection to associate a mapping with.
+                The collection that you want to map.
               </FormDescription>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue
+                      placeholder="Select a collection"
+                      className="placeholder:text-gray-400 bg-red-400"
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {collections.map((collection) => (
@@ -254,10 +257,10 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
             <FormItem>
               <FormLabel>Document Key</FormLabel>
               <FormDescription>
-                The key within the document to add a mapping with.
+                Use dot notation to select a key for the mapping.
               </FormDescription>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="users.address.city" />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -60,23 +60,25 @@ export default function ConfirmationDialog(props: Props): ReactElement {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>{headerText}</DialogHeader>
-        <DialogDescription>{description}</DialogDescription>
+        <DialogDescription className="text-xs">{description}</DialogDescription>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="secondary">
-              <ButtonText text="Close" />
+          <div className="w-full flex justify-between pt-4">
+            <DialogClose asChild>
+              <Button variant="secondary">
+                <ButtonText text="Close" />
+              </Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              variant={buttonVariant}
+              onClick={() => onClick()}
+            >
+              <ButtonText
+                leftIcon={isTrying ? <Spinner /> : buttonIcon}
+                text={buttonText}
+              />
             </Button>
-          </DialogClose>
-          <Button
-            type="submit"
-            variant={buttonVariant}
-            onClick={() => onClick()}
-          >
-            <ButtonText
-              leftIcon={isTrying ? <Spinner /> : buttonIcon}
-              text={buttonText}
-            />
-          </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
