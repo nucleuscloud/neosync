@@ -11,7 +11,8 @@
     "latest-tag": "git tag --sort=creatordate | tail -1",
     "knip": "knip",
     "knip:production": "knip --production --strict",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",
@@ -70,6 +71,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
     "@types/node": "20.14.11",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
@@ -79,10 +81,12 @@
     "autoprefixer": "^10.4.20",
     "eslint": "8.57.0",
     "eslint-config-next": "^14.2.5",
+    "jest": "^29.7.0",
     "knip": "^5.27.2",
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.9",
+    "ts-jest": "^29.2.4",
     "typescript": "5.5.4"
   }
 }
