@@ -1,4 +1,5 @@
 'use client';
+import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
@@ -21,10 +22,10 @@ import {
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
@@ -484,6 +485,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const dynamoDBDestinations = getDynamoDbDestinations(
     data?.job?.destinations ?? []
   );
+
+  const splitSourceConnections = splitConnections(
+    connections.filter(
+      (c) =>
+        !data?.job?.destinations.map((d) => d.connectionId)?.includes(c.id) &&
+        c.connectionConfig?.config.case !== 'awsS3Config' &&
+        c.connectionConfig?.config.case !== 'openaiConfig' &&
+        c.connectionConfig?.config.case !== 'gcpCloudstorageConfig'
+    )
+  );
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -512,27 +523,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                       <SelectValue placeholder={source?.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {connections
-                        .filter(
-                          (c) =>
-                            !data?.job?.destinations
-                              .map((d) => d.connectionId)
-                              ?.includes(c.id) &&
-                            c.connectionConfig?.config.case !== 'awsS3Config' &&
-                            c.connectionConfig?.config.case !==
-                              'openaiConfig' &&
-                            c.connectionConfig?.config.case !==
-                              'gcpCloudstorageConfig'
-                        )
-                        .map((connection) => (
-                          <SelectItem
-                            className="cursor-pointer ml-2"
-                            key={connection.id}
-                            value={connection.id}
-                          >
-                            {connection.name}
-                          </SelectItem>
-                        ))}
+                      <ConnectionSelectContent
+                        postgres={splitSourceConnections.postgres}
+                        mysql={splitSourceConnections.mysql}
+                        mongodb={splitSourceConnections.mongodb}
+                        dynamodb={splitSourceConnections.dynamodb}
+                        mssql={splitSourceConnections.mssql}
+                      />
                     </SelectContent>
                   </Select>
                 </FormControl>

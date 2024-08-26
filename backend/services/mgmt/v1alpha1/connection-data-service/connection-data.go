@@ -511,7 +511,7 @@ func (s *Service) GetConnectionSchema(
 	}
 
 	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connectionTimeout := 5
 		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection, &connectionTimeout)
 		if err != nil {
@@ -1031,6 +1031,12 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_DynamodbConfig{},
 		}
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		schemaReq.SchemaConfig = &mgmtv1alpha1.ConnectionSchemaConfig{
+			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlSchemaConfig{},
+			},
+		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
@@ -1401,7 +1407,7 @@ func (s *Service) GetConnectionTableConstraints(
 	}
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connectionTimeout := 5
 		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
 		if err != nil {
@@ -1474,7 +1480,7 @@ func (s *Service) GetTableRowCount(
 	}
 
 	switch connection.Msg.GetConnection().GetConnectionConfig().Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connectionTimeout := 5
 		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
 		if err != nil {
