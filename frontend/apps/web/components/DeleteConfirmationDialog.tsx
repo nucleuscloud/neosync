@@ -50,21 +50,29 @@ export default function DeleteConfirmationDialog(props: Props): ReactElement {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogTitle className="flex gap-2 flex-col">
-          <DialogHeader>{headerText}</DialogHeader>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogHeader className="font-semibold">{headerText}</DialogHeader>
+          <DialogDescription className="text-xs">
+            {description}
+          </DialogDescription>
         </DialogTitle>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="secondary">
-              <ButtonText text="Close" />
+          <div className="w-full flex justify-between pt-4">
+            <DialogClose asChild>
+              <Button variant="secondary">
+                <ButtonText text="Close" />
+              </Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              variant="destructive"
+              onClick={() => onClick()}
+            >
+              <ButtonText
+                leftIcon={isTrying ? <Spinner /> : <TrashIcon />}
+                text={deleteButtonText}
+              />
             </Button>
-          </DialogClose>
-          <Button type="submit" variant="destructive" onClick={() => onClick()}>
-            <ButtonText
-              leftIcon={isTrying ? <Spinner /> : <TrashIcon />}
-              text={deleteButtonText}
-            />
-          </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

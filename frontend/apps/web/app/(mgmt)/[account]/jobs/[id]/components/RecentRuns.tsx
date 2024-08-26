@@ -226,8 +226,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                                       Cancel
                                     </DropdownMenuItem>
                                   }
-                                  headerText="Are you sure you want to cancel this job run?"
-                                  description=""
+                                  headerText="Cancel Job Run?"
+                                  description="Are you sure you want to cancel this job run?"
                                   onConfirm={async () => onCancel(jobRun.id)}
                                   buttonText="Cancel"
                                   buttonVariant="default"
@@ -243,8 +243,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                                       Terminate
                                     </DropdownMenuItem>
                                   }
-                                  headerText="Are you sure you want to terminate this job run?"
-                                  description=""
+                                  headerText="Terminate Job Run?"
+                                  description="Are you sure you want to terminate this job run?"
                                   onConfirm={async () => onTerminate(jobRun.id)}
                                   buttonText="Terminate"
                                   buttonVariant="default"
@@ -263,8 +263,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                                   Delete
                                 </DropdownMenuItem>
                               }
-                              headerText="Are you sure you want to delete this job run?"
-                              description=""
+                              headerText="Delete Job Run?"
+                              description="Are you sure you want to delete this job run?"
                               onConfirm={async () => onDelete(jobRun.id)}
                             />
                           </DropdownMenuContent>
