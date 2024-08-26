@@ -47,9 +47,16 @@ import {
   TransformerSource,
 } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
-import { TableIcon } from '@radix-ui/react-icons';
+import { CheckIcon, Pencil1Icon, TableIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
-import { HTMLProps, ReactElement, useEffect, useMemo, useRef } from 'react';
+import {
+  HTMLProps,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import FormErrorsCard, { FormError } from '../SchemaTable/FormErrorsCard';
@@ -105,6 +112,7 @@ export default function NosqlTable(props: Props): ReactElement {
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
   );
+
   const columns = useMemo(
     () =>
       getColumns({
@@ -217,6 +225,8 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
+
+  console.log('form', form.getValues());
 
   return (
     <div className="flex flex-col w-full space-y-4">
@@ -349,7 +359,7 @@ interface GetColumnsProps {
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const { onDelete, onEdit, transformerHandler } = props;
+  const { onDelete, transformerHandler, onEdit } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -417,7 +427,19 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       ),
       cell: ({ row }) => {
         const text = row.getValue<string>('column');
-        return <TruncatedText text={text} />;
+        return (
+          <EditDocumentKey
+            text={text}
+            onEdit={(updatedObject) => {
+              onEdit({
+                schema: row.getValue('schema'),
+                table: row.getValue('table'),
+                column: updatedObject.column,
+                transformer: row.getValue('transformer'),
+              });
+            }}
+          />
+        );
       },
       maxSize: 500,
       size: 200,
@@ -530,5 +552,47 @@ function IndeterminateCheckbox({
       className={className + ' cursor-pointer '}
       {...rest}
     />
+  );
+}
+interface EditDocumentKeyProps {
+  text: string;
+  onEdit: (updatedObject: { column: string }) => void;
+}
+
+function EditDocumentKey({ text, onEdit }: EditDocumentKeyProps): ReactElement {
+  const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState<string>(text);
+
+  const handleSave = () => {
+    onEdit({ column: inputValue });
+    setIsEditingMapping(false);
+  };
+
+  return (
+    <div className="w-full flex flex-row items-center gap-4">
+      {isEditingMapping ? (
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+        />
+      ) : (
+        <TruncatedText text={inputValue} />
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden h-[36px] lg:flex"
+        type="button"
+        onClick={() => {
+          if (isEditingMapping) {
+            handleSave();
+          } else {
+            setIsEditingMapping(true);
+          }
+        }}
+      >
+        {isEditingMapping ? <CheckIcon /> : <Pencil1Icon />}
+      </Button>
+    </div>
   );
 }
