@@ -29,6 +29,7 @@ export function splitConnections(connections: Connection[]): {
   mongodb: Connection[];
   gcpcs: Connection[];
   dynamodb: Connection[];
+  mssql: Connection[];
 } {
   const postgres: Connection[] = [];
   const mysql: Connection[] = [];
@@ -37,6 +38,7 @@ export function splitConnections(connections: Connection[]): {
   const mongodb: Connection[] = [];
   const gcpcs: Connection[] = [];
   const dynamodb: Connection[] = [];
+  const mssql: Connection[] = [];
 
   connections.forEach((connection) => {
     if (connection.connectionConfig?.config.case === 'pgConfig') {
@@ -55,6 +57,8 @@ export function splitConnections(connections: Connection[]): {
       gcpcs.push(connection);
     } else if (connection.connectionConfig?.config.case === 'dynamodbConfig') {
       dynamodb.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'mssqlConfig') {
+      mssql.push(connection);
     }
   });
 
@@ -66,6 +70,7 @@ export function splitConnections(connections: Connection[]): {
     mongodb,
     gcpcs,
     dynamodb,
+    mssql,
   };
 }
 

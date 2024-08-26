@@ -11,6 +11,7 @@ interface Props {
   mongodb?: Connection[];
   gcpcs?: Connection[];
   dynamodb?: Connection[];
+  mssql?: Connection[];
 
   // Provide a value to include the new connection item
   newConnectionValue?: string;
@@ -24,6 +25,7 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
     mongodb = [],
     gcpcs = [],
     dynamodb = [],
+    mssql = [],
     newConnectionValue,
   } = props;
   const selectgroups = [
@@ -34,6 +36,7 @@ export default function ConnectionSelectContent(props: Props): ReactElement {
     [openai, 'OpenAI'],
     [gcpcs, 'GCP Cloud Storage'],
     [dynamodb, 'DynamoDB'],
+    [mssql, 'MS Sql Server'],
   ] as const;
   return (
     <>

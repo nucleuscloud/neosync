@@ -92,7 +92,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(connections);
 
   return (
@@ -238,6 +238,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   shouldValidate: true,
                                 }
                               );
+                            } else if (connectionType === 'mssqlConfig') {
+                              form.setValue(
+                                'sourceOptions',
+                                {
+                                  mssql: {
+                                    haltOnNewColumnAddition: false,
+                                  },
+                                },
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             } else {
                               form.setValue(
                                 'sourceOptions',
@@ -264,6 +278,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               mysql={mysql}
                               mongodb={mongodb}
                               dynamodb={dynamodb}
+                              mssql={mssql}
                               newConnectionValue={NEW_CONNECTION_VALUE}
                             />
                           </SelectContent>
@@ -418,6 +433,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             shouldValidate: true,
                                           }
                                         );
+                                      } else if (
+                                        destConnType === 'mssqlConfig'
+                                      ) {
+                                        form.setValue(
+                                          `destinations.${index}.destinationOptions`,
+                                          {
+                                            mssql: {
+                                              truncateBeforeInsert: false,
+                                              initTableSchema: false,
+                                              onConflictDoNothing: false,
+                                            },
+                                          },
+                                          {
+                                            shouldDirty: true,
+                                            shouldTouch: true,
+                                            shouldValidate: true,
+                                          }
+                                        );
                                       }
                                     }}
                                     value={field.value}
@@ -436,6 +469,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         mongodb={mongodb}
                                         gcpcs={gcpcs}
                                         dynamodb={dynamodb}
+                                        mssql={mssql}
                                         newConnectionValue={
                                           NEW_CONNECTION_VALUE
                                         }

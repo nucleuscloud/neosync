@@ -95,6 +95,29 @@ export default function SourceOptionsForm(
           transformerHandler={transformersHandler}
         />
       );
+    case 'mssqlConfig': {
+      return (
+        <div className="flex flex-col gap-2">
+          <div>
+            <SwitchCard
+              isChecked={value.mssql?.haltOnNewColumnAddition ?? false}
+              onCheckedChange={(checked) => {
+                setValue({
+                  mysql: {
+                    ...(value.mssql ?? {
+                      haltOnNewColumnAddition: false,
+                    }),
+                    haltOnNewColumnAddition: checked,
+                  },
+                });
+              }}
+              title="Halt Job on new column addition"
+              description="Stops job runs if new column is detected"
+            />
+          </div>
+        </div>
+      );
+    }
     default:
       return (
         <div>
