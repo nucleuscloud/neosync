@@ -113,6 +113,8 @@ export default function NosqlTable(props: Props): ReactElement {
     account?.id ?? ''
   );
 
+  const collections = Array.from(Object.keys(schema));
+
   const columns = useMemo(
     () =>
       getColumns({
@@ -123,6 +125,7 @@ export default function NosqlTable(props: Props): ReactElement {
           onEditMappings([row]);
         },
         transformerHandler: handler,
+        collections: collections,
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
@@ -146,7 +149,7 @@ export default function NosqlTable(props: Props): ReactElement {
           </CardHeader>
           <CardContent>
             <AddNewRecord
-              collections={Array.from(Object.keys(schema))}
+              collections={collections}
               onSubmit={(values) => {
                 onAddMappings([values]);
               }}
@@ -225,8 +228,6 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
     },
   });
-
-  console.log('form', form.getValues());
 
   return (
     <div className="flex flex-col w-full space-y-4">
@@ -356,10 +357,11 @@ interface GetColumnsProps {
   onDelete(row: Row): void;
   transformerHandler: TransformerHandler;
   onEdit(row: Row): void;
+  collections: string[];
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const { onDelete, transformerHandler, onEdit } = props;
+  const { onDelete, transformerHandler, onEdit, collections } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -414,8 +416,21 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Collection" />
       ),
-      cell: ({ getValue }) => {
-        return <TruncatedText text={getValue<string>()} />;
+      cell: ({ getValue, row }) => {
+        return (
+          <EditCollection
+            collections={collections}
+            text={getValue<string>()}
+            onEdit={(updatedObject) => {
+              onEdit({
+                schema: updatedObject.collection.split('.')[0],
+                table: updatedObject.collection.split('.')[1],
+                column: row.getValue('column'),
+                transformer: row.getValue('transformer'),
+              });
+            }}
+          />
+        );
       },
       maxSize: 500,
       size: 300,
@@ -577,6 +592,63 @@ function EditDocumentKey({ text, onEdit }: EditDocumentKeyProps): ReactElement {
         />
       ) : (
         <TruncatedText text={inputValue} />
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden h-[36px] lg:flex"
+        type="button"
+        onClick={() => {
+          if (isEditingMapping) {
+            handleSave();
+          } else {
+            setIsEditingMapping(true);
+          }
+        }}
+      >
+        {isEditingMapping ? <CheckIcon /> : <Pencil1Icon />}
+      </Button>
+    </div>
+  );
+}
+
+interface EditCollectionProps {
+  collections: string[];
+  text: string;
+  onEdit: (updatedObject: { collection: string }) => void;
+}
+
+function EditCollection(props: EditCollectionProps): ReactElement {
+  const { collections, text, onEdit } = props;
+
+  const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
+  const [collection, setCollection] = useState<string>(text);
+
+  const handleSave = () => {
+    onEdit({ collection: collection });
+    setIsEditingMapping(false);
+  };
+
+  return (
+    <div className="w-full flex flex-row items-center gap-4">
+      {isEditingMapping ? (
+        <Select onValueChange={(val) => setCollection(val)} value={collection}>
+          <SelectTrigger>
+            <SelectValue
+              placeholder="Select a collection"
+              className="placeholder:text-muted-foreground/70 "
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {collections.map((collection) => (
+              <SelectItem value={collection} key={collection}>
+                {collection}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <TruncatedText text={collection} />
       )}
       <Button
         variant="outline"

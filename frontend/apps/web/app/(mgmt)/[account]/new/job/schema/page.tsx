@@ -542,7 +542,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
               onEditMappings={(values) => {
-                console.log('values', values);
                 const valuesMap = new Map(
                   values.map((v) => [
                     `${v.schema}.${v.table}.${v.column}`,
