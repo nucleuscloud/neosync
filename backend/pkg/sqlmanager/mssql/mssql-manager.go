@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -45,6 +46,10 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 		if row.NumericScale.Valid {
 			numericScale = int32(row.NumericScale.Int16)
 		}
+		ordPosition := int16(-1)
+		if row.OrdinalPosition >= math.MinInt16 && row.OrdinalPosition <= math.MaxInt16 {
+			ordPosition = int16(row.OrdinalPosition) //nolint:gosec
+		}
 		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -53,7 +58,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
 			IsNullable:             row.IsNullable,
 			GeneratedType:          nil, // todo
-			OrdinalPosition:        int16(row.OrdinalPosition),
+			OrdinalPosition:        ordPosition,
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
 			NumericScale:           numericScale,
