@@ -30,7 +30,7 @@ import { BsFunnel } from 'react-icons/bs';
 import { CiFilter, CiMicrochip, CiViewTable } from 'react-icons/ci';
 import { DiMongodb } from 'react-icons/di';
 import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
-import { GoDatabase, GoLightBulb, GoSync } from 'react-icons/go';
+import { GoDatabase, GoLightBulb, GoSync, GoTerminal } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
@@ -191,6 +191,8 @@ export function IconHandler(name: string): ReactElement {
       return <CiFilter />;
     case 'Database Setup':
       return <GoDatabase />;
+    case 'Viewing Job Run Logs':
+      return <GoTerminal />;
 
     default:
       return <LayersIcon />;
