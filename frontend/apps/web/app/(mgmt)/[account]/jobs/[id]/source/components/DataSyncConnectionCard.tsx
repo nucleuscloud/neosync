@@ -55,6 +55,7 @@ import {
   JobSource,
   JobSourceOptions,
   MongoDBSourceConnectionOptions,
+  MssqlSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
   ValidateJobMappingsResponse,
@@ -836,6 +837,20 @@ function toJobSourceOptions(
         },
       });
     }
+    case 'mssqlConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'mssql',
+          value: new MssqlSourceConnectionOptions({
+            ...getExistingMssqlSourceConnectionOptions(job),
+            connectionId: newSourceId,
+            haltOnNewColumnAddition:
+              values.sourceOptions.mssql?.haltOnNewColumnAddition,
+          }),
+        },
+      });
+    }
+
     default:
       throw new Error('unsupported connection type');
   }
@@ -853,6 +868,14 @@ function getExistingMysqlSourceConnectionOptions(
   job: Job
 ): MysqlSourceConnectionOptions | undefined {
   return job.source?.options?.config.case === 'mysql'
+    ? job.source.options.config.value
+    : undefined;
+}
+
+function getExistingMssqlSourceConnectionOptions(
+  job: Job
+): MssqlSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'mssql'
     ? job.source.options.config.value
     : undefined;
 }
@@ -920,7 +943,8 @@ function getJobSource(
 
   if (
     job.source?.options?.config.case === 'postgres' ||
-    job.source?.options?.config.case === 'mysql'
+    job.source?.options?.config.case === 'mysql' ||
+    job.source?.options?.config.case === 'mssql'
   ) {
     Object.entries(mapData).forEach(([key, currcols]) => {
       const dbcols = connSchemaMap[key];
@@ -1012,6 +1036,19 @@ function getJobSource(
         destinationOptions: destOpts,
       };
     }
+    case 'mssql': {
+      return {
+        ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
+        sourceOptions: {
+          mssql: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
+        },
+      };
+    }
+
     default:
       return yupValidationValues;
   }
@@ -1081,6 +1118,16 @@ async function getUpdatedValues(
           dynamodb: {
             unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
             enableConsistentRead: false,
+          },
+        },
+      };
+    }
+    case 'mssqlConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          mssql: {
+            haltOnNewColumnAddition: false,
           },
         },
       };

@@ -6,7 +6,7 @@ import { TableRow } from './subset-table/column';
 // Valid ConnectionConfigCase types. Using Extract here to ensure they stay consistent with what is available in ConnectionConfigCase
 export type ValidSubsetConnectionType = Extract<
   ConnectionConfigCase,
-  'pgConfig' | 'mysqlConfig' | 'dynamodbConfig'
+  'pgConfig' | 'mysqlConfig' | 'dynamodbConfig' | 'mssqlConfig'
 >;
 
 interface DbCol {
