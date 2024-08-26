@@ -140,8 +140,8 @@ export default function Page({ params }: PageProps): ReactElement {
                     <ButtonText leftIcon={<TrashIcon />} text="Delete" />
                   </Button>
                 }
-                headerText="Are you sure you want to delete this job run?"
-                description=""
+                headerText="Delete Job Run?"
+                description="Are you sure you want to delete this job run?"
                 onConfirm={async () => onDelete()}
               />
               {(jobRun?.status === JobRunStatusEnum.RUNNING ||
@@ -153,8 +153,8 @@ export default function Page({ params }: PageProps): ReactElement {
                         <ButtonText leftIcon={<Cross2Icon />} text="Cancel" />
                       </Button>
                     }
-                    headerText="Are you sure you want to cancel this job run?"
-                    description=""
+                    headerText="Cancel Job Run?"
+                    description="Are you sure you want to cancel this job run?"
                     onConfirm={async () => onCancel()}
                     buttonText="Cancel"
                     buttonVariant="default"
@@ -166,8 +166,8 @@ export default function Page({ params }: PageProps): ReactElement {
                         <ButtonText leftIcon={<TiCancel />} text="Terminate" />
                       </Button>
                     }
-                    headerText="Are you sure you want to terminate this job run?"
-                    description=""
+                    headerText="Terminate Job Run?"
+                    description="Are you sure you want to terminate this job run?"
                     onConfirm={async () => onTerminate()}
                     buttonText="Terminate"
                     buttonVariant="default"
