@@ -1,8 +1,6 @@
 package v1alpha1_transformersservice
 
 import (
-	"testing"
-
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/stretchr/testify/require"
@@ -23,14 +21,6 @@ func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource_Ok() {
 	transformer := resp.Msg.GetTransformer()
 	require.NotNil(t, transformer)
 	require.Equal(t, transformer.GetSource(), mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL)
-
-	t.Run("not found", func(t *testing.T) {
-		resp, err := s.transformerclient.GetSystemTransformerBySource(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
-			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
-		}))
-		requireErrResp(t, resp, err)
-		requireConnectError(s.T(), err, connect.CodeNotFound)
-	})
 }
 
 func (s *IntegrationTestSuite) Test_GetSystemTransformersBySource_NotFound() {
