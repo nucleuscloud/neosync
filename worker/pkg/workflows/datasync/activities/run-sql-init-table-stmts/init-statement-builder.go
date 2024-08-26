@@ -308,6 +308,11 @@ func getSqlJobDestinationOpts(
 			TruncateBeforeInsert: opts.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			InitSchema:           opts.MysqlOptions.GetInitTableSchema(),
 		}, nil
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &sqlJobDestinationOpts{
+			TruncateBeforeInsert: opts.MssqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			InitSchema:           opts.MssqlOptions.GetInitTableSchema(),
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported job destination options type: %T", opts)
 	}

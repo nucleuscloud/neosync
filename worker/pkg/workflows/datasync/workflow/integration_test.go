@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testmongodb "github.com/testcontainers/testcontainers-go/modules/mongodb"
+	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -44,6 +45,18 @@ type postgresTest struct {
 	target *postgresTestContainer
 
 	databases []string
+}
+
+type mssqlTest struct {
+	pool          *sql.DB
+	testcontainer *testmssql.MSSQLServerContainer
+	source        *mssqlTestContainer
+	target        *mssqlTestContainer
+}
+
+type mssqlTestContainer struct {
+	pool *sql.DB
+	url  string
 }
 
 type mysqlTestContainer struct {
@@ -80,6 +93,7 @@ type IntegrationTestSuite struct {
 
 	mysql    *mysqlTest
 	postgres *postgresTest
+	mssql    *mssqlTest
 	redis    *redisTest
 	dynamo   *dynamodbTest
 	mongodb  *mongodbTest
@@ -140,6 +154,62 @@ func createMongoTestContainer(
 		testcontainer: mongodbContainer,
 		client:        client,
 		url:           uri,
+	}, nil
+}
+func (s *IntegrationTestSuite) SetupMssql() (*mssqlTest, error) {
+	mssqlcontainer, err := testmssql.Run(s.ctx,
+		"mcr.microsoft.com/mssql/server:2022-latest",
+		testmssql.WithAcceptEULA(),
+		testmssql.WithPassword("mssqlPASSword1"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	connstr, err := mssqlcontainer.ConnectionString(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := sql.Open(sqlmanager_shared.MssqlDriver, connstr)
+	if err != nil {
+		return nil, err
+	}
+
+	source, err := createMssqlTest(s.ctx, mssqlcontainer, conn, "datasync_source")
+	if err != nil {
+		return nil, err
+	}
+	target, err := createMssqlTest(s.ctx, mssqlcontainer, conn, "datasync_target")
+	if err != nil {
+		return nil, err
+	}
+
+	return &mssqlTest{
+		testcontainer: mssqlcontainer,
+		pool:          conn,
+		source:        source,
+		target:        target,
+	}, nil
+}
+
+func createMssqlTest(ctx context.Context, mssqlcontainer *testmssql.MSSQLServerContainer, conn *sql.DB, database string) (*mssqlTestContainer, error) {
+	_, err := conn.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE %s;", database))
+	if err != nil {
+		return nil, err
+	}
+
+	connStr, err := mssqlcontainer.ConnectionString(ctx, fmt.Sprintf("database=%s", database))
+	if err != nil {
+		return nil, err
+	}
+
+	dbConn, err := sql.Open(sqlmanager_shared.MssqlDriver, connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mssqlTestContainer{
+		pool: dbConn,
+		url:  connStr,
 	}, nil
 }
 
@@ -377,6 +447,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	var postgresTest *postgresTest
 	var mysqlTest *mysqlTest
+	var mssqlTest *mssqlTest
 	var redisTest *redisTest
 	var dynamoTest *dynamodbTest
 	var mongodbTest *mongodbTest
@@ -397,6 +468,15 @@ func (s *IntegrationTestSuite) SetupSuite() {
 			return err
 		}
 		mysqlTest = m
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		m, err := s.SetupMssql()
+		if err != nil {
+			return err
+		}
+		mssqlTest = m
 		return nil
 	})
 
@@ -434,6 +514,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.postgres = postgresTest
 	s.mysql = mysqlTest
+	s.mssql = mssqlTest
 	s.redis = redisTest
 	s.dynamo = dynamoTest
 	s.mongodb = mongodbTest
@@ -597,6 +678,23 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	}
 	if s.postgres.testcontainer != nil {
 		err := s.postgres.testcontainer.Terminate(s.ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// mssql
+	if s.mssql.source.pool != nil {
+		s.mssql.source.pool.Close()
+	}
+	if s.mssql.target.pool != nil {
+		s.mssql.target.pool.Close()
+	}
+	if s.mssql.pool != nil {
+		s.mssql.pool.Close()
+	}
+	if s.mssql.testcontainer != nil {
+		err := s.mssql.testcontainer.Terminate(s.ctx)
 		if err != nil {
 			panic(err)
 		}
