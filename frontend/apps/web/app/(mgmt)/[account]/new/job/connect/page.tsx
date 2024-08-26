@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Connection, ConnectionConfig } from '@neosync/sdk';
@@ -266,7 +266,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           }}
                           value={field.value}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger
+                            className={cn(
+                              field.value ? undefined : 'text-muted-foreground'
+                            )}
+                          >
                             <SelectValue
                               ref={field.ref}
                               placeholder="Select a source ..."
@@ -455,7 +459,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                     }}
                                     value={field.value}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger
+                                      className={cn(
+                                        field.value
+                                          ? undefined
+                                          : 'text-muted-foreground'
+                                      )}
+                                    >
                                       <SelectValue
                                         ref={field.ref}
                                         placeholder="Select a destination ..."
