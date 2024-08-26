@@ -105,7 +105,8 @@ function getConnectionIdFromSource(
     js?.options?.config.case === 'mysql' ||
     js?.options?.config.case === 'awsS3' ||
     js?.options?.config.case === 'mongodb' ||
-    js?.options?.config.case === 'dynamodb'
+    js?.options?.config.case === 'dynamodb' ||
+    js?.options?.config.case === 'mssql'
   ) {
     return js.options.config.value.connectionId;
   }
