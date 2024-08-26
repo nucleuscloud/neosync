@@ -276,7 +276,7 @@ export default function DestinationOptionsForm(
             />
           </div>
           <div>
-            <SwitchCard
+            {/* <SwitchCard
               isChecked={value.mssql?.initTableSchema ?? false}
               onCheckedChange={(newVal) => {
                 setValue({
@@ -293,7 +293,7 @@ export default function DestinationOptionsForm(
               }}
               title="Init Table Schema"
               description="Creates table(s) and their constraints. The database schema must already exist. "
-            />
+            /> */}
           </div>
           <div>
             <SwitchCard
