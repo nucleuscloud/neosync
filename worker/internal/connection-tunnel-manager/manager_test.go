@@ -30,7 +30,7 @@ func Test_ConnectionTunnelManager_GetConnectionString(t *testing.T) {
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	connstr, err := mgr.GetConnectionString("111", conn, slog.Default())
 	require.NoError(t, err)
@@ -72,14 +72,12 @@ func Test_ConnectionTunnelManager_GetConnectionString_Unique_Conns(t *testing.T)
 
 	provider.On("GetConnectionDetails", conn1.ConnectionConfig, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 
-	conn2Pg := getPgGenDbConfig(t)
-	conn2Pg.User = "foo2"
 	provider.On("GetConnectionDetails", conn2.ConnectionConfig, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: conn2Pg,
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo2"),
 		}, nil)
 
 	connstr, err := mgr.GetConnectionString("111", conn1, slog.Default())
@@ -103,7 +101,7 @@ func Test_ConnectionTunnelManager_GetConnectionString_Parallel_Sessions_Same_Con
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 
 	errgrp := errgroup.Group{}
@@ -138,7 +136,7 @@ func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
 	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
@@ -161,7 +159,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
 	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
@@ -200,7 +198,7 @@ func Test_ConnectionTunnelManager_ReleaseSession(t *testing.T) {
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	_, err := mgr.GetConnectionString("111", conn, slog.Default())
 	require.NoError(t, err)
@@ -223,7 +221,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
@@ -259,7 +257,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 
 	provider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
-			GeneralDbConnectConfig: getPgGenDbConfig(t),
+			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
@@ -343,16 +341,24 @@ func Test_getDriverFromConnection(t *testing.T) {
 	})
 }
 
-func getPgGenDbConfig(t *testing.T) dbconnectconfig.GeneralDbConnectConfig {
+func getPgGenDbConfig(t *testing.T, user string) dbconnectconfig.GeneralDbConnectConfig {
 	t.Helper()
-	port := int32(5432)
-	db := "test"
-	return dbconnectconfig.GeneralDbConnectConfig{
-		Driver:   "postgres",
-		Host:     "localhost",
-		Port:     &port,
-		Database: &db,
-		User:     "foo",
-		Pass:     "bar",
-	}
+	dbcc, err := dbconnectconfig.NewFromPostgresConnection(
+		&mgmtv1alpha1.ConnectionConfig_PgConfig{
+			PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+				ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+					Connection: &mgmtv1alpha1.PostgresConnection{
+						Host: "localhost",
+						Port: int32(5432),
+						Name: "test",
+						User: user,
+						Pass: "bar",
+					},
+				},
+			},
+		},
+		nil,
+	)
+	require.NoError(t, err)
+	return *dbcc
 }
