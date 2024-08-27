@@ -220,6 +220,45 @@ func GetConnectionDetails(
 		if config.MssqlConfig.GetConnectionOptions() != nil {
 			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
 		}
+		if config.MssqlConfig.GetTunnel() != nil {
+			destination, err := getEndpointFromMssqlConnectionConfig(config)
+			if err != nil {
+				return nil, err
+			}
+			authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(config.MssqlConfig.GetTunnel().GetAuthentication())
+			if err != nil {
+				return nil, err
+			}
+			var publickey ssh.PublicKey
+			if config.MssqlConfig.GetTunnel().GetKnownHostPublicKey() != "" {
+				publickey, err = sshtunnel.ParseSshKey(config.MssqlConfig.GetTunnel().GetKnownHostPublicKey())
+				if err != nil {
+					return nil, err
+				}
+			}
+			tunnel := sshtunnel.New(
+				sshtunnel.NewEndpointWithUser(config.MssqlConfig.GetTunnel().GetHost(), int(config.MssqlConfig.GetTunnel().GetPort()), config.MssqlConfig.GetTunnel().GetUser()),
+				authmethod,
+				destination,
+				sshtunnel.NewEndpoint(localhost, randomPort),
+				1,
+				publickey,
+			)
+
+			connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
+			if err != nil {
+				return nil, err
+			}
+
+			portValue := int32(randomPort)
+			connDetails.Host = localhost
+			connDetails.Port = &portValue
+			return &ConnectionDetails{
+				Tunnel:                 tunnel,
+				GeneralDbConnectConfig: *connDetails,
+				MaxConnectionLimit:     maxConnLimit,
+			}, nil
+		}
 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
 		if err != nil {
 			return nil, err
@@ -268,5 +307,22 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
+	}
+}
+
+func getEndpointFromMssqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig) (*sshtunnel.Endpoint, error) {
+	switch cc := config.MssqlConfig.GetConnectionConfig().(type) {
+	case *mgmtv1alpha1.MssqlConnectionConfig_Url:
+		details, err := dbconnectconfig.NewFromMssqlConnection(config, nil)
+		if err != nil {
+			return nil, err
+		}
+		port := 0
+		if details.Port != nil {
+			port = int(*details.Port)
+		}
+		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
+	default:
+		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}
 }

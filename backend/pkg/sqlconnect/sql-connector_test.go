@@ -26,6 +26,8 @@ var (
 		Pass:     "test-pass",
 		Protocol: "tcp",
 	}
+
+	mssqlconnection = "sqlserver://sa:YourStrong@Passw0rd@localhost:1433?database=master"
 )
 
 func Test_NewDbFromConnectionConfig(t *testing.T) {
@@ -147,6 +149,57 @@ func Test_getConnectionDetails_Mysql_Tunnel(t *testing.T) {
 				MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 					ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
 						Connection: mysqlconnection,
+					},
+					Tunnel: &mgmtv1alpha1.SSHTunnel{
+						Host:               "bastion.neosync.dev",
+						Port:               22,
+						User:               "testuser",
+						Authentication:     nil,
+						KnownHostPublicKey: nil,
+					},
+				},
+			},
+		},
+		ptr(uint32(5)),
+		nil,
+		slog.Default(),
+	)
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.NotNil(t, out.GeneralDbConnectConfig)
+	assert.NotNil(t, out.Tunnel)
+	assert.Equal(t, out.GeneralDbConnectConfig.Host, "localhost")
+	assert.Equal(t, *out.GeneralDbConnectConfig.Port, 0)
+}
+
+func Test_getConnectionDetails_Mssql_NoTunnel(t *testing.T) {
+	out, err := GetConnectionDetails(
+		&mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+						Url: mssqlconnection,
+					},
+				},
+			},
+		},
+		ptr(uint32(5)),
+		nil,
+		slog.Default(),
+	)
+	assert.NoError(t, err)
+	assert.NotNil(t, out)
+	assert.NotNil(t, out.GeneralDbConnectConfig)
+	assert.Nil(t, out.Tunnel)
+}
+
+func Test_getConnectionDetails_Mssql_Tunnel(t *testing.T) {
+	out, err := GetConnectionDetails(
+		&mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+				MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+						Url: mssqlconnection,
 					},
 					Tunnel: &mgmtv1alpha1.SSHTunnel{
 						Host:               "bastion.neosync.dev",
