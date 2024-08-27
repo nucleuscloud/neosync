@@ -609,21 +609,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
               onEditMappings={(values) => {
-                const valuesMap = new Map(
-                  values.map((v) => [
-                    `${v.schema}.${v.table}.${v.column}`,
-                    v.transformer,
-                  ])
-                );
+                const valuesMap = new Map(values.map((v) => [`${v.id}`, v]));
                 formMappings.forEach((fm, idx) => {
-                  const fmKey = `${fm.schema}.${fm.table}.${fm.column}`;
-                  const fmTrans = valuesMap.get(fmKey);
-                  if (fmTrans) {
-                    update(idx, {
-                      ...fm,
-                      transformer: fmTrans,
-                    });
-                  }
+                  const value = valuesMap.get(fm.id);
+                  update(idx, value ?? fm);
                 });
               }}
               onAddMappings={(values) => {

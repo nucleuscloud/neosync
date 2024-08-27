@@ -427,6 +427,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 table: updatedObject.collection.split('.')[1],
                 column: row.getValue('column'),
                 transformer: row.getValue('transformer'),
+                id: row.original.id,
               });
             }}
           />
@@ -451,6 +452,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 table: row.getValue('table'),
                 column: updatedObject.column,
                 transformer: row.getValue('transformer'),
+                id: row.original.id,
               });
             }}
           />
@@ -500,6 +502,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                       table: row.getValue('table'),
                       column: row.getValue('column'),
                       transformer: updatedTransformer,
+                      id: row.original.id,
                     })
                   }
                   side={'left'}
@@ -516,6 +519,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                     table: row.getValue('table'),
                     column: row.getValue('column'),
                     transformer: updatedTransformer,
+                    id: row.original.id,
                   });
                 }}
                 disabled={!transformer}
@@ -622,21 +626,24 @@ function EditCollection(props: EditCollectionProps): ReactElement {
   const { collections, text, onEdit } = props;
 
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
-  const [collection, setCollection] = useState<string>(text);
+  const [isSelectedCollection, setSelectedCollection] = useState<string>(text);
 
   const handleSave = () => {
-    onEdit({ collection: collection });
+    onEdit({ collection: isSelectedCollection });
     setIsEditingMapping(false);
   };
 
   return (
     <div className="w-full flex flex-row items-center gap-4">
       {isEditingMapping ? (
-        <Select onValueChange={(val) => setCollection(val)} value={collection}>
+        <Select
+          onValueChange={(val) => setSelectedCollection(val)}
+          value={isSelectedCollection}
+        >
           <SelectTrigger>
             <SelectValue
               placeholder="Select a collection"
-              className="placeholder:text-muted-foreground/70 "
+              className="placeholder:text-muted-foreground/70"
             />
           </SelectTrigger>
           <SelectContent>
@@ -648,7 +655,7 @@ function EditCollection(props: EditCollectionProps): ReactElement {
           </SelectContent>
         </Select>
       ) : (
-        <TruncatedText text={collection} />
+        <TruncatedText text={isSelectedCollection} />
       )}
       <Button
         variant="outline"
