@@ -106,11 +106,11 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: internal/
+          path: internal/**/*.go
         - action: rebuild
-          path: backend/
+          path: backend/**/*.go
         - action: rebuild
-          path: worker/
+          path: worker/**/*.go
         - action: rebuild
           path: go.mod
         - action: rebuild
@@ -140,11 +140,11 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: internal/
+          path: internal/**/*.go
         - action: rebuild
-          path: worker/
+          path: worker/**/*.go
         - action: rebuild
-          path: backend/
+          path: backend/**/*.go
         - action: rebuild
           path: go.mod
         - action: rebuild
