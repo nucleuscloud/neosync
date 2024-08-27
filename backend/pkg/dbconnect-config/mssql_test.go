@@ -22,7 +22,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, out)
 		expected := &GeneralDbConnectConfig{
-			Driver:      "sqlserver",
+			driver:      "sqlserver",
 			Host:        "localhost",
 			Port:        ptr(int32(1433)),
 			Database:    ptr("myinstance"),

@@ -19,7 +19,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 		}
 		query.Add("multiStatements", "true")
 		return &GeneralDbConnectConfig{
-			Driver:      mysqlDriver,
+			driver:      mysqlDriver,
 			Host:        cc.Connection.Host,
 			Port:        &cc.Connection.Port,
 			Database:    &cc.Connection.Name,
@@ -76,7 +76,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 		query.Add("multiStatements", "true")
 
 		return &GeneralDbConnectConfig{
-			Driver:      u.Scheme,
+			driver:      u.Scheme,
 			Host:        u.Hostname(),
 			Port:        &port,
 			Database:    &database,

@@ -22,7 +22,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "postgres",
 			input: GeneralDbConnectConfig{
-				Driver:      "postgres",
+				driver:      "postgres",
 				Host:        "localhost",
 				Port:        ptr(int32(5432)),
 				Database:    ptr("mydb"),
@@ -35,7 +35,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "mysql",
 			input: GeneralDbConnectConfig{
-				Driver:      "mysql",
+				driver:      "mysql",
 				Host:        "localhost",
 				Port:        ptr(int32(3309)),
 				Database:    ptr("mydb"),
@@ -49,7 +49,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "mysql",
 			input: GeneralDbConnectConfig{
-				Driver:      "mysql",
+				driver:      "mysql",
 				Host:        "localhost",
 				Port:        ptr(int32(3309)),
 				Database:    ptr("mydb"),
@@ -63,7 +63,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "mssql",
 			input: GeneralDbConnectConfig{
-				Driver:      "sqlserver",
+				driver:      "sqlserver",
 				Host:        "localhost",
 				Port:        ptr(int32(1433)),
 				Database:    ptr("myinstance"),
@@ -76,7 +76,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "mssql-noinstance",
 			input: GeneralDbConnectConfig{
-				Driver:      "sqlserver",
+				driver:      "sqlserver",
 				Host:        "localhost",
 				Port:        ptr(int32(1433)),
 				Database:    nil,
@@ -89,7 +89,7 @@ func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 		{
 			name: "mssql-noinstance-noport",
 			input: GeneralDbConnectConfig{
-				Driver:      "sqlserver",
+				driver:      "sqlserver",
 				Host:        "localhost",
 				Port:        nil,
 				Database:    nil,

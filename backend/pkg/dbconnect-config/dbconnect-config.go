@@ -12,7 +12,7 @@ const (
 )
 
 type GeneralDbConnectConfig struct {
-	Driver string
+	driver string
 
 	Host string
 	Port *int32
@@ -26,8 +26,12 @@ type GeneralDbConnectConfig struct {
 	QueryParams url.Values
 }
 
+func (g *GeneralDbConnectConfig) GetDriver() string {
+	return g.driver
+}
+
 func (g *GeneralDbConnectConfig) String() string {
-	if g.Driver == postgresDriver {
+	if g.driver == postgresDriver {
 		u := url.URL{
 			Scheme: "postgres",
 			Host:   buildDbUrlHost(g.Host, g.Port),
@@ -43,7 +47,7 @@ func (g *GeneralDbConnectConfig) String() string {
 		u.RawQuery = g.QueryParams.Encode()
 		return u.String()
 	}
-	if g.Driver == mysqlDriver {
+	if g.driver == mysqlDriver {
 		protocol := "tcp"
 		if g.Protocol != nil {
 			protocol = *g.Protocol
@@ -70,7 +74,7 @@ func (g *GeneralDbConnectConfig) String() string {
 		}
 		return dsn
 	}
-	if g.Driver == mssqlDriver {
+	if g.driver == mssqlDriver {
 		u := url.URL{
 			Scheme: mssqlDriver,
 			Host:   buildDbUrlHost(g.Host, g.Port),

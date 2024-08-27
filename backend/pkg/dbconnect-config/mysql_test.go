@@ -31,7 +31,7 @@ func Test_NewFromMysqlConnection_Connection(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		Driver:      "mysql",
+		driver:      "mysql",
 		Host:        "localhost",
 		Port:        ptr(int32(3309)),
 		Database:    ptr("mydb"),
@@ -54,7 +54,7 @@ func Test_NewFromMysqlConnection_Url_mysql(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		Driver:      "mysql",
+		driver:      "mysql",
 		Host:        "localhost",
 		Port:        ptr(int32(3306)),
 		Database:    ptr("mydatabase"),
@@ -76,7 +76,7 @@ func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		Driver:      "mysqlx",
+		driver:      "mysqlx",
 		Host:        "localhost",
 		Port:        ptr(int32(3306)),
 		Database:    ptr("mydatabase"),

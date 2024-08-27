@@ -31,7 +31,7 @@ func Test_getGeneralDbConnectConfigFromPg_Connection(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		Driver:      "postgres",
+		driver:      "postgres",
 		Host:        "localhost",
 		Port:        ptr(int32(5432)),
 		Database:    ptr("postgres"),
@@ -54,7 +54,7 @@ func Test_getGeneralDbConnectConfigFromPg_Url(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		Driver:      "postgres",
+		driver:      "postgres",
 		Host:        "localhost",
 		Port:        ptr(int32(5432)),
 		Database:    ptr("postgres"),
