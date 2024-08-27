@@ -56,8 +56,8 @@ func NewFromMssqlConnection(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, c
 			host:        host,
 			port:        port,
 			Database:    instance,
-			User:        user,
-			Pass:        pass,
+			user:        user,
+			pass:        pass,
 			queryParams: query,
 		}, nil
 	default:

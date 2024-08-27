@@ -35,8 +35,8 @@ func Test_NewFromMysqlConnection_Connection(t *testing.T) {
 		host:          "localhost",
 		port:          ptr(int32(3309)),
 		Database:      ptr("mydb"),
-		User:          "test-user",
-		Pass:          "test-pass",
+		user:          "test-user",
+		pass:          "test-pass",
 		mysqlProtocol: ptr("tcp"),
 		queryParams:   url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}},
 	})
@@ -58,8 +58,8 @@ func Test_NewFromMysqlConnection_Url_mysql(t *testing.T) {
 		host:          "localhost",
 		port:          ptr(int32(3306)),
 		Database:      ptr("mydatabase"),
-		User:          "myuser",
-		Pass:          "mypassword",
+		user:          "myuser",
+		pass:          "mypassword",
 		mysqlProtocol: nil,
 		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})
@@ -80,8 +80,8 @@ func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
 		host:          "localhost",
 		port:          ptr(int32(3306)),
 		Database:      ptr("mydatabase"),
-		User:          "myuser",
-		Pass:          "mypassword",
+		user:          "myuser",
+		pass:          "mypassword",
 		mysqlProtocol: nil,
 		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})

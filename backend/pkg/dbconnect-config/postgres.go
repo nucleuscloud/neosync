@@ -38,8 +38,8 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			host:        cc.Connection.Host,
 			port:        &cc.Connection.Port,
 			Database:    &cc.Connection.Name,
-			User:        cc.Connection.User,
-			Pass:        cc.Connection.Pass,
+			user:        cc.Connection.User,
+			pass:        cc.Connection.Pass,
 			queryParams: query,
 		}, nil
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
@@ -86,8 +86,8 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			host:        host,
 			port:        shared.Ptr(int32(port)), //nolint:gosec // Ignoring for now
 			Database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
-			User:        user,
-			Pass:        pass,
+			user:        user,
+			pass:        pass,
 			queryParams: query,
 		}, nil
 	default:

@@ -26,8 +26,8 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 			host:        "localhost",
 			port:        ptr(int32(1433)),
 			Database:    ptr("myinstance"),
-			User:        "test-user",
-			Pass:        "test-pass",
+			user:        "test-user",
+			pass:        "test-pass",
 			queryParams: url.Values{"database": []string{"master"}, "connection timeout": []string{"5"}},
 		}
 		if !reflect.DeepEqual(out, expected) {

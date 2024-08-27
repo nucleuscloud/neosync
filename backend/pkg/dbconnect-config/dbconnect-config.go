@@ -18,8 +18,8 @@ type GeneralDbConnectConfig struct {
 	port *int32
 	// For mssql this is actually the path..the database is provided as a query parameter
 	Database *string
-	User     string
-	Pass     string
+	user     string
+	pass     string
 
 	mysqlProtocol *string
 
@@ -44,6 +44,10 @@ func (g *GeneralDbConnectConfig) GetHost() string {
 	return g.host
 }
 
+func (g *GeneralDbConnectConfig) GetUser() string {
+	return g.user
+}
+
 func (g *GeneralDbConnectConfig) String() string {
 	if g.driver == postgresDriver {
 		u := url.URL{
@@ -55,8 +59,8 @@ func (g *GeneralDbConnectConfig) String() string {
 		}
 
 		// Add user info
-		if g.User != "" || g.Pass != "" {
-			u.User = url.UserPassword(g.User, g.Pass)
+		if g.user != "" || g.pass != "" {
+			u.User = url.UserPassword(g.user, g.pass)
 		}
 		u.RawQuery = g.queryParams.Encode()
 		return u.String()
@@ -71,9 +75,9 @@ func (g *GeneralDbConnectConfig) String() string {
 		// User info
 		// dont use url.UserPassword as it escapes the password
 		// host and password should not be escaped. even if they contain special characters
-		userInfo := g.User
-		if g.Pass != "" {
-			userInfo += ":" + g.Pass
+		userInfo := g.user
+		if g.pass != "" {
+			userInfo += ":" + g.pass
 		}
 		// Base DSN
 		dsn := fmt.Sprintf("%s@%s%s", userInfo, protocol, address)
@@ -97,8 +101,8 @@ func (g *GeneralDbConnectConfig) String() string {
 			u.Path = *g.Database
 		}
 		// Add user info
-		if g.User != "" || g.Pass != "" {
-			u.User = url.UserPassword(g.User, g.Pass)
+		if g.user != "" || g.pass != "" {
+			u.User = url.UserPassword(g.user, g.pass)
 		}
 		u.RawQuery = g.queryParams.Encode()
 		return u.String()

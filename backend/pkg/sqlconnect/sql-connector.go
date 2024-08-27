@@ -284,7 +284,7 @@ func getEndpointFromPgConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_PgC
 		if details.GetPort() != nil {
 			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.GetUser()), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
 	}
@@ -303,7 +303,7 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		if details.GetPort() != nil {
 			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.GetUser()), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
@@ -320,7 +320,7 @@ func getEndpointFromMssqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		if details.GetPort() != nil {
 			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.GetUser()), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}

@@ -35,8 +35,8 @@ func Test_getGeneralDbConnectConfigFromPg_Connection(t *testing.T) {
 		host:          "localhost",
 		port:          ptr(int32(5432)),
 		Database:      ptr("postgres"),
-		User:          "test-user",
-		Pass:          "test-pass",
+		user:          "test-user",
+		pass:          "test-pass",
 		mysqlProtocol: nil,
 		queryParams:   url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
@@ -58,8 +58,8 @@ func Test_getGeneralDbConnectConfigFromPg_Url(t *testing.T) {
 		host:          "localhost",
 		port:          ptr(int32(5432)),
 		Database:      ptr("postgres"),
-		User:          "test-user",
-		Pass:          "test-pass",
+		user:          "test-user",
+		pass:          "test-pass",
 		mysqlProtocol: nil,
 		queryParams:   url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
