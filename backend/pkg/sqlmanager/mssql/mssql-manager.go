@@ -114,10 +114,10 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 			if row.ReferencedColumns.Valid && row.ReferencedTable.Valid {
 				fkCols := splitAndStrip(row.ReferencedColumns.String, ", ")
 
-				notNullableInts := splitAndStrip("", ", ")
+				ccNullability := splitAndStrip(row.ConstraintColumnsNullability, ", ")
 				notNullable := []bool{}
-				for _, notNullableInt := range notNullableInts {
-					notNullable = append(notNullable, notNullableInt == "1")
+				for _, nullability := range ccNullability {
+					notNullable = append(notNullable, nullability == "NOT NULL")
 				}
 				if len(constraintCols) != len(fkCols) {
 					return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
@@ -130,7 +130,7 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					Columns:     constraintCols,
 					NotNullable: notNullable,
 					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   sqlmanager_shared.BuildTable(row.SchemaName, row.ReferencedTable.String),
+						Table:   row.ReferencedTable.String,
 						Columns: fkCols,
 					},
 				})
@@ -148,9 +148,9 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 	}
 
 	return &sqlmanager_shared.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{},
-		PrimaryKeyConstraints: map[string][]string{},
-		UniqueConstraints:     map[string][][]string{},
+		ForeignKeyConstraints: foreignKeyMap,
+		PrimaryKeyConstraints: primaryKeyMap,
+		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
 }
 

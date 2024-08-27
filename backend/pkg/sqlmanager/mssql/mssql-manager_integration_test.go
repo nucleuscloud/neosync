@@ -2,6 +2,7 @@ package sqlmanager_mssql
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -29,137 +30,65 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
 		},
 	}
 
-	actual, err := manager.GetDatabaseSchema(context.Background())
+	actual, err := manager.GetDatabaseSchema(s.ctx)
 	require.NoError(s.T(), err)
 	containsSubset(s.T(), actual, expectedSubset)
 }
 
-func (s *IntegrationTestSuite) Test_GetDatabaseSchema_With_Identity() {
+func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
 	manager := NewManager(s.source.querier, s.source.testDb, func() {})
 
-	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
-		{
-			TableSchema:            "sqlmanagermssql3",
-			TableName:              "users_with_identity",
-			ColumnName:             "id",
-			DataType:               "integer",
-			ColumnDefault:          "",
-			IsNullable:             "NO",
-			CharacterMaximumLength: -1,
-			NumericPrecision:       32,
-			NumericScale:           0,
-			OrdinalPosition:        1,
-			IdentityGeneration:     sqlmanager_shared.Ptr("a"),
+	actual, err := manager.GetSchemaColumnMap(s.ctx)
+	require.NoError(s.T(), err)
+
+	usersKey := fmt.Sprintf("%s.%s", "sqlmanagermssql3", "users")
+
+	usersMap, ok := actual[usersKey]
+	require.True(s.T(), ok, fmt.Sprintf("%s map should exist", usersKey))
+	require.NotEmpty(s.T(), usersMap)
+	_, ok = usersMap["id"]
+	require.True(s.T(), ok, "users map should have id column")
+}
+
+func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
+	manager := NewManager(s.source.querier, s.source.testDb, func() {})
+
+	expected := &sqlmanager_shared.TableConstraints{
+		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
+			"sqlmanagermssql2.child1": {
+				{Columns: []string{"parent_id1", "parent_id2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   "sqlmanagermssql2.parent1",
+					Columns: []string{"id1", "id2"},
+				}},
+			},
+
+			"sqlmanagermssql2.TableA": {
+				{Columns: []string{"IdB1", "IdB2"}, NotNullable: []bool{false, false}, ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   "sqlmanagermssql2.TableB",
+					Columns: []string{"IdB1", "IdB2"},
+				}},
+			},
+			"sqlmanagermssql2.TableB": {
+				{Columns: []string{"IdA1", "IdA2"}, NotNullable: []bool{true, true}, ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table:   "sqlmanagermssql2.TableA",
+					Columns: []string{"IdA1", "IdA2"},
+				}},
+			},
+		},
+		PrimaryKeyConstraints: map[string][]string{
+			"sqlmanagermssql2.parent1": {"id1", "id2"},
+			"sqlmanagermssql2.child1":  {"id"},
+
+			"sqlmanagermssql2.TableA": {"IdA1", "IdA2"},
+			"sqlmanagermssql2.TableB": {"IdB1", "IdB2"},
 		},
 	}
 
-	actual, err := manager.GetDatabaseSchema(context.Background())
+	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"sqlmanagermssql2"})
 	require.NoError(s.T(), err)
-	containsSubset(s.T(), actual, expectedSubset)
+	require.Equal(s.T(), expected.ForeignKeyConstraints, actual.ForeignKeyConstraints)
+	require.Equal(s.T(), expected.PrimaryKeyConstraints, actual.PrimaryKeyConstraints)
 }
-
-// func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-
-// 	expected := &sqlmanager_shared.TableConstraints{
-// 		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{
-// 			"sqlmanagermysql.container": {
-// 				{Columns: []string{"container_status_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{
-// 					Table:   "sqlmanagermysql.container_status",
-// 					Columns: []string{"id"},
-// 				}},
-// 			},
-// 			"sqlmanagermysql2.container": {
-// 				{Columns: []string{"container_status_id"}, NotNullable: []bool{true}, ForeignKey: &sqlmanager_shared.ForeignKey{
-// 					Table:   "sqlmanagermysql2.container_status",
-// 					Columns: []string{"id"},
-// 				}},
-// 			},
-// 		},
-// 		PrimaryKeyConstraints: map[string][]string{
-// 			"sqlmanagermysql.container":         {"id"},
-// 			"sqlmanagermysql.container_status":  {"id"},
-// 			"sqlmanagermysql2.container":        {"id"},
-// 			"sqlmanagermysql2.container_status": {"id"},
-// 		},
-// 	}
-
-// 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{"sqlmanagermysql", "sqlmanagermysql2"})
-// 	require.NoError(s.T(), err)
-// 	require.Equal(s.T(), expected.ForeignKeyConstraints, actual.ForeignKeyConstraints)
-// 	require.Equal(s.T(), expected.PrimaryKeyConstraints, actual.PrimaryKeyConstraints)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-// 	actual, err := manager.GetSchemaColumnMap(context.Background())
-// 	require.NoError(s.T(), err)
-
-// 	usersKey := s.buildTable(schema, "users")
-
-// 	usersMap, ok := actual[usersKey]
-// 	require.True(s.T(), ok, fmt.Sprintf("%s map should exist", usersKey))
-// 	require.NotEmpty(s.T(), usersMap)
-// 	_, ok = usersMap["id"]
-// 	require.True(s.T(), ok, "users map should have id column")
-// }
-
-// func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-// 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), actual)
-
-// 	constraints, ok := actual.ForeignKeyConstraints[s.buildTable(schema, "child1")]
-// 	require.True(s.T(), ok)
-// 	require.NotEmpty(s.T(), constraints)
-
-// 	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
-// 		{
-// 			Columns:     []string{"parent_id"},
-// 			NotNullable: []bool{false},
-// 			ForeignKey: &sqlmanager_shared.ForeignKey{
-// 				Table:   fmt.Sprintf("%s.parent1", "sqlmanagermysql3"),
-// 				Columns: []string{"id"},
-// 			},
-// 		},
-// 	})
-
-// 	constraints, ok = actual.ForeignKeyConstraints[s.buildTable(schema, "t1")]
-// 	require.True(s.T(), ok, "t1 should be in map")
-// 	require.NotEmpty(s.T(), constraints, "should contain t1 constraints")
-// 	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
-// 		{
-// 			Columns:     []string{"b"},
-// 			NotNullable: []bool{false},
-// 			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable(schema, "t1"), Columns: []string{"a"}},
-// 		},
-// 	})
-
-// 	constraints, ok = actual.ForeignKeyConstraints[s.buildTable(schema, "t2")]
-// 	require.True(s.T(), ok, "t2 should be in map")
-// 	require.NotEmpty(s.T(), constraints, "should contain t2 constraints")
-// 	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
-// 		{
-// 			Columns:     []string{"b"},
-// 			NotNullable: []bool{false},
-// 			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable(schema, "t3"), Columns: []string{"a"}},
-// 		},
-// 	})
-
-// 	constraints, ok = actual.ForeignKeyConstraints[s.buildTable(schema, "t3")]
-// 	require.True(s.T(), ok, "t3 should be in map")
-// 	require.NotEmpty(s.T(), constraints, "should contain t3 constraints")
-// 	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
-// 		{
-// 			Columns:     []string{"b"},
-// 			NotNullable: []bool{false},
-// 			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable(schema, "t2"), Columns: []string{"a"}},
-// 		},
-// 	})
-// }
 
 // func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
 // 	manager := NewManager(s.source.querier, s.source.pool, func() {})
@@ -200,74 +129,6 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema_With_Identity() {
 // 			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable(schema, "t2"), Columns: []string{"a"}},
 // 		},
 // 	})
-// }
-
-// func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{schema})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), actual)
-
-// 	constraints, ok := actual.ForeignKeyConstraints[s.buildTable(schema, "t5")]
-// 	require.True(s.T(), ok, "t5 should be in map")
-// 	require.NotEmpty(s.T(), constraints, "should contain t5 constraints")
-// 	containsSubset(s.T(), constraints, []*sqlmanager_shared.ForeignConstraint{
-// 		{
-// 			Columns:     []string{"x", "y"},
-// 			NotNullable: []bool{true, true},
-// 			ForeignKey:  &sqlmanager_shared.ForeignKey{Table: s.buildTable(schema, "t4"), Columns: []string{"a", "b"}},
-// 		},
-// 	})
-// }
-
-// func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), actual)
-// 	require.NotEmpty(s.T(), actual.PrimaryKeyConstraints)
-
-// 	pkeys, ok := actual.PrimaryKeyConstraints[s.buildTable(schema, "users")]
-// 	require.True(s.T(), ok, " had no entries")
-// 	require.ElementsMatch(s.T(), []string{"id"}, pkeys)
-
-// 	pkeys, ok = actual.PrimaryKeyConstraints[s.buildTable(schema, "t4")]
-// 	require.True(s.T(), ok, "t4 had no entries")
-// 	require.ElementsMatch(s.T(), []string{"a", "b"}, pkeys)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), actual)
-// 	require.NotEmpty(s.T(), actual.UniqueConstraints)
-
-// 	uniques, ok := actual.UniqueConstraints[s.buildTable(schema, "unique_emails")]
-// 	require.True(s.T(), ok, "unique_emails had no entries")
-// 	require.ElementsMatch(s.T(), [][]string{{"email"}}, uniques)
-// }
-
-// func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
-// 	manager := NewManager(s.source.querier, s.source.pool, func() {})
-// 	schema := "sqlmanagermysql3"
-
-// 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{schema})
-// 	require.NoError(s.T(), err)
-// 	require.NotEmpty(s.T(), actual)
-// 	require.NotEmpty(s.T(), actual.UniqueConstraints)
-
-// 	uniques, ok := actual.UniqueConstraints[s.buildTable(schema, "unique_emails_and_usernames")]
-// 	require.True(s.T(), ok, "unique_emails_and_usernames had no entries")
-// 	require.Len(s.T(), uniques, 1)
-// 	entry := uniques[0]
-// 	require.ElementsMatch(s.T(), []string{"email", "username"}, entry)
 // }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
