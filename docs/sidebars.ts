@@ -240,6 +240,11 @@ const sidebars: SidebarsConfig = {
       label: 'Syncing data with MongoDB',
     },
     {
+      type: 'doc',
+      id: 'guides/viewing-job-run-logs',
+      label: 'Viewing Job Run Logs',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

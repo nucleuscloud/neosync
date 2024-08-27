@@ -34,6 +34,7 @@ import { GoDatabase, GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
+import { HiOutlineDocumentSearch } from 'react-icons/hi';
 import { IoMdCode } from 'react-icons/io';
 import { IoBuildOutline } from 'react-icons/io5';
 import {
@@ -191,6 +192,8 @@ export function IconHandler(name: string): ReactElement {
       return <CiFilter />;
     case 'Database Setup':
       return <GoDatabase />;
+    case 'Viewing Job Run Logs':
+      return <HiOutlineDocumentSearch />;
 
     default:
       return <LayersIcon />;

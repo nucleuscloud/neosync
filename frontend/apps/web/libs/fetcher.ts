@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetcher<T = any>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
   const body = await res.json();

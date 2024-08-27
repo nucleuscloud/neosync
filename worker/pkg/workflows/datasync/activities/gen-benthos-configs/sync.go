@@ -720,6 +720,29 @@ func getSqlJobSourceOpts(
 			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
 			SchemaOpt:                     schemaOpt,
 		}, nil
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		if jobSourceConfig.Mssql == nil {
+			return nil, nil
+		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Mssql.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Mssql.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Mssql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported job source options type for sql job source: %T", jobSourceConfig)
 	}

@@ -1450,8 +1450,8 @@ func (t *PostgresTruncateTableConfig) ToDto() *mgmtv1alpha1.PostgresTruncateTabl
 }
 
 func (t *PostgresTruncateTableConfig) FromDto(dto *mgmtv1alpha1.PostgresTruncateTableConfig) {
-	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
-	t.TruncateCascade = dto.Cascade
+	t.TruncateBeforeInsert = dto.GetTruncateBeforeInsert()
+	t.TruncateCascade = dto.GetCascade()
 }
 
 type MysqlDestinationOptions struct {

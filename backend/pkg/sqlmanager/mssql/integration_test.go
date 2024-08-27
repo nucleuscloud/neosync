@@ -38,7 +38,7 @@ type IntegrationTestSuite struct {
 
 type mssqlTestContainer struct {
 	// master db connection
-	defaultDb *sql.DB
+	masterDb *sql.DB
 	// test db connection
 	testDb        *sql.DB
 	testDbConnStr string
@@ -110,7 +110,7 @@ func createMssqlTestContainer(
 	queryvals.Add("database", "testdb")
 
 	return &mssqlTestContainer{
-		defaultDb:     pool,
+		masterDb:      pool,
 		testDbConnStr: connstr + queryvals.Encode(),
 		querier:       mssql_queries.New(),
 		container:     container,
@@ -205,7 +205,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 	errgrp, errctx := errgroup.WithContext(s.ctx)
 	errgrp.Go(func() error {
 		for i, stmt := range s.sourceSetupStatements {
-			_, err := s.source.defaultDb.ExecContext(errctx, stmt)
+			_, err := s.source.masterDb.ExecContext(errctx, stmt)
 			if err != nil {
 				return fmt.Errorf("encountered error when executing source setup statement %d: %w", i+1, err)
 			}
@@ -214,7 +214,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 	})
 	errgrp.Go(func() error {
 		for i, stmt := range s.destSetupStatements {
-			_, err := s.target.defaultDb.ExecContext(errctx, stmt)
+			_, err := s.target.masterDb.ExecContext(errctx, stmt)
 			if err != nil {
 				return fmt.Errorf("encountered error when executing dest setup statemetn: %d: %w", i+1, err)
 			}
@@ -254,7 +254,7 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	errgrp, errctx := errgroup.WithContext(s.ctx)
 	errgrp.Go(func() error {
 		for i, stmt := range s.teardownStatements {
-			_, err := s.source.defaultDb.ExecContext(errctx, stmt)
+			_, err := s.source.masterDb.ExecContext(errctx, stmt)
 			if err != nil {
 				return fmt.Errorf("encountered error when executing source teardown statement %d: %w", i+1, err)
 			}
@@ -263,7 +263,7 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	})
 	errgrp.Go(func() error {
 		for i, stmt := range s.teardownStatements {
-			_, err := s.target.defaultDb.ExecContext(errctx, stmt)
+			_, err := s.target.masterDb.ExecContext(errctx, stmt)
 			if err != nil {
 				return fmt.Errorf("encountered error when executing dest teardown statemetn: %d: %w", i+1, err)
 			}
@@ -278,10 +278,10 @@ func (s *IntegrationTestSuite) TearDownTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.source.defaultDb != nil {
+	if s.source.masterDb != nil {
 		s.source.close()
 	}
-	if s.target.defaultDb != nil {
+	if s.target.masterDb != nil {
 		s.target.close()
 	}
 	if s.source != nil {

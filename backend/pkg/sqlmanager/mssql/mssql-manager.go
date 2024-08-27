@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -22,6 +23,8 @@ type Manager struct {
 func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer func()) *Manager {
 	return &Manager{querier: querier, db: db, close: closer}
 }
+
+const defaultIdentity string = "IDENTITY(1,1)"
 
 func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
@@ -45,6 +48,20 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 		if row.NumericScale.Valid {
 			numericScale = int32(row.NumericScale.Int16)
 		}
+		ordPosition := int16(-1)
+		if row.OrdinalPosition >= math.MinInt16 && row.OrdinalPosition <= math.MaxInt16 {
+			ordPosition = int16(row.OrdinalPosition) //nolint:gosec
+		}
+		var identityGeneration *string
+		if row.IsIdentity {
+			syntax := defaultIdentity
+			identityGeneration = &syntax
+		}
+		var generatedType *string
+		if row.GenerationExpression.Valid {
+			generatedType = &row.GenerationExpression.String
+		}
+
 		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -52,12 +69,12 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			DataType:               row.DataType,
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
 			IsNullable:             row.IsNullable,
-			GeneratedType:          nil, // todo
-			OrdinalPosition:        int16(row.OrdinalPosition),
+			GeneratedType:          generatedType,
+			OrdinalPosition:        ordPosition,
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
 			NumericScale:           numericScale,
-			IdentityGeneration:     nil, // todo: will have to update the downstream logic for this
+			IdentityGeneration:     identityGeneration,
 		})
 	}
 
@@ -97,10 +114,10 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 			if row.ReferencedColumns.Valid && row.ReferencedTable.Valid {
 				fkCols := splitAndStrip(row.ReferencedColumns.String, ", ")
 
-				notNullableInts := splitAndStrip("", ", ")
+				ccNullability := splitAndStrip(row.ConstraintColumnsNullability, ", ")
 				notNullable := []bool{}
-				for _, notNullableInt := range notNullableInts {
-					notNullable = append(notNullable, notNullableInt == "1")
+				for _, nullability := range ccNullability {
+					notNullable = append(notNullable, nullability == "NOT NULL")
 				}
 				if len(constraintCols) != len(fkCols) {
 					return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(constraintCols), len(fkCols))
@@ -113,7 +130,7 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 					Columns:     constraintCols,
 					NotNullable: notNullable,
 					ForeignKey: &sqlmanager_shared.ForeignKey{
-						Table:   sqlmanager_shared.BuildTable(row.SchemaName, row.ReferencedTable.String),
+						Table:   row.ReferencedTable.String,
 						Columns: fkCols,
 					},
 				})
@@ -131,9 +148,9 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 	}
 
 	return &sqlmanager_shared.TableConstraints{
-		ForeignKeyConstraints: map[string][]*sqlmanager_shared.ForeignConstraint{},
-		PrimaryKeyConstraints: map[string][]string{},
-		UniqueConstraints:     map[string][][]string{},
+		ForeignKeyConstraints: foreignKeyMap,
+		PrimaryKeyConstraints: primaryKeyMap,
+		UniqueConstraints:     uniqueConstraintsMap,
 	}, nil
 }
 

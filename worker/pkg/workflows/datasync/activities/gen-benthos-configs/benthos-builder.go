@@ -97,7 +97,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to build benthos Generate source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
-	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
+	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql, *mgmtv1alpha1.JobSourceOptions_Mssql:
 		resp, err := b.getSqlSyncBenthosConfigResponses(ctx, job, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql sync source config responses: %w", err)
@@ -131,7 +131,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
-			case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+			case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 				driver, err := getSqlDriverFromConnection(destinationConnection)
 				if err != nil {
 					return nil, err
@@ -360,6 +360,8 @@ func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 		return sqlmanager_shared.PostgresDriver, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return sqlmanager_shared.MysqlDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return sqlmanager_shared.MssqlDriver, nil
 	default:
 		return "", fmt.Errorf("unsupported sql connection config")
 	}

@@ -27,6 +27,7 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 	testdata_javascripttransformers "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/javascript-transformers"
+	mssql_simple "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/simple"
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
@@ -205,6 +206,161 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					// tear down
 					s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, []string{"teardown.sql"})
 					s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, []string{"teardown.sql"})
+				})
+			}
+		})
+	}
+}
+
+func getAllMssqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
+	allTests := map[string][]*workflow_testdata.IntegrationTest{}
+	simpleTests := mssql_simple.GetSyncTests()
+
+	allTests["Simple"] = simpleTests
+	return allTests
+}
+
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
+	tests := getAllMssqlSyncTests()
+	for groupName, group := range tests {
+		group := group
+		s.T().Run(groupName, func(t *testing.T) {
+			t.Parallel()
+			for _, tt := range group {
+				t.Run(tt.Name, func(t *testing.T) {
+					t.Logf("running integration test: %s \n", tt.Name)
+					// setup
+					s.RunMysqlSqlFiles(s.mssql.source.pool, tt.Folder, tt.SourceFilePaths)
+					s.RunMysqlSqlFiles(s.mssql.target.pool, tt.Folder, tt.TargetFilePaths)
+
+					schemas := []*mgmtv1alpha1.MssqlSourceSchemaOption{}
+					subsetMap := map[string]*mgmtv1alpha1.MssqlSourceSchemaOption{}
+					for table, where := range tt.SubsetMap {
+						schema, table := sqlmanager_shared.SplitTableKey(table)
+						if _, exists := subsetMap[schema]; !exists {
+							subsetMap[schema] = &mgmtv1alpha1.MssqlSourceSchemaOption{
+								Schema: schema,
+								Tables: []*mgmtv1alpha1.MssqlSourceTableOption{},
+							}
+						}
+						w := where
+						subsetMap[schema].Tables = append(subsetMap[schema].Tables, &mgmtv1alpha1.MssqlSourceTableOption{
+							Table:       table,
+							WhereClause: &w,
+						})
+					}
+
+					for _, s := range subsetMap {
+						schemas = append(schemas, s)
+					}
+
+					var subsetByForeignKeyConstraints bool
+					var destinationOptions *mgmtv1alpha1.JobDestinationOptions
+					if tt.JobOptions != nil {
+						if tt.JobOptions.SubsetByForeignKeyConstraints {
+							subsetByForeignKeyConstraints = true
+						}
+						destinationOptions = &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{
+								MssqlOptions: &mgmtv1alpha1.MssqlDestinationConnectionOptions{
+									InitTableSchema: tt.JobOptions.InitSchema,
+									TruncateTable: &mgmtv1alpha1.MssqlTruncateTableConfig{
+										TruncateBeforeInsert: tt.JobOptions.Truncate,
+									},
+								},
+							},
+						}
+					}
+
+					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.JobServiceGetJobProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+								Job: &mgmtv1alpha1.Job{
+									Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+									AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+									Source: &mgmtv1alpha1.JobSource{
+										Options: &mgmtv1alpha1.JobSourceOptions{
+											Config: &mgmtv1alpha1.JobSourceOptions_Mssql{
+												Mssql: &mgmtv1alpha1.MssqlSourceConnectionOptions{
+													ConnectionId:                  "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+													Schemas:                       schemas,
+													SubsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
+												},
+											},
+										},
+									},
+									Destinations: []*mgmtv1alpha1.JobDestination{
+										{
+											ConnectionId: "226add85-5751-4232-b085-a0ae93afc7ce",
+											Options:      destinationOptions,
+										},
+									},
+									Mappings:           tt.JobMappings,
+									VirtualForeignKeys: tt.VirtualForeignKeys,
+								}}), nil
+						},
+					))
+
+					mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+							if r.Msg.GetId() == "c9b6ce58-5c8e-4dce-870d-96841b19d988" {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   "c9b6ce58-5c8e-4dce-870d-96841b19d988",
+										Name: "source",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+												MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+														Url: s.mssql.source.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+								return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+									Connection: &mgmtv1alpha1.Connection{
+										Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+										Name: "target",
+										ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+											Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
+												MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
+													ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
+														Url: s.mssql.target.url,
+													},
+												},
+											},
+										},
+									},
+								}), nil
+							}
+							return nil, nil
+						},
+					))
+
+					addRunContextProcedureMux(mux)
+					srv := startHTTPServer(t, mux)
+					executeWorkflow(t, srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968", tt.Name)
+
+					for table, expected := range tt.Expected {
+						rows, err := s.mssql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
+						require.NoError(t, err)
+						count := 0
+						for rows.Next() {
+							count++
+						}
+						require.Equalf(t, expected.RowCount, count, fmt.Sprintf("Test: %s Table: %s", tt.Name, table))
+					}
+
+					// tear down
+					s.RunMysqlSqlFiles(s.mssql.source.pool, tt.Folder, []string{"teardown.sql"})
+					s.RunMysqlSqlFiles(s.mssql.target.pool, tt.Folder, []string{"teardown.sql"})
 				})
 			}
 		})
