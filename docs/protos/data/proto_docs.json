@@ -2965,6 +2965,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "mssql_config",
+              "description": "",
+              "label": "",
+              "type": "MssqlSchemaConfig",
+              "longType": "MssqlSchemaConfig",
+              "fullType": "mgmt.v1alpha1.MssqlSchemaConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -4579,6 +4591,17 @@
           "name": "MongoSchemaConfig",
           "longName": "MongoSchemaConfig",
           "fullName": "mgmt.v1alpha1.MongoSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MssqlSchemaConfig",
+          "longName": "MssqlSchemaConfig",
+          "fullName": "mgmt.v1alpha1.MssqlSchemaConfig",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,

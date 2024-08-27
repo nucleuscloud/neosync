@@ -48,6 +48,7 @@ message GetConnectionDataStreamResponse {
 
 message PostgresSchemaConfig {}
 message MysqlSchemaConfig {}
+message MssqlSchemaConfig {}
 message AwsS3SchemaConfig {
   oneof id {
     string job_id = 1 [(buf.validate.field).string.uuid = true];
@@ -73,6 +74,7 @@ message ConnectionSchemaConfig {
     MongoSchemaConfig mongo_config = 4;
     GcpCloudStorageSchemaConfig gcp_cloudstorage_config = 5;
     DynamoDBSchemaConfig dynamodb_config = 6;
+    MssqlSchemaConfig mssql_config = 7;
   }
 }
 

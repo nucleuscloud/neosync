@@ -251,6 +251,73 @@ export default function DestinationOptionsForm(
           }}
         />
       );
+    case 'mssqlConfig': {
+      return (
+        <div className="flex flex-col gap-2">
+          <div>
+            <SwitchCard
+              isChecked={value.mssql?.truncateBeforeInsert ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  mssql: {
+                    ...(value.mssql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+
+                    truncateBeforeInsert: newVal,
+                  },
+                });
+              }}
+              title="Truncate Before Insert"
+              description="Truncates table before inserting data"
+            />
+          </div>
+          <div>
+            {/* <SwitchCard
+              isChecked={value.mssql?.initTableSchema ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  mssql: {
+                    ...(value.mssql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+                    initTableSchema: newVal,
+                  },
+                });
+              }}
+              title="Init Table Schema"
+              description="Creates table(s) and their constraints. The database schema must already exist. "
+            /> */}
+          </div>
+          <div>
+            <SwitchCard
+              isChecked={value.mssql?.onConflictDoNothing ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  mssql: {
+                    ...(value.mssql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                    }),
+                    onConflictDoNothing: newVal,
+                  },
+                });
+              }}
+              title="On Conflict Do Nothing"
+              description="If there is a conflict when inserting data do not insert"
+            />
+          </div>
+        </div>
+      );
+    }
     default:
       return (
         <div>

@@ -429,6 +429,37 @@ export class MysqlSchemaConfig extends Message<MysqlSchemaConfig> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.MssqlSchemaConfig
+ */
+export class MssqlSchemaConfig extends Message<MssqlSchemaConfig> {
+  constructor(data?: PartialMessage<MssqlSchemaConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MssqlSchemaConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlSchemaConfig {
+    return new MssqlSchemaConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MssqlSchemaConfig {
+    return new MssqlSchemaConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MssqlSchemaConfig {
+    return new MssqlSchemaConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MssqlSchemaConfig | PlainMessage<MssqlSchemaConfig> | undefined, b: MssqlSchemaConfig | PlainMessage<MssqlSchemaConfig> | undefined): boolean {
+    return proto3.util.equals(MssqlSchemaConfig, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.AwsS3SchemaConfig
  */
 export class AwsS3SchemaConfig extends Message<AwsS3SchemaConfig> {
@@ -633,6 +664,12 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
      */
     value: DynamoDBSchemaConfig;
     case: "dynamodbConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MssqlSchemaConfig mssql_config = 7;
+     */
+    value: MssqlSchemaConfig;
+    case: "mssqlConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionSchemaConfig>) {
@@ -649,6 +686,7 @@ export class ConnectionSchemaConfig extends Message<ConnectionSchemaConfig> {
     { no: 4, name: "mongo_config", kind: "message", T: MongoSchemaConfig, oneof: "config" },
     { no: 5, name: "gcp_cloudstorage_config", kind: "message", T: GcpCloudStorageSchemaConfig, oneof: "config" },
     { no: 6, name: "dynamodb_config", kind: "message", T: DynamoDBSchemaConfig, oneof: "config" },
+    { no: 7, name: "mssql_config", kind: "message", T: MssqlSchemaConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionSchemaConfig {

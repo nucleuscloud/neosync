@@ -284,13 +284,15 @@ export default function SubsetCard(props: Props): ReactElement {
 export function showSubsetOptions(
   connType: ConnectionConfigCase | null
 ): boolean {
+  // todo: enable subset by FK constraints for mssql during or after NEOS-1364 is closed
   return connType === 'pgConfig' || connType === 'mysqlConfig';
 }
 
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
   switch (sourceOpts?.config.case) {
     case 'postgres':
-    case 'mysql': {
+    case 'mysql':
+    case 'mssql': {
       const schemas = sourceOpts.config.value.schemas;
       const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
         return schema.tables.map((table) => {

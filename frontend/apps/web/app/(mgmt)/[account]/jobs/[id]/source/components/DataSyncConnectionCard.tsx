@@ -1,4 +1,5 @@
 'use client';
+import ConnectionSelectContent from '@/app/(mgmt)/[account]/new/job/connect/ConnectionSelectContent';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import NosqlTable from '@/components/jobs/NosqlTable/NosqlTable';
 import { OnTableMappingUpdateRequest } from '@/components/jobs/NosqlTable/TableMappings/Columns';
@@ -21,10 +22,10 @@ import {
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { splitConnections } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import {
   DataSyncSourceFormValues,
@@ -55,6 +56,7 @@ import {
   JobSource,
   JobSourceOptions,
   MongoDBSourceConnectionOptions,
+  MssqlSourceConnectionOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
   ValidateJobMappingsResponse,
@@ -83,6 +85,7 @@ import {
 } from '../../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 import {
+  getConnectionIdFromSource,
   getDestinationDetailsRecord,
   getDynamoDbDestinations,
   getOnSelectedTableToggle,
@@ -93,21 +96,6 @@ import {
 
 interface Props {
   jobId: string;
-}
-
-function getConnectionIdFromSource(
-  js: JobSource | undefined
-): string | undefined {
-  if (
-    js?.options?.config.case === 'postgres' ||
-    js?.options?.config.case === 'mysql' ||
-    js?.options?.config.case === 'awsS3' ||
-    js?.options?.config.case === 'mongodb' ||
-    js?.options?.config.case === 'dynamodb'
-  ) {
-    return js.options.config.value.connectionId;
-  }
-  return undefined;
 }
 
 export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
@@ -483,6 +471,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const dynamoDBDestinations = getDynamoDbDestinations(
     data?.job?.destinations ?? []
   );
+
+  const splitSourceConnections = splitConnections(
+    connections.filter(
+      (c) =>
+        !data?.job?.destinations.map((d) => d.connectionId)?.includes(c.id) &&
+        c.connectionConfig?.config.case !== 'awsS3Config' &&
+        c.connectionConfig?.config.case !== 'openaiConfig' &&
+        c.connectionConfig?.config.case !== 'gcpCloudstorageConfig'
+    )
+  );
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -511,27 +509,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                       <SelectValue placeholder={source?.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {connections
-                        .filter(
-                          (c) =>
-                            !data?.job?.destinations
-                              .map((d) => d.connectionId)
-                              ?.includes(c.id) &&
-                            c.connectionConfig?.config.case !== 'awsS3Config' &&
-                            c.connectionConfig?.config.case !==
-                              'openaiConfig' &&
-                            c.connectionConfig?.config.case !==
-                              'gcpCloudstorageConfig'
-                        )
-                        .map((connection) => (
-                          <SelectItem
-                            className="cursor-pointer ml-2"
-                            key={connection.id}
-                            value={connection.id}
-                          >
-                            {connection.name}
-                          </SelectItem>
-                        ))}
+                      <ConnectionSelectContent
+                        postgres={splitSourceConnections.postgres}
+                        mysql={splitSourceConnections.mysql}
+                        mongodb={splitSourceConnections.mongodb}
+                        dynamodb={splitSourceConnections.dynamodb}
+                        mssql={splitSourceConnections.mssql}
+                      />
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -836,6 +820,20 @@ function toJobSourceOptions(
         },
       });
     }
+    case 'mssqlConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'mssql',
+          value: new MssqlSourceConnectionOptions({
+            ...getExistingMssqlSourceConnectionOptions(job),
+            connectionId: newSourceId,
+            haltOnNewColumnAddition:
+              values.sourceOptions.mssql?.haltOnNewColumnAddition,
+          }),
+        },
+      });
+    }
+
     default:
       throw new Error('unsupported connection type');
   }
@@ -853,6 +851,14 @@ function getExistingMysqlSourceConnectionOptions(
   job: Job
 ): MysqlSourceConnectionOptions | undefined {
   return job.source?.options?.config.case === 'mysql'
+    ? job.source.options.config.value
+    : undefined;
+}
+
+function getExistingMssqlSourceConnectionOptions(
+  job: Job
+): MssqlSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'mssql'
     ? job.source.options.config.value
     : undefined;
 }
@@ -920,7 +926,8 @@ function getJobSource(
 
   if (
     job.source?.options?.config.case === 'postgres' ||
-    job.source?.options?.config.case === 'mysql'
+    job.source?.options?.config.case === 'mysql' ||
+    job.source?.options?.config.case === 'mssql'
   ) {
     Object.entries(mapData).forEach(([key, currcols]) => {
       const dbcols = connSchemaMap[key];
@@ -1012,6 +1019,19 @@ function getJobSource(
         destinationOptions: destOpts,
       };
     }
+    case 'mssql': {
+      return {
+        ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
+        sourceOptions: {
+          mssql: {
+            haltOnNewColumnAddition:
+              job?.source?.options?.config.value.haltOnNewColumnAddition,
+          },
+        },
+      };
+    }
+
     default:
       return yupValidationValues;
   }
@@ -1081,6 +1101,16 @@ async function getUpdatedValues(
           dynamodb: {
             unmappedTransformConfig: getDefaultUnmappedTransformConfig(),
             enableConsistentRead: false,
+          },
+        },
+      };
+    }
+    case 'mssqlConfig': {
+      return {
+        ...values,
+        sourceOptions: {
+          mssql: {
+            haltOnNewColumnAddition: false,
           },
         },
       };

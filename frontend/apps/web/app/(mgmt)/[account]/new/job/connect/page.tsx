@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
+import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Connection, ConnectionConfig } from '@neosync/sdk';
@@ -92,7 +92,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(connections);
 
   return (
@@ -238,6 +238,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   shouldValidate: true,
                                 }
                               );
+                            } else if (connectionType === 'mssqlConfig') {
+                              form.setValue(
+                                'sourceOptions',
+                                {
+                                  mssql: {
+                                    haltOnNewColumnAddition: false,
+                                  },
+                                },
+                                {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                  shouldValidate: true,
+                                }
+                              );
                             } else {
                               form.setValue(
                                 'sourceOptions',
@@ -252,7 +266,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           }}
                           value={field.value}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger
+                            className={cn(
+                              field.value ? undefined : 'text-muted-foreground'
+                            )}
+                          >
                             <SelectValue
                               ref={field.ref}
                               placeholder="Select a source ..."
@@ -264,6 +282,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               mysql={mysql}
                               mongodb={mongodb}
                               dynamodb={dynamodb}
+                              mssql={mssql}
                               newConnectionValue={NEW_CONNECTION_VALUE}
                             />
                           </SelectContent>
@@ -418,11 +437,35 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             shouldValidate: true,
                                           }
                                         );
+                                      } else if (
+                                        destConnType === 'mssqlConfig'
+                                      ) {
+                                        form.setValue(
+                                          `destinations.${index}.destinationOptions`,
+                                          {
+                                            mssql: {
+                                              truncateBeforeInsert: false,
+                                              initTableSchema: false,
+                                              onConflictDoNothing: false,
+                                            },
+                                          },
+                                          {
+                                            shouldDirty: true,
+                                            shouldTouch: true,
+                                            shouldValidate: true,
+                                          }
+                                        );
                                       }
                                     }}
                                     value={field.value}
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger
+                                      className={cn(
+                                        field.value
+                                          ? undefined
+                                          : 'text-muted-foreground'
+                                      )}
+                                    >
                                       <SelectValue
                                         ref={field.ref}
                                         placeholder="Select a destination ..."
@@ -436,6 +479,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         mongodb={mongodb}
                                         gcpcs={gcpcs}
                                         dynamodb={dynamodb}
+                                        mssql={mssql}
                                         newConnectionValue={
                                           NEW_CONNECTION_VALUE
                                         }
