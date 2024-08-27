@@ -2,9 +2,61 @@ package sqlmanager_mssql
 
 import (
 	"context"
+	"testing"
 
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
+
+func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
+	manager := NewManager(s.source.querier, s.source.testDb, func() {})
+
+	var expectedIdentityGeneration = "IDENTITY(1,1)"
+	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
+		{
+			TableSchema:            "sqlmanagermssql3",
+			TableName:              "users",
+			ColumnName:             "id",
+			DataType:               "int",
+			ColumnDefault:          "",
+			IsNullable:             "NO",
+			CharacterMaximumLength: -1,
+			NumericPrecision:       10,
+			NumericScale:           0,
+			OrdinalPosition:        1,
+			GeneratedType:          nil,
+			IdentityGeneration:     &expectedIdentityGeneration,
+		},
+	}
+
+	actual, err := manager.GetDatabaseSchema(context.Background())
+	require.NoError(s.T(), err)
+	containsSubset(s.T(), actual, expectedSubset)
+}
+
+func (s *IntegrationTestSuite) Test_GetDatabaseSchema_With_Identity() {
+	manager := NewManager(s.source.querier, s.source.testDb, func() {})
+
+	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
+		{
+			TableSchema:            "sqlmanagermssql3",
+			TableName:              "users_with_identity",
+			ColumnName:             "id",
+			DataType:               "integer",
+			ColumnDefault:          "",
+			IsNullable:             "NO",
+			CharacterMaximumLength: -1,
+			NumericPrecision:       32,
+			NumericScale:           0,
+			OrdinalPosition:        1,
+			IdentityGeneration:     sqlmanager_shared.Ptr("a"),
+		},
+	}
+
+	actual, err := manager.GetDatabaseSchema(context.Background())
+	require.NoError(s.T(), err)
+	containsSubset(s.T(), actual, expectedSubset)
+}
 
 // func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 // 	manager := NewManager(s.source.querier, s.source.pool, func() {})
@@ -383,9 +435,9 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 // 	require.NotEmptyf(s.T(), resp.Functions, "functions")
 // }
 
-// func containsSubset[T any](t testing.TB, array, subset []T) {
-// 	t.Helper()
-// 	for _, elem := range subset {
-// 		require.Contains(t, array, elem)
-// 	}
-// }
+func containsSubset[T any](t testing.TB, array, subset []T) {
+	t.Helper()
+	for _, elem := range subset {
+		require.Contains(t, array, elem)
+	}
+}

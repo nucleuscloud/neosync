@@ -24,6 +24,8 @@ func NewManager(querier mssql_queries.Querier, db mysql_queries.DBTX, closer fun
 	return &Manager{querier: querier, db: db, close: closer}
 }
 
+const defaultIdentity string = "IDENTITY(1,1)"
+
 func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
 	if err != nil && !nucleusdb.IsNoRows(err) {
@@ -50,6 +52,16 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 		if row.OrdinalPosition >= math.MinInt16 && row.OrdinalPosition <= math.MaxInt16 {
 			ordPosition = int16(row.OrdinalPosition) //nolint:gosec
 		}
+		var identityGeneration *string
+		if row.IsIdentity {
+			syntax := defaultIdentity
+			identityGeneration = &syntax
+		}
+		var generatedType *string
+		if row.GenerationExpression.Valid {
+			generatedType = &row.GenerationExpression.String
+		}
+
 		output = append(output, &sqlmanager_shared.DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -57,12 +69,12 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			DataType:               row.DataType,
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
 			IsNullable:             row.IsNullable,
-			GeneratedType:          nil, // todo
+			GeneratedType:          generatedType,
 			OrdinalPosition:        ordPosition,
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
 			NumericScale:           numericScale,
-			IdentityGeneration:     nil, // todo: will have to update the downstream logic for this
+			IdentityGeneration:     identityGeneration,
 		})
 	}
 
