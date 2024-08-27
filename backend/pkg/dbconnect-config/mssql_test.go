@@ -28,7 +28,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 			Database:    ptr("myinstance"),
 			User:        "test-user",
 			Pass:        "test-pass",
-			QueryParams: url.Values{"database": []string{"master"}, "connection timeout": []string{"5"}},
+			queryParams: url.Values{"database": []string{"master"}, "connection timeout": []string{"5"}},
 		}
 		if !reflect.DeepEqual(out, expected) {
 			t.Errorf("Expected %v, got %v", expected, out)

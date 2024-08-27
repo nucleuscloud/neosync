@@ -58,7 +58,7 @@ func NewFromMssqlConnection(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, c
 			Database:    instance,
 			User:        user,
 			Pass:        pass,
-			QueryParams: query,
+			queryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))

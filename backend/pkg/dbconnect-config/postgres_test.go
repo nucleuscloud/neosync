@@ -38,7 +38,7 @@ func Test_getGeneralDbConnectConfigFromPg_Connection(t *testing.T) {
 		User:        "test-user",
 		Pass:        "test-pass",
 		Protocol:    nil,
-		QueryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
+		queryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
 }
 
@@ -61,6 +61,6 @@ func Test_getGeneralDbConnectConfigFromPg_Url(t *testing.T) {
 		User:        "test-user",
 		Pass:        "test-pass",
 		Protocol:    nil,
-		QueryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
+		queryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
 }

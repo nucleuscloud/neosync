@@ -23,7 +23,7 @@ type GeneralDbConnectConfig struct {
 
 	Protocol *string
 
-	QueryParams url.Values
+	queryParams url.Values
 }
 
 func (g *GeneralDbConnectConfig) GetDriver() string {
@@ -44,7 +44,7 @@ func (g *GeneralDbConnectConfig) String() string {
 		if g.User != "" || g.Pass != "" {
 			u.User = url.UserPassword(g.User, g.Pass)
 		}
-		u.RawQuery = g.QueryParams.Encode()
+		u.RawQuery = g.queryParams.Encode()
 		return u.String()
 	}
 	if g.driver == mysqlDriver {
@@ -68,8 +68,8 @@ func (g *GeneralDbConnectConfig) String() string {
 		}
 
 		// Append query parameters if any
-		if len(g.QueryParams) > 0 {
-			query := g.QueryParams.Encode()
+		if len(g.queryParams) > 0 {
+			query := g.queryParams.Encode()
 			dsn += "?" + query
 		}
 		return dsn
@@ -86,7 +86,7 @@ func (g *GeneralDbConnectConfig) String() string {
 		if g.User != "" || g.Pass != "" {
 			u.User = url.UserPassword(g.User, g.Pass)
 		}
-		u.RawQuery = g.QueryParams.Encode()
+		u.RawQuery = g.queryParams.Encode()
 		return u.String()
 	}
 	return ""

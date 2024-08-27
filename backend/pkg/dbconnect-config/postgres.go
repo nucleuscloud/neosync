@@ -40,7 +40,7 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			Database:    &cc.Connection.Name,
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
-			QueryParams: query,
+			queryParams: query,
 		}, nil
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 		u, err := url.Parse(cc.Url)
@@ -88,7 +88,7 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			Database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
 			User:        user,
 			Pass:        pass,
-			QueryParams: query,
+			queryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")

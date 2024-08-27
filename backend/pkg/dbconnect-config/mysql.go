@@ -26,7 +26,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
 			Protocol:    &cc.Connection.Protocol,
-			QueryParams: query,
+			queryParams: query,
 		}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 		// follows the format [scheme://][user[:password]@]<host[:port]|socket>[/schema][?option=value&option=value...]
@@ -83,7 +83,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 			User:        user,
 			Pass:        pass,
 			Protocol:    nil,
-			QueryParams: query,
+			queryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
