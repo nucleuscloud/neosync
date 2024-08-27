@@ -39,7 +39,7 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 
 		_, localport := s.details.Tunnel.GetLocalHostPort()
 		newPort := int32(localport) //nolint:gosec // Ignoring for now
-		s.details.GeneralDbConnectConfig.Port = &newPort
+		s.details.GeneralDbConnectConfig.SetPort(newPort)
 		dsn := s.details.GeneralDbConnectConfig.String()
 
 		db, err := sql.Open(s.details.GeneralDbConnectConfig.GetDriver(), dsn)

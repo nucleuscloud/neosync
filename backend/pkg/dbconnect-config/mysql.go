@@ -19,14 +19,14 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 		}
 		query.Add("multiStatements", "true")
 		return &GeneralDbConnectConfig{
-			driver:      mysqlDriver,
-			Host:        cc.Connection.Host,
-			Port:        &cc.Connection.Port,
-			Database:    &cc.Connection.Name,
-			User:        cc.Connection.User,
-			Pass:        cc.Connection.Pass,
-			Protocol:    &cc.Connection.Protocol,
-			queryParams: query,
+			driver:        mysqlDriver,
+			host:          cc.Connection.Host,
+			port:          &cc.Connection.Port,
+			Database:      &cc.Connection.Name,
+			User:          cc.Connection.User,
+			Pass:          cc.Connection.Pass,
+			mysqlProtocol: &cc.Connection.Protocol,
+			queryParams:   query,
 		}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 		// follows the format [scheme://][user[:password]@]<host[:port]|socket>[/schema][?option=value&option=value...]
@@ -76,14 +76,14 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 		query.Add("multiStatements", "true")
 
 		return &GeneralDbConnectConfig{
-			driver:      u.Scheme,
-			Host:        u.Hostname(),
-			Port:        &port,
-			Database:    &database,
-			User:        user,
-			Pass:        pass,
-			Protocol:    nil,
-			queryParams: query,
+			driver:        u.Scheme,
+			host:          u.Hostname(),
+			port:          &port,
+			Database:      &database,
+			User:          user,
+			Pass:          pass,
+			mysqlProtocol: nil,
+			queryParams:   query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")

@@ -14,14 +14,14 @@ const (
 type GeneralDbConnectConfig struct {
 	driver string
 
-	Host string
-	Port *int32
+	host string
+	port *int32
 	// For mssql this is actually the path..the database is provided as a query parameter
 	Database *string
 	User     string
 	Pass     string
 
-	Protocol *string
+	mysqlProtocol *string
 
 	queryParams url.Values
 }
@@ -30,11 +30,25 @@ func (g *GeneralDbConnectConfig) GetDriver() string {
 	return g.driver
 }
 
+func (g *GeneralDbConnectConfig) SetPort(port int32) {
+	g.port = &port
+}
+func (g *GeneralDbConnectConfig) SetHost(host string) {
+	g.host = host
+}
+
+func (g *GeneralDbConnectConfig) GetPort() *int32 {
+	return g.port
+}
+func (g *GeneralDbConnectConfig) GetHost() string {
+	return g.host
+}
+
 func (g *GeneralDbConnectConfig) String() string {
 	if g.driver == postgresDriver {
 		u := url.URL{
 			Scheme: "postgres",
-			Host:   buildDbUrlHost(g.Host, g.Port),
+			Host:   buildDbUrlHost(g.host, g.port),
 		}
 		if g.Database != nil {
 			u.Path = *g.Database
@@ -49,10 +63,10 @@ func (g *GeneralDbConnectConfig) String() string {
 	}
 	if g.driver == mysqlDriver {
 		protocol := "tcp"
-		if g.Protocol != nil {
-			protocol = *g.Protocol
+		if g.mysqlProtocol != nil {
+			protocol = *g.mysqlProtocol
 		}
-		address := fmt.Sprintf("(%s)", buildDbUrlHost(g.Host, g.Port))
+		address := fmt.Sprintf("(%s)", buildDbUrlHost(g.host, g.port))
 
 		// User info
 		// dont use url.UserPassword as it escapes the password
@@ -77,7 +91,7 @@ func (g *GeneralDbConnectConfig) String() string {
 	if g.driver == mssqlDriver {
 		u := url.URL{
 			Scheme: mssqlDriver,
-			Host:   buildDbUrlHost(g.Host, g.Port),
+			Host:   buildDbUrlHost(g.host, g.port),
 		}
 		if g.Database != nil {
 			u.Path = *g.Database

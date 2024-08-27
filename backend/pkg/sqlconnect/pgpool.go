@@ -53,7 +53,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 
 		_, localport := s.details.Tunnel.GetLocalHostPort()
 		newPort := int32(localport) //nolint:gosec // Ignoring for now
-		s.details.GeneralDbConnectConfig.Port = &newPort
+		s.details.GeneralDbConnectConfig.SetPort(newPort)
 		dsn := s.details.GeneralDbConnectConfig.String()
 
 		config, err := pgxpool.ParseConfig(dsn)

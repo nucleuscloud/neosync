@@ -23,8 +23,8 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 		assert.NotNil(t, out)
 		expected := &GeneralDbConnectConfig{
 			driver:      "sqlserver",
-			Host:        "localhost",
-			Port:        ptr(int32(1433)),
+			host:        "localhost",
+			port:        ptr(int32(1433)),
 			Database:    ptr("myinstance"),
 			User:        "test-user",
 			Pass:        "test-pass",

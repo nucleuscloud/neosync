@@ -53,8 +53,8 @@ func NewFromMssqlConnection(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, c
 
 		return &GeneralDbConnectConfig{
 			driver:      mssqlDriver,
-			Host:        host,
-			Port:        port,
+			host:        host,
+			port:        port,
 			Database:    instance,
 			User:        user,
 			Pass:        pass,

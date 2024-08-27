@@ -117,8 +117,8 @@ func Test_getConnectionDetails_Pg_Tunnel(t *testing.T) {
 	assert.NotNil(t, out)
 	assert.NotNil(t, out.GeneralDbConnectConfig)
 	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.Host, "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.Port, 0)
+	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
+	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
 }
 
 func Test_getConnectionDetails_Mysql_NoTunnel(t *testing.T) {
@@ -168,8 +168,8 @@ func Test_getConnectionDetails_Mysql_Tunnel(t *testing.T) {
 	assert.NotNil(t, out)
 	assert.NotNil(t, out.GeneralDbConnectConfig)
 	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.Host, "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.Port, 0)
+	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
+	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
 }
 
 func Test_getConnectionDetails_Mssql_NoTunnel(t *testing.T) {
@@ -219,8 +219,8 @@ func Test_getConnectionDetails_Mssql_Tunnel(t *testing.T) {
 	assert.NotNil(t, out)
 	assert.NotNil(t, out.GeneralDbConnectConfig)
 	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.Host, "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.Port, 0)
+	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
+	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
 }
 
 func ptr[T any](val T) *T {

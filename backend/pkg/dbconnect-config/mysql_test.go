@@ -31,14 +31,14 @@ func Test_NewFromMysqlConnection_Connection(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:      "mysql",
-		Host:        "localhost",
-		Port:        ptr(int32(3309)),
-		Database:    ptr("mydb"),
-		User:        "test-user",
-		Pass:        "test-pass",
-		Protocol:    ptr("tcp"),
-		queryParams: url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}},
+		driver:        "mysql",
+		host:          "localhost",
+		port:          ptr(int32(3309)),
+		Database:      ptr("mydb"),
+		User:          "test-user",
+		Pass:          "test-pass",
+		mysqlProtocol: ptr("tcp"),
+		queryParams:   url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}},
 	})
 }
 
@@ -54,14 +54,14 @@ func Test_NewFromMysqlConnection_Url_mysql(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:      "mysql",
-		Host:        "localhost",
-		Port:        ptr(int32(3306)),
-		Database:    ptr("mydatabase"),
-		User:        "myuser",
-		Pass:        "mypassword",
-		Protocol:    nil,
-		queryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+		driver:        "mysql",
+		host:          "localhost",
+		port:          ptr(int32(3306)),
+		Database:      ptr("mydatabase"),
+		User:          "myuser",
+		Pass:          "mypassword",
+		mysqlProtocol: nil,
+		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})
 }
 func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
@@ -76,14 +76,14 @@ func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:      "mysqlx",
-		Host:        "localhost",
-		Port:        ptr(int32(3306)),
-		Database:    ptr("mydatabase"),
-		User:        "myuser",
-		Pass:        "mypassword",
-		Protocol:    nil,
-		queryParams: url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+		driver:        "mysqlx",
+		host:          "localhost",
+		port:          ptr(int32(3306)),
+		Database:      ptr("mydatabase"),
+		User:          "myuser",
+		Pass:          "mypassword",
+		mysqlProtocol: nil,
+		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
 	})
 }
 

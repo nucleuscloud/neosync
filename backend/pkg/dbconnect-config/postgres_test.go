@@ -31,14 +31,14 @@ func Test_getGeneralDbConnectConfigFromPg_Connection(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:      "postgres",
-		Host:        "localhost",
-		Port:        ptr(int32(5432)),
-		Database:    ptr("postgres"),
-		User:        "test-user",
-		Pass:        "test-pass",
-		Protocol:    nil,
-		queryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
+		driver:        "postgres",
+		host:          "localhost",
+		port:          ptr(int32(5432)),
+		Database:      ptr("postgres"),
+		User:          "test-user",
+		Pass:          "test-pass",
+		mysqlProtocol: nil,
+		queryParams:   url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
 }
 
@@ -54,13 +54,13 @@ func Test_getGeneralDbConnectConfigFromPg_Url(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, out)
 	assert.Equal(t, out, &GeneralDbConnectConfig{
-		driver:      "postgres",
-		Host:        "localhost",
-		Port:        ptr(int32(5432)),
-		Database:    ptr("postgres"),
-		User:        "test-user",
-		Pass:        "test-pass",
-		Protocol:    nil,
-		queryParams: url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
+		driver:        "postgres",
+		host:          "localhost",
+		port:          ptr(int32(5432)),
+		Database:      ptr("postgres"),
+		User:          "test-user",
+		Pass:          "test-pass",
+		mysqlProtocol: nil,
+		queryParams:   url.Values{"sslmode": []string{"verify"}, "connect_timeout": []string{"5"}},
 	})
 }

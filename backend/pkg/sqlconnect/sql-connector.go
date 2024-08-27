@@ -13,7 +13,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -75,8 +74,8 @@ func (c *ConnectionDetails) String() string {
 	if c.Tunnel != nil {
 		// todo: would be great to check if tunnel has been started...
 		localhost, port := c.Tunnel.GetLocalHostPort()
-		c.GeneralDbConnectConfig.Host = localhost
-		c.GeneralDbConnectConfig.Port = shared.Ptr(int32(port)) //nolint:gosec // Ignoring for now
+		c.GeneralDbConnectConfig.SetHost(localhost)
+		c.GeneralDbConnectConfig.SetPort(int32(port)) //nolint:gosec // Ignoring for now
 	}
 	return c.GeneralDbConnectConfig.String()
 }
@@ -145,8 +144,8 @@ func GetConnectionDetails(
 				return nil, err
 			}
 			portValue := int32(randomPort)
-			connDetails.Host = localhost
-			connDetails.Port = &portValue
+			connDetails.SetHost(localhost)
+			connDetails.SetPort(portValue)
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -198,8 +197,8 @@ func GetConnectionDetails(
 			}
 
 			portValue := int32(randomPort)
-			connDetails.Host = localhost
-			connDetails.Port = &portValue
+			connDetails.SetHost(localhost)
+			connDetails.SetPort(portValue)
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -251,8 +250,8 @@ func GetConnectionDetails(
 			}
 
 			portValue := int32(randomPort)
-			connDetails.Host = localhost
-			connDetails.Port = &portValue
+			connDetails.SetHost(localhost)
+			connDetails.SetPort(portValue)
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -282,10 +281,10 @@ func getEndpointFromPgConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_PgC
 			return nil, err
 		}
 		port := 0
-		if details.Port != nil {
-			port = int(*details.Port)
+		if details.GetPort() != nil {
+			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
 	}
@@ -301,10 +300,10 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 			return nil, err
 		}
 		port := 0
-		if details.Port != nil {
-			port = int(*details.Port)
+		if details.GetPort() != nil {
+			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
@@ -318,10 +317,10 @@ func getEndpointFromMssqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 			return nil, err
 		}
 		port := 0
-		if details.Port != nil {
-			port = int(*details.Port)
+		if details.GetPort() != nil {
+			port = int(*details.GetPort())
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, port, details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.GetHost(), port, details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}
