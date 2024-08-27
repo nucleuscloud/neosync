@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/stretchr/testify/mock"
@@ -342,11 +343,11 @@ func Test_getDriverFromConnection(t *testing.T) {
 	})
 }
 
-func getPgGenDbConfig(t *testing.T) sqlconnect.GeneralDbConnectConfig {
+func getPgGenDbConfig(t *testing.T) dbconnectconfig.GeneralDbConnectConfig {
 	t.Helper()
 	port := int32(5432)
 	db := "test"
-	return sqlconnect.GeneralDbConnectConfig{
+	return dbconnectconfig.GeneralDbConnectConfig{
 		Driver:   "postgres",
 		Host:     "localhost",
 		Port:     &port,
