@@ -37,7 +37,7 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			driver:      postgresDriver,
 			host:        cc.Connection.Host,
 			port:        &cc.Connection.Port,
-			Database:    &cc.Connection.Name,
+			database:    &cc.Connection.Name,
 			user:        cc.Connection.User,
 			pass:        cc.Connection.Pass,
 			queryParams: query,
@@ -85,7 +85,7 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 			driver:      postgresDriver,
 			host:        host,
 			port:        shared.Ptr(int32(port)), //nolint:gosec // Ignoring for now
-			Database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
+			database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
 			user:        user,
 			pass:        pass,
 			queryParams: query,

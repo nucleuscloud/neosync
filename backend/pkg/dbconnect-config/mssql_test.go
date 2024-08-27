@@ -25,7 +25,7 @@ func Test_NewFromMssqlConnection(t *testing.T) {
 			driver:      "sqlserver",
 			host:        "localhost",
 			port:        ptr(int32(1433)),
-			Database:    ptr("myinstance"),
+			database:    ptr("myinstance"),
 			user:        "test-user",
 			pass:        "test-pass",
 			queryParams: url.Values{"database": []string{"master"}, "connection timeout": []string{"5"}},

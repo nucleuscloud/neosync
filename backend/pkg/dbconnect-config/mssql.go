@@ -55,7 +55,7 @@ func NewFromMssqlConnection(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, c
 			driver:      mssqlDriver,
 			host:        host,
 			port:        port,
-			Database:    instance,
+			database:    instance,
 			user:        user,
 			pass:        pass,
 			queryParams: query,

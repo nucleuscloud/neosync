@@ -17,7 +17,7 @@ type GeneralDbConnectConfig struct {
 	host string
 	port *int32
 	// For mssql this is actually the path..the database is provided as a query parameter
-	Database *string
+	database *string
 	user     string
 	pass     string
 
@@ -54,8 +54,8 @@ func (g *GeneralDbConnectConfig) String() string {
 			Scheme: "postgres",
 			Host:   buildDbUrlHost(g.host, g.port),
 		}
-		if g.Database != nil {
-			u.Path = *g.Database
+		if g.database != nil {
+			u.Path = *g.database
 		}
 
 		// Add user info
@@ -81,8 +81,8 @@ func (g *GeneralDbConnectConfig) String() string {
 		}
 		// Base DSN
 		dsn := fmt.Sprintf("%s@%s%s", userInfo, protocol, address)
-		if g.Database != nil {
-			dsn = fmt.Sprintf("%s/%s", dsn, *g.Database)
+		if g.database != nil {
+			dsn = fmt.Sprintf("%s/%s", dsn, *g.database)
 		}
 
 		// Append query parameters if any
@@ -97,8 +97,8 @@ func (g *GeneralDbConnectConfig) String() string {
 			Scheme: mssqlDriver,
 			Host:   buildDbUrlHost(g.host, g.port),
 		}
-		if g.Database != nil {
-			u.Path = *g.Database
+		if g.database != nil {
+			u.Path = *g.database
 		}
 		// Add user info
 		if g.user != "" || g.pass != "" {
