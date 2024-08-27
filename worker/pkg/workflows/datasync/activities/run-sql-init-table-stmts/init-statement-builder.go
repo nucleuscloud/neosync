@@ -238,6 +238,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
+		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			slogger.Info("Mssql does not currently implement sql init table statements. Skipping for now until this gets implemented..")
 		default:
 			return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.ConnectionConfig.Config)
 		}
@@ -305,6 +307,11 @@ func getSqlJobDestinationOpts(
 		return &sqlJobDestinationOpts{
 			TruncateBeforeInsert: opts.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
 			InitSchema:           opts.MysqlOptions.GetInitTableSchema(),
+		}, nil
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &sqlJobDestinationOpts{
+			TruncateBeforeInsert: opts.MssqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			InitSchema:           opts.MssqlOptions.GetInitTableSchema(),
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported job destination options type: %T", opts)

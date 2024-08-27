@@ -295,27 +295,51 @@ func Test_getUniqueConnectionIdsFromSessions(t *testing.T) {
 }
 
 func Test_getDriverFromConnection(t *testing.T) {
-	driver, err := getDriverFromConnection(nil)
-	require.Error(t, err)
-	require.Empty(t, driver)
+	t.Run("nil", func(t *testing.T) {
+		driver, err := getDriverFromConnection(nil)
+		require.Error(t, err)
+		require.Empty(t, driver)
+	})
 
-	driver, err = getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
-	}})
-	require.NoError(t, err)
-	require.Equal(t, "postgres", driver)
+	t.Run("postgres", func(t *testing.T) {
+		driver, err := getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
+		}})
+		require.NoError(t, err)
+		require.Equal(t, "postgres", driver)
+	})
 
-	driver, err = getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},
-	}})
-	require.NoError(t, err)
-	require.Equal(t, "mysql", driver)
+	t.Run("mysql", func(t *testing.T) {
+		driver, err := getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},
+		}})
+		require.NoError(t, err)
+		require.Equal(t, "mysql", driver)
+	})
 
-	driver, err = getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{},
-	}})
-	require.Error(t, err)
-	require.Empty(t, driver)
+	t.Run("mssql", func(t *testing.T) {
+		driver, err := getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{},
+		}})
+		require.NoError(t, err)
+		require.Equal(t, "sqlserver", driver)
+	})
+
+	t.Run("unsupported", func(t *testing.T) {
+		driver, err := getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{},
+		}})
+		require.Error(t, err)
+		require.Empty(t, driver)
+	})
+
+	t.Run("mongo", func(t *testing.T) {
+		driver, err := getDriverFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_MongoConfig{},
+		}})
+		require.NoError(t, err)
+		require.Equal(t, "mongodb", driver)
+	})
 }
 
 func getPgGenDbConfig(t *testing.T) sqlconnect.GeneralDbConnectConfig {

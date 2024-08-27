@@ -203,6 +203,8 @@ func GetJobSourceConnection(
 		connectionId = jobSourceConfig.Postgres.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mssql:
+		connectionId = jobSourceConfig.Mssql.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
