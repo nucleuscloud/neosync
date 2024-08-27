@@ -155,6 +155,10 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	if err != nil {
 		panic(err)
 	}
+	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
