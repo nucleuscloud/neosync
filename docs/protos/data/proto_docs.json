@@ -2079,6 +2079,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "tunnel",
+              "description": "Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
