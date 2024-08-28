@@ -249,6 +249,7 @@ export const MssqlFormValues = Yup.object({
     url: Yup.string().required('Must provide a Mssql connection url'),
   }).required(),
   options: SqlOptionsFormValues,
+  tunnel: SshTunnelFormValues,
 });
 
 export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
