@@ -49,15 +49,18 @@ func BuildTable(schema, table string) string {
 	return table
 }
 
+// Dedupes the input slice and ensures consistent ordering with the input. Returns a niew slice.
 func DedupeSlice(input []string) []string {
-	set := map[string]any{}
-	for _, i := range input {
-		set[i] = struct{}{}
+	seen := make(map[string]struct{})
+	output := []string{}
+
+	for _, item := range input {
+		if _, exists := seen[item]; !exists {
+			seen[item] = struct{}{}
+			output = append(output, item)
+		}
 	}
-	output := make([]string, 0, len(set))
-	for key := range set {
-		output = append(output, key)
-	}
+
 	return output
 }
 
