@@ -138,8 +138,7 @@ explicit_permissions AS (
     SELECT
         s.name COLLATE database_default AS table_schema,
         o.name COLLATE database_default AS table_name,
-        dp.permission_name COLLATE database_default AS privilege_type,
-        1 AS perm_state
+        dp.permission_name COLLATE database_default AS perm_name
     FROM
         sys.database_permissions dp
     JOIN
@@ -151,9 +150,9 @@ explicit_permissions AS (
         AND o.type IN ('U', 'V') -- Tables and Views
         AND s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
 )
-SELECT * FROM effective_permissions
+SELECT table_schema, table_name, perm_name FROM effective_permissions WHERE perm_state = 1
 UNION
-SELECT * FROM explicit_permissions
+SELECT table_schema, table_name, perm_name FROM explicit_permissions
 ORDER BY
     table_name,
     table_schema,
@@ -164,7 +163,6 @@ type GetRolePermissionsRow struct {
 	TableSchema string
 	TableName   string
 	PermName    string
-	PermState   sql.NullBool
 }
 
 func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error) {
@@ -176,7 +174,7 @@ func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX)
 	var items []*GetRolePermissionsRow
 	for rows.Next() {
 		var i GetRolePermissionsRow
-		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PermName, &i.PermState); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PermName); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
