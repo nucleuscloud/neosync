@@ -519,6 +519,24 @@ export function getConnectionComponentDetails(
                 maxConnectionLimit:
                   mssqlValue.connectionOptions?.maxConnectionLimit,
               },
+              tunnel: {
+                host: mssqlValue.tunnel?.host ?? '',
+                port: mssqlValue.tunnel?.port ?? 22,
+                knownHostPublicKey: mssqlValue.tunnel?.knownHostPublicKey ?? '',
+                user: mssqlValue.tunnel?.user ?? '',
+                passphrase:
+                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
+                    ? (getPassphraseFromSshAuthentication(
+                        mssqlValue.tunnel.authentication
+                      ) ?? '')
+                    : '',
+                privateKey:
+                  mssqlValue.tunnel && mssqlValue.tunnel.authentication
+                    ? (getPrivateKeyFromSshAuthentication(
+                        mssqlValue.tunnel.authentication
+                      ) ?? '')
+                    : '',
+              },
             }}
             onSaved={(resp) => onSaved(resp)}
             onSaveFailed={onSaveFailed}
