@@ -36,17 +36,6 @@ type TableInfo struct {
 	ForeignKeys []*ForeignKey
 }
 
-type AliasTableInfo struct {
-	Name string
-}
-
-func (t *AliasTableInfo) GetSchema() *string {
-	return nil
-}
-func (t *AliasTableInfo) GetName() string {
-	return t.Name
-}
-
 func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
 	table := goqu.T(t.Name)
 	if t.Schema == "" {
@@ -125,7 +114,7 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if !ok {
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
-	query, err := qb.buildQueryRecursive(schema, tableName, table.Columns, map[string]int{}, map[string]bool{})
+	query, _, err := qb.buildQueryRecursive(schema, tableName, table.Columns, map[string]int{}, map[string]bool{})
 	if err != nil {
 		return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
 	}
@@ -152,17 +141,17 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	schema, tableName string,
 	columnsToInclude []string, joinCount map[string]int,
 	visitedTables map[string]bool,
-) (*goqu.SelectDataset, error) {
+) (dataset *goqu.SelectDataset, hasWhereCondition bool, err error) {
 	key := qb.getTableKey(schema, tableName)
 	if visitedTables[key] {
-		return nil, nil // Avoid circular dependencies
+		return nil, false, nil // Avoid circular dependencies
 	}
 	visitedTables[key] = true
 	defer delete(visitedTables, key) // Remove from visited after processing
 
 	table, ok := qb.tables[key]
 	if !ok {
-		return nil, fmt.Errorf("table not found: %s", key)
+		return nil, false, fmt.Errorf("table not found: %s", key)
 	}
 
 	if len(columnsToInclude) == 0 {
@@ -188,10 +177,12 @@ func (qb *QueryBuilder) buildQueryRecursive(
 	query = dialect.From(t).Select(toAnySlice(cols)...)
 
 	// Add WHERE conditions for this table
+	hasWhereCondition = false
 	if conditions, ok := qb.whereConditions[key]; ok {
 		for _, cond := range conditions {
 			query = query.Where(goqu.L(cond.Condition, cond.Args...))
 		}
+		hasWhereCondition = true
 	}
 
 	// Only join and apply subsetting if subsetByForeignKeyConstraints is true
@@ -201,12 +192,13 @@ func (qb *QueryBuilder) buildQueryRecursive(
 			if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
 				continue // Skip self-referencing foreign keys here
 			}
-			subQuery, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, fk.ReferenceColumns, joinCount, visitedTables)
+			subQuery, subQueryHasWhereCondition, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, fk.ReferenceColumns, joinCount, visitedTables)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
-			if subQuery != nil {
+			if subQuery != nil && subQueryHasWhereCondition {
+				hasWhereCondition = true
 				joinCount[fk.ReferenceTable]++
 				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
 				conditions := make([]goqu.Expression, len(fk.Columns))
@@ -223,7 +215,7 @@ func (qb *QueryBuilder) buildQueryRecursive(
 		}
 	}
 
-	return query, nil
+	return query, hasWhereCondition, nil
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
