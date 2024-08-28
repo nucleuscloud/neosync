@@ -274,8 +274,6 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           dbConfig.sslMode = pgConfig?.sslMode ?? 'disable';
         }
 
-        /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
-         */
         let passPhrase = '';
         let privateKey = '';
 
@@ -290,6 +288,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             break;
         }
 
+        /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+         */
         form.reset({
           ...form.getValues(),
           connectionName: connData.connection?.name + '-copy',

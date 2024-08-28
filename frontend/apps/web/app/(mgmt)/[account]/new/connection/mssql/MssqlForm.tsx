@@ -229,6 +229,20 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         const config = connData.connection?.connectionConfig?.config.value;
         const mssqlConfig = config.connectionConfig.value;
 
+        let passPhrase = '';
+        let privateKey = '';
+
+        const authConfig = config.tunnel?.authentication?.authConfig;
+        switch (authConfig?.case) {
+          case 'passphrase':
+            passPhrase = authConfig.value.value;
+            break;
+          case 'privateKey':
+            passPhrase = authConfig.value.passphrase ?? '';
+            privateKey = authConfig.value.value;
+            break;
+        }
+
         /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
          */
         form.reset({
@@ -240,6 +254,14 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           options: {
             maxConnectionLimit:
               config.connectionOptions?.maxConnectionLimit ?? 80,
+          },
+          tunnel: {
+            host: config.tunnel?.host ?? '',
+            port: config.tunnel?.port ?? 22,
+            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+            user: config.tunnel?.user ?? '',
+            passphrase: passPhrase,
+            privateKey: privateKey,
           },
         });
       } catch (error) {
