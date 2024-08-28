@@ -1041,13 +1041,14 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 				colName := columnDescriptions[i].Name
 				allowedValues, ok := tableExpectedValues[colName]
 				if ok {
-					value := col.(int32)
+					value, ok := col.(int32)
+					assert.True(s.T(), ok, "col was not convertable to int32: %s", col)
 					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
 				}
 			}
 		}
 		rows.Close()
-		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 	}
 }
 
