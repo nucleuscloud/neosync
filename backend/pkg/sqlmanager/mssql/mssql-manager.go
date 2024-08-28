@@ -165,7 +165,7 @@ func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]strin
 	schemaTablePrivsMap := map[string][]string{}
 	for _, permission := range rows {
 		key := sqlmanager_shared.BuildTable(permission.TableSchema, permission.TableName)
-		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PermName)
+		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err
 }
