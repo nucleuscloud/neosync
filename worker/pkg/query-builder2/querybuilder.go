@@ -36,17 +36,6 @@ type TableInfo struct {
 	ForeignKeys []*ForeignKey
 }
 
-type AliasTableInfo struct {
-	Name string
-}
-
-func (t *AliasTableInfo) GetSchema() *string {
-	return nil
-}
-func (t *AliasTableInfo) GetName() string {
-	return t.Name
-}
-
 func (t *TableInfo) GetIdentifierExpression() exp.IdentifierExpression {
 	table := goqu.T(t.Name)
 	if t.Schema == "" {
