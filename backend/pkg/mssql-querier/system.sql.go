@@ -158,8 +158,8 @@ SELECT table_schema, table_name, privilege_type FROM effective_permissions WHERE
 UNION
 SELECT table_schema, table_name, privilege_type FROM explicit_permissions
 ORDER BY
-    table_name,
     table_schema,
+    table_name,
     privilege_type;
 `
 
