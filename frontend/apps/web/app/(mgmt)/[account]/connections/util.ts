@@ -427,6 +427,7 @@ function buildMssqlConnectionConfig(
     connectionOptions: new SqlConnectionOptions({
       ...values.options,
     }),
+    tunnel: getTunnelConfig(values.tunnel),
   });
 }
 
