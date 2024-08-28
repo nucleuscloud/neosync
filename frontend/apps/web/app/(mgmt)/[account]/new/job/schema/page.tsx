@@ -541,10 +541,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   );
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
-              onEditMappings={(values) => {
-                values.forEach((fm, idx) => {
-                  update(idx, fm);
-                });
+              onEditMappings={(values, index) => {
+                if (index >= 0 && index < formMappings.length) {
+                  update(index, values);
+                }
               }}
               onAddMappings={(values) => {
                 append(

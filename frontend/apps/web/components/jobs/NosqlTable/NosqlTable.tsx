@@ -84,7 +84,7 @@ interface Props {
   formErrors: FormError[];
   onAddMappings(values: AddNewNosqlRecordFormValues[]): void;
   onRemoveMappings(values: JobMappingFormValues[]): void;
-  onEditMappings(values: JobMappingFormValues[]): void;
+  onEditMappings(values: JobMappingFormValues, index: number): void;
 
   destinationOptions: EditDestinationOptionsFormValues[];
   destinationDetailsRecord: Record<string, DestinationDetails>;
@@ -121,8 +121,8 @@ export default function NosqlTable(props: Props): ReactElement {
         onDelete(row) {
           onRemoveMappings([row]);
         },
-        onEdit(row) {
-          onEditMappings([row]);
+        onEdit(row, index) {
+          onEditMappings(row, index);
         },
         transformerHandler: handler,
         collections: collections,
@@ -356,7 +356,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 interface GetColumnsProps {
   onDelete(row: Row): void;
   transformerHandler: TransformerHandler;
-  onEdit(row: Row): void;
+  onEdit(row: Row, index: number): void;
   collections: string[];
 }
 
@@ -422,13 +422,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
             collections={collections}
             text={getValue<string>()}
             onEdit={(updatedObject) => {
-              onEdit({
-                schema: updatedObject.collection.split('.')[0],
-                table: updatedObject.collection.split('.')[1],
-                column: row.getValue('column'),
-                transformer: row.getValue('transformer'),
-                id: row.original.id,
-              });
+              onEdit(
+                {
+                  schema: updatedObject.collection.split('.')[0],
+                  table: updatedObject.collection.split('.')[1],
+                  column: row.getValue('column'),
+                  transformer: row.getValue('transformer'),
+                },
+                row.index
+              );
             }}
           />
         );
@@ -447,13 +449,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
           <EditDocumentKey
             text={text}
             onEdit={(updatedObject) => {
-              onEdit({
-                schema: row.getValue('schema'),
-                table: row.getValue('table'),
-                column: updatedObject.column,
-                transformer: row.getValue('transformer'),
-                id: row.original.id,
-              });
+              onEdit(
+                {
+                  schema: row.getValue('schema'),
+                  table: row.getValue('table'),
+                  column: updatedObject.column,
+                  transformer: row.getValue('transformer'),
+                },
+                row.index
+              );
             }}
           />
         );
@@ -497,13 +501,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                   buttonText={buttonText}
                   value={fv}
                   onSelect={(updatedTransformer) =>
-                    onEdit({
-                      schema: row.getValue('schema'),
-                      table: row.getValue('table'),
-                      column: row.getValue('column'),
-                      transformer: updatedTransformer,
-                      id: row.original.id,
-                    })
+                    onEdit(
+                      {
+                        schema: row.getValue('schema'),
+                        table: row.getValue('table'),
+                        column: row.getValue('column'),
+                        transformer: updatedTransformer,
+                      },
+                      row.index
+                    )
                   }
                   side={'left'}
                   disabled={false}
@@ -514,13 +520,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 transformer={transformer ?? new SystemTransformer()}
                 value={fv}
                 onSubmit={(updatedTransformer) => {
-                  onEdit({
-                    schema: row.getValue('schema'),
-                    table: row.getValue('table'),
-                    column: row.getValue('column'),
-                    transformer: updatedTransformer,
-                    id: row.original.id,
-                  });
+                  onEdit(
+                    {
+                      schema: row.getValue('schema'),
+                      table: row.getValue('table'),
+                      column: row.getValue('column'),
+                      transformer: updatedTransformer,
+                    },
+                    row.index
+                  );
                 }}
                 disabled={!transformer}
               />

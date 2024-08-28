@@ -608,12 +608,10 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   );
                 form.setValue('destinationOptions', updatedDestOpts);
               }}
-              onEditMappings={(values) => {
-                const valuesMap = new Map(values.map((v) => [`${v.id}`, v]));
-                formMappings.forEach((fm, idx) => {
-                  const value = valuesMap.get(fm.id);
-                  update(idx, value ?? fm);
-                });
+              onEditMappings={(values, index) => {
+                if (index >= 0 && index < formMappings.length) {
+                  update(index, values);
+                }
               }}
               onAddMappings={(values) => {
                 append(
