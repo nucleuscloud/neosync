@@ -157,15 +157,17 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
 	rows, err := m.querier.GetRolePermissions(ctx, m.db)
 	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve mssql role permissions: %w", err)
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return map[string][]string{}, nil
 	}
 
 	schemaTablePrivsMap := map[string][]string{}
 	for _, permission := range rows {
-		key := sqlmanager_shared.BuildTable(permission.TableSchema, permission.TableName)
-		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
+		if permission.PermState.Valid && permission.PermState.Bool {
+			key := sqlmanager_shared.BuildTable(permission.TableSchema, permission.TableName)
+			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PermName)
+		}
 	}
 	return schemaTablePrivsMap, err
 }

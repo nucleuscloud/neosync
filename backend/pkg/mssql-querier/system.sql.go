@@ -113,19 +113,33 @@ effective_permissions AS (
     SELECT
         ol.table_schema,
         ol.table_name,
-        p.permission_name COLLATE database_default AS privilege_type,
-        'Effective' AS grant_type
-    FROM
-        object_list ol
-    CROSS APPLY
-        sys.fn_my_permissions(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT') p
+        'SELECT' AS perm_name, HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'SELECT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'INSERT' AS perm_name, HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'INSERT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'UPDATE' AS perm_name, HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'UPDATE') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'DELETE' AS perm_name, HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'DELETE') AS perm_state
+    FROM object_list ol
 ),
 explicit_permissions AS (
     SELECT
         s.name COLLATE database_default AS table_schema,
         o.name COLLATE database_default AS table_name,
         dp.permission_name COLLATE database_default AS privilege_type,
-        'Explicit' AS grant_type
+        1 AS perm_state
     FROM
         sys.database_permissions dp
     JOIN
@@ -141,16 +155,16 @@ SELECT * FROM effective_permissions
 UNION
 SELECT * FROM explicit_permissions
 ORDER BY
-    table_schema,
     table_name,
-    privilege_type;
+    table_schema,
+    perm_name;
 `
 
 type GetRolePermissionsRow struct {
-	TableSchema   string
-	TableName     string
-	PrivilegeType string
-	GrantType     string
+	TableSchema string
+	TableName   string
+	PermName    string
+	PermState   sql.NullBool
 }
 
 func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error) {
@@ -162,7 +176,7 @@ func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX)
 	var items []*GetRolePermissionsRow
 	for rows.Next() {
 		var i GetRolePermissionsRow
-		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType, &i.GrantType); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PermName, &i.PermState); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
