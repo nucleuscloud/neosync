@@ -222,17 +222,17 @@ func GetConnectionDetails(
 		if config.MssqlConfig.GetTunnel() != nil {
 			destination, err := getEndpointFromMssqlConnectionConfig(config)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to retrieve tunnel endpoint for mssql: %w", err)
 			}
 			authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(config.MssqlConfig.GetTunnel().GetAuthentication())
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to compile auth method for ssh tunneling for mssql: %w", err)
 			}
 			var publickey ssh.PublicKey
 			if config.MssqlConfig.GetTunnel().GetKnownHostPublicKey() != "" {
 				publickey, err = sshtunnel.ParseSshKey(config.MssqlConfig.GetTunnel().GetKnownHostPublicKey())
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to parse provided known host public key for mssql tunnel: %w", err)
 				}
 			}
 			tunnel := sshtunnel.New(
@@ -246,7 +246,7 @@ func GetConnectionDetails(
 
 			connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to compile connection details for mssql tunnel connection: %w", err)
 			}
 
 			portValue := int32(randomPort)
@@ -260,7 +260,7 @@ func GetConnectionDetails(
 		}
 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to compile connection details for mssql connection: %w", err)
 		}
 		return &ConnectionDetails{
 			GeneralDbConnectConfig: *connDetails,

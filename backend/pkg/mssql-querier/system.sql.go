@@ -113,19 +113,36 @@ effective_permissions AS (
     SELECT
         ol.table_schema,
         ol.table_name,
-        p.permission_name COLLATE database_default AS privilege_type,
-        'Effective' AS grant_type
-    FROM
-        object_list ol
-    CROSS APPLY
-        sys.fn_my_permissions(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT') p
+        'SELECT' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'SELECT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'INSERT' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'INSERT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'UPDATE' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'UPDATE') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'DELETE' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'DELETE') AS perm_state
+    FROM object_list ol
 ),
 explicit_permissions AS (
     SELECT
         s.name COLLATE database_default AS table_schema,
         o.name COLLATE database_default AS table_name,
-        dp.permission_name COLLATE database_default AS privilege_type,
-        'Explicit' AS grant_type
+        dp.permission_name COLLATE database_default AS privilege_type
     FROM
         sys.database_permissions dp
     JOIN
@@ -137,9 +154,9 @@ explicit_permissions AS (
         AND o.type IN ('U', 'V') -- Tables and Views
         AND s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
 )
-SELECT * FROM effective_permissions
+SELECT table_schema, table_name, privilege_type FROM effective_permissions WHERE perm_state = 1
 UNION
-SELECT * FROM explicit_permissions
+SELECT table_schema, table_name, privilege_type FROM explicit_permissions
 ORDER BY
     table_schema,
     table_name,
@@ -150,7 +167,6 @@ type GetRolePermissionsRow struct {
 	TableSchema   string
 	TableName     string
 	PrivilegeType string
-	GrantType     string
 }
 
 func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error) {
@@ -162,7 +178,7 @@ func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX)
 	var items []*GetRolePermissionsRow
 	for rows.Next() {
 		var i GetRolePermissionsRow
-		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType, &i.GrantType); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
