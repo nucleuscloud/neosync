@@ -2,7 +2,6 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -92,8 +91,6 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
-	jsonF, _ := json.MarshalIndent(tableRunTypeQueryMap, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 
 	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, foreignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {

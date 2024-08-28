@@ -18,7 +18,7 @@ func newTSqlErrorListener() *tSqlErrorListener {
 	}
 }
 
-func (l *tSqlErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
+func (l *tSqlErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, line, column int, msg string, e antlr.RecognitionException) {
 	errorMessage := fmt.Sprintf("line %d:%d %s", line, column, msg)
 	l.Errors = append(l.Errors, errorMessage)
 }
@@ -103,6 +103,9 @@ func QualifyWhereCondition(sql string) (string, error) {
 
 // adds quotes around schema and table
 func qualifyTableName(table string) string {
+	if strings.HasPrefix(table, `"`) && strings.HasSuffix(table, `"`) {
+		return table
+	}
 	split := strings.Split(table, ".")
 	qualifiedName := []string{}
 	for _, piece := range split {
@@ -147,8 +150,7 @@ func (s *sqlBuilder) walkAndReconstruct(tree antlr.Tree, sb *strings.Builder) {
 
 // shouldAddSpaceBefore determines whether a space should be added before the given tree node.
 func shouldAddSpaceBefore(tree antlr.Tree) bool {
-	switch node := tree.(type) {
-	case antlr.TerminalNode:
+	if node, ok := tree.(antlr.TerminalNode); ok {
 		text := node.GetText()
 		if text == "." || text == "," {
 			return false

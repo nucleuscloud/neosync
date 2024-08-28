@@ -1059,3 +1059,182 @@ func ptrString(s string) *string {
 func ptrInt32(i int32) *int32 {
 	return &i
 }
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"mssqltest.attachments": {
+			{Columns: []string{"uploaded_by"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.tasks", Columns: []string{"task_id"}}},
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.comments", Columns: []string{"comment_id"}}},
+		},
+		"mssqltest.comments": {
+			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"task_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.tasks", Columns: []string{"task_id"}}},
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"parent_comment_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.comments", Columns: []string{"comment_id"}}},
+		},
+		"mssqltest.initiatives": {
+			{Columns: []string{"lead_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"client_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+		},
+		"mssqltest.tasks": {
+			{Columns: []string{"initiative_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}},
+			{Columns: []string{"assignee_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"reviewer_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+		},
+		"mssqltest.user_skills": {
+			{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"skill_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.skills", Columns: []string{"skill_id"}}},
+		},
+		"mssqltest.users": {
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+			{Columns: []string{"mentor_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "mssqltest.users", Columns: []string{"user_id"}}},
+		},
+	}
+
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "mssqltest.comments", SelectColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"}, InsertColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.tasks", Columns: []string{"task_id"}}, {Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.comments", SelectColumns: []string{"comment_id", "parent_comment_id"}, InsertColumns: []string{"parent_comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"}, InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id in (1,2,5,6,7,8)"), SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.users", SelectColumns: []string{"user_id", "manager_id", "mentor_id"}, InsertColumns: []string{"manager_id", "mentor_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.initiatives", SelectColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, InsertColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"initiative_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.skills", SelectColumns: []string{"skill_id", "name", "category"}, InsertColumns: []string{"skill_id", "name", "category"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.tasks", SelectColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, InsertColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}, {Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"task_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.user_skills", SelectColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, InsertColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.skills", Columns: []string{"skill_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "mssqltest.attachments", SelectColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, InsertColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.tasks", Columns: []string{"task_id"}}, {Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}, {Table: "mssqltest.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"attachment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+	}
+
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"mssqltest.attachments": {
+			"attachment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('attachments_attachment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"comment_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"file_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptrInt32(255), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"file_path":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(255)", CharacterMaximumLength: ptrInt32(255), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"uploaded_by":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"mssqltest.comments": {
+			"comment_id":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('comments_comment_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"content":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"created_at":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "CURRENT_TIMESTAMP", IsNullable: true, DataType: "timestamp without time zone", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"parent_comment_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"task_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"mssqltest.initiatives": {
+			"client_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('initiatives_initiative_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"lead_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+		},
+		"mssqltest.skills": {
+			"category": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"skill_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('skills_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"mssqltest.tasks": {
+			"assignee_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"description":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"initiative_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"reviewer_id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"status":        &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "character varying(50)", CharacterMaximumLength: ptrInt32(50), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"task_id":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('tasks_task_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"title":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(200)", CharacterMaximumLength: ptrInt32(200), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+		},
+		"mssqltest.user_skills": {
+			"proficiency_level": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"skill_id":          &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_id":           &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"user_skill_id":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('user_skills_user_skill_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"mssqltest.users": {
+			"email":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"manager_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"mentor_id":  &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name":       &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"user_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "nextval('users_user_id_seq'::regclass)", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+	}
+
+	expectedValues := map[string]map[string][]int64{
+		"mssqltest.users": {
+			"user_id": {1, 2, 5, 6, 7, 8},
+		},
+		"mssqltest.user_skills": {
+			"user_skill_id": {1, 2, 5, 6, 7, 8},
+			"skill_id":      {1, 2, 5, 6, 7, 8},
+			"user_id":       {1, 2, 5, 6, 7, 8},
+		},
+		"mssqltest.tasks": {
+			"task_id": {5, 6},
+		},
+		"mssqltest.skills": {
+			"skill_id": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+		},
+		"mssqltest.initiatives": {
+			"initiative_id": {1, 5, 6, 7},
+		},
+		"mssqltest.comments": {
+			"comment_id": {9, 10, 11, 12},
+		},
+		"mssqltest.attachments": {
+			"attachment_id": {5, 6},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"mssqltest.users":       6,
+		"mssqltest.user_skills": 6,
+		"mssqltest.tasks":       2,
+		"mssqltest.skills":      10,
+		"mssqltest.initiatives": 4,
+		"mssqltest.comments":    4,
+		"mssqltest.attachments": 2,
+	}
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.MssqlDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		assert.NotEmpty(s.T(), sql)
+
+		rows, err := s.mssql.pool.QueryContext(s.ctx, sql)
+		assert.NoError(s.T(), err)
+
+		columns, err := rows.Columns()
+		assert.NoError(s.T(), err)
+
+		tableExpectedValues, ok := expectedValues[table]
+		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		values := make([]any, len(columns))
+		valuePtrs := make([]any, len(columns))
+
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+		}
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			err = rows.Scan(valuePtrs...)
+			assert.NoError(s.T(), err)
+
+			for i, colName := range columns {
+				val := values[i]
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := val.(int64)
+					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
+			}
+		}
+		rows.Close()
+		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}

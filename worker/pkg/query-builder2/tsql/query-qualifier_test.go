@@ -20,6 +20,12 @@ func Test_QualifyWhereCondition(t *testing.T) {
 			wantErr:  false,
 		},
 		{
+			name:     "Simple WHERE table already qualified",
+			inputSQL: `SELECT * FROM "users" WHERE name = 'John'`,
+			expected: `SELECT * FROM "users" WHERE "users"."name" = 'John'`,
+			wantErr:  false,
+		},
+		{
 			name:     "JOIN with qualified columns",
 			inputSQL: "SELECT u.id, o.order_id FROM users u JOIN orders o ON u.id = o.user_id WHERE o.amount > 100",
 			expected: `SELECT u.id, o.order_id FROM users u JOIN orders o ON u.id = o.user_id WHERE o.amount > 100`,
