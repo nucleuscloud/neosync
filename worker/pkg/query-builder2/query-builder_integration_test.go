@@ -3,6 +3,7 @@ package querybuilder2
 import (
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
@@ -947,6 +948,109 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 	}
 }
+
+func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
+	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
+		"genbenthosconfigs_querybuilder.network_users": {
+			{Columns: []string{"network_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"id"}}},
+		},
+		"genbenthosconfigs_querybuilder.networks": {
+			{Columns: []string{"network_type_id"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}}},
+		},
+	}
+
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "genbenthosconfigs_querybuilder.network_types", SelectColumns: []string{"id", "name"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.networks", SelectColumns: []string{"id", "name", "address", "network_type_id"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		{Table: "genbenthosconfigs_querybuilder.network_users", SelectColumns: []string{"id", "username", "email", "password_hash", "first_name", "last_name", "network_id", "created_at"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"network_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: ptrString("username = 'sophia_wilson'"), SelectQuery: nil, SplitColumnPaths: false},
+	}
+
+	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
+		"genbenthosconfigs_querybuilder.network_types": {
+			"id":   &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.networks": {
+			"id":              &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"name":            &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: false, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"address":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "timestamp without time zone", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"network_type_id": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+		},
+		"genbenthosconfigs_querybuilder.network_users": {
+			"id":            &sqlmanager_shared.ColumnInfo{OrdinalPosition: 1, ColumnDefault: "", IsNullable: true, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"username":      &sqlmanager_shared.ColumnInfo{OrdinalPosition: 2, ColumnDefault: "", IsNullable: true, DataType: "text", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"email":         &sqlmanager_shared.ColumnInfo{OrdinalPosition: 3, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"password_hash": &sqlmanager_shared.ColumnInfo{OrdinalPosition: 4, ColumnDefault: "", IsNullable: false, DataType: "integer", CharacterMaximumLength: ptrInt32(-1), NumericPrecision: ptrInt32(32), NumericScale: ptrInt32(0)},
+			"first_name":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 5, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"last_name":     &sqlmanager_shared.ColumnInfo{OrdinalPosition: 6, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"network_id":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 7, ColumnDefault: "", IsNullable: true, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+			"created_at":    &sqlmanager_shared.ColumnInfo{OrdinalPosition: 8, ColumnDefault: "", IsNullable: false, DataType: "character varying(100)", CharacterMaximumLength: ptrInt32(100), NumericPrecision: ptrInt32(-1), NumericScale: ptrInt32(-1)},
+		},
+	}
+
+	expectedValues := map[string]map[string][]int32{
+		"genbenthosconfigs_querybuilder.network_types": {
+			"id": {1, 2},
+		},
+		"genbenthosconfigs_querybuilder.networks": {
+			"id": {1, 2, 3, 4, 5},
+		},
+		"genbenthosconfigs_querybuilder.network_users": {
+			"id": {8},
+		},
+	}
+
+	expectedCount := map[string]int{
+		"genbenthosconfigs_querybuilder.network_types": 2,
+		"genbenthosconfigs_querybuilder.networks":      5,
+		"genbenthosconfigs_querybuilder.network_users": 1,
+	}
+	_ = expectedCount
+
+	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+	allrows := []pgx.Rows{}
+	defer func() {
+		for _, r := range allrows {
+			r.Close()
+		}
+	}()
+	for table, selectQueryRunType := range sqlMap {
+		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		assert.NotEmpty(s.T(), sql, "table %s", table)
+
+		rows, err := s.pgpool.Query(s.ctx, sql)
+		if rows != nil {
+			allrows = append(allrows, rows)
+		}
+		assert.NoError(s.T(), err)
+
+		columnDescriptions := rows.FieldDescriptions()
+
+		tableExpectedValues, ok := expectedValues[table]
+		assert.Truef(s.T(), ok, fmt.Sprintf("table: %s missing expected values", table))
+
+		rowCount := 0
+		for rows.Next() {
+			rowCount++
+			values, err := rows.Values()
+			assert.NoError(s.T(), err)
+
+			for i, col := range values {
+				colName := columnDescriptions[i].Name
+				allowedValues, ok := tableExpectedValues[colName]
+				if ok {
+					value := col.(int32)
+					assert.Containsf(s.T(), allowedValues, value, fmt.Sprintf("table: %s column: %s ", table, colName))
+				}
+			}
+		}
+		rows.Close()
+		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+	}
+}
+
 func ptrString(s string) *string {
 	return &s
 }
