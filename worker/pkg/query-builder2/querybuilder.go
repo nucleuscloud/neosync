@@ -8,6 +8,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/doug-martin/goqu/v9/sqlgen"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	tsql_parser "github.com/nucleuscloud/neosync/worker/pkg/query-builder2/tsql"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"github.com/xwb1989/sqlparser"
 )
@@ -243,6 +244,12 @@ func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition s
 		updatedSql = sql
 	case sqlmanager_shared.PostgresDriver:
 		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
+		if err != nil {
+			return "", err
+		}
+		updatedSql = sql
+	case sqlmanager_shared.MssqlDriver:
+		sql, err := tsql_parser.QualifyWhereCondition(sql)
 		if err != nil {
 			return "", err
 		}
