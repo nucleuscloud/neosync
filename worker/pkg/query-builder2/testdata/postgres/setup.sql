@@ -634,3 +634,48 @@ INSERT INTO attachments (file_name, file_path, uploaded_by, task_id, initiative_
 ('ui_designs.sketch', '/files/designs/ui_designs.sketch', 10, 8, 8, 15),
 ('smart_contracts.sol', '/files/blockchain/smart_contracts.sol', 1, 9, 9, 17),
 ('sensor_specs.pdf', '/files/iot/sensor_specs.pdf', 2, 10, 10, 19);
+
+
+CREATE TABLE network_types (
+    id int PRIMARY KEY,
+    name VARCHAR(10) NOT NULL UNIQUE
+);
+
+INSERT INTO network_types (id, name) VALUES (1, 'ipv4'), (2, 'ipv6');
+
+CREATE TABLE networks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(45) NOT NULL,
+    network_type_id INTEGER NOT NULL,
+    FOREIGN KEY (network_type_id) REFERENCES network_types(id)
+);
+
+INSERT INTO networks (id, name, address, network_type_id) VALUES
+(1, 'Home Network', '192.168.1.0', 1),      -- IPv4
+(2, 'Office LAN', '10.0.0.0', 1),           -- IPv4
+(3, 'Data Center', '2001:db8::', 2),        -- IPv6
+(4, 'Coffee Shop WiFi', '172.16.0.0', 1),   -- IPv4
+(5, 'University Campus', '2001:db8:1234::', 2);  -- IPv6
+
+CREATE TABLE network_users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    network_id INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (network_id) REFERENCES networks(id)
+);
+
+INSERT INTO network_users (username, email, password_hash, first_name, last_name, network_id) VALUES
+('john_doe', 'john.doe@example.com', '$2a$10$xGZuRsNx0w7QOiELV/fEduoD0hpY1JO7vUwfXW8ZeAu5uO9WQo/zi', 'John', 'Doe', 1),
+('jane_smith', 'jane.smith@example.com', '$2a$10$VD7KZ95rqEVc0CrwEr7BKOCg2oeDvZBhG.86Wm9eUxN74h8YKYmWu', 'Jane', 'Smith', 2),
+('bob_johnson', 'bob.johnson@example.com', '$2a$10$7JFKzZjsHGJ8YdNXhWj4IerAFoHhSuUdEYr4LyvE6vYUF5GTh0wVu', 'Bob', 'Johnson', 3),
+('alice_williams', 'alice.williams@example.com', '$2a$10$2QGUB.TzweMZvzqZyBmDXe.8V9iNFkwMT5VL/ixAkX25/jOj0jcSy', 'Alice', 'Williams', 4),
+('charlie_brown', 'charlie.brown@example.com', '$2a$10$kzXLEm0J5fMPHFR7RPRvGuKZ4Wdh2FmnZ2I/7yHkA8LkluQnQkIfK', 'Charlie', 'Brown', 5),
+('emma_davis', 'emma.davis@example.com', '$2a$10$xGZuRsNx0w7QOiELV/fEduoD0hpY1JO7vUwfXW8ZeAu5uO9WQo/zi', 'Emma', 'Davis', 1),
+('david_miller', 'david.miller@example.com', '$2a$10$VD7KZ95rqEVc0CrwEr7BKOCg2oeDvZBhG.86Wm9eUxN74h8YKYmWu', 'David', 'Miller', 2),
+('sophia_wilson', 'sophia.wilson@example.com', '$2a$10$7JFKzZjsHGJ8YdNXhWj4IerAFoHhSuUdEYr4LyvE6vYUF5GTh0wVu', 'Sophia', 'Wilson', NULL);

@@ -118,7 +118,7 @@ export default function DestinationConnectionCard({
     jobSourceId
   );
 
-  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb } =
+  const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(availableConnections);
   return (
     <Card>
@@ -161,6 +161,7 @@ export default function DestinationConnectionCard({
                             mongodb={mongodb}
                             gcpcs={gcpcs}
                             dynamodb={dynamodb}
+                            mssql={mssql}
                           />
                         </SelectContent>
                       </Select>

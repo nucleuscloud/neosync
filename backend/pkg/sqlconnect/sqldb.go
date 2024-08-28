@@ -39,10 +39,10 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 
 		_, localport := s.details.Tunnel.GetLocalHostPort()
 		newPort := int32(localport) //nolint:gosec // Ignoring for now
-		s.details.GeneralDbConnectConfig.Port = &newPort
+		s.details.GeneralDbConnectConfig.SetPort(newPort)
 		dsn := s.details.GeneralDbConnectConfig.String()
 
-		db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)
+		db, err := sql.Open(s.details.GeneralDbConnectConfig.GetDriver(), dsn)
 		if err != nil {
 			s.details.Tunnel.Close()
 			return nil, err
@@ -57,7 +57,7 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 		return db, nil
 	}
 	dsn := s.details.GeneralDbConnectConfig.String()
-	db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)
+	db, err := sql.Open(s.details.GeneralDbConnectConfig.GetDriver(), dsn)
 	s.db = db
 	if err != nil {
 		return nil, err

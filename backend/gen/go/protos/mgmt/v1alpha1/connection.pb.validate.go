@@ -2352,6 +2352,35 @@ func (m *MssqlConnectionConfig) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetTunnel()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MssqlConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MssqlConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTunnel()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MssqlConnectionConfigValidationError{
+				field:  "Tunnel",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.ConnectionConfig.(type) {
 	case *MssqlConnectionConfig_Url:
 		if v == nil {

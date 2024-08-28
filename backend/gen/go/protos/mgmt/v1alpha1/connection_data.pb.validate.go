@@ -1363,6 +1363,108 @@ var _ interface {
 	ErrorName() string
 } = MysqlSchemaConfigValidationError{}
 
+// Validate checks the field values on MssqlSchemaConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MssqlSchemaConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MssqlSchemaConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MssqlSchemaConfigMultiError, or nil if none found.
+func (m *MssqlSchemaConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MssqlSchemaConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return MssqlSchemaConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MssqlSchemaConfigMultiError is an error wrapping multiple validation errors
+// returned by MssqlSchemaConfig.ValidateAll() if the designated constraints
+// aren't met.
+type MssqlSchemaConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MssqlSchemaConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MssqlSchemaConfigMultiError) AllErrors() []error { return m }
+
+// MssqlSchemaConfigValidationError is the validation error returned by
+// MssqlSchemaConfig.Validate if the designated constraints aren't met.
+type MssqlSchemaConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MssqlSchemaConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MssqlSchemaConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MssqlSchemaConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MssqlSchemaConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MssqlSchemaConfigValidationError) ErrorName() string {
+	return "MssqlSchemaConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MssqlSchemaConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMssqlSchemaConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MssqlSchemaConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MssqlSchemaConfigValidationError{}
+
 // Validate checks the field values on AwsS3SchemaConfig with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -2093,6 +2195,47 @@ func (m *ConnectionSchemaConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ConnectionSchemaConfigValidationError{
 					field:  "DynamodbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ConnectionSchemaConfig_MssqlConfig:
+		if v == nil {
+			err := ConnectionSchemaConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMssqlConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionSchemaConfigValidationError{
+						field:  "MssqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionSchemaConfigValidationError{
+						field:  "MssqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMssqlConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionSchemaConfigValidationError{
+					field:  "MssqlConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

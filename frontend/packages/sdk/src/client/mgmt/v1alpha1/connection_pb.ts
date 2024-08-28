@@ -789,6 +789,13 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
    */
   connectionOptions?: SqlConnectionOptions;
 
+  /**
+   * Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+   *
+   * @generated from field: mgmt.v1alpha1.SSHTunnel tunnel = 3;
+   */
+  tunnel?: SSHTunnel;
+
   constructor(data?: PartialMessage<MssqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -799,6 +806,7 @@ export class MssqlConnectionConfig extends Message<MssqlConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection_options", kind: "message", T: SqlConnectionOptions },
+    { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlConnectionConfig {

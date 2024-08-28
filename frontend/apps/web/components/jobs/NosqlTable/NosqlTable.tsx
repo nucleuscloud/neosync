@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
+import { cn } from '@/libs/utils';
 import { Transformer } from '@/shared/transformers';
 import {
   convertJobMappingTransformerToForm,
@@ -231,11 +232,12 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
               </FormDescription>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder="Select a collection"
-                      className="placeholder:text-gray-400 bg-red-400"
-                    />
+                  <SelectTrigger
+                    className={cn(
+                      field.value ? undefined : 'text-muted-foreground'
+                    )}
+                  >
+                    <SelectValue placeholder="Select a collection" />
                   </SelectTrigger>
                   <SelectContent>
                     {collections.map((collection) => (

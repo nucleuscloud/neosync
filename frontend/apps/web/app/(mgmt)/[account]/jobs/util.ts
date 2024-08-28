@@ -46,6 +46,13 @@ import {
   JobSourceSqlSubetSchemas,
   MongoDBDestinationConnectionOptions,
   MongoDBSourceConnectionOptions,
+  MssqlDestinationConnectionOptions,
+  MssqlOnConflictConfig,
+  MssqlSourceConnectionOptions,
+  MssqlSourceSchemaOption,
+  MssqlSourceSchemaSubset,
+  MssqlSourceTableOption,
+  MssqlTruncateTableConfig,
   MysqlDestinationConnectionOptions,
   MysqlOnConflictConfig,
   MysqlSourceConnectionOptions,
@@ -502,6 +509,24 @@ export function toJobDestinationOptions(
         },
       });
     }
+    case 'mssqlConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mssqlOptions',
+          value: new MssqlDestinationConnectionOptions({
+            truncateTable: new MssqlTruncateTableConfig({
+              truncateBeforeInsert:
+                values.destinationOptions.mssql?.truncateBeforeInsert ?? false,
+            }),
+            onConflict: new MssqlOnConflictConfig({
+              doNothing:
+                values.destinationOptions.mssql?.onConflictDoNothing ?? false,
+            }),
+            initTableSchema: values.destinationOptions.mssql?.initTableSchema,
+          }),
+        },
+      });
+    }
     default: {
       return new JobDestinationOptions();
     }
@@ -636,6 +661,24 @@ function toJobSourceOptions(
         },
       });
     }
+    case 'mssqlConfig': {
+      return new JobSourceOptions({
+        config: {
+          case: 'mssql',
+          value: new MssqlSourceConnectionOptions({
+            connectionId: values.connect.sourceId,
+            haltOnNewColumnAddition:
+              values.connect.sourceOptions.mssql?.haltOnNewColumnAddition ??
+              false,
+            subsetByForeignKeyConstraints:
+              values.subset?.subsetOptions.subsetByForeignKeyConstraints,
+            schemas:
+              values.subset?.subsets &&
+              toMssqlSourceSchemaOptions(values.subset?.subsets),
+          }),
+        },
+      });
+    }
     default:
       throw new Error('unsupported connection type');
   }
@@ -734,6 +777,30 @@ function toMysqlSourceSchemaOptions(
       return map;
     },
     {} as Record<string, MysqlSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
+}
+
+function toMssqlSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): MssqlSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new MssqlSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new MssqlSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, MssqlSourceSchemaOption>
   );
   return Object.values(schemaMap);
 }
@@ -877,6 +944,16 @@ export function toJobSourceSqlSubsetSchemas(
           case: 'dynamodbSubset',
           value: new DynamoDBSourceSchemaSubset({
             tables: toDynamoDbSourceTableOptions(values.subsets),
+          }),
+        },
+      });
+    }
+    case 'mssqlConfig': {
+      return new JobSourceSqlSubetSchemas({
+        schemas: {
+          case: 'mssqlSubset',
+          value: new MssqlSourceSchemaSubset({
+            mssqlSchemas: toMssqlSourceSchemaOptions(values.subsets),
           }),
         },
       });
@@ -1059,6 +1136,23 @@ function setDefaultConnectFormValues(
       storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
       return;
     }
+    case 'mssql': {
+      const values: ConnectFormValues = {
+        sourceId: job.source.options.config.value.connectionId,
+        sourceOptions: {
+          mssql: {
+            haltOnNewColumnAddition:
+              job.source.options.config.value.haltOnNewColumnAddition,
+          },
+        },
+        destinations: job.destinations.map((dest) =>
+          getDefaultDestinationFormValues(dest)
+        ),
+      };
+
+      storage.setItem(sessionKeys.dataSync.connect, JSON.stringify(values));
+      return;
+    }
   }
 }
 
@@ -1112,7 +1206,8 @@ function setDefaultSchemaFormValues(
     }
     case 'mysql':
     case 'mongodb':
-    case 'postgres': {
+    case 'postgres':
+    case 'mssql': {
       const values: SchemaFormValues = {
         destinationOptions: [],
         connectionId: job.source.options.config.value.connectionId,
@@ -1191,7 +1286,8 @@ function setDefaultSubsetFormValues(
 ): void {
   switch (job.source?.options?.config.case) {
     case 'postgres':
-    case 'mysql': {
+    case 'mysql':
+    case 'mssql': {
       const values: SubsetFormValues = {
         subsets: job.source.options.config.value.schemas.flatMap(
           (schema): SubsetFormValues['subsets'] => {
@@ -1308,6 +1404,20 @@ export function getDefaultDestinationFormValues(
         },
       };
     }
+    case 'mssqlOptions':
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          mysql: {
+            truncateBeforeInsert:
+              d.options.config.value.truncateTable?.truncateBeforeInsert ??
+              false,
+            initTableSchema: d.options.config.value.initTableSchema ?? false,
+            onConflictDoNothing:
+              d.options.config.value.onConflict?.doNothing ?? false,
+          },
+        },
+      };
     default:
       return {
         connectionId: d.connectionId,

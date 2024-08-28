@@ -345,6 +345,7 @@ func (g *GcpCloudStorageConfig) FromDto(dto *mgmtv1alpha1.GcpCloudStorageConnect
 type MssqlConfig struct {
 	Url               *string            `json:"url,omitempty"`
 	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
+	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
 }
 
 func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
@@ -355,11 +356,16 @@ func (d *MssqlConfig) ToDto() (*mgmtv1alpha1.MssqlConnectionConfig, error) {
 	if d.ConnectionOptions != nil {
 		connectionOptions = d.ConnectionOptions.ToDto()
 	}
+	var tunnel *mgmtv1alpha1.SSHTunnel
+	if d.SSHTunnel != nil {
+		tunnel = d.SSHTunnel.ToDto()
+	}
 	return &mgmtv1alpha1.MssqlConnectionConfig{
 		ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 			Url: *d.Url,
 		},
 		ConnectionOptions: connectionOptions,
+		Tunnel:            tunnel,
 	}, nil
 }
 
@@ -378,6 +384,11 @@ func (d *MssqlConfig) FromDto(dto *mgmtv1alpha1.MssqlConnectionConfig) error {
 	if dto.GetConnectionConfig() != nil {
 		d.ConnectionOptions = &ConnectionOptions{}
 		d.ConnectionOptions.FromDto(dto.GetConnectionOptions())
+	}
+
+	if dto.GetTunnel() != nil {
+		d.SSHTunnel = &SSHTunnel{}
+		d.SSHTunnel.FromDto(dto.GetTunnel())
 	}
 
 	return nil

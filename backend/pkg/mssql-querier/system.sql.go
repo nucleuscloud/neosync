@@ -113,19 +113,36 @@ effective_permissions AS (
     SELECT
         ol.table_schema,
         ol.table_name,
-        p.permission_name COLLATE database_default AS privilege_type,
-        'Effective' AS grant_type
-    FROM
-        object_list ol
-    CROSS APPLY
-        sys.fn_my_permissions(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT') p
+        'SELECT' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'SELECT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'INSERT' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'INSERT') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'UPDATE' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'UPDATE') AS perm_state
+    FROM object_list ol
+    UNION ALL
+    SELECT
+        ol.table_schema,
+        ol.table_name,
+        'DELETE' AS privilege_type,
+        HAS_PERMS_BY_NAME(QUOTENAME(ol.table_schema) + '.' + QUOTENAME(ol.table_name), 'OBJECT', 'DELETE') AS perm_state
+    FROM object_list ol
 ),
 explicit_permissions AS (
     SELECT
         s.name COLLATE database_default AS table_schema,
         o.name COLLATE database_default AS table_name,
-        dp.permission_name COLLATE database_default AS privilege_type,
-        'Explicit' AS grant_type
+        dp.permission_name COLLATE database_default AS privilege_type
     FROM
         sys.database_permissions dp
     JOIN
@@ -137,9 +154,9 @@ explicit_permissions AS (
         AND o.type IN ('U', 'V') -- Tables and Views
         AND s.name NOT IN ('sys', 'INFORMATION_SCHEMA', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')
 )
-SELECT * FROM effective_permissions
+SELECT table_schema, table_name, privilege_type FROM effective_permissions WHERE perm_state = 1
 UNION
-SELECT * FROM explicit_permissions
+SELECT table_schema, table_name, privilege_type FROM explicit_permissions
 ORDER BY
     table_schema,
     table_name,
@@ -150,7 +167,6 @@ type GetRolePermissionsRow struct {
 	TableSchema   string
 	TableName     string
 	PrivilegeType string
-	GrantType     string
 }
 
 func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX) ([]*GetRolePermissionsRow, error) {
@@ -162,7 +178,7 @@ func (q *Queries) GetRolePermissions(ctx context.Context, db mysql_queries.DBTX)
 	var items []*GetRolePermissionsRow
 	for rows.Next() {
 		var i GetRolePermissionsRow
-		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType, &i.GrantType); err != nil {
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -181,7 +197,9 @@ WITH ConstraintColumns AS (
     SELECT
         kc.parent_object_id,
         kc.object_id AS constraint_object_id,
-        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY ic.key_ordinal) AS columns
+        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY ic.key_ordinal) AS columns,
+        STRING_AGG(CASE WHEN c.is_nullable = 1 THEN 'NULL' ELSE 'NOT NULL' END, ', ')
+            WITHIN GROUP (ORDER BY ic.key_ordinal) AS nullability
     FROM sys.key_constraints kc
     JOIN sys.index_columns ic ON kc.parent_object_id = ic.object_id AND kc.unique_index_id = ic.index_id
     JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
@@ -192,7 +210,9 @@ WITH ConstraintColumns AS (
     SELECT
         fkc.parent_object_id,
         fkc.constraint_object_id,
-        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY fkc.constraint_column_id) AS columns
+        STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY fkc.constraint_column_id) AS columns,
+        STRING_AGG(CASE WHEN c.is_nullable = 1 THEN 'NULL' ELSE 'NOT NULL' END, ', ')
+            WITHIN GROUP (ORDER BY fkc.constraint_column_id) AS nullability
     FROM sys.foreign_key_columns fkc
     JOIN sys.columns c ON fkc.parent_object_id = c.object_id AND fkc.parent_column_id = c.column_id
     GROUP BY fkc.parent_object_id, fkc.constraint_object_id
@@ -207,7 +227,13 @@ WITH ConstraintColumns AS (
             FROM sys.columns c
             WHERE c.object_id = cc.parent_object_id
               AND CHARINDEX(QUOTENAME(c.name), cc.definition) > 0
-            FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS columns
+            FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS columns,
+        STUFF((
+            SELECT ', ' + CASE WHEN c.is_nullable = 1 THEN 'NULL' ELSE 'NOT NULL' END
+            FROM sys.columns c
+            WHERE c.object_id = cc.parent_object_id
+              AND CHARINDEX(QUOTENAME(c.name), cc.definition) > 0
+            FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS nullability
     FROM sys.check_constraints cc
 )
 SELECT
@@ -221,6 +247,7 @@ SELECT
         WHEN o.type = 'C' THEN 'CHECK'
     END AS constraint_type,
     cc.columns AS constraint_columns,
+    cc.nullability AS constraint_columns_nullability,
     CASE WHEN o.type = 'F'
         THEN OBJECT_SCHEMA_NAME(fk.referenced_object_id) + '.' + OBJECT_NAME(fk.referenced_object_id)
         ELSE NULL
@@ -257,15 +284,16 @@ ORDER BY
 `
 
 type GetTableConstraintsBySchemasRow struct {
-	SchemaName        string
-	TableName         string
-	ConstraintName    string
-	ConstraintType    string
-	ConstraintColumns string
-	ReferencedTable   sql.NullString
-	ReferencedColumns sql.NullString
-	FKActions         sql.NullString
-	CheckClause       sql.NullString
+	SchemaName                   string
+	TableName                    string
+	ConstraintName               string
+	ConstraintType               string
+	ConstraintColumns            string
+	ConstraintColumnsNullability string
+	ReferencedTable              sql.NullString
+	ReferencedColumns            sql.NullString
+	FKActions                    sql.NullString
+	CheckClause                  sql.NullString
 }
 
 func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_queries.DBTX, schemas []string) ([]*GetTableConstraintsBySchemasRow, error) {
@@ -288,6 +316,7 @@ func (q *Queries) GetTableConstraintsBySchemas(ctx context.Context, db mysql_que
 			&i.ConstraintName,
 			&i.ConstraintType,
 			&i.ConstraintColumns,
+			&i.ConstraintColumnsNullability,
 			&i.ReferencedTable,
 			&i.ReferencedColumns,
 			&i.FKActions,

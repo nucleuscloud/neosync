@@ -6,7 +6,7 @@ include:
       - ./compose/temporal/.env
   - path: ./compose/compose-db.yml
   # - path: ./compose/compose-db-mysql.yml
-  - path: ./compose/compose-db-mongo.yml
+  # - path: ./compose/compose-db-mongo.yml
   # - path: ./compose/compose-db-dynamo.yml
   # - path: ./compose/compose-db-mssql.yml
 
@@ -106,11 +106,11 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: internal/
+          path: internal
         - action: rebuild
-          path: backend/
+          path: backend
         - action: rebuild
-          path: worker/
+          path: worker
         - action: rebuild
           path: go.mod
         - action: rebuild
@@ -140,11 +140,11 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: internal/
+          path: internal
         - action: rebuild
-          path: worker/
+          path: worker
         - action: rebuild
-          path: backend/
+          path: backend
         - action: rebuild
           path: go.mod
         - action: rebuild

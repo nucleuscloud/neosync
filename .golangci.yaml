@@ -82,7 +82,6 @@ linters:
     - dogsled
     # - dupl
     - errcheck
-    - exportloopref
     - forbidigo
     # - funlen
     # - gochecknoinits

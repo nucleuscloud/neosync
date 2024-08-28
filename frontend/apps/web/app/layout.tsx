@@ -6,8 +6,8 @@ import {
 } from '@/components/providers/posthog-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Metadata } from 'next';
-import { ReactElement, ReactNode, Suspense } from 'react';
-import BaseLayout from '../BaseLayout';
+import { ReactElement, Suspense } from 'react';
+import BaseLayout from './BaseLayout';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 
-export default async function InviteLayout({
+export default async function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }): Promise<ReactElement> {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -31,14 +31,18 @@ export default async function InviteLayout({
           disableTransitionOnChange
         >
           <>
-            <Suspense>
-              <KoalaScriptProvider />
-            </Suspense>
-            <Suspense>
-              <PostHogPageview />
-            </Suspense>
             <PHProvider>
-              <BaseLayout>{children}</BaseLayout>
+              <BaseLayout>
+                <>
+                  <Suspense>
+                    <KoalaScriptProvider />
+                  </Suspense>
+                  <Suspense>
+                    <PostHogPageview />
+                  </Suspense>
+                  {children}
+                </>
+              </BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>

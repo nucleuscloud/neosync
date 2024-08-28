@@ -94,6 +94,9 @@ const PostgresSourceOptionsFormValues = Yup.object({
 const MysqlSourceOptionsFormValues = Yup.object({
   haltOnNewColumnAddition: Yup.boolean().optional().default(false),
 });
+const MssqlSourceOptionsFormValues = Yup.object({
+  haltOnNewColumnAddition: Yup.boolean().optional().default(false),
+});
 
 const DynamoDBSourceUnmappedTransformConfigFormValues = Yup.object({
   byte: JobMappingTransformerForm.required(
@@ -128,6 +131,7 @@ export const SourceOptionsFormValues = Yup.object({
   postgres: PostgresSourceOptionsFormValues.optional(),
   mysql: MysqlSourceOptionsFormValues.optional(),
   dynamodb: DynamoDBSourceOptionsFormValues.optional(),
+  mssql: MssqlSourceOptionsFormValues.optional(),
 });
 
 export type SourceOptionsFormValues = Yup.InferType<
@@ -157,19 +161,30 @@ type DynamoDbDestinationOptionsFormValues = Yup.InferType<
   typeof DynamoDbDestinationOptionsFormValues
 >;
 
+const PostgresDbDestinationOptionsFormValues = Yup.object({
+  truncateBeforeInsert: Yup.boolean().optional().default(false),
+  truncateCascade: Yup.boolean().optional().default(false),
+  initTableSchema: Yup.boolean().optional().default(false),
+  onConflictDoNothing: Yup.boolean().optional().default(false),
+});
+
+const MysqlDbDestinationOptionsFormValues = Yup.object({
+  truncateBeforeInsert: Yup.boolean().optional().default(false),
+  initTableSchema: Yup.boolean().optional().default(false),
+  onConflictDoNothing: Yup.boolean().optional().default(false),
+});
+
+const MssqlDbDestinationOptionsFormValues = Yup.object({
+  truncateBeforeInsert: Yup.boolean().optional().default(false),
+  initTableSchema: Yup.boolean().optional().default(false),
+  onConflictDoNothing: Yup.boolean().optional().default(false),
+});
+
 export const DestinationOptionsFormValues = Yup.object({
-  postgres: Yup.object({
-    truncateBeforeInsert: Yup.boolean().optional().default(false),
-    truncateCascade: Yup.boolean().optional().default(false),
-    initTableSchema: Yup.boolean().optional().default(false),
-    onConflictDoNothing: Yup.boolean().optional().default(false),
-  }).optional(),
-  mysql: Yup.object({
-    truncateBeforeInsert: Yup.boolean().optional().default(false),
-    initTableSchema: Yup.boolean().optional().default(false),
-    onConflictDoNothing: Yup.boolean().optional().default(false),
-  }).optional(),
+  postgres: PostgresDbDestinationOptionsFormValues.optional(),
+  mysql: MysqlDbDestinationOptionsFormValues.optional(),
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
+  mssql: MssqlDbDestinationOptionsFormValues.optional(),
 }).required();
 // Object that holds connection specific destination options for a job
 export type DestinationOptionsFormValues = Yup.InferType<

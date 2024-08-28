@@ -4,3 +4,4 @@ node_modules
 **/.turbo
 .turbo
 .DS_Store
+**/*_test.go
