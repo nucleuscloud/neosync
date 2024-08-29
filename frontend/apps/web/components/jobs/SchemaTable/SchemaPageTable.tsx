@@ -50,7 +50,6 @@ export default function SchemaPageTable<TData, TValue>({
     data,
     columns,
     initialState: {
-      sorting: [{ id: 'schemaTable', desc: false }],
       columnVisibility: {
         schema: false,
         table: false,
