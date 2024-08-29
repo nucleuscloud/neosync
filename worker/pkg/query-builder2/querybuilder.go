@@ -114,13 +114,12 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if !ok {
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
-	// query, _, err := qb.buildQueryRecursive(schema, tableName, table.Columns, map[string]int{}, map[string]bool{})
-	// if err != nil {
-	// 	return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
-	// }
 	query, err := qb.buildFlattenedQuery(table)
 	if query == nil {
 		return "", nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
+	}
+	if err != nil {
+		return "", nil, err
 	}
 	sql, args, err := query.ToSQL()
 	if err != nil {
