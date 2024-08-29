@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	parser "github.com/nucleuscloud/neosync/internal/tsql"
+	parser "github.com/nucleuscloud/go-antlrv4-parser/tsql"
 )
 
 type tSqlErrorListener struct {
