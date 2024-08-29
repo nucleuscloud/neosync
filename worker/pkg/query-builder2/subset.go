@@ -42,7 +42,7 @@ func BuildSelectQueryMap(
 			continue
 		}
 		schema, table := splitTable(cfg.Table)
-		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(&schema, table, *cfg.WhereClause)
+		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(nil, table, *cfg.WhereClause)
 		if err != nil {
 			return nil, err
 		}

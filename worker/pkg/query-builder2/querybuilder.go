@@ -187,7 +187,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 			continue
 		}
 
-		aliasName := fmt.Sprintf("%s%s", prefix, refTable.Name)
+		aliasName := qb.generateUniqueAlias(prefix, refTable.Name, joinedTables)
 		joinConditions := make([]exp.Expression, len(fk.Columns))
 		for i, col := range fk.Columns {
 			joinConditions[i] = goqu.I(table.Name).Col(col).Eq(goqu.T(aliasName).Col(fk.ReferenceColumns[i]))
@@ -218,6 +218,21 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	}
 
 	return query, nil
+}
+
+func (qb *QueryBuilder) generateUniqueAlias(prefix, tableName string, joinedTables map[string]bool) string {
+	baseAlias := fmt.Sprintf("%s%s", prefix, tableName)
+	alias := baseAlias
+	counter := 1
+
+	for {
+		if _, exists := joinedTables[alias]; !exists {
+			joinedTables[alias] = true
+			return alias
+		}
+		counter++
+		alias = fmt.Sprintf("%s_%d", baseAlias, counter)
+	}
 }
 
 // func (qb *QueryBuilder) qualifyCondition(condition, alias string) string {
