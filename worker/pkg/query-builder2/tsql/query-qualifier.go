@@ -28,10 +28,32 @@ type tsqlListener struct {
 	*parser.BaseTSqlParserListener
 	currentTable      string
 	inSearchCondition bool
+	sqlStack          []string
+	Errors            []string
 }
 
 func newTSqlListener() *tsqlListener {
 	return &tsqlListener{}
+}
+
+func (l *tsqlListener) SqlString() string {
+	return strings.TrimSpace(strings.Join(l.sqlStack, ""))
+}
+
+func (l *tsqlListener) Push(str string) {
+	l.sqlStack = append(l.sqlStack, str)
+}
+
+func (l *tsqlListener) Pop() string {
+	if len(l.sqlStack) < 1 {
+		l.Errors = append(l.Errors, "stack is empty unable to pop")
+		return ""
+	}
+
+	result := l.sqlStack[len(l.sqlStack)-1]
+	l.sqlStack = l.sqlStack[:len(l.sqlStack)-1]
+
+	return result
 }
 
 // EnterSearch_condition is called when production search_condition is entered.
@@ -58,6 +80,23 @@ func (l *tsqlListener) EnterTable_sources(ctx *parser.Table_sourcesContext) {
 // EnterTable_alias is called when production table_alias is entered.
 func (l *tsqlListener) EnterTable_alias(ctx *parser.Table_aliasContext) {
 	l.currentTable = ctx.GetText()
+}
+
+func (l *tsqlListener) VisitTerminal(node antlr.TerminalNode) {
+	if node.GetSymbol().GetTokenType() != antlr.TokenEOF {
+		text := node.GetText()
+		if text == "," {
+			l.Pop()
+			l.Push(text)
+			l.Push(" ")
+		} else if text == "." {
+			l.Pop()
+			l.Push(text)
+		} else {
+			l.Push(text)
+			l.Push(" ")
+		}
+	}
 }
 
 // updates column name to include table
@@ -98,8 +137,11 @@ func QualifyWhereCondition(sql string) (string, error) {
 	if len(errorListener.Errors) > 0 {
 		return "", fmt.Errorf("SQL parsing errors: %s", strings.Join(errorListener.Errors, "; "))
 	}
+	if len(listener.Errors) > 0 {
+		return "", fmt.Errorf("SQL building errors: %s", strings.Join(listener.Errors, "; "))
+	}
 
-	return reconstructSQLFromTree(tree), nil
+	return listener.SqlString(), nil
 }
 
 // adds quotes around schema and table
@@ -113,49 +155,4 @@ func qualifyTableName(table string) string {
 		qualifiedName = append(qualifiedName, fmt.Sprintf("%q", piece))
 	}
 	return strings.Join(qualifiedName, ".")
-}
-
-type sqlBuilder struct {
-	lastText string // keeps track of last terminal node text
-}
-
-// reconstructSQLFromTree traverses the parse tree and builds the SQL string with spaces.
-func reconstructSQLFromTree(tree antlr.Tree) string {
-	var sb strings.Builder
-	sqlBuilder := &sqlBuilder{}
-	sqlBuilder.walkAndReconstruct(tree, &sb)
-	return strings.TrimSpace(sb.String())
-}
-
-// walkAndReconstruct recursively traverses the tree and reconstructs the SQL query.
-func (s *sqlBuilder) walkAndReconstruct(tree antlr.Tree, sb *strings.Builder) {
-	switch node := tree.(type) {
-	case antlr.TerminalNode:
-		if node.GetSymbol().GetTokenType() == antlr.TokenEOF {
-			return
-		}
-		// append text without adding space after each terminal node
-		s.lastText = node.GetText()
-		sb.WriteString(node.GetText())
-	case antlr.RuleNode:
-		for i := 0; i < node.GetChildCount(); i++ {
-			child := node.GetChild(i)
-			// only add a space before certain nodes to avoid adding spaces around qualified columns
-			if i > 0 && shouldAddSpaceBefore(child) && node.GetText() != "." && s.lastText != "." {
-				sb.WriteString(" ")
-			}
-			s.walkAndReconstruct(child, sb)
-		}
-	}
-}
-
-// shouldAddSpaceBefore determines whether a space should be added before the given tree node.
-func shouldAddSpaceBefore(tree antlr.Tree) bool {
-	if node, ok := tree.(antlr.TerminalNode); ok {
-		text := node.GetText()
-		if text == "." || text == "," {
-			return false
-		}
-	}
-	return true
 }
