@@ -176,6 +176,10 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	joinedTables[tableKey] = true
 
 	for _, fk := range table.ForeignKeys {
+		// Skip self-referencing foreign keys
+		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
+			continue
+		}
 		refKey := qb.getTableKey(fk.ReferenceSchema, fk.ReferenceTable)
 		refTable := qb.tables[refKey]
 		if refTable == nil {
