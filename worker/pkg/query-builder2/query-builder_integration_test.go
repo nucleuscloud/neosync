@@ -917,11 +917,22 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(expectedValues), len(sqlMap))
+
+	allrows := []pgx.Rows{}
+	defer func() {
+		for _, r := range allrows {
+			r.Close()
+		}
+	}()
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
+		fmt.Println(table, sql)
 		assert.NotEmpty(s.T(), sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
+		if rows != nil {
+			allrows = append(allrows, rows)
+		}
 		assert.NoError(s.T(), err)
 
 		columnDescriptions := rows.FieldDescriptions()
@@ -1005,7 +1016,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 		"genbenthosconfigs_querybuilder.networks":      5,
 		"genbenthosconfigs_querybuilder.network_users": 1,
 	}
-	_ = expectedCount
 
 	sqlMap, err := BuildSelectQueryMap(sqlmanager_shared.PostgresDriver, tableDependencies, dependencyConfigs, true, columnInfoMap)
 	require.NoError(s.T(), err)

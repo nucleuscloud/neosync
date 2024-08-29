@@ -114,10 +114,11 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 	if !ok {
 		return "", nil, fmt.Errorf("table not found: %s", key)
 	}
-	query, _, err := qb.buildQueryRecursive(schema, tableName, table.Columns, map[string]int{}, map[string]bool{})
-	if err != nil {
-		return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
-	}
+	// query, _, err := qb.buildQueryRecursive(schema, tableName, table.Columns, map[string]int{}, map[string]bool{})
+	// if err != nil {
+	// 	return "", nil, fmt.Errorf("unable to build query for %s.%s: %w", schema, tableName, err)
+	// }
+	query, err := qb.buildFlattenedQuery(table)
 	if query == nil {
 		return "", nil, fmt.Errorf("received no error, but query was nil for %s.%s", schema, tableName)
 	}
@@ -126,6 +127,102 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 		return "", nil, fmt.Errorf("unable to convery structured query to string for %s.%s: %w", schema, tableName, err)
 	}
 	return sql, args, nil
+}
+
+func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectDataset, error) {
+	dialect := qb.getDialect()
+	query := dialect.From(rootTable.GetIdentifierExpression())
+
+	// Select columns for the root table
+	cols := make([]exp.Expression, len(rootTable.Columns))
+	for i, col := range rootTable.Columns {
+		cols[i] = rootTable.GetIdentifierExpression().Col(col)
+	}
+	query = query.Select(toAnySlice(cols)...)
+
+	// Add WHERE conditions for the root table
+	if conditions, ok := qb.whereConditions[qb.getTableKey(rootTable.Schema, rootTable.Name)]; ok {
+		for _, cond := range conditions {
+			query = query.Where(goqu.L(cond.Condition, cond.Args...))
+		}
+	}
+
+	// Flatten and add necessary joins
+	if qb.subsetByForeignKeyConstraints {
+		joinedTables := make(map[string]bool)
+		tablesWithWhereConditions := qb.getTablesWithWhereConditions()
+		var err error
+		query, err = qb.addFlattenedJoins(query, rootTable, joinedTables, "", tablesWithWhereConditions)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return query, nil
+}
+
+func (qb *QueryBuilder) addFlattenedJoins(
+	query *goqu.SelectDataset,
+	table *TableInfo,
+	joinedTables map[string]bool,
+	prefix string,
+	tablesWithWhereConditions map[string]bool,
+) (*goqu.SelectDataset, error) {
+	tableKey := qb.getTableKey(table.Schema, table.Name)
+	if joinedTables[tableKey] {
+		return query, nil // Avoid circular dependencies
+	}
+	joinedTables[tableKey] = true
+
+	for _, fk := range table.ForeignKeys {
+		refKey := qb.getTableKey(fk.ReferenceSchema, fk.ReferenceTable)
+		refTable := qb.tables[refKey]
+		if refTable == nil {
+			continue
+		}
+
+		// Only add join if the referenced table has WHERE conditions
+		if !tablesWithWhereConditions[refKey] {
+			continue
+		}
+
+		aliasName := fmt.Sprintf("%s%s", prefix, refTable.Name)
+		joinConditions := make([]exp.Expression, len(fk.Columns))
+		for i, col := range fk.Columns {
+			joinConditions[i] = table.GetIdentifierExpression().Col(col).Eq(goqu.T(aliasName).Col(fk.ReferenceColumns[i]))
+		}
+
+		query = query.InnerJoin(
+			goqu.T(refTable.Name).Schema(refTable.Schema).As(aliasName),
+			goqu.On(joinConditions...),
+		)
+
+		// Add WHERE conditions for the joined table
+		if conditions, ok := qb.whereConditions[refKey]; ok {
+			for _, cond := range conditions {
+				query = query.Where(goqu.L(cond.Condition, cond.Args...))
+			}
+		}
+
+		// Recursively add joins for the referenced table
+		var err error
+		query, err = qb.addFlattenedJoins(query, refTable, joinedTables, aliasName+"_", tablesWithWhereConditions)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return query, nil
+}
+
+func (qb *QueryBuilder) getTablesWithWhereConditions() map[string]bool {
+	tablesWithConditions := make(map[string]bool)
+	for tableKey, conditions := range qb.whereConditions {
+		if len(conditions) > 0 {
+			tablesWithConditions[tableKey] = true
+		}
+	}
+	return tablesWithConditions
 }
 
 func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
