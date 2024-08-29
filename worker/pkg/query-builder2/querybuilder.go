@@ -159,9 +159,8 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectD
 	// Flatten and add necessary joins
 	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
 		joinedTables := make(map[string]bool)
-		tablesWithWhereConditions := qb.getTablesWithWhereConditions()
 		var err error
-		query, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "", tablesWithWhereConditions)
+		query, err = qb.addFlattenedJoins(query, rootTable, rootTable, rootAlias, joinedTables, "")
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +176,6 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	tableAlias string,
 	joinedTables map[string]bool,
 	prefix string,
-	tablesWithWhereConditions map[string]bool,
 ) (*goqu.SelectDataset, error) {
 	tableKey := qb.getTableKey(table.Schema, table.Name)
 	rootTableKey := qb.getTableKey(rootTable.Schema, rootTable.Name)
@@ -231,7 +229,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 
 		// Recursively add joins for the referenced table
 		var err error
-		query, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_", tablesWithWhereConditions)
+		query, err = qb.addFlattenedJoins(query, rootTable, refTable, aliasName, joinedTables, aliasName+"_")
 		if err != nil {
 			return nil, err
 		}
@@ -288,16 +286,6 @@ func (qb *QueryBuilder) hasPathToWhereCondition(
 	}
 
 	return false
-}
-
-func (qb *QueryBuilder) getTablesWithWhereConditions() map[string]bool {
-	tablesWithConditions := make(map[string]bool)
-	for tableKey, conditions := range qb.whereConditions {
-		if len(conditions) > 0 {
-			tablesWithConditions[tableKey] = true
-		}
-	}
-	return tablesWithConditions
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
