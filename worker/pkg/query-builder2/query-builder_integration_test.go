@@ -581,7 +581,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 			}
 		}
 		rows.Close()
-		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
+		assert.Equalf(s.T(), expectedCount[table], rowCount, fmt.Sprintf("table: %s ", table))
 	}
 }
 
