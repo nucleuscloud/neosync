@@ -33,3 +33,9 @@ func Test_splitTableKey(t *testing.T) {
 	require.Equal(t, schema, "neosync")
 	require.Equal(t, table, "foo")
 }
+
+func Test_DedupeSlice(t *testing.T) {
+	input := []string{"foo", "bar", "foo", "bar", "baz"}
+	actual := DedupeSlice(input)
+	require.Equal(t, []string{"foo", "bar", "baz"}, actual)
+}

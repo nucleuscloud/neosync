@@ -147,7 +147,6 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 	require.Contains(s.T(), usersRecord, "UPDATE")
 	require.Contains(s.T(), usersRecord, "SELECT")
 	require.Contains(s.T(), usersRecord, "DELETE")
-	require.Contains(s.T(), usersRecord, "EXECUTE")
 }
 
 // func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {

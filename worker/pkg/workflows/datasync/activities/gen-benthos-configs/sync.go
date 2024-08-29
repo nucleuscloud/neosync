@@ -78,21 +78,22 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
+	filteredForeignKeysMap := filterForeignKeysMap(colTransformerMap, foreignKeysMap)
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(foreignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
 	if err != nil {
 		return nil, err
 	}
-	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(foreignKeysMap)
+	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 
-	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, foreignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, foreignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -102,6 +103,42 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		primaryKeyToForeignKeysMap: primaryKeyToForeignKeysMap,
 		ColumnTransformerMap:       colTransformerMap,
 	}, nil
+}
+
+func filterForeignKeysMap(
+	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	foreignKeysMap map[string][]*sqlmanager_shared.ForeignConstraint,
+) map[string][]*sqlmanager_shared.ForeignConstraint {
+	newFkMap := make(map[string][]*sqlmanager_shared.ForeignConstraint)
+
+	for table, fks := range foreignKeysMap {
+		cols, ok := colTransformerMap[table]
+		if !ok {
+			continue
+		}
+		for _, fk := range fks {
+			newFk := &sqlmanager_shared.ForeignConstraint{
+				ForeignKey: &sqlmanager_shared.ForeignKey{
+					Table: fk.ForeignKey.Table,
+				},
+			}
+			for i, c := range fk.Columns {
+				t, ok := cols[c]
+				if !fk.NotNullable[i] && (!ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL) {
+					continue
+				}
+
+				newFk.Columns = append(newFk.Columns, c)
+				newFk.NotNullable = append(newFk.NotNullable, fk.NotNullable[i])
+				newFk.ForeignKey.Columns = append(newFk.ForeignKey.Columns, fk.ForeignKey.Columns[i])
+			}
+
+			if len(newFk.Columns) > 0 {
+				newFkMap[table] = append(newFkMap[table], newFk)
+			}
+		}
+	}
+	return newFkMap
 }
 
 func mergeVirtualForeignKeys(
