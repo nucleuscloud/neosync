@@ -153,7 +153,7 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectD
 		joinedTables := make(map[string]bool)
 		tablesWithWhereConditions := qb.getTablesWithWhereConditions()
 		var err error
-		query, err = qb.addFlattenedJoins(query, rootTable, joinedTables, "", tablesWithWhereConditions)
+		query, err = qb.addFlattenedJoins(query, rootTable, rootAlias, joinedTables, "", tablesWithWhereConditions)
 		if err != nil {
 			return nil, err
 		}
@@ -165,6 +165,7 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectD
 func (qb *QueryBuilder) addFlattenedJoins(
 	query *goqu.SelectDataset,
 	table *TableInfo,
+	tableAlias string,
 	joinedTables map[string]bool,
 	prefix string,
 	tablesWithWhereConditions map[string]bool,
@@ -194,7 +195,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 		aliasName := qb.generateUniqueAlias(prefix, refTable.Name, joinedTables)
 		joinConditions := make([]exp.Expression, len(fk.Columns))
 		for i, col := range fk.Columns {
-			joinConditions[i] = goqu.I(table.Name).Col(col).Eq(goqu.T(aliasName).Col(fk.ReferenceColumns[i]))
+			joinConditions[i] = goqu.T(aliasName).Col(fk.ReferenceColumns[i]).Eq(goqu.T(tableAlias).Col(col))
 		}
 
 		query = query.InnerJoin(
@@ -215,7 +216,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 
 		// Recursively add joins for the referenced table
 		var err error
-		query, err = qb.addFlattenedJoins(query, refTable, joinedTables, aliasName+"_", tablesWithWhereConditions)
+		query, err = qb.addFlattenedJoins(query, refTable, aliasName, joinedTables, aliasName+"_", tablesWithWhereConditions)
 		if err != nil {
 			return nil, err
 		}
