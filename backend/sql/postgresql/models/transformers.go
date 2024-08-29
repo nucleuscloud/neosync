@@ -52,6 +52,7 @@ type TransformerConfigs struct {
 	GenerateCategorical        *GenerateCategoricalConfig       `json:"generateCategorical,omitempty"`
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
+	// GenerateCountry            *GenerateCountry                 `json:"generateCountryConfig,omitempty"`
 }
 
 type GenerateEmailConfig struct {

@@ -9,14 +9,14 @@ import (
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:generate:generateCountryCode
+// +neosyncTransformerBuilder:generate:generateCountry
 
 func init() {
 	spec := bloblang.NewPluginSpec().Description("Randomly selects a Country and either returns the two character country code or the full country name.").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full country name instead of the two character country code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
-	err := bloblang.RegisterFunctionV2("generate_country_code", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_country", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		generateFullName, err := args.GetBool("generate_full_name")
 		if err != nil {
 			return nil, err
@@ -41,8 +41,8 @@ func init() {
 	}
 }
 
-func (t *GenerateCountryCode) Generate(opts any) (any, error) {
-	parsedOpts, ok := opts.(*GenerateCountryCodeOpts)
+func (t *GenerateCountry) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateCountryOpts)
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}

@@ -1515,6 +1515,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateJavascript;
     case: "generateJavascriptConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateCountry generate_country_config = 43;
+     */
+    value: GenerateCountry;
+    case: "generateCountryConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1567,6 +1573,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 40, name: "generate_categorical_config", kind: "message", T: GenerateCategorical, oneof: "config" },
     { no: 41, name: "transform_character_scramble_config", kind: "message", T: TransformCharacterScramble, oneof: "config" },
     { no: 42, name: "generate_javascript_config", kind: "message", T: GenerateJavascript, oneof: "config" },
+    { no: 43, name: "generate_country_config", kind: "message", T: GenerateCountry, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3299,6 +3306,45 @@ export class ValidateUserRegexCodeResponse extends Message<ValidateUserRegexCode
 
   static equals(a: ValidateUserRegexCodeResponse | PlainMessage<ValidateUserRegexCodeResponse> | undefined, b: ValidateUserRegexCodeResponse | PlainMessage<ValidateUserRegexCodeResponse> | undefined): boolean {
     return proto3.util.equals(ValidateUserRegexCodeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateCountry
+ */
+export class GenerateCountry extends Message<GenerateCountry> {
+  /**
+   * An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
+   *
+   * @generated from field: bool generate_full_name = 1;
+   */
+  generateFullName = false;
+
+  constructor(data?: PartialMessage<GenerateCountry>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateCountry";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "generate_full_name", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCountry {
+    return new GenerateCountry().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateCountry {
+    return new GenerateCountry().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateCountry {
+    return new GenerateCountry().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateCountry | PlainMessage<GenerateCountry> | undefined, b: GenerateCountry | PlainMessage<GenerateCountry> | undefined): boolean {
+    return proto3.util.equals(GenerateCountry, a, b);
   }
 }
 

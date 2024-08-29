@@ -243,7 +243,7 @@ declare namespace neosync {
 	declare function generateCity(options: GenerateCityOptions): any;
 	
 	
-	export interface GenerateCountryCodeOptions {
+	export interface GenerateCountryOptions {
 		/** If true returns the full country name instead of the two character country code. */
 		generateFullName?: boolean;
 		/** An optional seed value used to generate deterministic outputs. */
@@ -253,7 +253,7 @@ declare namespace neosync {
   /**
    * Randomly selects a Country and either returns the two character country code or the full country name.
    */
-	declare function generateCountryCode(options: GenerateCountryCodeOptions): any;
+	declare function generateCountry(options: GenerateCountryOptions): any;
 	
 	
 	export interface GenerateEmailOptions {

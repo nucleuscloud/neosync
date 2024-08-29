@@ -563,10 +563,10 @@ const newValue = neosync.generateCity({
 
 
 <!--
-source: generate_country_code.go
+source: generate_country.go
 -->
 
-### generateCountryCode
+### generateCountry
 
 Randomly selects a Country and either returns the two character country code or the full country name.
 
@@ -584,7 +584,7 @@ Randomly selects a Country and either returns the two character country code or 
 
 ```javascript
 
-const newValue = neosync.generateCountryCode({ 
+const newValue = neosync.generateCountry({ 
 	generateFullName: false, 
 	seed: 1, 
 });

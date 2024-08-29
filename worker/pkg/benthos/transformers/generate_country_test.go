@@ -61,7 +61,7 @@ func Test_GenerateCountryCodeFullName(t *testing.T) {
 }
 
 func Test_CountryTransformer(t *testing.T) {
-	mapping := `root = generate_country_code(generate_full_name:false)`
+	mapping := `root = generate_country(generate_full_name:false)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the country transformer")
 

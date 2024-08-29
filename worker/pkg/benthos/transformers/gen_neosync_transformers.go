@@ -25,7 +25,7 @@ func GetNeosyncGenerators() []NeosyncGenerator {
 			NewGenerateCardNumber(),
 			NewGenerateCategorical(),
 			NewGenerateCity(),
-			NewGenerateCountryCode(),
+			NewGenerateCountry(),
 			NewGenerateEmail(),
 			NewGenerateFirstName(),
 			NewGenerateFloat64(),

@@ -5508,6 +5508,30 @@
           "fields": []
         },
         {
+          "name": "GenerateCountry",
+          "longName": "GenerateCountry",
+          "fullName": "mgmt.v1alpha1.GenerateCountry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "generate_full_name",
+              "description": "An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GenerateDefault",
           "longName": "GenerateDefault",
           "fullName": "mgmt.v1alpha1.GenerateDefault",
@@ -7212,6 +7236,18 @@
               "type": "GenerateJavascript",
               "longType": "GenerateJavascript",
               "fullType": "mgmt.v1alpha1.GenerateJavascript",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_country_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateCountry",
+              "longType": "GenerateCountry",
+              "fullType": "mgmt.v1alpha1.GenerateCountry",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

@@ -211,6 +211,7 @@ message TransformerConfig {
     GenerateCategorical generate_categorical_config = 40;
     TransformCharacterScramble transform_character_scramble_config = 41;
     GenerateJavascript generate_javascript_config = 42;
+    GenerateCountry generate_country_config = 43;
   }
 }
 
@@ -410,6 +411,11 @@ message ValidateUserRegexCodeRequest {
 
 message ValidateUserRegexCodeResponse {
   bool valid = 1;
+}
+
+message GenerateCountry {
+  // An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
+  bool generate_full_name = 1;
 }
 
 service TransformersService {
