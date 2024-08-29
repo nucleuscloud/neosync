@@ -1,6 +1,8 @@
 package querybuilder2
 
 import (
+	"crypto/md5" //nolint:gosec // This is not being used for a purpose that requires security
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -77,6 +79,7 @@ type QueryBuilder struct {
 	subsetByForeignKeyConstraints bool
 	tablesWithWhereConditions     set
 	pathCache                     set
+	aliasCounter                  int
 }
 
 func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) *QueryBuilder {
@@ -89,6 +92,7 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 		columnInfo:                    columnInfo,
 		tablesWithWhereConditions:     make(set),
 		pathCache:                     make(set),
+		aliasCounter:                  0,
 	}
 }
 
@@ -239,18 +243,25 @@ func (qb *QueryBuilder) addFlattenedJoins(
 }
 
 func (qb *QueryBuilder) generateUniqueAlias(prefix, tableName string, joinedTables map[string]bool) string {
-	baseAlias := fmt.Sprintf("%s%s", prefix, tableName)
-	alias := baseAlias
-	counter := 1
+	qb.aliasCounter++
+	baseString := fmt.Sprintf("%s%s%d", prefix, tableName, qb.aliasCounter)
+	alias := "t_" + getClippedHash(baseString)
 
+	// Ensure uniqueness
 	for {
 		if _, exists := joinedTables[alias]; !exists {
 			joinedTables[alias] = true
 			return alias
 		}
-		counter++
-		alias = fmt.Sprintf("%s_%d", baseAlias, counter)
+		qb.aliasCounter++
+		baseString = fmt.Sprintf("%s%s%d", prefix, tableName, qb.aliasCounter)
+		alias = "t_" + getClippedHash(baseString)
 	}
+}
+
+func getClippedHash(input string) string {
+	hash := md5.Sum([]byte(input)) //nolint:gosec // Not used for anything that is security related
+	return hex.EncodeToString(hash[:][:8])
 }
 
 func (qb *QueryBuilder) hasPathToWhereCondition(
