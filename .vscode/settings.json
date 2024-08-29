@@ -10,5 +10,6 @@
     "source.organizeImports": "explicit",
     "source.fixAll": "explicit"
   },
-  "typescript.tsdk": "frontend/node_modules/typescript/lib"
+  "typescript.tsdk": "frontend/node_modules/typescript/lib",
+  "makefile.configureOnOpen": false
 }

@@ -563,6 +563,37 @@ const newValue = neosync.generateCity({
 
 
 <!--
+source: generate_country_code.go
+-->
+
+### generateCountryCode
+
+Randomly selects a Country and either returns the two character country code or the full country name.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| generateFullName | bool | false | false | If true returns the full country name instead of the two character country code.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateCountryCode({ 
+	generateFullName: false, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
 source: generate_email.go
 -->
 
