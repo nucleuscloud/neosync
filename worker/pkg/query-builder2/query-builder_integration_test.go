@@ -962,7 +962,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
 	}()
 	for table, selectQueryRunType := range sqlMap {
 		sql := selectQueryRunType[tabledependency.RunTypeInsert]
-		fmt.Println(table, sql)
 		assert.NotEmpty(s.T(), sql)
 
 		rows, err := s.pgpool.Query(s.ctx, sql)
