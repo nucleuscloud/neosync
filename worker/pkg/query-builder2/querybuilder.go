@@ -56,6 +56,17 @@ type WhereCondition struct {
 	Args      []any
 }
 
+type set map[string]struct{}
+
+func (s set) add(key string) {
+	s[key] = struct{}{}
+}
+
+func (s set) contains(key string) bool {
+	_, exists := s[key]
+	return exists
+}
+
 type QueryBuilder struct {
 	tables          map[string]*TableInfo
 	whereConditions map[string][]WhereCondition
@@ -64,6 +75,8 @@ type QueryBuilder struct {
 	defaultSchema                 string
 	driver                        string
 	subsetByForeignKeyConstraints bool
+	tablesWithWhereConditions     set
+	pathCache                     set
 }
 
 func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints bool, columnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) *QueryBuilder {
@@ -74,6 +87,8 @@ func NewQueryBuilder(defaultSchema, driver string, subsetByForeignKeyConstraints
 		driver:                        driver,
 		subsetByForeignKeyConstraints: subsetByForeignKeyConstraints,
 		columnInfo:                    columnInfo,
+		tablesWithWhereConditions:     make(set),
+		pathCache:                     make(set),
 	}
 }
 
@@ -91,21 +106,14 @@ func (qb *QueryBuilder) getDialect() goqu.DialectWrapper {
 	}
 }
 
-func (qb *QueryBuilder) getRequiredColumns(table *TableInfo) []string {
-	columns := make([]string, 0)
-	// Add primary keys
-	columns = append(columns, table.PrimaryKeys...)
-	// Add foreign key columns
-	for _, fk := range table.ForeignKeys {
-		columns = append(columns, fk.Columns...)
-	}
-	// Remove duplicates
-	return uniqueStrings(columns)
-}
-
 func (qb *QueryBuilder) AddWhereCondition(schema, tableName, condition string, args ...any) {
 	key := qb.getTableKey(schema, tableName)
 	qb.whereConditions[key] = append(qb.whereConditions[key], WhereCondition{Condition: condition, Args: args})
+	qb.tablesWithWhereConditions.add(key)
+	qb.clearPathCache()
+}
+func (qb *QueryBuilder) clearPathCache() {
+	qb.pathCache = make(set)
 }
 
 func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement string, args []any, err error) {
@@ -195,7 +203,7 @@ func (qb *QueryBuilder) addFlattenedJoins(
 		}
 
 		// Only add join if the referenced table has WHERE conditions
-		if !qb.hasPathToWhereCondition(refTable, tablesWithWhereConditions, make(map[string]bool)) {
+		if !qb.hasPathToWhereCondition(refTable, make(set)) {
 			continue
 		}
 
@@ -247,34 +255,22 @@ func (qb *QueryBuilder) generateUniqueAlias(prefix, tableName string, joinedTabl
 	}
 }
 
-// func (qb *QueryBuilder) qualifyCondition(condition, alias string) string {
-// 	// This is a simple implementation and might need to be more robust
-// 	// depending on the complexity of your WHERE conditions
-// 	parts := strings.Fields(condition)
-// 	for i, part := range parts {
-// 		if strings.Contains(part, ".") {
-// 			continue // Skip already qualified column names
-// 		}
-// 		if i > 0 && (parts[i-1] == "AND" || parts[i-1] == "OR" || parts[i-1] == "NOT" || i == 1) {
-// 			// This part is likely a column name, so qualify it
-// 			parts[i] = alias + "." + part
-// 		}
-// 	}
-// 	return strings.Join(parts, " ")
-// }
-
 func (qb *QueryBuilder) hasPathToWhereCondition(
 	table *TableInfo,
-	tablesWithWhereConditions map[string]bool,
-	visited map[string]bool,
+	visited set,
 ) bool {
 	tableKey := qb.getTableKey(table.Schema, table.Name)
-	if visited[tableKey] {
+	if visited.contains(tableKey) {
 		return false
 	}
-	visited[tableKey] = true
+	visited.add(tableKey)
 
-	if tablesWithWhereConditions[tableKey] {
+	if qb.pathCache.contains(tableKey) {
+		return true
+	}
+
+	if qb.tablesWithWhereConditions.contains(tableKey) {
+		qb.pathCache.add(tableKey)
 		return true
 	}
 
@@ -285,7 +281,8 @@ func (qb *QueryBuilder) hasPathToWhereCondition(
 			continue
 		}
 
-		if qb.hasPathToWhereCondition(refTable, tablesWithWhereConditions, visited) {
+		if qb.hasPathToWhereCondition(refTable, visited) {
+			qb.pathCache.add(tableKey)
 			return true
 		}
 	}
@@ -301,96 +298,6 @@ func (qb *QueryBuilder) getTablesWithWhereConditions() map[string]bool {
 		}
 	}
 	return tablesWithConditions
-}
-
-func (qb *QueryBuilder) isSelfReferencing(table *TableInfo) bool {
-	for _, fk := range table.ForeignKeys {
-		if fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
-			return true
-		}
-	}
-	return false
-}
-
-func (qb *QueryBuilder) buildQueryRecursive(
-	schema, tableName string,
-	columnsToInclude []string, joinCount map[string]int,
-	visitedTables map[string]bool,
-) (dataset *goqu.SelectDataset, hasWhereCondition bool, err error) {
-	key := qb.getTableKey(schema, tableName)
-	if visitedTables[key] {
-		return nil, false, nil // Avoid circular dependencies
-	}
-	visitedTables[key] = true
-	defer delete(visitedTables, key) // Remove from visited after processing
-
-	table, ok := qb.tables[key]
-	if !ok {
-		return nil, false, fmt.Errorf("table not found: %s", key)
-	}
-
-	if len(columnsToInclude) == 0 {
-		columnsToInclude = qb.getRequiredColumns(table)
-	}
-	if len(columnsToInclude) == 0 {
-		columnsToInclude = table.Columns
-	}
-	if len(columnsToInclude) == 0 {
-		columnsToInclude = []string{"*"}
-	}
-
-	dialect := qb.getDialect()
-	var query *goqu.SelectDataset
-
-	isSelfReferencing := qb.isSelfReferencing(table)
-
-	t := table.GetIdentifierExpression()
-	cols := make([]exp.Expression, len(columnsToInclude))
-	for i := range columnsToInclude {
-		cols[i] = t.Col(columnsToInclude[i])
-	}
-	query = dialect.From(t).Select(toAnySlice(cols)...)
-
-	// Add WHERE conditions for this table
-	hasWhereCondition = false
-	if conditions, ok := qb.whereConditions[key]; ok {
-		for _, cond := range conditions {
-			query = query.Where(goqu.L(cond.Condition, cond.Args...))
-		}
-		hasWhereCondition = true
-	}
-
-	// Only join and apply subsetting if subsetByForeignKeyConstraints is true
-	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
-		// Recursively build and join queries for related tables
-		for _, fk := range table.ForeignKeys {
-			if isSelfReferencing && fk.ReferenceSchema == table.Schema && fk.ReferenceTable == table.Name {
-				continue // Skip self-referencing foreign keys here
-			}
-			subQuery, subQueryHasWhereCondition, err := qb.buildQueryRecursive(fk.ReferenceSchema, fk.ReferenceTable, fk.ReferenceColumns, joinCount, visitedTables)
-			if err != nil {
-				return nil, false, err
-			}
-
-			if subQuery != nil && subQueryHasWhereCondition {
-				hasWhereCondition = true
-				joinCount[fk.ReferenceTable]++
-				subQueryAlias := fmt.Sprintf("%s_%s_%d", fk.ReferenceSchema, fk.ReferenceTable, joinCount[fk.ReferenceTable])
-				conditions := make([]goqu.Expression, len(fk.Columns))
-				for i := range fk.Columns {
-					conditions[i] = t.Col(fk.Columns[i]).Eq(
-						goqu.T(subQueryAlias).Col(fk.ReferenceColumns[i]),
-					)
-				}
-				query = query.Join(
-					goqu.L("(?)", subQuery).As(subQueryAlias),
-					goqu.On(goqu.And(conditions...)),
-				)
-			}
-		}
-	}
-
-	return query, hasWhereCondition, nil
 }
 
 func (qb *QueryBuilder) qualifyWhereCondition(schema *string, table, condition string) (string, error) {
