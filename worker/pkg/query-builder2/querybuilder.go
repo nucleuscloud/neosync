@@ -130,12 +130,14 @@ func (qb *QueryBuilder) BuildQuery(schema, tableName string) (sqlstatement strin
 
 func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectDataset, error) {
 	dialect := qb.getDialect()
-	query := dialect.From(rootTable.GetIdentifierExpression())
+	rootAlias := rootTable.Name
+	rootAliasExpression := rootTable.GetIdentifierExpression().As(rootAlias)
+	query := dialect.From(rootAliasExpression)
 
 	// Select columns for the root table
 	cols := make([]exp.Expression, len(rootTable.Columns))
 	for i, col := range rootTable.Columns {
-		cols[i] = rootTable.GetIdentifierExpression().Col(col)
+		cols[i] = rootAliasExpression.Col(col)
 	}
 	query = query.Select(toAnySlice(cols)...)
 
@@ -147,7 +149,7 @@ func (qb *QueryBuilder) buildFlattenedQuery(rootTable *TableInfo) (*goqu.SelectD
 	}
 
 	// Flatten and add necessary joins
-	if qb.subsetByForeignKeyConstraints {
+	if qb.subsetByForeignKeyConstraints && len(qb.whereConditions) > 0 {
 		joinedTables := make(map[string]bool)
 		tablesWithWhereConditions := qb.getTablesWithWhereConditions()
 		var err error
@@ -181,25 +183,29 @@ func (qb *QueryBuilder) addFlattenedJoins(
 		}
 
 		// Only add join if the referenced table has WHERE conditions
-		if !tablesWithWhereConditions[refKey] {
+		if !qb.hasPathToWhereCondition(refTable, tablesWithWhereConditions, make(map[string]bool)) {
 			continue
 		}
 
 		aliasName := fmt.Sprintf("%s%s", prefix, refTable.Name)
 		joinConditions := make([]exp.Expression, len(fk.Columns))
 		for i, col := range fk.Columns {
-			joinConditions[i] = table.GetIdentifierExpression().Col(col).Eq(goqu.T(aliasName).Col(fk.ReferenceColumns[i]))
+			joinConditions[i] = goqu.I(table.Name).Col(col).Eq(goqu.T(aliasName).Col(fk.ReferenceColumns[i]))
 		}
 
 		query = query.InnerJoin(
-			goqu.T(refTable.Name).Schema(refTable.Schema).As(aliasName),
+			refTable.GetIdentifierExpression().As(aliasName),
 			goqu.On(joinConditions...),
 		)
 
 		// Add WHERE conditions for the joined table
 		if conditions, ok := qb.whereConditions[refKey]; ok {
 			for _, cond := range conditions {
-				query = query.Where(goqu.L(cond.Condition, cond.Args...))
+				qualifiedCondition, err := qb.qualifyWhereCondition(nil, aliasName, cond.Condition)
+				if err != nil {
+					return nil, err
+				}
+				query = query.Where(goqu.L(qualifiedCondition, cond.Args...))
 			}
 		}
 
@@ -212,6 +218,52 @@ func (qb *QueryBuilder) addFlattenedJoins(
 	}
 
 	return query, nil
+}
+
+// func (qb *QueryBuilder) qualifyCondition(condition, alias string) string {
+// 	// This is a simple implementation and might need to be more robust
+// 	// depending on the complexity of your WHERE conditions
+// 	parts := strings.Fields(condition)
+// 	for i, part := range parts {
+// 		if strings.Contains(part, ".") {
+// 			continue // Skip already qualified column names
+// 		}
+// 		if i > 0 && (parts[i-1] == "AND" || parts[i-1] == "OR" || parts[i-1] == "NOT" || i == 1) {
+// 			// This part is likely a column name, so qualify it
+// 			parts[i] = alias + "." + part
+// 		}
+// 	}
+// 	return strings.Join(parts, " ")
+// }
+
+func (qb *QueryBuilder) hasPathToWhereCondition(
+	table *TableInfo,
+	tablesWithWhereConditions map[string]bool,
+	visited map[string]bool,
+) bool {
+	tableKey := qb.getTableKey(table.Schema, table.Name)
+	if visited[tableKey] {
+		return false
+	}
+	visited[tableKey] = true
+
+	if tablesWithWhereConditions[tableKey] {
+		return true
+	}
+
+	for _, fk := range table.ForeignKeys {
+		refKey := qb.getTableKey(fk.ReferenceSchema, fk.ReferenceTable)
+		refTable := qb.tables[refKey]
+		if refTable == nil {
+			continue
+		}
+
+		if qb.hasPathToWhereCondition(refTable, tablesWithWhereConditions, visited) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (qb *QueryBuilder) getTablesWithWhereConditions() map[string]bool {
