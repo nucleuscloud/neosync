@@ -49,7 +49,7 @@ func TestFilterForeignKeysMap(t *testing.T) {
 				"table1": {
 					{
 						Columns:     []string{"col1", "col2"},
-						NotNullable: []bool{true, false},
+						NotNullable: []bool{false, true},
 						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1", "ref_col2"}},
 					},
 				},
@@ -58,7 +58,7 @@ func TestFilterForeignKeysMap(t *testing.T) {
 				"table1": {
 					{
 						Columns:     []string{"col1"},
-						NotNullable: []bool{true},
+						NotNullable: []bool{false},
 						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1"}},
 					},
 				},
@@ -78,7 +78,7 @@ func TestFilterForeignKeysMap(t *testing.T) {
 				"table1": {
 					{
 						Columns:     []string{"col1"},
-						NotNullable: []bool{true},
+						NotNullable: []bool{false},
 						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1"}},
 					},
 				},
@@ -94,7 +94,7 @@ func TestFilterForeignKeysMap(t *testing.T) {
 				"table1": {
 					{
 						Columns:     []string{"col1"},
-						NotNullable: []bool{true},
+						NotNullable: []bool{false},
 						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1"}},
 					},
 				},

@@ -124,7 +124,7 @@ func filterForeignKeysMap(
 			}
 			for i, c := range fk.Columns {
 				t, ok := cols[c]
-				if !ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL {
+				if !ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL || fk.NotNullable[i] {
 					continue
 				}
 
