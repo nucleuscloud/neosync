@@ -78,22 +78,22 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := getTableMappingsMap(groupedMappings)
 	colTransformerMap := getColumnTransformerMap(groupedTableMapping) // schema.table ->  column -> transformer
-	filterForeignKeysMap := filterForeignKeysMap(colTransformerMap, foreignKeysMap)
+	filteredForeignKeysMap := filterForeignKeysMap(colTransformerMap, foreignKeysMap)
 
 	tableSubsetMap := buildTableSubsetMap(sourceTableOpts, groupedTableMapping)
 	tableColMap := getTableColMapFromMappings(groupedMappings)
-	runConfigs, err := tabledependency.GetRunConfigs(filterForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
+	runConfigs, err := tabledependency.GetRunConfigs(filteredForeignKeysMap, tableSubsetMap, tableConstraints.PrimaryKeyConstraints, tableColMap)
 	if err != nil {
 		return nil, err
 	}
-	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filterForeignKeysMap)
+	primaryKeyToForeignKeysMap := getPrimaryKeyDependencyMap(filteredForeignKeysMap)
 
-	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, filterForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+	tableRunTypeQueryMap, err := querybuilder.BuildSelectQueryMap(db.Driver, filteredForeignKeysMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filterForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -124,7 +124,7 @@ func filterForeignKeysMap(
 			}
 			for i, c := range fk.Columns {
 				t, ok := cols[c]
-				if !ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL || fk.NotNullable[i] {
+				if !fk.NotNullable[i] && (!ok || t.GetSource() == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL) {
 					continue
 				}
 

@@ -41,25 +41,26 @@ func TestFilterForeignKeysMap(t *testing.T) {
 			name: "Filtered composite foreign keys",
 			colTransformerMap: map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{
 				"table1": {
-					"col1": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH},
+					"col1": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
 					"col2": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
+					"col3": &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL},
 				},
 			},
 			foreignKeysMap: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"table1": {
 					{
-						Columns:     []string{"col1", "col2"},
-						NotNullable: []bool{false, true},
-						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1", "ref_col2"}},
+						Columns:     []string{"col1", "col2", "col3"},
+						NotNullable: []bool{false, true, true},
+						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1", "ref_col2", "ref_col3"}},
 					},
 				},
 			},
 			expected: map[string][]*sqlmanager_shared.ForeignConstraint{
 				"table1": {
 					{
-						Columns:     []string{"col1"},
-						NotNullable: []bool{false},
-						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col1"}},
+						Columns:     []string{"col2", "col3"},
+						NotNullable: []bool{true, true},
+						ForeignKey:  &sqlmanager_shared.ForeignKey{Table: "ref_table", Columns: []string{"ref_col2", "ref_col3"}},
 					},
 				},
 			},
