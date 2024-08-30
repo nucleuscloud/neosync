@@ -261,6 +261,21 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
+		hasIdentityColumns := false
+		if driver == sqlmanager_shared.MssqlDriver {
+			colInfo, ok := groupedColumnInfo[config.Table]
+			if !ok {
+				continue
+			}
+			for _, c := range config.InsertColumns {
+				info, ok := colInfo[c]
+				if ok && info.DataType == "" {
+					hasIdentityColumns = true
+					break
+				}
+			}
+		}
+
 		responses = append(responses, &BenthosConfigResponse{
 			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
 			Config:         bc,
@@ -270,10 +285,11 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema: mappings.Schema,
-			TableName:   mappings.Table,
-			Columns:     config.InsertColumns,
-			primaryKeys: config.PrimaryKeys,
+			TableSchema:        mappings.Schema,
+			TableName:          mappings.Table,
+			Columns:            config.InsertColumns,
+			HasIdentityColumns: hasIdentityColumns,
+			primaryKeys:        config.PrimaryKeys,
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -440,13 +456,19 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 					},
 				})
-				// todo fix this
 				benthosConfig.RedisConfig = append(benthosConfig.RedisConfig, &BenthosRedisConfig{
 					Key:    hashedKey,
 					Table:  tableKey,
 					Column: col,
 				})
 			}
+		}
+		var prefix, suffix *string
+		if driver == sqlmanager_shared.MssqlDriver && benthosConfig.HasIdentityColumns {
+			p := fmt.Sprintf("SET IDENTITY_INSERT %s.%s ON;", benthosConfig.TableSchema, benthosConfig.TableName)
+			prefix = &p
+			s := fmt.Sprintf("SET IDENTITY_INSERT %s.%s OFF;", benthosConfig.TableSchema, benthosConfig.TableName)
+			suffix = &s
 		}
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -461,6 +483,8 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						OnConflictDoNothing: destOpts.OnConflictDoNothing,
 						TruncateOnRetry:     destOpts.Truncate,
 						ArgsMapping:         buildPlainInsertArgs(benthosConfig.Columns),
+						Prefix:              prefix,
+						Suffix:              suffix,
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
