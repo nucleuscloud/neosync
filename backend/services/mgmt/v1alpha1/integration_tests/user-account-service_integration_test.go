@@ -81,7 +81,7 @@ var (
 	}
 )
 
-func (s *IntegrationTestSuite) Test_GetAccountTemporalConfig() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	s.mockTemporalClientMgr.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
@@ -98,13 +98,13 @@ func (s *IntegrationTestSuite) Test_GetAccountTemporalConfig() {
 	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
 }
 
-func (s *IntegrationTestSuite) Test_GetAccountTemporalConfig_NoAccount() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NoAccount() {
 	resp, err := s.unauthUserClient.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_GetAccountTemporalConfig_NeosyncCloud() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NeosyncCloud() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.ncunauthUserClient.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
@@ -112,13 +112,13 @@ func (s *IntegrationTestSuite) Test_GetAccountTemporalConfig_NeosyncCloud() {
 	requireConnectError(s.T(), err, connect.CodeUnimplemented)
 }
 
-func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig_NoAccount() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoAccount() {
 	resp, err := s.unauthUserClient.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig_NeosyncCloud() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NeosyncCloud() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.ncunauthUserClient.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId}))
@@ -126,7 +126,7 @@ func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig_NeosyncCloud() {
 	requireConnectError(s.T(), err, connect.CodeUnimplemented)
 }
 
-func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig_NoConfig() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoConfig() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	s.mockTemporalClientMgr.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
@@ -143,7 +143,7 @@ func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig_NoConfig() {
 	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
 }
 
-func (s *IntegrationTestSuite) Test_SetAccountTemporalConfig() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	// kind of a bad test since we are mocking this client wholesale, but it at least verifies we can write the config
@@ -170,7 +170,7 @@ var (
 	validAuthUser = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
 )
 
-func (s *IntegrationTestSuite) Test_GetUser_Auth() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {
 	client := s.getAuthUserClient("test-user1")
 	userId := s.setUser(client)
 
@@ -179,21 +179,21 @@ func (s *IntegrationTestSuite) Test_GetUser_Auth() {
 	require.Equal(s.T(), userId, resp.Msg.GetUserId())
 }
 
-func (s *IntegrationTestSuite) Test_GetUser_Auth_NotFound() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth_NotFound() {
 	client := s.getAuthUserClient("test-user")
 	resp, err := client.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeNotFound)
 }
 
-func (s *IntegrationTestSuite) Test_SetUser_Auth() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetUser_Auth() {
 	client := s.getAuthUserClient("test-user")
 	userId := s.setUser(client)
 	require.NotEmpty(s.T(), userId)
 	require.NotEqual(s.T(), "00000000-0000-0000-0000-000000000000", userId)
 }
 
-func (s *IntegrationTestSuite) Test_CreateTeamAccount_Auth() {
+func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Auth() {
 	client := s.getAuthUserClient("test-user")
 	s.setUser(client)
 
@@ -202,7 +202,7 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccount_Auth() {
 	require.NotEmpty(s.T(), resp.Msg.GetAccountId())
 }
 
-func (s *IntegrationTestSuite) Test_GetTeamAccountMembers_Auth() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_Auth() {
 	client := s.getAuthUserClient("test-user")
 	userId := s.setUser(client)
 	accountId := s.createTeamAccount(client, "test-team")
@@ -236,7 +236,7 @@ func (s *IntegrationTestSuite) createTeamAccount(client mgmtv1alpha1connect.User
 	return resp.Msg.AccountId
 }
 
-func (s *IntegrationTestSuite) Test_GetUser() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetUser() {
 	resp, err := s.unauthUserClient.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
@@ -244,7 +244,7 @@ func (s *IntegrationTestSuite) Test_GetUser() {
 	require.NotEmpty(s.T(), userId)
 }
 
-func (s *IntegrationTestSuite) Test_SetUser() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetUser() {
 	resp, err := s.unauthUserClient.SetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
@@ -253,7 +253,7 @@ func (s *IntegrationTestSuite) Test_SetUser() {
 	require.Equal(s.T(), "00000000-0000-0000-0000-000000000000", userId)
 }
 
-func (s *IntegrationTestSuite) Test_GetAccounts_Empty() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_Empty() {
 	resp, err := s.unauthUserClient.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
@@ -261,7 +261,7 @@ func (s *IntegrationTestSuite) Test_GetAccounts_Empty() {
 	require.Empty(s.T(), accounts)
 }
 
-func (s *IntegrationTestSuite) Test_SetPersonalAccount() {
+func (s *IntegrationTestSuite) Test_UserAccountService_SetPersonalAccount() {
 	resp, err := s.unauthUserClient.SetPersonalAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
@@ -269,7 +269,7 @@ func (s *IntegrationTestSuite) Test_SetPersonalAccount() {
 	require.NotEmpty(s.T(), accountId)
 }
 
-func (s *IntegrationTestSuite) Test_GetAccounts_NotEmpty() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_NotEmpty() {
 	s.createPersonalAccount(s.unauthUserClient)
 
 	accResp, err := s.unauthUserClient.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
@@ -280,7 +280,7 @@ func (s *IntegrationTestSuite) Test_GetAccounts_NotEmpty() {
 	require.Len(s.T(), accounts, 1)
 }
 
-func (s *IntegrationTestSuite) Test_IsUserInAccount() {
+func (s *IntegrationTestSuite) Test_UserAccountService_IsUserInAccount() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
@@ -296,7 +296,7 @@ func (s *IntegrationTestSuite) Test_IsUserInAccount() {
 	require.False(s.T(), resp.Msg.GetOk())
 }
 
-func (s *IntegrationTestSuite) Test_CreateTeamAccount_NoAuth() {
+func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NoAuth() {
 	s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
@@ -304,7 +304,7 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccount_NoAuth() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_GetTeamAccountMembers_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_NoAuth_Personal() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
@@ -312,7 +312,7 @@ func (s *IntegrationTestSuite) Test_GetTeamAccountMembers_NoAuth_Personal() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_RemoveTeamAccountMember_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountMember_NoAuth_Personal() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.RemoveTeamAccountMember(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: accountId, UserId: uuid.NewString()}))
@@ -320,7 +320,7 @@ func (s *IntegrationTestSuite) Test_RemoveTeamAccountMember_NoAuth_Personal() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_InviteUserToTeamAccount_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_InviteUserToTeamAccount_NoAuth_Personal() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.InviteUserToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: accountId, Email: "test@example.com"}))
@@ -328,7 +328,7 @@ func (s *IntegrationTestSuite) Test_InviteUserToTeamAccount_NoAuth_Personal() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_GetTeamAccountInvites_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountInvites_NoAuth_Personal() {
 	accountId := s.createPersonalAccount(s.unauthUserClient)
 
 	resp, err := s.unauthUserClient.GetTeamAccountInvites(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: accountId}))
@@ -336,18 +336,18 @@ func (s *IntegrationTestSuite) Test_GetTeamAccountInvites_NoAuth_Personal() {
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
-func (s *IntegrationTestSuite) Test_RemoveTeamAccountInvite_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountInvite_NoAuth_Personal() {
 	resp, err := s.unauthUserClient.RemoveTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: uuid.NewString()}))
 	requireNoErrResp(s.T(), resp, err)
 }
 
-func (s *IntegrationTestSuite) Test_AcceptTeamAccountInvite_NoAuth_Personal() {
+func (s *IntegrationTestSuite) Test_UserAccountService_AcceptTeamAccountInvite_NoAuth_Personal() {
 	resp, err := s.unauthUserClient.AcceptTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.AcceptTeamAccountInviteRequest{Token: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeUnauthenticated)
 }
 
-func (s *IntegrationTestSuite) Test_GetSystemInformation() {
+func (s *IntegrationTestSuite) Test_UserAccountService_GetSystemInformation() {
 	resp, err := s.unauthUserClient.GetSystemInformation(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 }
