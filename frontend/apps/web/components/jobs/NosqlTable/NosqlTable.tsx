@@ -47,9 +47,16 @@ import {
   TransformerSource,
 } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
-import { TableIcon } from '@radix-ui/react-icons';
+import { CheckIcon, Pencil1Icon, TableIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
-import { HTMLProps, ReactElement, useEffect, useMemo, useRef } from 'react';
+import {
+  HTMLProps,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import FormErrorsCard, { FormError } from '../SchemaTable/FormErrorsCard';
@@ -77,7 +84,7 @@ interface Props {
   formErrors: FormError[];
   onAddMappings(values: AddNewNosqlRecordFormValues[]): void;
   onRemoveMappings(values: JobMappingFormValues[]): void;
-  onEditMappings(values: JobMappingFormValues[]): void;
+  onEditMappings(values: JobMappingFormValues, index: number): void;
 
   destinationOptions: EditDestinationOptionsFormValues[];
   destinationDetailsRecord: Record<string, DestinationDetails>;
@@ -105,16 +112,20 @@ export default function NosqlTable(props: Props): ReactElement {
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
   );
+
+  const collections = Array.from(Object.keys(schema));
+
   const columns = useMemo(
     () =>
       getColumns({
         onDelete(row) {
           onRemoveMappings([row]);
         },
-        onEdit(row) {
-          onEditMappings([row]);
+        onEdit(row, index) {
+          onEditMappings(row, index);
         },
         transformerHandler: handler,
+        collections: collections,
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
@@ -138,7 +149,7 @@ export default function NosqlTable(props: Props): ReactElement {
           </CardHeader>
           <CardContent>
             <AddNewRecord
-              collections={Array.from(Object.keys(schema))}
+              collections={collections}
               onSubmit={(values) => {
                 onAddMappings([values]);
               }}
@@ -345,11 +356,12 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 interface GetColumnsProps {
   onDelete(row: Row): void;
   transformerHandler: TransformerHandler;
-  onEdit(row: Row): void;
+  onEdit(row: Row, index: number): void;
+  collections: string[];
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const { onDelete, onEdit, transformerHandler } = props;
+  const { onDelete, transformerHandler, onEdit, collections } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -404,8 +416,24 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Collection" />
       ),
-      cell: ({ getValue }) => {
-        return <TruncatedText text={getValue<string>()} />;
+      cell: ({ getValue, row }) => {
+        return (
+          <EditCollection
+            collections={collections}
+            text={getValue<string>()}
+            onEdit={(updatedObject) => {
+              onEdit(
+                {
+                  schema: updatedObject.collection.split('.')[0],
+                  table: updatedObject.collection.split('.')[1],
+                  column: row.getValue('column'),
+                  transformer: row.getValue('transformer'),
+                },
+                row.index
+              );
+            }}
+          />
+        );
       },
       maxSize: 500,
       size: 300,
@@ -417,7 +445,22 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       ),
       cell: ({ row }) => {
         const text = row.getValue<string>('column');
-        return <TruncatedText text={text} />;
+        return (
+          <EditDocumentKey
+            text={text}
+            onEdit={(updatedObject) => {
+              onEdit(
+                {
+                  schema: row.getValue('schema'),
+                  table: row.getValue('table'),
+                  column: updatedObject.column,
+                  transformer: row.getValue('transformer'),
+                },
+                row.index
+              );
+            }}
+          />
+        );
       },
       maxSize: 500,
       size: 200,
@@ -458,12 +501,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                   buttonText={buttonText}
                   value={fv}
                   onSelect={(updatedTransformer) =>
-                    onEdit({
-                      schema: row.getValue('schema'),
-                      table: row.getValue('table'),
-                      column: row.getValue('column'),
-                      transformer: updatedTransformer,
-                    })
+                    onEdit(
+                      {
+                        schema: row.getValue('schema'),
+                        table: row.getValue('table'),
+                        column: row.getValue('column'),
+                        transformer: updatedTransformer,
+                      },
+                      row.index
+                    )
                   }
                   side={'left'}
                   disabled={false}
@@ -474,12 +520,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 transformer={transformer ?? new SystemTransformer()}
                 value={fv}
                 onSubmit={(updatedTransformer) => {
-                  onEdit({
-                    schema: row.getValue('schema'),
-                    table: row.getValue('table'),
-                    column: row.getValue('column'),
-                    transformer: updatedTransformer,
-                  });
+                  onEdit(
+                    {
+                      schema: row.getValue('schema'),
+                      table: row.getValue('table'),
+                      column: row.getValue('column'),
+                      transformer: updatedTransformer,
+                    },
+                    row.index
+                  );
                 }}
                 disabled={!transformer}
               />
@@ -530,5 +579,107 @@ function IndeterminateCheckbox({
       className={className + ' cursor-pointer '}
       {...rest}
     />
+  );
+}
+interface EditDocumentKeyProps {
+  text: string;
+  onEdit: (updatedObject: { column: string }) => void;
+}
+
+function EditDocumentKey({ text, onEdit }: EditDocumentKeyProps): ReactElement {
+  const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState<string>(text);
+
+  const handleSave = () => {
+    onEdit({ column: inputValue });
+    setIsEditingMapping(false);
+  };
+
+  return (
+    <div className="w-full flex flex-row items-center gap-4">
+      {isEditingMapping ? (
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+        />
+      ) : (
+        <TruncatedText text={inputValue} />
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden h-[36px] lg:flex"
+        type="button"
+        onClick={() => {
+          if (isEditingMapping) {
+            handleSave();
+          } else {
+            setIsEditingMapping(true);
+          }
+        }}
+      >
+        {isEditingMapping ? <CheckIcon /> : <Pencil1Icon />}
+      </Button>
+    </div>
+  );
+}
+
+interface EditCollectionProps {
+  collections: string[];
+  text: string;
+  onEdit: (updatedObject: { collection: string }) => void;
+}
+
+function EditCollection(props: EditCollectionProps): ReactElement {
+  const { collections, text, onEdit } = props;
+
+  const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
+  const [isSelectedCollection, setSelectedCollection] = useState<string>(text);
+
+  const handleSave = () => {
+    onEdit({ collection: isSelectedCollection });
+    setIsEditingMapping(false);
+  };
+
+  return (
+    <div className="w-full flex flex-row items-center gap-4">
+      {isEditingMapping ? (
+        <Select
+          onValueChange={(val) => setSelectedCollection(val)}
+          value={isSelectedCollection}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder="Select a collection"
+              className="placeholder:text-muted-foreground/70"
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {collections.map((collection) => (
+              <SelectItem value={collection} key={collection}>
+                {collection}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <TruncatedText text={isSelectedCollection} />
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden h-[36px] lg:flex"
+        type="button"
+        onClick={() => {
+          if (isEditingMapping) {
+            handleSave();
+          } else {
+            setIsEditingMapping(true);
+          }
+        }}
+      >
+        {isEditingMapping ? <CheckIcon /> : <Pencil1Icon />}
+      </Button>
+    </div>
   );
 }
