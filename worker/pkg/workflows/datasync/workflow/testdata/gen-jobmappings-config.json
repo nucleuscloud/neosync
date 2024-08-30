@@ -44,5 +44,10 @@
 		"folder": "postgres/subsetting",
 		"sql_file": "setup.sql", 
 		"driver": "postgres"
+	},
+	{
+		"folder":"mssql/simple",
+		"sql_file": "create-table.sql", 
+		"driver": "sqlserver"
 	}
 ]

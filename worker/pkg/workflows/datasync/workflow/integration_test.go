@@ -661,94 +661,106 @@ func (s *IntegrationTestSuite) DropMongoDbCollection(ctx context.Context, client
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
 	// postgres
-	for _, db := range s.postgres.databases {
-		_, err := s.postgres.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
-		if err != nil {
-			panic(err)
+	if s.postgres != nil {
+		for _, db := range s.postgres.databases {
+			_, err := s.postgres.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
+			if err != nil {
+				panic(err)
+			}
 		}
-	}
-	if s.postgres.source.pool != nil {
-		s.postgres.source.pool.Close()
-	}
-	if s.postgres.target.pool != nil {
-		s.postgres.target.pool.Close()
-	}
-	if s.postgres.pool != nil {
-		s.postgres.pool.Close()
-	}
-	if s.postgres.testcontainer != nil {
-		err := s.postgres.testcontainer.Terminate(s.ctx)
-		if err != nil {
-			panic(err)
+		if s.postgres.source.pool != nil {
+			s.postgres.source.pool.Close()
+		}
+		if s.postgres.target.pool != nil {
+			s.postgres.target.pool.Close()
+		}
+		if s.postgres.pool != nil {
+			s.postgres.pool.Close()
+		}
+		if s.postgres.testcontainer != nil {
+			err := s.postgres.testcontainer.Terminate(s.ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	// mssql
-	if s.mssql.source.pool != nil {
-		s.mssql.source.pool.Close()
-	}
-	if s.mssql.target.pool != nil {
-		s.mssql.target.pool.Close()
-	}
-	if s.mssql.pool != nil {
-		s.mssql.pool.Close()
-	}
-	if s.mssql.testcontainer != nil {
-		err := s.mssql.testcontainer.Terminate(s.ctx)
-		if err != nil {
-			panic(err)
+	if s.mssql != nil {
+		if s.mssql.source.pool != nil {
+			s.mssql.source.pool.Close()
+		}
+		if s.mssql.target.pool != nil {
+			s.mssql.target.pool.Close()
+		}
+		if s.mssql.pool != nil {
+			s.mssql.pool.Close()
+		}
+		if s.mssql.testcontainer != nil {
+			err := s.mssql.testcontainer.Terminate(s.ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	// mysql
-	s.mysql.source.close()
-	s.mysql.target.close()
-	if s.mysql.source.container != nil {
-		err := s.mysql.source.container.Terminate(s.ctx)
-		if err != nil {
-			panic(err)
+	if s.mysql != nil {
+		s.mysql.source.close()
+		s.mysql.target.close()
+		if s.mysql.source.container != nil {
+			err := s.mysql.source.container.Terminate(s.ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
-	}
-	if s.mysql.target.container != nil {
-		err := s.mysql.target.container.Terminate(s.ctx)
-		if err != nil {
-			panic(err)
+		if s.mysql.target.container != nil {
+			err := s.mysql.target.container.Terminate(s.ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	// redis
-	if s.redis.testcontainer != nil {
-		if err := s.redis.testcontainer.Terminate(s.ctx); err != nil {
-			panic(err)
+	if s.redis != nil {
+		if s.redis.testcontainer != nil {
+			if err := s.redis.testcontainer.Terminate(s.ctx); err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	// localstack
-	if s.dynamo.container != nil {
-		if err := s.dynamo.container.Terminate(s.ctx); err != nil {
-			panic(err)
+	if s.dynamo != nil {
+		if s.dynamo.container != nil {
+			if err := s.dynamo.container.Terminate(s.ctx); err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	// mongodb
-	if s.mongodb.source.client != nil {
-		if err := s.mongodb.source.client.Disconnect(s.ctx); err != nil {
-			panic(err)
+	if s.mongodb != nil {
+		if s.mongodb.source.client != nil {
+			if err := s.mongodb.source.client.Disconnect(s.ctx); err != nil {
+				panic(err)
+			}
 		}
-	}
-	if s.mongodb.source.testcontainer != nil {
-		if err := s.mongodb.source.testcontainer.Terminate(s.ctx); err != nil {
-			panic(err)
+		if s.mongodb.source.testcontainer != nil {
+			if err := s.mongodb.source.testcontainer.Terminate(s.ctx); err != nil {
+				panic(err)
+			}
 		}
-	}
-	if s.mongodb.target.client != nil {
-		if err := s.mongodb.target.client.Disconnect(s.ctx); err != nil {
-			panic(err)
+		if s.mongodb.target.client != nil {
+			if err := s.mongodb.target.client.Disconnect(s.ctx); err != nil {
+				panic(err)
+			}
 		}
-	}
-	if s.mongodb.target.testcontainer != nil {
-		if err := s.mongodb.target.testcontainer.Terminate(s.ctx); err != nil {
-			panic(err)
+		if s.mongodb.target.testcontainer != nil {
+			if err := s.mongodb.target.testcontainer.Terminate(s.ctx); err != nil {
+				panic(err)
+			}
 		}
 	}
 }
