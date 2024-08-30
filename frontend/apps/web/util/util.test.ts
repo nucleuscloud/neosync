@@ -407,6 +407,12 @@ describe('getTransformerSourceString', () => {
     expect(result).toBe('generate_state');
   });
 
+  it("should return 'generate_country' for GENERATE_COUNTRY source", () => {
+    const input = TransformerSource.GENERATE_COUNTRY;
+    const result = getTransformerSourceString(input);
+    expect(result).toBe('generate_country');
+  });
+
   it("should return 'generate_street_address' for GENERATE_STREET_ADDRESS source", () => {
     const input = TransformerSource.GENERATE_STREET_ADDRESS;
     const result = getTransformerSourceString(input);
