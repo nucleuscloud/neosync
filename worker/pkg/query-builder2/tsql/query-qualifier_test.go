@@ -26,9 +26,9 @@ func Test_QualifyWhereCondition(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name:     "JOIN with qualified columns",
-			inputSQL: "SELECT u.id, o.order_id FROM users u JOIN orders o ON u.id = o.user_id WHERE o.amount > 100",
-			expected: `SELECT u.id, o.order_id FROM users u JOIN orders o ON u.id = o.user_id WHERE o.amount > 100`,
+			name:     "Update WHERE clause with alias",
+			inputSQL: `SELECT * FROM "t_b2255c5d029d69e4" WHERE "users"."user_id" in ( 1, 2, 5, 6, 7, 8 )`,
+			expected: `SELECT * FROM "t_b2255c5d029d69e4" WHERE "t_b2255c5d029d69e4"."user_id" in ( 1, 2, 5, 6, 7, 8 )`,
 			wantErr:  false,
 		},
 		{

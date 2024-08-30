@@ -778,7 +778,7 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 	}
 }
 
-func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset() {
+func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"genbenthosconfigs_querybuilder.attachments": {
 			{Columns: []string{"uploaded_by"}, NotNullable: []bool{false}, ForeignKey: &sqlmanager_shared.ForeignKey{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},

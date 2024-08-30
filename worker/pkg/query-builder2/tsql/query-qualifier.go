@@ -99,21 +99,44 @@ func (l *tsqlListener) VisitTerminal(node antlr.TerminalNode) {
 	}
 }
 
-// updates column name to include table
-func (l *tsqlListener) EnterFull_column_name(ctx *parser.Full_column_nameContext) {
-	if !l.inSearchCondition || (ctx.Full_table_name() != nil && ctx.Full_table_name().GetText() != "") {
-		return
-	}
-	originalToken := ctx.GetStart()
-	sourcePair := originalToken.GetSource()
-	tokenType := originalToken.GetTokenType()
+func (l *tsqlListener) SetToken(startToken, stopToken antlr.Token, text string) *antlr.CommonToken {
+	sourcePair := startToken.GetSource()
+	tokenType := startToken.GetTokenType()
 
-	startIndex := originalToken.GetStart()
-	stopIndex := ctx.GetStop().GetStop()
-	channel := originalToken.GetChannel()
+	startIndex := startToken.GetStart()
+	stopIndex := stopToken.GetStop()
+	channel := startToken.GetChannel()
 
 	newToken := antlr.NewCommonToken(sourcePair, tokenType, channel, startIndex, stopIndex)
-	newToken.SetText(fmt.Sprintf("%s.%q", l.currentTable, ctx.GetText()))
+	newToken.SetText(text)
+	return newToken
+}
+
+// update table name and add qualifiers
+func (l *tsqlListener) EnterFull_table_name(ctx *parser.Full_table_nameContext) {
+	if !l.inSearchCondition {
+		return
+	}
+	newToken := l.SetToken(ctx.GetStart(), ctx.GetStop(), ensureQuoted(l.currentTable))
+	ctx.RemoveLastChild()
+	ctx.AddTokenNode(newToken)
+}
+
+// updates column name
+// add table name if missing
+func (l *tsqlListener) EnterFull_column_name(ctx *parser.Full_column_nameContext) {
+	if !l.inSearchCondition {
+		return
+	}
+
+	var text string
+	if ctx.Full_table_name() == nil || ctx.Full_table_name().GetText() == "" {
+		text = fmt.Sprintf("%s.%s", ensureQuoted(l.currentTable), parseColumnName(ctx.GetText()))
+	} else {
+		text = parseColumnName(ctx.GetText())
+	}
+
+	newToken := l.SetToken(ctx.GetStart(), ctx.GetStop(), text)
 	ctx.RemoveLastChild()
 	ctx.AddTokenNode(newToken)
 }
@@ -142,6 +165,24 @@ func QualifyWhereCondition(sql string) (string, error) {
 	}
 
 	return listener.SqlString(), nil
+}
+
+func parseColumnName(colText string) string {
+	split := strings.Split(colText, ".")
+	if len(split) == 1 {
+		return ensureQuoted(split[0])
+	}
+	if len(split) == 2 {
+		return ensureQuoted(split[1])
+	}
+	return ensureQuoted(colText)
+}
+
+func ensureQuoted(str string) string {
+	if strings.HasPrefix(str, `"`) && strings.HasSuffix(str, `"`) {
+		return str
+	}
+	return fmt.Sprintf("%q", str)
 }
 
 // adds quotes around schema and table
