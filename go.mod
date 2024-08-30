@@ -1,6 +1,6 @@
 module github.com/nucleuscloud/neosync
 
-go 1.23.0
+go 1.22.2
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240717164558-a6c49f84cc0f.2
@@ -42,7 +42,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/microsoft/go-mssqldb v1.7.2
-	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240829174308-102ca1285907
+	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240830015744-041b46c70aa5
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.20.2
 	github.com/prometheus/common v0.55.0
