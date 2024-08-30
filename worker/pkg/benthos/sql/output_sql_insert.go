@@ -26,7 +26,9 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching"))
+		Field(service.NewBatchPolicyField("batching")).
+		Field(service.NewStringField("prefix")).
+		Field(service.NewStringField("suffix"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -92,6 +94,8 @@ type pooledInsertOutput struct {
 	columns             []string
 	onConflictDoNothing bool
 	truncateOnRetry     bool
+	prefix              *string
+	suffix              *string
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -133,6 +137,24 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	var prefix *string
+	if conf.Contains("prefix") {
+		prefixStr, err := conf.FieldString("prefix")
+		if err != nil {
+			return nil, err
+		}
+		prefix = &prefixStr
+	}
+
+	var suffix *string
+	if conf.Contains("suffix") {
+		prefixStr, err := conf.FieldString("suffix")
+		if err != nil {
+			return nil, err
+		}
+		prefix = &prefixStr
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -152,6 +174,8 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		columns:             columns,
 		onConflictDoNothing: onConflictDoNothing,
 		truncateOnRetry:     truncateOnRetry,
+		prefix:              prefix,
+		suffix:              suffix,
 		isRetry:             isRetry,
 	}
 	return output, nil
@@ -240,11 +264,18 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		rows = append(rows, args)
 	}
 
-	query, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, rows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, rows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
-	if _, err := s.db.ExecContext(ctx, query); err != nil {
+
+	if s.prefix != nil {
+		insertQuery = *s.prefix + insertQuery
+	}
+	if s.suffix != nil {
+		insertQuery += insertQuery + *s.suffix
+	}
+	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
 		return err
 	}
 	return nil
