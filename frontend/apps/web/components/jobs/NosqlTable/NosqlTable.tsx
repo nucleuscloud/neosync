@@ -124,8 +124,12 @@ export default function NosqlTable(props: Props): ReactElement {
         onEdit(row, index) {
           onEditMappings(row, index);
         },
+        onDuplicate(row) {
+          onAddMappings(row);
+        },
         transformerHandler: handler,
         collections: collections,
+        data: data,
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
@@ -355,13 +359,22 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 
 interface GetColumnsProps {
   onDelete(row: Row): void;
+  onDuplicate(row: AddNewNosqlRecordFormValues[]): void;
   transformerHandler: TransformerHandler;
   onEdit(row: Row, index: number): void;
   collections: string[];
+  data: JobMappingFormValues[];
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const { onDelete, transformerHandler, onEdit, collections } = props;
+  const {
+    onDelete,
+    transformerHandler,
+    onEdit,
+    collections,
+    onDuplicate,
+    data,
+  } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -544,6 +557,22 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         return (
           <DataTableRowActions
             row={row}
+            onDuplicate={() => {
+              console.log('data', data);
+              onDuplicate([
+                {
+                  collection: `${row.getValue('schema')}.${row.getValue('table')}`,
+                  // key: row.getValue('column') + 'copy', // need a way to check that we're not able to create multiple rows with the same keys
+                  key: CreateDuplicatingMapping(
+                    row.getValue('schema'),
+                    row.getValue('table'),
+                    row.getValue('column'),
+                    data
+                  ),
+                  transformer: row.getValue('transformer'),
+                },
+              ]);
+            }}
             onDelete={() =>
               onDelete({
                 schema: row.getValue('schema'),
@@ -557,6 +586,32 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       },
     },
   ];
+}
+
+// searches through the table and creates a unique row copy based on the schema, table and column
+function CreateDuplicatingMapping(
+  schema: string,
+  table: string,
+  key: string,
+  data: JobMappingFormValues[]
+): string {
+  let maxSuffix = 0;
+
+  data.forEach((item) => {
+    if (item.schema === schema && item.table === table) {
+      const match = item.column.match(new RegExp(`^${key}_(\\d+)$`));
+      if (match) {
+        const suffix = parseInt(match[1], 10);
+        if (suffix > maxSuffix) {
+          maxSuffix = suffix;
+        }
+      }
+    }
+  });
+
+  const newSuffix = maxSuffix + 1;
+  const newKey = `${key}_${newSuffix}`;
+  return newKey;
 }
 
 function IndeterminateCheckbox({
