@@ -23,26 +23,26 @@ func BuildSelectQueryMap(
 		}
 	}
 	for _, rc := range runConfigs {
-		td, ok := tableDependencies[rc.Table]
+		td, ok := tableDependencies[rc.Table()]
 		if !ok {
 			td = &TableConstraints{
 				PrimaryKeys: []*sqlmanager_shared.PrimaryKey{},
-				ForeignKeys: tableFkConstraints[rc.Table],
+				ForeignKeys: tableFkConstraints[rc.Table()],
 			}
-			tableDependencies[rc.Table] = td
+			tableDependencies[rc.Table()] = td
 		}
 		td.PrimaryKeys = append(td.PrimaryKeys, &sqlmanager_shared.PrimaryKey{
-			Columns: rc.PrimaryKeys,
+			Columns: rc.PrimaryKeys(),
 		})
 	}
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
 
 	for _, cfg := range runConfigs {
-		if cfg.RunType != tabledependency.RunTypeInsert || cfg.WhereClause == nil || *cfg.WhereClause == "" {
+		if cfg.RunType() != tabledependency.RunTypeInsert || cfg.WhereClause == nil || *cfg.WhereClause() == "" {
 			continue
 		}
-		schema, table := splitTable(cfg.Table)
-		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(nil, table, *cfg.WhereClause)
+		schema, table := splitTable(cfg.Table())
+		qualifiedWhereCaluse, err := qb.qualifyWhereCondition(nil, table, *cfg.WhereClause())
 		if err != nil {
 			return nil, err
 		}
@@ -51,15 +51,15 @@ func BuildSelectQueryMap(
 
 	querymap := map[string]map[tabledependency.RunType]string{}
 	for _, cfg := range runConfigs {
-		if _, ok := querymap[cfg.Table]; !ok {
-			querymap[cfg.Table] = map[tabledependency.RunType]string{}
+		if _, ok := querymap[cfg.Table()]; !ok {
+			querymap[cfg.Table()] = map[tabledependency.RunType]string{}
 		}
-		schema, table := splitTable(cfg.Table)
+		schema, table := splitTable(cfg.Table())
 		query, _, err := qb.BuildQuery(schema, table)
 		if err != nil {
 			return nil, err
 		}
-		querymap[cfg.Table][cfg.RunType] = query
+		querymap[cfg.Table()][cfg.RunType()] = query
 	}
 
 	return querymap, nil

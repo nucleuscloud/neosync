@@ -201,11 +201,11 @@ func buildBenthosSqlSourceConfigResponses(
 	transformedForeignKeyToSourceMap := getTransformedFksMap(tableDependencies, colTransformerMap)
 
 	for _, config := range runconfigs {
-		mappings, ok := groupedTableMapping[config.Table]
+		mappings, ok := groupedTableMapping[config.Table()]
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table)
 		}
-		query, ok := tableRunTypeQueryMap[config.Table][config.RunType]
+		query, ok := tableRunTypeQueryMap[config.Table()][config.RunType()]
 		if !ok {
 			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table, config.RunType)
 		}
@@ -236,9 +236,9 @@ func buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table]
-		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table]
-		colInfoMap := groupedColumnInfo[config.Table]
+		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table()]
+		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table()]
+		colInfoMap := groupedColumnInfo[config.Table()]
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
@@ -264,16 +264,16 @@ func buildBenthosSqlSourceConfigResponses(
 		responses = append(responses, &BenthosConfigResponse{
 			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
 			Config:         bc,
-			DependsOn:      config.DependsOn,
+			DependsOn:      config.DependsOn(),
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
-			RunType:        config.RunType,
+			RunType:        config.RunType(),
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
-			Columns:     config.InsertColumns,
-			primaryKeys: config.PrimaryKeys,
+			Columns:     config.InsertColumns(),
+			primaryKeys: config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -289,7 +289,7 @@ func buildBenthosSqlSourceConfigResponses(
 func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
 	for col, fks := range transformedForeignKeyToSourceMap {
-		if !slices.Contains(runconfig.InsertColumns, col) {
+		if !slices.Contains(runconfig.InsertColumns(), col) {
 			continue
 		}
 		for _, fk := range fks {
@@ -299,8 +299,8 @@ func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*refer
 			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
 		}
 	}
-	if runconfig.RunType == tabledependency.RunTypeUpdate && len(redisDependsOnMap) != 0 {
-		redisDependsOnMap[runconfig.Table] = runconfig.PrimaryKeys
+	if runconfig.RunType() == tabledependency.RunTypeUpdate && len(redisDependsOnMap) != 0 {
+		redisDependsOnMap[runconfig.Table()] = runconfig.PrimaryKeys()
 	}
 	return redisDependsOnMap
 }
@@ -341,7 +341,7 @@ func buildProcessorConfigsByRunType(
 	jobSourceOptions *mgmtv1alpha1.JobSourceOptions,
 	mappedKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-	if config.RunType == tabledependency.RunTypeUpdate {
+	if config.RunType() == tabledependency.RunTypeUpdate {
 		// sql update processor configs
 		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, transformedFktoPkMap)
 		if err != nil {
