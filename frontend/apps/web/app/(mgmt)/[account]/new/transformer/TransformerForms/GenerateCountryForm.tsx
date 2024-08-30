@@ -1,0 +1,47 @@
+'use client';
+import { FormDescription, FormLabel } from '@/components/ui/form';
+
+import FormErrorMessage from '@/components/FormErrorMessage';
+import { Switch } from '@/components/ui/switch';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { GenerateCountry } from '@neosync/sdk';
+import { ReactElement } from 'react';
+import { TransformerConfigProps } from './util';
+
+interface Props
+  extends TransformerConfigProps<
+    GenerateCountry,
+    PlainMessage<GenerateCountry>
+  > {}
+
+export default function GenerateCountryForm(props: Props): ReactElement {
+  const { value, setValue, isDisabled, errors } = props;
+
+  return (
+    <div className="flex flex-col w-full space-y-4 pt-4">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+        <div className="space-y-0.5">
+          <FormLabel>Generate Full Name</FormLabel>
+          <FormDescription>
+            Set to true to return the full country name with a capitalized first
+            letter. Returns the 2-letter country code by default.
+          </FormDescription>
+        </div>
+        <div className="flex flex-col ">
+          <div className="justify-end flex">
+            <Switch
+              checked={value.generateFullName}
+              onCheckedChange={(checked) =>
+                setValue(
+                  new GenerateCountry({ ...value, generateFullName: checked })
+                )
+              }
+              disabled={isDisabled}
+            />
+          </div>
+          <FormErrorMessage message={errors?.generateFullName?.message} />
+        </div>
+      </div>
+    </div>
+  );
+}

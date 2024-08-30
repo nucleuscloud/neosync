@@ -344,6 +344,12 @@ const generateCategoricalConfig = Yup.object().shape({
     ),
 });
 
+const generateCountryConfig = Yup.object().shape({
+  generateFullName: Yup.boolean()
+    .default(false)
+    .required('This field is required'),
+});
+
 type ConfigType = TransformerConfig['config'];
 
 // Helper function to extract the 'case' property from a config type
@@ -405,6 +411,7 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   transformCharacterScrambleConfig: transformCharacterScrambleConfig,
   generateJavascriptConfig: JavascriptConfig,
   generateStateConfig: generateStateConfig,
+  generateCountryConfig: generateCountryConfig,
 } as const;
 
 // This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase

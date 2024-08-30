@@ -4,6 +4,7 @@ import { ReactElement } from 'react';
 import { FieldErrors } from 'react-hook-form';
 import GenerateCardNumberForm from './GenerateCardNumber';
 import GenerateCategoricalForm from './GenerateCategoricalForm';
+import GenerateCountryForm from './GenerateCountryForm';
 import GenerateEmailForm from './GenerateEmailForm';
 import GenerateFloat64Form from './GenerateFloat64Form';
 import GenerateGenderForm from './GenerateGenderForm';
@@ -390,6 +391,21 @@ export default function TransformerForm(props: Props): ReactElement {
     case 'generateJavascriptConfig':
       return (
         <GenerateJavascriptForm
+          value={valConfig.value}
+          setValue={(newVal) =>
+            setValue(
+              new TransformerConfig({
+                config: { case: valConfig.case, value: newVal },
+              })
+            )
+          }
+          isDisabled={disabled}
+          errors={errors?.config?.value}
+        />
+      );
+    case 'generateCountryConfig':
+      return (
+        <GenerateCountryForm
           value={valConfig.value}
           setValue={(newVal) =>
             setValue(

@@ -234,6 +234,11 @@ export enum TransformerSource {
    * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT = 45;
    */
   GENERATE_JAVASCRIPT = 45,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_COUNTRY = 46;
+   */
+  GENERATE_COUNTRY = 46,
 }
 // Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
 proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
@@ -282,6 +287,7 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
   { no: 43, name: "TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE" },
   { no: 44, name: "TRANSFORMER_SOURCE_USER_DEFINED" },
   { no: 45, name: "TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT" },
+  { no: 46, name: "TRANSFORMER_SOURCE_GENERATE_COUNTRY" },
 ]);
 
 /**

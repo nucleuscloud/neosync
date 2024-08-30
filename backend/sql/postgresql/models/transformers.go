@@ -52,7 +52,7 @@ type TransformerConfigs struct {
 	GenerateCategorical        *GenerateCategoricalConfig       `json:"generateCategorical,omitempty"`
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
-	// GenerateCountry            *GenerateCountry                 `json:"generateCountryConfig,omitempty"`
+	GenerateCountry            *GenerateCountryConfig           `json:"generateCountryConfig,omitempty"`
 }
 
 type GenerateEmailConfig struct {
@@ -199,6 +199,10 @@ type TransformCharacterScramble struct {
 
 type GenerateJavascript struct {
 	Code string `json:"code"`
+}
+
+type GenerateCountryConfig struct {
+	GenerateFullName bool `json:"generateFullName"`
 }
 
 // from API -> DB
@@ -368,6 +372,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig:
 		t.GenerateJavascript = &GenerateJavascript{
 			Code: tr.GetGenerateJavascriptConfig().Code,
+		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
+		t.GenerateCountry = &GenerateCountryConfig{
+			GenerateFullName: tr.GetGenerateCountryConfig().GenerateFullName,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -707,6 +715,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
 				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
 					Code: t.GenerateJavascript.Code,
+				},
+			},
+		}
+	case t.GenerateCountry != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
+				GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
+					GenerateFullName: t.GenerateCountry.GenerateFullName,
 				},
 			},
 		}
