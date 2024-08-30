@@ -1,4 +1,4 @@
-package v1alpha1_useraccountservice
+package integrationtests_test
 
 import (
 	"context"
@@ -19,12 +19,12 @@ import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
-	down_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/down"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -87,24 +87,24 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.mockAuthClient = auth_client.NewMockInterface(s.T())
 	s.mockAuthMgmtClient = authmgmt.NewMockInterface(s.T())
 
-	unauthService := New(
-		&Config{IsAuthEnabled: false, IsNeosyncCloud: false},
+	unauthdUserService := v1alpha1_useraccountservice.New(
+		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mockTemporalClientMgr,
 		s.mockAuthClient,
 		s.mockAuthMgmtClient,
 	)
 
-	authService := New(
-		&Config{IsAuthEnabled: true, IsNeosyncCloud: false},
+	authdUserService := v1alpha1_useraccountservice.New(
+		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mockTemporalClientMgr,
 		s.mockAuthClient,
 		s.mockAuthMgmtClient,
 	)
 
-	ncNoAuthService := New(
-		&Config{IsAuthEnabled: false, IsNeosyncCloud: true},
+	neoCloudUnauthdUserService := v1alpha1_useraccountservice.New(
+		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: true},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mockTemporalClientMgr,
 		s.mockAuthClient,
@@ -115,13 +115,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthmux := http.NewServeMux()
 	unauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		unauthService,
+		unauthdUserService,
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
 	authmux := http.NewServeMux()
 	authmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		authService,
+		authdUserService,
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
 				// will need to further fill this out as the tests grow
@@ -139,7 +139,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	ncnoauthmux := http.NewServeMux()
 	ncnoauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		ncNoAuthService,
+		neoCloudUnauthdUserService,
 	))
 	rootmux.Handle("/ncnoauth/", http.StripPrefix("/ncnoauth", ncnoauthmux))
 
@@ -162,8 +162,14 @@ func (s *IntegrationTestSuite) SetupTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := down_cmd.Down(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+	// Dropping here because 1) more efficient and 2) we have a bad down migration
+	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
+	// we should do something about that at some point. Running this single drop is easier though
+	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
 	if err != nil {
 		panic(err)
 	}
