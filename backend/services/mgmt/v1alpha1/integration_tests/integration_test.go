@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
@@ -24,8 +26,15 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
+	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
+	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
+	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -36,6 +45,8 @@ import (
 type unauthdClients struct {
 	users        mgmtv1alpha1connect.UserAccountServiceClient
 	transformers mgmtv1alpha1connect.TransformersServiceClient
+	connections  mgmtv1alpha1connect.ConnectionServiceClient
+	jobs         mgmtv1alpha1connect.JobServiceClient
 }
 
 type neosyncCloudClients struct {
@@ -142,6 +153,31 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		unauthdUserService,
 	)
 
+	unauthdConnectionsService := v1alpha1_connectionservice.New(
+		&v1alpha1_connectionservice.Config{},
+		nucleusdb.New(pool, db_queries.New()),
+		unauthdUserService,
+		&sqlconnect.SqlOpenConnector{},
+		pg_queries.New(),
+		mysql_queries.New(),
+		mssql_queries.New(),
+		mongoconnect.NewConnector(),
+		awsmanager.New(),
+	)
+	unauthdJobsService := v1alpha1_jobservice.New(
+		&v1alpha1_jobservice.Config{},
+		nucleusdb.New(pool, db_queries.New()),
+		s.mocks.temporalClientManager,
+		unauthdConnectionsService,
+		unauthdUserService,
+		sqlmanager.NewSqlManager(
+			&sync.Map{}, pg_queries.New(),
+			&sync.Map{}, mysql_queries.New(),
+			&sync.Map{}, mssql_queries.New(),
+			&sqlconnect.SqlOpenConnector{},
+		),
+	)
+
 	rootmux := http.NewServeMux()
 
 	unauthmux := http.NewServeMux()
@@ -150,6 +186,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	))
 	unauthmux.Handle(mgmtv1alpha1connect.NewTransformersServiceHandler(
 		unauthdTransformersService,
+	))
+	unauthmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(
+		unauthdConnectionsService,
+	))
+	unauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(
+		unauthdJobsService,
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
@@ -182,6 +224,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.unauthdClients = &unauthdClients{
 		users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 		transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		connections:  mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		jobs:         mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 	}
 
 	s.authdClients = &authdClients{
