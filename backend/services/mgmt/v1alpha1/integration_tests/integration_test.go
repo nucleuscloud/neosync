@@ -24,6 +24,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
@@ -31,6 +32,29 @@ import (
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
+
+type unauthdClients struct {
+	users        mgmtv1alpha1connect.UserAccountServiceClient
+	transformers mgmtv1alpha1connect.TransformersServiceClient
+}
+
+type neosyncCloudClients struct {
+	users mgmtv1alpha1connect.UserAccountServiceClient
+}
+
+type authdClients struct {
+	httpsrv *httptest.Server
+}
+
+func (s *authdClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+"/auth")
+}
+
+type mocks struct {
+	temporalClientManager *clientmanager.MockTemporalClientManagerClient
+	authclient            *auth_client.MockInterface
+	authmanagerclient     *authmgmt.MockInterface
+}
 
 type IntegrationTestSuite struct {
 	suite.Suite
@@ -46,12 +70,11 @@ type IntegrationTestSuite struct {
 
 	httpsrv *httptest.Server
 
-	unauthUserClient   mgmtv1alpha1connect.UserAccountServiceClient
-	ncunauthUserClient mgmtv1alpha1connect.UserAccountServiceClient
+	unauthdClients      *unauthdClients
+	neosyncCloudClients *neosyncCloudClients
+	authdClients        *authdClients
 
-	mockTemporalClientMgr *clientmanager.MockTemporalClientManagerClient
-	mockAuthClient        *auth_client.MockInterface
-	mockAuthMgmtClient    *authmgmt.MockInterface
+	mocks *mocks
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
@@ -83,32 +106,40 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.querier = pg_queries.New()
 	s.migrationsDir = "../../../../sql/postgresql/schema"
 
-	s.mockTemporalClientMgr = clientmanager.NewMockTemporalClientManagerClient(s.T())
-	s.mockAuthClient = auth_client.NewMockInterface(s.T())
-	s.mockAuthMgmtClient = authmgmt.NewMockInterface(s.T())
+	s.mocks = &mocks{
+		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(s.T()),
+		authclient:            auth_client.NewMockInterface(s.T()),
+		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
+	}
 
 	unauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false},
 		nucleusdb.New(pool, db_queries.New()),
-		s.mockTemporalClientMgr,
-		s.mockAuthClient,
-		s.mockAuthMgmtClient,
+		s.mocks.temporalClientManager,
+		s.mocks.authclient,
+		s.mocks.authmanagerclient,
 	)
 
 	authdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
 		nucleusdb.New(pool, db_queries.New()),
-		s.mockTemporalClientMgr,
-		s.mockAuthClient,
-		s.mockAuthMgmtClient,
+		s.mocks.temporalClientManager,
+		s.mocks.authclient,
+		s.mocks.authmanagerclient,
 	)
 
 	neoCloudUnauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: true},
 		nucleusdb.New(pool, db_queries.New()),
-		s.mockTemporalClientMgr,
-		s.mockAuthClient,
-		s.mockAuthMgmtClient,
+		s.mocks.temporalClientManager,
+		s.mocks.authclient,
+		s.mocks.authmanagerclient,
+	)
+
+	unauthdTransformersService := v1alpha1_transformersservice.New(
+		&v1alpha1_transformersservice.Config{},
+		nucleusdb.New(pool, db_queries.New()),
+		unauthdUserService,
 	)
 
 	rootmux := http.NewServeMux()
@@ -116,6 +147,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	unauthmux := http.NewServeMux()
 	unauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
 		unauthdUserService,
+	))
+	unauthmux.Handle(mgmtv1alpha1connect.NewTransformersServiceHandler(
+		unauthdTransformersService,
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
@@ -144,12 +178,18 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	rootmux.Handle("/ncnoauth/", http.StripPrefix("/ncnoauth", ncnoauthmux))
 
 	s.httpsrv = startHTTPServer(s.T(), rootmux)
-	s.unauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth")
-	s.ncunauthUserClient = mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/ncnoauth")
-}
 
-func (s *IntegrationTestSuite) getAuthUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+"/auth")
+	s.unauthdClients = &unauthdClients{
+		users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+	}
+
+	s.authdClients = &authdClients{
+		httpsrv: s.httpsrv,
+	}
+	s.neosyncCloudClients = &neosyncCloudClients{
+		users: mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/ncnoauth"),
+	}
 }
 
 // Runs before each test
