@@ -67,7 +67,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{"address"}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"address"}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -125,7 +125,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{"test"}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"test"}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -193,7 +193,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: ageCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{nameCol, ageCol}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, ageCol}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -262,7 +262,7 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 			{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 			{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}},
 		map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{nameCol, col2}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{nameCol, col2}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -321,7 +321,7 @@ func Test_buildProcessorConfigsJavascript_DeepKeys(t *testing.T) {
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, false),
 		nil,
 		[]string{},
 	)
@@ -385,7 +385,7 @@ func Test_buildProcessorConfigsJavascript_Generate_DeepKeys_SetsNested(t *testin
 			}},
 		map[string]*sqlmanager_shared.ColumnInfo{},
 		map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil,
-		&tabledependency.RunConfig{InsertColumns: []string{"foo.bar.baz"}},
+		tabledependency.NewRunConfig("", tabledependency.RunTypeInsert, nil, nil, nil, []string{"foo.bar.baz"}, nil, false),
 		nil,
 		[]string{},
 	)

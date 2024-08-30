@@ -656,7 +656,7 @@ func runDestinationInitStatements(
 		if cmd.Destination.TruncateCascade {
 			truncateCascadeStmts := []string{}
 			for _, syncCfg := range syncConfigs {
-				stmt, ok := schemaConfig.TruncateTableStatementsMap[syncCfg.Table]
+				stmt, ok := schemaConfig.TruncateTableStatementsMap[syncCfg.Table()]
 				if ok {
 					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
 				}
@@ -722,13 +722,13 @@ func buildSyncConfigs(
 func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
-		_, dpOk := dependencyMap[cfg.Table]
+		_, dpOk := dependencyMap[cfg.Table()]
 		if !dpOk {
-			dependencyMap[cfg.Table] = []string{}
+			dependencyMap[cfg.Table()] = []string{}
 		}
 
-		for _, dep := range cfg.DependsOn {
-			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], dep.Table)
+		for _, dep := range cfg.DependsOn() {
+			dependencyMap[cfg.Table()] = append(dependencyMap[cfg.Table()], dep.Table)
 		}
 	}
 	return dependencyMap
@@ -803,7 +803,7 @@ func generateBenthosConfig(
 	syncConfig *tabledependency.RunConfig,
 	authToken *string,
 ) *benthosConfigResponse {
-	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table)
+	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table())
 
 	var jobId, jobRunId *string
 	if cmd.Source.ConnectionOpts != nil {
@@ -836,9 +836,9 @@ func generateBenthosConfig(
 		},
 	}
 
-	if syncConfig.RunType == tabledependency.RunTypeUpdate {
-		args := syncConfig.InsertColumns
-		args = append(args, syncConfig.PrimaryKeys...)
+	if syncConfig.RunType() == tabledependency.RunTypeUpdate {
+		args := syncConfig.InsertColumns()
+		args = append(args, syncConfig.PrimaryKeys()...)
 		bc.Output = &cli_neosync_benthos.OutputConfig{
 			Outputs: cli_neosync_benthos.Outputs{
 				PooledSqlUpdate: &cli_neosync_benthos.PooledSqlUpdate{
@@ -847,8 +847,8 @@ func generateBenthosConfig(
 
 					Schema:       schema,
 					Table:        table,
-					Columns:      syncConfig.InsertColumns,
-					WhereColumns: syncConfig.PrimaryKeys,
+					Columns:      syncConfig.InsertColumns(),
+					WhereColumns: syncConfig.PrimaryKeys(),
 					ArgsMapping:  buildPlainInsertArgs(args),
 
 					Batching: &cli_neosync_benthos.Batching{
@@ -867,9 +867,9 @@ func generateBenthosConfig(
 
 					Schema:              schema,
 					Table:               table,
-					Columns:             syncConfig.SelectColumns,
+					Columns:             syncConfig.SelectColumns(),
 					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
-					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns),
+					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns()),
 
 					Batching: &cli_neosync_benthos.Batching{
 						Period: "5s",
@@ -881,11 +881,11 @@ func generateBenthosConfig(
 	}
 
 	return &benthosConfigResponse{
-		Name:      fmt.Sprintf("%s.%s", syncConfig.Table, syncConfig.RunType),
+		Name:      fmt.Sprintf("%s.%s", syncConfig.Table(), syncConfig.RunType()),
 		Config:    bc,
-		DependsOn: syncConfig.DependsOn,
-		Table:     syncConfig.Table,
-		Columns:   syncConfig.InsertColumns,
+		DependsOn: syncConfig.DependsOn(),
+		Table:     syncConfig.Table(),
+		Columns:   syncConfig.InsertColumns(),
 	}
 }
 func groupConfigsByDependency(configs []*benthosConfigResponse, logger *charmlog.Logger) [][]*benthosConfigResponse {

@@ -38,7 +38,7 @@ func BuildSelectQueryMap(
 	qb := NewQueryBuilderFromSchemaDefinition(groupedColumnInfo, tableDependencies, "public", driver, subsetByForeignKeyConstraints)
 
 	for _, cfg := range runConfigs {
-		if cfg.RunType() != tabledependency.RunTypeInsert || cfg.WhereClause == nil || *cfg.WhereClause() == "" {
+		if cfg.RunType() != tabledependency.RunTypeInsert || cfg.WhereClause() == nil || *cfg.WhereClause() == "" {
 			continue
 		}
 		schema, table := splitTable(cfg.Table())

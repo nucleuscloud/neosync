@@ -79,7 +79,6 @@ func NewRunConfig(
 	}
 }
 
-// Getters for RunConfig
 func (rc *RunConfig) Table() string {
 	return rc.table
 }

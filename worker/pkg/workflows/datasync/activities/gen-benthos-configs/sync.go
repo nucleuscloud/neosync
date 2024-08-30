@@ -203,11 +203,11 @@ func buildBenthosSqlSourceConfigResponses(
 	for _, config := range runconfigs {
 		mappings, ok := groupedTableMapping[config.Table()]
 		if !ok {
-			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table)
+			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table())
 		}
 		query, ok := tableRunTypeQueryMap[config.Table()][config.RunType()]
 		if !ok {
-			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table, config.RunType)
+			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table(), config.RunType())
 		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
@@ -262,7 +262,7 @@ func buildBenthosSqlSourceConfigResponses(
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
-			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
+			Name:           fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
 			Config:         bc,
 			DependsOn:      config.DependsOn(),
 			RedisDependsOn: buildRedisDependsOnMap(transformedFktoPkMap, config),
