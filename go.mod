@@ -42,6 +42,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240829174308-102ca1285907
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.20.2
 	github.com/prometheus/common v0.55.0
@@ -331,7 +332,6 @@ require (
 	github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba // indirect
 	github.com/nexus-rpc/sdk-go v0.0.9 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
-	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240829174308-102ca1285907 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
