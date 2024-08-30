@@ -1,8 +1,5 @@
 
-
-
--- SET IDENTITY_INSERT production.brands ON;  
-
+SET IDENTITY_INSERT production.brands ON;
 INSERT INTO production.brands(brand_id,brand_name) VALUES(1,'Electra')
 INSERT INTO production.brands(brand_id,brand_name) VALUES(2,'Haro')
 INSERT INTO production.brands(brand_id,brand_name) VALUES(3,'Heller')
@@ -12,10 +9,9 @@ INSERT INTO production.brands(brand_id,brand_name) VALUES(6,'Strider')
 INSERT INTO production.brands(brand_id,brand_name) VALUES(7,'Sun Bicycles')
 INSERT INTO production.brands(brand_id,brand_name) VALUES(8,'Surly')
 INSERT INTO production.brands(brand_id,brand_name) VALUES(9,'Trek')
+SET IDENTITY_INSERT production.brands OFF;
 
--- SET IDENTITY_INSERT production.brands OFF;  
-
--- SET IDENTITY_INSERT production.categories ON;  
+SET IDENTITY_INSERT production.categories ON;
 INSERT INTO production.categories(category_id,category_name) VALUES(1,'Children Bicycles')
 INSERT INTO production.categories(category_id,category_name) VALUES(2,'Comfort Bicycles')
 INSERT INTO production.categories(category_id,category_name) VALUES(3,'Cruisers Bicycles')
@@ -23,10 +19,9 @@ INSERT INTO production.categories(category_id,category_name) VALUES(4,'Cyclocros
 INSERT INTO production.categories(category_id,category_name) VALUES(5,'Electric Bikes')
 INSERT INTO production.categories(category_id,category_name) VALUES(6,'Mountain Bikes')
 INSERT INTO production.categories(category_id,category_name) VALUES(7,'Road Bikes')
+SET IDENTITY_INSERT production.categories OFF;
 
--- SET IDENTITY_INSERT production.categories OFF;  
-
--- SET IDENTITY_INSERT production.products ON;
+SET IDENTITY_INSERT production.products ON;
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(1,'Trek 820 - 2016',9,6,2016,379.99)
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(2,'Ritchey Timberwolf Frameset - 2016',5,6,2016,749.99)
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(3,'Surly Wednesday Frameset - 2016',8,6,2016,999.99)
@@ -45,9 +40,10 @@ INSERT INTO production.products(product_id, product_name, brand_id, category_id,
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(16,'Electra Townie Original 7D EQ - 2016',1,3,2016,599.99)
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(17,'Pure Cycles Vine 8-Speed - 2016',4,3,2016,429)
 INSERT INTO production.products(product_id, product_name, brand_id, category_id, model_year, list_price) VALUES(18,'Pure Cycles Western 3-Speed - Women''s - 2015/2016',4,3,2016,449)
+SET IDENTITY_INSERT production.products OFF;
 
--- SET IDENTITY_INSERT production.products OFF;
 
+SET IDENTITY_INSERT sales.customers ON;
 -- sales.customers table
 INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, street, city, state, zip_code) VALUES(1,'Debra','Burks',NULL,'debra.burks@yahoo.com','9273 Thorne Ave. ','Orchard Park','NY',14127);
 INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, street, city, state, zip_code) VALUES(2,'Kasha','Todd',NULL,'kasha.todd@yahoo.com','910 Vine Street ','Campbell','CA',95008);
@@ -64,13 +60,13 @@ INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, st
 INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, street, city, state, zip_code) VALUES(13,'Lashawn','Ortiz',NULL,'lashawn.ortiz@msn.com','27 Washington Rd. ','Longview','TX',75604);
 INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, street, city, state, zip_code) VALUES(14,'Garry','Espinoza',NULL,'garry.espinoza@hotmail.com','7858 Rockaway Court ','Forney','TX',75126);
 INSERT INTO sales.customers(customer_id, first_name, last_name, phone, email, street, city, state, zip_code) VALUES(15,'Ester','Acevedo',NULL,'ester.acevedo@gmail.com','671 Miles Court ','San Lorenzo','CA',94580);
-
+SET IDENTITY_INSERT sales.customers OFF;
 -- stores
 
-INSERT INTO sales.stores(store_id, store_name, phone, email, street, city, state, zip_code)
-VALUES(1,'Santa Cruz Bikes','(831) 476-4321','santacruz@bikes.shop','3700 Portola Drive', 'Santa Cruz','CA',95060),
-      (2,'Baldwin Bikes','(516) 379-8888','baldwin@bikes.shop','4200 Chestnut Lane', 'Baldwin','NY',11432),
-      (3,'Rowlett Bikes','(972) 530-5555','rowlett@bikes.shop','8000 Fairway Avenue', 'Rowlett','TX',75088);
+INSERT INTO sales.stores(store_name, phone, email, street, city, state, zip_code)
+VALUES('Santa Cruz Bikes','(831) 476-4321','santacruz@bikes.shop','3700 Portola Drive', 'Santa Cruz','CA',95060),
+      ('Baldwin Bikes','(516) 379-8888','baldwin@bikes.shop','4200 Chestnut Lane', 'Baldwin','NY',11432),
+      ('Rowlett Bikes','(972) 530-5555','rowlett@bikes.shop','8000 Fairway Avenue', 'Rowlett','TX',75088);
 
 
 -- production.stocks 
@@ -111,8 +107,7 @@ INSERT INTO production.stocks(store_id, product_id, quantity) VALUES(3,16,7);
 
 
 
--- SET IDENTITY_INSERT sales.staffs ON;  
-
+SET IDENTITY_INSERT sales.staffs ON;
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(1,'Fabiola','Jackson','fabiola.jackson@bikes.shop','(831) 555-5554',1,1,NULL);
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(2,'Mireya','Copeland','mireya.copeland@bikes.shop','(831) 555-5555',1,1,1);
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(3,'Genna','Serrano','genna.serrano@bikes.shop','(831) 555-5556',1,1,2);
@@ -123,10 +118,9 @@ INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, 
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(8,'Kali','Vargas','kali.vargas@bikes.shop','(972) 530-5555',1,3,1);
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(9,'Layla','Terrell','layla.terrell@bikes.shop','(972) 530-5556',1,3,7);
 INSERT INTO sales.staffs(staff_id, first_name, last_name, email, phone, active, store_id, manager_id) VALUES(10,'Bernardine','Houston','bernardine.houston@bikes.shop','(972) 530-5557',1,3,7);
+SET IDENTITY_INSERT sales.staffs OFF;
 
--- SET IDENTITY_INSERT sales.staffs OFF;  
-
--- SET IDENTITY_INSERT sales.orders ON;  
+SET IDENTITY_INSERT sales.orders ON;
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(1,8,4,'20160101','20160103','20160103',1,2);
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(2,4,4,'20160101','20160104','20160103',2,6);
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(3,7,4,'20160102','20160105','20160103',2,7);
@@ -140,9 +134,7 @@ INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, requir
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(11,12,4,'20160105','20160108','20160107',2,7);
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(12,5,4,'20160106','20160108','20160109',1,2);
 INSERT INTO sales.orders(order_id, customer_id, order_status, order_date, required_date, shipped_date, store_id,staff_id) VALUES(13,5,4,'20160108','20160111','20160111',2,6);
-
-
--- SET IDENTITY_INSERT sales.orders OFF;  
+SET IDENTITY_INSERT sales.orders OFF;
 
 INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_price,discount) VALUES(1,2,8,2,1799.99,0.07);
 INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_price,discount) VALUES(1,3,10,2,1549.00,0.05);

@@ -27,8 +27,8 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
-		Field(service.NewStringField("prefix")).
-		Field(service.NewStringField("suffix"))
+		Field(service.NewStringField("prefix").Optional()).
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -148,11 +148,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 
 	var suffix *string
 	if conf.Contains("suffix") {
-		prefixStr, err := conf.FieldString("suffix")
+		suffixStr, err := conf.FieldString("suffix")
 		if err != nil {
 			return nil, err
 		}
-		prefix = &prefixStr
+		suffix = &suffixStr
 	}
 
 	var argsMapping *bloblang.Executor
@@ -269,16 +269,25 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 
-	if s.prefix != nil {
-		insertQuery = *s.prefix + insertQuery
-	}
-	if s.suffix != nil {
-		insertQuery += insertQuery + *s.suffix
-	}
-	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
+	query := s.buildQuery(insertQuery)
+	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
+	var query string
+	if s.prefix != nil {
+		query = *s.prefix
+	}
+
+	query += insertQuery + ";"
+
+	if s.suffix != nil {
+		query += *s.suffix
+	}
+	return query
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {

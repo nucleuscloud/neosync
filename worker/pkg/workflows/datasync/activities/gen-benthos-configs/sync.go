@@ -261,21 +261,6 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		hasIdentityColumns := false
-		if driver == sqlmanager_shared.MssqlDriver {
-			colInfo, ok := groupedColumnInfo[config.Table]
-			if !ok {
-				continue
-			}
-			for _, c := range config.InsertColumns {
-				info, ok := colInfo[c]
-				if ok && info.DataType == "" {
-					hasIdentityColumns = true
-					break
-				}
-			}
-		}
-
 		responses = append(responses, &BenthosConfigResponse{
 			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
 			Config:         bc,
@@ -288,7 +273,7 @@ func buildBenthosSqlSourceConfigResponses(
 			TableSchema:        mappings.Schema,
 			TableName:          mappings.Table,
 			Columns:            config.InsertColumns,
-			HasIdentityColumns: hasIdentityColumns,
+			HasIdentityColumns: tableHasIdentityGeneration(config.Table, config.InsertColumns, groupedColumnInfo),
 			primaryKeys:        config.PrimaryKeys,
 
 			metriclabels: metrics.MetricLabels{
@@ -300,6 +285,20 @@ func buildBenthosSqlSourceConfigResponses(
 	}
 
 	return responses, nil
+}
+
+func tableHasIdentityGeneration(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) bool {
+	colInfo, ok := groupedColumnInfo[table]
+	if !ok {
+		return false
+	}
+	for _, c := range cols {
+		info, ok := colInfo[c]
+		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
