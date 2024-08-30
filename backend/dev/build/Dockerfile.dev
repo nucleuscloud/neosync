@@ -11,7 +11,8 @@ WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+  go mod download
 
 WORKDIR /workspace
 COPY worker/internal/ worker/internal/
@@ -34,10 +35,6 @@ COPY /backend/sql/postgresql/schema/ /migrations/
 # Build
 RUN --mount=type=cache,target=/root/.cache/go-build \
   go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
-
-# Create a non-root user
-RUN useradd -u 65532 -r nonroot
-USER nonroot
 
 ENTRYPOINT ["/workspace/backend/bin/mgmt"]
 
