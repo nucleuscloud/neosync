@@ -23,7 +23,7 @@ func Test_GenerateState(t *testing.T) {
 		}
 	}
 
-	assert.True(t, stateExists, "The generated state should exist in the addresses.go file")
+	assert.True(t, stateExists, "The generated state should exist in the satates.go file")
 }
 
 func Test_GenerateStateCodeLength(t *testing.T) {

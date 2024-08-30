@@ -32,12 +32,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleReference() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.department", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.transaction", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_id"}, InsertColumns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.expense_report", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, InsertColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.expense", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "report_id"}, InsertColumns: []string{"id", "report_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.item", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "expense_id"}, InsertColumns: []string{"id", "expense_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}},
+		buildRunConfig("genbenthosconfigs_querybuilder.company", tabledependency.RunTypeInsert, []string{"id"}, &whereId, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
+		buildRunConfig("genbenthosconfigs_querybuilder.department", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "company_id"}, []string{"id", "company_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.company", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.transaction", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_id"}, []string{"id", "department_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.expense_report", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.department", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.transaction", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.expense", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "report_id"}, []string{"id", "report_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense_report", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.item", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "expense_id"}, []string{"id", "expense_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.expense", Columns: []string{"id"}}}),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -127,12 +127,12 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_DoubleRootSubset() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.test_2_x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereCreated},
-		{Table: "genbenthosconfigs_querybuilder.test_2_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereCreated},
-		{Table: "genbenthosconfigs_querybuilder.test_2_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "b_id"}, InsertColumns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}},
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_x", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_b", tabledependency.RunTypeInsert, []string{"id"}, &whereCreated, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_a", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "x_id"}, []string{"id", "x_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_x", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_c", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "a_id", "b_id"}, []string{"id", "a_id", "b_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_a", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.test_2_b", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_d", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}),
+		buildRunConfig("genbenthosconfigs_querybuilder.test_2_e", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "c_id"}, []string{"id", "c_id"}, []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_2_c", Columns: []string{"id"}}}),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -233,15 +233,87 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleRoots() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.test_3_c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId4},
-		{Table: "genbenthosconfigs_querybuilder.test_3_g", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "f_id"}, InsertColumns: []string{"id", "f_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_f", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_h", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "g_id"}, InsertColumns: []string{"id", "g_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_g", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_i", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "h_id"}, InsertColumns: []string{"id", "h_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_h", Columns: []string{"id"}}}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_a",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_b",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id", "a_id"},
+			[]string{"id", "a_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_c",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "b_id"},
+			[]string{"id", "b_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_d",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "c_id"},
+			[]string{"id", "c_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_e",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "d_id"},
+			[]string{"id", "d_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_f",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId4,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_g",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "f_id"},
+			[]string{"id", "f_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_f", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_h",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "g_id"},
+			[]string{"id", "g_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_g", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_i",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "h_id"},
+			[]string{"id", "h_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_h", Columns: []string{"id"}}},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -343,11 +415,51 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.test_3_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}}, WhereClause: &whereId4},
-		{Table: "genbenthosconfigs_querybuilder.test_3_c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_a",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_b",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId4,
+			[]string{"id", "a_id"},
+			[]string{"id", "a_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_c",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "b_id"},
+			[]string{"id", "b_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_d",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "c_id"},
+			[]string{"id", "c_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_e",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "d_id"},
+			[]string{"id", "d_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -432,11 +544,51 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_MultipleSubsets_SubsetsByForei
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.test_3_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}}, WhereClause: &whereId4},
-		{Table: "genbenthosconfigs_querybuilder.test_3_c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_a",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_b",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId4,
+			[]string{"id", "a_id"},
+			[]string{"id", "a_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_a", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_c",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "b_id"},
+			[]string{"id", "b_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_b", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_d",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "c_id"},
+			[]string{"id", "c_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_c", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_e",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "d_id"},
+			[]string{"id", "d_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.test_3_d", Columns: []string{"id"}}},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -520,11 +672,54 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_CircularDependency() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.orders", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.addresses", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "order_id"}, InsertColumns: []string{"id", "order_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.customers", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "address_id"}, InsertColumns: []string{"id", "address_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.addresses", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.payments", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id", "customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.orders", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}, {Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.orders",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "customer_id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.addresses",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id", "order_id"},
+			[]string{"id", "order_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.customers",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "address_id"},
+			[]string{"id", "address_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.addresses", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.payments",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "customer_id"},
+			[]string{"id", "customer_id"},
+			[]*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}}},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.orders",
+			tabledependency.RunTypeUpdate,
+			[]string{"id"},
+			nil,
+			[]string{"id", "customer_id"},
+			[]string{"customer_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.orders", Columns: []string{"id"}},
+				{Table: "genbenthosconfigs_querybuilder.customers", Columns: []string{"id"}},
+			},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{}
@@ -589,10 +784,42 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 	whereId := "id in (1,5)"
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.test_2_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.company",
+			tabledependency.RunTypeInsert,
+			[]string{},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_2_x",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_2_b",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_a",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -662,10 +889,42 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys() {
 func (s *IntegrationTestSuite) Test_BuildQueryMap_NoForeignKeys_NoSubsets() {
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.test_2_b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "genbenthosconfigs_querybuilder.test_3_a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.company",
+			tabledependency.RunTypeInsert,
+			[]string{},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_2_x",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_2_b",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.test_3_a",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -715,9 +974,37 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_SubsetCompositeKeys() {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.division", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "genbenthosconfigs_querybuilder.employees", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id", "division_id"}, SelectColumns: []string{"id", "division_id"}, InsertColumns: []string{"id", "division_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}}}},
-		{Table: "genbenthosconfigs_querybuilder.projects", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "responsible_employee_id", "responsible_division_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}}}},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.division",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			&whereId,
+			[]string{"id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.employees",
+			tabledependency.RunTypeInsert,
+			[]string{"id", "division_id"},
+			nil,
+			[]string{"id", "division_id"},
+			[]string{"id", "division_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.division", Columns: []string{"id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.projects",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "responsible_employee_id", "responsible_division_id"},
+			[]string{"id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.employees", Columns: []string{"id", "division_id"}},
+			},
+		),
 	}
 
 	columnInfo := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -812,51 +1099,108 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Postgres() {
 	}
 
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{
-			Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"},
-			InsertColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}, {Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.comments", SelectColumns: []string{"comment_id", "parent_comment_id"},
-			InsertColumns: []string{"parent_comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
-			RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"},
-			InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id in (1,2,5,6,7,8)"), SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.users", SelectColumns: []string{"user_id", "manager_id", "mentor_id"},
-			InsertColumns: []string{"manager_id", "mentor_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}},
-			RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.initiatives", SelectColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"},
-			InsertColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}}},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"initiative_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.skills", SelectColumns: []string{"skill_id", "name", "category"},
-			InsertColumns: []string{"skill_id", "name", "category"}, DependsOn: []*tabledependency.DependsOn{},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.tasks", SelectColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
-			InsertColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}, {Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}}},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"task_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.user_skills", SelectColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
-			InsertColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}}},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
-		{
-			Table: "genbenthosconfigs_querybuilder.attachments", SelectColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
-			InsertColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}}, {Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}}, {Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}}, {Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}}},
-			RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"attachment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false,
-		},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.comments",
+			tabledependency.RunTypeInsert,
+			[]string{"comment_id"},
+			nil,
+			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"},
+			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
+				{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}},
+				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.comments",
+			tabledependency.RunTypeUpdate,
+			[]string{"comment_id"},
+			nil,
+			[]string{"comment_id", "parent_comment_id"},
+			[]string{"parent_comment_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.users",
+			tabledependency.RunTypeInsert,
+			[]string{"user_id"},
+			ptrString("user_id in (1,2,5,6,7,8)"),
+			[]string{"user_id", "name", "email", "manager_id", "mentor_id"},
+			[]string{"user_id", "name", "email"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.users",
+			tabledependency.RunTypeUpdate,
+			[]string{"user_id"},
+			ptrString("user_id = 1"),
+			[]string{"user_id", "manager_id", "mentor_id"},
+			[]string{"manager_id", "mentor_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.initiatives",
+			tabledependency.RunTypeInsert,
+			[]string{"initiative_id"},
+			nil,
+			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
+			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.skills",
+			tabledependency.RunTypeInsert,
+			[]string{"skill_id"},
+			nil,
+			[]string{"skill_id", "name", "category"},
+			[]string{"skill_id", "name", "category"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.tasks",
+			tabledependency.RunTypeInsert,
+			[]string{"task_id"},
+			nil,
+			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
+			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id", "user_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.user_skills",
+			tabledependency.RunTypeInsert,
+			[]string{"user_skill_id"},
+			nil,
+			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
+			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
+				{Table: "genbenthosconfigs_querybuilder.skills", Columns: []string{"skill_id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.attachments",
+			tabledependency.RunTypeInsert,
+			[]string{"attachment_id"},
+			nil,
+			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
+			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.users", Columns: []string{"user_id"}},
+				{Table: "genbenthosconfigs_querybuilder.tasks", Columns: []string{"task_id"}},
+				{Table: "genbenthosconfigs_querybuilder.initiatives", Columns: []string{"initiative_id"}},
+				{Table: "genbenthosconfigs_querybuilder.comments", Columns: []string{"comment_id"}},
+			},
+		),
 	}
 
 	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -1006,9 +1350,37 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 	}
 
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "genbenthosconfigs_querybuilder.network_types", SelectColumns: []string{"id", "name"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "genbenthosconfigs_querybuilder.networks", SelectColumns: []string{"id", "name", "address", "network_type_id"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "genbenthosconfigs_querybuilder.network_users", SelectColumns: []string{"id", "username", "email", "password_hash", "first_name", "last_name", "network_id", "created_at"}, InsertColumns: []string{}, DependsOn: []*tabledependency.DependsOn{{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"network_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: ptrString("username = 'sophia_wilson'"), SelectQuery: nil, SplitColumnPaths: false},
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.network_types",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "name"},
+			[]string{},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.networks",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			nil,
+			[]string{"id", "name", "address", "network_type_id"},
+			[]string{},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.network_types", Columns: []string{"id"}},
+			},
+		),
+		buildRunConfig(
+			"genbenthosconfigs_querybuilder.network_users",
+			tabledependency.RunTypeInsert,
+			[]string{"id"},
+			ptrString("username = 'sophia_wilson'"),
+			[]string{"id", "username", "email", "password_hash", "first_name", "last_name", "network_id", "created_at"},
+			[]string{},
+			[]*tabledependency.DependsOn{
+				{Table: "genbenthosconfigs_querybuilder.networks", Columns: []string{"network_id"}},
+			},
+		),
 	}
 
 	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -1139,15 +1511,108 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 	}
 
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "mssqltest.comments", SelectColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"}, InsertColumns: []string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.tasks", Columns: []string{"task_id"}}, {Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.comments", SelectColumns: []string{"comment_id", "parent_comment_id"}, InsertColumns: []string{"parent_comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"comment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.users", SelectColumns: []string{"user_id", "name", "email", "manager_id", "mentor_id"}, InsertColumns: []string{"user_id", "name", "email"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id in (1,2,5,6,7,8)"), SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.users", SelectColumns: []string{"user_id", "manager_id", "mentor_id"}, InsertColumns: []string{"manager_id", "mentor_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}}, RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"user_id"}, WhereClause: ptrString("user_id = 1"), SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.initiatives", SelectColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, InsertColumns: []string{"initiative_id", "name", "description", "lead_id", "client_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"initiative_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.skills", SelectColumns: []string{"skill_id", "name", "category"}, InsertColumns: []string{"skill_id", "name", "category"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.tasks", SelectColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, InsertColumns: []string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}, {Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"task_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.user_skills", SelectColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, InsertColumns: []string{"user_skill_id", "user_id", "skill_id", "proficiency_level"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.skills", Columns: []string{"skill_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"user_skill_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
-		{Table: "mssqltest.attachments", SelectColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, InsertColumns: []string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "mssqltest.users", Columns: []string{"user_id"}}, {Table: "mssqltest.tasks", Columns: []string{"task_id"}}, {Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}}, {Table: "mssqltest.comments", Columns: []string{"comment_id"}}}, RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"attachment_id"}, WhereClause: nil, SelectQuery: nil, SplitColumnPaths: false},
+		buildRunConfig(
+			"mssqltest.comments",
+			tabledependency.RunTypeInsert,
+			[]string{"comment_id"},
+			nil,
+			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id", "parent_comment_id"},
+			[]string{"comment_id", "content", "created_at", "user_id", "task_id", "initiative_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.users", Columns: []string{"user_id"}},
+				{Table: "mssqltest.tasks", Columns: []string{"task_id"}},
+				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.comments",
+			tabledependency.RunTypeUpdate,
+			[]string{"comment_id"},
+			nil,
+			[]string{"comment_id", "parent_comment_id"},
+			[]string{"parent_comment_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.comments", Columns: []string{"comment_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.users",
+			tabledependency.RunTypeInsert,
+			[]string{"user_id"},
+			ptrString("user_id in (1,2,5,6,7,8)"),
+			[]string{"user_id", "name", "email", "manager_id", "mentor_id"},
+			[]string{"user_id", "name", "email"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"mssqltest.users",
+			tabledependency.RunTypeUpdate,
+			[]string{"user_id"},
+			ptrString("user_id = 1"),
+			[]string{"user_id", "manager_id", "mentor_id"},
+			[]string{"manager_id", "mentor_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.users", Columns: []string{"user_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.initiatives",
+			tabledependency.RunTypeInsert,
+			[]string{"initiative_id"},
+			nil,
+			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
+			[]string{"initiative_id", "name", "description", "lead_id", "client_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.skills",
+			tabledependency.RunTypeInsert,
+			[]string{"skill_id"},
+			nil,
+			[]string{"skill_id", "name", "category"},
+			[]string{"skill_id", "name", "category"},
+			[]*tabledependency.DependsOn{},
+		),
+		buildRunConfig(
+			"mssqltest.tasks",
+			tabledependency.RunTypeInsert,
+			[]string{"task_id"},
+			nil,
+			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
+			[]string{"task_id", "title", "description", "status", "initiative_id", "assignee_id", "reviewer_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
+				{Table: "mssqltest.users", Columns: []string{"user_id", "user_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.user_skills",
+			tabledependency.RunTypeInsert,
+			[]string{"user_skill_id"},
+			nil,
+			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
+			[]string{"user_skill_id", "user_id", "skill_id", "proficiency_level"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.users", Columns: []string{"user_id"}},
+				{Table: "mssqltest.skills", Columns: []string{"skill_id"}},
+			},
+		),
+		buildRunConfig(
+			"mssqltest.attachments",
+			tabledependency.RunTypeInsert,
+			[]string{"attachment_id"},
+			nil,
+			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
+			[]string{"attachment_id", "file_name", "file_path", "uploaded_by", "task_id", "initiative_id", "comment_id"},
+			[]*tabledependency.DependsOn{
+				{Table: "mssqltest.users", Columns: []string{"user_id"}},
+				{Table: "mssqltest.tasks", Columns: []string{"task_id"}},
+				{Table: "mssqltest.initiatives", Columns: []string{"initiative_id"}},
+				{Table: "mssqltest.comments", Columns: []string{"comment_id"}},
+			},
+		),
 	}
 
 	columnInfoMap := map[string]map[string]*sqlmanager_shared.ColumnInfo{
@@ -1282,4 +1747,15 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 		rows.Close()
 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 	}
+}
+
+func buildRunConfig(
+	table string,
+	runtype tabledependency.RunType,
+	pks []string,
+	where *string,
+	selectCols, insertCols []string,
+	dependsOn []*tabledependency.DependsOn,
+) *tabledependency.RunConfig {
+	return tabledependency.NewRunConfig(table, runtype, pks, where, selectCols, insertCols, dependsOn, false)
 }

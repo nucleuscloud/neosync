@@ -62,7 +62,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			&tabledependency.RunConfig{RunType: tabledependency.RunTypeInsert, Table: tableMapping.Table, SelectColumns: columns, InsertColumns: columns, SplitColumnPaths: true},
+			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, true),
 			map[string][]*referenceKey{},
 			map[string][]*referenceKey{},
 			b.jobId,
