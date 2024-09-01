@@ -207,7 +207,7 @@ const AddNewNosqlRecordFormValues = Yup.object({
     .required()
     .test({
       name: 'uniqueMapping',
-      message: 'This key already exists in this collection.',
+      message: 'This key already exists in the selected collection.',
       test: function (value, context) {
         const { collection } = this.parent;
 
