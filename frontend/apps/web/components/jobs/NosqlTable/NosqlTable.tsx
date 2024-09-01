@@ -161,6 +161,7 @@ export default function NosqlTable(props: Props): ReactElement {
           <CardContent>
             <AddNewRecord
               collections={collections}
+              data={data}
               onSubmit={(values) => {
                 onAddMappings([values]);
               }}
@@ -197,19 +198,51 @@ interface AddNewRecordProps {
   collections: string[];
   onSubmit(values: AddNewNosqlRecordFormValues): void;
   transformerHandler: TransformerHandler;
+  data: JobMappingFormValues[];
 }
 
 const AddNewNosqlRecordFormValues = Yup.object({
   collection: Yup.string().required(),
-  key: Yup.string().required(),
+  key: Yup.string()
+    .required()
+    .test({
+      name: 'uniqueMapping',
+      message: 'This key already exists in this collection.',
+      test: function (value, context) {
+        const { collection } = this.parent;
+
+        if (!collection || !value) {
+          return true;
+        }
+
+        const selectedCollection: JobMappingFormValues[] =
+          context?.options?.context?.data.filter(
+            (item: JobMappingFormValues) =>
+              `${item.schema}.${item.table}` === collection
+          );
+
+        const isDuplicate = selectedCollection.some(
+          (item: JobMappingFormValues) => item.column === value
+        );
+
+        if (isDuplicate) {
+          return this.createError({
+            message: 'This key already exists in this collection.',
+          });
+        }
+
+        return true;
+      },
+    }),
   transformer: JobMappingTransformerForm,
 });
+
 type AddNewNosqlRecordFormValues = Yup.InferType<
   typeof AddNewNosqlRecordFormValues
 >;
 
 function AddNewRecord(props: AddNewRecordProps): ReactElement {
-  const { collections, onSubmit, transformerHandler } = props;
+  const { collections, onSubmit, transformerHandler, data } = props;
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
@@ -237,6 +270,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
     context: {
       accountId: account?.id,
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
+      data: data,
     },
   });
 
@@ -284,7 +318,11 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
                 Use dot notation to select a key for the mapping.
               </FormDescription>
               <FormControl>
-                <Input {...field} placeholder="users.address.city" />
+                <Input
+                  {...field}
+                  placeholder="users.address.city"
+                  disabled={!form.getValues('collection')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -348,6 +386,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
         <div className="flex justify-end">
           <Button
             type="button"
+            disabled={!form.formState.isValid}
             onClick={(e) =>
               form.handleSubmit((values) => {
                 onSubmit(values);
