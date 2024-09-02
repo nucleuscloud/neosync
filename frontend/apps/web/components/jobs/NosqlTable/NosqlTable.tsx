@@ -483,13 +483,17 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       cell: ({ getValue, row }) => {
         return (
           <EditCollection
+            data={data}
             collections={collections}
             text={getValue<string>()}
+            key={row.original.column}
+            index={row.index}
             onEdit={(updatedObject) => {
+              const lastDotIndex = updatedObject.collection.lastIndexOf('.');
               onEdit(
                 {
-                  schema: updatedObject.collection.split('.')[0],
-                  table: updatedObject.collection.split('.')[1],
+                  schema: updatedObject.collection.substring(0, lastDotIndex),
+                  table: updatedObject.collection.substring(lastDotIndex + 1),
                   column: row.getValue('column'),
                   transformer: row.getValue('transformer'),
                 },
@@ -699,7 +703,7 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
   };
 
   return (
-    <div className="w-full flex flex-row items-center gap-4">
+    <div className="w-full flex flex-row items-center gap-1">
       {isEditingMapping ? (
         <>
           <Input
@@ -737,13 +741,16 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
 }
 
 interface EditCollectionProps {
+  data: JobMappingFormValues[];
   collections: string[];
   text: string;
+  key: string;
+  index: number;
   onEdit: (updatedObject: { collection: string }) => void;
 }
 
 function EditCollection(props: EditCollectionProps): ReactElement {
-  const { collections, text, onEdit } = props;
+  const { data, collections, text, key, index, onEdit } = props;
 
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
   const [isSelectedCollection, setSelectedCollection] = useState<string>(text);
@@ -753,8 +760,23 @@ function EditCollection(props: EditCollectionProps): ReactElement {
     setIsEditingMapping(false);
   };
 
+  const currentColumn = data[index].column;
+  const currentSchemaTable = `${data[index].schema}.${data[index].table}`;
+
+  // filter rows that conflict with the key that is currently selected
+  const conflictRows = data.filter(
+    (obj) =>
+      obj.column === currentColumn &&
+      `${obj.schema}.${obj.table}` !== currentSchemaTable
+  );
+
+  // filter available collections by excluding those that conflict
+  const availableRows = collections.filter(
+    (item) => !conflictRows.some((obj) => `${obj.schema}.${obj.table}` === item)
+  );
+
   return (
-    <div className="w-full flex flex-row items-center gap-4">
+    <div className="w-full flex flex-row items-center gap-1">
       {isEditingMapping ? (
         <Select
           onValueChange={(val) => setSelectedCollection(val)}
@@ -767,7 +789,7 @@ function EditCollection(props: EditCollectionProps): ReactElement {
             />
           </SelectTrigger>
           <SelectContent>
-            {collections.map((collection) => (
+            {availableRows.map((collection) => (
               <SelectItem value={collection} key={collection}>
                 {collection}
               </SelectItem>
