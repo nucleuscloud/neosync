@@ -10,7 +10,7 @@ import { cn } from '@/libs/utils';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  CaretSortIcon,
+  MagnifyingGlassIcon,
 } from '@radix-ui/react-icons';
 import { Column } from '@tanstack/react-table';
 
@@ -42,7 +42,7 @@ export function DataTableColumnHeader<TData, TValue>({
               ) : column.getIsSorted() === 'asc' ? (
                 <ArrowUpIcon className="ml-2 h-4 w-4" />
               ) : (
-                <CaretSortIcon className="ml-2 h-4 w-4" />
+                <MagnifyingGlassIcon className="ml-2 h-4 w-4" />
               )}
             </Button>
           </DropdownMenuTrigger>
