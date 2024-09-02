@@ -486,7 +486,6 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
             data={data}
             collections={collections}
             text={getValue<string>()}
-            key={row.original.column}
             index={row.index}
             onEdit={(updatedObject) => {
               const lastDotIndex = updatedObject.collection.lastIndexOf('.');
@@ -744,13 +743,12 @@ interface EditCollectionProps {
   data: JobMappingFormValues[];
   collections: string[];
   text: string;
-  key: string;
   index: number;
   onEdit: (updatedObject: { collection: string }) => void;
 }
 
 function EditCollection(props: EditCollectionProps): ReactElement {
-  const { data, collections, text, key, index, onEdit } = props;
+  const { data, collections, text, index, onEdit } = props;
 
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
   const [isSelectedCollection, setSelectedCollection] = useState<string>(text);
