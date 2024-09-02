@@ -225,8 +225,6 @@ const AddNewNosqlRecordFormValues = Yup.object({
           (item: JobMappingFormValues) => item.column === value
         );
 
-        console.log('is dup', isDuplicate);
-
         return (
           !isDuplicate ||
           this.createError({
