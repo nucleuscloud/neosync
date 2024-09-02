@@ -225,13 +225,14 @@ const AddNewNosqlRecordFormValues = Yup.object({
           (item: JobMappingFormValues) => item.column === value
         );
 
-        if (isDuplicate) {
-          return this.createError({
-            message: 'This key already exists in this collection.',
-          });
-        }
+        console.log('is dup', isDuplicate);
 
-        return true;
+        return (
+          !isDuplicate ||
+          this.createError({
+            message: 'This key already exists in this collection.',
+          })
+        );
       },
     }),
   transformer: JobMappingTransformerForm,
@@ -273,6 +274,19 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       data: data,
     },
   });
+
+  const collectionValue = form.watch('collection');
+  const keyValue = form.watch('key');
+
+  useEffect(() => {
+    const validateKeyField = async () => {
+      form.clearErrors('key'); // clear the errors on the key field - this is to make sure that the errors are cleared if the user switches collection values
+      await form.trigger('key'); // trigger validation
+    };
+    if (collectionValue !== '' && keyValue !== '') {
+      validateKeyField();
+    }
+  }, [collectionValue, keyValue]);
 
   return (
     <div className="flex flex-col w-full space-y-4">
