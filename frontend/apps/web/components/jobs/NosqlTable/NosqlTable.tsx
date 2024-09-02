@@ -511,7 +511,10 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         const text = row.getValue<string>('column');
         return (
           <EditDocumentKey
+            data={data}
             text={text}
+            schema={row.getValue('schema')}
+            table={row.getValue('table')}
             onEdit={(updatedObject) => {
               onEdit(
                 {
@@ -655,24 +658,61 @@ function IndeterminateCheckbox({
 interface EditDocumentKeyProps {
   text: string;
   onEdit: (updatedObject: { column: string }) => void;
+  data: JobMappingFormValues[];
+  schema: string;
+  table: string;
 }
 
-function EditDocumentKey({ text, onEdit }: EditDocumentKeyProps): ReactElement {
+function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
+  const { text, onEdit, data, schema, table } = props;
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>(text);
+  const [duplicateError, setDuplicateError] = useState<boolean>(false);
 
   const handleSave = () => {
     onEdit({ column: inputValue });
     setIsEditingMapping(false);
   };
 
+  const handleDocumentKeyChange = (
+    data: JobMappingFormValues[],
+    schema: string,
+    row: string,
+    val: string
+  ) => {
+    const selectedCollection: JobMappingFormValues[] = data.filter(
+      (item: JobMappingFormValues) =>
+        `${item.schema}.${item.table}` === `${schema}.${table}`
+    );
+
+    const isDuplicate = selectedCollection.some(
+      (item: JobMappingFormValues) => item.column === val
+    );
+
+    if (!isDuplicate) {
+      setDuplicateError(false);
+      setInputValue(val);
+    } else {
+      setInputValue(val);
+      setDuplicateError(true);
+    }
+  };
+
   return (
     <div className="w-full flex flex-row items-center gap-4">
       {isEditingMapping ? (
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-        />
+        <>
+          <Input
+            value={inputValue}
+            onChange={(e) =>
+              handleDocumentKeyChange(data, schema, table, e.target.value)
+            }
+            className={cn(duplicateError ? 'border border-red-400 ring-' : '')}
+          />
+          <div className="text-red-400 text-xs">
+            {duplicateError && 'Already exists'}
+          </div>
+        </>
       ) : (
         <TruncatedText text={inputValue} />
       )}
@@ -681,6 +721,7 @@ function EditDocumentKey({ text, onEdit }: EditDocumentKeyProps): ReactElement {
         size="sm"
         className="hidden h-[36px] lg:flex"
         type="button"
+        disabled={duplicateError}
         onClick={() => {
           if (isEditingMapping) {
             handleSave();
