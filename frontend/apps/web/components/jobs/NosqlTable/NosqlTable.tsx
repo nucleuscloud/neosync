@@ -677,7 +677,7 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
   const handleDocumentKeyChange = (
     data: JobMappingFormValues[],
     schema: string,
-    row: string,
+    table: string,
     val: string
   ) => {
     const selectedCollection: JobMappingFormValues[] = data.filter(
