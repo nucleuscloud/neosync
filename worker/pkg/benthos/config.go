@@ -376,6 +376,8 @@ type PooledSqlInsert struct {
 	TruncateOnRetry     bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
 	ArgsMapping         string    `json:"args_mapping" yaml:"args_mapping"`
 	Batching            *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	Prefix              *string   `json:"prefix,omitempty" yaml:"prefix,omitempty"`
+	Suffix              *string   `json:"suffix,omitempty" yaml:"suffix,omitempty"`
 }
 
 type SqlInsert struct {

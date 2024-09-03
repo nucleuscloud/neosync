@@ -3,6 +3,7 @@ package neosync_benthos_sql
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/Jeffail/shutdown"
@@ -26,7 +27,9 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching"))
+		Field(service.NewBatchPolicyField("batching")).
+		Field(service.NewStringField("prefix").Optional()).
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -92,6 +95,8 @@ type pooledInsertOutput struct {
 	columns             []string
 	onConflictDoNothing bool
 	truncateOnRetry     bool
+	prefix              *string
+	suffix              *string
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -133,6 +138,24 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	var prefix *string
+	if conf.Contains("prefix") {
+		prefixStr, err := conf.FieldString("prefix")
+		if err != nil {
+			return nil, err
+		}
+		prefix = &prefixStr
+	}
+
+	var suffix *string
+	if conf.Contains("suffix") {
+		suffixStr, err := conf.FieldString("suffix")
+		if err != nil {
+			return nil, err
+		}
+		suffix = &suffixStr
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -152,6 +175,8 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		columns:             columns,
 		onConflictDoNothing: onConflictDoNothing,
 		truncateOnRetry:     truncateOnRetry,
+		prefix:              prefix,
+		suffix:              suffix,
 		isRetry:             isRetry,
 	}
 	return output, nil
@@ -240,14 +265,30 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		rows = append(rows, args)
 	}
 
-	query, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, rows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, rows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
+
+	query := s.buildQuery(insertQuery)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
+	var query string
+	if s.prefix != nil {
+		query = *s.prefix
+	}
+
+	query += strings.TrimSuffix(insertQuery, ";") + ";"
+
+	if s.suffix != nil {
+		query += *s.suffix
+	}
+	return query
 }
 
 func (s *pooledInsertOutput) Close(ctx context.Context) error {

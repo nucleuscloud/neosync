@@ -31,14 +31,15 @@ type BenthosRedisConfig struct {
 }
 
 type BenthosConfigResponse struct {
-	Name           string
-	DependsOn      []*tabledependency.DependsOn
-	RunType        tabledependency.RunType
-	Config         *neosync_benthos.BenthosConfig
-	TableSchema    string
-	TableName      string
-	Columns        []string
-	RedisDependsOn map[string][]string
+	Name            string
+	DependsOn       []*tabledependency.DependsOn
+	RunType         tabledependency.RunType
+	Config          *neosync_benthos.BenthosConfig
+	TableSchema     string
+	TableName       string
+	Columns         []string
+	RedisDependsOn  map[string][]string
+	IdentityColumns []string
 
 	Processors  []*neosync_benthos.ProcessorConfig
 	BenthosDsns []*shared.BenthosDsn
