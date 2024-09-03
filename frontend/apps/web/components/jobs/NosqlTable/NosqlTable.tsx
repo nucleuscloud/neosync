@@ -49,6 +49,7 @@ import {
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckIcon, Pencil1Icon, TableIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
+import { nanoid } from 'nanoid';
 import {
   HTMLProps,
   ReactElement,
@@ -124,12 +125,18 @@ export default function NosqlTable(props: Props): ReactElement {
         onEdit(row, index) {
           onEditMappings(row, index);
         },
-        onDuplicate(row) {
-          onAddMappings(row);
+        onDuplicate(row: Row) {
+          const newKey = createDuplicateKey(row.column);
+          onAddMappings([
+            {
+              collection: `${row.schema}.${row.table}`,
+              key: newKey,
+              transformer: row.transformer,
+            },
+          ]);
         },
         transformerHandler: handler,
         collections: collections,
-        data: data,
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
@@ -359,22 +366,15 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 
 interface GetColumnsProps {
   onDelete(row: Row): void;
-  onDuplicate(row: AddNewNosqlRecordFormValues[]): void;
   transformerHandler: TransformerHandler;
   onEdit(row: Row, index: number): void;
   collections: string[];
-  data: JobMappingFormValues[];
+  onDuplicate(row: Row): void;
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const {
-    onDelete,
-    transformerHandler,
-    onEdit,
-    collections,
-    onDuplicate,
-    data,
-  } = props;
+  const { onDelete, transformerHandler, onEdit, collections, onDuplicate } =
+    props;
   return [
     {
       accessorKey: 'isSelected',
@@ -557,22 +557,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         return (
           <DataTableRowActions
             row={row}
-            onDuplicate={() => {
-              console.log('data', data);
-              onDuplicate([
-                {
-                  collection: `${row.getValue('schema')}.${row.getValue('table')}`,
-                  // key: row.getValue('column') + 'copy', // need a way to check that we're not able to create multiple rows with the same keys
-                  key: CreateDuplicatingMapping(
-                    row.getValue('schema'),
-                    row.getValue('table'),
-                    row.getValue('column'),
-                    data
-                  ),
-                  transformer: row.getValue('transformer'),
-                },
-              ]);
-            }}
+            onDuplicate={() => onDuplicate(row.original)}
             onDelete={() =>
               onDelete({
                 schema: row.getValue('schema'),
@@ -588,30 +573,10 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
   ];
 }
 
-// searches through the table and creates a unique row copy based on the schema, table and column
-function CreateDuplicatingMapping(
-  schema: string,
-  table: string,
-  key: string,
-  data: JobMappingFormValues[]
-): string {
-  let maxSuffix = 0;
-
-  data.forEach((item) => {
-    if (item.schema === schema && item.table === table) {
-      const match = item.column.match(new RegExp(`^${key}_(\\d+)$`));
-      if (match) {
-        const suffix = parseInt(match[1], 10);
-        if (suffix > maxSuffix) {
-          maxSuffix = suffix;
-        }
-      }
-    }
-  });
-
-  const newSuffix = maxSuffix + 1;
-  const newKey = `${key}_${newSuffix}`;
-  return newKey;
+// searches creates a unique row copy based on the schema, table and column
+function createDuplicateKey(key: string): string {
+  const uniqueSuffix = nanoid(6);
+  return `${key}_${uniqueSuffix}`;
 }
 
 function IndeterminateCheckbox({
