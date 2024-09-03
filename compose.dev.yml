@@ -103,6 +103,7 @@ services:
         restart: true
     volumes:
       - neosync_backend_build_cache:/root/.cache/go-build
+      - neosync_go_mod_cache:/go/pkg/mod
     develop:
       watch:
         - action: rebuild
@@ -137,6 +138,7 @@ services:
       - temporal-network
     volumes:
       - neosync_worker_build_cache:/root/.cache/go-build
+      - neosync_go_mod_cache:/go/pkg/mod
     develop:
       watch:
         - action: rebuild
@@ -167,6 +169,7 @@ volumes:
   neosync_pg_data:
   neosync_worker_build_cache:
   neosync_backend_build_cache:
+  neosync_go_mod_cache:
 
 networks:
   neosync-network:

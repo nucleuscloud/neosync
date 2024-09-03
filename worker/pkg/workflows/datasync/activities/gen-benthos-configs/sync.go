@@ -270,11 +270,11 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema:        mappings.Schema,
-			TableName:          mappings.Table,
-			Columns:            config.InsertColumns(),
-			HasIdentityColumns: tableHasIdentityGeneration(config.Table(), config.InsertColumns(), groupedColumnInfo),
-			primaryKeys:        config.PrimaryKeys(),
+			TableSchema:     mappings.Schema,
+			TableName:       mappings.Table,
+			Columns:         config.InsertColumns(),
+			IdentityColumns: getIdentityColumns(config.Table(), config.InsertColumns(), groupedColumnInfo),
+			primaryKeys:     config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -287,18 +287,19 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func tableHasIdentityGeneration(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) bool {
+func getIdentityColumns(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
+	identityCols := []string{}
 	colInfo, ok := groupedColumnInfo[table]
 	if !ok {
-		return false
+		return []string{}
 	}
 	for _, c := range cols {
 		info, ok := colInfo[c]
 		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
-			return true
+			identityCols = append(identityCols, c)
 		}
 	}
-	return false
+	return identityCols
 }
 
 func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
@@ -463,7 +464,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 			}
 		}
 		var prefix, suffix *string
-		if driver == sqlmanager_shared.MssqlDriver && benthosConfig.HasIdentityColumns {
+		if driver == sqlmanager_shared.MssqlDriver && len(benthosConfig.IdentityColumns) > 0 {
 			p := fmt.Sprintf("SET IDENTITY_INSERT %s.%s ON;", benthosConfig.TableSchema, benthosConfig.TableName)
 			prefix = &p
 			s := fmt.Sprintf("SET IDENTITY_INSERT %s.%s OFF;", benthosConfig.TableSchema, benthosConfig.TableName)
