@@ -20,6 +20,10 @@ CREATE TABLE production.products (
 	FOREIGN KEY (brand_id) REFERENCES production.brands (brand_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE production.identities(
+	id INT IDENTITY (1,1) PRIMARY KEY
+)
+
 CREATE TABLE sales.customers (
 	customer_id INT IDENTITY (1, 1) PRIMARY KEY,
 	first_name VARCHAR (255) NOT NULL,

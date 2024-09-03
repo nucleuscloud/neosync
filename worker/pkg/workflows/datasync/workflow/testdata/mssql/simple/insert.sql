@@ -162,3 +162,10 @@ INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_pric
 INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_price,discount) VALUES(13,1,13,1,269.99,0.1);
 INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_price,discount) VALUES(13,2,17,2,429.00,0.05);
 INSERT INTO sales.order_items(order_id, item_id, product_id, quantity, list_price,discount) VALUES(13,4,16,2,599.99,0.05);
+
+
+INSERT INTO production.identities DEFAULT VALUES;
+INSERT INTO production.identities DEFAULT VALUES;
+INSERT INTO production.identities DEFAULT VALUES;
+INSERT INTO production.identities DEFAULT VALUES;
+INSERT INTO production.identities DEFAULT VALUES;
