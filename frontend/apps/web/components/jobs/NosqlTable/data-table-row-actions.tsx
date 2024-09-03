@@ -37,7 +37,6 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={() => {
-            console.log('row', row.original);
             onDuplicate(row);
           }}
         >
