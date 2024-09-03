@@ -553,6 +553,20 @@ func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransforme
 			},
 		}, nil
 
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY:
+		generateFullName := transformerMapping.Config.GetGenerateCountryConfig().GenerateFullName
+		opts, err := NewGenerateCountryOpts(&generateFullName, nil)
+		if err != nil {
+			return nil, err
+		}
+		generate := NewGenerateCountry().Generate
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value any, opts any) (any, error) {
+				return generate(opts)
+			},
+		}, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported transformer: %v", transformerMapping.Source)
 	}

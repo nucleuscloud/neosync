@@ -627,6 +627,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		} else {
 			return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, formattedColPath), nil
 		}
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY:
+		generateFullName := col.Transformer.Config.GetGenerateCountryConfig().GenerateFullName
+		return fmt.Sprintf(`generate_country(generate_full_name:%t)`, generateFullName), nil
 
 	default:
 		return "", fmt.Errorf("unsupported transformer")

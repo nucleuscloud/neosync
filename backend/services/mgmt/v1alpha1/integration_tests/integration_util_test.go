@@ -1,6 +1,7 @@
-package v1alpha1_jobservice
+package integrationtests_test
 
 import (
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -22,4 +23,17 @@ func requireNoErrResp[T any](t testing.TB, resp *connect.Response[T], err error)
 	t.Helper()
 	require.NoError(t, err)
 	require.NotNil(t, resp)
+}
+
+func requireErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
+	t.Helper()
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+func requireConnectError(t testing.TB, err error, code connect.Code) {
+	t.Helper()
+	connectErr, ok := err.(*connect.Error)
+	require.True(t, ok, fmt.Sprintf("error was not connect error %T", err))
+	require.Equal(t, code, connectErr.Code())
 }

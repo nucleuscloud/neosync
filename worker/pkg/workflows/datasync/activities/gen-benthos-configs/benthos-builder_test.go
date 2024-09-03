@@ -935,6 +935,16 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				},
 			},
 		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
+					GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
+						GenerateFullName: false,
+					},
+				},
+			},
+		},
 	}
 
 	emailColInfo := &sqlmanager_shared.ColumnInfo{
