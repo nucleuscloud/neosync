@@ -14,11 +14,13 @@ import {
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
   onDelete(data: Row<TData>): void;
+  onDuplicate(data: Row<TData>): void;
 }
 
 export function DataTableRowActions<TData>({
   row,
   onDelete,
+  onDuplicate,
 }: DataTableRowActionsProps<TData>) {
   return (
     <DropdownMenu>
@@ -32,6 +34,15 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => {
+            console.log('row', row.original);
+            onDuplicate(row);
+          }}
+        >
+          Duplicate
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={() => onDelete(row)}

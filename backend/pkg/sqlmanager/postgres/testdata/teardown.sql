@@ -1,1 +1,1 @@
-DROP SCHEMA IF EXISTS sqlmanagerpostgres CASCADE;
+DROP SCHEMA IF EXISTS "sqlmanagerpostgres@special" CASCADE;

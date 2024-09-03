@@ -31,6 +31,7 @@ func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
 		CharacterMaximumLength: Ptr(row.CharacterMaximumLength),
 		NumericPrecision:       Ptr(row.NumericPrecision),
 		NumericScale:           Ptr(row.NumericScale),
+		IdentityGeneration:     row.IdentityGeneration,
 	}
 }
 
