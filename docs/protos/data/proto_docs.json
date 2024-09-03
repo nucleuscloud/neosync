@@ -11147,7 +11147,7 @@
           "fields": [
             {
               "name": "truncate_table",
-              "description": "",
+              "description": "Currently not supported and a placeholder for future implementation",
               "label": "",
               "type": "MysqlTruncateTableConfig",
               "longType": "MysqlTruncateTableConfig",
@@ -11159,7 +11159,7 @@
             },
             {
               "name": "init_table_schema",
-              "description": "",
+              "description": "Currently not supported and a placeholder for future implementation",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -11171,7 +11171,7 @@
             },
             {
               "name": "on_conflict",
-              "description": "",
+              "description": "Currently not supported and a placeholder for future implementation",
               "label": "",
               "type": "MysqlOnConflictConfig",
               "longType": "MysqlOnConflictConfig",

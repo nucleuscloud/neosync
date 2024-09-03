@@ -2468,9 +2468,12 @@ type MysqlDestinationConnectionOptions struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TruncateTable   *MysqlTruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
-	InitTableSchema bool                      `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`
-	OnConflict      *MysqlOnConflictConfig    `protobuf:"bytes,3,opt,name=on_conflict,json=onConflict,proto3" json:"on_conflict,omitempty"`
+	// Currently not supported and a placeholder for future implementation
+	TruncateTable *MysqlTruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
+	// Currently not supported and a placeholder for future implementation
+	InitTableSchema bool `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`
+	// Currently not supported and a placeholder for future implementation
+	OnConflict *MysqlOnConflictConfig `protobuf:"bytes,3,opt,name=on_conflict,json=onConflict,proto3" json:"on_conflict,omitempty"`
 }
 
 func (x *MysqlDestinationConnectionOptions) Reset() {
