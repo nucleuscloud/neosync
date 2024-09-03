@@ -3,6 +3,7 @@ package neosync_benthos_sql
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/Jeffail/shutdown"
@@ -346,7 +347,7 @@ func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
 		query = *s.prefix
 	}
 
-	query += insertQuery + ";"
+	query += strings.TrimSuffix(insertQuery, ";") + ";"
 
 	if s.suffix != nil {
 		query += *s.suffix
