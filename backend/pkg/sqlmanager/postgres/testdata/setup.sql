@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS sqlmanagerpostgres;
+CREATE SCHEMA IF NOT EXISTS "sqlmanagerpostgres@special";
 
-SET search_path TO sqlmanagerpostgres;
+SET search_path TO "sqlmanagerpostgres@special";
 
 CREATE TABLE users (
     id TEXT NOT NULL,

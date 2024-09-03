@@ -1469,14 +1469,6 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_Pruned_Joins() {
 	}
 }
 
-func ptrString(s string) *string {
-	return &s
-}
-
-func ptrInt32(i int32) *int32 {
-	return &i
-}
-
 func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 	tableDependencies := map[string][]*sqlmanager_shared.ForeignConstraint{
 		"mssqltest.attachments": {
@@ -1747,6 +1739,14 @@ func (s *IntegrationTestSuite) Test_BuildQueryMap_ComplexSubset_Mssql() {
 		rows.Close()
 		assert.Equalf(s.T(), rowCount, expectedCount[table], fmt.Sprintf("table: %s ", table))
 	}
+}
+
+func ptrString(s string) *string {
+	return &s
+}
+
+func ptrInt32(i int32) *int32 {
+	return &i
 }
 
 func buildRunConfig(
