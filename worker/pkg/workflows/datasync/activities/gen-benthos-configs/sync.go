@@ -287,10 +287,6 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func getIdentityColumns() []string {
-
-}
-
 func tableHasIdentityGeneration(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) bool {
 	colInfo, ok := groupedColumnInfo[table]
 	if !ok {

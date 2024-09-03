@@ -282,20 +282,13 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return err
 	}
-	fmt.Println()
-	fmt.Println(insertQuery)
 
-<<<<<<< Updated upstream
-	// query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
-=======
 	if s.driver == sqlmanager_shared.MssqlDriver && len(filteredCols) == 0 {
 		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table)
 	}
 
 	query := s.buildQuery(insertQuery)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
->>>>>>> Stashed changes
 		return err
 	}
 	return nil
