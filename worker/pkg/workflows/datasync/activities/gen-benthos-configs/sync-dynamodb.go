@@ -93,10 +93,11 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 		}
 
 		mappedKeys := slices.Concat(columns, tableKeyList)
+		splitColumnPaths := true
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
 			b.transformerclient,
-			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, true),
+			tabledependency.NewRunConfig(tableMapping.Table, tabledependency.RunTypeInsert, []string{}, nil, columns, columns, nil, splitColumnPaths),
 			map[string][]*referenceKey{},
 			map[string][]*referenceKey{},
 			b.jobId,

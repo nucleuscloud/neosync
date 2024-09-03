@@ -268,9 +268,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if err != nil {
 		return err
 	}
+	fmt.Println()
+	fmt.Println(insertQuery)
 
-	query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, query); err != nil {
+	// query := s.buildQuery(insertQuery)
+	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
 		return err
 	}
 	return nil

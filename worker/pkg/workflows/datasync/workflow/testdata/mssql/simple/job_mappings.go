@@ -434,15 +434,15 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 func GetTableColumnTypeMap() map[string]map[string]string {
 	return map[string]map[string]string{
 		"production.categories": {
-			"category_id": "INT",
+			"category_id": "INTIDENTITY(1,1)",
 			"category_name": "VARCHAR(255)",
 		},
 		"production.brands": {
-			"brand_id": "INT",
+			"brand_id": "INTIDENTITY(1,1)",
 			"brand_name": "VARCHAR(255)",
 		},
 		"production.products": {
-			"product_id": "INT",
+			"product_id": "INTIDENTITY(1,1)",
 			"product_name": "VARCHAR(255)",
 			"brand_id": "INT",
 			"category_id": "INT",
@@ -450,7 +450,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"list_price": "DECIMAL(10,2)",
 		},
 		"sales.customers": {
-			"customer_id": "INT",
+			"customer_id": "INTIDENTITY(1,1)",
 			"first_name": "VARCHAR(255)",
 			"last_name": "VARCHAR(255)",
 			"phone": "VARCHAR(25)",
@@ -461,7 +461,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"zip_code": "VARCHAR(5)",
 		},
 		"sales.stores": {
-			"store_id": "INT",
+			"store_id": "INTIDENTITY(1,1)",
 			"store_name": "VARCHAR(255)",
 			"phone": "VARCHAR(25)",
 			"email": "VARCHAR(255)",
@@ -471,7 +471,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"zip_code": "VARCHAR(5)",
 		},
 		"sales.staffs": {
-			"staff_id": "INT",
+			"staff_id": "INTIDENTITY(1,1)",
 			"first_name": "VARCHAR(50)",
 			"last_name": "VARCHAR(50)",
 			"email": "VARCHAR(255)",
@@ -481,7 +481,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"manager_id": "INT",
 		},
 		"sales.orders": {
-			"order_id": "INT",
+			"order_id": "INTIDENTITY(1,1)",
 			"customer_id": "INT",
 			"order_status": "tinyint",
 			"order_date": "DATE",
