@@ -72,7 +72,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
 	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
@@ -142,7 +142,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	}
 
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
 	}
 
 	queryMap := map[string]map[tabledependency.RunType]string{
@@ -279,32 +279,35 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{}}, nil, []string{})
+	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{}, []*tabledependency.DependsOn{}, false)
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{}}, nil, []string{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"id"}}, nil, []string{})
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"id"}}, nil, []string{})
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"id"}}, nil, []string{})
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 	require.Nil(t, err)
 	require.Empty(t, output)
 
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{}, nil, []string{}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
@@ -316,7 +319,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"id", "name"}}, nil, []string{})
+	}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 
@@ -350,8 +353,9 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		},
 	}
 
+	runconfig = tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"email"}, []string{"email"}, []*tabledependency.DependsOn{}, false)
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"email"}}, nil, []string{})
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil, []string{})
 
 	require.Nil(t, err)
 	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(value:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4",invalid_email_action:"reject")`)
@@ -400,8 +404,9 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 		},
 	}
 
+	runconfig := tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id"}, []string{"id"}, []*tabledependency.DependsOn{}, false)
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, &tabledependency.RunConfig{InsertColumns: []string{"id"}}, nil,
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sqlmanager_shared.ColumnInfo{}, map[string][]*referenceKey{}, []string{}, mockJobId, mockRunId, nil, runconfig, nil,
 		[]string{})
 
 	require.NoError(t, err)

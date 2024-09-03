@@ -29,7 +29,7 @@ func buildSqlUpdateProcessorConfigs(
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	for fkCol, pks := range transformedFktoPkMap {
 		for _, pk := range pks {
-			if !slices.Contains(config.InsertColumns, fkCol) {
+			if !slices.Contains(config.InsertColumns(), fkCol) {
 				continue
 			}
 
@@ -47,9 +47,9 @@ func buildSqlUpdateProcessorConfigs(
 	}
 
 	if len(processorConfigs) > 0 {
-		for _, pk := range config.PrimaryKeys {
+		for _, pk := range config.PrimaryKeys() {
 			// primary key
-			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, config.Table, pk)
+			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, config.Table(), pk)
 			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pk)
 			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pk)
 			pkResultMap := fmt.Sprintf("root.%q = this", pk)
@@ -85,7 +85,7 @@ func buildProcessorConfigs(
 	// filter columns by config insert cols
 	filteredCols := []*mgmtv1alpha1.JobMapping{}
 	for _, col := range cols {
-		if slices.Contains(runconfig.InsertColumns, col.Column) {
+		if slices.Contains(runconfig.InsertColumns(), col.Column) {
 			filteredCols = append(filteredCols, col)
 		}
 	}
@@ -94,7 +94,7 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo, runconfig.SplitColumnPaths)
+	mutations, err := buildMutationConfigs(ctx, transformerclient, filteredCols, tableColumnInfo, runconfig.SplitColumnPaths())
 	if err != nil {
 		return nil, err
 	}
