@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodKind } from "@bufbuild/protobuf";
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
+import { CheckConnectionConfigByIdRequest, CheckConnectionConfigByIdResponse, CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
 
 /**
  * Returns a list of connections associated with the account
@@ -114,6 +114,23 @@ export const checkConnectionConfig = {
   kind: MethodKind.Unary,
   I: CheckConnectionConfigRequest,
   O: CheckConnectionConfigResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.ConnectionService"
+  }
+} as const;
+
+/**
+ * Checks if the connection id is connectable by the backend.
+ * Used to verify that a connection is still connectable.
+ *
+ * @generated from rpc mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById
+ */
+export const checkConnectionConfigById = {
+  localName: "checkConnectionConfigById",
+  name: "CheckConnectionConfigById",
+  kind: MethodKind.Unary,
+  I: CheckConnectionConfigByIdRequest,
+  O: CheckConnectionConfigByIdResponse,
   service: {
     typeName: "mgmt.v1alpha1.ConnectionService"
   }

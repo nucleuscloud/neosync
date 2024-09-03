@@ -1,10 +1,12 @@
 'use client';
 import FormPersist from '@/app/(mgmt)/FormPersist';
+import Spinner from '@/components/Spinner';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -22,15 +24,29 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection, ConnectionConfig } from '@neosync/sdk';
-import { getConnections } from '@neosync/sdk/connectquery';
-import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
+import {
+  CheckConnectionConfigResponse,
+  Connection,
+  ConnectionConfig,
+} from '@neosync/sdk';
+import {
+  checkConnectionConfigById,
+  getConnections,
+} from '@neosync/sdk/connectquery';
+import {
+  ArrowTopRightIcon,
+  CheckCircledIcon,
+  Cross2Icon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+} from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { IoWarning } from 'react-icons/io5';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
 import {
@@ -47,6 +63,11 @@ import { ConnectFormValues } from '../job-form-validations';
 import ConnectionSelectContent from './ConnectionSelectContent';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
+
+interface DestinationValidationState {
+  isValidating: boolean;
+  response?: CheckConnectionConfigResponse;
+}
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -65,6 +86,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     sourceOptions: {},
     destinations: [{ connectionId: '', destinationOptions: {} }],
   });
+  const [isSourceValidating, setIsSourceValidating] = useState<boolean>(false);
+
+  const [sourceValidationResponse, setSourceValidationResponse] = useState<
+    CheckConnectionConfigResponse | undefined
+  >();
+
+  const [destinationValidation, setDestinationValidation] = useState<
+    Record<string, DestinationValidationState>
+  >({});
 
   const { isLoading: isConnectionsLoading, data: connectionsData } = useQuery(
     getConnections,
@@ -94,6 +124,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { postgres, mysql, s3, mongodb, gcpcs, dynamodb, mssql } =
     splitConnections(connections);
+
+  const { mutateAsync: checkConnectionConfig } = useMutation(
+    checkConnectionConfigById
+  );
 
   return (
     <div
@@ -129,7 +163,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     Source
                   </h2>
                   <p className="text-muted-foreground text-sm">
-                    The location of the source data set.
+                    The location of the source data.
                   </p>
                 </div>
               </div>
@@ -144,156 +178,194 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       {isConnectionsLoading ? (
                         <Skeleton className="w-full h-12 rounded-lg" />
                       ) : (
-                        <Select
-                          name={field.name}
-                          disabled={field.disabled}
-                          onValueChange={(value: string) => {
-                            if (!value) {
-                              return;
-                            }
-                            if (value === NEW_CONNECTION_VALUE) {
-                              const destIds = new Set(
-                                form
-                                  .getValues('destinations')
-                                  .map((d) => d.connectionId)
-                              );
+                        <div className="flex flex-row items-center gap-2">
+                          <div className="w-full">
+                            <Select
+                              name={field.name}
+                              disabled={field.disabled}
+                              onValueChange={async (value: string) => {
+                                if (!value) {
+                                  return;
+                                }
+                                if (value === NEW_CONNECTION_VALUE) {
+                                  const destIds = new Set(
+                                    form
+                                      .getValues('destinations')
+                                      .map((d) => d.connectionId)
+                                  );
 
-                              const urlParams = new URLSearchParams({
-                                returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
-                              });
+                                  const urlParams = new URLSearchParams({
+                                    returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                                  });
 
-                              const connTypes = new Set(
-                                connections
-                                  .filter((c) => destIds.has(c.id))
-                                  .map((c) =>
-                                    getConnectionType(
-                                      c.connectionConfig ??
-                                        new ConnectionConfig()
+                                  const connTypes = new Set(
+                                    connections
+                                      .filter((c) => destIds.has(c.id))
+                                      .map((c) =>
+                                        getConnectionType(
+                                          c.connectionConfig ??
+                                            new ConnectionConfig()
+                                        )
+                                      )
+                                      .filter((x) => !!x)
+                                  );
+                                  const allowedSourceTypes =
+                                    getAllowedSyncSourceTypes(
+                                      Array.from(connTypes)
+                                    );
+                                  allowedSourceTypes.forEach((sourceType) =>
+                                    urlParams.append(
+                                      'connectionType',
+                                      sourceType
                                     )
-                                  )
-                                  .filter((x) => !!x)
-                              );
-                              const allowedSourceTypes =
-                                getAllowedSyncSourceTypes(
-                                  Array.from(connTypes)
-                                );
-                              allowedSourceTypes.forEach((sourceType) =>
-                                urlParams.append('connectionType', sourceType)
-                              );
+                                  );
 
-                              router.push(
-                                `/${account?.name}/new/connection?${urlParams.toString()}`
-                              );
-                              return;
-                            }
-                            field.onChange(value);
-                            const connection =
-                              connections.find((c) => c.id === value) ??
-                              new Connection();
-                            const connectionType = getConnectionType(
-                              connection.connectionConfig ??
-                                new ConnectionConfig()
-                            );
-                            if (connectionType === 'pgConfig') {
-                              form.setValue(
-                                'sourceOptions',
-                                {
-                                  postgres: {
-                                    haltOnNewColumnAddition: false,
-                                  },
-                                },
-                                {
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                  shouldValidate: true,
+                                  router.push(
+                                    `/${account?.name}/new/connection?${urlParams.toString()}`
+                                  );
+                                  return;
                                 }
-                              );
-                            } else if (connectionType === 'mysqlConfig') {
-                              form.setValue(
-                                'sourceOptions',
-                                {
-                                  mysql: {
-                                    haltOnNewColumnAddition: false,
-                                  },
-                                },
-                                {
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                  shouldValidate: true,
+                                field.onChange(value);
+                                const connection =
+                                  connections.find((c) => c.id === value) ??
+                                  new Connection();
+                                const connectionType = getConnectionType(
+                                  connection.connectionConfig ??
+                                    new ConnectionConfig()
+                                );
+                                setIsSourceValidating(true);
+                                try {
+                                  const res = await checkConnectionConfig({
+                                    id: form.getValues('sourceId'),
+                                  });
+                                  setSourceValidationResponse(res);
+                                } catch (err) {
+                                  setSourceValidationResponse(
+                                    new CheckConnectionConfigResponse({
+                                      isConnected: false,
+                                      connectionError:
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'unknown error',
+                                    })
+                                  );
+                                } finally {
+                                  setIsSourceValidating(false);
                                 }
-                              );
-                            } else if (connectionType === 'dynamodbConfig') {
-                              form.setValue(
-                                'sourceOptions',
-                                {
-                                  dynamodb: {
-                                    unmappedTransformConfig:
-                                      getDefaultUnmappedTransformConfig(),
-                                    enableConsistentRead: false,
-                                  },
-                                },
-                                {
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                  shouldValidate: true,
+
+                                if (connectionType === 'pgConfig') {
+                                  form.setValue(
+                                    'sourceOptions',
+                                    {
+                                      postgres: {
+                                        haltOnNewColumnAddition: false,
+                                      },
+                                    },
+                                    {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                      shouldValidate: true,
+                                    }
+                                  );
+                                } else if (connectionType === 'mysqlConfig') {
+                                  form.setValue(
+                                    'sourceOptions',
+                                    {
+                                      mysql: {
+                                        haltOnNewColumnAddition: false,
+                                      },
+                                    },
+                                    {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                      shouldValidate: true,
+                                    }
+                                  );
+                                } else if (
+                                  connectionType === 'dynamodbConfig'
+                                ) {
+                                  form.setValue(
+                                    'sourceOptions',
+                                    {
+                                      dynamodb: {
+                                        unmappedTransformConfig:
+                                          getDefaultUnmappedTransformConfig(),
+                                        enableConsistentRead: false,
+                                      },
+                                    },
+                                    {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                      shouldValidate: true,
+                                    }
+                                  );
+                                } else if (connectionType === 'mssqlConfig') {
+                                  form.setValue(
+                                    'sourceOptions',
+                                    {
+                                      mssql: {
+                                        haltOnNewColumnAddition: false,
+                                      },
+                                    },
+                                    {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                      shouldValidate: true,
+                                    }
+                                  );
+                                } else {
+                                  form.setValue(
+                                    'sourceOptions',
+                                    {},
+                                    {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                      shouldValidate: true,
+                                    }
+                                  );
                                 }
-                              );
-                            } else if (connectionType === 'mssqlConfig') {
-                              form.setValue(
-                                'sourceOptions',
-                                {
-                                  mssql: {
-                                    haltOnNewColumnAddition: false,
-                                  },
-                                },
-                                {
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                  shouldValidate: true,
-                                }
-                              );
-                            } else {
-                              form.setValue(
-                                'sourceOptions',
-                                {},
-                                {
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                  shouldValidate: true,
-                                }
-                              );
-                            }
-                          }}
-                          value={field.value}
-                        >
-                          <SelectTrigger
-                            className={cn(
-                              field.value ? undefined : 'text-muted-foreground'
-                            )}
-                          >
-                            <SelectValue
-                              ref={field.ref}
-                              placeholder="Select a source ..."
+                              }}
+                              value={field.value}
+                            >
+                              <SelectTrigger
+                                className={cn(
+                                  field.value
+                                    ? undefined
+                                    : 'text-muted-foreground'
+                                )}
+                              >
+                                <SelectValue
+                                  ref={field.ref}
+                                  placeholder="Select a source ..."
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <ConnectionSelectContent
+                                  postgres={postgres}
+                                  mysql={mysql}
+                                  mongodb={mongodb}
+                                  dynamodb={dynamodb}
+                                  mssql={mssql}
+                                  newConnectionValue={NEW_CONNECTION_VALUE}
+                                />
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <TestConnectionBadge
+                              isValidating={isSourceValidating}
+                              validationResponse={sourceValidationResponse}
+                              id={form.getValues('sourceId')}
+                              accountName={account?.name ?? ''}
                             />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <ConnectionSelectContent
-                              postgres={postgres}
-                              mysql={mysql}
-                              mongodb={mongodb}
-                              dynamodb={dynamodb}
-                              mssql={mssql}
-                              newConnectionValue={NEW_CONNECTION_VALUE}
-                            />
-                          </SelectContent>
-                        </Select>
+                          </div>
+                        </div>
                       )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="sourceOptions"
@@ -314,7 +386,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
           </div>
           <Separator className="my-6" />
-
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
           >
@@ -323,14 +394,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 Destination(s)
               </h2>
               <p className="text-muted-foreground text-sm">
-                Where the data set should be synced.
+                Where the data should be synced.
               </p>
             </div>
             <div className="space-y-12 col-span-2">
               {fields.map((val, index) => {
                 return (
                   <div className="space-y-4 col-span-2" key={val.id}>
-                    <div className="flex flew-row space-x-4">
+                    <div className="flex flex-row gap-2">
                       <div className="basis-11/12">
                         <FormField
                           control={form.control}
@@ -344,7 +415,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   <Select
                                     name={field.name}
                                     disabled={field.disabled}
-                                    onValueChange={(value: string) => {
+                                    onValueChange={async (value: string) => {
                                       if (!value) {
                                         return;
                                       }
@@ -386,6 +457,55 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         destConnection?.connectionConfig ??
                                           new ConnectionConfig()
                                       );
+
+                                      setDestinationValidation((prevState) => ({
+                                        ...prevState,
+                                        [value]: {
+                                          isValidating: true,
+                                          response:
+                                            new CheckConnectionConfigResponse(
+                                              {}
+                                            ),
+                                        },
+                                      }));
+                                      try {
+                                        const res = await checkConnectionConfig(
+                                          {
+                                            id: value,
+                                          }
+                                        );
+                                        setDestinationValidation(
+                                          (prevState) => ({
+                                            ...prevState,
+                                            [value]: {
+                                              isValidating: false,
+                                              response: res,
+                                            },
+                                          })
+                                        );
+                                      } catch (err) {
+                                        setDestinationValidation(
+                                          (prevState) => ({
+                                            ...prevState,
+                                            [value]: {
+                                              isValidating: false,
+                                              response:
+                                                new CheckConnectionConfigResponse(
+                                                  {
+                                                    isConnected: false,
+                                                    connectionError:
+                                                      err instanceof Error
+                                                        ? err.message
+                                                        : 'unknown error',
+                                                  }
+                                                ),
+                                            },
+                                          })
+                                        );
+                                      } finally {
+                                        setIsSourceValidating(false);
+                                      }
+
                                       if (destConnType === 'pgConfig') {
                                         form.setValue(
                                           `destinations.${index}.destinationOptions`,
@@ -493,7 +613,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           )}
                         />
                       </div>
-                      <div>
+                      <div className="flex flex-row gap-2">
                         <Button
                           type="button"
                           variant="outline"
@@ -506,6 +626,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         >
                           <Cross2Icon className="w-4 h-4" />
                         </Button>
+                        <div className="flex items-start pt-4">
+                          <TestConnectionBadge
+                            isValidating={
+                              destinationValidation[
+                                form.getValues(
+                                  `destinations.${index}.connectionId`
+                                )
+                              ]?.isValidating
+                            }
+                            validationResponse={
+                              destinationValidation[
+                                form.getValues(
+                                  `destinations.${index}.connectionId`
+                                )
+                              ]?.response
+                            }
+                            id={form.getValues(
+                              `destinations.${index}.connectionId`
+                            )}
+                            accountName={account?.name ?? ''}
+                          />
+                        </div>
                       </div>
                     </div>
                     <FormField
@@ -573,6 +715,79 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           </div>
         </form>
       </Form>
+    </div>
+  );
+}
+
+interface TestConnectionBadgeProps {
+  isValidating: boolean;
+  validationResponse: CheckConnectionConfigResponse | undefined;
+  id: string | undefined;
+  accountName: string;
+}
+
+function TestConnectionBadge(props: TestConnectionBadgeProps): ReactElement {
+  const { isValidating, validationResponse, id, accountName } = props;
+
+  const url = `/${accountName}/connections/${id}/permissions`;
+
+  const handleValidationResponse = (
+    vr: CheckConnectionConfigResponse | undefined
+  ): ReactElement => {
+    if (vr && vr?.isConnected && vr.privileges.length > 0) {
+      return (
+        <CheckCircledIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+      );
+    } else if (vr && vr?.isConnected && vr.privileges.length === 0) {
+      return (
+        <div className="relative flex items-center">
+          <Badge variant="outline" className="flex items-center absolute">
+            <div className="flex flex-row items-center gap-2">
+              <IoWarning className="h-4 w-4 text-yellow-600 dark:text-orange-400" />
+              <div className="text-nowrap text-xs">
+                Warning - No tables found.{' '}
+                <a href={url} className="underline" target="_blank">
+                  More info
+                </a>
+              </div>
+              <ArrowTopRightIcon className="h-4 w-4" />
+            </div>
+          </Badge>
+        </div>
+      );
+    } else if (vr && !vr.isConnected) {
+      return (
+        <div className="relative flex items-center">
+          <Badge variant="outline" className="flex items-center absolute">
+            <div className="flex flex-row items-center gap-2">
+              <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
+              <div className="text-nowrap text-xs">
+                Error - Unable to connect.{' '}
+                <a href={url} className="underline" target="_blank">
+                  More info
+                </a>
+              </div>
+              <ArrowTopRightIcon className="h-4 w-4" />
+            </div>
+          </Badge>
+        </div>
+      );
+    } else {
+      return <div></div>;
+    }
+  };
+
+  return (
+    <div className="relative flex items-center">
+      <div className="absolute">
+        {id && isValidating ? (
+          <Spinner className="text-black dark:text-white" />
+        ) : id && !isValidating ? (
+          <div>{handleValidationResponse(validationResponse)}</div>
+        ) : (
+          <div />
+        )}
+      </div>
     </div>
   );
 }

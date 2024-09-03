@@ -1380,6 +1380,258 @@ var _ interface {
 	ErrorName() string
 } = CheckConnectionConfigRequestValidationError{}
 
+// Validate checks the field values on CheckConnectionConfigByIdRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CheckConnectionConfigByIdRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckConnectionConfigByIdRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CheckConnectionConfigByIdRequestMultiError, or nil if none found.
+func (m *CheckConnectionConfigByIdRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckConnectionConfigByIdRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return CheckConnectionConfigByIdRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckConnectionConfigByIdRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// CheckConnectionConfigByIdRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CheckConnectionConfigByIdRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckConnectionConfigByIdRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckConnectionConfigByIdRequestMultiError) AllErrors() []error { return m }
+
+// CheckConnectionConfigByIdRequestValidationError is the validation error
+// returned by CheckConnectionConfigByIdRequest.Validate if the designated
+// constraints aren't met.
+type CheckConnectionConfigByIdRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckConnectionConfigByIdRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckConnectionConfigByIdRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckConnectionConfigByIdRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckConnectionConfigByIdRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckConnectionConfigByIdRequestValidationError) ErrorName() string {
+	return "CheckConnectionConfigByIdRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckConnectionConfigByIdRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckConnectionConfigByIdRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckConnectionConfigByIdRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckConnectionConfigByIdRequestValidationError{}
+
+// Validate checks the field values on CheckConnectionConfigByIdResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CheckConnectionConfigByIdResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckConnectionConfigByIdResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CheckConnectionConfigByIdResponseMultiError, or nil if none found.
+func (m *CheckConnectionConfigByIdResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckConnectionConfigByIdResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IsConnected
+
+	for idx, item := range m.GetPrivileges() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CheckConnectionConfigByIdResponseValidationError{
+						field:  fmt.Sprintf("Privileges[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CheckConnectionConfigByIdResponseValidationError{
+						field:  fmt.Sprintf("Privileges[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CheckConnectionConfigByIdResponseValidationError{
+					field:  fmt.Sprintf("Privileges[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.ConnectionError != nil {
+		// no validation rules for ConnectionError
+	}
+
+	if len(errors) > 0 {
+		return CheckConnectionConfigByIdResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckConnectionConfigByIdResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CheckConnectionConfigByIdResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CheckConnectionConfigByIdResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckConnectionConfigByIdResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckConnectionConfigByIdResponseMultiError) AllErrors() []error { return m }
+
+// CheckConnectionConfigByIdResponseValidationError is the validation error
+// returned by CheckConnectionConfigByIdResponse.Validate if the designated
+// constraints aren't met.
+type CheckConnectionConfigByIdResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckConnectionConfigByIdResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckConnectionConfigByIdResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckConnectionConfigByIdResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckConnectionConfigByIdResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckConnectionConfigByIdResponseValidationError) ErrorName() string {
+	return "CheckConnectionConfigByIdResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckConnectionConfigByIdResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckConnectionConfigByIdResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckConnectionConfigByIdResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckConnectionConfigByIdResponseValidationError{}
+
 // Validate checks the field values on CheckConnectionConfigResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

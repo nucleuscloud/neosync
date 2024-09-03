@@ -48,6 +48,19 @@ message CheckConnectionConfigRequest {
   ConnectionConfig connection_config = 1;
 }
 
+message CheckConnectionConfigByIdRequest {
+  // The connection ID whose connection we want to validate
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message CheckConnectionConfigByIdResponse {
+  // Whether or not the API was able to ping the connection
+  bool is_connected = 1;
+  // This is the error that was received if the API was unable to connect
+  optional string connection_error = 2;
+  repeated ConnectionRolePrivilege privileges = 3;
+}
+
 message CheckConnectionConfigResponse {
   // Whether or not the API was able to ping the connection
   bool is_connected = 1;
@@ -344,6 +357,9 @@ service ConnectionService {
   // Checks if the connection config is connectable by the backend.
   // Used mostly to verify that a connection is valid prior to creating a Connection object.
   rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
+  // Checks if the connection id is connectable by the backend.
+  // Used to verify that a connection is still connectable.
+  rpc CheckConnectionConfigById(CheckConnectionConfigByIdRequest) returns (CheckConnectionConfigByIdResponse) {}
   // Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
   // This is useful when constructing subsets to see if the WHERE clause is correct
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}

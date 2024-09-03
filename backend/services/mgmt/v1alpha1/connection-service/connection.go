@@ -163,6 +163,51 @@ func (s *Service) CheckConnectionConfig(
 	}
 }
 
+func (s *Service) CheckConnectionConfigById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigByIdRequest],
+) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigByIdResponse], error) {
+	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := s.db.Q.GetConnectionById(ctx, s.db.Db, connectionUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(conn.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	dtoVal, err := dtomaps.ToConnectionDto(&conn)
+	if err != nil {
+		return nil, err
+	}
+
+	checkReq := &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
+		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
+			ConnectionConfig: dtoVal.ConnectionConfig,
+		},
+	}
+
+	resp, err := s.CheckConnectionConfig(ctx, checkReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigByIdResponse{
+		IsConnected:     resp.Msg.IsConnected,
+		ConnectionError: resp.Msg.ConnectionError,
+		Privileges:      resp.Msg.Privileges,
+	}), nil
+
+}
+
 func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig) (string, error) {
 	if cconfig == nil {
 		return "", errors.New("connection config was nil, unable to retrieve db role")
