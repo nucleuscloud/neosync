@@ -268,40 +268,43 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
 		}
 
-		// set any default transformations
-		for idx, a := range args {
-			if a == "DEFAULT" {
-				args[idx] = goqu.L("DEFAULT")
-			}
-		}
-
 		rows = append(rows, args)
 	}
 
 	filteredCols, filteredRows := filterIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
+
+	// set any default transformations
+	for i, row := range filteredRows {
+		for j, arg := range row {
+			if arg == "DEFAULT" {
+				filteredRows[i][j] = goqu.L("DEFAULT")
+			}
+		}
+	}
+
 	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), filteredCols, filteredRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(filteredCols) == 0 {
-		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table)
+		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
-	fmt.Println()
-	fmt.Println(insertQuery)
-	fmt.Println()
-
-	// query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
+	query := s.buildQuery(insertQuery)
+	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		return err
 	}
 	return nil
 }
 
 // use when all columns are identity generation columns
-func getMssqlDefaultValuesInsertSql(schema, table string) string {
-	return fmt.Sprintf("INSERT INTO %s.%s DEFAULT VALUES", schema, table)
+func getMssqlDefaultValuesInsertSql(schema, table string, rowCount int) string {
+	var sql string
+	for i := 0; i < rowCount; i++ {
+		sql += fmt.Sprintf("INSERT INTO %s.%s DEFAULT VALUES;", schema, table)
+	}
+	return sql
 }
 
 func filterIdentityColumns(
@@ -313,31 +316,35 @@ func filterIdentityColumns(
 		return columnNames, argRows
 	}
 
-	identityColMap := map[string]struct{}{}
+	// build map of identity columns
+	identityColMap := map[string]bool{}
 	for _, id := range identityCols {
-		identityColMap[id] = struct{}{}
+		identityColMap[id] = true
 	}
 
+	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
 	newRows := [][]any{}
+	// build rows removing identity columns/args with default set
 	for _, row := range argRows {
 		newRow := []any{}
 		for idx, arg := range row {
-			_, isIdentity := identityColMap[columnNames[idx]]
-			if !isIdentity {
-				newRow = append(newRow, arg)
+			col := columnNames[idx]
+			if identityColMap[col] && arg == "DEFAULT" {
+				// pass on identity columns with a default
+				continue
 			}
+			newRow = append(newRow, arg)
+			nonIdentityColumnMap[col] = struct{}{}
 		}
 		newRows = append(newRows, newRow)
 	}
-
 	newColumns := []string{}
+	// build new columns list while maintaining same order
 	for _, col := range columnNames {
-		_, isIdentity := identityColMap[col]
-		if !isIdentity {
+		if _, ok := nonIdentityColumnMap[col]; ok {
 			newColumns = append(newColumns, col)
 		}
 	}
-
 	return newColumns, newRows
 }
 

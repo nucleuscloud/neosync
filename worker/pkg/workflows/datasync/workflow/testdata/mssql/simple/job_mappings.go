@@ -91,6 +91,14 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
+			Schema: "production",
+			Table:  "identities",
+			Column: "id",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
 			Schema: "sales",
 			Table:  "customers",
 			Column: "customer_id",
@@ -448,6 +456,9 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 			"category_id": "INT",
 			"model_year": "SMALLINT",
 			"list_price": "DECIMAL(10,2)",
+		},
+		"production.identities": {
+			"id": "INTIDENTITY(1,1)",
 		},
 		"sales.customers": {
 			"customer_id": "INTIDENTITY(1,1)",

@@ -36,7 +36,6 @@ type RunConfig struct {
 	table            string // schema.table
 	selectColumns    []string
 	insertColumns    []string
-	identityColumns  []string
 	dependsOn        []*DependsOn
 	runType          RunType
 	primaryKeys      []string
