@@ -189,13 +189,9 @@ func (s *Service) CheckConnectionConfigById(
 		return nil, err
 	}
 
-	checkReq := &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
-		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: dtoVal.ConnectionConfig,
-		},
-	}
-
-	resp, err := s.CheckConnectionConfig(ctx, checkReq)
+	resp, err := s.CheckConnectionConfig(ctx, connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
+		ConnectionConfig: dtoVal.ConnectionConfig,
+	}))
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +201,6 @@ func (s *Service) CheckConnectionConfigById(
 		ConnectionError: resp.Msg.ConnectionError,
 		Privileges:      resp.Msg.Privileges,
 	}), nil
-
 }
 
 func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig) (string, error) {
