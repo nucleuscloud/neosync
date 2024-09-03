@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/doug-martin/goqu/v9"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
@@ -274,24 +276,32 @@ func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
 func (s *IntegrationTestSuite) Test_Exec() {
 	manager := NewManager(s.querier, s.pgpool, func() {})
 
-	err := manager.Exec(context.Background(), fmt.Sprintf("SELECT 1 FROM %s.%s", s.schema, "users"))
+	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
+	require.NoError(s.T(), err)
+
+	err = manager.Exec(context.Background(), sql)
 	require.NoError(s.T(), err)
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec() {
 	manager := NewManager(s.querier, s.pgpool, func() {})
 
-	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", s.schema, "users")
-	err := manager.BatchExec(context.Background(), 2, []string{stmt, stmt, stmt}, &sqlmanager_shared.BatchExecOpts{})
+	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
+	require.NoError(s.T(), err)
+	sql += ";"
+
+	err = manager.BatchExec(context.Background(), 2, []string{sql, sql, sql}, &sqlmanager_shared.BatchExecOpts{})
 	require.NoError(s.T(), err)
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 	manager := NewManager(s.querier, s.pgpool, func() {})
+	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
+	require.NoError(s.T(), err)
+	sql += ";"
 
-	stmt := fmt.Sprintf("SELECT 1 FROM %s.%s;", s.schema, "users")
-	err := manager.BatchExec(context.Background(), 2, []string{stmt}, &sqlmanager_shared.BatchExecOpts{
-		Prefix: &stmt,
+	err = manager.BatchExec(context.Background(), 2, []string{sql}, &sqlmanager_shared.BatchExecOpts{
+		Prefix: &sql,
 	})
 	require.NoError(s.T(), err)
 }
