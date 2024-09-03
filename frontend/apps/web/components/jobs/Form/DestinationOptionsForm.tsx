@@ -255,7 +255,7 @@ export default function DestinationOptionsForm(
       return (
         <div className="flex flex-col gap-2">
           <div>
-            <SwitchCard
+            {/* <SwitchCard
               isChecked={value.mssql?.truncateBeforeInsert ?? false}
               onCheckedChange={(newVal) => {
                 setValue({
@@ -273,7 +273,7 @@ export default function DestinationOptionsForm(
               }}
               title="Truncate Before Insert"
               description="Truncates table before inserting data"
-            />
+            /> */}
           </div>
           <div>
             {/* <SwitchCard
@@ -296,7 +296,7 @@ export default function DestinationOptionsForm(
             /> */}
           </div>
           <div>
-            <SwitchCard
+            {/* <SwitchCard
               isChecked={value.mssql?.onConflictDoNothing ?? false}
               onCheckedChange={(newVal) => {
                 setValue({
@@ -313,7 +313,7 @@ export default function DestinationOptionsForm(
               }}
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
-            />
+            /> */}
           </div>
         </div>
       );
