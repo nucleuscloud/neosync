@@ -372,6 +372,7 @@ type PooledSqlInsert struct {
 	Schema              string    `json:"schema" yaml:"schema"`
 	Table               string    `json:"table" yaml:"table"`
 	Columns             []string  `json:"columns" yaml:"columns"`
+	IdentityColumns     []string  `json:"identity_columns" yaml:"identity_columns"`
 	OnConflictDoNothing bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
 	TruncateOnRetry     bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
 	ArgsMapping         string    `json:"args_mapping" yaml:"args_mapping"`

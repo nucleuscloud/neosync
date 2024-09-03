@@ -480,6 +480,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Schema:              benthosConfig.TableSchema,
 						Table:               benthosConfig.TableName,
 						Columns:             benthosConfig.Columns,
+						IdentityColumns:     benthosConfig.IdentityColumns,
 						OnConflictDoNothing: destOpts.OnConflictDoNothing,
 						TruncateOnRetry:     destOpts.Truncate,
 						ArgsMapping:         buildPlainInsertArgs(benthosConfig.Columns),

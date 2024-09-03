@@ -287,8 +287,12 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table)
 	}
 
-	query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, query); err != nil {
+	fmt.Println()
+	fmt.Println(insertQuery)
+	fmt.Println()
+
+	// query := s.buildQuery(insertQuery)
+	if _, err := s.db.ExecContext(ctx, insertQuery); err != nil {
 		return err
 	}
 	return nil
@@ -302,10 +306,10 @@ func getMssqlDefaultValuesInsertSql(schema, table string) string {
 func filterIdentityColumns(
 	driver string,
 	identityCols, columnNames []string,
-	args [][]any,
+	argRows [][]any,
 ) (columns []string, rows [][]any) {
 	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
-		return columnNames, args
+		return columnNames, argRows
 	}
 
 	identityColMap := map[string]struct{}{}
@@ -313,17 +317,27 @@ func filterIdentityColumns(
 		identityColMap[id] = struct{}{}
 	}
 
+	newRows := [][]any{}
+	for _, row := range argRows {
+		newRow := []any{}
+		for idx, arg := range row {
+			_, isIdentity := identityColMap[columnNames[idx]]
+			if !isIdentity {
+				newRow = append(newRow, arg)
+			}
+		}
+		newRows = append(newRows, newRow)
+	}
+
 	newColumns := []string{}
-	newArgs := [][]any{}
-	for idx, col := range columnNames {
+	for _, col := range columnNames {
 		_, isIdentity := identityColMap[col]
 		if !isIdentity {
 			newColumns = append(newColumns, col)
-			newArgs = append(newArgs, args[idx])
 		}
 	}
 
-	return newColumns, newArgs
+	return newColumns, newRows
 }
 
 func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
