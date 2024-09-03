@@ -15,6 +15,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Jeffail/gabs/v2 v2.7.0
 	github.com/Jeffail/shutdown v1.0.0
+	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/auth0/go-auth0 v1.9.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.2
 	github.com/aws/aws-sdk-go-v2 v1.30.4
@@ -41,6 +42,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/microsoft/go-mssqldb v1.7.2
+	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240830015744-041b46c70aa5
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.20.2
 	github.com/prometheus/common v0.55.0
@@ -409,7 +411,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
+	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/oauth2 v0.22.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
