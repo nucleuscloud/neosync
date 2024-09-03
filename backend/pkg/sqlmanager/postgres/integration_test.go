@@ -38,7 +38,7 @@ func (s *IntegrationTestSuite) buildTable(tableName string) string {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
-	s.schema = "sqlmanagerpostgres"
+	s.schema = "sqlmanagerpostgres@special"
 
 	pgcontainer, err := testpg.Run(
 		s.ctx,

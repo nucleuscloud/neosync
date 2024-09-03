@@ -901,12 +901,12 @@ const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
     con.conname AS constraint_name,
     con.contype::TEXT AS constraint_type,
-    con.connamespace::regnamespace::TEXT AS schema_name,
+    nsp.nspname AS schema_name,
     cls.relname AS table_name,
     array_agg(att.attname)::TEXT[] AS constraint_columns,
     array_agg(att.attnotnull)::BOOL[] AS notnullable,
     CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::TEXT
+        WHEN con.contype = 'f' THEN fk_nsp.nspname
         ELSE ''
     END AS foreign_schema_name,
     CASE
@@ -933,6 +933,9 @@ JOIN
 LEFT JOIN
     pg_catalog.pg_class fn_cl ON
     fn_cl.oid = con.confrelid
+LEFT JOIN
+    pg_catalog.pg_namespace fk_nsp ON
+    fn_cl.relnamespace = fk_nsp.oid
 LEFT JOIN LATERAL (
         SELECT
             array_agg(fk_att.attname) AS foreign_column_names
@@ -944,15 +947,15 @@ LEFT JOIN LATERAL (
     ) AS fk_columns ON
     TRUE
 WHERE
-    con.connamespace::regnamespace::TEXT = $1
-    AND con.conrelid::regclass::TEXT = $2
+    nsp.nspname = $1
+    AND cls.relname = $2
 GROUP BY
     con.oid,
-    con.connamespace,
+    nsp.nspname,
     con.conname,
     cls.relname,
     con.contype,
-    fn_cl.relnamespace,
+    fk_nsp.nspname,
     fn_cl.relname,
     fk_columns.foreign_column_names
 `
@@ -1010,12 +1013,12 @@ const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
 SELECT
     con.conname AS constraint_name,
     con.contype::TEXT AS constraint_type,
-    con.connamespace::regnamespace::TEXT AS schema_name,
+    nsp.nspname AS schema_name,
     cls.relname AS table_name,
     array_agg(att.attname)::TEXT[] AS constraint_columns,
     array_agg(att.attnotnull)::BOOL[] AS notnullable,
     CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::TEXT
+        WHEN con.contype = 'f' THEN fk_nsp.nspname
         ELSE ''
     END AS foreign_schema_name,
     CASE
@@ -1042,6 +1045,9 @@ JOIN
 LEFT JOIN
     pg_catalog.pg_class fn_cl ON
     fn_cl.oid = con.confrelid
+LEFT JOIN
+    pg_catalog.pg_namespace fk_nsp ON
+    fn_cl.relnamespace = fk_nsp.oid
 LEFT JOIN LATERAL (
         SELECT
             array_agg(fk_att.attname) AS foreign_column_names
@@ -1053,16 +1059,16 @@ LEFT JOIN LATERAL (
     ) AS fk_columns ON
     TRUE
 WHERE
-    con.connamespace::regnamespace::TEXT = ANY(
+    nsp.nspname = ANY(
         $1::TEXT[]
     )
 GROUP BY
     con.oid,
-    con.connamespace,
+    nsp.nspname,
     con.conname,
     cls.relname,
     con.contype,
-    fn_cl.relnamespace,
+    fk_nsp.nspname,
     fn_cl.relname,
     fk_columns.foreign_column_names
 `
