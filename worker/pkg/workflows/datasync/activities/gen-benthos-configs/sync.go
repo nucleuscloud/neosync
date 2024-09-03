@@ -513,7 +513,7 @@ func getInsertPrefixAndSuffix(
 		return pre, suff
 	}
 	tableName := neosync_benthos.BuildBenthosTable(schema, table)
-	if hasPassthroughIdenityColumn(tableName, identityColumns, colTransformerMap) {
+	if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
 		p := fmt.Sprintf("SET IDENTITY_INSERT %s ON;", tableName)
 		pre = &p
 		s := fmt.Sprintf("SET IDENTITY_INSERT %s OFF;", tableName)
@@ -522,7 +522,7 @@ func getInsertPrefixAndSuffix(
 	return pre, suff
 }
 
-func hasPassthroughIdenityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) bool {
+func hasPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) bool {
 	for _, c := range identityColumns {
 		colTMap, ok := colTransformerMap[table]
 		if !ok {
