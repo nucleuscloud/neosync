@@ -1,4 +1,4 @@
-package v1alpha1_jobservice
+package integrationtests_test
 
 import (
 	"connectrpc.com/connect"
@@ -11,9 +11,9 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
-	accountId := s.createPersonalAccount(s.userclient)
+	accountId := s.createPersonalAccount(s.unauthdClients.users)
 
-	resp, err := s.jobsclient.GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
+	resp, err := s.unauthdClients.jobs.GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -22,23 +22,23 @@ func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
 }
 
 func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
-	accountId := s.createPersonalAccount(s.userclient)
-	srcconn := s.createPostgresConnection(s.connclient, accountId, "source", "test")
-	destconn := s.createPostgresConnection(s.connclient, accountId, "dest", "test2")
+	accountId := s.createPersonalAccount(s.unauthdClients.users)
+	srcconn := s.createPostgresConnection(s.unauthdClients.connections, accountId, "source", "test")
+	destconn := s.createPostgresConnection(s.unauthdClients.connections, accountId, "dest", "test2")
 
 	mockScheduleClient := temporalmocks.NewScheduleClient(s.T())
 	mockScheduleHandle := temporalmocks.NewScheduleHandle(s.T())
-	s.mockTemporalClientMgr.
+	s.mocks.temporalClientManager.
 		On(
 			"DoesAccountHaveTemporalWorkspace", mock.Anything, mock.Anything, mock.Anything,
 		).
 		Return(true, nil).
 		Once()
-	s.mockTemporalClientMgr.
+	s.mocks.temporalClientManager.
 		On("GetScheduleClientByAccount", mock.Anything, mock.Anything, mock.Anything).
 		Return(mockScheduleClient, nil).
 		Once()
-	s.mockTemporalClientMgr.
+	s.mocks.temporalClientManager.
 		On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
 		Return(&pg_models.TemporalConfig{}, nil).
 		Once()
@@ -51,7 +51,7 @@ func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
 		Return("test-id").
 		Once()
 
-	resp, err := s.jobsclient.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
+	resp, err := s.unauthdClients.jobs.CreateJob(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateJobRequest{
 		AccountId: accountId,
 		JobName:   "test",
 		Mappings:  []*mgmtv1alpha1.JobMapping{},
