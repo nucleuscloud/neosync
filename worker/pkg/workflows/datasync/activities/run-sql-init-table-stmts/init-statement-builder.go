@@ -239,7 +239,35 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			slogger.Info("Mssql does not currently implement sql init table statements. Skipping for now until this gets implemented..")
+			// slogger.Info("Mssql does not currently implement sql init table statements. Skipping for now until this gets implemented..")
+			//
+			if sqlopts.TruncateBeforeInsert {
+				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+				}
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies.ForeignKeyConstraints)))
+				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
+				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+
+				orderedTableDelete := []string{}
+				for _, table := range orderedTablesResp.OrderedTables {
+					schema, table := sqlmanager_shared.SplitTableKey(table)
+					orderedTableDelete = append(orderedTableDelete, fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table))
+				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableDelete)))
+				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
+				if err != nil {
+					destdb.Db.Close()
+					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
+				}
+			}
+			destdb.Db.Close()
+			//
 		default:
 			return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.ConnectionConfig.Config)
 		}
