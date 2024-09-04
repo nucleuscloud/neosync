@@ -243,64 +243,6 @@ func Test_GetConnections_Error(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func Test_CheckConnectionConfigById(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
-	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
-
-	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(connection, nil)
-
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
-
-	pool, _ := pgxpool.New(context.Background(), "")
-	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
-	m.PgPoolContainerMock.On("Close")
-
-	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
-
-	m.PgQuerierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPostgresRolePermissionsRow{
-			{
-				TableSchema:   "Users",
-				TableName:     "Users",
-				PrivilegeType: "Insert",
-			},
-			{
-				TableSchema:   "Users",
-				TableName:     "Users",
-				PrivilegeType: "Delete",
-			},
-		}, nil)
-
-	m.ConnectionServiceMock.On("CheckConnectionConfig", mock.Anything, mock.Anything).Return(
-		connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     true,
-			ConnectionError: nil,
-			Privileges: []*mgmtv1alpha1.ConnectionRolePrivilege{
-				{
-					Grantee:       "test_role",
-					Schema:        "Users",
-					Table:         "Users",
-					PrivilegeType: []string{"Delete", "Insert"},
-				},
-			},
-		}),
-		nil,
-	)
-
-	resp, err := m.Service.CheckConnectionConfigById(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigByIdRequest]{
-		Msg: &mgmtv1alpha1.CheckConnectionConfigByIdRequest{
-			Id: mockConnectionId,
-		},
-	})
-
-	assert.Nil(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 2, len(resp.Msg.Privileges[0].PrivilegeType), "There should be two privilege types for this connection")
-}
-
 // GetConnection
 func Test_GetConnection(t *testing.T) {
 	m := createServiceMock(t)
@@ -750,7 +692,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockMssqlQuerier := mssql_queries.NewMockQuerier(t)
 	mockMongoConnector := mongoconnect.NewMockInterface(t)
 	mockAwsManager := awsmanager.NewMockNeosyncAwsManagerClient(t)
-	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
@@ -758,7 +699,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	}
 
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
-		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMssqlQuerier, mockMongoConnector, mockAwsManager, mockConnectionService)
+		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMssqlQuerier, mockMongoConnector, mockAwsManager)
 
 	return &serviceMocks{
 		Service:                service,
@@ -774,7 +715,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		MysqlQuerierMock:       mockMysqlquerier,
 		MongoConnectorMock:     mockMongoConnector,
 		MssqlQuerierMock:       mockMssqlQuerier,
-		ConnectionServiceMock:  mockConnectionService,
 	}
 }
 

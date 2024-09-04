@@ -49,7 +49,7 @@ message CheckConnectionConfigRequest {
 }
 
 message CheckConnectionConfigByIdRequest {
-  // The connection ID whose connection we want to validate
+  // The connection id to validate
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
@@ -58,6 +58,7 @@ message CheckConnectionConfigByIdResponse {
   bool is_connected = 1;
   // This is the error that was received if the API was unable to connect
   optional string connection_error = 2;
+  // The privileges the role has to the connection
   repeated ConnectionRolePrivilege privileges = 3;
 }
 

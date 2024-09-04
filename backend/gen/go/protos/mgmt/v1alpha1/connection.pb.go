@@ -568,7 +568,7 @@ type CheckConnectionConfigByIdRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The connection ID whose connection we want to validate
+	// The connection id to validate
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 }
 
@@ -619,8 +619,9 @@ type CheckConnectionConfigByIdResponse struct {
 	// Whether or not the API was able to ping the connection
 	IsConnected bool `protobuf:"varint,1,opt,name=is_connected,json=isConnected,proto3" json:"is_connected,omitempty"`
 	// This is the error that was received if the API was unable to connect
-	ConnectionError *string                    `protobuf:"bytes,2,opt,name=connection_error,json=connectionError,proto3,oneof" json:"connection_error,omitempty"`
-	Privileges      []*ConnectionRolePrivilege `protobuf:"bytes,3,rep,name=privileges,proto3" json:"privileges,omitempty"`
+	ConnectionError *string `protobuf:"bytes,2,opt,name=connection_error,json=connectionError,proto3,oneof" json:"connection_error,omitempty"`
+	// The privileges the role has to the connection
+	Privileges []*ConnectionRolePrivilege `protobuf:"bytes,3,rep,name=privileges,proto3" json:"privileges,omitempty"`
 }
 
 func (x *CheckConnectionConfigByIdResponse) Reset() {

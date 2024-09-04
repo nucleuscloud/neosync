@@ -167,39 +167,24 @@ func (s *Service) CheckConnectionConfigById(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigByIdRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigByIdResponse], error) {
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := s.db.Q.GetConnectionById(ctx, s.db.Db, connectionUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
-	}
-
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(conn.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
-	dtoVal, err := dtomaps.ToConnectionDto(&conn)
+	connResp, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.Id,
+	}))
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := s.CheckConnectionConfig(ctx, connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
-		ConnectionConfig: dtoVal.ConnectionConfig,
+		ConnectionConfig: connResp.Msg.GetConnection().ConnectionConfig,
 	}))
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigByIdResponse{
-		IsConnected:     resp.Msg.IsConnected,
+		IsConnected:     resp.Msg.GetIsConnected(),
 		ConnectionError: resp.Msg.ConnectionError,
-		Privileges:      resp.Msg.Privileges,
+		Privileges:      resp.Msg.GetPrivileges(),
 	}), nil
 }
 

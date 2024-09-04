@@ -26,8 +26,7 @@ type Service struct {
 	pgquerier    pg_queries.Querier
 	mysqlquerier mysql_queries.Querier
 
-	awsManager        awsmanager.NeosyncAwsManagerClient
-	connectionService mgmtv1alpha1connect.ConnectionServiceClient
+	awsManager awsmanager.NeosyncAwsManagerClient
 }
 
 type Config struct {
@@ -43,7 +42,6 @@ func New(
 	mssqlquerier mssql_queries.Querier,
 	mongoconnector mongoconnect.Interface,
 	awsManager awsmanager.NeosyncAwsManagerClient,
-	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 ) *Service {
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
@@ -59,6 +57,5 @@ func New(
 		sqlmanager:         sqlmanager,
 		mongoconnector:     mongoconnector,
 		awsManager:         awsManager,
-		connectionService:  connectionService,
 	}
 }

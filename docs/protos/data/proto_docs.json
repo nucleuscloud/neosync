@@ -1147,7 +1147,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "The connection ID whose connection we want to validate",
+              "description": "The connection id to validate",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1195,7 +1195,7 @@
             },
             {
               "name": "privileges",
-              "description": "",
+              "description": "The privileges the role has to the connection",
               "label": "repeated",
               "type": "ConnectionRolePrivilege",
               "longType": "ConnectionRolePrivilege",
