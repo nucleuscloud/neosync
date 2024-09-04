@@ -36,23 +36,29 @@ import {
   JobMappingFormValues,
   JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
+import { PartialMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ConnectError,
   GetConnectionSchemaResponse,
   JobMappingTransformer,
   Passthrough,
   SystemTransformer,
   TransformerConfig,
   TransformerSource,
+  ValidateUserJavascriptCodeRequest,
+  ValidateUserJavascriptCodeResponse,
 } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import { CheckIcon, Pencil1Icon, TableIcon } from '@radix-ui/react-icons';
+import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { nanoid } from 'nanoid';
 import {
   HTMLProps,
   ReactElement,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -141,6 +147,24 @@ export default function NosqlTable(props: Props): ReactElement {
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
 
+  // useMemo ensures that we don't recreate the set unless the data changes
+  const keySet = useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((item: JobMappingFormValues) => {
+      set.add(`${item.schema}.${item.table}.${item.column}`);
+    });
+    return set;
+  }, [data]);
+
+  // useCallback ensures that we only re-run the function if the keySet changes
+  const isDuplicateKey = useCallback(
+    (value: string, schema: string, table: string) => {
+      const key = `${schema}.${table}.${value}`;
+      return keySet.has(key);
+    },
+    [keySet]
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
@@ -161,7 +185,7 @@ export default function NosqlTable(props: Props): ReactElement {
           <CardContent>
             <AddNewRecord
               collections={collections}
-              data={data}
+              isDuplicateKey={isDuplicateKey}
               onSubmit={(values) => {
                 onAddMappings([values]);
               }}
@@ -198,7 +222,7 @@ interface AddNewRecordProps {
   collections: string[];
   onSubmit(values: AddNewNosqlRecordFormValues): void;
   transformerHandler: TransformerHandler;
-  data: JobMappingFormValues[];
+  isDuplicateKey: (value: string, schema: string, table: string) => boolean;
 }
 
 const AddNewNosqlRecordFormValues = Yup.object({
@@ -215,18 +239,12 @@ const AddNewNosqlRecordFormValues = Yup.object({
           return true;
         }
 
-        const selectedCollection: JobMappingFormValues[] =
-          context?.options?.context?.data.filter(
-            (item: JobMappingFormValues) =>
-              `${item.schema}.${item.table}` === collection
-          );
-
-        const isDuplicate = selectedCollection.some(
-          (item: JobMappingFormValues) => item.column === value
-        );
+        const lastDotIndex = collection.lastIndexOf('.');
+        const schema = collection.substring(0, lastDotIndex);
+        const table = collection.substring(lastDotIndex + 1);
 
         return (
-          !isDuplicate ||
+          !context?.options?.context?.isDuplicateKey(value, schema, table) ||
           this.createError({
             message: 'This key already exists in this collection.',
           })
@@ -240,15 +258,28 @@ type AddNewNosqlRecordFormValues = Yup.InferType<
   typeof AddNewNosqlRecordFormValues
 >;
 
+interface AddNewNosqlRecordFormContext {
+  accountId: string;
+  isUserJavascriptCodeValid: UseMutateAsyncFunction<
+    ValidateUserJavascriptCodeResponse,
+    ConnectError,
+    PartialMessage<ValidateUserJavascriptCodeRequest>,
+    unknown
+  >;
+  isDuplicateKey: (value: string, schema: string, table: string) => boolean;
+}
+
 function AddNewRecord(props: AddNewRecordProps): ReactElement {
-  const { collections, onSubmit, transformerHandler, data } = props;
+  const { collections, onSubmit, transformerHandler, isDuplicateKey } = props;
 
   const { account } = useAccount();
   const { mutateAsync: validateUserJsCodeAsync } = useMutation(
     validateUserJavascriptCode
   );
-
-  const form = useForm<AddNewNosqlRecordFormValues>({
+  const form = useForm<
+    AddNewNosqlRecordFormValues,
+    AddNewNosqlRecordFormContext
+  >({
     resolver: yupResolver(AddNewNosqlRecordFormValues),
     mode: 'onChange',
     defaultValues: {
@@ -267,24 +298,11 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
       ),
     },
     context: {
-      accountId: account?.id,
+      accountId: account?.id ?? '',
       isUserJavascriptCodeValid: validateUserJsCodeAsync,
-      data: data,
+      isDuplicateKey: isDuplicateKey,
     },
   });
-
-  const collectionValue = form.watch('collection');
-  const keyValue = form.watch('key');
-
-  useEffect(() => {
-    const validateKeyField = async () => {
-      form.clearErrors('key'); // clear the errors on the key field - this is to make sure that the errors are cleared if the user switches collection values
-      await form.trigger('key'); // trigger validation
-    };
-    if (collectionValue !== '' && keyValue !== '') {
-      validateKeyField();
-    }
-  }, [collectionValue, keyValue]);
 
   return (
     <div className="flex flex-col w-full space-y-4">
@@ -299,7 +317,26 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
                 The collection that you want to map.
               </FormDescription>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    form.clearErrors('key');
+                    const currentKey = form.getValues('key');
+                    if (currentKey) {
+                      const lastDotIndex = value.lastIndexOf('.');
+                      const schema = value.substring(0, lastDotIndex);
+                      const table = value.substring(lastDotIndex + 1);
+                      if (isDuplicateKey(currentKey, schema, table)) {
+                        form.setError('key', {
+                          type: 'manual',
+                          message:
+                            'This key already exists in the selected collection.',
+                        });
+                      }
+                    }
+                  }}
+                  value={field.value}
+                >
                   <SelectTrigger
                     className={cn(
                       field.value ? undefined : 'text-muted-foreground'
@@ -417,6 +454,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
 
 interface GetColumnsProps {
   onDelete(row: Row): void;
+  onDuplicate(row: Row): void;
   transformerHandler: TransformerHandler;
   onEdit(row: Row, index: number): void;
   collections: string[];
@@ -481,12 +519,25 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         <SchemaColumnHeader column={column} title="Collection" />
       ),
       cell: ({ getValue, row }) => {
+        const currentColumn = data[row.index].column;
+        const currentSchemaTable = `${data[row.index].schema}.${data[row.index].table}`;
+
+        // filter rows that conflict with the key that is currently selected
+        const conflictRows = data.filter(
+          (obj) =>
+            obj.column === currentColumn &&
+            `${obj.schema}.${obj.table}` !== currentSchemaTable
+        );
+
+        // filter available collections by excluding those that conflict
+        const filteredCollecctions = collections.filter(
+          (item) =>
+            !conflictRows.some((obj) => `${obj.schema}.${obj.table}` === item)
+        );
         return (
           <EditCollection
-            data={data}
-            collections={collections}
             text={getValue<string>()}
-            index={row.index}
+            collections={filteredCollecctions}
             onEdit={(updatedObject) => {
               const lastDotIndex = updatedObject.collection.lastIndexOf('.');
               onEdit(
@@ -512,12 +563,18 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       ),
       cell: ({ row }) => {
         const text = row.getValue<string>('column');
+        // TODO: not catching the same value when its being edited. Meaning that is the initial value is "email" and i go to edit it and change it to "emaila" and then back to "email", it throws an error
         return (
           <EditDocumentKey
-            data={data}
             text={text}
-            schema={row.getValue('schema')}
-            table={row.getValue('table')}
+            isDuplicate={(selectedValue: string) =>
+              isDuplicate(
+                selectedValue,
+                data,
+                row.getValue('schema'),
+                row.getValue('table')
+              )
+            }
             onEdit={(updatedObject) => {
               onEdit(
                 {
@@ -630,7 +687,21 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
   ];
 }
 
-// searches creates a unique row copy based on the schema, table and column
+function isDuplicate(
+  selectedValue: string,
+  data: JobMappingFormValues[],
+  schema: string,
+  table: string
+) {
+  const selectedCollection: JobMappingFormValues[] = data.filter(
+    (item: JobMappingFormValues) =>
+      `${item.schema}.${item.table}` === `${schema}.${table}`
+  );
+  return selectedCollection.some(
+    (item: JobMappingFormValues) => item.column === selectedValue
+  );
+}
+
 function createDuplicateKey(key: string): string {
   const uniqueSuffix = nanoid(6);
   return `${key}_${uniqueSuffix}`;
@@ -661,13 +732,11 @@ function IndeterminateCheckbox({
 interface EditDocumentKeyProps {
   text: string;
   onEdit: (updatedObject: { column: string }) => void;
-  data: JobMappingFormValues[];
-  schema: string;
-  table: string;
+  isDuplicate: (val: string) => boolean;
 }
 
 function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
-  const { text, onEdit, data, schema, table } = props;
+  const { text, onEdit, isDuplicate } = props;
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>(text);
   const [duplicateError, setDuplicateError] = useState<boolean>(false);
@@ -677,28 +746,9 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
     setIsEditingMapping(false);
   };
 
-  const handleDocumentKeyChange = (
-    data: JobMappingFormValues[],
-    schema: string,
-    table: string,
-    val: string
-  ) => {
-    const selectedCollection: JobMappingFormValues[] = data.filter(
-      (item: JobMappingFormValues) =>
-        `${item.schema}.${item.table}` === `${schema}.${table}`
-    );
-
-    const isDuplicate = selectedCollection.some(
-      (item: JobMappingFormValues) => item.column === val
-    );
-
-    if (!isDuplicate) {
-      setDuplicateError(false);
-      setInputValue(val);
-    } else {
-      setInputValue(val);
-      setDuplicateError(true);
-    }
+  const handleDocumentKeyChange = (val: string) => {
+    setInputValue(val);
+    setDuplicateError(isDuplicate(val));
   };
 
   return (
@@ -707,9 +757,7 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
         <>
           <Input
             value={inputValue}
-            onChange={(e) =>
-              handleDocumentKeyChange(data, schema, table, e.target.value)
-            }
+            onChange={(e) => handleDocumentKeyChange(e.target.value)}
             className={cn(duplicateError ? 'border border-red-400 ring-' : '')}
           />
           <div className="text-red-400 text-xs">
@@ -740,15 +788,13 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
 }
 
 interface EditCollectionProps {
-  data: JobMappingFormValues[];
   collections: string[];
   text: string;
-  index: number;
   onEdit: (updatedObject: { collection: string }) => void;
 }
 
 function EditCollection(props: EditCollectionProps): ReactElement {
-  const { data, collections, text, index, onEdit } = props;
+  const { text, collections, onEdit } = props;
 
   const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
   const [isSelectedCollection, setSelectedCollection] = useState<string>(text);
@@ -757,21 +803,6 @@ function EditCollection(props: EditCollectionProps): ReactElement {
     onEdit({ collection: isSelectedCollection });
     setIsEditingMapping(false);
   };
-
-  const currentColumn = data[index].column;
-  const currentSchemaTable = `${data[index].schema}.${data[index].table}`;
-
-  // filter rows that conflict with the key that is currently selected
-  const conflictRows = data.filter(
-    (obj) =>
-      obj.column === currentColumn &&
-      `${obj.schema}.${obj.table}` !== currentSchemaTable
-  );
-
-  // filter available collections by excluding those that conflict
-  const availableRows = collections.filter(
-    (item) => !conflictRows.some((obj) => `${obj.schema}.${obj.table}` === item)
-  );
 
   return (
     <div className="w-full flex flex-row items-center gap-1">
@@ -787,7 +818,7 @@ function EditCollection(props: EditCollectionProps): ReactElement {
             />
           </SelectTrigger>
           <SelectContent>
-            {availableRows.map((collection) => (
+            {collections.map((collection) => (
               <SelectItem value={collection} key={collection}>
                 {collection}
               </SelectItem>
