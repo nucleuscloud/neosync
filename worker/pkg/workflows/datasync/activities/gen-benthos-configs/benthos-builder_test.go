@@ -338,7 +338,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		},
 	}
 
-	var email int32 = int32(40)
+	emailLength := 40
 
 	groupedSchemas := map[string]*sqlmanager_shared.ColumnInfo{
 
@@ -347,7 +347,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 			ColumnDefault:          "",
 			IsNullable:             true,
 			DataType:               "timestamptz",
-			CharacterMaximumLength: &email,
+			CharacterMaximumLength: &emailLength,
 			NumericPrecision:       nil,
 			NumericScale:           nil,
 		},
@@ -957,7 +957,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 		ColumnDefault:          "",
 		IsNullable:             true,
 		DataType:               "timestamptz",
-		CharacterMaximumLength: shared.Ptr(int32(40)),
+		CharacterMaximumLength: shared.Ptr(40),
 		NumericPrecision:       nil,
 		NumericScale:           nil,
 	}
@@ -1016,35 +1016,35 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 		{
 			jm: jm,
 			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(int32(-1)),
+				CharacterMaximumLength: shared.Ptr(-1),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
 			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(int32(0)),
+				CharacterMaximumLength: shared.Ptr(0),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
 			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(int32(10)),
+				CharacterMaximumLength: shared.Ptr(10),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
 			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(int32(3)),
+				CharacterMaximumLength: shared.Ptr(3),
 			},
 			expected: "generate_string(min:2,max:3)",
 		},
 		{
 			jm: jm,
 			ci: &sqlmanager_shared.ColumnInfo{
-				CharacterMaximumLength: shared.Ptr(int32(1)),
+				CharacterMaximumLength: shared.Ptr(1),
 			},
 			expected: "generate_string(min:1,max:1)",
 		},
