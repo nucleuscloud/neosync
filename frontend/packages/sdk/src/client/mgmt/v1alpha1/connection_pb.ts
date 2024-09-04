@@ -438,7 +438,7 @@ export class CheckConnectionConfigRequest extends Message<CheckConnectionConfigR
  */
 export class CheckConnectionConfigByIdRequest extends Message<CheckConnectionConfigByIdRequest> {
   /**
-   * The connection ID whose connection we want to validate
+   * The connection id to validate
    *
    * @generated from field: string id = 1;
    */
@@ -491,6 +491,8 @@ export class CheckConnectionConfigByIdResponse extends Message<CheckConnectionCo
   connectionError?: string;
 
   /**
+   * The privileges the role has to the connection
+   *
    * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivilege privileges = 3;
    */
   privileges: ConnectionRolePrivilege[] = [];
