@@ -81,6 +81,8 @@ migrations:
     migrationsTableQuoted: false
     # -- Extra database options that will be appended to the query string
     options:
+  # -- Provide extra environment variables that will be applied to the deployment.
+  extraEnvVars: []
 
 # Set requests and limits on the backend to change its performance
 resources:

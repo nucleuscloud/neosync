@@ -80,7 +80,7 @@ spec:
             - migrate
             - up
 
-          {{- with .Values.extraEnvVars }}
+          {{- with .Values.migrations.extraEnvVars }}
           {{- range .}}
           - name: {{ .name }}
             {{- if .value }}
