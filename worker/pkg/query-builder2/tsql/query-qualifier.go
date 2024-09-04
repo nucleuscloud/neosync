@@ -113,16 +113,13 @@ func (l *tsqlListener) push(str string) {
 }
 
 // removes last element in sql stack
-func (l *tsqlListener) pop() string {
+func (l *tsqlListener) pop() {
 	if len(l.sqlStack) < 1 {
 		l.Errors = append(l.Errors, "stack is empty unable to pop")
-		return ""
+		return
 	}
 
-	result := l.sqlStack[len(l.sqlStack)-1]
 	l.sqlStack = l.sqlStack[:len(l.sqlStack)-1]
-
-	return result
 }
 
 // creates new tree token with given text
