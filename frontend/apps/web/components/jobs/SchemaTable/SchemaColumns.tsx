@@ -306,7 +306,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
               {generatedType && (
-                // the API treats generatedType and identityType as mutually exclusive
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
