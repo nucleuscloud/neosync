@@ -11,11 +11,11 @@ slug: /connections/sqlserver
 
 Microsoft SQL Server (MSSQL) is a proprietary relational database management system developed by Microsoft.
 
-This page will document various items of interest regarding MS Sql Server and how to use it to synchronize data with Neosync.
+This page will document various items of interest regarding MS SQL Server and how to use it to synchronize data with Neosync.
 
 ## Configuring MS SQL Server when running Neosync locally with Docker Compose
 
-If you're trying out Neosync locally and are a Sql Server user, we make it easy to quickly stand up sql server instances
+If you're trying out Neosync locally and are a MS SQL Server user, we make it easy to quickly stand up sql server instances
 that will _just work_ with the Neosync setup.
 
 The `compose.yml` has some commented out compose files that may be uncommented to enable or disable various databases.
@@ -38,10 +38,12 @@ We can change this around to enable the MS Sql Server compose.
 
 Note: If you wish to disable the `./compose/compose-db.yml`, you may, but you may want to also disable the `api-seed` and `temporal-seed` containers as those are set up to automatically seed and populate the test postgres databases.
 
-Afterwards, run `make compose/up` to stand up Neosync with two MS Sql Server containers that are available within the neosync docker network.
+Afterwards, run `make compose/up` to stand up Neosync with two MS SQL Server containers that are available within the neosync docker network.
 They are also both accessible via your laptop on ports `1433` and `1434`.
 
-If you don't want to modify the compose, you can also just run the compose command directly and layer on the mssql snippet.
+You can also get away with just one if you wish to only stand up one MSSQL container as SQL Server is capable of database virtualization and is not required to have two physically separate containers for a basic sync.
+
+If you don't want to modify the compose, the compose command may be run directly with the MSSQL snippet layered on.
 
 ```console
 docker compose -f compose.yml -f compose/compose-db-mssql.yml up -d
@@ -109,7 +111,7 @@ Destination connections will of course need READ, WRITE permissions so that they
 
 As more MSSQL features get added to Neosync such as the ability to create schemas, tables as wel as delete or truncate data prior to a run, more permissions for the destination database will be necessary.
 
-## MSSQL Limitations
+## Limitations
 
 MSSQL is Neosync's newest connection and is still somewhat limited in features. We are actively bringing it up to feature parity (where relevant) to our other relational connections: PostgreSQL and MySQL.
 

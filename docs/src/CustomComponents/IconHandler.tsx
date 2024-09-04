@@ -53,6 +53,7 @@ import {
   SiGo,
   SiJavascript,
   SiKubernetes,
+  SiMicrosoftsqlserver,
   SiMongodb,
   SiTerraform,
   SiTypescript,
@@ -194,6 +195,8 @@ export function IconHandler(name: string): ReactElement {
       return <GoDatabase />;
     case 'Viewing Job Run Logs':
       return <HiOutlineDocumentSearch />;
+    case 'Microsoft SQL Server':
+      return <SiMicrosoftsqlserver />;
 
     default:
       return <LayersIcon />;
