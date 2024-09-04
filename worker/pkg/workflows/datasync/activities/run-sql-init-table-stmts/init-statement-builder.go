@@ -9,6 +9,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -239,7 +240,57 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config, *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 			// nothing to do here
 		case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			slogger.Info("Mssql does not currently implement sql init table statements. Skipping for now until this gets implemented..")
+			if sqlopts.TruncateBeforeInsert {
+				tableDependencies, err := sourcedb.Db.GetTableConstraintsBySchema(ctx, uniqueSchemas)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+				}
+				slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies.ForeignKeyConstraints)))
+				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies.ForeignKeyConstraints, uniqueTables)
+				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+
+				orderedTableDelete := []string{}
+				for _, table := range orderedTablesResp.OrderedTables {
+					schema, table := sqlmanager_shared.SplitTableKey(table)
+					orderedTableDelete = append(orderedTableDelete, sqlmanager_mssql.BuildMssqlDeleteStatement(schema, table))
+				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will delete from tables", len(orderedTableDelete)))
+				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
+				if err != nil {
+					destdb.Db.Close()
+					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
+				}
+				// reset identity column counts
+				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+				identityStmts := []string{}
+				for table, cols := range schemaColMap {
+					for _, c := range cols {
+						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
+							schema, table := sqlmanager_shared.SplitTableKey(table)
+							identityResetStatement := sqlmanager_mssql.BuildMssqlIdentityColumnResetStatement(schema, table, *c.IdentityGeneration)
+							if identityResetStatement != nil {
+								identityStmts = append(identityStmts, *identityResetStatement)
+							}
+						}
+					}
+				}
+				if len(identityStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
+					}
+				}
+			}
+			destdb.Db.Close()
 		default:
 			return nil, fmt.Errorf("unsupported destination connection config: %T", destinationConnection.ConnectionConfig.Config)
 		}

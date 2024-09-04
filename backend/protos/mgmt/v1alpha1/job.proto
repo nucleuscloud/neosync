@@ -232,7 +232,6 @@ message PostgresTruncateTableConfig {
 }
 
 message MysqlDestinationConnectionOptions {
-  // Currently not supported and a placeholder for future implementation
   MysqlTruncateTableConfig truncate_table = 1;
   // Currently not supported and a placeholder for future implementation
   bool init_table_schema = 2;

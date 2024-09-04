@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -253,4 +255,29 @@ func (m *Manager) Close() {
 	if m.db != nil && m.close != nil {
 		m.close()
 	}
+}
+
+func BuildMssqlDeleteStatement(
+	schema, table string,
+) string {
+	return fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table)
+}
+
+func BuildMssqlIdentityColumnResetStatement(
+	schema, table, identityGeneration string,
+) *string {
+	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
+	match := re.FindStringSubmatch(identityGeneration)
+	if len(match) > 1 {
+		StartValue, err := strconv.Atoi(match[1])
+		if err != nil {
+			StartValue = 0
+		}
+		if StartValue > 0 {
+			StartValue--
+		}
+		resetStmt := fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
+		return &resetStmt
+	}
+	return nil
 }
