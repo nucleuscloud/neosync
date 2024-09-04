@@ -353,7 +353,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         </div>
                       )}
                     </FormControl>
-                    <div>
+                    <div className="flex">
                       {form.getValues('sourceId') && !isSourceValidating && (
                         <TestConnectionBadge
                           validationResponse={sourceValidationResponse}
@@ -625,7 +625,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   </div>
                                 )}
                               </FormControl>
-                              <div>
+                              <div className="inline-flex">
                                 <TestConnectionBadge
                                   validationResponse={
                                     destinationValidation[
@@ -794,7 +794,7 @@ function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
   } else if (validationResponse && !validationResponse.isConnected) {
     return (
       <Link href={url} passHref target="_blank">
-        <div className="flex flex-row items-center gap-2 rrounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 hover:dark:bg-red-950/90 hover:bg-red-200 transition-colors">
+        <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 hover:dark:bg-red-950/90 hover:bg-red-200 transition-colors">
           <MdErrorOutline />
           <div className="text-nowrap text-xs pl-2">
             Connection Error - Unable to connect.{' '}
