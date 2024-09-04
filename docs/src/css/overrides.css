@@ -284,6 +284,10 @@ img {
   @apply border border-gray-300 dark:border-gray-700 shadow-lg rounded-lg overflow-hidden my-6;
 }
 
+.navbar__logo {
+  @apply flex w-[84px] h-[20px]
+}
+
 .navbar__logo img {
   @apply border-none shadow-none my-0 rounded-none;
 }
