@@ -122,6 +122,50 @@ export default function NosqlTable(props: Props): ReactElement {
 
   const collections = Array.from(Object.keys(schema));
 
+  // useMemo ensures that we don't recreate the set unless the data changes
+  const keySet = useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((item: JobMappingFormValues) => {
+      set.add(`${item.schema}.${item.table}.${item.column}`);
+    });
+    return set;
+  }, [data]);
+
+  // useCallback ensures that we only re-run the function if the keySet changes
+  // we pass in an optional curr value so that we don't throw errors when searching for duplicates and the existing key is there
+  // for ex. if the initial value is "email" and we change it to "emaila" and then back to "email", it throws an error because the key set is made from all of the rows of the data which includes the original value, so we delete it if currValue is valid so we don't throw that error and allow the user to just save their current value without changing it
+  const isDuplicateKey = useCallback(
+    (newValue: string, schema: string, table: string, currValue?: string) => {
+      const key = `${schema}.${table}.${newValue}`;
+      if (currValue) {
+        keySet.delete(`${schema}.${table}.${currValue}`);
+      }
+      return keySet.has(key);
+    },
+    [keySet]
+  );
+
+  // used to calculate the collections that can be updated based on a given key value
+  // for ex. if a collection.key is "a.b.c" and we want to update it to "d.e.c" but "d.e.c" already exists, then we don't want to show the "d.e." collection as an uption for the update
+  const filteredCollections = useCallback(
+    (index: number) => {
+      const currentColumn = data[index].column;
+      const currentSchemaTable = `${data[index].schema}.${data[index].table}`;
+
+      const conflictRows = data.filter(
+        (obj) =>
+          obj.column === currentColumn &&
+          `${obj.schema}.${obj.table}` !== currentSchemaTable
+      );
+
+      return collections.filter(
+        (item) =>
+          !conflictRows.some((obj) => `${obj.schema}.${obj.table}` === item)
+      );
+    },
+    [data, collections]
+  );
+
   const columns = useMemo(
     () =>
       getColumns({
@@ -142,27 +186,14 @@ export default function NosqlTable(props: Props): ReactElement {
           ]);
         },
         transformerHandler: handler,
+<<<<<<< HEAD
         collections: collections,
+=======
+        filteredCollections,
+        isDuplicateKey,
+>>>>>>> 90cad2dc (refactor and simplify)
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
-  );
-
-  // useMemo ensures that we don't recreate the set unless the data changes
-  const keySet = useMemo(() => {
-    const set = new Set<string>();
-    data.forEach((item: JobMappingFormValues) => {
-      set.add(`${item.schema}.${item.table}.${item.column}`);
-    });
-    return set;
-  }, [data]);
-
-  // useCallback ensures that we only re-run the function if the keySet changes
-  const isDuplicateKey = useCallback(
-    (value: string, schema: string, table: string) => {
-      const key = `${schema}.${table}.${value}`;
-      return keySet.has(key);
-    },
-    [keySet]
   );
 
   return (
@@ -222,7 +253,12 @@ interface AddNewRecordProps {
   collections: string[];
   onSubmit(values: AddNewNosqlRecordFormValues): void;
   transformerHandler: TransformerHandler;
-  isDuplicateKey: (value: string, schema: string, table: string) => boolean;
+  isDuplicateKey: (
+    value: string,
+    schema: string,
+    table: string,
+    currValue?: string
+  ) => boolean;
 }
 
 const AddNewNosqlRecordFormValues = Yup.object({
@@ -457,13 +493,24 @@ interface GetColumnsProps {
   onDuplicate(row: Row): void;
   transformerHandler: TransformerHandler;
   onEdit(row: Row, index: number): void;
-  collections: string[];
-  onDuplicate(row: Row): void;
+  isDuplicateKey: (
+    newValue: string,
+    schema: string,
+    table: string,
+    currValue?: string
+  ) => boolean;
+  filteredCollections(ind: number): string[];
 }
 
 function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
-  const { onDelete, transformerHandler, onEdit, collections, onDuplicate } =
-    props;
+  const {
+    onDelete,
+    transformerHandler,
+    onEdit,
+    onDuplicate,
+    isDuplicateKey,
+    filteredCollections,
+  } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -519,25 +566,10 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         <SchemaColumnHeader column={column} title="Collection" />
       ),
       cell: ({ getValue, row }) => {
-        const currentColumn = data[row.index].column;
-        const currentSchemaTable = `${data[row.index].schema}.${data[row.index].table}`;
-
-        // filter rows that conflict with the key that is currently selected
-        const conflictRows = data.filter(
-          (obj) =>
-            obj.column === currentColumn &&
-            `${obj.schema}.${obj.table}` !== currentSchemaTable
-        );
-
-        // filter available collections by excluding those that conflict
-        const filteredCollecctions = collections.filter(
-          (item) =>
-            !conflictRows.some((obj) => `${obj.schema}.${obj.table}` === item)
-        );
         return (
           <EditCollection
             text={getValue<string>()}
-            collections={filteredCollecctions}
+            collections={filteredCollections(row.index)}
             onEdit={(updatedObject) => {
               const lastDotIndex = updatedObject.collection.lastIndexOf('.');
               onEdit(
@@ -563,16 +595,15 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
       ),
       cell: ({ row }) => {
         const text = row.getValue<string>('column');
-        // TODO: not catching the same value when its being edited. Meaning that is the initial value is "email" and i go to edit it and change it to "emaila" and then back to "email", it throws an error
         return (
           <EditDocumentKey
             text={text}
-            isDuplicate={(selectedValue: string) =>
-              isDuplicate(
-                selectedValue,
-                data,
+            isDuplicate={(newValue: string, currValue?: string) =>
+              isDuplicateKey(
+                newValue,
                 row.getValue('schema'),
-                row.getValue('table')
+                row.getValue('table'),
+                currValue
               )
             }
             onEdit={(updatedObject) => {
@@ -687,21 +718,6 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
   ];
 }
 
-function isDuplicate(
-  selectedValue: string,
-  data: JobMappingFormValues[],
-  schema: string,
-  table: string
-) {
-  const selectedCollection: JobMappingFormValues[] = data.filter(
-    (item: JobMappingFormValues) =>
-      `${item.schema}.${item.table}` === `${schema}.${table}`
-  );
-  return selectedCollection.some(
-    (item: JobMappingFormValues) => item.column === selectedValue
-  );
-}
-
 function createDuplicateKey(key: string): string {
   const uniqueSuffix = nanoid(6);
   return `${key}_${uniqueSuffix}`;
@@ -732,7 +748,7 @@ function IndeterminateCheckbox({
 interface EditDocumentKeyProps {
   text: string;
   onEdit: (updatedObject: { column: string }) => void;
-  isDuplicate: (val: string) => boolean;
+  isDuplicate: (val: string, currValue?: string) => boolean;
 }
 
 function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
@@ -747,8 +763,10 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
   };
 
   const handleDocumentKeyChange = (val: string) => {
+    console.log('val', val);
+    console.log('is duplicate', isDuplicate(val));
     setInputValue(val);
-    setDuplicateError(isDuplicate(val));
+    setDuplicateError(isDuplicate(val, text));
   };
 
   return (
@@ -760,7 +778,7 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
             onChange={(e) => handleDocumentKeyChange(e.target.value)}
             className={cn(duplicateError ? 'border border-red-400 ring-' : '')}
           />
-          <div className="text-red-400 text-xs">
+          <div className="text-red-400 text-xs pl-2">
             {duplicateError && 'Already exists'}
           </div>
         </>
