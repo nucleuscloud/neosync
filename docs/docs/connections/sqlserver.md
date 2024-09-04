@@ -111,18 +111,20 @@ Destination connections will of course need READ, WRITE permissions so that they
 
 As more MSSQL features get added to Neosync such as the ability to create schemas, tables as wel as delete or truncate data prior to a run, more permissions for the destination database will be necessary.
 
+## Data Truncation
+
+MSSQL supports table truncation, but only for constraints that do not contain foreign keys.
+Due to this, Neosync will run a DELETE FROM on each table in reverse constraint order.
+Afterwards, it will reset any identity columns to their original state.
+
+DELETE FROM may take a long time. Depending on your data size, it may be more advantageous for you to drop and re-create the database out of band such that Neosync may only handle the syncing aspect until support is added for drop and recreate in-app.
+
 ## Limitations
 
 MSSQL overall has less features that other databases like PostgreSQL and MySQL have easier support for.
 
 That being said, we want to bring MSSQL as close to feature parity as possible with these other databases.
 Below is a small section of a few spots that we are actively working on bring MSSQL up to snuff with the other relational DB counterparts.
-
-### Data Truncation
-
-It's not currently possible for Neosync to truncate or delete data prior to a job run, which is in active development.
-
-Until this feature lands, it is imperative to start with a clean database where all of the tables have been created, but are empty or are sparse in regards to the tables being synchronized.
 
 ### Row Conflicts
 
