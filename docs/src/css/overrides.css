@@ -303,3 +303,7 @@ table {
 header h2 a {
   @apply text-3xl no-underline text-black;
 }
+
+.theme-edit-this-page {
+  @apply flex flex-row items-center text-sm;
+}
