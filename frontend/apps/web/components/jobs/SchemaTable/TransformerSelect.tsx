@@ -43,6 +43,7 @@ interface Props {
   onSelect(value: JobMappingTransformerForm): void;
   side?: Side;
   disabled: boolean;
+  notFoundText?: string;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
@@ -54,14 +55,13 @@ export default function TransformerSelect(props: Props): ReactElement {
     side,
     disabled,
     buttonClassName,
+    notFoundText = 'No transformers found.',
   } = props;
   const [open, setOpen] = useState(false);
 
   const { system, userDefined } = open
     ? getTransformers()
     : { system: [], userDefined: [] };
-
-  // const calcPopovere;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -89,7 +89,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandInput placeholder={'Search...'} />
           <div>
             <CommandList className="max-h-[600px]">
-              <CommandEmpty>No transformers found.</CommandEmpty>
+              <CommandEmpty>{notFoundText}</CommandEmpty>
               {userDefined.length > 0 && (
                 <CommandGroup heading="Custom">
                   {userDefined.map((t) => {
@@ -138,41 +138,43 @@ export default function TransformerSelect(props: Props): ReactElement {
                   })}
                 </CommandGroup>
               )}
-              <CommandGroup heading="System">
-                {system.map((t) => {
-                  return (
-                    <CommandItem
-                      key={t.source}
-                      onSelect={() => {
-                        onSelect(
-                          convertJobMappingTransformerToForm(
-                            new JobMappingTransformer({
-                              source: t.source,
-                              config: t.config,
-                            })
-                          )
-                        );
-                        setOpen(false);
-                      }}
-                      value={t.name}
-                    >
-                      <div className="flex flex-row items-center justify-between w-full">
-                        <div className=" flex flex-row items-center">
-                          <CheckIcon
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              value?.source === t?.source
-                                ? 'opacity-100'
-                                : 'opacity-0'
-                            )}
-                          />
-                          <div className="items-center">{t?.name}</div>
+              {system.length > 0 && (
+                <CommandGroup heading="System">
+                  {system.map((t) => {
+                    return (
+                      <CommandItem
+                        key={t.source}
+                        onSelect={() => {
+                          onSelect(
+                            convertJobMappingTransformerToForm(
+                              new JobMappingTransformer({
+                                source: t.source,
+                                config: t.config,
+                              })
+                            )
+                          );
+                          setOpen(false);
+                        }}
+                        value={t.name}
+                      >
+                        <div className="flex flex-row items-center justify-between w-full">
+                          <div className=" flex flex-row items-center">
+                            <CheckIcon
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                value?.source === t?.source
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                            <div className="items-center">{t?.name}</div>
+                          </div>
                         </div>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )}
             </CommandList>
           </div>
         </Command>

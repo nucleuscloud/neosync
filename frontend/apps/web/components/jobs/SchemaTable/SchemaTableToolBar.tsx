@@ -6,6 +6,7 @@ import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/libs/utils';
 import { Transformer } from '@/shared/transformers';
 import {
   JobMappingTransformerForm,
@@ -67,6 +68,7 @@ export function SchemaTableToolbar<TData>({
     );
   }
   const buttonText = transformer ? transformer.name : 'Bulk set transformers';
+  const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -113,11 +115,19 @@ export function SchemaTableToolbar<TData>({
             buttonText={buttonText}
             disabled={!hasSelectedRows}
             buttonClassName="w-[275px]"
+            notFoundText="No transformers found for the given selection."
+          />
+          <EditTransformerOptions
+            transformer={transformer ?? new SystemTransformer()}
+            value={bulkTransformer}
+            onSubmit={setBulkTransformer}
+            disabled={!transformer}
           />
           <Button
-            disabled={!bulkTransformer || !hasSelectedRows}
+            disabled={isBulkApplyDisabled}
             type="button"
             variant="outline"
+            className={cn(isBulkApplyDisabled ? undefined : 'border-blue-600')}
             onClick={() => {
               table.getSelectedRowModel().rows.forEach((r) => {
                 form.setValue(
@@ -139,12 +149,6 @@ export function SchemaTableToolbar<TData>({
           >
             <CheckIcon />
           </Button>
-          <EditTransformerOptions
-            transformer={transformer ?? new SystemTransformer()}
-            value={bulkTransformer}
-            onSubmit={setBulkTransformer}
-            disabled={!transformer}
-          />
         </div>
         <div className="flex flex-row items-center gap-2">
           {isFiltered && (
