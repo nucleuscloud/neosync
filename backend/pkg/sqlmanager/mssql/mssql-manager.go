@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -268,7 +269,14 @@ func BuildMssqlIdentityColumnResetStatement(
 	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
 	match := re.FindStringSubmatch(identityGeneration)
 	if len(match) > 1 {
-		resetStmt := fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %s);", schema, table, match[1])
+		StartValue, err := strconv.Atoi(match[1])
+		if err != nil {
+			StartValue = 0
+		}
+		if StartValue > 0 {
+			StartValue--
+		}
+		resetStmt := fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
 		return &resetStmt
 	}
 	return nil

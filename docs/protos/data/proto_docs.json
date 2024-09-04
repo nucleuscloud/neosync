@@ -11147,7 +11147,7 @@
           "fields": [
             {
               "name": "truncate_table",
-              "description": "Currently not supported and a placeholder for future implementation",
+              "description": "",
               "label": "",
               "type": "MysqlTruncateTableConfig",
               "longType": "MysqlTruncateTableConfig",

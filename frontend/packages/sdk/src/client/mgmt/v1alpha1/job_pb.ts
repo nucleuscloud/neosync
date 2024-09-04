@@ -1885,8 +1885,6 @@ export class PostgresTruncateTableConfig extends Message<PostgresTruncateTableCo
  */
 export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationConnectionOptions> {
   /**
-   * Currently not supported and a placeholder for future implementation
-   *
    * @generated from field: mgmt.v1alpha1.MysqlTruncateTableConfig truncate_table = 1;
    */
   truncateTable?: MysqlTruncateTableConfig;

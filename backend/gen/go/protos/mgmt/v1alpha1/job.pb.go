@@ -2468,7 +2468,6 @@ type MysqlDestinationConnectionOptions struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Currently not supported and a placeholder for future implementation
 	TruncateTable *MysqlTruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
 	// Currently not supported and a placeholder for future implementation
 	InitTableSchema bool `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`

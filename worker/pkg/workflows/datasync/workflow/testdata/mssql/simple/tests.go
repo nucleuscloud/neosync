@@ -14,11 +14,9 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Name:            "Passthrough",
 			Folder:          "mssql/simple",
 			SourceFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
-			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
+			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
-			JobOptions: &workflow_testdata.TestJobOptions{
-				Truncate: true,
-			},
+			JobOptions:      &workflow_testdata.TestJobOptions{},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"production.categories": &workflow_testdata.ExpectedOutput{RowCount: 7},
 				"production.brands":     &workflow_testdata.ExpectedOutput{RowCount: 9},
@@ -36,9 +34,11 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			Name:            "Identity Columns set to default",
 			Folder:          "mssql/simple",
 			SourceFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
-			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql"},
+			TargetFilePaths: []string{"create-schema-sales.sql", "create-schema-production.sql", "create-table.sql", "insert.sql"},
 			JobMappings:     getJobmappings(),
-			JobOptions:      &workflow_testdata.TestJobOptions{},
+			JobOptions: &workflow_testdata.TestJobOptions{
+				Truncate: true,
+			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"production.categories": &workflow_testdata.ExpectedOutput{RowCount: 7},
 				"production.brands":     &workflow_testdata.ExpectedOutput{RowCount: 9},
