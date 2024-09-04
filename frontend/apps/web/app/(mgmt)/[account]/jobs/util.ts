@@ -1408,7 +1408,7 @@ export function getDefaultDestinationFormValues(
       return {
         connectionId: d.connectionId,
         destinationOptions: {
-          mysql: {
+          mssql: {
             truncateBeforeInsert:
               d.options.config.value.truncateTable?.truncateBeforeInsert ??
               false,
