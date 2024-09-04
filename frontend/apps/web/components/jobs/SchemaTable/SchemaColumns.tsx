@@ -588,7 +588,7 @@ function getIdentityStatement(identityType: string): string {
   } else if (identityType === 'auto_increment') {
     return 'AUTO_INCREMENT';
   }
-  return 'IDENTITY';
+  return identityType;
 }
 
 function getGeneratedStatement(generatedType: string): string {
@@ -597,5 +597,5 @@ function getGeneratedStatement(generatedType: string): string {
   } else if (generatedType === 'v' || generatedType === 'VIRTUAL GENERATED') {
     return 'GENERATED ALWAYS AS VIRTUAL';
   }
-  return 'GENERATED';
+  return generatedType;
 }
