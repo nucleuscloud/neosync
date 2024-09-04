@@ -267,6 +267,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// reset identity column counts
 				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
 				if err != nil {
+					destdb.Db.Close()
 					return nil, err
 				}
 				identityStmts := []string{}
