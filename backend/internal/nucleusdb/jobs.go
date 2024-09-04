@@ -73,6 +73,12 @@ func (d *NucleusDb) SetSourceSubsets(
 			}
 			dbjob.ConnectionOptions.MysqlOptions.Schemas = pg_models.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.GetMysqlSchemas())
 			dbjob.ConnectionOptions.MysqlOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
+		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_MssqlSubset:
+			if dbjob.ConnectionOptions.MssqlOptions == nil {
+				dbjob.ConnectionOptions.MssqlOptions = &pg_models.MssqlSourceOptions{}
+			}
+			dbjob.ConnectionOptions.MssqlOptions.Schemas = pg_models.FromDtoMssqlSourceSchemaOptions(s.MssqlSubset.GetMssqlSchemas())
+			dbjob.ConnectionOptions.MssqlOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
 		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_DynamodbSubset:
 			if dbjob.ConnectionOptions.DynamoDBOptions == nil {
 				dbjob.ConnectionOptions.DynamoDBOptions = &pg_models.DynamoDBSourceOptions{}
