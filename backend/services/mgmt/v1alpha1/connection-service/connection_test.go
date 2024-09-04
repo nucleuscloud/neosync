@@ -679,7 +679,6 @@ type serviceMocks struct {
 	MssqlQuerierMock       *mssql_queries.MockQuerier
 	MysqlQuerierMock       *mysql_queries.MockQuerier
 	MongoConnectorMock     *mongoconnect.MockInterface
-	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
