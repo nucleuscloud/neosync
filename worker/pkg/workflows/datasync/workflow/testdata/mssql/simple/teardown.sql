@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS production.brands;
 DROP TABLE IF EXISTS sales.customers;
 DROP TABLE IF EXISTS sales.staffs;
 DROP TABLE IF EXISTS sales.stores;
+DROP TABLE IF EXISTS production.identities;
 
 -- drop the schemas
 

@@ -463,13 +463,8 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 				})
 			}
 		}
-		var prefix, suffix *string
-		if driver == sqlmanager_shared.MssqlDriver && len(benthosConfig.IdentityColumns) > 0 {
-			p := fmt.Sprintf("SET IDENTITY_INSERT %s.%s ON;", benthosConfig.TableSchema, benthosConfig.TableName)
-			prefix = &p
-			s := fmt.Sprintf("SET IDENTITY_INSERT %s.%s OFF;", benthosConfig.TableSchema, benthosConfig.TableName)
-			suffix = &s
-		}
+
+		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.IdentityColumns, colTransformerMap)
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -480,6 +475,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Schema:              benthosConfig.TableSchema,
 						Table:               benthosConfig.TableName,
 						Columns:             benthosConfig.Columns,
+						IdentityColumns:     benthosConfig.IdentityColumns,
 						OnConflictDoNothing: destOpts.OnConflictDoNothing,
 						TruncateOnRetry:     destOpts.Truncate,
 						ArgsMapping:         buildPlainInsertArgs(benthosConfig.Columns),
@@ -505,6 +501,42 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 	}
 
 	return outputs, nil
+}
+
+func getInsertPrefixAndSuffix(
+	driver, schema, table string,
+	identityColumns []string,
+	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+) (prefix, suffix *string) {
+	var pre, suff *string
+	if driver != sqlmanager_shared.MssqlDriver || len(identityColumns) == 0 {
+		return pre, suff
+	}
+	tableName := neosync_benthos.BuildBenthosTable(schema, table)
+	if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
+		p := fmt.Sprintf("SET IDENTITY_INSERT %q.%q ON;", schema, table)
+		pre = &p
+		s := fmt.Sprintf("SET IDENTITY_INSERT %q.%q OFF;", schema, table)
+		suff = &s
+	}
+	return pre, suff
+}
+
+func hasPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) bool {
+	for _, c := range identityColumns {
+		colTMap, ok := colTransformerMap[table]
+		if !ok {
+			return false
+		}
+		transformer, ok := colTMap[c]
+		if !ok {
+			return false
+		}
+		if transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *benthosBuilder) getAwsS3SyncBenthosOutput(

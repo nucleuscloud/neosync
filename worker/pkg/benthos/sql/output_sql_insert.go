@@ -11,6 +11,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -29,7 +30,8 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional())
+		Field(service.NewStringField("suffix").Optional()).
+		Field(service.NewStringListField("identity_columns").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -93,6 +95,7 @@ type pooledInsertOutput struct {
 	schema              string
 	table               string
 	columns             []string
+	identityColumns     []string
 	onConflictDoNothing bool
 	truncateOnRetry     bool
 	prefix              *string
@@ -156,6 +159,15 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		suffix = &suffixStr
 	}
 
+	var identityColumns []string
+	if conf.Contains("identity_columns") {
+		identityCols, err := conf.FieldStringList("identity_columns")
+		if err != nil {
+			return nil, err
+		}
+		identityColumns = identityCols
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -173,6 +185,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		schema:              schema,
 		table:               table,
 		columns:             columns,
+		identityColumns:     identityColumns,
 		onConflictDoNothing: onConflictDoNothing,
 		truncateOnRetry:     truncateOnRetry,
 		prefix:              prefix,
@@ -255,19 +268,27 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
 		}
 
-		// set any default transformations
-		for idx, a := range args {
-			if a == "DEFAULT" {
-				args[idx] = goqu.L("DEFAULT")
-			}
-		}
-
 		rows = append(rows, args)
 	}
 
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, rows, &s.onConflictDoNothing)
+	filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
+
+	// set any default transformations
+	for i, row := range filteredRows {
+		for j, arg := range row {
+			if arg == "DEFAULT" {
+				filteredRows[i][j] = goqu.L("DEFAULT")
+			}
+		}
+	}
+
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), filteredCols, filteredRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
+	}
+
+	if s.driver == sqlmanager_shared.MssqlDriver && len(filteredCols) == 0 {
+		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
 	query := s.buildQuery(insertQuery)
@@ -275,6 +296,56 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 	return nil
+}
+
+// use when all columns are identity generation columns
+func getMssqlDefaultValuesInsertSql(schema, table string, rowCount int) string {
+	var sql string
+	for i := 0; i < rowCount; i++ {
+		sql += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
+	}
+	return sql
+}
+
+func filterOutMssqlDefaultIdentityColumns(
+	driver string,
+	identityCols, columnNames []string,
+	argRows [][]any,
+) (columns []string, rows [][]any) {
+	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
+		return columnNames, argRows
+	}
+
+	// build map of identity columns
+	identityColMap := map[string]bool{}
+	for _, id := range identityCols {
+		identityColMap[id] = true
+	}
+
+	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
+	newRows := [][]any{}
+	// build rows removing identity columns/args with default set
+	for _, row := range argRows {
+		newRow := []any{}
+		for idx, arg := range row {
+			col := columnNames[idx]
+			if identityColMap[col] && arg == "DEFAULT" {
+				// pass on identity columns with a default
+				continue
+			}
+			newRow = append(newRow, arg)
+			nonIdentityColumnMap[col] = struct{}{}
+		}
+		newRows = append(newRows, newRow)
+	}
+	newColumns := []string{}
+	// build new columns list while maintaining same order
+	for _, col := range columnNames {
+		if _, ok := nonIdentityColumnMap[col]; ok {
+			newColumns = append(newColumns, col)
+		}
+	}
+	return newColumns, newRows
 }
 
 func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
