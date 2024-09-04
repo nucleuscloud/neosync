@@ -36,8 +36,6 @@ export function SchemaTableViewOptions<TData>({
           .filter(
             (column) =>
               typeof column.accessorFn !== 'undefined' && column.getCanHide()
-            //  &&
-            // column.id != 'schema' //filters the schema column from view
           )
           .map((column) => {
             return (

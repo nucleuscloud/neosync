@@ -189,18 +189,18 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
-              <div>
-                {isPrimaryKey && (
+              {isPrimaryKey && (
+                <div>
                   <Badge
                     variant="outline"
                     className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
                   >
                     Primary Key
                   </Badge>
-                )}
-              </div>
-              <div>
-                {isForeignKey && (
+                </div>
+              )}
+              {isForeignKey && (
+                <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
                       <TooltipTrigger>
@@ -216,10 +216,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                )}
-              </div>
-              <div>
-                {isVirtualForeignKey && (
+                </div>
+              )}
+              {isVirtualForeignKey && (
+                <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
                       <TooltipTrigger>
@@ -235,18 +235,18 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                )}
-              </div>
-              <div>
-                {isUniqueConstraint && (
+                </div>
+              )}
+              {isUniqueConstraint && (
+                <div>
                   <Badge
                     variant="outline"
                     className="text-xs bg-purple-100 text-gray-800 cursor-default dark:bg-purple-300 dark:text-gray-900"
                   >
                     Unique
                   </Badge>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </span>
         );
@@ -272,6 +272,98 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         return (
           <span className="max-w-[500px] truncate font-medium">
             <Badge variant="outline">{text}</Badge>
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'attributes',
+      accessorFn: (row) => {
+        const key = toColKey(row.schema, row.table, row.column);
+        const generatedType = constraintHandler.getGeneratedType(key);
+        const identityType = constraintHandler.getIdentityType(key);
+
+        const pieces: string[] = [];
+        if (generatedType) {
+          pieces.push(getGeneratedStatement(generatedType));
+        } else if (identityType) {
+          pieces.push(getIdentityStatement(identityType));
+        }
+        return pieces.join('\n');
+      },
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Attributes" />
+      ),
+      cell: ({ row }) => {
+        const key = toColKey(
+          row.getValue('schema'),
+          row.getValue('table'),
+          row.getValue('column')
+        );
+        const generatedType = constraintHandler.getGeneratedType(key);
+        const identityType = constraintHandler.getIdentityType(key);
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            <div className="flex flex-col lg:flex-row items-start gap-1">
+              {generatedType && (
+                <div>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={200}>
+                      <TooltipTrigger>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
+                        >
+                          Generated
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {getGeneratedStatement(generatedType)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              {!generatedType && identityType && (
+                // the API treats generatedType and identityType as mutually exclusive
+                <div>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={200}>
+                      <TooltipTrigger>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
+                        >
+                          Generated
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {getIdentityStatement(identityType)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              {identityType && (
+                <div>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={200}>
+                      <TooltipTrigger>
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
+                        >
+                          Identity
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {getIdentityStatement(identityType)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+            </div>
           </span>
         );
       },
@@ -485,4 +577,24 @@ export function getTransformerFilter(
     isGenerated,
     identityType: constraintHandler.getIdentityType(colkey),
   };
+}
+
+function getIdentityStatement(identityType: string): string {
+  if (identityType === 'a') {
+    return 'GENERATED ALWAYS AS IDENTITY';
+  } else if (identityType === 'd') {
+    return 'GENERATED BY DEFAULT AS IDENTITY';
+  } else if (identityType === 'auto_increment') {
+    return 'AUTO_INCREMENT';
+  }
+  return identityType;
+}
+
+function getGeneratedStatement(generatedType: string): string {
+  if (generatedType === 's' || generatedType === 'STORED GENERATED') {
+    return 'GENERATED ALWAYS AS STORED';
+  } else if (generatedType === 'v' || generatedType === 'VIRTUAL GENERATED') {
+    return 'GENERATED ALWAYS AS VIRTUAL';
+  }
+  return generatedType;
 }

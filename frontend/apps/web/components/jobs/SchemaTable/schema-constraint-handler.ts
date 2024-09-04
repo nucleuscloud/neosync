@@ -24,6 +24,7 @@ export interface SchemaConstraintHandler {
   getIsUniqueConstraint(key: ColumnKey): boolean;
   getHasDefault(key: ColumnKey): boolean;
   getIsGenerated(key: ColumnKey): boolean;
+  getGeneratedType(key: ColumnKey): string | undefined;
   getIdentityType(key: ColumnKey): string | undefined;
 }
 
@@ -110,6 +111,9 @@ export function getSchemaConstraintHandler(
     },
     getIsGenerated(key) {
       return !!colmap[fromColKey(key)]?.generatedType;
+    },
+    getGeneratedType(key) {
+      return colmap[fromColKey(key)]?.generatedType;
     },
     getIdentityType(key) {
       return colmap[fromColKey(key)]?.identityGeneration;
