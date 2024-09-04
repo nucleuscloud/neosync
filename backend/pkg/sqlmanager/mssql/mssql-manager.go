@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -38,22 +37,19 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 
 	output := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
-		charMaxLength := int32(-1)
+		charMaxLength := -1
 		if row.CharacterMaximumLength.Valid {
-			charMaxLength = row.CharacterMaximumLength.Int32
+			charMaxLength = int(row.CharacterMaximumLength.Int32)
 		}
-		numericPrecision := int32(-1)
+		numericPrecision := -1
 		if row.NumericPrecision.Valid {
-			numericPrecision = int32(row.NumericPrecision.Int16)
+			numericPrecision = int(row.NumericPrecision.Int16)
 		}
-		numericScale := int32(-1)
+		numericScale := -1
 		if row.NumericScale.Valid {
-			numericScale = int32(row.NumericScale.Int16)
+			numericScale = int(row.NumericScale.Int16)
 		}
-		ordPosition := int16(-1)
-		if row.OrdinalPosition >= math.MinInt16 && row.OrdinalPosition <= math.MaxInt16 {
-			ordPosition = int16(row.OrdinalPosition) //nolint:gosec
-		}
+
 		var identityGeneration *string
 		if row.IsIdentity {
 			syntax := defaultIdentity
@@ -72,7 +68,7 @@ func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.D
 			ColumnDefault:          row.ColumnDefault, // todo: make sure this is valid for the other funcs
 			IsNullable:             row.IsNullable,
 			GeneratedType:          generatedType,
-			OrdinalPosition:        ordPosition,
+			OrdinalPosition:        int(row.OrdinalPosition),
 			CharacterMaximumLength: charMaxLength,
 			NumericPrecision:       numericPrecision,
 			NumericScale:           numericScale,

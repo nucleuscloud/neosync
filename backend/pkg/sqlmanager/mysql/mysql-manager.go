@@ -35,7 +35,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
 		var generatedType *string
-		if row.Extra.Valid && row.Extra.String == "GENERATED" {
+		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") {
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}
@@ -43,14 +43,38 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 		if err != nil {
 			return nil, err
 		}
+		charMaxLength := -1
+		if row.CharacterMaximumLength.Valid {
+			charMaxLength = int(row.CharacterMaximumLength.Int64)
+		}
+		numericPrecision := -1
+		if row.NumericPrecision.Valid {
+			numericPrecision = int(row.NumericPrecision.Int64)
+		}
+		numericScale := -1
+		if row.NumericScale.Valid {
+			numericScale = int(row.NumericScale.Int64)
+		}
+		// Note: there is a slight mismatch here between how we bring this data in to be surfaced vs how we utilize it when building the init table statements.
+		// They seem to be disconnected however
+		var identityGeneration *string
+		if row.Extra.Valid && row.Extra.String == "auto_increment" {
+			val := row.Extra.String
+			identityGeneration = &val
+		}
 		result = append(result, &sqlmanager_shared.DatabaseSchemaRow{
-			TableSchema:   row.TableSchema,
-			TableName:     row.TableName,
-			ColumnName:    row.ColumnName,
-			DataType:      row.DataType,
-			ColumnDefault: columnDefaultStr,
-			IsNullable:    row.IsNullable,
-			GeneratedType: generatedType,
+			TableSchema:            row.TableSchema,
+			TableName:              row.TableName,
+			ColumnName:             row.ColumnName,
+			DataType:               row.DataType,
+			ColumnDefault:          columnDefaultStr,
+			IsNullable:             row.IsNullable,
+			GeneratedType:          generatedType,
+			CharacterMaximumLength: charMaxLength,
+			NumericPrecision:       numericPrecision,
+			NumericScale:           numericScale,
+			OrdinalPosition:        int(row.OrdinalPosition),
+			IdentityGeneration:     identityGeneration,
 		})
 	}
 	return result, nil

@@ -24,7 +24,7 @@ func GetUniqueSchemaColMappings(
 
 func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
 	return &ColumnInfo{
-		OrdinalPosition:        int32(row.OrdinalPosition),
+		OrdinalPosition:        row.OrdinalPosition,
 		ColumnDefault:          row.ColumnDefault,
 		IsNullable:             ConvertNullableTextToBool(row.IsNullable),
 		DataType:               row.DataType,
