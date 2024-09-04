@@ -67,7 +67,7 @@ Example: `sqlserver://myuser:mypass@mydbhost:1433?database=mydatabase`.
 
 This format supports servers that do not contain a port (if they're behind a web proxy) as well as servers that may or may not require access credentials.
 
-If you're hooked up local Neosync and wanting to connect to one of the containers, the url would look like this:
+If you've hooked up local Neosync and are wanting to connect to one of the containers, the url would look like this:
 
 Note: the url listed below is using the docker DNS name defined in the compose file.
 To access the database from your laptop, you would simply replace `test-prod-db-mssql` with `localhost`.
@@ -113,7 +113,10 @@ As more MSSQL features get added to Neosync such as the ability to create schema
 
 ## Limitations
 
-MSSQL is Neosync's newest connection and is still somewhat limited in features. We are actively bringing it up to feature parity (where relevant) to our other relational connections: PostgreSQL and MySQL.
+MSSQL overall has less features that other databases like PostgreSQL and MySQL have easier support for.
+
+That being said, we want to bring MSSQL as close to feature parity as possible with these other databases.
+Below is a small section of a few spots that we are actively working on bring MSSQL up to snuff with the other relational DB counterparts.
 
 ### Data Truncation
 
