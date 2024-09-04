@@ -759,8 +759,6 @@ function EditDocumentKey(props: EditDocumentKeyProps): ReactElement {
   };
 
   const handleDocumentKeyChange = (val: string) => {
-    console.log('val', val);
-    console.log('is duplicate', isDuplicate(val));
     setInputValue(val);
     setDuplicateError(isDuplicate(val, text));
   };
