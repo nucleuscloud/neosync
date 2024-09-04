@@ -186,12 +186,8 @@ export default function NosqlTable(props: Props): ReactElement {
           ]);
         },
         transformerHandler: handler,
-<<<<<<< HEAD
-        collections: collections,
-=======
         filteredCollections,
         isDuplicateKey,
->>>>>>> 90cad2dc (refactor and simplify)
       }),
     [onRemoveMappings, onEditMappings, handler, isLoading]
   );
