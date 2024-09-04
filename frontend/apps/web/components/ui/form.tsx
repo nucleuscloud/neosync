@@ -9,6 +9,7 @@ import {
   FormProvider,
   useFormContext,
 } from 'react-hook-form';
+import { MdErrorOutline } from 'react-icons/md';
 
 import { Label } from '@/components/ui/label';
 import { cn } from '@/libs/utils';
@@ -93,7 +94,10 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && 'text-destructive', className)}
+      className={cn(
+        error && 'bg-destructive text-destructive-foreground',
+        className
+      )}
       htmlFor={formItemId}
       {...props}
     />
@@ -153,14 +157,17 @@ const FormMessage = React.forwardRef<
   }
 
   return (
-    <p
-      ref={ref}
-      id={formMessageId}
-      className={cn('text-[0.8rem] font-medium text-destructive', className)}
-      {...props}
-    >
-      {body}
-    </p>
+    <div className="flex flex-row items-center gap-2 text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 rounded-xl p-1 px-2">
+      <MdErrorOutline />
+      <p
+        ref={ref}
+        id={formMessageId}
+        className={cn('text-xs font-medium ', className)}
+        {...props}
+      >
+        {body}
+      </p>
+    </div>
   );
 });
 FormMessage.displayName = 'FormMessage';
