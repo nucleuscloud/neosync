@@ -284,8 +284,11 @@ export default function SubsetCard(props: Props): ReactElement {
 export function showSubsetOptions(
   connType: ConnectionConfigCase | null
 ): boolean {
-  // todo: enable subset by FK constraints for mssql during or after NEOS-1364 is closed
-  return connType === 'pgConfig' || connType === 'mysqlConfig';
+  return (
+    connType === 'pgConfig' ||
+    connType === 'mysqlConfig' ||
+    connType === 'mssqlConfig'
+  );
 }
 
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
