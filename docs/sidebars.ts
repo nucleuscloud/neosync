@@ -275,6 +275,11 @@ const sidebars: SidebarsConfig = {
       label: 'DynamoDB',
     },
     {
+      type: 'doc',
+      id: 'connections/sqlserver',
+      label: 'Microsoft SQL Server',
+    },
+    {
       type: 'html',
       value: '<div>Transformers</div>',
       className: 'sidebarcategory',
