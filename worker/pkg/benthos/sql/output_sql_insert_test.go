@@ -35,7 +35,7 @@ func Test_filterIdentityColumns(t *testing.T) {
 		columnNames := []string{"id", "name", "age"}
 		argRows := [][]any{{1, "Alice", 30}, {2, "Bob", 25}}
 
-		gotCols, gotRows := filterIdentityColumns(driver, identityCols, columnNames, argRows)
+		gotCols, gotRows := filterOutMssqlDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
 		require.Equal(t, columnNames, gotCols, "Columns should remain unchanged for non-MSSQL driver")
 		require.Equal(t, argRows, gotRows, "Rows should remain unchanged for non-MSSQL driver")
@@ -47,7 +47,7 @@ func Test_filterIdentityColumns(t *testing.T) {
 		columnNames := []string{"id", "name", "age"}
 		argRows := [][]any{{1, "Alice", 30}, {2, "Bob", 25}}
 
-		gotCols, gotRows := filterIdentityColumns(driver, identityCols, columnNames, argRows)
+		gotCols, gotRows := filterOutMssqlDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
 		require.Equal(t, []string{"id", "name", "age"}, gotCols, "Identity column should be removed")
 		require.Equal(t, [][]any{{1, "Alice", 30}, {2, "Bob", 25}}, gotRows, "Identity column values should be removed")
@@ -59,7 +59,7 @@ func Test_filterIdentityColumns(t *testing.T) {
 		columnNames := []string{"id", "name", "age", "city"}
 		argRows := [][]any{{"DEFAULT", "Alice", 30, "DEFAULT"}, {"DEFAULT", "Bob", 25, "DEFAULT"}}
 
-		gotCols, gotRows := filterIdentityColumns(driver, identityCols, columnNames, argRows)
+		gotCols, gotRows := filterOutMssqlDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
 		require.Equal(t, []string{"name", "age", "city"}, gotCols, "All columns should be present when DEFAULT is used")
 		require.Equal(t, [][]any{{"Alice", 30, "DEFAULT"}, {"Bob", 25, "DEFAULT"}}, gotRows, "All rows should remain unchanged when DEFAULT is used")
@@ -71,7 +71,7 @@ func Test_filterIdentityColumns(t *testing.T) {
 		columnNames := []string{"id", "name", "age"}
 		argRows := [][]any{{1, "Alice", 30}, {2, "Bob", 25}}
 
-		gotCols, gotRows := filterIdentityColumns(driver, identityCols, columnNames, argRows)
+		gotCols, gotRows := filterOutMssqlDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
 		require.Equal(t, columnNames, gotCols, "Columns should remain unchanged with empty identity columns")
 		require.Equal(t, argRows, gotRows, "Rows should remain unchanged with empty identity columns")
@@ -83,7 +83,7 @@ func Test_filterIdentityColumns(t *testing.T) {
 		columnNames := []string{"id", "name", "age", "created_at"}
 		argRows := [][]any{{"DEFAULT", "Alice", 30, "DEFAULT"}, {"DEFAULT", "Bob", 25, "DEFAULT"}}
 
-		gotCols, gotRows := filterIdentityColumns(driver, identityCols, columnNames, argRows)
+		gotCols, gotRows := filterOutMssqlDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
 		require.Equal(t, []string{"name", "age"}, gotCols, "Multiple identity columns should be removed")
 		require.Equal(t, [][]any{{"Alice", 30}, {"Bob", 25}}, gotRows, "Multiple identity column values should be removed")
