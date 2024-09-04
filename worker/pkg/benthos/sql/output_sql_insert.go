@@ -271,7 +271,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		rows = append(rows, args)
 	}
 
-	filteredCols, filteredRows := filterIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
+	filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
 
 	// set any default transformations
 	for i, row := range filteredRows {
@@ -302,12 +302,12 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 func getMssqlDefaultValuesInsertSql(schema, table string, rowCount int) string {
 	var sql string
 	for i := 0; i < rowCount; i++ {
-		sql += fmt.Sprintf("INSERT INTO %s.%s DEFAULT VALUES;", schema, table)
+		sql += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
 	}
 	return sql
 }
 
-func filterIdentityColumns(
+func filterOutMssqlDefaultIdentityColumns(
 	driver string,
 	identityCols, columnNames []string,
 	argRows [][]any,
