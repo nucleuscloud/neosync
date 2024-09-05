@@ -3,10 +3,7 @@ title: 12/04 - Neosync init
 hide_table_of_contents: false
 slug: /neosync-init
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 We're excited to be launching Neosync v0.1.0 to the world! This is the first entry in our changelog with the base version of Neosync. If you want to read more about why we're building Neosync, you can check out this [blog.](https://www.neosync.dev/blog/introducing-neosync) Below you can see a list of the main features that we are launching with:

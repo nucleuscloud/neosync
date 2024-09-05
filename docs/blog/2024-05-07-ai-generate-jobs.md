@@ -3,10 +3,7 @@ title: 5/7 - AI Generated Synthetic Data
 hide_table_of_contents: false
 slug: /ai-generate-jobs
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Added support for AI generated synthetic data

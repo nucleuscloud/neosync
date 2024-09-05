@@ -3,10 +3,7 @@ title: 4/11 - Custom Generate Transformers
 hide_table_of_contents: false
 slug: /custom-generate-transformers
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Add the ability to write custom javascript Transformers for a data generate job

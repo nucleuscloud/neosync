@@ -3,10 +3,7 @@ title: 7/18 - Base Transformers in Custom Transformers
 hide_table_of_contents: false
 slug: /neosync-js-modules
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Support for accessing transformers within custom javascript transformers

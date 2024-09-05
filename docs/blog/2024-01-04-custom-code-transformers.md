@@ -3,10 +3,7 @@ title: 1/04 - Custom Code Transformers
 hide_table_of_contents: false
 slug: /custom-code-transformers
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Released Custom Code Transformers
