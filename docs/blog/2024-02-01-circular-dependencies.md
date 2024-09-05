@@ -3,10 +3,7 @@ title: 2/01 - Circular Dependencies
 hide_table_of_contents: false
 slug: /circular-dependencies
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Support for intra-table and inter-table circular dependencies

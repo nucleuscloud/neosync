@@ -3,10 +3,7 @@ title: 12/18 - Public facing APIs
 hide_table_of_contents: false
 slug: /public-facing-apis
 authors:
-  - name: Evis Drenova
-    title: Co-Founder/CEO, Neosync
-    url: https://twitter.com/evisdrenova
-    image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
+  - evis
 ---
 
 1. Released new public facing APIs and a Go and Typescript SDK
