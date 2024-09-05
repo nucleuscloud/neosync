@@ -234,12 +234,25 @@ If this type of subsetting is not sufficient for your usecase, please reach out 
 
 Even though DynamoDB is AWS proprietary, they ship a [Docker image](https://hub.docker.com/r/amazon/dynamodb-local) that can be used to try out DynamoDB in an offline, self-hosted format.
 
-Neosync provides a Docker [compose.yml](https://github.com/nucleuscloud/neosync/blob/main/compose/compose-db-dynamo.yml) that can be used in conjunction with our main `compose` or dev compose to stand up two local instances inside of the `neosync-network` docker network.
+Neosync provides a Docker [compose.yml](https://github.com/nucleuscloud/neosync/blob/main/compose/compose-db-dynamo.yml) that can be used in conjunction with our main `compose` or dev compose to stand up two local instances inside of the `neosync-network` docker network. In order to enable this in the `compose.dev.yaml` file, you just need to uncomment the `  - path: ./compose/compose-db-dynamo.yml` line, like so:
+
+```yaml
+include:
+  - path: ./compose/temporal/compose.yml
+    env_file:
+      - ./compose/temporal/.env
+  - path: ./compose/compose-db.yml
+  # - path: ./compose/compose-db-mysql.yml
+  # - path: ./compose/compose-db-mongo.yml
+  - path: ./compose/compose-db-dynamo.yml
+  # - path: ./compose/compose-db-mssql.yml
+```
+
 Both are not needed and could definitely be trimmed down to one, but they can be used as two discrete AWS Accounts / Two totally different DynamoDB servers.
 
 These databases do require basic access credentials, so be sure when accessing these (inside or outside of Neosync), you provide the same access key, as otherwise DynamoDB treats it as a separate user and will not return the same data.
 
-Example access keys:
+In order to set up Dynamo DB locally, install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html). Then create/update the AWS credentials file with a `dummy` profile, like so:
 
 ```console
 cat ~/.aws/credentials
@@ -247,3 +260,26 @@ cat ~/.aws/credentials
 aws_access_key_id = dummyid
 aws_secret_access_key = dummysecret
 ```
+
+Then using the AWS CLI, create a table using this command:
+
+```console
+aws dynamodb create-table --table-name ExampleTable \
+  --attribute-definitions AttributeName=Id,AttributeType=S \
+  --key-schema AttributeName=Id,KeyType=HASH \
+  --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+  --endpoint-url http://localhost:8009 --profile dummy \
+  --region us-west-2
+```
+
+The `endpoint-url` here corresponds to the `test-stage-db-dynamo` container which is at port `8009`. To set up another db, just update the port in in the `endpoint-url`.
+
+Once you've created the table in the database, then head over to Neosync and create a Dynamo DB connection. In order to connect to your local Dynamo DB instance, you'll need to fill out:
+
+- Connection Name - ex. dynamo-stage
+- Access Key ID - ex. dummyid
+- AWS Secret Key - ex. dummysecret
+- AWS Advanced Configuration -> AWS Region - us-west-2
+- AWS Advanced Configuration -> Custom Endpoint - http://test-stage-db-dynamo:8000
+
+Then click Test Connection in order to verify that your connection is set up correctly.
