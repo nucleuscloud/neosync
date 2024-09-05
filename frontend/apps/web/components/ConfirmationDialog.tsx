@@ -15,7 +15,7 @@ import {
 } from './ui/alert-dialog';
 import { Button, ButtonProps, buttonVariants } from './ui/button';
 
-interface Props {
+export interface Props {
   trigger?: ReactNode;
   headerText?: string;
   description?: string;
