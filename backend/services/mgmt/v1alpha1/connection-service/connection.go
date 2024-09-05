@@ -163,6 +163,31 @@ func (s *Service) CheckConnectionConfig(
 	}
 }
 
+func (s *Service) CheckConnectionConfigById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigByIdRequest],
+) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigByIdResponse], error) {
+	connResp, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.CheckConnectionConfig(ctx, connect.NewRequest(&mgmtv1alpha1.CheckConnectionConfigRequest{
+		ConnectionConfig: connResp.Msg.GetConnection().ConnectionConfig,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigByIdResponse{
+		IsConnected:     resp.Msg.GetIsConnected(),
+		ConnectionError: resp.Msg.ConnectionError,
+		Privileges:      resp.Msg.GetPrivileges(),
+	}), nil
+}
+
 func getDbRoleFromConnectionConfig(cconfig *mgmtv1alpha1.ConnectionConfig) (string, error) {
 	if cconfig == nil {
 		return "", errors.New("connection config was nil, unable to retrieve db role")

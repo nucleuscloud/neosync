@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
+import { CheckConnectionConfigByIdRequest, CheckConnectionConfigByIdResponse, CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -91,6 +91,18 @@ export const ConnectionService = {
       name: "CheckConnectionConfig",
       I: CheckConnectionConfigRequest,
       O: CheckConnectionConfigResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Checks if the connection id is connectable by the backend.
+     * Used to verify that a connection is still connectable.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById
+     */
+    checkConnectionConfigById: {
+      name: "CheckConnectionConfigById",
+      I: CheckConnectionConfigByIdRequest,
+      O: CheckConnectionConfigByIdResponse,
       kind: MethodKind.Unary,
     },
     /**

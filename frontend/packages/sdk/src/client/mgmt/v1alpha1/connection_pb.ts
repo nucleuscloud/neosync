@@ -434,6 +434,100 @@ export class CheckConnectionConfigRequest extends Message<CheckConnectionConfigR
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.CheckConnectionConfigByIdRequest
+ */
+export class CheckConnectionConfigByIdRequest extends Message<CheckConnectionConfigByIdRequest> {
+  /**
+   * The connection id to validate
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<CheckConnectionConfigByIdRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckConnectionConfigByIdRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigByIdRequest {
+    return new CheckConnectionConfigByIdRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckConnectionConfigByIdRequest {
+    return new CheckConnectionConfigByIdRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckConnectionConfigByIdRequest {
+    return new CheckConnectionConfigByIdRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckConnectionConfigByIdRequest | PlainMessage<CheckConnectionConfigByIdRequest> | undefined, b: CheckConnectionConfigByIdRequest | PlainMessage<CheckConnectionConfigByIdRequest> | undefined): boolean {
+    return proto3.util.equals(CheckConnectionConfigByIdRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.CheckConnectionConfigByIdResponse
+ */
+export class CheckConnectionConfigByIdResponse extends Message<CheckConnectionConfigByIdResponse> {
+  /**
+   * Whether or not the API was able to ping the connection
+   *
+   * @generated from field: bool is_connected = 1;
+   */
+  isConnected = false;
+
+  /**
+   * This is the error that was received if the API was unable to connect
+   *
+   * @generated from field: optional string connection_error = 2;
+   */
+  connectionError?: string;
+
+  /**
+   * The privileges the role has to the connection
+   *
+   * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivilege privileges = 3;
+   */
+  privileges: ConnectionRolePrivilege[] = [];
+
+  constructor(data?: PartialMessage<CheckConnectionConfigByIdResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckConnectionConfigByIdResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "is_connected", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "connection_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "privileges", kind: "message", T: ConnectionRolePrivilege, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigByIdResponse {
+    return new CheckConnectionConfigByIdResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckConnectionConfigByIdResponse {
+    return new CheckConnectionConfigByIdResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckConnectionConfigByIdResponse {
+    return new CheckConnectionConfigByIdResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckConnectionConfigByIdResponse | PlainMessage<CheckConnectionConfigByIdResponse> | undefined, b: CheckConnectionConfigByIdResponse | PlainMessage<CheckConnectionConfigByIdResponse> | undefined): boolean {
+    return proto3.util.equals(CheckConnectionConfigByIdResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.CheckConnectionConfigResponse
  */
 export class CheckConnectionConfigResponse extends Message<CheckConnectionConfigResponse> {

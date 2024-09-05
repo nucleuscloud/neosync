@@ -54,6 +54,9 @@ const (
 	// ConnectionServiceCheckConnectionConfigProcedure is the fully-qualified name of the
 	// ConnectionService's CheckConnectionConfig RPC.
 	ConnectionServiceCheckConnectionConfigProcedure = "/mgmt.v1alpha1.ConnectionService/CheckConnectionConfig"
+	// ConnectionServiceCheckConnectionConfigByIdProcedure is the fully-qualified name of the
+	// ConnectionService's CheckConnectionConfigById RPC.
+	ConnectionServiceCheckConnectionConfigByIdProcedure = "/mgmt.v1alpha1.ConnectionService/CheckConnectionConfigById"
 	// ConnectionServiceCheckSqlQueryProcedure is the fully-qualified name of the ConnectionService's
 	// CheckSqlQuery RPC.
 	ConnectionServiceCheckSqlQueryProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSqlQuery"
@@ -69,6 +72,7 @@ var (
 	connectionServiceDeleteConnectionMethodDescriptor          = connectionServiceServiceDescriptor.Methods().ByName("DeleteConnection")
 	connectionServiceIsConnectionNameAvailableMethodDescriptor = connectionServiceServiceDescriptor.Methods().ByName("IsConnectionNameAvailable")
 	connectionServiceCheckConnectionConfigMethodDescriptor     = connectionServiceServiceDescriptor.Methods().ByName("CheckConnectionConfig")
+	connectionServiceCheckConnectionConfigByIdMethodDescriptor = connectionServiceServiceDescriptor.Methods().ByName("CheckConnectionConfigById")
 	connectionServiceCheckSqlQueryMethodDescriptor             = connectionServiceServiceDescriptor.Methods().ByName("CheckSqlQuery")
 )
 
@@ -89,6 +93,9 @@ type ConnectionServiceClient interface {
 	// Checks if the connection config is connectable by the backend.
 	// Used mostly to verify that a connection is valid prior to creating a Connection object.
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	// Checks if the connection id is connectable by the backend.
+	// Used to verify that a connection is still connectable.
+	CheckConnectionConfigById(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigByIdRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigByIdResponse], error)
 	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
 	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
@@ -146,6 +153,12 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(connectionServiceCheckConnectionConfigMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		checkConnectionConfigById: connect.NewClient[v1alpha1.CheckConnectionConfigByIdRequest, v1alpha1.CheckConnectionConfigByIdResponse](
+			httpClient,
+			baseURL+ConnectionServiceCheckConnectionConfigByIdProcedure,
+			connect.WithSchema(connectionServiceCheckConnectionConfigByIdMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		checkSqlQuery: connect.NewClient[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse](
 			httpClient,
 			baseURL+ConnectionServiceCheckSqlQueryProcedure,
@@ -164,6 +177,7 @@ type connectionServiceClient struct {
 	deleteConnection          *connect.Client[v1alpha1.DeleteConnectionRequest, v1alpha1.DeleteConnectionResponse]
 	isConnectionNameAvailable *connect.Client[v1alpha1.IsConnectionNameAvailableRequest, v1alpha1.IsConnectionNameAvailableResponse]
 	checkConnectionConfig     *connect.Client[v1alpha1.CheckConnectionConfigRequest, v1alpha1.CheckConnectionConfigResponse]
+	checkConnectionConfigById *connect.Client[v1alpha1.CheckConnectionConfigByIdRequest, v1alpha1.CheckConnectionConfigByIdResponse]
 	checkSqlQuery             *connect.Client[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse]
 }
 
@@ -202,6 +216,11 @@ func (c *connectionServiceClient) CheckConnectionConfig(ctx context.Context, req
 	return c.checkConnectionConfig.CallUnary(ctx, req)
 }
 
+// CheckConnectionConfigById calls mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById.
+func (c *connectionServiceClient) CheckConnectionConfigById(ctx context.Context, req *connect.Request[v1alpha1.CheckConnectionConfigByIdRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigByIdResponse], error) {
+	return c.checkConnectionConfigById.CallUnary(ctx, req)
+}
+
 // CheckSqlQuery calls mgmt.v1alpha1.ConnectionService.CheckSqlQuery.
 func (c *connectionServiceClient) CheckSqlQuery(ctx context.Context, req *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error) {
 	return c.checkSqlQuery.CallUnary(ctx, req)
@@ -224,6 +243,9 @@ type ConnectionServiceHandler interface {
 	// Checks if the connection config is connectable by the backend.
 	// Used mostly to verify that a connection is valid prior to creating a Connection object.
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	// Checks if the connection id is connectable by the backend.
+	// Used to verify that a connection is still connectable.
+	CheckConnectionConfigById(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigByIdRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigByIdResponse], error)
 	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
 	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
@@ -277,6 +299,12 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		connect.WithSchema(connectionServiceCheckConnectionConfigMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionServiceCheckConnectionConfigByIdHandler := connect.NewUnaryHandler(
+		ConnectionServiceCheckConnectionConfigByIdProcedure,
+		svc.CheckConnectionConfigById,
+		connect.WithSchema(connectionServiceCheckConnectionConfigByIdMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	connectionServiceCheckSqlQueryHandler := connect.NewUnaryHandler(
 		ConnectionServiceCheckSqlQueryProcedure,
 		svc.CheckSqlQuery,
@@ -299,6 +327,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceIsConnectionNameAvailableHandler.ServeHTTP(w, r)
 		case ConnectionServiceCheckConnectionConfigProcedure:
 			connectionServiceCheckConnectionConfigHandler.ServeHTTP(w, r)
+		case ConnectionServiceCheckConnectionConfigByIdProcedure:
+			connectionServiceCheckConnectionConfigByIdHandler.ServeHTTP(w, r)
 		case ConnectionServiceCheckSqlQueryProcedure:
 			connectionServiceCheckSqlQueryHandler.ServeHTTP(w, r)
 		default:
@@ -336,6 +366,10 @@ func (UnimplementedConnectionServiceHandler) IsConnectionNameAvailable(context.C
 
 func (UnimplementedConnectionServiceHandler) CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckConnectionConfig is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) CheckConnectionConfigById(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigByIdRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigByIdResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckConnectionConfigById is not implemented"))
 }
 
 func (UnimplementedConnectionServiceHandler) CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error) {
