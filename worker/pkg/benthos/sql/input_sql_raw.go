@@ -7,7 +7,10 @@ import (
 	"sync"
 
 	"github.com/Jeffail/shutdown"
+
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -58,6 +61,7 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbP
 	if err != nil {
 		return nil, err
 	}
+
 	dsn, err := conf.FieldString("dsn")
 	if err != nil {
 		return nil, err
@@ -163,7 +167,7 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		return nil, nil, err
 	}
 
-	obj, err := sqlRowToMap(s.rows)
+	obj, err := sqlRowToMap(s.rows, s.driver)
 	if err != nil {
 		_ = s.rows.Close()
 		s.rows = nil
@@ -197,7 +201,10 @@ func (s *pooledInput) Close(ctx context.Context) error {
 	return nil
 }
 
-func sqlRowToMap(rows *sql.Rows) (map[string]any, error) {
+func sqlRowToMap(rows *sql.Rows, driver string) (map[string]any, error) {
+	if driver == sqlmanager_shared.PostgresDriver {
+		return pgutil.SqlRowToPgTypesMap(rows)
+	}
 	columnNames, err := rows.Columns()
 	if err != nil {
 		return nil, err
@@ -228,5 +235,6 @@ func sqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
+
 	return jObj, nil
 }

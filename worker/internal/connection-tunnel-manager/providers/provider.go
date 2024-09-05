@@ -48,7 +48,7 @@ func (p *Provider) GetConnectionDetails(
 
 func (p *Provider) GetConnectionClient(driver, connectionString string, opts any) (any, error) {
 	switch driver {
-	case "mysql", "postgres", "postgresql", "sqlserver":
+	case "mysql", "postgres", "postgresql", "sqlserver", "pgx":
 		typedopts, ok := opts.(*sqlprovider.ConnectionClientConfig)
 		if !ok {
 			return nil, fmt.Errorf("opts was not *sqlprovider.ConnectionClientConfig, was %T", opts)

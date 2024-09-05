@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/lib/pq"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -78,7 +79,16 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Cols(insertCols...)
 	for _, row := range values {
-		insert = insert.Vals(row)
+		gval := goqu.Vals{}
+		for _, a := range row {
+			ar, ok := a.([]any)
+			if ok {
+				gval = append(gval, pq.Array(ar))
+			} else {
+				gval = append(gval, a)
+			}
+		}
+		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {

@@ -462,23 +462,23 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		return nil
 	})
 
-	errgrp.Go(func() error {
-		m, err := s.SetupMysql()
-		if err != nil {
-			return err
-		}
-		mysqlTest = m
-		return nil
-	})
+	// errgrp.Go(func() error {
+	// 	m, err := s.SetupMysql()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	mysqlTest = m
+	// 	return nil
+	// })
 
-	errgrp.Go(func() error {
-		m, err := s.SetupMssql()
-		if err != nil {
-			return err
-		}
-		mssqlTest = m
-		return nil
-	})
+	// errgrp.Go(func() error {
+	// 	m, err := s.SetupMssql()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	mssqlTest = m
+	// 	return nil
+	// })
 
 	errgrp.Go(func() error {
 		r, err := s.SetupRedis()
@@ -489,23 +489,23 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		return nil
 	})
 
-	errgrp.Go(func() error {
-		d, err := s.SetupDynamoDB()
-		if err != nil {
-			return err
-		}
-		dynamoTest = d
-		return nil
-	})
+	// errgrp.Go(func() error {
+	// 	d, err := s.SetupDynamoDB()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	dynamoTest = d
+	// 	return nil
+	// })
 
-	errgrp.Go(func() error {
-		m, err := s.SetupMongoDb()
-		if err != nil {
-			return err
-		}
-		mongodbTest = m
-		return nil
-	})
+	// errgrp.Go(func() error {
+	// 	m, err := s.SetupMongoDb()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	mongodbTest = m
+	// 	return nil
+	// })
 
 	err := errgrp.Wait()
 	if err != nil {

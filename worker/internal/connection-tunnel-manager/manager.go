@@ -282,7 +282,7 @@ func getDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		return "mysql", nil
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return "postgres", nil
+		return "pgx", nil
 	case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 		return "mongodb", nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
