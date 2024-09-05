@@ -5,6 +5,7 @@ import { Row, Table } from '@tanstack/react-table';
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-form-validations';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/shared/transformers';
@@ -14,8 +15,11 @@ import {
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import {
+  GenerateDefault,
   JobMappingTransformer,
+  Passthrough,
   SystemTransformer,
+  TransformerConfig,
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -167,6 +171,59 @@ export function SchemaTableToolbar<TData>({
             </Button>
           )}
           <SchemaTableViewOptions table={table} />
+          <ConfirmationDialog
+            trigger={
+              <Button variant="default" type="button">
+                <ButtonText text="Apply Transform Defaults" />
+              </Button>
+            }
+            headerText="Apply all default transformations?"
+            description="This will apply Passthrough to all non-generated mappings and Use Column Default to any generated column type."
+            buttonText="Apply"
+            onConfirm={() => {
+              const formMappings = form.getValues('mappings');
+              formMappings.forEach((fm, idx) => {
+                const colkey = {
+                  schema: fm.schema,
+                  table: fm.table,
+                  column: fm.column,
+                };
+                const isGenerated = constraintHandler.getIsGenerated(colkey);
+                const identityType = constraintHandler.getIdentityType(colkey);
+                const newJm =
+                  isGenerated || identityType
+                    ? new JobMappingTransformer({
+                        source: TransformerSource.GENERATE_DEFAULT,
+                        config: new TransformerConfig({
+                          config: {
+                            case: 'generateDefaultConfig',
+                            value: new GenerateDefault(),
+                          },
+                        }),
+                      })
+                    : new JobMappingTransformer({
+                        source: TransformerSource.PASSTHROUGH,
+                        config: new TransformerConfig({
+                          config: {
+                            case: 'passthroughConfig',
+                            value: new Passthrough(),
+                          },
+                        }),
+                      });
+
+                form.setValue(
+                  `mappings.${idx}.transformer`,
+                  convertJobMappingTransformerToForm(newJm),
+                  {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: false,
+                  }
+                );
+              });
+              form.trigger('mappings'); // trigger validation after bulk updating the selected form options
+            }}
+          />
         </div>
       </div>
     </div>

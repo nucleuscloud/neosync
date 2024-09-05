@@ -1,33 +1,27 @@
-import { DialogClose } from '@radix-ui/react-dialog';
+import { AlertDialogTitle } from '@radix-ui/react-alert-dialog';
 import { ReactElement, ReactNode, useState } from 'react';
 import ButtonText from './ButtonText';
 import Spinner from './Spinner';
-import { Button } from './ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from './ui/dialog';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTrigger,
+} from './ui/alert-dialog';
+import { Button, ButtonProps } from './ui/button';
 
 interface Props {
   trigger: ReactNode;
   headerText: string;
   description: string;
   onConfirm(): void | Promise<void>;
-  buttonText: string;
-  buttonVariant:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost'
-    | 'link'
-    | null
-    | undefined;
-  buttonIcon: ReactNode;
+  buttonText?: string;
+  buttonVariant?: ButtonProps['variant'] | null | undefined;
+  buttonIcon?: ReactNode;
 }
 
 export default function ConfirmationDialog(props: Props): ReactElement {
@@ -36,7 +30,7 @@ export default function ConfirmationDialog(props: Props): ReactElement {
     headerText,
     description,
     onConfirm,
-    buttonText,
+    buttonText = 'Confirm',
     buttonVariant,
     buttonIcon,
   } = props;
@@ -56,31 +50,33 @@ export default function ConfirmationDialog(props: Props): ReactElement {
     }
   }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>{headerText}</DialogHeader>
-        <DialogDescription className="text-xs">{description}</DialogDescription>
-        <DialogFooter>
-          <div className="w-full flex justify-between pt-4">
-            <DialogClose asChild>
-              <Button variant="secondary">
-                <ButtonText text="Close" />
-              </Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              variant={buttonVariant}
-              onClick={() => onClick()}
-            >
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader className="gap-2">
+          <AlertDialogTitle className="text-xl">{headerText}</AlertDialogTitle>
+          <AlertDialogDescription className="tracking-tight">
+            {description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="w-full flex sm:justify-between pt-4">
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            asChild
+            onClick={(e) => {
+              e.preventDefault();
+              onClick();
+            }}
+          >
+            <Button type="button" variant={buttonVariant}>
               <ButtonText
                 leftIcon={isTrying ? <Spinner /> : buttonIcon}
                 text={buttonText}
               />
             </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
