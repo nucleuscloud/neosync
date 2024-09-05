@@ -1,12 +1,9 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 import Link from '@docusaurus/Link';
-import { translate } from '@docusaurus/Translate';
+import {
+  findFirstSidebarItemLink,
+  isActiveSidebarItem,
+  useDocSidebarItemsExpandedState,
+} from '@docusaurus/plugin-content-docs/client';
 import {
   Collapsible,
   ThemeClassNames,
@@ -14,19 +11,14 @@ import {
   usePrevious,
   useThemeConfig,
 } from '@docusaurus/theme-common';
-import {
-  findFirstSidebarItemLink,
-  isActiveSidebarItem,
-  isSamePath,
-  useDocSidebarItemsExpandedState,
-} from '@docusaurus/theme-common/internal';
+import { isSamePath } from '@docusaurus/theme-common/internal';
+import { translate } from '@docusaurus/Translate';
 import useIsBrowser from '@docusaurus/useIsBrowser';
 import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons';
-import { IconHandler } from '@site/src/CustomComponents/IconHandler';
 import type { Props } from '@theme/DocSidebarItem/Category';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, type ComponentProps } from 'react';
+import React, { type ComponentProps, useEffect, useMemo } from 'react';
 
 // If we navigate to a category and it becomes active, it should automatically
 // expand itself
@@ -103,6 +95,7 @@ function CollapseButton({
               { label: categoryLabel }
             )
       }
+      // aria-expanded={!collapsed}
       type="button"
       className="clean-btn menu__caret"
       onClick={onClick}
@@ -175,7 +168,6 @@ export default function DocSidebarItemCategory({
           'menu__list-item-collapsible--active': isCurrentPage,
         })}
       >
-        {IconHandler(item.label)}
         <Link
           className={clsx('menu__link', {
             'menu__link--sublist': collapsible,
@@ -198,6 +190,7 @@ export default function DocSidebarItemCategory({
                 }
           }
           aria-current={isCurrentPage ? 'page' : undefined}
+          // role={collapsible && !href ? 'button' : undefined}
           aria-expanded={collapsible ? !collapsed : undefined}
           href={
             collapsible ? (hrefWithSSRFallback ?? '#') : hrefWithSSRFallback
