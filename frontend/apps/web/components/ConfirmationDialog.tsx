@@ -1,3 +1,4 @@
+import { cn } from '@/libs/utils';
 import { AlertDialogTitle } from '@radix-ui/react-alert-dialog';
 import { ReactElement, ReactNode, useState } from 'react';
 import ButtonText from './ButtonText';
@@ -12,27 +13,27 @@ import {
   AlertDialogHeader,
   AlertDialogTrigger,
 } from './ui/alert-dialog';
-import { Button, ButtonProps } from './ui/button';
+import { Button, ButtonProps, buttonVariants } from './ui/button';
 
 interface Props {
-  trigger: ReactNode;
-  headerText: string;
-  description: string;
-  onConfirm(): void | Promise<void>;
+  trigger?: ReactNode;
+  headerText?: string;
+  description?: string;
   buttonText?: string;
   buttonVariant?: ButtonProps['variant'] | null | undefined;
   buttonIcon?: ReactNode;
+  onConfirm(): void | Promise<void>;
 }
 
 export default function ConfirmationDialog(props: Props): ReactElement {
   const {
-    trigger,
-    headerText,
-    description,
-    onConfirm,
+    trigger = <Button type="button">Press to Confirm</Button>,
+    headerText = 'Are you sure?',
+    description = 'This will confirm the action that you selected.',
     buttonText = 'Confirm',
     buttonVariant,
     buttonIcon,
+    onConfirm,
   } = props;
   const [open, setOpen] = useState(false);
   const [isTrying, setIsTrying] = useState(false);
@@ -59,21 +60,19 @@ export default function ConfirmationDialog(props: Props): ReactElement {
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="w-full flex sm:justify-between pt-4">
+        <AlertDialogFooter className="w-full flex sm:justify-between mt-4">
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            asChild
             onClick={(e) => {
               e.preventDefault();
               onClick();
             }}
+            className={cn(buttonVariants({ variant: buttonVariant }))}
           >
-            <Button type="button" variant={buttonVariant}>
-              <ButtonText
-                leftIcon={isTrying ? <Spinner /> : buttonIcon}
-                text={buttonText}
-              />
-            </Button>
+            <ButtonText
+              leftIcon={isTrying ? <Spinner /> : buttonIcon}
+              text={buttonText}
+            />
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
