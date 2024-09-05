@@ -113,7 +113,7 @@ this is the class for the sidebar categories that section headers
 }
 
 .breadcrumbs {
-  @apply flex flex-row gap-4
+  @apply flex flex-row gap-4;
 }
 
 .breadcrumbs__item {
@@ -285,7 +285,7 @@ img {
 }
 
 .navbar__logo {
-  @apply flex w-[84px] h-[20px]
+  @apply flex w-[84px] h-[20px];
 }
 
 .navbar__logo img {

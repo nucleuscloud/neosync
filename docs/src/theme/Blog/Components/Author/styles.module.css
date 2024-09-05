@@ -13,7 +13,7 @@
 .authorDetails {
   display: flex;
   flex: 1 1;
-  gap: .25rem;
+  gap: 0.25rem;
   justify-content: center;
   flex-direction: column;
   text-align: var(--ifm-avatar-intro-alignment);
