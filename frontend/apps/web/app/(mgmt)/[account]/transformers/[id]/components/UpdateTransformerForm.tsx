@@ -4,6 +4,7 @@ import {
   EditUserDefinedTransformerFormContext,
   UpdateUserDefinedTransformerFormValues,
 } from '@/app/(mgmt)/[account]/new/transformer/transform-form-validations';
+import FormError from '@/components/FormError';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -142,6 +143,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                     }}
                   />
                 </FormControl>
+                <FormError
+                  errorMessage={form.formState.errors.name?.message ?? ''}
+                />
                 <FormMessage />
               </FormItem>
             )}
