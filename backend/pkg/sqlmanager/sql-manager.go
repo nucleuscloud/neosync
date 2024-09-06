@@ -23,6 +23,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	// _ "github.com/microsoft/go-mssqldb" // This is commented out because one of our dependencies is importing this already and it panics if called more than once.
 )
 

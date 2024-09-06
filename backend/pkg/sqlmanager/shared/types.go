@@ -91,7 +91,7 @@ func ToConstraintType(constraintType string) (ConstraintType, error) {
 }
 
 const (
-	PostgresDriver = "postgres"
+	PostgresDriver = "pgx"
 	MysqlDriver    = "mysql"
 	MssqlDriver    = "sqlserver"
 )
