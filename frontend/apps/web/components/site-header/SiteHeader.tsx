@@ -31,27 +31,7 @@ export default function SiteHeader(): ReactElement {
           {!systemAppConfig?.isNeosyncCloud && (
             <UpgradeButton href={systemAppConfig.calendlyUpgradeLink} />
           )}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost">
-                <QuestionMarkCircledIcon className="w-4 h-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[400px] sm:w-[540px]">
-              <SheetHeader>
-                <SheetTitle>Support</SheetTitle>
-                <SheetDescription>
-                  Need help? We got you covered.
-                </SheetDescription>
-              </SheetHeader>
-              <SupportDrawer />
-              <SheetFooter className="pt-20">
-                <SheetClose asChild>
-                  <Button>Close</Button>
-                </SheetClose>
-              </SheetFooter>
-            </SheetContent>
-          </Sheet>
+          <SupportSheet />
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <ModeToggle />
           <UserNav />
@@ -77,5 +57,29 @@ function UpgradeButton(props: UpgradeButtonProps): ReactElement {
         </div>
       </Button>
     </div>
+  );
+}
+
+function SupportSheet(): ReactElement {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost">
+          <QuestionMarkCircledIcon className="w-4 h-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="w-[400px] sm:w-[540px]">
+        <SheetHeader>
+          <SheetTitle>Support</SheetTitle>
+          <SheetDescription>Need help? We got you covered.</SheetDescription>
+        </SheetHeader>
+        <SupportDrawer />
+        <SheetFooter className="pt-20">
+          <SheetClose asChild>
+            <Button>Close</Button>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
