@@ -154,7 +154,7 @@ const FormMessage = React.forwardRef<
   }
 
   return (
-    <div className="flex flex-row items-center gap-2 text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 rounded-xl p-1 px-2">
+    <div className="inline-flex flex-row items-center gap-2 text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 rounded-xl p-1 px-2">
       <MdErrorOutline />
       <p
         ref={ref}

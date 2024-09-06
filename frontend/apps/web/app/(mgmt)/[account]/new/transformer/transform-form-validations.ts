@@ -445,7 +445,7 @@ export type TransformerConfigSchema = Yup.InferType<
 const transformerNameSchema = Yup.string()
   .required()
   .min(3)
-  .max(30)
+  .max(30, 'The name must be less than 30 characters.')
   .test(
     'checkNameUnique',
     'Transformer Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',

@@ -1,6 +1,5 @@
 'use client';
 
-import FormError from '@/components/FormError';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -48,7 +47,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import TransformerForm from './TransformerForms/TransformerForm';
 import {
@@ -233,7 +232,7 @@ export default function NewTransformer(): ReactElement {
           />
           {formSource != null && formSource !== 0 && (
             <div>
-              <Controller
+              <FormField
                 control={form.control}
                 name="name"
                 render={({ field: { onChange, ...field } }) => (
@@ -252,9 +251,6 @@ export default function NewTransformer(): ReactElement {
                         }}
                       />
                     </FormControl>
-                    <FormError
-                      errorMessage={form.formState.errors.name?.message ?? ''}
-                    />
                     <FormMessage />
                   </FormItem>
                 )}
