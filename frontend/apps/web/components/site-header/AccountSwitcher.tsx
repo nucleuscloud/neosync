@@ -146,7 +146,10 @@ function AccountSwitcherPopover(
   const personalAccounts =
     accounts.filter((a) => a.type === UserAccountType.PERSONAL) ?? [];
   const teamAccounts =
-    accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
+    accounts.filter(
+      (a) =>
+        a.type === UserAccountType.TEAM || a.type === UserAccountType.ENTERPRISE
+    ) ?? [];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -174,61 +177,65 @@ function AccountSwitcherPopover(
           <CommandInput placeholder="Search account..." />
           <CommandList>
             <CommandEmpty>No Account found.</CommandEmpty>
-            <CommandGroup key="personal" heading="Personal">
-              {personalAccounts.map((a) => (
-                <CommandItem
-                  key={a.id}
-                  onSelect={() => {
-                    onAccountSelect(a);
-                    setOpen(false);
-                  }}
-                  className="text-sm cursor-pointer"
-                >
-                  <Avatar className="mr-2 h-5 w-5">
-                    <AvatarImage
-                      src={`https://avatar.vercel.sh/${a.name}.png`}
-                      alt={a.name}
-                      className="grayscale"
+            {personalAccounts.length > 0 && (
+              <CommandGroup key="personal" heading="Personal">
+                {personalAccounts.map((a) => (
+                  <CommandItem
+                    key={a.id}
+                    onSelect={() => {
+                      onAccountSelect(a);
+                      setOpen(false);
+                    }}
+                    className="text-sm cursor-pointer"
+                  >
+                    <Avatar className="mr-2 h-5 w-5">
+                      <AvatarImage
+                        src={`https://avatar.vercel.sh/${a.name}.png`}
+                        alt={a.name}
+                        className="grayscale"
+                      />
+                      <AvatarFallback>SC</AvatarFallback>
+                    </Avatar>
+                    {a.name}
+                    <CheckIcon
+                      className={cn(
+                        'ml-auto h-4 w-4',
+                        activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
+                      )}
                     />
-                    <AvatarFallback>SC</AvatarFallback>
-                  </Avatar>
-                  {a.name}
-                  <CheckIcon
-                    className={cn(
-                      'ml-auto h-4 w-4',
-                      activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandGroup key="team" heading="Team">
-              {teamAccounts.map((a) => (
-                <CommandItem
-                  key={a.id}
-                  onSelect={() => {
-                    onAccountSelect(a);
-                    setOpen(false);
-                  }}
-                  className="text-sm cursor-pointer"
-                >
-                  <Avatar className="mr-2 h-5 w-5">
-                    <AvatarImage
-                      src={`https://avatar.vercel.sh/${a.name}.png`}
-                      alt={a.name}
-                      className="grayscale"
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {teamAccounts.length > 0 && (
+              <CommandGroup key="team" heading="Team">
+                {teamAccounts.map((a) => (
+                  <CommandItem
+                    key={a.id}
+                    onSelect={() => {
+                      onAccountSelect(a);
+                      setOpen(false);
+                    }}
+                    className="text-sm cursor-pointer"
+                  >
+                    <Avatar className="mr-2 h-5 w-5">
+                      <AvatarImage
+                        src={`https://avatar.vercel.sh/${a.name}.png`}
+                        alt={a.name}
+                        className="grayscale"
+                      />
+                    </Avatar>
+                    {a.name}
+                    <CheckIcon
+                      className={cn(
+                        'ml-auto h-4 w-4',
+                        activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
+                      )}
                     />
-                  </Avatar>
-                  {a.name}
-                  <CheckIcon
-                    className={cn(
-                      'ml-auto h-4 w-4',
-                      activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </CommandList>
           <CommandSeparator />
           {isNeosyncCloud && (
