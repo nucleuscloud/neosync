@@ -1,6 +1,5 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
@@ -33,7 +32,7 @@ import {
   isConnectionNameAvailable,
   updateConnection,
 } from '@neosync/sdk/connectquery';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { buildConnectionConfigAwsS3 } from '../../util';
 
@@ -92,7 +91,7 @@ export default function AwsS3Form(props: Props) {
             Right now AWS S3 connections can only be used as a destination
           </AlertDescription>
         </Alert>
-        <Controller
+        <FormField
           control={form.control}
           name="connectionName"
           render={({ field: { onChange, ...field } }) => (
@@ -114,11 +113,6 @@ export default function AwsS3Form(props: Props) {
                   }}
                 />
               </FormControl>
-              <FormError
-                errorMessage={
-                  form.formState.errors.connectionName?.message ?? ''
-                }
-              />
               <FormMessage />
             </FormItem>
           )}

@@ -32,7 +32,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface Props {
@@ -123,7 +123,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           )}
         />
         <div>
-          <Controller
+          <FormField
             control={form.control}
             name="name"
             render={({ field: { onChange, ...field } }) => (

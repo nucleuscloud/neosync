@@ -1,6 +1,5 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import FormError from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
@@ -52,7 +51,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { buildConnectionConfigMysql } from '../../util';
 
 interface Props {
@@ -117,7 +116,7 @@ export default function MysqlForm(props: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Controller
+        <FormField
           control={form.control}
           name="connectionName"
           render={({ field: { onChange, ...field } }) => (
@@ -139,11 +138,6 @@ export default function MysqlForm(props: Props) {
                   }}
                 />
               </FormControl>
-              <FormError
-                errorMessage={
-                  form.formState.errors.connectionName?.message ?? ''
-                }
-              />
               <FormMessage />
             </FormItem>
           )}

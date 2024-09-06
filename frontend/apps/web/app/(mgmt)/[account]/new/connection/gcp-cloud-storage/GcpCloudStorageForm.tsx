@@ -1,6 +1,5 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
@@ -46,7 +45,7 @@ import Error from 'next/error';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import { toast } from 'sonner';
 import { buildConnectionConfigGcpCloudStorage } from '../../../connections/util';
@@ -221,7 +220,7 @@ export default function GcpCloudStorageForm(): ReactElement {
             destination
           </AlertDescription>
         </Alert>
-        <Controller
+        <FormField
           control={form.control}
           name="connectionName"
           render={({ field: { onChange, ...field } }) => (
@@ -243,11 +242,6 @@ export default function GcpCloudStorageForm(): ReactElement {
                   }}
                 />
               </FormControl>
-              <FormError
-                errorMessage={
-                  form.formState.errors.connectionName?.message ?? ''
-                }
-              />
               <FormMessage />
             </FormItem>
           )}
