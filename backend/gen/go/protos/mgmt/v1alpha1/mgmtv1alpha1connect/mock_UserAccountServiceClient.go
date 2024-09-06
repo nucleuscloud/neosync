@@ -260,6 +260,65 @@ func (_c *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call) RunAndRe
 	return _c
 }
 
+// GetAccountStatus provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetAccountStatus(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAccountStatusResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountStatus")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetAccountStatusResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAccountStatusResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]) *connect.Response[mgmtv1alpha1.GetAccountStatusResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetAccountStatusResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetAccountStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountStatus'
+type MockUserAccountServiceClient_GetAccountStatus_Call struct {
+	*mock.Call
+}
+
+// GetAccountStatus is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetAccountStatus(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetAccountStatus_Call {
+	return &MockUserAccountServiceClient_GetAccountStatus_Call{Call: _e.mock.On("GetAccountStatus", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountStatus_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountStatusRequest])) *MockUserAccountServiceClient_GetAccountStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetAccountStatusRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountStatus_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetAccountStatusResponse], _a1 error) *MockUserAccountServiceClient_GetAccountStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountStatus_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAccountStatusResponse], error)) *MockUserAccountServiceClient_GetAccountStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -669,6 +728,65 @@ func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) Return(_a0 
 }
 
 func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error)) *MockUserAccountServiceClient_InviteUserToTeamAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsAccountStatusValid provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) IsAccountStatusValid(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsAccountStatusValid")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) *connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_IsAccountStatusValid_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsAccountStatusValid'
+type MockUserAccountServiceClient_IsAccountStatusValid_Call struct {
+	*mock.Call
+}
+
+// IsAccountStatusValid is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]
+func (_e *MockUserAccountServiceClient_Expecter) IsAccountStatusValid(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_IsAccountStatusValid_Call {
+	return &MockUserAccountServiceClient_IsAccountStatusValid_Call{Call: _e.mock.On("IsAccountStatusValid", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_IsAccountStatusValid_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest])) *MockUserAccountServiceClient_IsAccountStatusValid_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_IsAccountStatusValid_Call) Return(_a0 *connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], _a1 error) *MockUserAccountServiceClient_IsAccountStatusValid_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_IsAccountStatusValid_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error)) *MockUserAccountServiceClient_IsAccountStatusValid_Call {
 	_c.Call.Return(run)
 	return _c
 }
