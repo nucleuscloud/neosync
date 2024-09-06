@@ -169,7 +169,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </div>
             </div>
             <div className="space-y-4 col-span-2">
-              s
               <FormField
                 control={form.control}
                 name="sourceId"

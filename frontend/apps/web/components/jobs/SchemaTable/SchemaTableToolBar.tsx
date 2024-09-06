@@ -174,11 +174,11 @@ export function SchemaTableToolbar<TData>({
             <ConfirmationDialog
               trigger={
                 <Button variant="outline" type="button">
-                  <ButtonText text="Apply Transform Defaults" />
+                  <ButtonText text="Apply Default Transformers" />
                 </Button>
               }
               headerText="Apply all default transformations?"
-              description="This setting will apply the 'Passthrough' transformation to all columns that are not generated, while applying the 'Use Column Default' transformation to any generated columns."
+              description="This setting will apply the 'Passthrough' Transformer to all columns that are not generated, while applying the 'Use Column Default' Transformer to all generated columns."
               buttonText="Apply"
               onConfirm={() => {
                 const formMappings = form.getValues('mappings');
