@@ -4,7 +4,7 @@ import {
   CheckIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
@@ -12,11 +12,11 @@ import { getErrorMessage } from '@/util/util';
 import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UserAccountType } from '@neosync/sdk';
+import { UserAccount, UserAccountType } from '@neosync/sdk';
 import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import Link from 'next/link';
 import { useState } from 'react';
-import { UseFormReturn, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
@@ -40,6 +40,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '../ui/form';
+import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 
@@ -67,27 +75,15 @@ export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 
-export default function AccountSwitcher(_: Props): ReactElement {
+export default function AccountSwitcher(_: Props): ReactElement | null {
   const { account, setAccount } = useAccount();
   const { data, refetch: mutate, isLoading } = useQuery(getUserAccounts);
-  const [open, setOpen] = useState(false);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
-  const form = useForm({
-    mode: 'onChange',
-    resolver: yupResolver(CreateTeamFormValues),
-    defaultValues: {
-      name: '',
-    },
-  });
+  const accounts = data?.accounts ?? [];
+
   const { mutateAsync: createTeamAccountAsync } =
     useMutation(createTeamAccount);
-
-  const accounts = data?.accounts ?? [];
-  const personalAccounts =
-    accounts.filter((a) => a.type === UserAccountType.PERSONAL) ?? [];
-  const teamAccounts =
-    accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
 
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
     // todo: add acount type here
@@ -108,190 +104,220 @@ export default function AccountSwitcher(_: Props): ReactElement {
   if (isLoading) {
     return <Skeleton className=" h-full w-[200px]" />;
   }
+  // Temporarily disabling account switcher in Neosync Cloud until we enable billing
+  if (systemAppConfigData?.isNeosyncCloud) {
+    return null;
+  }
 
   return (
-    <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            aria-label="Select a team"
-            className="w-[200px] justify-between"
-          >
-            <Avatar className="mr-2 h-5 w-5">
-              <AvatarImage
-                src={`https://avatar.vercel.sh/${account?.id}.png`}
-                alt={account?.name}
-              />
-              <AvatarFallback>SC</AvatarFallback>
-            </Avatar>
-            {account?.name}
-            <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
-          <Command>
-            <CommandInput placeholder="Search account..." />
-            <CommandList>
-              <CommandEmpty>No Account found.</CommandEmpty>
-              <CommandGroup key="personal" heading="Personal">
-                {personalAccounts.map((a) => (
-                  <CommandItem
-                    key={a.id}
-                    onSelect={() => {
-                      setAccount(a);
-                      setOpen(false);
-                    }}
-                    className="text-sm cursor-pointer"
-                  >
-                    <Avatar className="mr-2 h-5 w-5">
-                      <AvatarImage
-                        src={`https://avatar.vercel.sh/${a.name}.png`}
-                        alt={a.name}
-                        className="grayscale"
-                      />
-                      <AvatarFallback>SC</AvatarFallback>
-                    </Avatar>
-                    {a.name}
-                    <CheckIcon
-                      className={cn(
-                        'ml-auto h-4 w-4',
-                        account?.id === a.id ? 'opacity-100' : 'opacity-0'
-                      )}
+    <CreateNewTeamDialog
+      open={showNewTeamDialog}
+      onOpenChange={setShowNewTeamDialog}
+      onSubmit={onSubmit}
+      onCancel={() => setShowNewTeamDialog(false)}
+      trigger={
+        <AccountSwitcherPopover
+          activeAccount={account}
+          accounts={accounts}
+          onAccountSelect={(a) => setAccount(a)}
+          onNewAccount={() => setShowNewTeamDialog(true)}
+        />
+      }
+    />
+  );
+}
+
+interface AccountSwitcherPopoverProps {
+  activeAccount: UserAccount | undefined;
+  accounts: UserAccount[];
+  onAccountSelect(account: UserAccount): void;
+  onNewAccount(): void;
+}
+
+function AccountSwitcherPopover(
+  props: AccountSwitcherPopoverProps
+): ReactElement {
+  const { activeAccount, accounts, onAccountSelect, onNewAccount } = props;
+  const [open, setOpen] = useState(false);
+
+  const personalAccounts =
+    accounts.filter((a) => a.type === UserAccountType.PERSONAL) ?? [];
+  const teamAccounts =
+    accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select a team"
+          className="w-[200px] justify-between"
+        >
+          <Avatar className="mr-2 h-5 w-5">
+            <AvatarImage
+              src={`https://avatar.vercel.sh/${activeAccount?.id}.png`}
+              alt={activeAccount?.name}
+            />
+            <AvatarFallback>SC</AvatarFallback>
+          </Avatar>
+          {activeAccount?.name}
+          <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search account..." />
+          <CommandList>
+            <CommandEmpty>No Account found.</CommandEmpty>
+            <CommandGroup key="personal" heading="Personal">
+              {personalAccounts.map((a) => (
+                <CommandItem
+                  key={a.id}
+                  onSelect={() => {
+                    onAccountSelect(a);
+                    setOpen(false);
+                  }}
+                  className="text-sm cursor-pointer"
+                >
+                  <Avatar className="mr-2 h-5 w-5">
+                    <AvatarImage
+                      src={`https://avatar.vercel.sh/${a.name}.png`}
+                      alt={a.name}
+                      className="grayscale"
                     />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandGroup key="team" heading="Team">
-                {teamAccounts.map((a) => (
-                  <CommandItem
-                    key={a.id}
-                    onSelect={() => {
-                      setAccount(a);
-                      setOpen(false);
-                    }}
-                    className="text-sm cursor-pointer"
-                  >
-                    <Avatar className="mr-2 h-5 w-5">
-                      <AvatarImage
-                        src={`https://avatar.vercel.sh/${a.name}.png`}
-                        alt={a.name}
-                        className="grayscale"
-                      />
-                    </Avatar>
-                    {a.name}
-                    <CheckIcon
-                      className={cn(
-                        'ml-auto h-4 w-4',
-                        account?.id === a.id ? 'opacity-100' : 'opacity-0'
-                      )}
+                    <AvatarFallback>SC</AvatarFallback>
+                  </Avatar>
+                  {a.name}
+                  <CheckIcon
+                    className={cn(
+                      'ml-auto h-4 w-4',
+                      activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandGroup key="team" heading="Team">
+              {teamAccounts.map((a) => (
+                <CommandItem
+                  key={a.id}
+                  onSelect={() => {
+                    onAccountSelect(a);
+                    setOpen(false);
+                  }}
+                  className="text-sm cursor-pointer"
+                >
+                  <Avatar className="mr-2 h-5 w-5">
+                    <AvatarImage
+                      src={`https://avatar.vercel.sh/${a.name}.png`}
+                      alt={a.name}
+                      className="grayscale"
                     />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-            <CommandSeparator />
-            <CommandList>
-              <CommandGroup>
-                <DialogTrigger asChild>
-                  <CommandItem
-                    onSelect={() => {
-                      setOpen(false);
-                      setShowNewTeamDialog(true);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <PlusCircledIcon className="mr-2 h-5 w-5" />
-                    Create Team
-                  </CommandItem>
-                </DialogTrigger>
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      <CreateNewTeamDialog
-        form={form}
-        onSubmit={onSubmit}
-        setShowNewTeamDialog={setShowNewTeamDialog}
-        planType={account?.type ?? UserAccountType.PERSONAL}
-        upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
-      />
-    </Dialog>
+                  </Avatar>
+                  {a.name}
+                  <CheckIcon
+                    className={cn(
+                      'ml-auto h-4 w-4',
+                      activeAccount?.id === a.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+          <CommandSeparator />
+          <CommandList>
+            <CommandGroup>
+              <DialogTrigger asChild>
+                <CommandItem
+                  onSelect={() => {
+                    setOpen(false);
+                    onNewAccount();
+                  }}
+                  className="cursor-pointer"
+                >
+                  <PlusCircledIcon className="mr-2 h-5 w-5" />
+                  Create Team
+                </CommandItem>
+              </DialogTrigger>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
 interface CreateNewTeamDialogProps {
-  form: UseFormReturn<
-    {
-      name: string;
-    },
-    any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    undefined
-  >;
-  onSubmit: (values: CreateTeamFormValues) => Promise<void>;
-  setShowNewTeamDialog: (val: boolean) => void;
-  planType: UserAccountType;
-  upgradeHref: string;
+  open: boolean;
+  onOpenChange(val: boolean): void;
+  trigger?: ReactNode;
+
+  onSubmit(values: CreateTeamFormValues): Promise<void>;
+  onCancel(): void;
 }
 
-export function CreateNewTeamDialog(
-  props: CreateNewTeamDialogProps
-): ReactElement {
-  const { planType, upgradeHref } = props;
+function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
+  const { open, onOpenChange, trigger, onCancel, onSubmit } = props;
+  const form = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(CreateTeamFormValues),
+    defaultValues: {
+      name: '',
+    },
+  });
+
   return (
-    <div>
-      {/* {(planType && planType == UserAccountType.PERSONAL) ||
-      planType == UserAccountType.TEAM ? ( */}
-      <UpgradeDialog planType={planType} upgradeHref={upgradeHref} />
-      {/* ) : (
-        <DialogContent className="flex flex-col gap-3">
-          <DialogHeader>
-            <DialogTitle>Create team</DialogTitle>
-            <DialogDescription>
-              Create a new team account to collaborate with your co-workers.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <Form {...form}>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="acme" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </Form>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger}
+      <DialogContent className="flex flex-col gap-3">
+        <DialogHeader>
+          <DialogTitle>Create team</DialogTitle>
+          <DialogDescription>
+            Create a new team account to collaborate with your co-workers.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      autoCapitalize="off" // we don't allow capitals in team names
+                      data-1p-ignore // tells 1password extension to not autofill this field
+                      placeholder="acme"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
+        </div>
+        <DialogFooter>
+          <div className="flex flex-row justify-between w-full pt-6">
+            <Button variant="outline" onClick={() => onCancel()}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={(e) =>
+                form.handleSubmit((values) => onSubmit(values))(e)
+              }
+              disabled={!form.formState.isValid}
+            >
+              Continue
+            </Button>
           </div>
-          <DialogFooter>
-            <div className="flex flex-row justify-between w-full pt-6">
-              <Button
-                variant="outline"
-                onClick={() => setShowNewTeamDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                onClick={(e) =>
-                  form.handleSubmit((values) => onSubmit(values))(e)
-                }
-                disabled={!form.formState.isValid}
-              >
-                Continue
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      )} */}
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -300,9 +326,9 @@ interface UpgradeDialog {
   upgradeHref: string;
 }
 
-function UpgradeDialog({ upgradeHref }: UpgradeDialog) {
+function UpgradeDialog({ upgradeHref }: UpgradeDialog): ReactElement {
   return (
-    <div>
+    <Dialog>
       <DialogContent className="flex flex-col gap-3">
         <DialogHeader>
           <DialogTitle>Upgrade your plan to create a Team</DialogTitle>
@@ -320,6 +346,6 @@ function UpgradeDialog({ upgradeHref }: UpgradeDialog) {
           </div>
         </DialogFooter>
       </DialogContent>
-    </div>
+    </Dialog>
   );
 }

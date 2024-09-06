@@ -1,26 +1,16 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
-import {
-  CreateNewTeamDialog,
-  CreateTeamFormValues,
-} from '@/components/site-header/AccountSwitcher';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { getErrorMessage, toTitleCase } from '@/util/util';
-import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { toTitleCase } from '@/util/util';
 import { UserAccountType } from '@neosync/sdk';
-import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
-import { ReactElement, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { ReactElement } from 'react';
 
 const plans = [
   {
@@ -68,23 +58,6 @@ export default function Billing(): ReactElement {
   const { account } = useAccount();
   const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
     useGetSystemAppConfig();
-  const [showNewTeamDialog, setShowNewTeamDialog] = useState<boolean>(false);
-  const { refetch: mutate } = useQuery(getUserAccounts);
-  const { mutateAsync: createTeamAccountAsync } =
-    useMutation(createTeamAccount);
-  async function onSubmit(values: CreateTeamFormValues): Promise<void> {
-    try {
-      await createTeamAccountAsync({ name: values.name });
-      setShowNewTeamDialog(false);
-      mutate();
-      toast.success('Successfully created team!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Unable to create team', {
-        description: getErrorMessage(err),
-      });
-    }
-  }
 
   if (isSystemAppConfigDataLoading || !account?.type) {
     return <Skeleton />;
@@ -107,10 +80,7 @@ export default function Billing(): ReactElement {
         <NeedHelp />
         <Plans
           planType={account.type ?? UserAccountType.PERSONAL}
-          setShowNewTeamDialog={setShowNewTeamDialog}
-          showNewTeamDialog={showNewTeamDialog}
-          onSubmit={onSubmit}
-          upgradeHref={systemAppConfigData.calendlyUpgradeLink}
+          upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
         />
       </div>
     </div>
@@ -142,27 +112,10 @@ function NeedHelp(): ReactElement {
 
 interface PlanProps {
   planType: UserAccountType;
-  setShowNewTeamDialog: (val: boolean) => void;
-  showNewTeamDialog: boolean;
-  onSubmit: (values: CreateTeamFormValues) => Promise<void>;
   upgradeHref: string;
 }
 
-function Plans({
-  planType,
-  showNewTeamDialog,
-  setShowNewTeamDialog,
-  onSubmit,
-  upgradeHref,
-}: PlanProps): ReactElement {
-  const form = useForm({
-    mode: 'onChange',
-    resolver: yupResolver(CreateTeamFormValues),
-    defaultValues: {
-      name: '',
-    },
-  });
-
+function Plans({ planType, upgradeHref }: PlanProps): ReactElement {
   return (
     <div>
       <div className="border border-gray-200 rounded-xl p-6 flex flex-col gap-4">
@@ -202,18 +155,6 @@ function Plans({
                         <div className="text-sm self-end pb-1">/mo</div>
                       )}
                     </div>
-                    <Dialog
-                      open={showNewTeamDialog}
-                      onOpenChange={setShowNewTeamDialog}
-                    >
-                      <CreateNewTeamDialog
-                        form={form}
-                        onSubmit={onSubmit}
-                        setShowNewTeamDialog={setShowNewTeamDialog}
-                        planType={planType}
-                        upgradeHref={upgradeHref}
-                      />
-                    </Dialog>
                     <div className="flex flex-col gap-2">
                       {plan.features.map((feat) => (
                         <div
