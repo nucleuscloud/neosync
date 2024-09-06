@@ -24,9 +24,7 @@ func (a *PgxArray[T]) Scan(src any) error {
 		return fmt.Errorf("cannot convert to sql.Scanner: cannot find registered type for %s", a.colDataType)
 	}
 
-	// v := (*pgtype.Array[T])(&a.Array)
 	v := &a.Array
-
 	var bufSrc []byte
 	if src != nil {
 		switch src := src.(type) {
