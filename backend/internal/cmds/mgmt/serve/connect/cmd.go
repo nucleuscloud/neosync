@@ -17,7 +17,12 @@ import (
 	"connectrpc.com/otelconnect"
 	"connectrpc.com/validate"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -51,6 +56,7 @@ import (
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -104,7 +110,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.ConnectionDataServiceName,
 	}
 
-	if shouldServiceMetrics() {
+	if shouldEnableMetricsService() {
 		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
 	}
 
@@ -152,24 +158,76 @@ func serve(ctx context.Context) error {
 		}
 	}
 
-	validateInterceptor, err := validate.NewInterceptor()
-	if err != nil {
-		return err
+	stdInterceptors := []connect.Interceptor{}
+
+	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
+	if otelconfig.IsEnabled {
+		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+
+		meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if meterprovider != nil {
+			otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(meterprovider))
+		} else {
+			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
+		}
+
+		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
+			Exporter: otelconfig.TraceExporter,
+			Opts: neosyncotel.TraceExporterOpts{
+				Otlp:    []otlptracegrpc.Option{},
+				Console: []stdouttrace.Option{stdouttrace.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if traceprovider != nil {
+			otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(traceprovider))
+		} else {
+			otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())
+		}
+
+		otelInterceptor, err := otelconnect.NewInterceptor(otelconnopts...)
+		if err != nil {
+			return err
+		}
+		stdInterceptors = append(stdInterceptors, otelInterceptor)
+
+		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
+			TraceProvider: traceprovider,
+			MeterProvider: meterprovider,
+			Logger:        logr.FromSlogHandler(slogger.Handler()),
+		})
+		defer func() {
+			if err := otelshutdown(context.Background()); err != nil {
+				slogger.Error(fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
+			}
+		}()
 	}
 
-	otelInterceptor, err := otelconnect.NewInterceptor()
+	validateInterceptor, err := validate.NewInterceptor()
 	if err != nil {
 		return err
 	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(slogger)
 	loggingInterceptor := logging_interceptor.NewInterceptor()
 
-	stdInterceptors := []connect.Interceptor{
-		otelInterceptor,
+	stdInterceptors = append(
+		stdInterceptors,
 		loggerInterceptor,
 		validateInterceptor,
 		loggingInterceptor,
-	}
+	)
 
 	// standard auth interceptors that should be applied to most services
 	stdAuthInterceptors := []connect.Interceptor{}
@@ -387,7 +445,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	if shouldServiceMetrics() {
+	if shouldEnableMetricsService() {
 		roundTripper := promapi.DefaultRoundTripper
 		promApiKey := getPromApiKey()
 		if promApiKey != nil {
@@ -714,7 +772,7 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 
 // whether or not to serve metrics via the metrics proto
 // this is not the same as serving up prometheus compliant metrics endpoints
-func shouldServiceMetrics() bool {
+func shouldEnableMetricsService() bool {
 	return viper.GetBool("METRICS_SERVICE_ENABLED")
 }
 
