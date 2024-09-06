@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import {
   ColumnDef,
@@ -86,7 +87,10 @@ export default function PermissionsDataTable<TData, TValue>({
         </div>
       </div>
       <div
-        className="rounded-md border relative overflow-auto max-h-[500px] dark:border-gray-700 "
+        className={cn(
+          'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
+          rows.length > 0 && 'overflow-auto'
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
@@ -123,13 +127,12 @@ export default function PermissionsDataTable<TData, TValue>({
             }}
           >
             {rows.length === 0 && (
-              <TableRow className="flex justify-center items-center py-10 text-gray-500">
+              <TableRow className="flex justify-center items-center py-10 text-gray-500 text-sm">
                 <td>No permissions found for the connection or filter(s).</td>
               </TableRow>
             )}
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
-
               return (
                 <TableRow
                   data-index={virtualRow.index} //needed for dynamic row height measurement

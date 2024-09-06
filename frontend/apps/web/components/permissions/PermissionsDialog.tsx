@@ -57,7 +57,6 @@ export default function PermissionsDialog(props: Props): ReactElement {
             <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />{' '}
           </div>
         </DialogHeader>
-
         <PermissionsDataTable
           ConnectionAlert={
             <TestConnectionResult
@@ -69,7 +68,7 @@ export default function PermissionsDialog(props: Props): ReactElement {
           data={checkResponse.privileges}
           columns={columns}
         />
-        <DialogFooter className="pt-6">
+        <DialogFooter className="pt-28">
           <div className="flex justify-end">
             <Button
               type="button"

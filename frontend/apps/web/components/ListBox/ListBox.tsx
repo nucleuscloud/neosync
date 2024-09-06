@@ -39,8 +39,9 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
   return (
     <div
       className={cn(
-        'max-h-[164px] overflow-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
-        tableContainerClassName
+        'max-h-[164px] relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
+        tableContainerClassName,
+        rows.length > 0 && 'overflow-auto'
       )}
       ref={tableContainerRef}
     >

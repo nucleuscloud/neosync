@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
 import { GoWorkflow } from 'react-icons/go';
 
 interface DataTableProps<TData, TValue> {
@@ -75,7 +76,10 @@ export default function TableMappingsTable<TData, TValue>({
         Map Tables between data sources
       </CardDescription>
       <div
-        className="rounded-md border  min-h-[150px] max-h-[500px] relative overflow-auto border-gray-300 dark:border-gray-700"
+        className={cn(
+          'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
+          rows.length > 0 && 'overflow-auto'
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
