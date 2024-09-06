@@ -117,9 +117,13 @@ func IsMultiDimensionalSlice(val any) bool {
 
 // converts flat slice to multi-dimensional slice
 func CreateMultiDimSlice(dims []int, elements []any) any {
+	if len(elements) == 0 {
+		return elements
+	}
 	if len(dims) == 0 {
 		return elements[0]
 	}
+	firstDim := dims[0]
 
 	// creates nested any slice where depth = # of dimensions
 	// 2 dimensions creates [][]any{}
@@ -127,11 +131,11 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 	for i := 0; i < len(dims)-1; i++ {
 		sliceType = reflect.SliceOf(sliceType)
 	}
-	slice := reflect.MakeSlice(sliceType, dims[0], dims[0])
+	slice := reflect.MakeSlice(sliceType, firstDim, firstDim)
 
 	// handles 1 dimension slice []any{}
 	if len(dims) == 1 {
-		for i := 0; i < dims[0]; i++ {
+		for i := 0; i < firstDim; i++ {
 			slice.Index(i).Set(reflect.ValueOf(elements[i]))
 		}
 		return slice.Interface()
@@ -143,10 +147,10 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 		subSize *= dim
 	}
 
-	for i := 0; i < dims[0]; i++ {
+	for i := 0; i < firstDim; i++ {
 		start := i * subSize
 		end := start + subSize
-		subSlice := CreateMultiDimSlice(dims[1:], elements[start:end])
+		subSlice := CreateMultiDimSlice(dims[1:], elements[start:end]) //nolint:gosec
 		slice.Index(i).Set(reflect.ValueOf(subSlice))
 	}
 
