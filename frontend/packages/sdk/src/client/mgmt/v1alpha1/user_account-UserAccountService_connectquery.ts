@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodKind } from "@bufbuild/protobuf";
-import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
+import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
 
 /**
  * @generated from rpc mgmt.v1alpha1.UserAccountService.GetUser
@@ -253,6 +253,38 @@ export const setAccountOnboardingConfig = {
   kind: MethodKind.Unary,
   I: SetAccountOnboardingConfigRequest,
   O: SetAccountOnboardingConfigResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Returns different metrics on the account status for the active billing period
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountStatus
+ */
+export const getAccountStatus = {
+  localName: "getAccountStatus",
+  name: "GetAccountStatus",
+  kind: MethodKind.Unary,
+  I: GetAccountStatusRequest,
+  O: GetAccountStatusResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Distils the account status down to whether not it is in a valid state.
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.IsAccountStatusValid
+ */
+export const isAccountStatusValid = {
+  localName: "isAccountStatusValid",
+  name: "IsAccountStatusValid",
+  kind: MethodKind.Unary,
+  I: IsAccountStatusValidRequest,
+  O: IsAccountStatusValidResponse,
   service: {
     typeName: "mgmt.v1alpha1.UserAccountService"
   }

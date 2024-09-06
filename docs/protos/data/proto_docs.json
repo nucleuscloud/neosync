@@ -13973,6 +13973,78 @@
           ]
         },
         {
+          "name": "GetAccountStatusRequest",
+          "longName": "GetAccountStatusRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountStatusRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountStatusResponse",
+          "longName": "GetAccountStatusResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountStatusResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "used_record_count",
+              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.",
+              "label": "",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "allowed_record_count",
+              "description": "The allowed record count. It will be null if there is no limit.",
+              "label": "optional",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_allowed_record_count",
+              "defaultValue": ""
+            },
+            {
+              "name": "subscription_status",
+              "description": "The current subscription status determined by the billing system.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetAccountTemporalConfigRequest",
           "longName": "GetAccountTemporalConfigRequest",
           "fullName": "mgmt.v1alpha1.GetAccountTemporalConfigRequest",
@@ -14322,6 +14394,54 @@
               "type": "AccountInvite",
               "longType": "AccountInvite",
               "fullType": "mgmt.v1alpha1.AccountInvite",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsAccountStatusValidRequest",
+          "longName": "IsAccountStatusValidRequest",
+          "fullName": "mgmt.v1alpha1.IsAccountStatusValidRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "IsAccountStatusValidResponse",
+          "longName": "IsAccountStatusValidResponse",
+          "fullName": "mgmt.v1alpha1.IsAccountStatusValidResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "is_valid",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -14919,6 +15039,30 @@
               "responseType": "SetAccountOnboardingConfigResponse",
               "responseLongType": "SetAccountOnboardingConfigResponse",
               "responseFullType": "mgmt.v1alpha1.SetAccountOnboardingConfigResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetAccountStatus",
+              "description": "Returns different metrics on the account status for the active billing period",
+              "requestType": "GetAccountStatusRequest",
+              "requestLongType": "GetAccountStatusRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountStatusRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountStatusResponse",
+              "responseLongType": "GetAccountStatusResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountStatusResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "IsAccountStatusValid",
+              "description": "Distils the account status down to whether not it is in a valid state.",
+              "requestType": "IsAccountStatusValidRequest",
+              "requestLongType": "IsAccountStatusValidRequest",
+              "requestFullType": "mgmt.v1alpha1.IsAccountStatusValidRequest",
+              "requestStreaming": false,
+              "responseType": "IsAccountStatusValidResponse",
+              "responseLongType": "IsAccountStatusValidResponse",
+              "responseFullType": "mgmt.v1alpha1.IsAccountStatusValidResponse",
               "responseStreaming": false
             }
           ]

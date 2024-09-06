@@ -167,6 +167,27 @@ message AccountOnboardingConfig {
   bool has_invited_members = 4;
 }
 
+message GetAccountStatusRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetAccountStatusResponse {
+  // A count of the currently used records for the current billing period.
+  // This may go over the allowed record count depending on when the record count is polled by the metric system.
+  uint64 used_record_count = 1;
+  // The allowed record count. It will be null if there is no limit.
+  optional uint64 allowed_record_count = 2;
+
+  // The current subscription status determined by the billing system.
+  string subscription_status = 3;
+}
+
+message IsAccountStatusValidRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message IsAccountStatusValidResponse {
+  bool is_valid = 1;
+}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -194,4 +215,9 @@ service UserAccountService {
 
   rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}
+
+  // Returns different metrics on the account status for the active billing period
+  rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse) {}
+  // Distils the account status down to whether not it is in a valid state.
+  rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {}
 }

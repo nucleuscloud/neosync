@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum mgmt.v1alpha1.UserAccountType
@@ -1654,6 +1654,173 @@ export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
 
   static equals(a: AccountOnboardingConfig | PlainMessage<AccountOnboardingConfig> | undefined, b: AccountOnboardingConfig | PlainMessage<AccountOnboardingConfig> | undefined): boolean {
     return proto3.util.equals(AccountOnboardingConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountStatusRequest
+ */
+export class GetAccountStatusRequest extends Message<GetAccountStatusRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountStatusRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountStatusRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountStatusRequest {
+    return new GetAccountStatusRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountStatusRequest {
+    return new GetAccountStatusRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountStatusRequest {
+    return new GetAccountStatusRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountStatusRequest | PlainMessage<GetAccountStatusRequest> | undefined, b: GetAccountStatusRequest | PlainMessage<GetAccountStatusRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountStatusRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountStatusResponse
+ */
+export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> {
+  /**
+   * A count of the currently used records for the current billing period.
+   * This may go over the allowed record count depending on when the record count is polled by the metric system.
+   *
+   * @generated from field: uint64 used_record_count = 1;
+   */
+  usedRecordCount = protoInt64.zero;
+
+  /**
+   * The allowed record count. It will be null if there is no limit.
+   *
+   * @generated from field: optional uint64 allowed_record_count = 2;
+   */
+  allowedRecordCount?: bigint;
+
+  /**
+   * The current subscription status determined by the billing system.
+   *
+   * @generated from field: string subscription_status = 3;
+   */
+  subscriptionStatus = "";
+
+  constructor(data?: PartialMessage<GetAccountStatusResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountStatusResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 3, name: "subscription_status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountStatusResponse {
+    return new GetAccountStatusResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountStatusResponse {
+    return new GetAccountStatusResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountStatusResponse {
+    return new GetAccountStatusResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountStatusResponse | PlainMessage<GetAccountStatusResponse> | undefined, b: GetAccountStatusResponse | PlainMessage<GetAccountStatusResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountStatusResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.IsAccountStatusValidRequest
+ */
+export class IsAccountStatusValidRequest extends Message<IsAccountStatusValidRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<IsAccountStatusValidRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.IsAccountStatusValidRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidRequest {
+    return new IsAccountStatusValidRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IsAccountStatusValidRequest {
+    return new IsAccountStatusValidRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IsAccountStatusValidRequest {
+    return new IsAccountStatusValidRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IsAccountStatusValidRequest | PlainMessage<IsAccountStatusValidRequest> | undefined, b: IsAccountStatusValidRequest | PlainMessage<IsAccountStatusValidRequest> | undefined): boolean {
+    return proto3.util.equals(IsAccountStatusValidRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.IsAccountStatusValidResponse
+ */
+export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidResponse> {
+  /**
+   * @generated from field: bool is_valid = 1;
+   */
+  isValid = false;
+
+  constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.IsAccountStatusValidResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {
+    return new IsAccountStatusValidResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IsAccountStatusValidResponse {
+    return new IsAccountStatusValidResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IsAccountStatusValidResponse {
+    return new IsAccountStatusValidResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IsAccountStatusValidResponse | PlainMessage<IsAccountStatusValidResponse> | undefined, b: IsAccountStatusValidResponse | PlainMessage<IsAccountStatusValidResponse> | undefined): boolean {
+    return proto3.util.equals(IsAccountStatusValidResponse, a, b);
   }
 }
 
