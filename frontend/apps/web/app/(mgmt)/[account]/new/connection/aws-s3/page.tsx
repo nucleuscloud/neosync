@@ -3,7 +3,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { FaAws } from 'react-icons/fa';
 import AwsS3Form from './AwsS3Form';
 
-export default async function Postgres() {
+export default async function Aws() {
   return (
     <OverviewContainer
       Header={
