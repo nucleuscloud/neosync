@@ -132,14 +132,9 @@ export default function NosqlTable(props: Props): ReactElement {
   }, [data]);
 
   // useCallback ensures that we only re-run the function if the keySet changes
-  // we pass in an optional curr value so that we don't throw errors when searching for duplicates and the existing key is there
-  // for ex. if the initial value is "email" and we change it to "emaila" and then back to "email", it throws an error because the key set is made from all of the rows of the data which includes the original value, so we delete it if currValue is valid so we don't throw that error and allow the user to just save their current value without changing it
   const isDuplicateKey = useCallback(
-    (newValue: string, schema: string, table: string, currValue?: string) => {
+    (newValue: string, schema: string, table: string) => {
       const key = `${schema}.${table}.${newValue}`;
-      if (currValue) {
-        keySet.delete(`${schema}.${table}.${currValue}`);
-      }
       return keySet.has(key);
     },
     [keySet]
@@ -595,6 +590,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
           <EditDocumentKey
             text={text}
             isDuplicate={(newValue: string, currValue?: string) =>
+              currValue !== newValue &&
               isDuplicateKey(
                 newValue,
                 row.getValue('schema'),
