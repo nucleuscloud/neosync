@@ -238,7 +238,7 @@ function AccountSwitcherPopover(
             )}
           </CommandList>
           <CommandSeparator />
-          {isNeosyncCloud && (
+          {!isNeosyncCloud && (
             <CommandList>
               <CommandGroup>
                 <DialogTrigger asChild>
