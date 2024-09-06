@@ -12,7 +12,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -269,7 +268,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
 		}
 
-		rows = append(rows, argsToSqlTypes(args, s.driver))
+		rows = append(rows, args)
 	}
 
 	filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
@@ -377,11 +376,4 @@ func (s *pooledInsertOutput) Close(ctx context.Context) error {
 		return ctx.Err()
 	}
 	return nil
-}
-
-func argsToSqlTypes(args []any, driver string) []any {
-	if driver == sqlmanager_shared.PostgresDriver {
-		return pgutil.ToPgTypes(args)
-	}
-	return args
 }

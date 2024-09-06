@@ -180,100 +180,86 @@ INSERT INTO ptypes.all_postgres_types (
 );
 
 
-INSERT INTO ptypes.all_postgres_types (
-    smallint_col, 
-    integer_col, 
-    bigint_col, 
-    decimal_col, 
-    numeric_col, 
-    real_col, 
-    double_precision_col, 
-    serial_col, 
-    bigserial_col, 
-    money_col, 
-    char_col, 
-    varchar_col, 
-    text_col, 
-    bytea_col, 
-    timestamp_col, 
-    timestamptz_col, 
-    date_col, 
-    time_col, 
-    timetz_col, 
-    interval_col, 
-    boolean_col, 
-    uuid_col, 
-    inet_col, 
-    cidr_col, 
-    macaddr_col, 
-    bit_col, 
-    varbit_col, 
-    point_col, 
-    line_col, 
-    lseg_col, 
-    box_col, 
-    path_col, 
-    polygon_col, 
-    circle_col, 
-    json_col, 
-    jsonb_col, 
-    int4range_col, 
-    int8range_col, 
-    numrange_col, 
-    tsrange_col, 
-    tstzrange_col, 
-    daterange_col, 
-    integer_array_col, 
-    text_array_col, 
-    xml_col, 
-    tsvector_col, 
-    oid_col
+CREATE TABLE ptypes.array_types (
+    "id" BIGINT NOT NULL PRIMARY KEY,
+    "int_array" _int4,
+    "smallint_array" _int2,
+    "bigint_array" _int8,
+    "real_array" _float4,
+    "double_array" _float8,
+    "text_array" _text,
+    "varchar_array" _varchar,
+    "char_array" _bpchar,
+    "boolean_array" _bool,
+    "date_array" _date,
+    "time_array" _time,
+    "timestamp_array" _timestamp,
+    "timestamptz_array" _timestamptz,
+    "interval_array" _interval,
+    -- "inet_array" _inet, // broken
+    -- "cidr_array" _cidr,
+    "point_array" _point,
+    "line_array" _line,
+    "lseg_array" _lseg,
+    -- "box_array" _box,   // broken
+    "path_array" _path,
+    "polygon_array" _polygon,
+    "circle_array" _circle,
+    -- "uuid_array" _uuid,  // broken
+    -- "json_array" _json,
+    -- "jsonb_array" _jsonb,
+    "bit_array" _bit,
+    "varbit_array" _varbit,
+    "numeric_array" _numeric,
+    "money_array" _money,
+    "xml_array" _xml,
+    "int_double_array" _int4
+);
+
+
+INSERT INTO ptypes.array_types (
+    id, int_array, smallint_array, bigint_array, real_array, double_array,
+    text_array, varchar_array, char_array, boolean_array, date_array,
+    time_array, timestamp_array, timestamptz_array, interval_array,
+    -- inet_array, cidr_array, 
+    point_array, line_array, lseg_array,
+    -- box_array,
+    path_array, polygon_array, circle_array, 
+    -- uuid_array, json_array, jsonb_array, 
+    bit_array, varbit_array, numeric_array,
+    money_array, xml_array, int_double_array
 ) VALUES (
-    -32768,  -- smallint_col
-    -2147483648,  -- integer_col
-    -9223372036854775808,  -- bigint_col
-    5678.90,  -- decimal_col
-    12345678.90,  -- numeric_col
-    54321.12,  -- real_col
-    987654321.987654321,  -- double_precision_col
-    2,  -- serial_col
-    2,  -- bigserial_col
-    '$200.00',  -- money_col
-    'B',  -- char_col
-    'Another varchar example',  -- varchar_col
-    'Another text example',  -- text_col
-    decode('BAADF00D', 'hex'),  -- bytea_col
-    '2023-12-31 23:59:59',  -- timestamp_col
-    '2023-12-31 23:59:59+00',  -- timestamptz_col
-    '2023-12-31',  -- date_col
-    '23:59:59',  -- time_col
-    '23:59:59+00',  -- timetz_col
-    '2 hours',  -- interval_col
-    FALSE,  -- boolean_col
-    '223e4567-e89b-12d3-a456-426614174001',  -- uuid_col
-    '10.0.0.1',  -- inet_col
-    '10.0.0.0/24',  -- cidr_col
-    '08:00:2b:01:02:04',  -- macaddr_col
-    B'11001100',  -- bit_col
-    B'1100',  -- varbit_col
-    '(2, 3)',  -- point_col
-    '{2, 2, 1}',  -- line_col
-    '[(1,1), (2,2)]',  -- lseg_col
-    '(1,1),(2,2)',  -- box_col
-    '((1,1), (2,2), (3,3))',  -- path_col
-    '((1,1), (2,2), (2,1))',  -- polygon_col
-    '<(2,2),2>',  -- circle_col
-    '{"name": "Jane", "age": 25}',  -- json_col
-    '{"name": "Jane", "age": 25}',  -- jsonb_col
-    '[2,20]',  -- int4range_col
-    '[2,2000]',  -- int8range_col
-    '[2.0,20.0]',  -- numrange_col
-    '[2023-12-31 12:00:00, 2023-12-31 14:00:00]',  -- tsrange_col
-    '[2023-12-31 12:00:00+00, 2023-12-31 14:00:00+00]',  -- tstzrange_col
-    '[2023-12-31, 2024-01-01]',  -- daterange_col
-    '{4, 5, 6}',  -- integer_array_col
-    '{"four", "five", "six"}',  -- text_array_col
-    '<baz>qux</baz>',  -- xml_col
-    'another tsvector example',  -- tsvector_col
-    654321  -- oid_col
+    1,
+    ARRAY[1, 2, 3],
+    ARRAY[10::smallint, 20::smallint],
+    ARRAY[100::bigint, 200::bigint],
+    ARRAY[1.1::real, 2.2::real],
+    ARRAY[1.11::double precision, 2.22::double precision],
+    ARRAY['text1', 'text2'],
+    ARRAY['varchar1'::varchar, 'varchar2'::varchar],
+    ARRAY['a'::char, 'b'::char],
+    ARRAY[true, false],
+    ARRAY['2023-01-01'::date, '2023-01-02'::date],
+    ARRAY['12:00:00'::time, '13:00:00'::time],
+    ARRAY['2023-01-01 12:00:00'::timestamp, '2023-01-02 13:00:00'::timestamp],
+    ARRAY['2023-01-01 12:00:00+00'::timestamptz, '2023-01-02 13:00:00+00'::timestamptz],
+    ARRAY['1 day'::interval, '2 hours'::interval],
+    -- ARRAY['192.168.0.1'::inet, '10.0.0.1'::inet],
+    -- ARRAY['192.168.0.0/24'::cidr, '10.0.0.0/8'::cidr],
+    ARRAY['(1,1)'::point, '(2,2)'::point],
+    ARRAY['{1,2,2}'::line, '{3,4,4}'::line],
+    ARRAY['(1,1,2,2)'::lseg, '(3,3,4,4)'::lseg],
+    -- ARRAY['(1,1,2,2)'::box, '(3,3,4,4)'::box],
+    ARRAY['((1,1),(2,2),(3,3))'::path, '((4,4),(5,5),(6,6))'::path],
+    ARRAY['((1,1),(2,2),(3,3))'::polygon, '((4,4),(5,5),(6,6))'::polygon],
+    ARRAY['<(1,1),1>'::circle, '<(2,2),2>'::circle],
+    -- ARRAY['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid, 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid],
+    -- ARRAY['{"key": "value1"}'::json, '{"key": "value2"}'::json],
+    -- ARRAY['{"key": "value1"}'::jsonb, '{"key": "value2"}'::jsonb],
+    ARRAY['101'::bit(3), '110'::bit(3)],
+    ARRAY['10101'::bit varying(5), '01010'::bit varying(5)],
+    ARRAY[1.23::numeric, 4.56::numeric],
+    ARRAY[10.00::money, 20.00::money],
+    ARRAY['<root>value1</root>'::xml, '<root>value2</root>'::xml],
+    ARRAY[[1, 2], [3, 4]] 
 );

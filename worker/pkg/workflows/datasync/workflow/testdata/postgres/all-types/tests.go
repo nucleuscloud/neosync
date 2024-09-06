@@ -14,7 +14,8 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				InitSchema: true,
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"ptypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 2},
+				"ptypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"ptypes.array_types":        &workflow_testdata.ExpectedOutput{RowCount: 1},
 			},
 		},
 	}

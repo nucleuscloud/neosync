@@ -205,6 +205,10 @@ func sqlRowToMap(rows *sql.Rows, driver string) (map[string]any, error) {
 	if driver == sqlmanager_shared.PostgresDriver {
 		return pgutil.SqlRowToPgTypesMap(rows)
 	}
+	return genericSqlRowToMap(rows)
+}
+
+func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	columnNames, err := rows.Columns()
 	if err != nil {
 		return nil, err

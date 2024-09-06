@@ -6,77 +6,203 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func TestConvertPgArrayStringToSlice(t *testing.T) {
-// 	t.Run("Empty array", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice("{}")
-// 		require.Equal(t, []any{}, result)
-// 	})
-
-// 	t.Run("Integer array", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice("{1,2,3}")
-// 		require.Equal(t, []any{"1", "2", "3"}, result)
-// 	})
-
-// 	t.Run("String array", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice("{foo,bar,baz}")
-// 		require.Equal(t, []any{"foo", "bar", "baz"}, result)
-// 	})
-
-// 	t.Run("Mixed array", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice("{1,foo,2,bar}")
-// 		require.Equal(t, []any{"1", "foo", "2", "bar"}, result)
-// 	})
-
-// 	t.Run("Non-string input", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice(123)
-// 		require.Equal(t, []any{}, result)
-// 	})
-// 	t.Run("Nested Array", func(t *testing.T) {
-// 		result := ConvertPgArrayToSlice("{{1,2,3}, {4,5,6}}")
-// 		require.Equal(t, [][]any{{1, 2, 3}, {4, 5, 6}}, result)
-// 	})
-// }
-
-func TestConvertSliceToPgString(t *testing.T) {
-	t.Run("Empty slice", func(t *testing.T) {
-		result := ConvertSliceToPgString([]any{})
-		require.Equal(t, "{}", result)
+func Test_IsMultiDimensionalArray(t *testing.T) {
+	t.Run("MultiDimensionalArray", func(t *testing.T) {
+		input := []any{[]any{1, 2}, []any{3, 4}}
+		result := IsMultiDimensionalSlice(input)
+		require.True(t, result, "Expected true for multi-dimensional array")
 	})
 
-	t.Run("Integer slice", func(t *testing.T) {
-		result := ConvertSliceToPgString([]any{1, 2, 3})
-		require.Equal(t, "{1,2,3}", result)
+	t.Run("MultiDimensionalArray", func(t *testing.T) {
+		input := [][]any{{1, 2}, {}}
+		result := IsMultiDimensionalSlice(input)
+		require.True(t, result, "Expected true for multi-dimensional array")
 	})
 
-	t.Run("String slice", func(t *testing.T) {
-		result := ConvertSliceToPgString([]any{"foo", "bar", "baz"})
-		require.Equal(t, "{foo,bar,baz}", result)
+	t.Run("SingleDimensionalArray", func(t *testing.T) {
+		input := []any{1, 2, 3, 4}
+		result := IsMultiDimensionalSlice(input)
+		require.False(t, result, "Expected false for single-dimensional array")
 	})
 
-	t.Run("Mixed slice", func(t *testing.T) {
-		result := ConvertSliceToPgString([]any{1, "foo", 2, "bar"})
-		require.Equal(t, "{1,foo,2,bar}", result)
+	t.Run("EmptyArray", func(t *testing.T) {
+		input := []any{}
+		result := IsMultiDimensionalSlice(input)
+		require.False(t, result, "Expected false for empty array")
+	})
+
+	t.Run("NonArrayType", func(t *testing.T) {
+		input := "not an array"
+		result := IsMultiDimensionalSlice(input)
+		require.False(t, result, "Expected false for non-array type")
+	})
+
+	t.Run("ArrayWithNonArrayElements", func(t *testing.T) {
+		input := []any{1, "string", true}
+		result := IsMultiDimensionalSlice(input)
+		require.False(t, result, "Expected false for array with non-array elements")
+	})
+
+	t.Run("NestedEmptyArray", func(t *testing.T) {
+		input := []any{[]any{1, 2}, []any{}}
+		result := IsMultiDimensionalSlice(input)
+		require.True(t, result, "Expected true for array containing an empty array")
 	})
 }
 
-func TestToPgTypes(t *testing.T) {
-	t.Run("Empty slice", func(t *testing.T) {
-		result := ToPgTypes([]any{})
-		require.Equal(t, []any{}, result)
+func Test_CreateMultiDimSlice(t *testing.T) {
+	t.Run("1D Slice of Ints", func(t *testing.T) {
+		dims := []int{3}
+		elements := []any{1, 2, 3}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := []any{1, 2, 3}
+		require.Equal(t, expected, result)
 	})
 
-	t.Run("No slices", func(t *testing.T) {
-		result := ToPgTypes([]any{1, "foo", true})
-		require.Equal(t, []any{1, "foo", true}, result)
+	t.Run("2D Slice of Ints", func(t *testing.T) {
+		dims := []int{2, 3}
+		elements := []any{1, 2, 3, 4, 5, 6}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := [][]any{{1, 2, 3}, {4, 5, 6}}
+		require.Equal(t, expected, result)
 	})
 
-	t.Run("With slices", func(t *testing.T) {
-		result := ToPgTypes([]any{1, []any{2, 3}, "foo", []any{"bar", "baz"}})
-		require.Equal(t, []any{1, "{2,3}", "foo", "{bar,baz}"}, result)
+	t.Run("3D Slice of Ints", func(t *testing.T) {
+		dims := []int{2, 2, 2}
+		elements := []any{1, 2, 3, 4, 5, 6, 7, 8}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := [][][]any{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}
+		require.Equal(t, expected, result)
 	})
 
-	t.Run("Mixed types", func(t *testing.T) {
-		result := ToPgTypes([]any{1, []any{2, "foo"}, true, []any{3.14, false}})
-		require.Equal(t, []any{1, "{2,foo}", true, "{3.14,false}"}, result)
+	t.Run("2D Slice of Strings", func(t *testing.T) {
+		dims := []int{2, 2}
+		elements := []any{"a", "b", "c", "d"}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := [][]any{{"a", "b"}, {"c", "d"}}
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("Empty Dims", func(t *testing.T) {
+		dims := []int{}
+		elements := []any{42}
+		result := CreateMultiDimSlice(dims, elements)
+		require.Equal(t, 42, result)
+	})
+
+	t.Run("1D Slice with Single Element", func(t *testing.T) {
+		dims := []int{1}
+		elements := []any{42}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := []any{42}
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("3D Slice with Mixed Types", func(t *testing.T) {
+		dims := []int{2, 2, 2}
+		elements := []any{1, "a", true, 3.14, 0, 'b', []int{1, 2}, map[string]int{"x": 1}}
+		result := CreateMultiDimSlice(dims, elements)
+		expected := [][][]any{
+			{{1, "a"}, {true, 3.14}},
+			{{0, 'b'}, {[]int{1, 2}, map[string]int{"x": 1}}},
+		}
+		require.Equal(t, expected, result)
+	})
+}
+
+func Test_FormatPgArrayLiteral(t *testing.T) {
+	t.Run("Empty array", func(t *testing.T) {
+		input := []any{}
+		expected := "ARRAY[]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Empty array should be formatted correctly")
+	})
+
+	t.Run("1D array of integers", func(t *testing.T) {
+		input := []any{1, 2, 3}
+		expected := "ARRAY[1,2,3]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "1D array of integers should be formatted correctly")
+	})
+
+	t.Run("1D array of strings", func(t *testing.T) {
+		input := []any{"a", "b", "c"}
+		expected := "ARRAY['a','b','c']"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "1D array of strings should be formatted correctly")
+	})
+
+	t.Run("2D array of integers", func(t *testing.T) {
+		input := []any{[]any{1, 2}, []any{3, 4}}
+		expected := "ARRAY[[1,2],[3,4]]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "2D array of integers should be formatted correctly")
+	})
+	t.Run("2D array of integers", func(t *testing.T) {
+		input := [][]any{{1, 2}, {3, 4}}
+		expected := "ARRAY[[1,2],[3,4]]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "2D array of integers should be formatted correctly")
+	})
+	t.Run("4D array of integers", func(t *testing.T) {
+		input := [][][]any{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}
+		expected := "ARRAY[[[1,2],[3,4]],[[5,6],[7,8]]]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "2D array of integers should be formatted correctly")
+	})
+
+	t.Run("3D array of integers", func(t *testing.T) {
+		input := []any{[]any{[]any{1, 2}, []any{3, 4}}, []any{[]any{5, 6}, []any{7, 8}}}
+		expected := "ARRAY[[[1,2],[3,4]],[[5,6],[7,8]]]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "3D array of integers should be formatted correctly")
+	})
+
+	t.Run("Mixed types array", func(t *testing.T) {
+		input := []any{1, "a", true, 3.14}
+		expected := "ARRAY[1,'a',true,3.14]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Array with mixed types should be formatted correctly")
+	})
+
+	t.Run("Array with nested mixed types", func(t *testing.T) {
+		input := []any{[]any{1, "a"}, []any{true, 3.14}}
+		expected := "ARRAY[[1,'a'],[true,3.14]]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Array with nested mixed types should be formatted correctly")
+	})
+
+	t.Run("Array with null values", func(t *testing.T) {
+		input := []any{1, nil, 3}
+		expected := "ARRAY[1,<nil>,3]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Array with null values should be formatted correctly")
+	})
+
+	// maps
+	t.Run("Array of key-value pairs", func(t *testing.T) {
+		input := []any{
+			map[string]any{"age": 30, "city": "New York"},
+			map[string]any{"age": 25, "city": "San Francisco"},
+		}
+		expected := "ARRAY[('age',30),('city','New York'),('age',25),('city','San Francisco')]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Array of key-value pairs should be formatted correctly")
+	})
+
+	t.Run("Array with nested key-value pairs", func(t *testing.T) {
+		input := []any{
+			"simple string",
+			map[string]any{
+				"name": "John",
+				"details": map[string]any{
+					"age":  "30",
+					"city": "New York",
+				},
+			},
+		}
+		expected := "ARRAY['simple string',('details',('age','30'),('city','New York')),('name','John')]"
+		result := FormatPgArrayLiteral(input)
+		require.Equal(t, expected, result, "Array with nested key-value pairs should be formatted correctly")
 	})
 }
