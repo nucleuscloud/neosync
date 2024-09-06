@@ -76,7 +76,7 @@ const CONNECTIONS_METADATA: ConnectionMeta[] = [
     urlSlug: 'neon',
     name: 'Neon',
     description:
-      'Neon is a serverless Postgres database that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
+      'Neon is a serverless Postgres database that separates storage and compute to offer autoscaling, branching and bottomless storage.',
     connectionType: 'pgConfig',
     connectionTypeVariant: 'neon',
   },

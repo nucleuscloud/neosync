@@ -292,7 +292,7 @@ export default function NewDynamoDBForm(): ReactElement {
         >
           <AccordionItem value="credentials">
             <AccordionTrigger>AWS Credentials</AccordionTrigger>
-            <AccordionContent className="space-y-4">
+            <AccordionContent className="space-y-4 p-2">
               <p className="text-sm">
                 This section is used to configure authentication credentials to
                 allow access to the DynamoDB tables and will be specific to how
@@ -419,7 +419,7 @@ export default function NewDynamoDBForm(): ReactElement {
 
           <AccordionItem value="advanced">
             <AccordionTrigger>AWS Advanced Configuration</AccordionTrigger>
-            <AccordionContent className="space-y-4">
+            <AccordionContent className="space-y-4 p-2">
               <p className="text-sm">
                 This is an optional section and is used if you need to tweak the
                 AWS SDK to connect to a different region or endpoint other than
