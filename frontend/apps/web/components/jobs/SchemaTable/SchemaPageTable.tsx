@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GoWorkflow } from 'react-icons/go';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
@@ -94,7 +95,10 @@ export default function SchemaPageTable<TData, TValue>({
         />
       </div>
       <div
-        className="rounded-md border  min-h-[150px] max-h-[500px] relative overflow-auto border-gray-300 dark:border-gray-700"
+        className={cn(
+          'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
+          rows.length > 0 && 'overflow-auto'
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
@@ -79,7 +80,10 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <div
-        className="rounded-md  min-h-[150px] max-h-[500px] relative overflow-auto border dark:border-gray-700 border-gray-300"
+        className={cn(
+          'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
+          rows.length > 0 && 'overflow-auto'
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
