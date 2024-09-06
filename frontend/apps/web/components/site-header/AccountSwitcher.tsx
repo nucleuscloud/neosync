@@ -103,10 +103,6 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
   if (isLoading) {
     return <Skeleton className=" h-full w-[200px]" />;
   }
-  // Temporarily disabling account switcher in Neosync Cloud until we enable billing
-  if (systemAppConfigData?.isNeosyncCloud) {
-    return null;
-  }
 
   return (
     <CreateNewTeamDialog
@@ -120,6 +116,7 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
           accounts={accounts}
           onAccountSelect={(a) => setAccount(a)}
           onNewAccount={() => setShowNewTeamDialog(true)}
+          isNeosyncCloud={systemAppConfigData?.isNeosyncCloud ?? false}
         />
       }
     />
@@ -131,12 +128,19 @@ interface AccountSwitcherPopoverProps {
   accounts: UserAccount[];
   onAccountSelect(account: UserAccount): void;
   onNewAccount(): void;
+  isNeosyncCloud: boolean;
 }
 
 function AccountSwitcherPopover(
   props: AccountSwitcherPopoverProps
 ): ReactElement {
-  const { activeAccount, accounts, onAccountSelect, onNewAccount } = props;
+  const {
+    activeAccount,
+    accounts,
+    onAccountSelect,
+    onNewAccount,
+    isNeosyncCloud,
+  } = props;
   const [open, setOpen] = useState(false);
 
   const personalAccounts =
@@ -227,22 +231,24 @@ function AccountSwitcherPopover(
             </CommandGroup>
           </CommandList>
           <CommandSeparator />
-          <CommandList>
-            <CommandGroup>
-              <DialogTrigger asChild>
-                <CommandItem
-                  onSelect={() => {
-                    setOpen(false);
-                    onNewAccount();
-                  }}
-                  className="cursor-pointer"
-                >
-                  <PlusCircledIcon className="mr-2 h-5 w-5" />
-                  Create Team
-                </CommandItem>
-              </DialogTrigger>
-            </CommandGroup>
-          </CommandList>
+          {isNeosyncCloud && (
+            <CommandList>
+              <CommandGroup>
+                <DialogTrigger asChild>
+                  <CommandItem
+                    onSelect={() => {
+                      setOpen(false);
+                      onNewAccount();
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <PlusCircledIcon className="mr-2 h-5 w-5" />
+                    Create Team
+                  </CommandItem>
+                </DialogTrigger>
+              </CommandGroup>
+            </CommandList>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
