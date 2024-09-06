@@ -14,7 +14,6 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
-import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -51,7 +50,7 @@ import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 
-export const CreateTeamFormValues = Yup.object({
+const CreateTeamFormValues = Yup.object({
   name: Yup.string()
     .required()
     .min(3)
@@ -71,7 +70,7 @@ export const CreateTeamFormValues = Yup.object({
       }
     ),
 });
-export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
+type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 
@@ -261,7 +260,7 @@ interface CreateNewTeamDialogProps {
 
 function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
   const { open, onOpenChange, trigger, onCancel, onSubmit } = props;
-  const form = useForm({
+  const form = useForm<CreateTeamFormValues>({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),
     defaultValues: {
@@ -313,35 +312,6 @@ function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
               disabled={!form.formState.isValid}
             >
               Continue
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface UpgradeDialog {
-  planType: UserAccountType;
-  upgradeHref: string;
-}
-
-function UpgradeDialog({ upgradeHref }: UpgradeDialog): ReactElement {
-  return (
-    <Dialog>
-      <DialogContent className="flex flex-col gap-3">
-        <DialogHeader>
-          <DialogTitle>Upgrade your plan to create a Team</DialogTitle>
-          <DialogDescription>
-            Contact us in order to create a new team.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <div className="flex flex-row w-full pt-6 justify-center">
-            <Button>
-              <Link href={upgradeHref} className="w-[242px]" target="_blank">
-                Get in touch
-              </Link>
             </Button>
           </div>
         </DialogFooter>
