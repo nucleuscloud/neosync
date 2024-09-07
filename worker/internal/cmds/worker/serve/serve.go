@@ -144,12 +144,12 @@ func serve(ctx context.Context) error {
 
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
-		temporalUrl = "localhost:7233"
+		temporalUrl = client.DefaultHostPort
 	}
 
 	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
 	if temporalNamespace == "" {
-		temporalNamespace = "default"
+		temporalNamespace = client.DefaultNamespace
 	}
 
 	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
