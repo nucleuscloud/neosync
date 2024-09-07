@@ -40,6 +40,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
+	temporalotel "go.temporal.io/sdk/contrib/opentelemetry"
+	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/worker"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -62,11 +64,16 @@ func serve(ctx context.Context) error {
 	logger, loglogger := neosynclogger.NewLoggers()
 	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
 
-	var activityMeter metric.Meter
+	var syncActivityMeter metric.Meter
+	temporalClientInterceptors := []interceptor.ClientInterceptor{}
+	var temopralMeterHandler temporalotel.MetricsHandler
 
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
-		meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+		meterProviders := []neosyncotel.MeterProvider{}
+		// Meter Provider that uses delta temporality for use with Benthos metrics
+		// This meter provider is setup expire metrics after a specified time period for easy computation
+		benthosMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
 			Exporter:   otelconfig.MeterExporter,
 			AppVersion: otelconfig.ServiceVersion,
 			Opts: neosyncotel.MeterExporterOpts{
@@ -77,8 +84,30 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if meterprovider != nil {
-			activityMeter = meterprovider.Meter("sync_activity")
+		if benthosMeterProvider != nil {
+			meterProviders = append(meterProviders, benthosMeterProvider)
+			syncActivityMeter = benthosMeterProvider.Meter("sync_activity")
+		}
+
+		temporalMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if temporalMeterProvider != nil {
+			meterProviders = append(meterProviders, temporalMeterProvider)
+			temopralMeterHandler = temporalotel.NewMetricsHandler(temporalotel.MetricsHandlerOptions{
+				Meter: temporalMeterProvider.Meter("neosync-temporal-sdk"),
+				OnError: func(err error) {
+					logger.Error(fmt.Errorf("error with temporal metering: %w", err).Error())
+				},
+			})
 		}
 
 		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
@@ -91,11 +120,20 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		if traceprovider != nil {
+			traceInterceptor, err := temporalotel.NewTracingInterceptor(temporalotel.TracerOptions{
+				Tracer: traceprovider.Tracer("neosync-temporal-sdk"),
+			})
+			if err != nil {
+				return err
+			}
+			temporalClientInterceptors = append(temporalClientInterceptors, traceInterceptor)
+		}
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProvider: traceprovider,
-			MeterProvider: meterprovider,
-			Logger:        logr.FromSlogHandler(logger.Handler()),
+			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
+			MeterProviders: meterProviders,
+			Logger:         logr.FromSlogHandler(logger.Handler()),
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
@@ -139,6 +177,8 @@ func serve(ctx context.Context) error {
 		ConnectionOptions: client.ConnectionOptions{
 			TLS: tlsConfig,
 		},
+		MetricsHandler: temopralMeterHandler,
+		Interceptors:   temporalClientInterceptors,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to dial temporal client: %w", err)
@@ -173,7 +213,7 @@ func serve(ctx context.Context) error {
 		otelconfig.IsEnabled,
 	)
 	disableReaper := false
-	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 
@@ -230,7 +270,6 @@ func getHttpServer(logger *log.Logger) *http.Server {
 	api := http.NewServeMux()
 
 	// Create a separate ServeMux for pprof
-
 	// Mount the pprof mux at /debug/
 	if viper.GetBool("ENABLE_PPROF") {
 		mux.Handle("/debug/", getPprofMux("/debug"))

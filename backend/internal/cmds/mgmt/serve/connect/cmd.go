@@ -204,9 +204,9 @@ func serve(ctx context.Context) error {
 		stdInterceptors = append(stdInterceptors, otelInterceptor)
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProvider: traceprovider,
-			MeterProvider: meterprovider,
-			Logger:        logr.FromSlogHandler(slogger.Handler()),
+			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
+			MeterProviders: []neosyncotel.MeterProvider{meterprovider},
+			Logger:         logr.FromSlogHandler(slogger.Handler()),
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
