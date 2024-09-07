@@ -161,7 +161,7 @@ There are some environment variables that the CLI accepts to override default be
 
 ## Open Telemetry
 
-Neosync has support for Opentelemtry Tracing and Metering.
+Neosync has support for Opentelemetry Tracing and Metering.
 
 View the compliance matrix to see what values are understood directly via the Go SDK.
 Any `OTEL_` environment variables that are documented in the table(s) above are directly used by the Neosync services and drive the configuration of the OTEL SDK.
