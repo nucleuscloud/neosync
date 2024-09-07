@@ -142,9 +142,9 @@ This policy will grant readwrite access to the `StageDb` table.
 }
 ```
 
-## NeosyncCloud Region
+## Neosync Cloud Region
 
-NeosyncCloud currently runs in `us-west-2 region. If you've using the cloud platform and are running your tables in a different region, be sure to fill out the region field for the Neosync Connection to ensure that Neosync looks in the right place for your DynamoDB tables.
+Neosync Cloud currently runs in `us-west-2` region. If you've using the cloud platform and are running your tables in a different region, be sure to fill out the region field for the Neosync Connection to ensure that Neosync looks in the right place for your DynamoDB tables.
 
 ## Sync Job Mapping Configuration
 
