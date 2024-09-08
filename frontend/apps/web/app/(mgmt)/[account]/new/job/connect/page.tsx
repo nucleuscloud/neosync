@@ -639,7 +639,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           )}
                         />
                       </div>
-
                       <Button
                         type="button"
                         variant="outline"
