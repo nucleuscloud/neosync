@@ -100,7 +100,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           name="source"
           render={() => (
@@ -118,11 +118,10 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                   </SelectTrigger>
                 </Select>
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
-        <div>
+        <div className="pt-8">
           <FormField
             control={form.control}
             name="name"
@@ -146,7 +145,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
               </FormItem>
             )}
           />
-          <div className="pt-10">
+          <div>
             <FormField
               control={form.control}
               name="description"

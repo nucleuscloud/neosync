@@ -172,7 +172,7 @@ export default function NewTransformer(): ReactElement {
       containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="source"
@@ -226,12 +226,12 @@ export default function NewTransformer(): ReactElement {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage />
+                {/* <FormMessage />  we don't have any validation on this field so there's nothing to render*/}
               </FormItem>
             )}
           />
           {formSource != null && formSource !== 0 && (
-            <div>
+            <div className="pt-8">
               <FormField
                 control={form.control}
                 name="name"
@@ -255,7 +255,7 @@ export default function NewTransformer(): ReactElement {
                   </FormItem>
                 )}
               />
-              <div className="pt-10">
+              <div>
                 <FormField
                   control={form.control}
                   name="description"
@@ -302,7 +302,7 @@ export default function NewTransformer(): ReactElement {
               )}
             />
           </div>
-          <div className="flex flex-row justify-end">
+          <div className="flex flex-row justify-end pt-10">
             <Button type="submit" disabled={!form.formState.isValid}>
               Submit
             </Button>
