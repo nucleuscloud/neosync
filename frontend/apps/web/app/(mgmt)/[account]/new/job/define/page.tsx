@@ -135,7 +135,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <div />
       </OverviewContainer>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="jobName"
@@ -221,7 +221,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </AccordionTrigger>
               <AccordionContent>
                 <Separator />
-                <div className="flex flex-col gap-6 pt-6">
+                <div className="flex flex-col pt-6 p-2">
                   <FormField
                     control={form.control}
                     name="workflowSettings.runTimeout"
@@ -247,7 +247,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       </FormItem>
                     )}
                   />
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
                     <FormField
                       control={form.control}
                       name="syncActivityOptions.startToCloseTimeout"
@@ -339,7 +339,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row justify-between pt-10 ">
             <Button
               variant="outline"
               type="reset"
