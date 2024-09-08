@@ -17,7 +17,7 @@ export default function GenerateCategoricalForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4 pt-4">
+    <div className="flex flex-col w-full space-y-4">
       <div className="space-y-0.5">
         <FormLabel>Categories</FormLabel>
         <FormDescription>
@@ -25,7 +25,7 @@ export default function GenerateCategoricalForm(props: Props): ReactElement {
           randomly select from.
         </FormDescription>
       </div>
-      <div className="flex flex-col items-start w-[300px]">
+      <div className="flex flex-col items-start">
         <Input
           value={value.categories}
           type="string"

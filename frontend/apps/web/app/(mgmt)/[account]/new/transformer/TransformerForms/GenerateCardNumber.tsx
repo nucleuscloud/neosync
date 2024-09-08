@@ -18,21 +18,29 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4 pt-4">
+    <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
       <div className="space-y-0.5">
         <FormLabel>Valid Luhn</FormLabel>
-        <FormDescription className="w-[90%]">
+        <FormDescription>
           Generate a 16 digit card number that passes a luhn check.
         </FormDescription>
       </div>
-      <Switch
-        checked={value.validLuhn}
-        onCheckedChange={(checked) => {
-          setValue(new GenerateCardNumber({ ...value, validLuhn: checked }));
-        }}
-        disabled={isDisabled}
-      />
-      <FormErrorMessage message={errors?.validLuhn?.message} />
+      <div className="flex flex-col h-14">
+        <div className="justify-end flex">
+          <div className="w-[300px]">
+            <Switch
+              checked={value.validLuhn}
+              onCheckedChange={(checked) => {
+                setValue(
+                  new GenerateCardNumber({ ...value, validLuhn: checked })
+                );
+              }}
+              disabled={isDisabled}
+            />
+            <FormErrorMessage message={errors?.validLuhn?.message} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
