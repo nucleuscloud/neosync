@@ -129,25 +129,23 @@ export function SchemaTable(props: Props): ReactElement {
         />
       </div>
 
-      <Tabs defaultValue="mappings">
-        <TabsList>
-          <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
-          {virtualForeignKeys && (
+      {virtualForeignKeys && addVirtualForeignKey ? (
+        <Tabs defaultValue="mappings">
+          <TabsList>
+            <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
             <TabsTrigger value="virtualforeignkeys">
               Virtual Foreign Keys
             </TabsTrigger>
-          )}
-        </TabsList>
-        <TabsContent value="mappings">
-          <SchemaPageTable
-            columns={columns}
-            data={data}
-            transformerHandler={handler}
-            constraintHandler={constraintHandler}
-            jobType={jobType}
-          />
-        </TabsContent>
-        {virtualForeignKeys && addVirtualForeignKey && (
+          </TabsList>
+          <TabsContent value="mappings">
+            <SchemaPageTable
+              columns={columns}
+              data={data}
+              transformerHandler={handler}
+              constraintHandler={constraintHandler}
+              jobType={jobType}
+            />
+          </TabsContent>
           <TabsContent value="virtualforeignkeys">
             <div className="flex flex-col gap-6 pt-4">
               <VirtualForeignKeyForm
@@ -162,8 +160,16 @@ export function SchemaTable(props: Props): ReactElement {
               />
             </div>
           </TabsContent>
-        )}
-      </Tabs>
+        </Tabs>
+      ) : (
+        <SchemaPageTable
+          columns={columns}
+          data={data}
+          transformerHandler={handler}
+          constraintHandler={constraintHandler}
+          jobType={jobType}
+        />
+      )}
     </div>
   );
 }
