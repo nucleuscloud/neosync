@@ -2,7 +2,7 @@ CREATE TABLE alltypes.alldatatypes (
     -- Exact numerics
     col_bigint BIGINT,
     col_numeric NUMERIC(18,0),
-    -- col_bit BIT,
+    col_bit BIT,
     col_smallint SMALLINT,
     col_decimal DECIMAL(18,0),
     col_smallmoney SMALLMONEY,

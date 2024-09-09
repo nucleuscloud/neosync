@@ -29,6 +29,14 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 		{
 			Schema: "alltypes",
 			Table:  "alldatatypes",
+			Column: "col_bit",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "alldatatypes",
 			Column: "col_smallint",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
@@ -212,6 +220,7 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 		"alltypes.alldatatypes": {
 			"col_bigint": "BIGINT",
 			"col_numeric": "NUMERIC(18,0)",
+			"col_bit": "BIT",
 			"col_smallint": "SMALLINT",
 			"col_decimal": "DECIMAL(18,0)",
 			"col_smallmoney": "SMALLMONEY",
