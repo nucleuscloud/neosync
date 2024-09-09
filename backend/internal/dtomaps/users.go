@@ -7,12 +7,22 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToAccountTypeDto(aType int16) mgmtv1alpha1.UserAccountType {
+type AccountType int16
+
+const (
+	AccountType_Personal AccountType = iota
+	AccountType_Team
+	AccountType_Enterprise
+)
+
+func ToAccountTypeDto(aType AccountType) mgmtv1alpha1.UserAccountType {
 	switch aType {
 	case 0:
 		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL
 	case 1:
 		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM
+	case 2:
+		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_ENTERPRISE
 	default:
 		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_UNSPECIFIED
 	}
@@ -36,6 +46,6 @@ func ToUserAccount(input *db_queries.NeosyncApiAccount) *mgmtv1alpha1.UserAccoun
 	return &mgmtv1alpha1.UserAccount{
 		Id:   nucleusdb.UUIDString(input.ID),
 		Name: input.AccountSlug,
-		Type: ToAccountTypeDto(input.AccountType),
+		Type: ToAccountTypeDto(AccountType(input.AccountType)),
 	}
 }

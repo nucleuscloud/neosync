@@ -1716,9 +1716,9 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   /**
    * The current subscription status determined by the billing system.
    *
-   * @generated from field: string subscription_status = 3;
+   * @generated from field: int32 subscription_status = 3;
    */
-  subscriptionStatus = "";
+  subscriptionStatus = 0;
 
   constructor(data?: PartialMessage<GetAccountStatusResponse>) {
     super();
@@ -1730,7 +1730,7 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 3, name: "subscription_status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "subscription_status", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountStatusResponse {

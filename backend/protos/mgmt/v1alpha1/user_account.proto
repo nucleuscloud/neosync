@@ -178,7 +178,7 @@ message GetAccountStatusResponse {
   optional uint64 allowed_record_count = 2;
 
   // The current subscription status determined by the billing system.
-  string subscription_status = 3;
+  int32 subscription_status = 3;
 }
 
 message IsAccountStatusValidRequest {

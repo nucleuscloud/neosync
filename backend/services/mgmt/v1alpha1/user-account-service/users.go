@@ -509,6 +509,7 @@ func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) {
+	// todo: may need to check for api key
 	resp, err := s.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
 	if err != nil {
 		return nil, err
