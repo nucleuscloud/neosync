@@ -11,6 +11,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
+	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -202,10 +203,14 @@ func (s *pooledInput) Close(ctx context.Context) error {
 }
 
 func sqlRowToMap(rows *sql.Rows, driver string) (map[string]any, error) {
-	if driver == sqlmanager_shared.PostgresDriver {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver:
 		return pgutil.SqlRowToPgTypesMap(rows)
+	case sqlmanager_shared.MssqlDriver:
+		return sqlserverutil.SqlRowToSqlServerTypesMap(rows)
+	default:
+		return genericSqlRowToMap(rows)
 	}
-	return genericSqlRowToMap(rows)
 }
 
 func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
@@ -213,6 +218,7 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
 	for i := range values {

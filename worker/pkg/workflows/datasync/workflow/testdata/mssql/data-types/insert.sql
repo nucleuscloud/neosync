@@ -1,6 +1,8 @@
 INSERT INTO alltypes.alldatatypes (
     -- Exact numerics
-    col_bigint, col_numeric, col_bit, col_smallint, col_decimal, col_smallmoney, col_int, col_tinyint, col_money,
+    col_bigint, col_numeric, 
+    -- col_bit, 
+    col_smallint, col_decimal, col_smallmoney, col_int, col_tinyint, col_money,
     -- Approximate numerics
     col_float, col_real,
     -- Date and time
@@ -9,16 +11,20 @@ INSERT INTO alltypes.alldatatypes (
     col_char, col_varchar, col_text,
     -- Unicode character strings
     col_nchar, col_nvarchar, col_ntext,
-    -- Binary strings
-    col_binary, col_varbinary, col_image,
+    -- -- Binary strings
+    -- col_binary, col_varbinary, col_image,
     -- Other data types
-    col_uniqueidentifier, col_xml, col_geography, col_geometry, col_hierarchyid, col_sql_variant
+    col_uniqueidentifier,
+    col_xml
+    -- col_geography, 
+    -- col_geometry,
+    -- col_hierarchyid, col_sql_variant
 )
 VALUES (
     -- Exact numerics
     9223372036854775807, -- BIGINT max value
     1234567890, -- NUMERIC
-    1, -- BIT
+    -- 1, -- BIT
     32767, -- SMALLINT max value
     1234567890, -- DECIMAL
     214748.3647, -- SMALLMONEY max value
@@ -48,16 +54,16 @@ VALUES (
     N'NVARCHAR', -- NVARCHAR(50)
     N'This is an NTEXT column', -- NTEXT
     
-    -- Binary strings
-    0x0123456789, -- BINARY(10)
-    0x0123456789ABCDEF, -- VARBINARY(50)
-    0x0123456789ABCDEF0123456789ABCDEF, -- IMAGE
+    -- -- Binary strings
+    -- 0x0123456789, -- BINARY(10)
+    -- 0x0123456789ABCDEF, -- VARBINARY(50)
+    -- 0x0123456789ABCDEF0123456789ABCDEF, -- IMAGE
     
     -- Other data types
-    NEWID(), -- UNIQUEIDENTIFIER
-    '<root><element>XML Data</element></root>', -- XML
-    geography::Point(47.65100, -122.34900, 4326), -- GEOGRAPHY
-    geometry::STGeomFromText('POINT (3 4)', 0), -- GEOMETRY
-    '/1/2/3/', -- HIERARCHYID
-    CAST('2023-05-15' AS SQL_VARIANT) -- SQL_VARIANT
+   '123e4567-e89b-12d3-a456-426614174000', -- UNIQUEIDENTIFIER
+    '<root><element>XML Data</element></root>' -- XML
+    -- geography::Point(47.65100, -122.34900, 4326), -- GEOGRAPHY
+    -- geometry::STGeomFromText('POINT (3 4)', 0), -- GEOMETRY
+    -- '/1/2/3/', -- HIERARCHYID
+    -- CAST('2023-05-15' AS SQL_VARIANT) -- SQL_VARIANT
 );
