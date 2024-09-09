@@ -13,11 +13,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 )
 
-const (
-	AccountTypePersonal = iota
-	AccountTypeTeam
-)
-
 func (s *Service) GetAccountStatus(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountStatusRequest],
@@ -79,9 +74,14 @@ func (s *Service) getUsedRecordCountForMonth(
 	logger *slog.Logger,
 ) (uint64, error) {
 	today := time.Now().UTC()
-
 	promWindow := fmt.Sprintf("%dd", today.Day())
-	query, err := metrics.GetPromQueryFromMetric(mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED, metrics.MetricLabels{}, promWindow)
+
+	queryLabels := metrics.MetricLabels{
+		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
+		metrics.NewEqLabel(metrics.AccountIdLabel, accountId),
+	}
+
+	query, err := metrics.GetPromQueryFromMetric(mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED, queryLabels, promWindow)
 	if err != nil {
 		return 0, err
 	}
