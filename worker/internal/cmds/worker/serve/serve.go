@@ -66,7 +66,7 @@ func serve(ctx context.Context) error {
 
 	var syncActivityMeter metric.Meter
 	temporalClientInterceptors := []interceptor.ClientInterceptor{}
-	var temopralMeterHandler temporalotel.MetricsHandler
+	var temopralMeterHandler client.MetricsHandler
 
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
