@@ -87,6 +87,12 @@ const (
 	// UserAccountServiceSetAccountOnboardingConfigProcedure is the fully-qualified name of the
 	// UserAccountService's SetAccountOnboardingConfig RPC.
 	UserAccountServiceSetAccountOnboardingConfigProcedure = "/mgmt.v1alpha1.UserAccountService/SetAccountOnboardingConfig"
+	// UserAccountServiceGetAccountStatusProcedure is the fully-qualified name of the
+	// UserAccountService's GetAccountStatus RPC.
+	UserAccountServiceGetAccountStatusProcedure = "/mgmt.v1alpha1.UserAccountService/GetAccountStatus"
+	// UserAccountServiceIsAccountStatusValidProcedure is the fully-qualified name of the
+	// UserAccountService's IsAccountStatusValid RPC.
+	UserAccountServiceIsAccountStatusValidProcedure = "/mgmt.v1alpha1.UserAccountService/IsAccountStatusValid"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -110,6 +116,8 @@ var (
 	userAccountServiceGetSystemInformationMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("GetSystemInformation")
 	userAccountServiceGetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountOnboardingConfig")
 	userAccountServiceSetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountOnboardingConfig")
+	userAccountServiceGetAccountStatusMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountStatus")
+	userAccountServiceIsAccountStatusValidMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("IsAccountStatusValid")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -132,6 +140,10 @@ type UserAccountServiceClient interface {
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
 	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
 	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
+	// Returns different metrics on the account status for the active billing period
+	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
+	// Distils the account status down to whether not it is in a valid state.
+	IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -252,6 +264,20 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(userAccountServiceSetAccountOnboardingConfigMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getAccountStatus: connect.NewClient[v1alpha1.GetAccountStatusRequest, v1alpha1.GetAccountStatusResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetAccountStatusProcedure,
+			connect.WithSchema(userAccountServiceGetAccountStatusMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
+		isAccountStatusValid: connect.NewClient[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse](
+			httpClient,
+			baseURL+UserAccountServiceIsAccountStatusValidProcedure,
+			connect.WithSchema(userAccountServiceIsAccountStatusValidMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -275,6 +301,8 @@ type userAccountServiceClient struct {
 	getSystemInformation         *connect.Client[v1alpha1.GetSystemInformationRequest, v1alpha1.GetSystemInformationResponse]
 	getAccountOnboardingConfig   *connect.Client[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse]
 	setAccountOnboardingConfig   *connect.Client[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse]
+	getAccountStatus             *connect.Client[v1alpha1.GetAccountStatusRequest, v1alpha1.GetAccountStatusResponse]
+	isAccountStatusValid         *connect.Client[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -367,6 +395,16 @@ func (c *userAccountServiceClient) SetAccountOnboardingConfig(ctx context.Contex
 	return c.setAccountOnboardingConfig.CallUnary(ctx, req)
 }
 
+// GetAccountStatus calls mgmt.v1alpha1.UserAccountService.GetAccountStatus.
+func (c *userAccountServiceClient) GetAccountStatus(ctx context.Context, req *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error) {
+	return c.getAccountStatus.CallUnary(ctx, req)
+}
+
+// IsAccountStatusValid calls mgmt.v1alpha1.UserAccountService.IsAccountStatusValid.
+func (c *userAccountServiceClient) IsAccountStatusValid(ctx context.Context, req *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error) {
+	return c.isAccountStatusValid.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -387,6 +425,10 @@ type UserAccountServiceHandler interface {
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
 	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
 	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
+	// Returns different metrics on the account status for the active billing period
+	GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error)
+	// Distils the account status down to whether not it is in a valid state.
+	IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -503,6 +545,20 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		connect.WithSchema(userAccountServiceSetAccountOnboardingConfigMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	userAccountServiceGetAccountStatusHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetAccountStatusProcedure,
+		svc.GetAccountStatus,
+		connect.WithSchema(userAccountServiceGetAccountStatusMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceIsAccountStatusValidHandler := connect.NewUnaryHandler(
+		UserAccountServiceIsAccountStatusValidProcedure,
+		svc.IsAccountStatusValid,
+		connect.WithSchema(userAccountServiceIsAccountStatusValidMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -541,6 +597,10 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceGetAccountOnboardingConfigHandler.ServeHTTP(w, r)
 		case UserAccountServiceSetAccountOnboardingConfigProcedure:
 			userAccountServiceSetAccountOnboardingConfigHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetAccountStatusProcedure:
+			userAccountServiceGetAccountStatusHandler.ServeHTTP(w, r)
+		case UserAccountServiceIsAccountStatusValidProcedure:
+			userAccountServiceIsAccountStatusValidHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -620,4 +680,12 @@ func (UnimplementedUserAccountServiceHandler) GetAccountOnboardingConfig(context
 
 func (UnimplementedUserAccountServiceHandler) SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetAccountStatus(context.Context, *connect.Request[v1alpha1.GetAccountStatusRequest]) (*connect.Response[v1alpha1.GetAccountStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetAccountStatus is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) IsAccountStatusValid(context.Context, *connect.Request[v1alpha1.IsAccountStatusValidRequest]) (*connect.Response[v1alpha1.IsAccountStatusValidResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.IsAccountStatusValid is not implemented"))
 }

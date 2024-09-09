@@ -7,12 +7,12 @@ import (
 	"sync"
 
 	"github.com/Jeffail/shutdown"
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
+	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -272,25 +272,14 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		rows = append(rows, args)
 	}
 
-	// filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
 	processedCols, processedRows := s.processRows(s.columns, rows)
-
-	// set any default transformations
-	for i, row := range processedRows {
-		for j, arg := range row {
-			if arg == "DEFAULT" {
-				processedRows[i][j] = goqu.L("DEFAULT")
-			}
-		}
-	}
-
 	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), processedCols, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
-		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table, len(rows))
+		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
 	query := s.buildQuery(insertQuery)
@@ -303,63 +292,14 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any) (columns []string, rows [][]any) {
 	switch s.driver {
 	case sqlmanager_shared.MssqlDriver:
-		return filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, dataRows)
+		newDataRows := sqlserverutil.GoTypeToSqlServerType(dataRows)
+		return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, newDataRows)
 	case sqlmanager_shared.PostgresDriver:
 		newDataRows := pgutil.GoTypeToPgType(dataRows)
 		return columnNames, newDataRows
 	default:
 		return columnNames, dataRows
 	}
-}
-
-// use when all columns are identity generation columns
-func getMssqlDefaultValuesInsertSql(schema, table string, rowCount int) string {
-	var sql string
-	for i := 0; i < rowCount; i++ {
-		sql += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
-	}
-	return sql
-}
-
-func filterOutMssqlDefaultIdentityColumns(
-	driver string,
-	identityCols, columnNames []string,
-	argRows [][]any,
-) (columns []string, rows [][]any) {
-	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
-		return columnNames, argRows
-	}
-
-	// build map of identity columns
-	identityColMap := map[string]bool{}
-	for _, id := range identityCols {
-		identityColMap[id] = true
-	}
-
-	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
-	newRows := [][]any{}
-	// build rows removing identity columns/args with default set
-	for _, row := range argRows {
-		newRow := []any{}
-		for idx, arg := range row {
-			col := columnNames[idx]
-			if identityColMap[col] && arg == "DEFAULT" {
-				// pass on identity columns with a default
-				continue
-			}
-			newRow = append(newRow, arg)
-			nonIdentityColumnMap[col] = struct{}{}
-		}
-		newRows = append(newRows, newRow)
-	}
-	newColumns := []string{}
-	// build new columns list while maintaining same order
-	for _, col := range columnNames {
-		if _, ok := nonIdentityColumnMap[col]; ok {
-			newColumns = append(newColumns, col)
-		}
-	}
-	return newColumns, newRows
 }
 
 func (s *pooledInsertOutput) buildQuery(insertQuery string) string {
