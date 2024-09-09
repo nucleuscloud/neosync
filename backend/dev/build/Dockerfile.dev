@@ -33,7 +33,8 @@ COPY backend/sql sql/
 COPY /backend/sql/postgresql/schema/ /migrations/
 
 # Build
-RUN --mount=type=cache,target=/root/.cache/go-build \
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
   go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
 
 ENTRYPOINT ["/workspace/backend/bin/mgmt"]

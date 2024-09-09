@@ -220,7 +220,10 @@ func GetTableColumnTypeMap() map[string]map[string]string {
 		"alltypes.alldatatypes": {
 			"col_bigint": "BIGINT",
 			"col_numeric": "NUMERIC(18,0)",
+<<<<<<< HEAD
 			"col_bit": "BIT",
+=======
+>>>>>>> main
 			"col_smallint": "SMALLINT",
 			"col_decimal": "DECIMAL(18,0)",
 			"col_smallmoney": "SMALLMONEY",
