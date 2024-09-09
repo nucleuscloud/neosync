@@ -26,6 +26,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { getSingleOrUndefined } from '@/libs/utils';
@@ -345,8 +346,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     }}
                   />
                 </FormControl>
-
-                {/* <FormMessage /> */}
+                <FormMessage />
               </FormItem>
             )}
           />
