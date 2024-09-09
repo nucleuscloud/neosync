@@ -667,6 +667,34 @@ func (q *Queries) RemoveAccountUser(ctx context.Context, db DBTX, arg RemoveAcco
 	return err
 }
 
+const setAccountMaxAllowedRecords = `-- name: SetAccountMaxAllowedRecords :one
+UPDATE neosync_api.accounts
+SET max_allowed_records = $1
+WHERE id = $2
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+`
+
+type SetAccountMaxAllowedRecordsParams struct {
+	MaxAllowedRecords pgtype.Int8
+	AccountId         pgtype.UUID
+}
+
+func (q *Queries) SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, setAccountMaxAllowedRecords, arg.MaxAllowedRecords, arg.AccountId)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+		&i.OnboardingConfig,
+		&i.MaxAllowedRecords,
+	)
+	return i, err
+}
+
 const setAnonymousUser = `-- name: SetAnonymousUser :one
 INSERT INTO neosync_api.users (
   id, created_at, updated_at

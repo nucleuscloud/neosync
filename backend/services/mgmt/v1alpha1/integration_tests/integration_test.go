@@ -37,7 +37,6 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
-	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -67,14 +66,15 @@ type mocks struct {
 	temporalClientManager *clientmanager.MockTemporalClientManagerClient
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
-	prometheusclient      promv1.API
+	prometheusclient      *mockPromV1.MockAPI
 }
 
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	pgpool  *pgxpool.Pool
-	querier pg_queries.Querier
+	pgpool         *pgxpool.Pool
+	neosyncQuerier db_queries.Querier
+	systemQuerier  pg_queries.Querier
 
 	ctx context.Context
 
@@ -117,7 +117,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 	s.pgpool = pool
-	s.querier = pg_queries.New()
+	s.neosyncQuerier = db_queries.New()
+	s.systemQuerier = pg_queries.New()
 	s.migrationsDir = "../../../../sql/postgresql/schema"
 
 	s.mocks = &mocks{

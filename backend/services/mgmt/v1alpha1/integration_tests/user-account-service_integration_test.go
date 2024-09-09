@@ -7,6 +7,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -350,4 +352,60 @@ func (s *IntegrationTestSuite) Test_UserAccountService_AcceptTeamAccountInvite_N
 func (s *IntegrationTestSuite) Test_UserAccountService_GetSystemInformation() {
 	resp, err := s.unauthdClients.users.GetSystemInformation(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
 	requireNoErrResp(s.T(), resp, err)
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal() {
+	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+
+	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
+	require.NoError(s.T(), err)
+
+	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Once().
+		Return(model.Vector{{
+			Value:     2,
+			Timestamp: 0,
+		}}, promv1.Warnings{}, nil)
+
+	resp, err := s.neosyncCloudClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), resp, err)
+
+	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(2))
+	require.NotNil(s.T(), resp.Msg.AllowedRecordCount)
+	require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Personal() {
+	accountId := s.createPersonalAccount(s.unauthdClients.users)
+
+	resp, err := s.unauthdClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), resp, err)
+
+	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(0))
+	require.Nil(s.T(), resp.Msg.AllowedRecordCount)
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal() {
+	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+
+	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
+	require.NoError(s.T(), err)
+
+	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Once().
+		Return(model.Vector{{
+			Value:     2,
+			Timestamp: 0,
+		}}, promv1.Warnings{}, nil)
+
+	resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), resp, err)
+
+	require.True(s.T(), resp.Msg.GetIsValid())
 }

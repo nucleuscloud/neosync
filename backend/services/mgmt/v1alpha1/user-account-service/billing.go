@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgtype"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -37,13 +38,29 @@ func (s *Service) GetAccountStatus(
 			}
 			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
 				UsedRecordCount:    usedRecordCount,
-				AllowedRecordCount: nil,
+				AllowedRecordCount: getAllowedRecordCount(account.MaxAllowedRecords),
 				SubscriptionStatus: 0,
 			}), nil
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
+}
+
+func getAllowedRecordCount(maxAllowed pgtype.Int8) *uint64 {
+	if maxAllowed.Valid {
+		val := toUint64(maxAllowed.Int64)
+		return &val
+	}
+	return nil
+}
+
+// Returns the int64 as a uint64, or if int64 is negative, returns 0
+func toUint64(val int64) uint64 {
+	if val >= 0 {
+		return uint64(val)
+	}
+	return 0
 }
 
 func (s *Service) IsAccountStatusValid(
@@ -56,15 +73,18 @@ func (s *Service) IsAccountStatusValid(
 	if err != nil {
 		return nil, err
 	}
-	// todo: sub status will change based on is cloud, or if expired, etc.
-	if accountStatusResp.Msg.GetSubscriptionStatus() > 0 || accountStatusResp.Msg.AllowedRecordCount == nil {
+	if !s.cfg.IsNeosyncCloud {
+		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+	}
+
+	// todo: sub payments subscription status check
+	if accountStatusResp.Msg.AllowedRecordCount == nil {
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
 	isOverSubscribed := accountStatusResp.Msg.GetUsedRecordCount() >= accountStatusResp.Msg.GetAllowedRecordCount()
-
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-		IsValid: isOverSubscribed,
+		IsValid: !isOverSubscribed,
 	}), nil
 }
 
