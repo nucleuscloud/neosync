@@ -12,6 +12,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -271,23 +272,24 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		rows = append(rows, args)
 	}
 
-	filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
+	// filteredCols, filteredRows := filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, rows)
+	processedCols, processedRows := s.processRows(s.columns, rows)
 
 	// set any default transformations
-	for i, row := range filteredRows {
+	for i, row := range processedRows {
 		for j, arg := range row {
 			if arg == "DEFAULT" {
-				filteredRows[i][j] = goqu.L("DEFAULT")
+				processedRows[i][j] = goqu.L("DEFAULT")
 			}
 		}
 	}
 
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), filteredCols, filteredRows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), processedCols, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
 
-	if s.driver == sqlmanager_shared.MssqlDriver && len(filteredCols) == 0 {
+	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = getMssqlDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
@@ -296,6 +298,18 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 	return nil
+}
+
+func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any) (columns []string, rows [][]any) {
+	switch s.driver {
+	case sqlmanager_shared.MssqlDriver:
+		return filterOutMssqlDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, dataRows)
+	case sqlmanager_shared.PostgresDriver:
+		newDataRows := pgutil.GoTypeToPgType(dataRows)
+		return columnNames, newDataRows
+	default:
+		return columnNames, dataRows
+	}
 }
 
 // use when all columns are identity generation columns

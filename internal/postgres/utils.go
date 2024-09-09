@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	gotypeparser "github.com/nucleuscloud/neosync/internal/gotype-parser"
 )
 
 type PgxArray[T any] struct {
@@ -72,14 +73,53 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		if array, ok := v.(*PgxArray[any]); ok {
-			jObj[col] = pgArrayToGoSlice(array)
-		} else {
-			jObj[col] = v
+		ctype := cTypes[i]
+		switch t := v.(type) {
+		case []byte:
+			if isJsonPgDataType(ctype.DatabaseTypeName()) {
+				jmap, err := gotypeparser.JsonToMap(t)
+				if err != nil {
+					jObj[col] = string(t)
+					continue
+				}
+				jObj[col] = jmap
+				continue
+			}
+			jObj[col] = string(t)
+		case *PgxArray[any]:
+			jObj[col] = pgArrayToGoSlice(t)
+		default:
+			jObj[col] = t
 		}
 	}
 
 	return jObj, nil
+}
+
+func isJsonPgDataType(dataType string) bool {
+	return strings.EqualFold(dataType, "json") || strings.EqualFold(dataType, "jsonb")
+}
+
+func GoTypeToPgType(rows [][]any) [][]any {
+	newRows := [][]any{}
+	for _, r := range rows {
+		newRow := []any{}
+		for _, v := range r {
+			switch t := v.(type) {
+			case map[string]any:
+				bits, err := gotypeparser.MapToJson(t)
+				if err != nil {
+					newRow = append(newRow, t)
+					continue
+				}
+				newRow = append(newRow, bits)
+			default:
+				newRow = append(newRow, t)
+			}
+		}
+		newRows = append(newRows, newRow)
+	}
+	return newRows
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {
