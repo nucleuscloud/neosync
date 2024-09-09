@@ -129,41 +129,51 @@ export function SchemaTable(props: Props): ReactElement {
         />
       </div>
 
-      <Tabs defaultValue="mappings">
-        <TabsList>
-          <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
-          {virtualForeignKeys && (
-            <TabsTrigger value="virtualforeignkeys">
-              Virtual Foreign Keys
-            </TabsTrigger>
-          )}
-        </TabsList>
-        <TabsContent value="mappings">
-          <SchemaPageTable
-            columns={columns}
-            data={data}
-            transformerHandler={handler}
-            constraintHandler={constraintHandler}
-            jobType={jobType}
-          />
-        </TabsContent>
-        {virtualForeignKeys && addVirtualForeignKey && (
-          <TabsContent value="virtualforeignkeys">
-            <div className="flex flex-col gap-6 pt-4">
-              <VirtualForeignKeyForm
-                schema={schema}
-                constraintHandler={constraintHandler}
-                selectedTables={selectedTables}
-                addVirtualForeignKey={addVirtualForeignKey}
-              />
-              <VirtualFkPageTable
-                columns={virtualForeignKeyColumns}
-                data={virtualForeignKeys}
-              />
-            </div>
+      {virtualForeignKeys ? (
+        <Tabs defaultValue="mappings">
+          <TabsList>
+            <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
+            {virtualForeignKeys && (
+              <TabsTrigger value="virtualforeignkeys">
+                Virtual Foreign Keys
+              </TabsTrigger>
+            )}
+          </TabsList>
+          <TabsContent value="mappings">
+            <SchemaPageTable
+              columns={columns}
+              data={data}
+              transformerHandler={handler}
+              constraintHandler={constraintHandler}
+              jobType={jobType}
+            />
           </TabsContent>
-        )}
-      </Tabs>
+          {virtualForeignKeys && addVirtualForeignKey && (
+            <TabsContent value="virtualforeignkeys">
+              <div className="flex flex-col gap-6 pt-4">
+                <VirtualForeignKeyForm
+                  schema={schema}
+                  constraintHandler={constraintHandler}
+                  selectedTables={selectedTables}
+                  addVirtualForeignKey={addVirtualForeignKey}
+                />
+                <VirtualFkPageTable
+                  columns={virtualForeignKeyColumns}
+                  data={virtualForeignKeys}
+                />
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+      ) : (
+        <SchemaPageTable
+          columns={columns}
+          data={data}
+          transformerHandler={handler}
+          constraintHandler={constraintHandler}
+          jobType={jobType}
+        />
+      )}
     </div>
   );
 }
