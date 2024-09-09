@@ -15051,7 +15051,10 @@
               "responseType": "GetAccountStatusResponse",
               "responseLongType": "GetAccountStatusResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountStatusResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "IsAccountStatusValid",
@@ -15063,7 +15066,10 @@
               "responseType": "IsAccountStatusValidResponse",
               "responseLongType": "IsAccountStatusValidResponse",
               "responseFullType": "mgmt.v1alpha1.IsAccountStatusValidResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }

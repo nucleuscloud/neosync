@@ -217,7 +217,11 @@ service UserAccountService {
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}
 
   // Returns different metrics on the account status for the active billing period
-  rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse) {}
+  rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
   // Distils the account status down to whether not it is in a valid state.
-  rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {}
+  rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

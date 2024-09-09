@@ -268,12 +268,14 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetAccountStatusProcedure,
 			connect.WithSchema(userAccountServiceGetAccountStatusMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		isAccountStatusValid: connect.NewClient[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse](
 			httpClient,
 			baseURL+UserAccountServiceIsAccountStatusValidProcedure,
 			connect.WithSchema(userAccountServiceIsAccountStatusValidMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -547,12 +549,14 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetAccountStatusProcedure,
 		svc.GetAccountStatus,
 		connect.WithSchema(userAccountServiceGetAccountStatusMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceIsAccountStatusValidHandler := connect.NewUnaryHandler(
 		UserAccountServiceIsAccountStatusValidProcedure,
 		svc.IsAccountStatusValid,
 		connect.WithSchema(userAccountServiceIsAccountStatusValidMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
