@@ -129,15 +129,13 @@ export function SchemaTable(props: Props): ReactElement {
         />
       </div>
 
-      {virtualForeignKeys ? (
+      {virtualForeignKeys && addVirtualForeignKey ? (
         <Tabs defaultValue="mappings">
           <TabsList>
             <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
-            {virtualForeignKeys && (
-              <TabsTrigger value="virtualforeignkeys">
-                Virtual Foreign Keys
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="virtualforeignkeys">
+              Virtual Foreign Keys
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="mappings">
             <SchemaPageTable
@@ -148,22 +146,20 @@ export function SchemaTable(props: Props): ReactElement {
               jobType={jobType}
             />
           </TabsContent>
-          {virtualForeignKeys && addVirtualForeignKey && (
-            <TabsContent value="virtualforeignkeys">
-              <div className="flex flex-col gap-6 pt-4">
-                <VirtualForeignKeyForm
-                  schema={schema}
-                  constraintHandler={constraintHandler}
-                  selectedTables={selectedTables}
-                  addVirtualForeignKey={addVirtualForeignKey}
-                />
-                <VirtualFkPageTable
-                  columns={virtualForeignKeyColumns}
-                  data={virtualForeignKeys}
-                />
-              </div>
-            </TabsContent>
-          )}
+          <TabsContent value="virtualforeignkeys">
+            <div className="flex flex-col gap-6 pt-4">
+              <VirtualForeignKeyForm
+                schema={schema}
+                constraintHandler={constraintHandler}
+                selectedTables={selectedTables}
+                addVirtualForeignKey={addVirtualForeignKey}
+              />
+              <VirtualFkPageTable
+                columns={virtualForeignKeyColumns}
+                data={virtualForeignKeys}
+              />
+            </div>
+          </TabsContent>
         </Tabs>
       ) : (
         <SchemaPageTable
