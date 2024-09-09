@@ -23,6 +23,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
@@ -36,6 +37,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -65,6 +67,7 @@ type mocks struct {
 	temporalClientManager *clientmanager.MockTemporalClientManagerClient
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
+	prometheusclient      promv1.API
 }
 
 type IntegrationTestSuite struct {
@@ -121,6 +124,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(s.T()),
 		authclient:            auth_client.NewMockInterface(s.T()),
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
+		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
 	}
 
 	unauthdUserService := v1alpha1_useraccountservice.New(
@@ -129,6 +133,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
+		s.mocks.prometheusclient,
 	)
 
 	authdUserService := v1alpha1_useraccountservice.New(
@@ -137,6 +142,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
+		s.mocks.prometheusclient,
 	)
 
 	neoCloudUnauthdUserService := v1alpha1_useraccountservice.New(
@@ -145,6 +151,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
+		s.mocks.prometheusclient,
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
