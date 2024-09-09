@@ -51,6 +51,11 @@
 		"driver": "sqlserver"
 	},
 	{
+		"folder":"mssql/data-types",
+		"sql_file": "create-table.sql", 
+		"driver": "sqlserver"
+	},
+	{
 		"folder":"postgres/all-types",
 		"sql_file": "setup.sql", 
 		"driver": "postgres"
