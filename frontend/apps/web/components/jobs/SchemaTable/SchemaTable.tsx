@@ -128,11 +128,18 @@ export function SchemaTable(props: Props): ReactElement {
           onValidate={onValidate}
         />
       </div>
+<<<<<<< HEAD
 
       {virtualForeignKeys && addVirtualForeignKey ? (
         <Tabs defaultValue="mappings">
           <TabsList>
             <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
+=======
+      <Tabs defaultValue="mappings">
+        <TabsList>
+          <TabsTrigger value="mappings">Transformer Mappings</TabsTrigger>
+          {virtualForeignKeys && (
+>>>>>>> 55307060d (fix schema page styling errors)
             <TabsTrigger value="virtualforeignkeys">
               Virtual Foreign Keys
             </TabsTrigger>
