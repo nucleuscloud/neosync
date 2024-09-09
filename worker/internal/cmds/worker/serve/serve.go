@@ -70,6 +70,7 @@ func serve(ctx context.Context) error {
 
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
+		logger.Debug("otel is enabled")
 		meterProviders := []neosyncotel.MeterProvider{}
 		// Meter Provider that uses delta temporality for use with Benthos metrics
 		// This meter provider is setup expire metrics after a specified time period for easy computation
@@ -85,6 +86,7 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		if benthosMeterProvider != nil {
+			logger.Debug("otel metering for benthos has been configured")
 			meterProviders = append(meterProviders, benthosMeterProvider)
 			syncActivityMeter = benthosMeterProvider.Meter("sync_activity")
 		}
@@ -101,6 +103,7 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		if temporalMeterProvider != nil {
+			logger.Debug("otel metering for temporal has been configured")
 			meterProviders = append(meterProviders, temporalMeterProvider)
 			temopralMeterHandler = temporalotel.NewMetricsHandler(temporalotel.MetricsHandlerOptions{
 				Meter: temporalMeterProvider.Meter("neosync-temporal-sdk"),
@@ -121,6 +124,7 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		if traceprovider != nil {
+			logger.Debug("otel tracing for temporal has been configured")
 			traceInterceptor, err := temporalotel.NewTracingInterceptor(temporalotel.TracerOptions{
 				Tracer: traceprovider.Tracer("neosync-temporal-sdk"),
 			})
@@ -164,6 +168,7 @@ func serve(ctx context.Context) error {
 
 	var tlsConfig *tls.Config
 	if len(certificates) > 0 {
+		logger.Debug("temporal TLS certificates have been attached")
 		tlsConfig = &tls.Config{
 			Certificates: certificates,
 			MinVersion:   tls.VersionTLS13,

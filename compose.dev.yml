@@ -89,6 +89,7 @@ services:
       - DB_SSL_DISABLE=true
       - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
       - DB_MIGRATIONS_TABLE_QUOTED=false
+      - LOG_LEVEL=DEBUG
 
       - DB_LOG_LEVEL=ERROR
 
@@ -131,7 +132,7 @@ services:
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
       - REDIS_URL=redis://default:foofar@redis:6379
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
       - DB_LOG_LEVEL=ERROR
     networks:
       - neosync-network

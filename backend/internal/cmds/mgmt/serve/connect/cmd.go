@@ -162,6 +162,7 @@ func serve(ctx context.Context) error {
 
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
+		slogger.Debug("otel is enabled")
 		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
 
 		meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
@@ -176,6 +177,7 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		if meterprovider != nil {
+			slogger.Debug("otel metering has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(meterprovider))
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
@@ -192,6 +194,7 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		if traceprovider != nil {
+			slogger.Debug("otel tracing has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(traceprovider))
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())

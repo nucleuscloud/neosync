@@ -29,7 +29,8 @@ COPY worker/internal/ internal/
 COPY worker/pkg/ pkg/
 
 # Build
-RUN --mount=type=cache,target=/root/.cache/go-build \
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
   go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
 
 ENTRYPOINT ["/workspace/worker/bin/worker"]
