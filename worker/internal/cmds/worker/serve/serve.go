@@ -22,6 +22,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -30,20 +31,17 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/propagation"
-	metricsdk "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/metricdata"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
+	temporalotel "go.temporal.io/sdk/contrib/opentelemetry"
+	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/worker"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -66,34 +64,96 @@ func serve(ctx context.Context) error {
 	logger, loglogger := neosynclogger.NewLoggers()
 	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
 
-	var activityMeter metric.Meter
-	if getIsOtelEnabled() {
-		otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
-		metricProvider, ok, err := getConfiguredMeterProvider(ctx)
+	var syncActivityMeter metric.Meter
+	temporalClientInterceptors := []interceptor.ClientInterceptor{}
+	var temopralMeterHandler client.MetricsHandler
+
+	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
+	if otelconfig.IsEnabled {
+		logger.Debug("otel is enabled")
+		meterProviders := []neosyncotel.MeterProvider{}
+		// Meter Provider that uses delta temporality for use with Benthos metrics
+		// This meter provider is setup expire metrics after a specified time period for easy computation
+		benthosMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
 		if err != nil {
 			return err
 		}
-		otelConfig := &otelSetupConfig{}
-		if ok {
-			otelConfig.MeterProvider = metricProvider
-			activityMeter = metricProvider.Meter("sync_activity")
+		if benthosMeterProvider != nil {
+			logger.Debug("otel metering for benthos has been configured")
+			meterProviders = append(meterProviders, benthosMeterProvider)
+			syncActivityMeter = benthosMeterProvider.Meter("sync_activity")
 		}
-		otelShutdown := setupOtelSdk(otelConfig)
+
+		temporalMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if temporalMeterProvider != nil {
+			logger.Debug("otel metering for temporal has been configured")
+			meterProviders = append(meterProviders, temporalMeterProvider)
+			temopralMeterHandler = temporalotel.NewMetricsHandler(temporalotel.MetricsHandlerOptions{
+				Meter: temporalMeterProvider.Meter("neosync-temporal-sdk"),
+				OnError: func(err error) {
+					logger.Error(fmt.Errorf("error with temporal metering: %w", err).Error())
+				},
+			})
+		}
+
+		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
+			Exporter: otelconfig.TraceExporter,
+			Opts: neosyncotel.TraceExporterOpts{
+				Otlp:    []otlptracegrpc.Option{},
+				Console: []stdouttrace.Option{stdouttrace.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if traceprovider != nil {
+			logger.Debug("otel tracing for temporal has been configured")
+			traceInterceptor, err := temporalotel.NewTracingInterceptor(temporalotel.TracerOptions{
+				Tracer: traceprovider.Tracer("neosync-temporal-sdk"),
+			})
+			if err != nil {
+				return err
+			}
+			temporalClientInterceptors = append(temporalClientInterceptors, traceInterceptor)
+		}
+
+		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
+			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
+			MeterProviders: meterProviders,
+			Logger:         logr.FromSlogHandler(logger.Handler()),
+		})
 		defer func() {
-			if err := otelShutdown(context.Background()); err != nil {
-				logger.Error(err.Error())
+			if err := otelshutdown(context.Background()); err != nil {
+				logger.Error(fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
 			}
 		}()
 	}
 
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
-		temporalUrl = "localhost:7233"
+		temporalUrl = client.DefaultHostPort
 	}
 
 	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
 	if temporalNamespace == "" {
-		temporalNamespace = "default"
+		temporalNamespace = client.DefaultNamespace
 	}
 
 	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
@@ -108,6 +168,7 @@ func serve(ctx context.Context) error {
 
 	var tlsConfig *tls.Config
 	if len(certificates) > 0 {
+		logger.Debug("temporal TLS certificates have been attached")
 		tlsConfig = &tls.Config{
 			Certificates: certificates,
 			MinVersion:   tls.VersionTLS13,
@@ -121,6 +182,8 @@ func serve(ctx context.Context) error {
 		ConnectionOptions: client.ConnectionOptions{
 			TLS: tlsConfig,
 		},
+		MetricsHandler: temopralMeterHandler,
+		Interceptors:   temporalClientInterceptors,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to dial temporal client: %w", err)
@@ -152,10 +215,10 @@ func serve(ctx context.Context) error {
 		transformerclient,
 		sqlmanager,
 		redisconfig,
-		getIsOtelEnabled(),
+		otelconfig.IsEnabled,
 	)
 	disableReaper := false
-	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
+	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
 
@@ -212,7 +275,6 @@ func getHttpServer(logger *log.Logger) *http.Server {
 	api := http.NewServeMux()
 
 	// Create a separate ServeMux for pprof
-
 	// Mount the pprof mux at /debug/
 	if viper.GetBool("ENABLE_PPROF") {
 		mux.Handle("/debug/", getPprofMux("/debug"))
@@ -270,105 +332,4 @@ func getTemporalAuthCertificate() ([]tls.Certificate, error) {
 		return []tls.Certificate{cert}, nil
 	}
 	return []tls.Certificate{}, nil
-}
-
-type otelSetupConfig struct {
-	TraceProvider *trace.TracerProvider
-	MeterProvider *metricsdk.MeterProvider
-}
-
-func setupOtelSdk(config *otelSetupConfig) func(context.Context) error {
-	var shutdownFuncs []func(context.Context) error
-
-	// shutdown calls cleanup functions registered via shutdownFuncs.
-	// The errors from the calls are joined.
-	// Each registered cleanup will be invoked once.
-	shutdown := func(ctx context.Context) error {
-		var err error
-		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
-		}
-		shutdownFuncs = nil
-		return err
-	}
-
-	// Set up propagator.
-	prop := newPropagator()
-	otel.SetTextMapPropagator(prop)
-
-	// Set up trace provider.
-	if config.TraceProvider != nil {
-		shutdownFuncs = append(shutdownFuncs, config.TraceProvider.Shutdown)
-		otel.SetTracerProvider(config.TraceProvider)
-	}
-
-	// Set up meter provider
-	if config.MeterProvider != nil {
-		shutdownFuncs = append(shutdownFuncs, config.MeterProvider.Shutdown)
-		otel.SetMeterProvider(config.MeterProvider) // maybe dont set this as the global since it might be specific to a discrete part of the application
-	}
-	return shutdown
-}
-
-func newPropagator() propagation.TextMapPropagator {
-	return propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	)
-}
-
-func temporalitySelector(ik metricsdk.InstrumentKind) metricdata.Temporality {
-	// Delta Temporality causes metrics to be reset after some time.
-	// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
-	return metricdata.DeltaTemporality
-}
-
-func getConfiguredMeterProvider(ctx context.Context) (*metricsdk.MeterProvider, bool, error) {
-	if !getIsOtelEnabled() {
-		return nil, false, nil
-	}
-	// todo: may want to conditionally allow http, prometheus metering based on env vars
-	var exporter metricsdk.Exporter
-	exporterType := getMetricsExporter()
-	if exporterType == "otlp" {
-		grpcExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithTemporalitySelector(temporalitySelector))
-		if err != nil {
-			return nil, false, err
-		}
-		exporter = grpcExporter
-	} else {
-		return nil, false, fmt.Errorf("that exporter type is not currently supported")
-	}
-
-	reader := metricsdk.WithReader(
-		metricsdk.NewPeriodicReader(
-			exporter,
-		),
-	)
-	attrs := []attribute.KeyValue{
-		semconv.ServiceVersion(getAppVersion()),
-	}
-	res := resource.NewWithAttributes(semconv.SchemaURL, attrs...)
-	provider := metricsdk.NewMeterProvider(reader, metricsdk.WithResource(res))
-	return provider, true, nil
-}
-
-func getIsOtelEnabled() bool {
-	isDisabledStr := viper.GetString("OTEL_SDK_DISABLED")
-	if isDisabledStr == "" {
-		return false
-	}
-	return !viper.GetBool("OTEL_SDK_DISABLED")
-}
-
-func getAppVersion() string {
-	return viper.GetString("OTEL_SERVICE_VERSION")
-}
-
-func getMetricsExporter() string {
-	exporter := viper.GetString("OTEL_METRICS_EXPORTER")
-	if exporter == "" {
-		return "otlp"
-	}
-	return exporter
 }
