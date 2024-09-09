@@ -14,6 +14,8 @@ import (
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
+const defaultStr = "DEFAULT"
+
 type SubsetReferenceKey struct {
 	Table         string
 	Columns       []string
@@ -73,8 +75,8 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
-		if a == "DEFAULT" {
-			gval = append(gval, goqu.Literal("DEFAULT"))
+		if a == defaultStr {
+			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
 		}
@@ -90,8 +92,8 @@ func getPgGoquVals(row []any) goqu.Vals {
 			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
 		} else if ok {
 			gval = append(gval, pq.Array(ar))
-		} else if a == "DEFAULT" {
-			gval = append(gval, goqu.Literal("DEFAULT"))
+		} else if a == defaultStr {
+			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
 		}
@@ -140,8 +142,8 @@ func BuildUpdateQuery(
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
 		val := columnValueMap[col]
-		if val == "DEFAULT" {
-			updateRecord[col] = goqu.L("DEFAULT")
+		if val == defaultStr {
+			updateRecord[col] = goqu.L(defaultStr)
 		} else {
 			updateRecord[col] = val
 		}

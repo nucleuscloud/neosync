@@ -72,11 +72,11 @@ func BitsToUuidString(bits []byte) (string, error) {
 }
 
 func GeSqlServerDefaultValuesInsertSql(schema, table string, rowCount int) string {
-	var sql string
+	var sqlStr string
 	for i := 0; i < rowCount; i++ {
-		sql += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
+		sqlStr += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
 	}
-	return sql
+	return sqlStr
 }
 
 func GoTypeToSqlServerType(rows [][]any) [][]any {
