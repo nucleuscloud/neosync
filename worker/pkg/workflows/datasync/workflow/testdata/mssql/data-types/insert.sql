@@ -1,7 +1,7 @@
 INSERT INTO alltypes.alldatatypes (
     -- Exact numerics
     col_bigint, col_numeric, 
-    -- col_bit, 
+    col_bit, 
     col_smallint, col_decimal, col_smallmoney, col_int, col_tinyint, col_money,
     -- Approximate numerics
     col_float, col_real,
@@ -24,7 +24,7 @@ VALUES (
     -- Exact numerics
     9223372036854775807, -- BIGINT max value
     1234567890, -- NUMERIC
-    -- 1, -- BIT
+    1, -- BIT
     32767, -- SMALLINT max value
     1234567890, -- DECIMAL
     214748.3647, -- SMALLMONEY max value

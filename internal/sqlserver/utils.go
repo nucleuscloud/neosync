@@ -2,9 +2,11 @@ package sqlserver
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/gofrs/uuid"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
 
 func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
@@ -67,4 +69,77 @@ func BitsToUuidString(bits []byte) (string, error) {
 		return "", err
 	}
 	return u.String(), nil
+}
+
+func GeSqlServerDefaultValuesInsertSql(schema, table string, rowCount int) string {
+	var sql string
+	for i := 0; i < rowCount; i++ {
+		sql += fmt.Sprintf("INSERT INTO %q.%q DEFAULT VALUES;", schema, table)
+	}
+	return sql
+}
+
+func GoTypeToSqlServerType(rows [][]any) [][]any {
+	newRows := [][]any{}
+	for _, r := range rows {
+		newRow := []any{}
+		for _, v := range r {
+			switch t := v.(type) {
+			case bool:
+				newRow = append(newRow, toBit(t))
+			default:
+				newRow = append(newRow, t)
+			}
+		}
+		newRows = append(newRows, newRow)
+	}
+	return newRows
+}
+
+func toBit(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+func FilterOutSqlServerDefaultIdentityColumns(
+	driver string,
+	identityCols, columnNames []string,
+	argRows [][]any,
+) (columns []string, rows [][]any) {
+	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
+		return columnNames, argRows
+	}
+
+	// build map of identity columns
+	identityColMap := map[string]bool{}
+	for _, id := range identityCols {
+		identityColMap[id] = true
+	}
+
+	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
+	newRows := [][]any{}
+	// build rows removing identity columns/args with default set
+	for _, row := range argRows {
+		newRow := []any{}
+		for idx, arg := range row {
+			col := columnNames[idx]
+			if identityColMap[col] && arg == "DEFAULT" {
+				// pass on identity columns with a default
+				continue
+			}
+			newRow = append(newRow, arg)
+			nonIdentityColumnMap[col] = struct{}{}
+		}
+		newRows = append(newRows, newRow)
+	}
+	newColumns := []string{}
+	// build new columns list while maintaining same order
+	for _, col := range columnNames {
+		if _, ok := nonIdentityColumnMap[col]; ok {
+			newColumns = append(newColumns, col)
+		}
+	}
+	return newColumns, newRows
 }

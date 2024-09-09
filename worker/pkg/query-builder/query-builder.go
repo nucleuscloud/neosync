@@ -73,7 +73,11 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
-		gval = append(gval, a)
+		if a == "DEFAULT" {
+			gval = append(gval, goqu.Literal("DEFAULT"))
+		} else {
+			gval = append(gval, a)
+		}
 	}
 	return gval
 }
@@ -86,6 +90,8 @@ func getPgGoquVals(row []any) goqu.Vals {
 			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
 		} else if ok {
 			gval = append(gval, pq.Array(ar))
+		} else if a == "DEFAULT" {
+			gval = append(gval, goqu.Literal("DEFAULT"))
 		} else {
 			gval = append(gval, a)
 		}
