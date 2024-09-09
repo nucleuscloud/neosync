@@ -261,6 +261,7 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
+			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
@@ -342,10 +343,14 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	promclient, err := getPromClientFromEnvironment()
+	if err != nil {
+		return err
+	}
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:  isAuthEnabled,
 		IsNeosyncCloud: getIsNeosyncCloud(),
-	}, db, tfwfmgr, authclient, authadminclient)
+	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient))
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -449,18 +454,6 @@ func serve(ctx context.Context) error {
 	)
 
 	if shouldEnableMetricsService() {
-		roundTripper := promapi.DefaultRoundTripper
-		promApiKey := getPromApiKey()
-		if promApiKey != nil {
-			roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.NewInlineSecret(*promApiKey), promapi.DefaultRoundTripper)
-		}
-		promclient, err := promapi.NewClient(promapi.Config{
-			Address:      getPromApiUrl(),
-			RoundTripper: roundTripper,
-		})
-		if err != nil {
-			return err
-		}
 		metricsService := v1alpha1_metricsservice.New(
 			&v1alpha1_metricsservice.Config{},
 			useraccountService,
@@ -491,6 +484,18 @@ func serve(ctx context.Context) error {
 		slogger.Error(err.Error())
 	}
 	return nil
+}
+
+func getPromClientFromEnvironment() (promapi.Client, error) {
+	roundTripper := promapi.DefaultRoundTripper
+	promApiKey := getPromApiKey()
+	if promApiKey != nil {
+		roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.NewInlineSecret(*promApiKey), promapi.DefaultRoundTripper)
+	}
+	return promapi.NewClient(promapi.Config{
+		Address:      getPromApiUrl(),
+		RoundTripper: roundTripper,
+	})
 }
 
 func getDbConfig() (*nucleusdb.ConnectConfig, error) {

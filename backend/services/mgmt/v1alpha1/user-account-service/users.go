@@ -504,11 +504,27 @@ func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) 
 	}
 	return nil
 }
+func isWorkerApiKey(ctx context.Context) bool {
+	data, err := auth_apikey.GetTokenDataFromCtx(ctx)
+	if err != nil {
+		return false
+	}
+	return data.ApiKeyType == apikey.WorkerApiKey
+}
 
 func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) {
+	accountUuid, err := nucleusdb.ToUuid(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	if isWorkerApiKey(ctx) {
+		return &accountUuid, nil
+	}
+
 	resp, err := s.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
 	if err != nil {
 		return nil, err
@@ -517,10 +533,6 @@ func (s *Service) verifyUserInAccount(
 		return nil, nucleuserrors.NewForbidden("user in not in requested account")
 	}
 
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
 	return &accountUuid, nil
 }
 
