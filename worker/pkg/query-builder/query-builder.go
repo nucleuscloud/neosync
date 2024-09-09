@@ -4,11 +4,14 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/lib/pq"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
+	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
 type SubsetReferenceKey struct {
@@ -64,6 +67,32 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
+func getGoquVals(driver string, row []any) goqu.Vals {
+	if driver == sqlmanager_shared.PostgresDriver {
+		return getPgGoquVals(row)
+	}
+	gval := goqu.Vals{}
+	for _, a := range row {
+		gval = append(gval, a)
+	}
+	return gval
+}
+
+func getPgGoquVals(row []any) goqu.Vals {
+	gval := goqu.Vals{}
+	for _, a := range row {
+		ar, ok := a.([]any)
+		if pgutil.IsMultiDimensionalSlice(a) {
+			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
+		} else if ok {
+			gval = append(gval, pq.Array(ar))
+		} else {
+			gval = append(gval, a)
+		}
+	}
+	return gval
+}
+
 func BuildInsertQuery(
 	driver, table string,
 	columns []string,
@@ -78,7 +107,8 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Cols(insertCols...)
 	for _, row := range values {
-		insert = insert.Vals(row)
+		gval := getGoquVals(driver, row)
+		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query
 	if *onConflictDoNothing {

@@ -3,7 +3,6 @@ package dynamodb
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -12,20 +11,9 @@ import (
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	gotypeparser "github.com/nucleuscloud/neosync/internal/gotype-parser"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
-
-func ParseStringAsNumber(s string) (any, error) {
-	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return i, nil
-	}
-
-	if f, err := strconv.ParseFloat(s, 64); err == nil {
-		return f, nil
-	}
-
-	return nil, errors.New("input string is neither a valid int nor a float")
-}
 
 func UnmarshalDynamoDBItem(item map[string]any) (standardMap map[string]any, keyTypeMap map[string]neosync_types.KeyType) {
 	result := make(map[string]any)
@@ -51,7 +39,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				}
 				return byteSlice
 			case "N":
-				n, err := ParseStringAsNumber(dynamoValue.(string))
+				n, err := gotypeparser.ParseStringAsNumber(dynamoValue.(string))
 				if err != nil {
 					return dynamoValue
 				}
@@ -104,7 +92,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				numbers := dynamoValue.([]any)
 				result := make([]any, len(numbers))
 				for i, num := range numbers {
-					n, err := ParseStringAsNumber(num.(string))
+					n, err := gotypeparser.ParseStringAsNumber(num.(string))
 					if err != nil {
 						result[i] = num
 					}
@@ -155,7 +143,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 		}
 		return mAny
 	case *types.AttributeValueMemberN:
-		n, err := ParseStringAsNumber(t.Value)
+		n, err := gotypeparser.ParseStringAsNumber(t.Value)
 		if err != nil {
 			return t.Value
 		}
@@ -164,7 +152,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 		keyTypeMap[key] = neosync_types.NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			n, err := ParseStringAsNumber(v)
+			n, err := gotypeparser.ParseStringAsNumber(v)
 			if err != nil {
 				return v
 			}

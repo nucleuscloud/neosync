@@ -139,7 +139,7 @@ func Test_ConnectionTunnelManager_GetConnectionClient(t *testing.T) {
 			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
-	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
+	provider.On("GetConnectionClient", "pgx", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 
 	db, err := mgr.GetConnection("111", conn, slog.Default())
 	require.NoError(t, err)
@@ -162,7 +162,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 			GeneralDbConnectConfig: getPgGenDbConfig(t, "foo"),
 		}, nil)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
-	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
+	provider.On("GetConnectionClient", "pgx", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -225,7 +225,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
-	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", "pgx", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	_, err := mgr.GetConnection("111", conn, slog.Default())
@@ -261,7 +261,7 @@ func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	provider.On("GetConnectionClientConfig", mock.Anything).Return(struct{}{}, nil)
-	provider.On("GetConnectionClient", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(mockDb, nil)
+	provider.On("GetConnectionClient", "pgx", "postgres://foo:bar@localhost:5432/test", mock.Anything).Return(mockDb, nil)
 	provider.On("CloseClientConnection", mockDb).Return(nil)
 
 	_, err := mgr.GetConnection("111", conn, slog.Default())
@@ -305,7 +305,7 @@ func Test_getDriverFromConnection(t *testing.T) {
 			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
 		}})
 		require.NoError(t, err)
-		require.Equal(t, "postgres", driver)
+		require.Equal(t, "pgx", driver)
 	})
 
 	t.Run("mysql", func(t *testing.T) {

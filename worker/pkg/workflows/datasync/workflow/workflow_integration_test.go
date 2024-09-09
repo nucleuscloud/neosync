@@ -31,6 +31,7 @@ import (
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
+	testdata_pgtypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/all-types"
 	testdata_circulardependencies "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/circular-dependencies"
 	testdata_doublereference "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/double-reference"
 	testdata_subsetting "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/postgres/subsetting"
@@ -56,6 +57,7 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	javascriptTests := testdata_javascripttransformers.GetSyncTests()
 	pkTransformationTests := testdata_primarykeytransformer.GetSyncTests()
 	subsettingTests := testdata_subsetting.GetSyncTests()
+	pgTypesTests := testdata_pgtypes.GetSyncTests()
 
 	allTests["Double_References"] = drTests
 	allTests["Virtual_Foreign_Keys"] = vfkTests
@@ -63,6 +65,7 @@ func getAllPostgresSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests["Javascript_Transformers"] = javascriptTests
 	allTests["Primary_Key_Transformers"] = pkTransformationTests
 	allTests["Subsetting"] = subsettingTests
+	allTests["PG_Types"] = pgTypesTests
 	return allTests
 }
 
