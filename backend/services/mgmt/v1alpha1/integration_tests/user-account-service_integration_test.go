@@ -409,3 +409,24 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.True(s.T(), resp.Msg.GetIsValid())
 }
+
+func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
+	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+
+	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
+	require.NoError(s.T(), err)
+
+	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Once().
+		Return(model.Vector{{
+			Value:     100,
+			Timestamp: 0,
+		}}, promv1.Warnings{}, nil)
+
+	resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), resp, err)
+
+	require.False(s.T(), resp.Msg.GetIsValid())
+}
