@@ -140,12 +140,14 @@ export type DefineFormValues = Yup.InferType<typeof DefineFormValues>;
 
 export const ConnectFormValues = SourceFormValues.concat(
   Yup.object({
-    destinations: Yup.array(NewDestinationFormValues).required(),
+    destinations: Yup.array(NewDestinationFormValues).required(
+      'At least one destination Connection is required'
+    ),
   })
 ).test(
   // todo: need to add a test for generate / ai generate too
   'unique-connections',
-  'connections must be unique and type specific', // this message isn't exposed anywhere
+  'Connections must be unique and the same Connection type', // this message isn't exposed anywhere
   function (value, ctx) {
     const connections: Connection[] = ctx.options.context?.connections ?? [];
     const connectionsRecord = connections.reduce(
@@ -275,8 +277,8 @@ function getErrorConnectionTypes(
 }
 
 const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
-  schema: Yup.string().trim().required(),
-  table: Yup.string().trim().required(),
+  schema: Yup.string().trim().required('A schema is required'),
+  table: Yup.string().trim().required('A table is required'),
   whereClause: Yup.string().trim().optional(),
 });
 
@@ -365,7 +367,12 @@ export type SingleTableEditAiSourceFormValues = Yup.InferType<
 >;
 
 export const SingleTableSchemaFormValues = Yup.object({
-  numRows: Yup.number().required().min(1),
+  numRows: Yup.number()
+    .required('THe number of rows to generate is required')
+    .min(
+      1,
+      'The number of rows to generate must be greater than or equal to 1.'
+    ),
   mappings: Yup.array().of(JobMappingFormValues).required(),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
@@ -378,10 +385,12 @@ export const SingleTableEditSourceFormValues = Yup.object({
       .required('Connection is required')
       .uuid(),
   }).required(),
-
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
-    .min(1)
+    .min(
+      1,
+      'The number of rows to generate must be greater than or equal to 1.'
+    )
     .default(10),
   mappings: Yup.array().of(JobMappingFormValues).required(),
 }).required();
