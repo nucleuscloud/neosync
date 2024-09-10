@@ -1,4 +1,4 @@
-package gotypeparser
+package gotypeutil
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package gotypeparser
+package gotypeutil
 
 import (
 	"encoding/json"
@@ -34,4 +34,18 @@ func JsonToMap(j []byte) (map[string]any, error) {
 		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 	return jMap, nil
+}
+
+func ParseSliceToMapSlice(input []any) ([]map[string]any, error) {
+	result := make([]map[string]any, 0, len(input))
+
+	for _, item := range input {
+		if m, ok := item.(map[string]any); ok {
+			result = append(result, m)
+		} else {
+			return nil, fmt.Errorf("item is not of type map[string]any")
+		}
+	}
+
+	return result, nil
 }

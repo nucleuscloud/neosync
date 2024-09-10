@@ -1,7 +1,9 @@
 package querybuilder
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -11,6 +13,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
+	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
@@ -75,7 +78,7 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
-		if a == defaultStr {
+		if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
@@ -87,18 +90,36 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 func getPgGoquVals(row []any) goqu.Vals {
 	gval := goqu.Vals{}
 	for _, a := range row {
-		ar, ok := a.([]any)
-		if pgutil.IsMultiDimensionalSlice(a) {
+		ar, isSlice := a.([]any)
+		if gotypeutil.IsMultiDimensionalSlice(a) {
 			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
-		} else if ok {
+		} else if isSlice {
+			fmt.Println("IS SLICE")
+			mapSlice, err := gotypeutil.ParseSliceToMapSlice(ar)
+			if err == nil {
+				fmt.Println("IS MAP SLICE")
+				fmt.Println(pgutil.FormatPgArrayLiteral(mapSlice))
+				gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(mapSlice)))
+				continue
+			}
 			gval = append(gval, pq.Array(ar))
-		} else if a == defaultStr {
+		} else if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
 		}
 	}
+	jsonF, _ := json.MarshalIndent(gval, "", " ")
+	fmt.Printf("%s \n", string(jsonF))
 	return gval
+}
+
+func isDefault(val any) bool {
+	valStr, isString := val.(string)
+	if !isString {
+		return false
+	}
+	return strings.EqualFold(valStr, defaultStr)
 }
 
 func BuildInsertQuery(
@@ -142,7 +163,7 @@ func BuildUpdateQuery(
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
 		val := columnValueMap[col]
-		if val == defaultStr {
+		if isDefault(val) {
 			updateRecord[col] = goqu.L(defaultStr)
 		} else {
 			updateRecord[col] = val

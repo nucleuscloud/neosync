@@ -399,6 +399,8 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 	primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) ([]neosync_benthos.Outputs, error) {
+	// TODO grab column types from destination
+	// pass into benthos config as []string{} like gen ai benthos config
 	outputs := []neosync_benthos.Outputs{}
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
 	destOpts := getDestinationOptions(destination)

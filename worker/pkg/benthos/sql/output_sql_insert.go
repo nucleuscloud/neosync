@@ -271,18 +271,24 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 		rows = append(rows, args)
 	}
+	fmt.Println("HERE")
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
+	fmt.Println("processed rows")
 	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), processedCols, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
+	fmt.Println()
+	fmt.Println(insertQuery)
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
 	query := s.buildQuery(insertQuery)
+	fmt.Println()
+	fmt.Println(query)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		return err
 	}
@@ -295,7 +301,7 @@ func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any)
 		newDataRows := sqlserverutil.GoTypeToSqlServerType(dataRows)
 		return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, newDataRows)
 	case sqlmanager_shared.PostgresDriver:
-		newDataRows := pgutil.GoTypeToPgType(dataRows)
+		newDataRows := pgutil.ConvertRowsForPostgres(dataRows)
 		return columnNames, newDataRows
 	default:
 		return columnNames, dataRows
