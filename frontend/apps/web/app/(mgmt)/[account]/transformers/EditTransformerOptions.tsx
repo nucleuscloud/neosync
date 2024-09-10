@@ -38,7 +38,7 @@ import { useForm } from 'react-hook-form';
 import {
   EditJobMappingTransformerConfigFormContext,
   EditJobMappingTransformerConfigFormValues,
-} from '../new/transformer/transform-form-validations';
+} from '../../../../yup-validations/transform-form-validations';
 import TransformerForm from '../new/transformer/TransformerForms/TransformerForm';
 
 interface Props {
