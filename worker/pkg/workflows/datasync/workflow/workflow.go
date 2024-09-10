@@ -9,7 +9,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
@@ -27,8 +26,6 @@ type WorkflowRequest struct {
 type WorkflowResponse struct{}
 
 func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
-	wfinfo := workflow.GetInfo(wfctx)
-
 	ctx := workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
@@ -41,22 +38,24 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger = log.With(logger, "jobId", req.JobId)
 	logger.Info("data sync workflow starting")
 
-	workflowMetadata := &shared.WorkflowMetadata{
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-		RunId:      wfinfo.WorkflowExecution.RunID,
+	actOptResp, err := retrieveActivityOptions(ctx, req.JobId, logger)
+	if err != nil {
+		return nil, err
 	}
+	logger = log.With(
+		logger,
+		"accountId", actOptResp.AccountId,
+	)
 
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
-	err := workflow.ExecuteActivity(ctx, genbenthosactivity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
+	err = workflow.ExecuteActivity(ctx, genbenthosactivity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
+		JobId: req.JobId,
 	}).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
 	}
-	logger = log.With(logger, "accountId", bcResp.AccountId)
 
 	if len(bcResp.BenthosConfigs) == 0 {
 		logger.Info("found 0 benthos configs, ending workflow.")
@@ -65,31 +64,12 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 
-	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
-	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 1 * time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 2,
-		},
-		HeartbeatTimeout: 1 * time.Minute,
-	})
-	logger.Info("scheduling RetrieveActivityOptions for execution.")
-	var activityOptsActivity *syncactivityopts_activity.Activity
-	err = workflow.ExecuteActivity(ctx, activityOptsActivity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
-		JobId: req.JobId,
-	}, workflowMetadata).Get(ctx, &actOptResp)
-	if err != nil {
-		return nil, err
-	}
-	logger.Info("completed RetrieveActivityOptions.")
-
 	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
 	var runSqlInitTableStatements *runsqlinittablestmts_activity.Activity
 	err = workflow.ExecuteActivity(ctx, runSqlInitTableStatements.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
+		JobId: req.JobId,
 	}).Get(ctx, &resp)
 	if err != nil {
 		return nil, err
@@ -125,7 +105,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			err := f.Get(childctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
-				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -136,7 +116,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			logger.Info("config sync completed")
 			delete(redisDependsOn, bc.Name)
 			// clean up redis
-			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
 				logger.Error("redis clean up activity did not complete")
 			}
@@ -174,7 +154,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				err := f.Get(childctx, &result)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
-					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, redisConfigs)
 					if redisErr != nil {
 						logger.Error("redis clean up activity did not complete")
 					}
@@ -184,7 +164,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				logger.Info("config sync completed", "name", bc.Name)
 				delete(redisDependsOn, bc.Name)
 				// clean up redis
-				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
 				if err != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -195,12 +175,42 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	return &WorkflowResponse{}, nil
 }
 
+func retrieveActivityOptions(
+	ctx workflow.Context,
+	jobId string,
+	logger log.Logger,
+) (*syncactivityopts_activity.RetrieveActivityOptionsResponse, error) {
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 1 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	})
+	logger.Info("scheduling RetrieveActivityOptions for execution.")
+
+	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
+	var activityOptsActivity *syncactivityopts_activity.Activity
+	err := workflow.ExecuteActivity(
+		ctx,
+		activityOptsActivity.RetrieveActivityOptions,
+		&syncactivityopts_activity.RetrieveActivityOptionsRequest{
+			JobId: jobId,
+		}).
+		Get(ctx, &actOptResp)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("completed RetrieveActivityOptions.")
+	return actOptResp, nil
+}
+
 func runRedisCleanUpActivity(
 	wfctx workflow.Context,
 	logger log.Logger,
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
 	dependsOnMap map[string]map[string][]string,
-	jobId, workflowId string,
+	jobId string,
 	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
 ) error {
 	if len(redisConfigs) > 0 {
@@ -212,9 +222,8 @@ func runRedisCleanUpActivity(
 			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
-				JobId:      jobId,
-				WorkflowId: workflowId,
-				HashKey:    cfg.Key,
+				JobId:   jobId,
+				HashKey: cfg.Key,
 			}).Get(ctx, &resp)
 			if err != nil {
 				return err
