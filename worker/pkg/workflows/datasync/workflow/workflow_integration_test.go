@@ -124,6 +124,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -281,6 +287,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -435,6 +447,12 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	}
 	// neosync api mocks
 	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetJobProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -615,6 +633,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -797,6 +821,12 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -1075,6 +1105,12 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
