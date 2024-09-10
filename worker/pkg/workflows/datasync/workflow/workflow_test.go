@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -17,6 +18,7 @@ import (
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
@@ -520,12 +522,15 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	var activityOpts *syncactivityopts_activity.Activity
-	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
 	syncActivity := sync_activity.Activity{}
 	env.
@@ -539,13 +544,13 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	assert.True(t, env.IsWorkflowCompleted())
+	require.True(t, env.IsWorkflowCompleted())
 
 	err := env.GetWorkflowError()
-	assert.Error(t, err)
+	require.Error(t, err)
 	var applicationErr *temporal.ApplicationError
-	assert.True(t, errors.As(err, &applicationErr))
-	assert.Equal(t, "TestFailure", applicationErr.Error())
+	require.True(t, errors.As(err, &applicationErr))
+	require.Equal(t, "TestFailure", applicationErr.Error())
 
 	env.AssertExpectations(t)
 }
@@ -623,12 +628,16 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	var activityOpts *syncactivityopts_activity.Activity
-	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
+
 	syncActivities := &sync_activity.Activity{}
 	env.
 		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
