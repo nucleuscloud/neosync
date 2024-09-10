@@ -28,6 +28,10 @@ type WorkflowRequest struct {
 
 type WorkflowResponse struct{}
 
+var (
+	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
+)
+
 func withGenerateBenthosConfigsActivityOptions(ctx workflow.Context) workflow.Context {
 	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -126,6 +130,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					if err != nil {
 						logger.Error("encountered error while checking account status", "error", err)
 						stopChan.Send(ctx, true)
+						shouldStop = true
+						cancelHandler()
 						return
 					}
 					if !result.IsValid {
@@ -156,7 +162,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	workselector.AddReceive(stopChan, func(c workflow.ReceiveChannel, more bool) {
 		// Stop signal receied, exit the routing
 		logger.Warn("received signal to stop workflow based on account status")
-		activityErr = errors.New("exiting workflow due to invalid account status")
+		activityErr = invalidAccountStatusError
 		cancelHandler()
 	})
 

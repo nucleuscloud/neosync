@@ -555,6 +555,105 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
+func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
+			{
+				Name:        "public.users",
+				DependsOn:   []*tabledependency.DependsOn{},
+				Columns:     []string{"id"},
+				TableSchema: "public",
+				TableName:   "users",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				Name:        "public.accounts",
+				DependsOn:   []*tabledependency.DependsOn{},
+				Columns:     []string{"id"},
+				TableSchema: "public",
+				TableName:   "accounts",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				Name:        "public.foo",
+				DependsOn:   []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				Columns:     []string{"id"},
+				TableSchema: "public",
+				TableName:   "foo",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
+			},
+		}}, nil)
+	var sqlInitActivity *runsqlinittablestmts_activity.Activity
+	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
+			SyncActivityOptions: &workflow.ActivityOptions{
+				StartToCloseTimeout: time.Minute,
+			},
+		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: false}, nil)
+
+	syncActivity := sync_activity.Activity{}
+	env.
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
+			return &sync_activity.SyncResponse{}, nil
+		})
+	env.
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}).
+		Return(nil, errors.New("AccountTestFailure"))
+
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+
+	require.True(t, env.IsWorkflowCompleted())
+
+	err := env.GetWorkflowError()
+	require.Error(t, err)
+	var applicationErr *temporal.ApplicationError
+	require.True(t, errors.As(err, &applicationErr))
+	require.Equal(t, invalidAccountStatusError.Error(), applicationErr.Error())
+
+	env.AssertExpectations(t)
+}
+
 func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
