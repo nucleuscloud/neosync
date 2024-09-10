@@ -79,6 +79,11 @@ spec:
           args:
             - migrate
             - up
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
 
           {{- with .Values.migrations.extraEnvVars }}
           {{- range .}}
