@@ -52,7 +52,7 @@ import { toast } from 'sonner';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
-} from '../../../../../yup-validations/transform-form-validations';
+} from '../../../../../yup-validations/transformer-validations';
 import TransformerForm from './TransformerForms/TransformerForm';
 
 function getTransformerSource(sourceStr: string): TransformerSource {

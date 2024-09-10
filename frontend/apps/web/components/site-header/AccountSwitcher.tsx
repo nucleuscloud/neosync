@@ -9,7 +9,7 @@ import { ReactElement, ReactNode } from 'react';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
@@ -17,7 +17,6 @@ import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -49,28 +48,6 @@ import {
 import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
-
-const CreateTeamFormValues = Yup.object({
-  name: Yup.string()
-    .required()
-    .min(3)
-    .max(30)
-    .test(
-      'valid account name',
-      'Account Name must be of length 3-30 and only include lowercased letters, numbers, and/or hyphens.',
-      (value) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        if (!RESOURCE_NAME_REGEX.test(value)) {
-          return false;
-        }
-        // todo: test to make sure that account is valid across neosync
-        return true;
-      }
-    ),
-});
-type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 

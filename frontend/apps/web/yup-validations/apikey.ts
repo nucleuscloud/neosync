@@ -25,3 +25,9 @@ export const ApiKeyFormValues = Yup.object({
 });
 
 export type ApiKeyFormValues = Yup.InferType<typeof ApiKeyFormValues>;
+
+export const RegenerateApiKeyForm = Yup.object({
+  expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
+  expiresAt: Yup.date().required('The Expiration is required.'),
+});
+export type RegenerateApiKeyForm = Yup.InferType<typeof RegenerateApiKeyForm>;

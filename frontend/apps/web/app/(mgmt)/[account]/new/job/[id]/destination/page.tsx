@@ -51,7 +51,9 @@ import * as Yup from 'yup';
 import ConnectionSelectContent from '../../connect/ConnectionSelectContent';
 
 const FormValues = Yup.object({
-  destinations: Yup.array(NewDestinationFormValues).required(),
+  destinations: Yup.array(NewDestinationFormValues).required(
+    'Destinations are required.'
+  ),
 });
 type FormValues = Yup.InferType<typeof FormValues>;
 

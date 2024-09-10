@@ -1,4 +1,4 @@
-import { TransformerConfigSchema } from '@/yup-validations/transform-form-validations';
+import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
 import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
 import * as Yup from 'yup';
 
@@ -154,9 +154,9 @@ const DynamoDbDestinationOptionsFormValues = Yup.object({
         destinationTable: Yup.string().required(
           'Destination table is required'
         ),
-      }).required()
+      }).required('The Destinatino form values are required.')
     )
-    .required()
+    .required('The Destination form values are required.')
     .default([]),
 });
 type DynamoDbDestinationOptionsFormValues = Yup.InferType<

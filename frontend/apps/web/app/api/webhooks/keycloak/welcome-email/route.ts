@@ -59,18 +59,20 @@ Example register event for google
   }
 */
 const RegisterEvent = Yup.object({
-  time: Yup.number().required(),
-  type: Yup.string().oneOf(['access.REGISTER']).required(),
+  time: Yup.number().required('The Time is required.'),
+  type: Yup.string()
+    .oneOf(['access.REGISTER'])
+    .required('The Type is required.'),
   authDetails: Yup.object({
-    userId: Yup.string().required(),
-    ipAddress: Yup.string().required(),
+    userId: Yup.string().required('The userId is required.'),
+    ipAddress: Yup.string().required('The IP Address is required.'),
   }),
   details: Yup.object({
-    email: Yup.string().required(),
+    email: Yup.string().required('The email is required.'),
     first_name: Yup.string(),
     last_name: Yup.string(),
     identity_provider: Yup.string(),
-  }).required(),
+  }).required('The Details object is required.'),
 });
 type RegisterEvent = Yup.InferType<typeof RegisterEvent>;
 

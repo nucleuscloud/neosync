@@ -373,7 +373,9 @@ export const SingleTableSchemaFormValues = Yup.object({
       1,
       'The number of rows to generate must be greater than or equal to 1.'
     ),
-  mappings: Yup.array().of(JobMappingFormValues).required(),
+  mappings: Yup.array()
+    .of(JobMappingFormValues)
+    .required('Table Mappings are required.'),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SingleTableSchemaFormValues

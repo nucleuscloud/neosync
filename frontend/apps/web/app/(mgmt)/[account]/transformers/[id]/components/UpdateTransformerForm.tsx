@@ -21,7 +21,7 @@ import {
 import {
   EditUserDefinedTransformerFormContext,
   UpdateUserDefinedTransformerFormValues,
-} from '@/yup-validations/transform-form-validations';
+} from '@/yup-validations/transformer-validations';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserDefinedTransformer } from '@neosync/sdk';

@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { RegenerateApiKeyForm } from '@/yup-validations/apikey';
 import { Timestamp } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
@@ -52,13 +53,6 @@ import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as Yup from 'yup';
-
-const FormValues = Yup.object({
-  expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
-  expiresAt: Yup.date().required(),
-});
-type FormValues = Yup.InferType<typeof FormValues>;
 
 export default function RegenerateAccountApiKey({
   params,
@@ -74,15 +68,15 @@ export default function RegenerateAccountApiKey({
   const { mutateAsync } = useMutation(regenerateAccountApiKey);
   const queryclient = useQueryClient();
 
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FormValues),
+  const form = useForm<RegenerateApiKeyForm>({
+    resolver: yupResolver(RegenerateApiKeyForm),
     defaultValues: {
       expiresAtSelect: '7',
       expiresAt: startOfDay(addDays(new Date(), 7)),
     },
   });
 
-  async function onSubmit(values: FormValues): Promise<void> {
+  async function onSubmit(values: RegenerateApiKeyForm): Promise<void> {
     if (!id) {
       return;
     }

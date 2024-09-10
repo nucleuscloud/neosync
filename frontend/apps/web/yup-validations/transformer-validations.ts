@@ -520,7 +520,7 @@ const transformerNameSchema = Yup.string()
 export const CreateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   source: Yup.number(),
-  description: Yup.string().required(),
+  description: Yup.string().required('Description is a required field.'),
   config: TransformerConfigSchema,
 });
 
@@ -546,7 +546,7 @@ export interface CreateUserDefinedTransformerFormContext {
 
 export const EditJobMappingTransformerConfigFormValues = Yup.object({
   config: TransformerConfigSchema,
-}).required();
+}).required('The Transformer config is required.');
 export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
   typeof EditJobMappingTransformerConfigFormValues
 >;
