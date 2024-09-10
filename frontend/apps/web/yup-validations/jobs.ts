@@ -65,23 +65,23 @@ export function convertTransformerConfigSchemaToTransformerConfig(
 }
 
 export const JobMappingFormValues = Yup.object({
-  schema: Yup.string().required(),
-  table: Yup.string().required(),
-  column: Yup.string().required(),
+  schema: Yup.string().required('A schema is required'),
+  table: Yup.string().required('A table is required'),
+  column: Yup.string().required('A column is required'),
   transformer: JobMappingTransformerForm,
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JobMappingFormValues>;
 
 const VIRTUAL_FOREIGN_KEY_SCHEMA = Yup.object({
-  schema: Yup.string().required(),
-  table: Yup.string().required(),
-  columns: Yup.array().of(Yup.string().required()),
+  schema: Yup.string().required('A schema is required'),
+  table: Yup.string().required('A table is required'),
+  columns: Yup.array().of(Yup.string().required('Columns are required')),
 }).required();
 
 const VirtualForeignConstraintFormValues = Yup.object({
-  schema: Yup.string().required(),
-  table: Yup.string().required(),
-  columns: Yup.array().of(Yup.string().required()),
+  schema: Yup.string().required('A schema is required'),
+  table: Yup.string().required('A table is required'),
+  columns: Yup.array().of(Yup.string().required('A column is required')),
   foreignKey: VIRTUAL_FOREIGN_KEY_SCHEMA,
 }).required();
 export type VirtualForeignConstraintFormValues = Yup.InferType<
@@ -150,8 +150,10 @@ const DynamoDbDestinationOptionsFormValues = Yup.object({
   tableMappings: Yup.array()
     .of(
       Yup.object({
-        sourceTable: Yup.string().required(),
-        destinationTable: Yup.string().required(),
+        sourceTable: Yup.string().required('Source table is required'),
+        destinationTable: Yup.string().required(
+          'Destination table is required'
+        ),
       }).required()
     )
     .required()
@@ -206,7 +208,7 @@ export const SchemaFormValues = Yup.object({
 
   destinationOptions: Yup.array()
     .of(SchemaFormValuesDestinationOptions.required())
-    .required(),
+    .required('Destination options are required'),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
 
@@ -235,7 +237,7 @@ export type NewDestinationFormValues = Yup.InferType<
 >;
 
 const EditDestinationOptionsFormValues = Yup.object({
-  destinationId: Yup.string().required(),
+  destinationId: Yup.string().required('Destination is required'),
 })
   .concat(DestinationOptionsFormValues.required())
   .required();
@@ -249,7 +251,7 @@ export const DataSyncSourceFormValues = SourceFormValues.concat(
   Yup.object({
     destinationOptions: Yup.array()
       .of(EditDestinationOptionsFormValues.required())
-      .required(),
+      .required('Destination options are required'),
   })
 );
 export type DataSyncSourceFormValues = Yup.InferType<
