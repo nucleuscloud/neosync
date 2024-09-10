@@ -226,12 +226,12 @@ export default function NewTransformer(): ReactElement {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                {/* <FormMessage />  we don't have any validation on this field so there's nothing to render*/}
+                <FormMessage />
               </FormItem>
             )}
           />
           {formSource != null && formSource !== 0 && (
-            <div className="pt-8">
+            <div>
               <FormField
                 control={form.control}
                 name="name"
