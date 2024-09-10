@@ -69,21 +69,21 @@ export const JobMappingFormValues = Yup.object({
   table: Yup.string().required('A table is required'),
   column: Yup.string().required('A column is required'),
   transformer: JobMappingTransformerForm,
-}).required();
+}).required('Job mapping values are required.');
 export type JobMappingFormValues = Yup.InferType<typeof JobMappingFormValues>;
 
 const VIRTUAL_FOREIGN_KEY_SCHEMA = Yup.object({
   schema: Yup.string().required('A schema is required'),
   table: Yup.string().required('A table is required'),
   columns: Yup.array().of(Yup.string().required('Columns are required')),
-}).required();
+}).required('Virtural Foreign Key mappings are required.');
 
 const VirtualForeignConstraintFormValues = Yup.object({
   schema: Yup.string().required('A schema is required'),
   table: Yup.string().required('A table is required'),
   columns: Yup.array().of(Yup.string().required('A column is required')),
   foreignKey: VIRTUAL_FOREIGN_KEY_SCHEMA,
-}).required();
+}).required('Virtual Foreign Key Constraint values are required.');
 export type VirtualForeignConstraintFormValues = Yup.InferType<
   typeof VirtualForeignConstraintFormValues
 >;
@@ -187,14 +187,14 @@ export const DestinationOptionsFormValues = Yup.object({
   mysql: MysqlDbDestinationOptionsFormValues.optional(),
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
   mssql: MssqlDbDestinationOptionsFormValues.optional(),
-}).required();
+}).required('Destination Options are required.');
 // Object that holds connection specific destination options for a job
 export type DestinationOptionsFormValues = Yup.InferType<
   typeof DestinationOptionsFormValues
 >;
 
 const SchemaFormValuesDestinationOptions = Yup.object({
-  destinationId: Yup.string().required(), // in this case it is the connection id
+  destinationId: Yup.string().required('Destination Connection is required.'), // in this case it is the connection id
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
 });
 export type SchemaFormValuesDestinationOptions = Yup.InferType<
@@ -202,12 +202,18 @@ export type SchemaFormValuesDestinationOptions = Yup.InferType<
 >;
 
 export const SchemaFormValues = Yup.object({
-  mappings: Yup.array().of(JobMappingFormValues).required(),
+  mappings: Yup.array()
+    .of(JobMappingFormValues)
+    .required('Schema mappings are required.'),
   virtualForeignKeys: Yup.array().of(VirtualForeignConstraintFormValues),
-  connectionId: Yup.string().required(),
+  connectionId: Yup.string().required('Connection is required.'),
 
   destinationOptions: Yup.array()
-    .of(SchemaFormValuesDestinationOptions.required())
+    .of(
+      SchemaFormValuesDestinationOptions.required(
+        'Schems Form Destination options are required'
+      )
+    )
     .required('Destination options are required'),
 });
 export type SchemaFormValues = Yup.InferType<typeof SchemaFormValues>;
@@ -231,7 +237,7 @@ export const NewDestinationFormValues = Yup.object({
       }
     ),
   destinationOptions: DestinationOptionsFormValues,
-}).required();
+}).required('Destination form values are required.');
 export type NewDestinationFormValues = Yup.InferType<
   typeof NewDestinationFormValues
 >;
@@ -239,8 +245,12 @@ export type NewDestinationFormValues = Yup.InferType<
 const EditDestinationOptionsFormValues = Yup.object({
   destinationId: Yup.string().required('Destination is required'),
 })
-  .concat(DestinationOptionsFormValues.required())
-  .required();
+  .concat(
+    DestinationOptionsFormValues.required(
+      'Destination option form values are required.'
+    )
+  )
+  .required('Destination and destination option form values are required.');
 export type EditDestinationOptionsFormValues = Yup.InferType<
   typeof EditDestinationOptionsFormValues
 >;
@@ -250,7 +260,11 @@ export const DataSyncSourceFormValues = SourceFormValues.concat(
 ).concat(
   Yup.object({
     destinationOptions: Yup.array()
-      .of(EditDestinationOptionsFormValues.required())
+      .of(
+        EditDestinationOptionsFormValues.required(
+          'Destination option form values are required.'
+        )
+      )
       .required('Destination options are required'),
   })
 );

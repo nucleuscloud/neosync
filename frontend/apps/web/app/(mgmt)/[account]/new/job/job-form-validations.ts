@@ -335,7 +335,7 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
     fkSourceConnectionId: Yup.string()
       .required('Connection is required')
       .uuid(),
-  }).required(),
+  }).required('AI Generate form values are required.'),
 
   schema: Yup.object({
     numRows: Yup.number()
@@ -360,7 +360,7 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
 
     schema: Yup.string().required('Must provide a valid schema'),
     table: Yup.string().required('Must provide a valid table'),
-  }).required(),
+  }).required('AI Generate schema values are required.'),
 });
 export type SingleTableEditAiSourceFormValues = Yup.InferType<
   typeof SingleTableEditAiSourceFormValues
@@ -384,7 +384,7 @@ export const SingleTableEditSourceFormValues = Yup.object({
     fkSourceConnectionId: Yup.string()
       .required('Connection is required')
       .uuid(),
-  }).required(),
+  }).required('Source Connection is required.'),
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
     .min(
@@ -392,15 +392,17 @@ export const SingleTableEditSourceFormValues = Yup.object({
       'The number of rows to generate must be greater than or equal to 1.'
     )
     .default(10),
-  mappings: Yup.array().of(JobMappingFormValues).required(),
-}).required();
+  mappings: Yup.array()
+    .of(JobMappingFormValues)
+    .required('Mappings are required.'),
+}).required('Generate table form values are required.');
 
 export type SingleTableEditSourceFormValues = Yup.InferType<
   typeof SingleTableEditSourceFormValues
 >;
 
 export const SubsetFormValues = Yup.object({
-  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
+  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required('Subset is required.'),
   subsetOptions: Yup.object({
     subsetByForeignKeyConstraints: Yup.boolean().default(true),
   }),
@@ -413,14 +415,14 @@ const CreateJobFormValues = Yup.object({
   connect: ConnectFormValues,
   schema: SchemaFormValues,
   subset: SubsetFormValues.optional(),
-}).required();
+}).required('Job form values are required.');
 export type CreateJobFormValues = Yup.InferType<typeof CreateJobFormValues>;
 
 export const CreateSingleTableGenerateJobFormValues = Yup.object({
   define: DefineFormValues,
   connect: SingleTableConnectFormValues,
   schema: SingleTableSchemaFormValues,
-}).required();
+}).required('Generate form values are required.');
 export type CreateSingleTableGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableGenerateJobFormValues
 >;
@@ -429,7 +431,7 @@ export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
   define: DefineFormValues,
   connect: SingleTableAiConnectFormValues,
   schema: SingleTableAiSchemaFormValues,
-}).required();
+}).required('AI Generate form values are required.');
 export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
 >;
