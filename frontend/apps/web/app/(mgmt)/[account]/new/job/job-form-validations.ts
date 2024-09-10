@@ -21,7 +21,9 @@ export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
 
 // Schema for a job's workflow settings
 export const WorkflowSettingsSchema = Yup.object({
-  runTimeout: Yup.number().optional().min(0),
+  runTimeout: Yup.number()
+    .optional()
+    .min(0, 'The Job Run Timeout cannot be less than 0 minutes'),
 });
 
 export type WorkflowSettingsSchema = Yup.InferType<
@@ -31,7 +33,10 @@ export type WorkflowSettingsSchema = Yup.InferType<
 export const ActivityOptionsSchema = Yup.object({
   scheduleToCloseTimeout: Yup.number()
     .optional()
-    .min(0)
+    .min(
+      0,
+      'The Max Table Timeout (including Retries) cannot be less than 0 minutes'
+    )
     .test(
       'non-zero-both',
       'Both timeouts cannot be 0',
@@ -43,7 +48,7 @@ export const ActivityOptionsSchema = Yup.object({
     ),
   startToCloseTimeout: Yup.number()
     .optional()
-    .min(0)
+    .min(0, 'The Table Sync cannot be less than 0 minutes')
     .test(
       'non-zero-both',
       'Both timeouts cannot be 0',
@@ -54,7 +59,9 @@ export const ActivityOptionsSchema = Yup.object({
       }
     ),
   retryPolicy: Yup.object({
-    maximumAttempts: Yup.number().optional().min(0),
+    maximumAttempts: Yup.number()
+      .optional()
+      .min(0, 'The Maximum Retry Attempts cannot be less than 0'),
   }).optional(),
 });
 
@@ -64,8 +71,8 @@ export const DefineFormValues = Yup.object({
   jobName: Yup.string()
     .trim()
     .required('Name is a required field')
-    .min(3)
-    .max(30)
+    .min(3, 'The Job Name must be at least 3 characters')
+    .max(30, 'The Job name cannot be more than 30 characters')
     .test(
       'checkNameUnique',
       'This name is already taken.',
@@ -104,22 +111,26 @@ export const DefineFormValues = Yup.object({
     ),
   cronSchedule: Yup.string()
     .optional()
-    .test('validateCron', 'Not a valid cron schedule', (value, context) => {
-      if (!value) {
-        return true;
-      }
-      const output = cron(value);
-      if (output.isValid()) {
-        return true;
-      }
-      if (output.isError()) {
-        const errors = output.getError();
-        if (errors.length > 0) {
-          return context.createError({ message: errors.join(', ') });
+    .test(
+      'validateCron',
+      'The Schedule must be a valid Cron string',
+      (value, context) => {
+        if (!value) {
+          return true;
         }
+        const output = cron(value);
+        if (output.isValid()) {
+          return true;
+        }
+        if (output.isError()) {
+          const errors = output.getError();
+          if (errors.length > 0) {
+            return context.createError({ message: errors.join(', ') });
+          }
+        }
+        return output.isValid();
       }
-      return output.isValid();
-    }),
+    ),
   initiateJobRun: Yup.boolean(),
   workflowSettings: WorkflowSettingsSchema.optional(),
   syncActivityOptions: ActivityOptionsSchema.optional(),
