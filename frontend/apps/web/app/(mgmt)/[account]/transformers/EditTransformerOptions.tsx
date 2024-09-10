@@ -60,10 +60,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
   };
 
   return (
-    <Sheet
-      open={isSheetOpen}
-      onOpenChange={(open) => open && setIsSheetOpen(open)}
-    >
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
@@ -119,7 +116,6 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   ...value,
                   config: convertTransformerConfigToForm(newval),
                 });
-                // setIsSheetOpen(false);
                 handleClose();
               }}
               isDisabled={disabled || isUserDefinedTransformer(transformer)}
