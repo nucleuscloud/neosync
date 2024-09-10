@@ -52,6 +52,7 @@ func DeleteRedisHash(
 		"RedisHashKey", req.HashKey,
 	)
 
+	// todo: this should be factored out of here and live on the activity itself
 	redisClient, err := neosync_redis.GetRedisClient()
 	if err != nil {
 		return nil, err

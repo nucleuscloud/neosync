@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
@@ -25,6 +26,15 @@ import (
 func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
+			SyncActivityOptions: &workflow.ActivityOptions{
+				StartToCloseTimeout: time.Minute,
+			},
+			AccountId: uuid.NewString(),
+		}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
@@ -46,6 +56,15 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
+			SyncActivityOptions: &workflow.ActivityOptions{
+				StartToCloseTimeout: time.Minute,
+			},
+			AccountId: uuid.NewString(),
+		}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -70,6 +89,15 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
+	var activityOpts *syncactivityopts_activity.Activity
+	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
+			SyncActivityOptions: &workflow.ActivityOptions{
+				StartToCloseTimeout: time.Minute,
+			},
+			AccountId: uuid.NewString(),
+		}, nil)
+
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
@@ -79,13 +107,6 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
-	var activityOpts *syncactivityopts_activity.Activity
-	env.OnActivity(activityOpts.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
-		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
-			SyncActivityOptions: &workflow.ActivityOptions{
-				StartToCloseTimeout: time.Minute,
-			},
-		}, nil)
 	var sqlInitActivity *runsqlinittablestmts_activity.Activity
 	env.OnActivity(sqlInitActivity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
