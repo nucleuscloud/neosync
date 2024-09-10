@@ -143,32 +143,34 @@ const FormDescription = React.forwardRef<
 FormDescription.displayName = 'FormDescription';
 
 const FormMessage = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
 
-  if (!body) {
-    return null;
-  }
-
   return (
-    <div className="inline-flex flex-row items-center gap-2 text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 rounded-xl p-1 px-2">
-      <MdErrorOutline />
-      <p
-        ref={ref}
-        id={formMessageId}
-        className={cn('text-xs font-medium ', className)}
-        {...props}
-      >
-        {body}
-      </p>
+    <div
+      ref={ref}
+      id={formMessageId}
+      className={cn(
+        'h-8 mt-2 transition-all duration-200 ease-in-out',
+        error ? 'opacity-100 visible' : 'opacity-0 invisible',
+        className
+      )}
+      {...props}
+    >
+      {body && (
+        <div className="inline-flex flex-row items-center gap-2 text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 rounded-xl p-1 px-2">
+          <MdErrorOutline />
+          <p className="text-xs font-medium">{body}</p>
+        </div>
+      )}
     </div>
   );
 });
-FormMessage.displayName = 'FormMessage';
 
+FormMessage.displayName = 'FormMessage';
 export {
   Form,
   FormControl,

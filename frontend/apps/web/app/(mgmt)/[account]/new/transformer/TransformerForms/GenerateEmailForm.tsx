@@ -21,7 +21,7 @@ export default function GenerateEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4 pt-4">
+    <div className="flex flex-col w-full space-y-4">
       <div className="space-y-0.5">
         <FormLabel>Email Type</FormLabel>
         <FormDescription>
