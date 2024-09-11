@@ -72,7 +72,7 @@ export const DefineFormValues = Yup.object({
     .trim()
     .required('Name is a required field')
     .min(3, 'The Job Name must be at least 3 characters')
-    .max(100, 'The Job name cannot be more than 100 characters')
+    .max(100, 'The Job name must be less than or equal to 100 characters')
     .test(
       'checkNameUnique',
       'This name is already taken.',
@@ -304,14 +304,14 @@ export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
     .min(1, 'Must be at least 1')
-    .max(1000, 'Can be no more than 1000')
+    .max(1000, 'The number of rows must be less than or equal to 1000')
     .default(10),
   model: Yup.string().required('must provide a model name to use.'),
   userPrompt: Yup.string(),
   generateBatchSize: Yup.number()
     .required('Must provide a batch size when generating rows')
     .min(1, 'Must be at least 1')
-    .max(100, 'Can be no more than 100')
+    .max(100, 'The Batch Size must be less than or equal to 100.')
     .default(10)
     .test(
       'batch-size-num-rows',
@@ -341,14 +341,14 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
     numRows: Yup.number()
       .required('Must provide a number of rows to generate')
       .min(1, 'Must be at least 1')
-      .max(1000, 'Can be no more than 1000')
+      .max(1000, 'The number of rows must be less than or equal to 1000.')
       .default(10),
     model: Yup.string().required('must provide a model name to use.'),
     userPrompt: Yup.string(),
     generateBatchSize: Yup.number()
       .required('Must provide a batch size when generating rows')
       .min(1, 'Must be at least 1')
-      .max(100, 'Can be no more than 100')
+      .max(100, 'The Batch Size must be less than or equal to 100.')
       .default(10)
       .test(
         'batch-size-num-rows',

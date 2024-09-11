@@ -75,14 +75,8 @@ const generateInternationalPhoneNumberConfig = Yup.object({
 const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false),
   min: Yup.number()
-    .min(
-      Number.MIN_SAFE_INTEGER,
-      'The Minimum cannot be less than −9007199254740991 (−(2^53 − 1))'
-    )
-    .max(
-      Number.MAX_SAFE_INTEGER,
-      'The Maximum cannot be greater than 9007199254740991 2^53 − 1'
-    )
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER)
     .test(
       'is-less-than-or-equal-to-max',
       'Min must be less than or equal to Max',
@@ -93,14 +87,8 @@ const generateFloat64Config = Yup.object().shape({
       }
     ),
   max: Yup.number()
-    .min(
-      Number.MIN_SAFE_INTEGER,
-      'The Minimum cannot be less than −9007199254740991 (−(2^53 − 1))'
-    )
-    .max(
-      Number.MAX_SAFE_INTEGER,
-      'The Maximum cannot be greater than 9007199254740991 2^53 − 1'
-    )
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER)
     .test(
       'is-greater-than-or-equal-to-min',
       'Max must be greater than or equal to Min',
@@ -439,14 +427,12 @@ export const TransformerConfigSchema = Yup.lazy((v) => {
       case: Yup.string().required(
         'A valid transformer configuration must be provided.'
       ),
-      value: Yup.object().required('The Transformer value is required.'),
+      value: Yup.object().required(),
     });
   }
   const cconfig = KEYED_TRANSFORMER_SCHEMA_CONFIGS[ccase];
   return Yup.object({
-    case: Yup.string()
-      .required('The Transformer case is required.')
-      .oneOf([ccase]),
+    case: Yup.string().required().oneOf([ccase]),
     value: cconfig,
   });
 });
@@ -457,13 +443,9 @@ export type TransformerConfigSchema = Yup.InferType<
 >;
 
 const transformerNameSchema = Yup.string()
-  .required('The Transformer Name is required.')
-  .min(3, 'The Transformer Name must be at least 3 characters.')
-  .max(
-    100,
-    'The Transformer Name must be less than or equal to 100 characters.'
-  )
   .required()
+  .min(3, 'The name must be at least 3 characters.')
+  .max(100, 'The name must be less than or equal to 100 characters.')
   .test(
     'checkNameUnique',
     'Transformer Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
@@ -524,7 +506,7 @@ const transformerNameSchema = Yup.string()
 export const CreateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   source: Yup.number(),
-  description: Yup.string().required('Description is a required field.'),
+  description: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 
@@ -550,7 +532,7 @@ export interface CreateUserDefinedTransformerFormContext {
 
 export const EditJobMappingTransformerConfigFormValues = Yup.object({
   config: TransformerConfigSchema,
-}).required('The Transformer config is required.');
+}).required();
 export type EditJobMappingTransformerConfigFormValues = Yup.InferType<
   typeof EditJobMappingTransformerConfigFormValues
 >;
@@ -568,7 +550,7 @@ export interface EditJobMappingTransformerConfigFormContext {
 export const UpdateUserDefinedTransformerFormValues = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
-  description: Yup.string().required('The Description is required.'),
+  description: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 

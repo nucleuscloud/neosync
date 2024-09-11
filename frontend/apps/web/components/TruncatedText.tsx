@@ -1,4 +1,5 @@
 import { cn } from '@/libs/utils';
+import { TooltipContentProps } from '@radix-ui/react-tooltip';
 import { ReactElement } from 'react';
 import {
   Tooltip,
@@ -6,13 +7,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-
-type TooltipSide = 'top' | 'right' | 'bottom' | 'left';
-type TooltipAlign = 'start' | 'center' | 'end';
 interface Props {
   text: string;
-  side?: TooltipSide;
-  align?: TooltipAlign;
+  side?: TooltipContentProps['side'];
+  align?: TooltipContentProps['align'];
   truncatedContainerClassName?: string;
   hoveredContainerClassName?: string;
   maxWidth?: number;
