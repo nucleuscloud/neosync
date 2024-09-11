@@ -1,4 +1,5 @@
 import { cn } from '@/libs/utils';
+import { TooltipContentProps } from '@radix-ui/react-tooltip';
 import { ReactElement } from 'react';
 import {
   Tooltip,
@@ -6,13 +7,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-
 interface Props {
   text: string;
-
+  side?: TooltipContentProps['side'];
+  align?: TooltipContentProps['align'];
   truncatedContainerClassName?: string;
   hoveredContainerClassName?: string;
-
+  maxWidth?: number;
   delayDuration?: number;
 }
 
@@ -22,12 +23,15 @@ export default function TruncatedText(props: Props): ReactElement {
     truncatedContainerClassName,
     hoveredContainerClassName,
     delayDuration = 100,
+    side = 'top',
+    maxWidth = 200,
+    align,
   } = props;
   return (
     <TooltipProvider>
       <Tooltip delayDuration={delayDuration}>
         <TooltipTrigger asChild>
-          <div className={cn('relative max-w-[200px]')}>
+          <div className={cn(`relative max-w-[${maxWidth}px]`)}>
             <div
               className={cn(
                 'truncate font-medium',
@@ -38,7 +42,7 @@ export default function TruncatedText(props: Props): ReactElement {
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side={side} align={align}>
           <div
             className={cn('relative font-medium', hoveredContainerClassName)}
           >

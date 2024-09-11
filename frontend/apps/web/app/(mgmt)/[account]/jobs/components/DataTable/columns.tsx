@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
+import TruncatedText from '@/components/TruncatedText';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
@@ -99,7 +100,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
                   className="hover:underline"
                   href={`/${accountName}/jobs/${row.getValue('id')}`}
                 >
-                  {row.getValue('name')}
+                  <TruncatedText text={row.getValue('name')} align="start" />
                 </NextLink>
               </div>
             </span>

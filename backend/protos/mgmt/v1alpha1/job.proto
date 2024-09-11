@@ -269,7 +269,7 @@ message CreateJobRequest {
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The unique, friendly name of the job. This is unique per account
-  string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
@@ -443,7 +443,7 @@ message DeleteJobRequest {
 message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
-  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message IsJobNameAvailableResponse {

@@ -1,5 +1,6 @@
 'use client';
 
+import TruncatedText from '@/components/TruncatedText';
 import { Badge } from '@/components/ui/badge';
 import {
   formatDateTime,
@@ -39,7 +40,7 @@ export function getUserDefinedTransformerColumns(
                   className="hover:underline"
                   href={`/${accountName}/transformers/${row.original.id}`}
                 >
-                  {row.original.name}
+                  <TruncatedText text={row.original.name} align="start" />
                 </NextLink>
               </div>
             </span>

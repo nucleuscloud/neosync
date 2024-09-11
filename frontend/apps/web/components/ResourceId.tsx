@@ -20,7 +20,7 @@ export default function ResourceId(props: Props): ReactElement {
   } = props;
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-1">
+    <div className="flex flex-row items-center gap-1">
       <h3 className="text-muted-foreground text-sm">{labelText}</h3>
       <CopyButton
         onHoverText={onHoverText}

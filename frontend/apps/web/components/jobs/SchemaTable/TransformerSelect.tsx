@@ -1,3 +1,4 @@
+import TruncatedText from '@/components/TruncatedText';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -130,7 +131,9 @@ export default function TransformerSelect(props: Props): ReactElement {
                                   : 'opacity-0'
                               )}
                             />
-                            <div className="items-center">{t?.name}</div>
+                            <div className="items-center">
+                              <TruncatedText text={t?.name} maxWidth={200} />
+                            </div>
                           </div>
                         </div>
                       </CommandItem>

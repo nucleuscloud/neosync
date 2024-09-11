@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import NextLink from 'next/link';
 
+import TruncatedText from '@/components/TruncatedText';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { Connection } from '@neosync/sdk';
@@ -52,7 +53,7 @@ export function getColumns(
                 className="hover:underline"
                 href={`/${accountName}/connections/${row.getValue('id')}`}
               >
-                {row.getValue('name')}
+                <TruncatedText text={row.getValue('name')} align="start" />
               </NextLink>
             </span>
           </div>
