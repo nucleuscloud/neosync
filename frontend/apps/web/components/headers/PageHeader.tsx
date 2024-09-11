@@ -48,7 +48,7 @@ export default function PageHeader(props: Props) {
           </div>
         </div>
         {progressSteps && (
-          <div className="flex-1 flex justify-center">progressSteps</div>
+          <div className="flex-1 flex justify-center">{progressSteps}</div>
         )}
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
