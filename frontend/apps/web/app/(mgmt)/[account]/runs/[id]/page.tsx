@@ -166,7 +166,6 @@ export default function Page({ params }: PageProps): ReactElement {
         },
       });
       const runCtx = parseUint8ArrayToYaml(rcResp.value);
-      console.log('runctx', runCtx);
       if (isValidRunContext(runCtx)) {
         setActiveSelectQuery({
           schema,
