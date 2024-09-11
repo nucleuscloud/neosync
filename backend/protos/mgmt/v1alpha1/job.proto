@@ -220,6 +220,7 @@ message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
   PostgresOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
 }
 
@@ -236,6 +237,7 @@ message MysqlDestinationConnectionOptions {
   MysqlTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
   MysqlOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
 }
 message MysqlTruncateTableConfig {
@@ -251,6 +253,7 @@ message MssqlDestinationConnectionOptions {
   bool init_table_schema = 2;
   // Currently not supported and a placeholder for future implementation
   MssqlOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
   bool skip_foreign_key_violations = 4;
 }
 message MssqlTruncateTableConfig {

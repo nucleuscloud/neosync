@@ -264,7 +264,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			colValMap[col] = args[idx]
 		}
 
-		query, err := querybuilder.BuildUpdateQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, s.whereCols, colValMap)
+		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, colValMap)
 		if err != nil {
 			return err
 		}

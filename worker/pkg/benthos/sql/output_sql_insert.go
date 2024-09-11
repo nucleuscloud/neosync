@@ -281,7 +281,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), processedCols, processedRows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), columns, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, [][]any{row}, &s.onConflictDoNothing)
 		if err != nil {
 			return err
 		}
