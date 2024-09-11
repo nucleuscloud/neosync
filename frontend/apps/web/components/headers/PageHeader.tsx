@@ -33,21 +33,24 @@ export default function PageHeader(props: Props) {
         pageHeaderContainerClassName
       )}
     >
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+      <div className="flex flex-col xl:flex-row xl:items-center items-start justify-between gap-2">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
+          <div className="flex flex-row items-center gap-4">
+            <h1 className="text-2xl font-bold tracking-tight truncate   max-w-[300px] lg:max-w-[600px]">
+              {header}
+            </h1>
             {leftBadgeValue && (
-              <Badge variant="outline">{leftBadgeValue}</Badge>
+              <Badge variant="outline" className="text-nowrap">
+                {leftBadgeValue}
+              </Badge>
             )}
           </div>
         </div>
-
-        {progressSteps && (
-          <div className="flex-1 flex justify-center">{progressSteps}</div>
-        )}
-        {extraHeading ? <div>{extraHeading}</div> : null}
+        <div className="flex-1 flex justify-center">
+          {progressSteps && progressSteps}
+        </div>
+        <div>{extraHeading ? extraHeading : null}</div>
       </div>
       {subHeadings.map((subheading, ind) => (
         <div key={ind} className="text-sm">
