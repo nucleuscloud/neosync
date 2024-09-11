@@ -16,47 +16,50 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 
 ## Reference
 
-| Name                                                                              | Type    | Code                                                                                                                                                 | Description                                                                                                                      |
-| --------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| [Generate Categorical](/transformers/system#generate-categorical)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_categorical.go)                               | Randomly selects a value from a defined set of categorical values                                                                |
-| [Generate Email](/transformers/system#generate-email)                             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go)                                     | Generates a new randomized email address.                                                                                        |
-| [Transform Email](/transformers/system#transform-email)                           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_email.go)                                    | Transforms an existing email address.                                                                                            |
-| [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go)                                      | Generates a boolean value at random.                                                                                             |
-| [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go)                               | Generates a card number.                                                                                                         |
-| [Generate City](/transformers/system#generate-city)                               | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go)                                      | Randomly selects a city from a list of predefined US cities.                                                                     |
-| [Generate Default](/transformers/system#generate-default)                         | any     | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Applies the predefined default value of a column as specified in the SQL database schema                                         |
-| [Generate E164 Phone Number](/transformers/system#generate-e164-phone-number)     | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go)                                | Generates a Generate phone number in e164 format.                                                                                |
-| [Generate First Name](/transformers/system#generate-first-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go)                                | Generates a random first name.                                                                                                   |
-| [Generate Float64](/transformers/system#generate-float64)                         | float64 | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go)                                     | Generates a random float64 value.                                                                                                |
-| [Generate Full Address](/transformers/system#generate-full-address)               | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_address.go)                              | Randomly generates a street address.                                                                                             |
-| [Generate Full Name](/transformers/system#generate-full-name)                     | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_name.go)                                 | Generates a new full name consisting of a first and last name.                                                                   |
-| [Generate Gender](/transformers/system#generate-gender)                           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go)                                    | Randomly generates one of the following genders: female, male, undefined, nonbinary.                                             |
-| [Generate Int64 Phone Number](/transformers/system#generate-int64-phone-number)   | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_164_phone.go)                                 | Generates a new phone number of type int64 with a default length of 10.                                                          |
-| [Generate Random Int64](/transformers/system#generate-random-int64)               | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_int.go)                                       | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
-| [Generate Last Name](/transformers/system#generate-last-name)                     | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_last_name.go)                                 | Generates a random last name.                                                                                                    |
-| [Generate SHA256 Hash](/transformers/system#generate-sha256-hash)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_sha256hash.go)                                | SHA256 hashes a randomly generated value.                                                                                        |
-| [Generate SSN](/transformers/system#generate-ssn)                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_ssn.go)                                       | Generates a completely random social security numbers including the hyphens in the format `xxx-xx-xxxx`.                         |
-| [Generate State](/transformers/system#generate-state)                             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_state.go)                                     | Randomly selects a US state and returns the two-character state code.                                                            |
-| [Generate Street Address](/transformers/system#generate-street-address)           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_street_address.go)                            | Randomly generates a street address.                                                                                             |
-| [Generate String Phone Number](/transformers/system#generate-string-phone-number) | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string_phone.go)                              | Generates a Generate phone number and returns it as a string.                                                                    |
-| [Generate Random String](/transformers/system#generate-random-string)             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string.go)                                    | Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.       |
-| [Generate Unix Timestamp](/transformers/system#generate-unix-timestamp)           | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_unixtimestamp.go)                             | Randomly generates a Unix timestamp.                                                                                             |
-| [Generate Username](/transformers/system#generate-username)                       | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_username.go)                                  | Randomly generates a username                                                                                                    |
-| [Generate UTC Timestamp](/transformers/system#generate-utc-timestamp)             | time    | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_utctimestamp.go)                              | Randomly generates a UTC timestamp.                                                                                              |
-| [Generate UUID](/transformers/system#generate-uuid)                               | uuid    | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_uuid.go)                                      | Generates a new UUIDv4 id.                                                                                                       |
-| [Generate Zipcode](/transformers/system#generate-zipcode)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_zipcode.go)                                   | Randomly selects a zip code from a list of predefined US zipcodes.                                                               |
-| [Transform E164 Phone Number](/transformers/system#transform-e164-phone-number)   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_e164_phone.go)                               | Transforms an existing E164 formatted phone number.                                                                              |
-| [Transform First Name](/transformers/system#transform-first-name)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_first_name.go)                               | Transforms an existing first name                                                                                                |
-| [Transform Float64](/transformers/system#transform-float64)                       | float64 | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_float.go)                                    | Transforms an existing float value.                                                                                              |
-| [Transform Full Name](/transformers/system#transform-full-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_full_name.go)                                | Transforms an existing full name.                                                                                                |
-| [Transform Int64 Phone Number](/transformers/system#transform-int64-phone-number) | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int_phone.go)                                | Transforms an existing phone number that is typed as an integer                                                                  |
-| [Transform Int64](/transformers/system#transform-int64)                           | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int.go)                                      | Transforms an existing integer value.                                                                                            |
-| [Transform Last Name](/transformers/system#transform-last-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go)                                | Transforms an existing last name.                                                                                                |
-| [Transform Phone Number](/transformers/system#transform-phone-number)             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go)                                    | Transforms an existing phone number that is typed as a string.                                                                   |
-| [Transform String](/transformers/system#transform-string)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go)                                   | Transforms an existing string value.                                                                                             |
-| [Transform Character Scramble](/transformers/system#transform-character-scramble) | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_character_scramble.go)                       | Transforms an existing string value by scrambling the characters while maintaining the format.                                   |
-| [Passthrough](/transformers/system#passthrough)                                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Passes the input value through to the destination with no changes.                                                               |
-| [Null](/transformers/system#null)                                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Inserts a `null` string instead of the source value.                                                                             |
+| Name                                                                              | Type    | Description                                                                                                                      |
+| --------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [Generate Categorical](/transformers/system#generate-categorical)                 | string  | Randomly selects a value from a defined set of categorical values                                                                |
+| [Generate Email](/transformers/system#generate-email)                             | string  | Generates a new randomized email address.                                                                                        |
+| [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | Generates a boolean value at random.                                                                                             |
+| [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | Generates a card number.                                                                                                         |
+| [Generate City](/transformers/system#generate-city)                               | string  | Randomly selects a city from a list of predefined US cities.                                                                     |
+| [Generate Country](/transformers/system#generate-country)                         | string  | Randomly selects a country and returns it as a 2-letter country code or the full country name                                    |
+| [Generate E164 Phone Number](/transformers/system#generate-e164-phone-number)     | string  | Generates a Generate phone number in e164 format.                                                                                |
+| [Generate First Name](/transformers/system#generate-first-name)                   | string  | Generates a random first name.                                                                                                   |
+| [Generate Float64](/transformers/system#generate-float64)                         | float64 | Generates a random float64 value.                                                                                                |
+| [Generate Full Address](/transformers/system#generate-full-address)               | string  | Randomly generates a street address.                                                                                             |
+| [Generate Full Name](/transformers/system#generate-full-name)                     | string  | Generates a new full name consisting of a first and last name.                                                                   |
+| [Generate Gender](/transformers/system#generate-gender)                           | string  | Randomly generates one of the following genders: female, male, undefined, nonbinary.                                             |
+| [Generate Javascript](/transformers/system#generate-javascript)                   | any     | Executes provided javascript code in the transformer for every row                                                               |
+| [Generate Int64 Phone Number](/transformers/system#generate-int64-phone-number)   | int64   | Generates a new phone number of type int64 with a default length of 10.                                                          |
+| [Generate Random Int64](/transformers/system#generate-random-int64)               | int64   | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
+| [Generate Last Name](/transformers/system#generate-last-name)                     | int64   | Generates a random last name.                                                                                                    |
+| [Generate SHA256 Hash](/transformers/system#generate-sha256-hash)                 | string  | SHA256 hashes a randomly generated value.                                                                                        |
+| [Generate SSN](/transformers/system#generate-ssn)                                 | string  | Generates a completely random social security numbers including the hyphens in the format `xxx-xx-xxxx`.                         |
+| [Generate State](/transformers/system#generate-state)                             | string  | Randomly selects a US state and returns the two-character state code.                                                            |
+| [Generate Street Address](/transformers/system#generate-street-address)           | string  | Randomly generates a street address.                                                                                             |
+| [Generate String Phone Number](/transformers/system#generate-string-phone-number) | string  | Generates a Generate phone number and returns it as a string.                                                                    |
+| [Generate Random String](/transformers/system#generate-random-string)             | string  | Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.       |
+| [Generate Unix Timestamp](/transformers/system#generate-unix-timestamp)           | int64   | Randomly generates a Unix timestamp.                                                                                             |
+| [Generate Username](/transformers/system#generate-username)                       | string  | Randomly generates a username                                                                                                    |
+| [Generate UTC Timestamp](/transformers/system#generate-utc-timestamp)             | time    | Randomly generates a UTC timestamp.                                                                                              |
+| [Generate UUID](/transformers/system#generate-uuid)                               | uuid    | Generates a new UUIDv4 id.                                                                                                       |
+| [Generate Zip code](/transformers/system#generate-zipcode)                        | string  | Randomly selects a zip code from a list of predefined US zip codes.                                                              |
+| [Transform Email](/transformers/system#transform-email)                           | string  | Transforms an existing email address.                                                                                            |
+| [Transform E164 Phone Number](/transformers/system#transform-e164-phone-number)   | string  | Transforms an existing E164 formatted phone number.                                                                              |
+| [Transform First Name](/transformers/system#transform-first-name)                 | string  | Transforms an existing first name                                                                                                |
+| [Transform Float64](/transformers/system#transform-float64)                       | float64 | Transforms an existing float value.                                                                                              |
+| [Transform Full Name](/transformers/system#transform-full-name)                   | string  | Transforms an existing full name.                                                                                                |
+| [Transform Int64 Phone Number](/transformers/system#transform-int64-phone-number) | int64   | Transforms an existing phone number that is typed as an integer                                                                  |
+| [Transform Int64](/transformers/system#transform-int64)                           | int64   | Transforms an existing integer value.                                                                                            |
+| [Transform Javascript](/transformers/system#transform-javascript)                 | any     | Executes user-provided javascript in on the input value.                                                                         |
+| [Transform Last Name](/transformers/system#transform-last-name)                   | string  | Transforms an existing last name.                                                                                                |
+| [Transform Phone Number](/transformers/system#transform-phone-number)             | string  | Transforms an existing phone number that is typed as a string.                                                                   |
+| [Transform String](/transformers/system#transform-string)                         | string  | Transforms an existing string value.                                                                                             |
+| [Transform Character Scramble](/transformers/system#transform-character-scramble) | string  | Transforms an existing string value by scrambling the characters while maintaining the format.                                   |
+| [Passthrough](/transformers/system#passthrough)                                   | string  | Passes the input value through to the destination with no changes.                                                               |
+| [Null](/transformers/system#null)                                                 | string  | Inserts a `null` string instead of the source value.                                                                             |
+| [Use Column Default](/transformers/system#use-column-default)                     | any     | Applies the predefined default value of a column as specified in the SQL database schema                                         |
 
 ### Generate Categorical\{#generate-categorical}
 
@@ -110,20 +113,6 @@ There are no configurations for this transformer.
 | `9cd@msn.com`         |
 | `mDy@gmail.edu `      |
 | `fweq23f@hotmail.com` |
-
-### Transform Email\{#transform-email}
-
-The transform email transformer can anonymize an existing email address or generate a new randomized email address in the format:
-
-`<username>@<domain>.<top-level-domain>`
-
-By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
-
-For example, the following input value:
-`john@acme.com`
-
-Would produce the following output value:
-`ytvub873@gmail.com`
 
 **Configurations**
 
@@ -191,7 +180,7 @@ Here are some examples of an output card number:
 
 ### Generate City\{#generate-city}
 
-The generate city transformers generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+The generate city transformer generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
 If you'd rather not get back a real city value, you can use the [Generate Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
 
@@ -208,9 +197,24 @@ Here are some examples of what an output City value may look like.
 | Louisville     |
 | Manchester     |
 
-### Generate Default\{#generate-default}
+### Generate Country\{#generate-country}
 
-The generate default transformer automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database.
+The generate country transformer generates a randomly selected country. It can return it in either a 2-letter country code format or the full country name.
+
+**Configurations**
+
+| Name      | Description                                                | Default | Example Output |
+| --------- | ---------------------------------------------------------- | ------- | -------------- |
+| Full Name | If true, the transformer will return the full country name | false   | AL             |
+
+**Examples**
+
+Here are some examples of what an output City value may look like.
+
+| Example Output |
+| -------------- |
+| Louisville     |
+| Manchester     |
 
 ### Generate E164 Phone Number\{#generate-e164-phone-number}
 
@@ -218,7 +222,7 @@ The generate e164 phone transformer generates a new international phone number i
 
 `+34567890123`
 
-TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set the range of the value by setting the `min` and `max` params. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
+Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set the range of the value by setting the `min` and `max` params. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
 
 **Configurations**
 
@@ -386,6 +390,16 @@ Here are some examples of what the output values could look like:
 | -------------- |
 | 5209273239     |
 | 9378463528     |
+
+### Generate Javascript\{#generate-javascript}
+
+The generate javascript transformer allows the user to define some javascript code and then execute that on every row that they are generating.
+
+**Configurations**
+
+| Name | Description                               | Default         | Example Output |
+| ---- | ----------------------------------------- | --------------- | -------------- |
+| Code | The javascript code that will be executed | `return 'test'` | `test`         |
 
 ### Generate Random Int64\{#generate-random-int64}
 
@@ -666,6 +680,26 @@ Here are some examples of what an output zipcode value may look like.
 | 27563          |
 | 90237          |
 
+### Transform Email\{#transform-email}
+
+The transform email transformer can anonymize an existing email address or generate a new randomized email address in the format:
+
+`<username>@<domain>.<top-level-domain>`
+
+By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output email address. The transform email transformer has the following configurations:
+
+| Name                 | Description                                                                                       | Default | Example Input   | Example Output                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ------- | --------------- | ---------------------------------------------- |
+| Preserve Length      | Preserve Length will ensure that the output email is the same length as the input                 | false   | john@gmail      | william@gmail.com                              |
+| Preserve Domain      | Preserve Domain will ensure that the output email domain is the same as the input email domain    | false   | john@gmail      | william@yahoo.com                              |
+| Excluded Domains     | Takes in a list of comma separated domains and excludes them from the transformer                 | []      | @gmail          | william@gmail.com                              |
+| Email Type           | Provides a way to generate unique email addresses by appending a UUID to the domain               | uuid_v4 | john@gmail      | ab6b676b-0d0e-4e38-b98a-3935a832da7d@gmail.com |
+| Invalid Email Action | Provide a way for Neosync to handle email strings that are not formatted as valid email addresses | reject  | john@gmail..com |                                                |
+
 ### Transform E164 Phone Number\{#transform-e164-phone-number}
 
 The transform e164 phone transformer can anonymize an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
@@ -825,6 +859,36 @@ There are several ways you can mix-and-match configurations to get different pot
 | 10                 | 70                 | 23            | 91             |
 | 20                 | 90                 | 30            | 27             |
 
+### Transform Javascript\{#transform-javascript}
+
+The transform javascript transformer execute user provided code on the incoming input value. It's a very flexible way to transform the incoming input value however you'd like.
+
+For example:
+
+```js
+function append(value) {
+  return value + 'this_is_transformed';
+}
+
+return append(value);
+```
+
+**Configurations**
+
+| Name | Description            | Default               |
+| ---- | ---------------------- | --------------------- |
+| Code | The user provided code | `return value + test` |
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
+
+| Relative Range Min | Relative Range Max | Example Input | Example Output |
+| ------------------ | ------------------ | ------------- | -------------- |
+| 5                  | 5                  | 10            | 15             |
+| 10                 | 70                 | 23            | 91             |
+| 20                 | 90                 | 30            | 27             |
+
 ### Transform Last Name\{#transform-last-name}
 
 The transform last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
@@ -950,6 +1014,22 @@ Here are some examples of what an output null value may look like.
 | Example Input | Example Output |
 | ------------- | -------------- |
 | N/A           | null           |
+
+### Use Column Default\{#use-column-default}
+
+The use column default transformer automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database. This is typically used in conjunction with `GENERATED` columns.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+Here are some examples of what an output null value may look like.
+
+| Example Input | Example Output |
+| ------------- | -------------- |
+| 1             | 1              |
 
 ## Works-in-progress
 
