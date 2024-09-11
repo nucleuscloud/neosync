@@ -145,6 +145,7 @@ These environment variables are loaded when running the `worker serve` command w
 | OTEL_SERVICE_VERSION               | The version of the service that will be used with for reporting                                                                                                                                                            | false       |                |
 | OTEL_TRACES_EXPORTER               | The exporter that will be used. Allowed: otlp, console, none. If otlp, uses grpc.                                                                                                                                          | false       | otlp           |
 | OTEL_METRICS_EXPORTER              | The exporter that will be used. Allowed: otlp, console, none. If otlp, uses grpc                                                                                                                                           | false       | otlp           |
+| CHECK_ACCOUNT_TIMER_SECONDS        | An integer in seconds for how frequently the account status should be verified                                                                                                                                             | false       | 5              |
 
 ## CLI
 
