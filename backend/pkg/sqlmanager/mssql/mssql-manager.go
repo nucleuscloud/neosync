@@ -261,7 +261,7 @@ func BuildMssqlDeleteStatement(
 
 func BuildMssqlIdentityColumnResetStatement(
 	schema, table, identityGeneration string,
-) *string {
+) string {
 	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
 	match := re.FindStringSubmatch(identityGeneration)
 	if len(match) > 1 {
@@ -275,5 +275,11 @@ func BuildMssqlIdentityColumnResetStatement(
 		resetStmt := fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
 		return &resetStmt
 	}
-	return nil
+	return BuildMssqlIdentityColumnResetCurrent(schema, table)
+}
+
+func BuildMssqlIdentityColumnResetCurrent(
+	schema, table string,
+) string {
+	return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED)", schema, table)
 }
