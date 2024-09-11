@@ -2,6 +2,8 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -247,10 +249,21 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
-			mappings = append(mappings, fmt.Sprintf("meta neosync_%s_%s_%s = this.%q", col.Schema, col.Table, col.Column, col.Column))
+			mappings = append(mappings, fmt.Sprintf("meta %s = this.%q", hashPrimaryKeyMetaKey(col.Schema, col.Table, col.Column), col.Column))
 		}
 	}
 	return strings.Join(mappings, "\n")
+}
+
+func hashPrimaryKeyMetaKey(schema, table, column string) string {
+	return generateSha256Hash(fmt.Sprintf("neosync_%s_%s_%s", schema, table, column))
+}
+
+func generateSha256Hash(input string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(input))
+	hashBytes := hasher.Sum(nil)
+	return hex.EncodeToString(hashBytes)
 }
 
 func buildBranchCacheConfigs(
