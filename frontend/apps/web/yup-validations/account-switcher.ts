@@ -5,7 +5,7 @@ export const CreateTeamFormValues = Yup.object({
   name: Yup.string()
     .required('The Name is required.')
     .min(3, 'The Name must be at least 3 characters.')
-    .max(30, 'The Name cannot be greater than 30 characters.')
+    .max(100, 'The Name must be less than or equal to 100 characters.')
     .test(
       'valid account name',
       'Account Name must be of length 3-30 and only include lowercased letters, numbers, and/or hyphens.',

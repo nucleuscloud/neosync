@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 
 message CreateAccountApiKeyRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Validate between now and one year: now < x < 365 days
   google.protobuf.Timestamp expires_at = 3 [
     (buf.validate.field).required = true,

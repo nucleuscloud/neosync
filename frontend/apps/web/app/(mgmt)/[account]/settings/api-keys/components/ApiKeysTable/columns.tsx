@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import NextLink from 'next/link';
 
+import TruncatedText from '@/components/TruncatedText';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -48,7 +49,7 @@ export function getColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('name')}
+              <TruncatedText text={row.getValue('name')} align="start" />
             </span>
           </div>
         );

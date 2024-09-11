@@ -1770,6 +1770,11 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
    */
   onConflict?: PostgresOnConflictConfig;
 
+  /**
+   * @generated from field: bool skip_foreign_key_violations = 4;
+   */
+  skipForeignKeyViolations = false;
+
   constructor(data?: PartialMessage<PostgresDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1781,6 +1786,7 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
     { no: 1, name: "truncate_table", kind: "message", T: PostgresTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: PostgresOnConflictConfig },
+    { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresDestinationConnectionOptions {
@@ -1890,18 +1896,19 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
   truncateTable?: MysqlTruncateTableConfig;
 
   /**
-   * Currently not supported and a placeholder for future implementation
-   *
    * @generated from field: bool init_table_schema = 2;
    */
   initTableSchema = false;
 
   /**
-   * Currently not supported and a placeholder for future implementation
-   *
    * @generated from field: mgmt.v1alpha1.MysqlOnConflictConfig on_conflict = 3;
    */
   onConflict?: MysqlOnConflictConfig;
+
+  /**
+   * @generated from field: bool skip_foreign_key_violations = 4;
+   */
+  skipForeignKeyViolations = false;
 
   constructor(data?: PartialMessage<MysqlDestinationConnectionOptions>) {
     super();
@@ -1914,6 +1921,7 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
     { no: 1, name: "truncate_table", kind: "message", T: MysqlTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MysqlOnConflictConfig },
+    { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlDestinationConnectionOptions {
@@ -2017,14 +2025,23 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
   truncateTable?: MssqlTruncateTableConfig;
 
   /**
+   * Currently not supported and a placeholder for future implementation
+   *
    * @generated from field: bool init_table_schema = 2;
    */
   initTableSchema = false;
 
   /**
+   * Currently not supported and a placeholder for future implementation
+   *
    * @generated from field: mgmt.v1alpha1.MssqlOnConflictConfig on_conflict = 3;
    */
   onConflict?: MssqlOnConflictConfig;
+
+  /**
+   * @generated from field: bool skip_foreign_key_violations = 4;
+   */
+  skipForeignKeyViolations = false;
 
   constructor(data?: PartialMessage<MssqlDestinationConnectionOptions>) {
     super();
@@ -2037,6 +2054,7 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
     { no: 1, name: "truncate_table", kind: "message", T: MssqlTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "on_conflict", kind: "message", T: MssqlOnConflictConfig },
+    { no: 4, name: "skip_foreign_key_violations", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MssqlDestinationConnectionOptions {

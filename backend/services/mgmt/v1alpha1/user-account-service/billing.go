@@ -32,13 +32,18 @@ func (s *Service) GetAccountStatus(
 
 	if s.cfg.IsNeosyncCloud {
 		if account.AccountType == int16(dtomaps.AccountType_Personal) {
-			usedRecordCount, err := s.getUsedRecordCountForMonth(ctx, req.Msg.GetAccountId(), logger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to retrieve used record count for month: %w", err)
+			allowedRecordCount := getAllowedRecordCount(account.MaxAllowedRecords)
+			var usedRecordCount uint64
+			if allowedRecordCount != nil && *allowedRecordCount > 0 {
+				count, err := s.getUsedRecordCountForMonth(ctx, req.Msg.GetAccountId(), logger)
+				if err != nil {
+					return nil, fmt.Errorf("unable to retrieve used record count for month: %w", err)
+				}
+				usedRecordCount = count
 			}
 			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
 				UsedRecordCount:    usedRecordCount,
-				AllowedRecordCount: getAllowedRecordCount(account.MaxAllowedRecords),
+				AllowedRecordCount: allowedRecordCount,
 				SubscriptionStatus: 0,
 			}), nil
 		}

@@ -66,9 +66,14 @@ func newBenthosBuilder(
 	}
 }
 
+type workflowMetadata struct {
+	WorkflowId string
+}
+
 func (b *benthosBuilder) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
+	wfmetadata *workflowMetadata,
 	slogger *slog.Logger,
 ) (*GenerateBenthosConfigsResponse, error) {
 	job, err := b.getJobById(ctx, req.JobId)
@@ -162,13 +167,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if resp.RunType == tabledependency.RunTypeUpdate {
 					continue
 				}
-				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, req.WorkflowId)
+				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, wfmetadata.WorkflowId)
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
 			case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 				if resp.RunType == tabledependency.RunTypeUpdate {
 					continue
 				}
-				output := b.getGcpCloudStorageSyncBenthosOutput(connection, resp, req.WorkflowId)
+				output := b.getGcpCloudStorageSyncBenthosOutput(connection, resp, wfmetadata.WorkflowId)
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, output...)
 			case *mgmtv1alpha1.ConnectionConfig_MongoConfig:
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.GetId()})

@@ -52,6 +52,7 @@ export default function DestinationOptionsForm(
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
                       truncateCascade: false,
+                      skipForeignKeyViolations: false,
                     }),
 
                     truncateBeforeInsert: newVal,
@@ -77,6 +78,7 @@ export default function DestinationOptionsForm(
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
                       truncateCascade: false,
+                      skipForeignKeyViolations: false,
                     }),
 
                     truncateBeforeInsert:
@@ -104,6 +106,7 @@ export default function DestinationOptionsForm(
                         onConflictDoNothing: false,
                         truncateBeforeInsert: false,
                         truncateCascade: false,
+                        skipForeignKeyViolations: false,
                       }),
 
                       initTableSchema: newVal ?? false,
@@ -128,6 +131,7 @@ export default function DestinationOptionsForm(
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
                       truncateCascade: false,
+                      skipForeignKeyViolations: false,
                     }),
 
                     onConflictDoNothing: newVal,
@@ -136,6 +140,29 @@ export default function DestinationOptionsForm(
               }}
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
+            />
+          </div>
+          <div>
+            <SwitchCard
+              isChecked={value.postgres?.skipForeignKeyViolations ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  postgres: {
+                    ...(value.postgres ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                      skipForeignKeyViolations: false,
+                    }),
+
+                    skipForeignKeyViolations: newVal,
+                  },
+                });
+              }}
+              title="Skip Foreign Key Violations"
+              description="Insert all valid records, bypassing any that violate foreign key constraints."
             />
           </div>
         </div>
@@ -154,6 +181,7 @@ export default function DestinationOptionsForm(
                       initTableSchema: false,
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
+                      skipForeignKeyViolations: false,
                     }),
 
                     truncateBeforeInsert: newVal,
@@ -175,6 +203,7 @@ export default function DestinationOptionsForm(
                       initTableSchema: false,
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
+                      skipForeignKeyViolations: false,
                     }),
                     initTableSchema: newVal,
                   },
@@ -195,6 +224,7 @@ export default function DestinationOptionsForm(
                       initTableSchema: false,
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
+                      skipForeignKeyViolations: false,
                     }),
                     onConflictDoNothing: newVal,
                   },
@@ -202,6 +232,29 @@ export default function DestinationOptionsForm(
               }}
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
+            />
+          </div>
+          <div>
+            <SwitchCard
+              isChecked={value.mysql?.skipForeignKeyViolations ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  mysql: {
+                    ...(value.mysql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                      skipForeignKeyViolations: false,
+                    }),
+
+                    skipForeignKeyViolations: newVal,
+                  },
+                });
+              }}
+              title="Skip Foreign Key Violations"
+              description="Insert all valid records, bypassing any that violate foreign key constraints."
             />
           </div>
         </div>
@@ -265,6 +318,7 @@ export default function DestinationOptionsForm(
                       initTableSchema: false,
                       onConflictDoNothing: false,
                       truncateBeforeInsert: false,
+                      skipForeignKeyViolations: false,
                     }),
 
                     truncateBeforeInsert: newVal,
@@ -314,6 +368,29 @@ export default function DestinationOptionsForm(
               title="On Conflict Do Nothing"
               description="If there is a conflict when inserting data do not insert"
             /> */}
+          </div>
+          <div>
+            <SwitchCard
+              isChecked={value.mssql?.skipForeignKeyViolations ?? false}
+              onCheckedChange={(newVal) => {
+                setValue({
+                  ...value,
+                  mssql: {
+                    ...(value.mssql ?? {
+                      initTableSchema: false,
+                      onConflictDoNothing: false,
+                      truncateBeforeInsert: false,
+                      truncateCascade: false,
+                      skipForeignKeyViolations: false,
+                    }),
+
+                    skipForeignKeyViolations: newVal,
+                  },
+                });
+              }}
+              title="Skip Foreign Key Violations"
+              description="Insert all valid records, bypassing any that violate foreign key constraints."
+            />
           </div>
         </div>
       );
