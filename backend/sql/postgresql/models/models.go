@@ -1662,7 +1662,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		j.PostgresOptions = &PostgresDestinationOptions{
 			InitTableSchema:          config.PostgresOptions.InitTableSchema,
 			TruncateTableConfig:      truncateCfg,
-			SkipForeignKeyViolations: config.PostgresOptions.InitTableSchema,
+			SkipForeignKeyViolations: config.PostgresOptions.SkipForeignKeyViolations,
 		}
 		if config.PostgresOptions.OnConflict != nil {
 			onConflictCfg := &PostgresOnConflictConfig{}
