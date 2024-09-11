@@ -23,6 +23,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
+	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -202,6 +203,7 @@ func serve(ctx context.Context) error {
 
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl)
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl)
@@ -221,6 +223,7 @@ func serve(ctx context.Context) error {
 	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClient, syncActivityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	accountStatusActivity := accountstatus_activity.New(userclient)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
@@ -228,6 +231,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	w.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
+	w.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("unable to start temporal worker: %w", err)

@@ -157,7 +157,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
@@ -258,7 +258,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
@@ -389,7 +389,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
@@ -528,7 +528,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
@@ -673,7 +673,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
@@ -784,7 +784,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		&RunSqlInitTableStatementsRequest{JobId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)

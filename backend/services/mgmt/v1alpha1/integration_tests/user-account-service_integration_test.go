@@ -377,6 +377,18 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
 }
 
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal_Unlimited() {
+	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+
+	resp, err := s.neosyncCloudClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+		AccountId: accountId,
+	}))
+	requireNoErrResp(s.T(), resp, err)
+
+	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(0))
+	require.Nil(s.T(), resp.Msg.AllowedRecordCount)
+}
+
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Personal() {
 	accountId := s.createPersonalAccount(s.unauthdClients.users)
 
