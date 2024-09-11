@@ -15,16 +15,11 @@
     "no-console": [
       "error",
       {
-        "allow": [
-          "error",
-          "warn"
-        ]
+        "allow": ["error", "warn"]
       }
     ],
     "@typescript-eslint/no-explicit-any": "error"
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "parser": "@typescript-eslint/parser"
 }
