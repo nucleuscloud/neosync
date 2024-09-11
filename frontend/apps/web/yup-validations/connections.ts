@@ -76,7 +76,7 @@ const connectionNameSchema = Yup.string()
 export const SshTunnelFormValues = Yup.object({
   host: Yup.string(),
   port: Yup.number()
-    .min(0, 'The Port must be greater than 0.')
+    .min(0, 'The Port must be greater than or equal to 0.')
     .when('host', (host, schema) =>
       host
         ? schema.required('The Port is required when there is a Host.')
