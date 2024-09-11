@@ -190,7 +190,7 @@ func AnyToInt64(value any) (int64, error) {
 		if v > math.MaxInt64 {
 			return 0, fmt.Errorf("value %d overflows int64", v)
 		}
-		return int64(v), nil //nolint:gosec // Ignoring for now
+		return int64(v), nil
 	default:
 		return 0, fmt.Errorf("unsupported type: %T", value)
 	}
