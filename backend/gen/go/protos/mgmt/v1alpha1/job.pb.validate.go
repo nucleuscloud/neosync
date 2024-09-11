@@ -4690,6 +4690,8 @@ func (m *PostgresDestinationConnectionOptions) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for SkipForeignKeyViolations
+
 	if len(errors) > 0 {
 		return PostgresDestinationConnectionOptionsMultiError(errors)
 	}
@@ -5066,6 +5068,8 @@ func (m *MysqlDestinationConnectionOptions) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for SkipForeignKeyViolations
+
 	if len(errors) > 0 {
 		return MysqlDestinationConnectionOptionsMultiError(errors)
 	}
@@ -5438,6 +5442,8 @@ func (m *MssqlDestinationConnectionOptions) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for SkipForeignKeyViolations
 
 	if len(errors) > 0 {
 		return MssqlDestinationConnectionOptionsMultiError(errors)

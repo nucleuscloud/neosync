@@ -49,11 +49,11 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import TransformerForm from './TransformerForms/TransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
-} from './transform-form-validations';
+} from '../../../../../yup-validations/transformer-validations';
+import TransformerForm from './TransformerForms/TransformerForm';
 
 function getTransformerSource(sourceStr: string): TransformerSource {
   const sourceNum = parseInt(sourceStr, 10);
@@ -172,7 +172,7 @@ export default function NewTransformer(): ReactElement {
       containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="source"
@@ -255,7 +255,7 @@ export default function NewTransformer(): ReactElement {
                   </FormItem>
                 )}
               />
-              <div className="pt-10">
+              <div>
                 <FormField
                   control={form.control}
                   name="description"
@@ -302,7 +302,7 @@ export default function NewTransformer(): ReactElement {
               )}
             />
           </div>
-          <div className="flex flex-row justify-end">
+          <div className="flex flex-row justify-end pt-10">
             <Button type="submit" disabled={!form.formState.isValid}>
               Submit
             </Button>

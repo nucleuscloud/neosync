@@ -13,6 +13,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -27,6 +28,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringListField("columns")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
+		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
@@ -93,14 +95,15 @@ type pooledInsertOutput struct {
 	db       mysql_queries.DBTX
 	logger   *service.Logger
 
-	schema              string
-	table               string
-	columns             []string
-	identityColumns     []string
-	onConflictDoNothing bool
-	truncateOnRetry     bool
-	prefix              *string
-	suffix              *string
+	schema                   string
+	table                    string
+	columns                  []string
+	identityColumns          []string
+	onConflictDoNothing      bool
+	skipForeignKeyViolations bool
+	truncateOnRetry          bool
+	prefix                   *string
+	suffix                   *string
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -133,6 +136,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
+	if err != nil {
+		return nil, err
+	}
+
+	skipForeignKeyViolations, err := conf.FieldBool("skip_foreign_key_violations")
 	if err != nil {
 		return nil, err
 	}
@@ -177,21 +185,22 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	output := &pooledInsertOutput{
-		driver:              driver,
-		dsn:                 dsn,
-		logger:              mgr.Logger(),
-		shutSig:             shutdown.NewSignaller(),
-		argsMapping:         argsMapping,
-		provider:            provider,
-		schema:              schema,
-		table:               table,
-		columns:             columns,
-		identityColumns:     identityColumns,
-		onConflictDoNothing: onConflictDoNothing,
-		truncateOnRetry:     truncateOnRetry,
-		prefix:              prefix,
-		suffix:              suffix,
-		isRetry:             isRetry,
+		driver:                   driver,
+		dsn:                      dsn,
+		logger:                   mgr.Logger(),
+		shutSig:                  shutdown.NewSignaller(),
+		argsMapping:              argsMapping,
+		provider:                 provider,
+		schema:                   schema,
+		table:                    table,
+		columns:                  columns,
+		identityColumns:          identityColumns,
+		onConflictDoNothing:      onConflictDoNothing,
+		skipForeignKeyViolations: skipForeignKeyViolations,
+		truncateOnRetry:          truncateOnRetry,
+		prefix:                   prefix,
+		suffix:                   suffix,
+		isRetry:                  isRetry,
 	}
 	return output, nil
 }
@@ -274,8 +283,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	fmt.Println("HERE")
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
-	fmt.Println("processed rows")
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), processedCols, processedRows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
@@ -290,8 +298,41 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	fmt.Println()
 	fmt.Println(query)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
-		return err
+		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+			return err
+		}
+		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func (s *pooledInsertOutput) RetryInsertRowByRow(
+	ctx context.Context,
+	columns []string,
+	rows [][]any,
+) error {
+	errorCount := 0
+	insertCount := 0
+	for _, row := range rows {
+		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, [][]any{row}, &s.onConflictDoNothing)
+		if err != nil {
+			return err
+		}
+		query := s.buildQuery(insertQuery)
+		_, err = s.db.ExecContext(ctx, query)
+		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+			errorCount++
+		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+			return err
+		}
+		if err == nil {
+			insertCount++
+		}
+	}
+	s.logger.Infof("Completed batch insert with %d foreign key violations. Skipped rows: %d, Successfully inserted: %d", errorCount, errorCount, insertCount)
 	return nil
 }
 

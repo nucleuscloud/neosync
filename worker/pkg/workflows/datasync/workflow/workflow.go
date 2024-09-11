@@ -1,18 +1,21 @@
 package datasync_workflow
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"sync"
 	"time"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
+	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -26,78 +29,69 @@ type WorkflowRequest struct {
 
 type WorkflowResponse struct{}
 
-func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
-	wfinfo := workflow.GetInfo(wfctx)
+var (
+	invalidAccountStatusError = errors.New("exiting workflow due to invalid account status")
+)
 
-	ctx := workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
+func withGenerateBenthosConfigsActivityOptions(ctx workflow.Context) workflow.Context {
+	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
 		HeartbeatTimeout: 1 * time.Minute,
 	})
+}
+
+func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+	ctx, cancelHandler := workflow.WithCancel(wfctx)
 	logger := workflow.GetLogger(ctx)
 
 	logger = log.With(logger, "jobId", req.JobId)
 	logger.Info("data sync workflow starting")
 
-	workflowMetadata := &shared.WorkflowMetadata{
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-		RunId:      wfinfo.WorkflowExecution.RunID,
+	actOptResp, err := retrieveActivityOptions(ctx, req.JobId, logger)
+	if err != nil {
+		return nil, err
 	}
+	logger = log.With(
+		logger,
+		"accountId", actOptResp.AccountId,
+	)
 
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
-	err := workflow.ExecuteActivity(ctx, genbenthosactivity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-	}).Get(ctx, &bcResp)
+	err = workflow.ExecuteActivity(
+		withGenerateBenthosConfigsActivityOptions(ctx),
+		genbenthosactivity.GenerateBenthosConfigs,
+		&genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
+			JobId: req.JobId,
+		}).
+		Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
 	}
-	logger = log.With(logger, "accountId", bcResp.AccountId)
 
 	if len(bcResp.BenthosConfigs) == 0 {
 		logger.Info("found 0 benthos configs, ending workflow.")
 		return &WorkflowResponse{}, nil
 	}
 
-	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
-
-	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
-	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 1 * time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 2,
-		},
-		HeartbeatTimeout: 1 * time.Minute,
-	})
-	logger.Info("scheduling RetrieveActivityOptions for execution.")
-	var activityOptsActivity *syncactivityopts_activity.Activity
-	err = workflow.ExecuteActivity(ctx, activityOptsActivity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
-		JobId: req.JobId,
-	}, workflowMetadata).Get(ctx, &actOptResp)
-	if err != nil {
-		return nil, err
-	}
-	logger.Info("completed RetrieveActivityOptions.")
-
-	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
 	var runSqlInitTableStatements *runsqlinittablestmts_activity.Activity
-	err = workflow.ExecuteActivity(ctx, runSqlInitTableStatements.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-	}).Get(ctx, &resp)
+	err = workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+		runSqlInitTableStatements.RunSqlInitTableStatements,
+		&runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
+			JobId: req.JobId,
+		}).
+		Get(ctx, &resp)
 	if err != nil {
 		return nil, err
 	}
 	logger.Info("completed RunSqlInitTableStatements.")
-
-	started := sync.Map{}
-	completed := sync.Map{}
 
 	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
 	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
@@ -108,39 +102,115 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		redisDependsOn[cfg.Name] = cfg.RedisDependsOn
 	}
 
+	// spawn account status checker in loop
+	stopChan := workflow.NewNamedChannel(ctx, "account-status")
+	accountStatusTimerDuration := getAccountStatusTimerDuration()
+	workflow.GoNamed(
+		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: 2 * time.Minute,
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 2,
+			},
+			HeartbeatTimeout: 1 * time.Minute,
+		}),
+		"account-status-check",
+		func(ctx workflow.Context) {
+			shouldStop := false
+			for {
+				selector := workflow.NewNamedSelector(ctx, "account-status-select")
+				timer := workflow.NewTimer(ctx, accountStatusTimerDuration)
+				selector.AddFuture(timer, func(f workflow.Future) {
+					err := f.Get(ctx, nil)
+					if err != nil {
+						logger.Error("time receive failed", "error", err)
+						return
+					}
+
+					var result *accountstatus_activity.CheckAccountStatusResponse
+					var a *accountstatus_activity.Activity
+					err = workflow.ExecuteActivity(ctx, a.CheckAccountStatus, &accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId}).Get(ctx, &result)
+					if err != nil {
+						logger.Error("encountered error while checking account status", "error", err)
+						stopChan.Send(ctx, true)
+						shouldStop = true
+						cancelHandler()
+						return
+					}
+					if !result.IsValid {
+						logger.Warn("account is no longer is valid state")
+						stopChan.Send(ctx, true)
+						shouldStop = true
+						cancelHandler()
+						return
+					}
+				})
+
+				selector.Select(ctx)
+
+				if shouldStop {
+					logger.Warn("exiting account status check")
+					return
+				}
+				if ctx.Err() != nil {
+					logger.Warn("workflow canceled due to error or stop signal", "error", ctx.Err())
+					return
+				}
+			}
+		})
+
 	workselector := workflow.NewSelector(ctx)
-
 	var activityErr error
-	childctx, cancelHandler := workflow.WithCancel(ctx)
 
+	workselector.AddReceive(stopChan, func(c workflow.ReceiveChannel, more bool) {
+		// Stop signal received, exit the routing
+		logger.Warn("received signal to stop workflow based on account status")
+		activityErr = invalidAccountStatusError
+		cancelHandler()
+	})
+
+	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	if len(splitConfigs.Root) == 0 && len(splitConfigs.Dependents) > 0 {
 		return nil, fmt.Errorf("root config not found. unable to process configs")
 	}
-	for _, bc := range splitConfigs.Root {
-		bc := bc
-		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
-		future := invokeSync(bc, childctx, &started, &completed, logger, &bcResp.AccountId)
+
+	started := sync.Map{}
+	completed := sync.Map{}
+
+	executeSyncActivity := func(bc *genbenthosconfigs_activity.BenthosConfigResponse, logger log.Logger) {
+		future := invokeSync(bc, ctx, &started, &completed, logger, &bcResp.AccountId, actOptResp.SyncActivityOptions)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			var result sync_activity.SyncResponse
-			err := f.Get(childctx, &result)
+			err := f.Get(ctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
-				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				activityErr = err
+				cancelHandler()
+
+				redisErr := runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
-				logger.Error("sync activity did not complete", "err", err)
-				cancelHandler()
-				activityErr = err
+				return
 			}
-			logger.Info("config sync completed")
+			logger.Info("config sync completed", "name", bc.Name)
 			delete(redisDependsOn, bc.Name)
-			// clean up redis
-			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+			err = runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
 				logger.Error("redis clean up activity did not complete")
 			}
 		})
+	}
+
+	for _, bc := range splitConfigs.Root {
+		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
+		executeSyncActivity(bc, logger)
+
+		if ctx.Err() != nil {
+			if errors.Is(ctx.Err(), context.Canceled) {
+				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+			}
+			return nil, ctx.Err()
+		}
 	}
 
 	logger.Info("all root tables spawned, moving on to children")
@@ -152,11 +222,23 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		}
 		logger.Debug("*** post select ***", "i", i)
 
+		if ctx.Err() != nil {
+			if errors.Is(ctx.Err(), context.Canceled) {
+				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+			}
+			return nil, fmt.Errorf("exiting workflow in root sync due to err: %w", ctx.Err())
+		}
+
 		// todo: deadlock detection
 		for _, bc := range splitConfigs.Dependents {
+			if ctx.Err() != nil {
+				if errors.Is(ctx.Err(), context.Canceled) {
+					return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
+				}
+				return nil, fmt.Errorf("exiting workflow in dependent sync due err: %w", ctx.Err())
+			}
 			bc := bc
-			_, configStarted := started.Load(bc.Name)
-			if configStarted {
+			if _, configStarted := started.Load(bc.Name); configStarted {
 				continue
 			}
 			isReady, err := isConfigReady(bc, &completed)
@@ -167,40 +249,49 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			if !isReady {
 				continue
 			}
-			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
-			future := invokeSync(bc, childctx, &started, &completed, logger, &bcResp.AccountId)
-			workselector.AddFuture(future, func(f workflow.Future) {
-				var result sync_activity.SyncResponse
-				err := f.Get(childctx, &result)
-				if err != nil {
-					logger.Error("activity did not complete", "err", err)
-					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
-					if redisErr != nil {
-						logger.Error("redis clean up activity did not complete")
-					}
-					cancelHandler()
-					activityErr = err
-				}
-				logger.Info("config sync completed", "name", bc.Name)
-				delete(redisDependsOn, bc.Name)
-				// clean up redis
-				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
-				if err != nil {
-					logger.Error("redis clean up activity did not complete")
-				}
-			})
+
+			executeSyncActivity(bc, log.With(logger, withBenthosConfigResponseLoggerTags(bc)...))
 		}
 	}
 	logger.Info("data sync workflow completed")
 	return &WorkflowResponse{}, nil
 }
 
+func retrieveActivityOptions(
+	ctx workflow.Context,
+	jobId string,
+	logger log.Logger,
+) (*syncactivityopts_activity.RetrieveActivityOptionsResponse, error) {
+	logger.Info("scheduling RetrieveActivityOptions for execution.")
+
+	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
+	var activityOptsActivity *syncactivityopts_activity.Activity
+	err := workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: 1 * time.Minute,
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 2,
+			},
+			HeartbeatTimeout: 1 * time.Minute,
+		}),
+		activityOptsActivity.RetrieveActivityOptions,
+		&syncactivityopts_activity.RetrieveActivityOptionsRequest{
+			JobId: jobId,
+		}).
+		Get(ctx, &actOptResp)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("completed RetrieveActivityOptions.")
+	return actOptResp, nil
+}
+
 func runRedisCleanUpActivity(
-	wfctx workflow.Context,
+	ctx workflow.Context,
 	logger log.Logger,
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
 	dependsOnMap map[string]map[string][]string,
-	jobId, workflowId string,
+	jobId string,
 	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
 ) error {
 	if len(redisConfigs) > 0 {
@@ -208,14 +299,15 @@ func runRedisCleanUpActivity(
 			if !isReadyForCleanUp(cfg.Table, cfg.Column, dependsOnMap) {
 				continue
 			}
-			ctx := workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
-			err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
-				JobId:      jobId,
-				WorkflowId: workflowId,
-				HashKey:    cfg.Key,
-			}).Get(ctx, &resp)
+			err := workflow.ExecuteActivity(
+				workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+				syncrediscleanup_activity.DeleteRedisHash,
+				&syncrediscleanup_activity.DeleteRedisHashRequest{
+					JobId:   jobId,
+					HashKey: cfg.Key,
+				}).Get(ctx, &resp)
 			if err != nil {
 				return err
 			}
@@ -262,6 +354,7 @@ func invokeSync(
 	started, completed *sync.Map,
 	logger log.Logger,
 	accountId *string,
+	syncActivityOptions *workflow.ActivityOptions,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
@@ -287,7 +380,7 @@ func invokeSync(
 		var result sync_activity.SyncResponse
 		activity := sync_activity.Activity{}
 		err := workflow.ExecuteActivity(
-			ctx,
+			workflow.WithActivityOptions(ctx, *syncActivityOptions),
 			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: benthosConfig, AccountId: accId, Name: config.Name, BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
 		if err == nil {
@@ -364,4 +457,12 @@ func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResp
 	}
 
 	return out
+}
+
+func getAccountStatusTimerDuration() time.Duration {
+	envtime := viper.GetInt("CHECK_ACCOUNT_TIMER_SECONDS")
+	if envtime == 0 {
+		return 5 * time.Second
+	}
+	return time.Duration(envtime) * time.Second
 }

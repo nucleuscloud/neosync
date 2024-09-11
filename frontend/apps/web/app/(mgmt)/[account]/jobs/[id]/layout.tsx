@@ -134,7 +134,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
               }
               leftBadgeValue={badgeValue}
               extraHeading={
-                <div className="flex flex-row gap-4">
+                <div className="md:flex grid grid-cols-2 md:flex-row gap-4">
                   <JobCloneButton job={data.job} />
                   <DeleteConfirmationDialog
                     trigger={

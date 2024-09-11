@@ -62,7 +62,7 @@ export default function TransformCharacterScrambleForm(
   }
 
   return (
-    <div className="flex flex-col w-full space-y-4 pt-4">
+    <div className="flex flex-col w-full space-y-4">
       <div className="flex flex-row gap-2 justify-end">
         {isRegexValid !== 'null' && (
           <Badge
@@ -81,7 +81,7 @@ export default function TransformCharacterScrambleForm(
             />
           </Badge>
         )}
-        <Button type="button" onClick={handleValidateCode}>
+        <Button variant="outline" type="button" onClick={handleValidateCode}>
           <ButtonText
             leftIcon={isValidatingRegex ? <Spinner /> : null}
             text={'Validate'}

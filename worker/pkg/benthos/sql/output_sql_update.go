@@ -10,6 +10,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
@@ -62,6 +63,7 @@ func sqlUpdateOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
 		Field(service.NewStringListField("where_columns")).
+		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching"))
@@ -125,10 +127,11 @@ type pooledUpdateOutput struct {
 	db       SqlDbtx
 	logger   *service.Logger
 
-	schema    string
-	table     string
-	columns   []string
-	whereCols []string
+	schema                   string
+	table                    string
+	columns                  []string
+	whereCols                []string
+	skipForeignKeyViolations bool
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -164,6 +167,11 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	skipForeignKeyViolations, err := conf.FieldBool("skip_foreign_key_violations")
+	if err != nil {
+		return nil, err
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -172,16 +180,17 @@ func newUpdateOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	output := &pooledUpdateOutput{
-		driver:      driver,
-		dsn:         dsn,
-		logger:      mgr.Logger(),
-		shutSig:     shutdown.NewSignaller(),
-		argsMapping: argsMapping,
-		provider:    provider,
-		schema:      schema,
-		table:       table,
-		columns:     columns,
-		whereCols:   whereCols,
+		driver:                   driver,
+		dsn:                      dsn,
+		logger:                   mgr.Logger(),
+		shutSig:                  shutdown.NewSignaller(),
+		argsMapping:              argsMapping,
+		provider:                 provider,
+		schema:                   schema,
+		table:                    table,
+		columns:                  columns,
+		whereCols:                whereCols,
+		skipForeignKeyViolations: skipForeignKeyViolations,
 	}
 	return output, nil
 }
@@ -255,12 +264,14 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			colValMap[col] = args[idx]
 		}
 
-		query, err := querybuilder.BuildUpdateQuery(s.driver, fmt.Sprintf("%s.%s", s.schema, s.table), s.columns, s.whereCols, colValMap)
+		query, err := querybuilder.BuildUpdateQuery(s.driver, s.schema, s.table, s.columns, s.whereCols, colValMap)
 		if err != nil {
 			return err
 		}
 		if _, err := s.db.ExecContext(ctx, query); err != nil {
-			return err
+			if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
+				return err
+			}
 		}
 	}
 	return nil

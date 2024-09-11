@@ -156,19 +156,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
           >
-            <div>
-              <div>
-                <div className="space-y-0.5">
-                  <h2 className="text-xl font-semibold tracking-tight">
-                    Source
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    The location of the source data.
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-0.5">
+              <h2 className="text-xl font-semibold tracking-tight">Source</h2>
+              <p className="text-muted-foreground text-sm">
+                The location of the source data.
+              </p>
             </div>
-            <div className="space-y-4 col-span-2">
+            <div className=" col-span-2">
               <FormField
                 control={form.control}
                 name="sourceId"
@@ -519,6 +513,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateCascade: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {
@@ -537,6 +532,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateBeforeInsert: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {
@@ -571,6 +567,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateBeforeInsert: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {
@@ -645,7 +642,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           )}
                         />
                       </div>
-
                       <Button
                         type="button"
                         variant="outline"
@@ -763,7 +759,7 @@ function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
     return (
       <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-green-900 dark:text-green-100 border border-green-700 bg-green-100 dark:bg-green-900 transition-colors">
         <CheckCircledIcon />
-        <div className="text-nowrap text-xs font-semibold">
+        <div className="text-nowrap text-xs font-medium">
           Successfully connected
         </div>
       </div>
@@ -776,7 +772,7 @@ function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
       <Link href={url} passHref target="_blank">
         <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-orange-900 dark:text-orange-100 border border-orange-700 bg-orange-100 dark:bg-orange-900 hover:bg-orange-200 hover:dark:bg-orange-950/90 transition-colors">
           <TiWarningOutline />
-          <div className="text-nowrap text-xs font-semibold">
+          <div className="text-nowrap text-xs font-medium">
             Connection Warning - No tables found.{' '}
             <a
               href={url}
@@ -796,7 +792,7 @@ function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
       <Link href={url} passHref target="_blank">
         <div className="flex flex-row items-center gap-2 rounded-xl px-2 py-1 h-auto text-red-900 dark:text-red-100 border border-red-700 bg-red-100 dark:bg-red-950 hover:dark:bg-red-950/90 hover:bg-red-200 transition-colors">
           <MdErrorOutline />
-          <div className="text-nowrap text-xs pl-2">
+          <div className="text-nowrap text-xs pl-2 font-medium">
             Connection Error - Unable to connect.{' '}
             <a
               href={url}

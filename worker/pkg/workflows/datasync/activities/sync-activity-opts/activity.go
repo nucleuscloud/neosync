@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
@@ -32,20 +31,21 @@ type RetrieveActivityOptionsRequest struct {
 }
 type RetrieveActivityOptionsResponse struct {
 	SyncActivityOptions *workflow.ActivityOptions
+	AccountId           string
 }
 
 func (a *Activity) RetrieveActivityOptions(
 	ctx context.Context,
 	req *RetrieveActivityOptionsRequest,
-	wfmetadata *shared.WorkflowMetadata,
 ) (*RetrieveActivityOptionsResponse, error) {
+	activityInfo := activity.GetInfo(ctx)
 	logger := log.With(
 		activity.GetLogger(ctx),
 		"jobId", req.JobId,
-		"WorkflowID", wfmetadata.WorkflowId,
-		"RunID", wfmetadata.RunId,
+		"WorkflowID", activityInfo.WorkflowExecution.ID,
+		"RunID", activityInfo.WorkflowExecution.RunID,
 	)
-	_ = logger
+	logger.Debug("retrieving activity options")
 
 	jobResp, err := a.jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
 	if err != nil {
@@ -54,6 +54,7 @@ func (a *Activity) RetrieveActivityOptions(
 	job := jobResp.Msg.Job
 	return &RetrieveActivityOptionsResponse{
 		SyncActivityOptions: getSyncActivityOptionsFromJob(job),
+		AccountId:           job.GetAccountId(),
 	}, nil
 }
 

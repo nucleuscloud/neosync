@@ -6,7 +6,6 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -39,7 +38,7 @@ import { useForm } from 'react-hook-form';
 import {
   EditJobMappingTransformerConfigFormContext,
   EditJobMappingTransformerConfigFormValues,
-} from '../new/transformer/transform-form-validations';
+} from '../../../../yup-validations/transformer-validations';
 import TransformerForm from '../new/transformer/TransformerForms/TransformerForm';
 
 interface Props {
@@ -55,6 +54,11 @@ interface Props {
 export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, disabled, value, onSubmit } = props;
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleClose = () => {
+    setIsSheetOpen(false);
+  };
+
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
@@ -64,6 +68,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           disabled={disabled}
           className="hidden h-[36px] lg:flex"
           type="button"
+          onClick={() => setIsSheetOpen(true)}
         >
           {isUserDefinedTransformer(transformer) ? (
             <EyeOpenIcon />
@@ -72,7 +77,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[800px]">
+      <SheetContent
+        className="w-[800px]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <SheetHeader>
           <div className="flex flex-row w-full">
             <div className="flex flex-col space-y-2 w-full">
@@ -83,10 +91,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                     {getTransformerDataTypesString(transformer.dataTypes)}
                   </Badge>
                 </div>
-                <SheetClose>
+                <Button variant="ghost" size="icon" onClick={handleClose}>
                   <Cross2Icon className="h-4 w-4" />
                   <span className="sr-only">Close</span>
-                </SheetClose>
+                </Button>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
@@ -108,7 +116,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   ...value,
                   config: convertTransformerConfigToForm(newval),
                 });
-                setIsSheetOpen(false);
+                handleClose();
               }}
               isDisabled={disabled || isUserDefinedTransformer(transformer)}
             />

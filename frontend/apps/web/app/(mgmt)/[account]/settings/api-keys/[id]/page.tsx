@@ -4,6 +4,7 @@ import ButtonText from '@/components/ButtonText';
 import { CopyButton } from '@/components/CopyButton';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
+import TruncatedText from '@/components/TruncatedText';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +68,14 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
     <div>
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-col justify-start">
-          <h1 className="text-xl font-bold tracking-tight">{`API Key: ${data.apiKey.name}`}</h1>
+          <h1>
+            <TruncatedText
+              text={`API Key: ${data.apiKey.name}`}
+              align="start"
+              maxWidth={500}
+              truncatedContainerClassName="text-xl font-bold tracking-tight"
+            />
+          </h1>
           <h3 className="text-muted-foreground text-sm">{data.apiKey.id}</h3>
         </div>
         <div className="flex flex-row gap-2">

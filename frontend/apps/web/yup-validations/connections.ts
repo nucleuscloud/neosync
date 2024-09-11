@@ -9,12 +9,13 @@ import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 
 /* This is the standard regular expression we assign to all or most "name" fields on the backend. */
-export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,30}$/;
+export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,100}$/;
 
 const connectionNameSchema = Yup.string()
+  .required('Connection Name is a required field.')
+  .min(3, 'The Connection name must be longer than 3 characters.')
+  .max(100, 'The Connection name must be less than or equal to 100 characters.')
   .required()
-  .min(3)
-  .max(30)
   .test(
     'validConnectionName',
     'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
@@ -76,15 +77,19 @@ const connectionNameSchema = Yup.string()
 export const SshTunnelFormValues = Yup.object({
   host: Yup.string(),
   port: Yup.number()
-    .min(0)
-    .when('host', (host, schema) => ([host] ? schema.required() : schema)),
+    .min(0, 'The Port must be greater than or equal to 0.')
+    .when('host', (host, schema) =>
+      host
+        ? schema.required('The Port is required when there is a Host.')
+        : schema
+    ),
   user: Yup.string().when('host', (values, schema) => {
     const [host] = values;
-    return host ? schema.required() : schema;
+    return host
+      ? schema.required('The User field is required when there is a Host.')
+      : schema;
   }),
-
   knownHostPublicKey: Yup.string(),
-
   privateKey: Yup.string(),
   passphrase: Yup.string(),
 });
@@ -92,7 +97,10 @@ export const SshTunnelFormValues = Yup.object({
 export type SshTunnelFormValues = Yup.InferType<typeof SshTunnelFormValues>;
 
 const SqlOptionsFormValues = Yup.object({
-  maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
+  maxConnectionLimit: Yup.number()
+    .min(0, 'The Max Connection Limit cannot be less than 0')
+    .max(10000, 'The Max Connection limit must be less than or equal to 1000.')
+    .optional(),
 });
 
 export const ClientTlsFormValues = Yup.object({
@@ -150,10 +158,10 @@ export const MysqlFormValues = Yup.object({
       then: (schema) => schema.required('The database protocol is required.'),
       otherwise: (schema) => schema.notRequired(),
     }),
-  }).required(),
+  }).required('The database credentials are required.'),
   url: Yup.string().when('$activeTab', {
     is: 'url', // Only require if activeTab is 'url'
-    then: (schema) => schema.required('The connection url is required'),
+    then: (schema) => schema.required('The Connection url is required'),
     otherwise: (schema) => schema.notRequired(),
   }),
   tunnel: SshTunnelFormValues,
@@ -222,12 +230,12 @@ export type AwsCredentialsFormValues = Yup.InferType<
 export const AWS_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
   s3: Yup.object({
-    bucket: Yup.string().required(),
+    bucket: Yup.string().required('The Bucket name is required.'),
     pathPrefix: Yup.string().optional(),
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),
     credentials: AwsCredentialsFormValues.optional(),
-  }).required(),
+  }).required('The AWS form fields are required.'),
 });
 
 export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
@@ -238,7 +246,7 @@ export const DynamoDbFormValues = Yup.object({
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),
     credentials: AwsCredentialsFormValues.optional(),
-  }).required(),
+  }).required('The Dynamo DB form fields are required.'),
 });
 
 export type DynamoDbFormValues = Yup.InferType<typeof DynamoDbFormValues>;
@@ -247,7 +255,7 @@ export const MssqlFormValues = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
     url: Yup.string().required('Must provide a Mssql connection url'),
-  }).required(),
+  }).required('The SQL Server form fields are required.'),
   options: SqlOptionsFormValues,
   tunnel: SshTunnelFormValues,
 });
@@ -257,9 +265,9 @@ export type MssqlFormValues = Yup.InferType<typeof MssqlFormValues>;
 export const GcpCloudStorageFormValues = Yup.object({
   connectionName: connectionNameSchema,
   gcp: Yup.object({
-    bucket: Yup.string().required(),
+    bucket: Yup.string().required('The Bucket is required.'),
     pathPrefix: Yup.string().optional(),
-  }).required(),
+  }).required('The GCP form fields are required.'),
 });
 
 export type GcpCloudStorageFormValues = Yup.InferType<
@@ -311,7 +319,7 @@ export const OpenAiFormValues = Yup.object({
   sdk: Yup.object({
     url: Yup.string().required('A URL must be provided.'),
     apiKey: Yup.string().required('An API Key must be provided.'),
-  }).required(),
+  }).required('The Connection details are required.'),
 });
 
 export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
@@ -319,9 +327,9 @@ export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;
 export const MongoDbFormValues = Yup.object({
   connectionName: connectionNameSchema,
 
-  url: Yup.string().required(),
+  url: Yup.string().required('The Url is required.'),
 
   clientTls: ClientTlsFormValues,
-}).required();
+}).required('The MongoDB form fields are required.');
 
 export type MongoDbFormValues = Yup.InferType<typeof MongoDbFormValues>;

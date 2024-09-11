@@ -51,3 +51,18 @@ func IsCriticalError(errMsg string) bool {
 func containsIgnoreCase(s, substr string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
+
+func IsForeignKeyViolationError(errMsg string) bool {
+	foreignKeyViolationErrors := []string{
+		"violates foreign key constraint",
+		"a foreign key constraint fails",
+		"insert statement conflicted with the foreign key constraint",
+	}
+
+	for _, errStr := range foreignKeyViolationErrors {
+		if containsIgnoreCase(errMsg, errStr) {
+			return true
+		}
+	}
+	return false
+}

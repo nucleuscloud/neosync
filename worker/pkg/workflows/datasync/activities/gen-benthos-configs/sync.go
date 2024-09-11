@@ -11,6 +11,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -414,11 +415,12 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Driver: driver,
 						Dsn:    dsn,
 
-						Schema:       benthosConfig.TableSchema,
-						Table:        benthosConfig.TableName,
-						Columns:      benthosConfig.Columns,
-						WhereColumns: benthosConfig.primaryKeys,
-						ArgsMapping:  buildPlainInsertArgs(args),
+						Schema:                   benthosConfig.TableSchema,
+						Table:                    benthosConfig.TableName,
+						Columns:                  benthosConfig.Columns,
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						WhereColumns:             benthosConfig.primaryKeys,
+						ArgsMapping:              buildPlainInsertArgs(args),
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
@@ -450,7 +452,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 						Url:            b.redisConfig.Url,
 						Key:            hashedKey,
-						FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s_%s_%s"): json(%q)}`, benthosConfig.TableSchema, benthosConfig.TableName, col, col), // map of original value to transformed value
+						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
 						WalkMetadata:   false,
 						WalkJsonObject: false,
 						Kind:           &b.redisConfig.Kind,
@@ -474,15 +476,16 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Driver: driver,
 						Dsn:    dsn,
 
-						Schema:              benthosConfig.TableSchema,
-						Table:               benthosConfig.TableName,
-						Columns:             benthosConfig.Columns,
-						IdentityColumns:     benthosConfig.IdentityColumns,
-						OnConflictDoNothing: destOpts.OnConflictDoNothing,
-						TruncateOnRetry:     destOpts.Truncate,
-						ArgsMapping:         buildPlainInsertArgs(benthosConfig.Columns),
-						Prefix:              prefix,
-						Suffix:              suffix,
+						Schema:                   benthosConfig.TableSchema,
+						Table:                    benthosConfig.TableName,
+						Columns:                  benthosConfig.Columns,
+						IdentityColumns:          benthosConfig.IdentityColumns,
+						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						TruncateOnRetry:          destOpts.Truncate,
+						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
+						Prefix:                   prefix,
+						Suffix:                   suffix,
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
@@ -516,9 +519,11 @@ func getInsertPrefixAndSuffix(
 	}
 	tableName := neosync_benthos.BuildBenthosTable(schema, table)
 	if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
-		p := fmt.Sprintf("SET IDENTITY_INSERT %q.%q ON;", schema, table)
+		enableIdentityInsert := true
+		p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
 		pre = &p
-		s := fmt.Sprintf("SET IDENTITY_INSERT %q.%q OFF;", schema, table)
+		s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
+		s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
 		suff = &s
 	}
 	return pre, suff
@@ -725,9 +730,10 @@ func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignC
 }
 
 type destinationOptions struct {
-	OnConflictDoNothing bool
-	Truncate            bool
-	TruncateCascade     bool
+	OnConflictDoNothing      bool
+	Truncate                 bool
+	TruncateCascade          bool
+	SkipForeignKeyViolations bool
 }
 
 func getDestinationOptions(dest *mgmtv1alpha1.JobDestination) *destinationOptions {
@@ -737,14 +743,20 @@ func getDestinationOptions(dest *mgmtv1alpha1.JobDestination) *destinationOption
 	switch config := dest.Options.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		return &destinationOptions{
-			OnConflictDoNothing: config.PostgresOptions.GetOnConflict().GetDoNothing(),
-			Truncate:            config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
-			TruncateCascade:     config.PostgresOptions.GetTruncateTable().GetCascade(),
+			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			TruncateCascade:          config.PostgresOptions.GetTruncateTable().GetCascade(),
+			SkipForeignKeyViolations: config.PostgresOptions.GetSkipForeignKeyViolations(),
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
 		return &destinationOptions{
-			OnConflictDoNothing: config.MysqlOptions.GetOnConflict().GetDoNothing(),
-			Truncate:            config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			OnConflictDoNothing:      config.MysqlOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			SkipForeignKeyViolations: config.MysqlOptions.GetSkipForeignKeyViolations(),
+		}
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &destinationOptions{
+			SkipForeignKeyViolations: config.MssqlOptions.GetSkipForeignKeyViolations(),
 		}
 	default:
 		return &destinationOptions{}

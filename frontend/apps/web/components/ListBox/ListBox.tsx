@@ -39,14 +39,14 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
   return (
     <div
       className={cn(
-        'max-h-[164px] relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
+        'h-[164px] relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
         tableContainerClassName,
         rows.length > 0 && 'overflow-auto'
       )}
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid">
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid rounded-md">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="flex flex-row px-2">
               {headerGroup.headers.map((header) => {

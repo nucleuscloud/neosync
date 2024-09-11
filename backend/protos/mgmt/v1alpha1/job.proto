@@ -220,6 +220,8 @@ message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
   PostgresOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
+  bool skip_foreign_key_violations = 4;
 }
 
 message PostgresOnConflictConfig {
@@ -233,10 +235,10 @@ message PostgresTruncateTableConfig {
 
 message MysqlDestinationConnectionOptions {
   MysqlTruncateTableConfig truncate_table = 1;
-  // Currently not supported and a placeholder for future implementation
   bool init_table_schema = 2;
-  // Currently not supported and a placeholder for future implementation
   MysqlOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
+  bool skip_foreign_key_violations = 4;
 }
 message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
@@ -247,8 +249,12 @@ message MysqlOnConflictConfig {
 
 message MssqlDestinationConnectionOptions {
   MssqlTruncateTableConfig truncate_table = 1;
+  // Currently not supported and a placeholder for future implementation
   bool init_table_schema = 2;
+  // Currently not supported and a placeholder for future implementation
   MssqlOnConflictConfig on_conflict = 3;
+  // Insert all valid records, skipping any that violate foreign key constraints.
+  bool skip_foreign_key_violations = 4;
 }
 message MssqlTruncateTableConfig {
   bool truncate_before_insert = 1;
@@ -263,7 +269,7 @@ message CreateJobRequest {
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The unique, friendly name of the job. This is unique per account
-  string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
@@ -437,7 +443,7 @@ message DeleteJobRequest {
 message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
-  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message IsJobNameAvailableResponse {

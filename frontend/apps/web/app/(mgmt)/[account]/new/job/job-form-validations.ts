@@ -21,7 +21,9 @@ export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
 
 // Schema for a job's workflow settings
 export const WorkflowSettingsSchema = Yup.object({
-  runTimeout: Yup.number().optional().min(0),
+  runTimeout: Yup.number()
+    .optional()
+    .min(0, 'The Job Run Timeout cannot be less than 0 minutes'),
 });
 
 export type WorkflowSettingsSchema = Yup.InferType<
@@ -31,7 +33,10 @@ export type WorkflowSettingsSchema = Yup.InferType<
 export const ActivityOptionsSchema = Yup.object({
   scheduleToCloseTimeout: Yup.number()
     .optional()
-    .min(0)
+    .min(
+      0,
+      'The Max Table Timeout (including Retries) cannot be less than 0 minutes'
+    )
     .test(
       'non-zero-both',
       'Both timeouts cannot be 0',
@@ -43,7 +48,7 @@ export const ActivityOptionsSchema = Yup.object({
     ),
   startToCloseTimeout: Yup.number()
     .optional()
-    .min(0)
+    .min(0, 'The Table Sync cannot be less than 0 minutes')
     .test(
       'non-zero-both',
       'Both timeouts cannot be 0',
@@ -54,7 +59,9 @@ export const ActivityOptionsSchema = Yup.object({
       }
     ),
   retryPolicy: Yup.object({
-    maximumAttempts: Yup.number().optional().min(0),
+    maximumAttempts: Yup.number()
+      .optional()
+      .min(0, 'The Maximum Retry Attempts cannot be less than 0'),
   }).optional(),
 });
 
@@ -64,8 +71,8 @@ export const DefineFormValues = Yup.object({
   jobName: Yup.string()
     .trim()
     .required('Name is a required field')
-    .min(3)
-    .max(30)
+    .min(3, 'The Job Name must be at least 3 characters')
+    .max(100, 'The Job name must be less than or equal to 100 characters')
     .test(
       'checkNameUnique',
       'This name is already taken.',
@@ -104,22 +111,26 @@ export const DefineFormValues = Yup.object({
     ),
   cronSchedule: Yup.string()
     .optional()
-    .test('validateCron', 'Not a valid cron schedule', (value, context) => {
-      if (!value) {
-        return true;
-      }
-      const output = cron(value);
-      if (output.isValid()) {
-        return true;
-      }
-      if (output.isError()) {
-        const errors = output.getError();
-        if (errors.length > 0) {
-          return context.createError({ message: errors.join(', ') });
+    .test(
+      'validateCron',
+      'The Schedule must be a valid Cron string',
+      (value, context) => {
+        if (!value) {
+          return true;
         }
+        const output = cron(value);
+        if (output.isValid()) {
+          return true;
+        }
+        if (output.isError()) {
+          const errors = output.getError();
+          if (errors.length > 0) {
+            return context.createError({ message: errors.join(', ') });
+          }
+        }
+        return output.isValid();
       }
-      return output.isValid();
-    }),
+    ),
   initiateJobRun: Yup.boolean(),
   workflowSettings: WorkflowSettingsSchema.optional(),
   syncActivityOptions: ActivityOptionsSchema.optional(),
@@ -129,12 +140,14 @@ export type DefineFormValues = Yup.InferType<typeof DefineFormValues>;
 
 export const ConnectFormValues = SourceFormValues.concat(
   Yup.object({
-    destinations: Yup.array(NewDestinationFormValues).required(),
+    destinations: Yup.array(NewDestinationFormValues).required(
+      'At least one destination Connection is required'
+    ),
   })
 ).test(
   // todo: need to add a test for generate / ai generate too
   'unique-connections',
-  'connections must be unique and type specific', // this message isn't exposed anywhere
+  'Connections must be unique and the same Connection type', // this message isn't exposed anywhere
   function (value, ctx) {
     const connections: Connection[] = ctx.options.context?.connections ?? [];
     const connectionsRecord = connections.reduce(
@@ -264,8 +277,8 @@ function getErrorConnectionTypes(
 }
 
 const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
-  schema: Yup.string().trim().required(),
-  table: Yup.string().trim().required(),
+  schema: Yup.string().trim().required('A schema is required'),
+  table: Yup.string().trim().required('A table is required'),
   whereClause: Yup.string().trim().optional(),
 });
 
@@ -291,14 +304,14 @@ export const SingleTableAiSchemaFormValues = Yup.object({
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
     .min(1, 'Must be at least 1')
-    .max(1000, 'Can be no more than 1000')
+    .max(1000, 'The number of rows must be less than or equal to 1000')
     .default(10),
   model: Yup.string().required('must provide a model name to use.'),
   userPrompt: Yup.string(),
   generateBatchSize: Yup.number()
     .required('Must provide a batch size when generating rows')
     .min(1, 'Must be at least 1')
-    .max(100, 'Can be no more than 100')
+    .max(100, 'The Batch Size must be less than or equal to 100.')
     .default(10)
     .test(
       'batch-size-num-rows',
@@ -322,20 +335,20 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
     fkSourceConnectionId: Yup.string()
       .required('Connection is required')
       .uuid(),
-  }).required(),
+  }).required('AI Generate form values are required.'),
 
   schema: Yup.object({
     numRows: Yup.number()
       .required('Must provide a number of rows to generate')
       .min(1, 'Must be at least 1')
-      .max(1000, 'Can be no more than 1000')
+      .max(1000, 'The number of rows must be less than or equal to 1000.')
       .default(10),
     model: Yup.string().required('must provide a model name to use.'),
     userPrompt: Yup.string(),
     generateBatchSize: Yup.number()
       .required('Must provide a batch size when generating rows')
       .min(1, 'Must be at least 1')
-      .max(100, 'Can be no more than 100')
+      .max(100, 'The Batch Size must be less than or equal to 100.')
       .default(10)
       .test(
         'batch-size-num-rows',
@@ -347,15 +360,22 @@ export const SingleTableEditAiSourceFormValues = Yup.object({
 
     schema: Yup.string().required('Must provide a valid schema'),
     table: Yup.string().required('Must provide a valid table'),
-  }).required(),
+  }).required('AI Generate schema values are required.'),
 });
 export type SingleTableEditAiSourceFormValues = Yup.InferType<
   typeof SingleTableEditAiSourceFormValues
 >;
 
 export const SingleTableSchemaFormValues = Yup.object({
-  numRows: Yup.number().required().min(1),
-  mappings: Yup.array().of(JobMappingFormValues).required(),
+  numRows: Yup.number()
+    .required('THe number of rows to generate is required')
+    .min(
+      1,
+      'The number of rows to generate must be greater than or equal to 1.'
+    ),
+  mappings: Yup.array()
+    .of(JobMappingFormValues)
+    .required('Table Mappings are required.'),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SingleTableSchemaFormValues
@@ -366,21 +386,25 @@ export const SingleTableEditSourceFormValues = Yup.object({
     fkSourceConnectionId: Yup.string()
       .required('Connection is required')
       .uuid(),
-  }).required(),
-
+  }).required('Source Connection is required.'),
   numRows: Yup.number()
     .required('Must provide a number of rows to generate')
-    .min(1)
+    .min(
+      1,
+      'The number of rows to generate must be greater than or equal to 1.'
+    )
     .default(10),
-  mappings: Yup.array().of(JobMappingFormValues).required(),
-}).required();
+  mappings: Yup.array()
+    .of(JobMappingFormValues)
+    .required('Mappings are required.'),
+}).required('Generate table form values are required.');
 
 export type SingleTableEditSourceFormValues = Yup.InferType<
   typeof SingleTableEditSourceFormValues
 >;
 
 export const SubsetFormValues = Yup.object({
-  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
+  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required('Subset is required.'),
   subsetOptions: Yup.object({
     subsetByForeignKeyConstraints: Yup.boolean().default(true),
   }),
@@ -393,14 +417,14 @@ const CreateJobFormValues = Yup.object({
   connect: ConnectFormValues,
   schema: SchemaFormValues,
   subset: SubsetFormValues.optional(),
-}).required();
+}).required('Job form values are required.');
 export type CreateJobFormValues = Yup.InferType<typeof CreateJobFormValues>;
 
 export const CreateSingleTableGenerateJobFormValues = Yup.object({
   define: DefineFormValues,
   connect: SingleTableConnectFormValues,
   schema: SingleTableSchemaFormValues,
-}).required();
+}).required('Generate form values are required.');
 export type CreateSingleTableGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableGenerateJobFormValues
 >;
@@ -409,7 +433,7 @@ export const CreateSingleTableAiGenerateJobFormValues = Yup.object({
   define: DefineFormValues,
   connect: SingleTableAiConnectFormValues,
   schema: SingleTableAiSchemaFormValues,
-}).required();
+}).required('AI Generate form values are required.');
 export type CreateSingleTableAiGenerateJobFormValues = Yup.InferType<
   typeof CreateSingleTableAiGenerateJobFormValues
 >;

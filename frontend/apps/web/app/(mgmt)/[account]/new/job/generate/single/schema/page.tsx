@@ -324,7 +324,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <div />
       </OverviewContainer>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="numRows"
@@ -377,7 +377,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </AlertTitle>
             </Alert>
           )}
-          <div className="flex flex-row gap-1 justify-between">
+          <div className="flex flex-row gap-1 justify-between pt-10">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back
             </Button>

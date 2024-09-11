@@ -59,5 +59,10 @@
 		"folder":"postgres/all-types",
 		"sql_file": "setup.sql", 
 		"driver": "postgres"
+	},
+	{
+		"folder": "skip-fk-violations",
+		"sql_file": "create.sql",
+		"driver": "postgres"
 	}
 ]

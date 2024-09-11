@@ -259,9 +259,10 @@ func BuildMssqlDeleteStatement(
 	return fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table)
 }
 
+// Resets current identity value back to the initial count
 func BuildMssqlIdentityColumnResetStatement(
 	schema, table, identityGeneration string,
-) *string {
+) string {
 	re := regexp.MustCompile(`IDENTITY\((\d+),\d+\)`)
 	match := re.FindStringSubmatch(identityGeneration)
 	if len(match) > 1 {
@@ -272,8 +273,27 @@ func BuildMssqlIdentityColumnResetStatement(
 		if StartValue > 0 {
 			StartValue--
 		}
-		resetStmt := fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
-		return &resetStmt
+		return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED, %d);", schema, table, StartValue)
 	}
-	return nil
+	return BuildMssqlIdentityColumnResetCurrent(schema, table)
+}
+
+// If the current identity value for a table is less than the maximum identity value stored in the identity column
+// It is reset using the maximum value in the identity column.
+func BuildMssqlIdentityColumnResetCurrent(
+	schema, table string,
+) string {
+	return fmt.Sprintf("DBCC CHECKIDENT ('%s.%s', RESEED)", schema, table)
+}
+
+// Allows explicit values to be inserted into the identity column of a table.
+func BuildMssqlSetIdentityInsertStatement(
+	schema, table string,
+	enable bool,
+) string {
+	enabledKeyword := "OFF"
+	if enable {
+		enabledKeyword = "ON"
+	}
+	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
 }

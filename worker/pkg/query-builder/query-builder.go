@@ -123,13 +123,13 @@ func isDefault(val any) bool {
 }
 
 func BuildInsertQuery(
-	driver, table string,
+	driver, schema, table string,
 	columns []string,
 	values [][]any,
 	onConflictDoNothing *bool,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
-	sqltable := goqu.I(table)
+	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))
 	for i, col := range columns {
 		insertCols[i] = col
@@ -152,13 +152,13 @@ func BuildInsertQuery(
 }
 
 func BuildUpdateQuery(
-	driver, table string,
+	driver, schema, table string,
 	insertColumns []string,
 	whereColumns []string,
 	columnValueMap map[string]any,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
-	sqltable := goqu.I(table)
+	sqltable := goqu.S(schema).Table(table)
 
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
