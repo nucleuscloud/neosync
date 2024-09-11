@@ -48,9 +48,9 @@ export default function PageHeader(props: Props) {
           </div>
         </div>
         {progressSteps && (
-          <div className="flex-1 flex justify-center">progressSteps</div>
+          <div className="flex-1 flex justify-center">{progressSteps}</div>
         )}
-        {extraHeading ? <div> extraHeading</div> : null}
+        {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
       {subHeadings.map((subheading, ind) => (
         <div key={ind} className="text-sm">
