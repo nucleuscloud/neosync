@@ -49,11 +49,11 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import TransformerForm from './TransformerForms/TransformerForm';
 import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
-} from './transform-form-validations';
+} from '../../../../../yup-validations/transformer-validations';
+import TransformerForm from './TransformerForms/TransformerForm';
 
 function getTransformerSource(sourceStr: string): TransformerSource {
   const sourceNum = parseInt(sourceStr, 10);

@@ -1,9 +1,5 @@
 'use client';
 import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/TransformerForm';
-import {
-  EditUserDefinedTransformerFormContext,
-  UpdateUserDefinedTransformerFormValues,
-} from '@/app/(mgmt)/[account]/new/transformer/transform-form-validations';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +18,10 @@ import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
+import {
+  EditUserDefinedTransformerFormContext,
+  UpdateUserDefinedTransformerFormValues,
+} from '@/yup-validations/transformer-validations';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserDefinedTransformer } from '@neosync/sdk';

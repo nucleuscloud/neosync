@@ -22,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
+import { InviteMembersForm } from '@/yup-validations/invite-members';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { inviteUserToTeamAccount } from '@neosync/sdk/connectquery';
@@ -30,13 +31,6 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  email: Yup.string().email().required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   accountId: string;
@@ -48,15 +42,15 @@ export default function InviteUserForm(props: Props): ReactElement {
   const [newInviteToken, setNewInviteToken] = useState('');
   const [openInviteCreated, setOpenInviteCreated] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<InviteMembersForm>({
+    resolver: yupResolver(InviteMembersForm),
     defaultValues: {
       email: '',
     },
   });
   const { mutateAsync } = useMutation(inviteUserToTeamAccount);
 
-  async function onSubmit(values: FormValues): Promise<void> {
+  async function onSubmit(values: InviteMembersForm): Promise<void> {
     try {
       const invite = await mutateAsync({
         accountId: accountId,
