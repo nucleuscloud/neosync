@@ -17,10 +17,10 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				InitSchema: false,
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"primary_key.store_notifications": &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_key.stores":              &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_key.store_customers":     &workflow_testdata.ExpectedOutput{RowCount: 20},
-				"primary_key.referral_codes":      &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"primary_$key.store_notifications": &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"primary_$key.stores":              &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"primary_$key.store_customers":     &workflow_testdata.ExpectedOutput{RowCount: 20},
+				"primary_$key.referral_codes":      &workflow_testdata.ExpectedOutput{RowCount: 20},
 			},
 		},
 	}
