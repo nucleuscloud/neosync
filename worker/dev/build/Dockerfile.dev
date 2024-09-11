@@ -17,6 +17,4 @@ RUN go mod download
 
 COPY worker/dev/build/.air.toml .air.toml
 
-WORKDIR /workspace/worker
-
 CMD ["air", "-c", "/workspace/.air.toml"]

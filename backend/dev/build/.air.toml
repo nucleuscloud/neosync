@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = ["serve", "connect"]
   bin = "./tmp/mgmt"
-  cmd = "go build -ldflags=\"-s -w\" -o ./tmp/mgmt cmd/mgmt/*.go"
+  cmd = "go build -ldflags=\"-s -w\" -o ./tmp/mgmt backend/cmd/mgmt/*.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []

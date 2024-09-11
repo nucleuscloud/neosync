@@ -98,7 +98,7 @@ services:
       - ./internal:/workspace/internal:rw
       - ./go.mod:/workspace/go.mod:rw
       - ./go.sum:/workspace/go.sum:rw
-      - neosync_api_tmp:/workspace/backend/tmp
+      - neosync_api_tmp:/workspace/tmp
       - neosync_go_mod_cache:/go/pkg/mod
       - neosync_backend_build_cache:/root/.cache/go-build
     restart: on-failure
@@ -130,7 +130,7 @@ services:
       - ./internal:/workspace/internal:rw
       - ./go.mod:/workspace/go.mod:rw
       - ./go.sum:/workspace/go.sum:rw
-      - neosync_worker_tmp:/workspace/worker/tmp
+      - neosync_worker_tmp:/workspace/tmp
       - neosync_go_mod_cache:/go/pkg/mod
       - neosync_worker_build_cache:/root/.cache/go-build
     restart: on-failure
