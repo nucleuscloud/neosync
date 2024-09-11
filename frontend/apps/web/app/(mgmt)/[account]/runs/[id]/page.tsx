@@ -16,7 +16,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
+import { CopyButton } from '@/components/CopyButton';
 import ResourceId from '@/components/ResourceId';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import {
   refreshEventsWhenEventsIncomplete,
@@ -29,12 +38,14 @@ import {
   deleteJobRun,
   getJobRun,
   getJobRunEvents,
+  getRunContext,
   terminateJobRun,
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
+import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 import JobRunLogs from './components/JobRunLogs';
@@ -85,6 +96,17 @@ export default function Page({ params }: PageProps): ReactElement {
   const { mutateAsync: removeJobRunAsync } = useMutation(deleteJobRun);
   const { mutateAsync: cancelJobRunAsync } = useMutation(cancelJobRun);
   const { mutateAsync: terminateJobRunAsync } = useMutation(terminateJobRun);
+  const { mutateAsync: getRunContextAsync } = useMutation(getRunContext);
+
+  const [isViewSelectDialogOpen, setIsSelectDialogOpen] =
+    useState<boolean>(false);
+  const [activeSelectQuery, setActiveSelectQuery] = useState<SelectQuery>({
+    schema: '',
+    table: '',
+    select: '',
+  });
+  const [isRetrievingRunContext, setIsRetrievingRunContext] =
+    useState<boolean>(false);
 
   async function onDelete(): Promise<void> {
     try {
@@ -124,6 +146,46 @@ export default function Page({ params }: PageProps): ReactElement {
       toast.error('Unable to terminate job run', {
         description: getErrorMessage(err),
       });
+    }
+  }
+
+  async function onViewSelectClicked(
+    schema: string,
+    table: string
+  ): Promise<void> {
+    if (isRetrievingRunContext) {
+      return;
+    }
+    setIsRetrievingRunContext(true);
+    try {
+      const rcResp = await getRunContextAsync({
+        id: {
+          accountId: accountId,
+          externalId: buildBenthosRunCtxExternalId(schema, table),
+          jobRunId: id,
+        },
+      });
+      const runCtx = parseUint8ArrayToYaml(rcResp.value);
+      console.log('runctx', runCtx);
+      if (isValidRunContext(runCtx)) {
+        setActiveSelectQuery({
+          schema,
+          table,
+          select: runCtx.input.pooled_sql_raw.query,
+        });
+        setIsSelectDialogOpen(true);
+      } else {
+        toast.error('Unable to parse run context', {
+          description: `Was unable to pull Select Query out of run context for ${schema}.${table}`,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to retrieve select for table', {
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setIsRetrievingRunContext(false);
     }
   }
 
@@ -260,12 +322,98 @@ export default function Page({ params }: PageProps): ReactElement {
             {eventsIsLoading ? (
               <SkeletonTable />
             ) : (
-              <JobRunActivityTable jobRunEvents={eventData?.events} />
+              <JobRunActivityTable
+                jobRunEvents={eventData?.events}
+                onViewSelectClicked={onViewSelectClicked}
+              />
             )}
           </div>
+          <ViewSelectDialog
+            isDialogOpen={isViewSelectDialogOpen}
+            setIsDialogOpen={setIsSelectDialogOpen}
+            query={activeSelectQuery}
+          />
         </div>
       )}
     </OverviewContainer>
+  );
+}
+
+// There is way more here, but this is currently all we care about
+interface RunContext {
+  input: {
+    pooled_sql_raw: {
+      query: string;
+    };
+  };
+}
+
+function isValidRunContext(input: unknown): input is RunContext {
+  const typedInput = input as Partial<RunContext>;
+  return !!typedInput?.input?.pooled_sql_raw?.query;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseUint8ArrayToYaml(data: Uint8Array): any {
+  try {
+    const yamlString = new TextDecoder().decode(data);
+    const result = yaml.parse(yamlString);
+    return result;
+  } catch (error) {
+    console.error('Error parsing YAML:', error);
+    return null;
+  }
+}
+
+function buildBenthosRunCtxExternalId(schema: string, table: string): string {
+  return `benthosconfig-${schema}.${table}.insert`;
+}
+
+interface SelectQuery {
+  schema: string;
+  table: string;
+  select: string;
+}
+
+interface ViewSelectDialogProps {
+  isDialogOpen: boolean;
+  setIsDialogOpen(open: boolean): void;
+  query: SelectQuery;
+}
+
+function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
+  const { isDialogOpen, setIsDialogOpen, query } = props;
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            SQL Select Query - {query.schema}.{query.table}
+          </DialogTitle>
+          <DialogDescription>
+            This was the query used to query the source database during the job
+            run
+          </DialogDescription>
+        </DialogHeader>
+        <div>{query.select}</div>
+        <DialogFooter className="md:justify-between">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setIsDialogOpen(false)}
+          >
+            Close
+          </Button>
+          <CopyButton
+            buttonVariant="default"
+            onCopiedText="Success!"
+            onHoverText="Copy the SELECT Query"
+            textToCopy={query.select}
+            buttonText="Copy"
+          />
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
