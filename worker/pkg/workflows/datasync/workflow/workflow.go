@@ -15,6 +15,7 @@ import (
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
+	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -103,6 +104,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	// spawn account status checker in loop
 	stopChan := workflow.NewNamedChannel(ctx, "account-status")
+	accountStatusTimerDuration := getAccountStatusTimerDuration()
 	workflow.GoNamed(
 		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			StartToCloseTimeout: 2 * time.Minute,
@@ -116,7 +118,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			shouldStop := false
 			for {
 				selector := workflow.NewNamedSelector(ctx, "account-status-select")
-				timer := workflow.NewTimer(ctx, 5*time.Second)
+				timer := workflow.NewTimer(ctx, accountStatusTimerDuration)
 				selector.AddFuture(timer, func(f workflow.Future) {
 					err := f.Get(ctx, nil)
 					if err != nil {
@@ -455,4 +457,12 @@ func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResp
 	}
 
 	return out
+}
+
+func getAccountStatusTimerDuration() time.Duration {
+	envtime := viper.GetInt("CHECK_ACCOUNT_TIMER_SECONDS")
+	if envtime == 0 {
+		return 5 * time.Second
+	}
+	return time.Duration(envtime) * time.Second
 }
