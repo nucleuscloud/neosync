@@ -5,7 +5,7 @@ export const ApiKeyFormValues = Yup.object({
   name: Yup.string()
     .required('Name is a required field.')
     .min(3, 'Name cannot be less than 3 characters.')
-    .max(30, 'Name cannot be greater than 30 characters.')
+    .max(100, 'Name cannot be greater than 100 characters.')
     .test(
       'validApiKeyName',
       'API Key Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',

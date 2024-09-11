@@ -9,12 +9,13 @@ import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import * as Yup from 'yup';
 
 /* This is the standard regular expression we assign to all or most "name" fields on the backend. */
-export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,30}$/;
+export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,100}$/;
 
 const connectionNameSchema = Yup.string()
   .required('Connection Name is a required field.')
   .min(3, 'The Connection name must be longer than 3 characters.')
-  .max(30, 'The Connection name must be shorter than 30 characters.')
+  .max(100, 'The Connection name must be shorter than 100 characters.')
+  .required()
   .test(
     'validConnectionName',
     'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',

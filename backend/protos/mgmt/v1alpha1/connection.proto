@@ -22,7 +22,7 @@ message GetConnectionResponse {
 message CreateConnectionRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The friendly name of the connection
-  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 
   ConnectionConfig connection_config = 3;
 }
@@ -32,7 +32,7 @@ message CreateConnectionResponse {
 
 message UpdateConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   ConnectionConfig connection_config = 3;
 }
 message UpdateConnectionResponse {
@@ -319,7 +319,7 @@ message GcpCloudStorageConnectionConfig {
 
 message IsConnectionNameAvailableRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string connection_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string connection_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 
 message IsConnectionNameAvailableResponse {

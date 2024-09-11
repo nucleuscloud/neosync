@@ -72,7 +72,7 @@ export const DefineFormValues = Yup.object({
     .trim()
     .required('Name is a required field')
     .min(3, 'The Job Name must be at least 3 characters')
-    .max(30, 'The Job name cannot be more than 30 characters')
+    .max(100, 'The Job name cannot be more than 100 characters')
     .test(
       'checkNameUnique',
       'This name is already taken.',
