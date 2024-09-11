@@ -3,6 +3,7 @@ package accountstatus_activity
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -44,6 +45,17 @@ func (a *Activity) CheckAccountStatus(
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
 		"RunID", activityInfo.WorkflowExecution.RunID,
 	)
+
+	go func() {
+		for {
+			select {
+			case <-time.After(30 * time.Second):
+				activity.RecordHeartbeat(ctx)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	logger.Debug("checking account status")
 
