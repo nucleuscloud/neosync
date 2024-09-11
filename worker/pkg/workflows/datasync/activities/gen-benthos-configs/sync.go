@@ -11,6 +11,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -514,9 +515,11 @@ func getInsertPrefixAndSuffix(
 	}
 	tableName := neosync_benthos.BuildBenthosTable(schema, table)
 	if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
-		p := fmt.Sprintf("SET IDENTITY_INSERT %q.%q ON;", schema, table)
+		enableIdentityInsert := true
+		p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
 		pre = &p
-		s := fmt.Sprintf("SET IDENTITY_INSERT %q.%q OFF;", schema, table)
+		s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
+		s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
 		suff = &s
 	}
 	return pre, suff
