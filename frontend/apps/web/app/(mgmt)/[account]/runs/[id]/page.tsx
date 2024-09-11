@@ -42,7 +42,6 @@ import {
   terminateJobRun,
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
-import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { toast } from 'sonner';
@@ -349,11 +348,12 @@ interface RunContext {
   };
 }
 
-function isValidRunContext(input: any): input is RunContext {
+function isValidRunContext(input: unknown): input is RunContext {
   const typedInput = input as Partial<RunContext>;
   return !!typedInput?.input?.pooled_sql_raw?.query;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseUint8ArrayToYaml(data: Uint8Array): any {
   try {
     const yamlString = new TextDecoder().decode(data);
@@ -383,7 +383,6 @@ interface ViewSelectDialogProps {
 
 function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
   const { isDialogOpen, setIsDialogOpen, query } = props;
-  const { resolvedTheme } = useTheme();
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent>
