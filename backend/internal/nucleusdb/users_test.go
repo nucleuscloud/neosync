@@ -239,7 +239,7 @@ func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
 
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
-	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
 		AccountID: accountUuid,
 		UserID:    userUuid,
@@ -268,7 +268,7 @@ func Test_SetPersonalAccount_Rollback(t *testing.T) {
 
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
-	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
 		AccountID: accountUuid,
 		UserID:    userUuid,
