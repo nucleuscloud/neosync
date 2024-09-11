@@ -513,6 +513,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateCascade: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {
@@ -531,6 +532,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateBeforeInsert: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {
@@ -565,6 +567,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                                 truncateBeforeInsert: false,
                                                 initTableSchema: false,
                                                 onConflictDoNothing: false,
+                                                skipForeignKeyViolations: false,
                                               },
                                             },
                                             {

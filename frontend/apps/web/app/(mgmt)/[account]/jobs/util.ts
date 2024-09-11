@@ -446,6 +446,8 @@ export function toJobDestinationOptions(
             }),
             initTableSchema:
               values.destinationOptions.postgres?.initTableSchema,
+            skipForeignKeyViolations:
+              values.destinationOptions.postgres?.skipForeignKeyViolations,
           }),
         },
       });
@@ -464,6 +466,8 @@ export function toJobDestinationOptions(
                 values.destinationOptions.mysql?.onConflictDoNothing ?? false,
             }),
             initTableSchema: values.destinationOptions.mysql?.initTableSchema,
+            skipForeignKeyViolations:
+              values.destinationOptions.mysql?.skipForeignKeyViolations,
           }),
         },
       });
@@ -523,6 +527,8 @@ export function toJobDestinationOptions(
                 values.destinationOptions.mssql?.onConflictDoNothing ?? false,
             }),
             initTableSchema: values.destinationOptions.mssql?.initTableSchema,
+            skipForeignKeyViolations:
+              values.destinationOptions.mssql?.skipForeignKeyViolations,
           }),
         },
       });
@@ -1374,6 +1380,8 @@ export function getDefaultDestinationFormValues(
             initTableSchema: d.options.config.value.initTableSchema ?? false,
             onConflictDoNothing:
               d.options.config.value.onConflict?.doNothing ?? false,
+            skipForeignKeyViolations:
+              d.options.config.value.skipForeignKeyViolations ?? false,
           },
         },
       };
@@ -1388,6 +1396,8 @@ export function getDefaultDestinationFormValues(
             initTableSchema: d.options.config.value.initTableSchema ?? false,
             onConflictDoNothing:
               d.options.config.value.onConflict?.doNothing ?? false,
+            skipForeignKeyViolations:
+              d.options.config.value.skipForeignKeyViolations ?? false,
           },
         },
       };
@@ -1415,6 +1425,8 @@ export function getDefaultDestinationFormValues(
             initTableSchema: d.options.config.value.initTableSchema ?? false,
             onConflictDoNothing:
               d.options.config.value.onConflict?.doNothing ?? false,
+            skipForeignKeyViolations:
+              d.options.config.value.skipForeignKeyViolations ?? false,
           },
         },
       };

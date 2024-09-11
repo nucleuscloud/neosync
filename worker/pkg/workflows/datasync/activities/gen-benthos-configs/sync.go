@@ -412,11 +412,12 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Driver: driver,
 						Dsn:    dsn,
 
-						Schema:       benthosConfig.TableSchema,
-						Table:        benthosConfig.TableName,
-						Columns:      benthosConfig.Columns,
-						WhereColumns: benthosConfig.primaryKeys,
-						ArgsMapping:  buildPlainInsertArgs(args),
+						Schema:                   benthosConfig.TableSchema,
+						Table:                    benthosConfig.TableName,
+						Columns:                  benthosConfig.Columns,
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						WhereColumns:             benthosConfig.primaryKeys,
+						ArgsMapping:              buildPlainInsertArgs(args),
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
@@ -472,15 +473,16 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Driver: driver,
 						Dsn:    dsn,
 
-						Schema:              benthosConfig.TableSchema,
-						Table:               benthosConfig.TableName,
-						Columns:             benthosConfig.Columns,
-						IdentityColumns:     benthosConfig.IdentityColumns,
-						OnConflictDoNothing: destOpts.OnConflictDoNothing,
-						TruncateOnRetry:     destOpts.Truncate,
-						ArgsMapping:         buildPlainInsertArgs(benthosConfig.Columns),
-						Prefix:              prefix,
-						Suffix:              suffix,
+						Schema:                   benthosConfig.TableSchema,
+						Table:                    benthosConfig.TableName,
+						Columns:                  benthosConfig.Columns,
+						IdentityColumns:          benthosConfig.IdentityColumns,
+						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
+						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
+						TruncateOnRetry:          destOpts.Truncate,
+						ArgsMapping:              buildPlainInsertArgs(benthosConfig.Columns),
+						Prefix:                   prefix,
+						Suffix:                   suffix,
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
@@ -723,9 +725,10 @@ func buildForeignKeySourceMap(tableDeps map[string][]*sqlmanager_shared.ForeignC
 }
 
 type destinationOptions struct {
-	OnConflictDoNothing bool
-	Truncate            bool
-	TruncateCascade     bool
+	OnConflictDoNothing      bool
+	Truncate                 bool
+	TruncateCascade          bool
+	SkipForeignKeyViolations bool
 }
 
 func getDestinationOptions(dest *mgmtv1alpha1.JobDestination) *destinationOptions {
@@ -735,14 +738,20 @@ func getDestinationOptions(dest *mgmtv1alpha1.JobDestination) *destinationOption
 	switch config := dest.Options.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		return &destinationOptions{
-			OnConflictDoNothing: config.PostgresOptions.GetOnConflict().GetDoNothing(),
-			Truncate:            config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
-			TruncateCascade:     config.PostgresOptions.GetTruncateTable().GetCascade(),
+			OnConflictDoNothing:      config.PostgresOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			TruncateCascade:          config.PostgresOptions.GetTruncateTable().GetCascade(),
+			SkipForeignKeyViolations: config.PostgresOptions.GetSkipForeignKeyViolations(),
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
 		return &destinationOptions{
-			OnConflictDoNothing: config.MysqlOptions.GetOnConflict().GetDoNothing(),
-			Truncate:            config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			OnConflictDoNothing:      config.MysqlOptions.GetOnConflict().GetDoNothing(),
+			Truncate:                 config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			SkipForeignKeyViolations: config.MysqlOptions.GetSkipForeignKeyViolations(),
+		}
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &destinationOptions{
+			SkipForeignKeyViolations: config.MssqlOptions.GetSkipForeignKeyViolations(),
 		}
 	default:
 		return &destinationOptions{}
