@@ -1,6 +1,6 @@
 ---
 title: System Transformers
-description: Learn about Neosync's system transformers that come out of the box and help anonymize data and generate synthetic data
+description: Learn about Neosync's System Transformers that come out of the box and help anonymize data and generate synthetic data
 id: system
 hide_title: false
 slug: /transformers/system
@@ -9,10 +9,10 @@ slug: /transformers/system
 
 ## Introduction
 
-Neosync comes out of the box with 40+ system transformers in order to give you an easy way to get started with anonymizing or generating data. There are two kinds of system transformers:
+Neosync ships with 40+ System Transformers to give you an easy way to get started with anonymizing or generating data. There are two kinds of System Transformers:
 
-1. Generators - these begin with `generate_` and do not anonymize existing data. They only generate net-new synthetic data.
-2. Transformers - these begin with `transform_` and can anonymize existing data or generate new-new synthetic data based on how you configure it.
+1. Generators - these begin with `Generate` and do not anonymize existing data. They only generate net-new synthetic data.
+2. Transformers - these begin with `Transform` and can anonymize existing data or generate new-new synthetic data based on your configuration.
 
 ## Reference
 
@@ -63,22 +63,13 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 
 ### Generate Categorical\{#generate-categorical}
 
-The generate categorical transformer allows a user to define a list of comma-separated categorical string values that Neosync will randomly sample.
-
-For example, the following values:
-`test, me, please`
-
-Could produce the following output value:
-`me`
-
-Or:
-`please`
+Allows a user to define a list of comma-separated string values that Neosync will randomly sample.
 
 **Configurations**
 
-| Name       | Description                                                                          | Default         | Example Output |
-| ---------- | ------------------------------------------------------------------------------------ | --------------- | -------------- |
-| Categories | list of comma-separated categorical string values that Neosync will randomly sample. | `value1,value2` | `value1`       |
+| Name       | Description                                                              | Default         | Example Output |
+| ---------- | ------------------------------------------------------------------------ | --------------- | -------------- |
+| Categories | List of comma-separated string values that Neosync will randomly sample. | `value1,value2` | `value1`       |
 
 **Examples**
 
@@ -89,66 +80,34 @@ Or:
 
 ### Generate Email\{#generate-email}
 
-The generate email transformer generates a new randomized email address in the format:
+Generates a new randomized email address in the format:
 
 `<username>@<domain>.<top-level-domain>`
 
 By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
 
-For example, the following input value:
-`john@acme.com`
+**Configurations**
 
-Would produce the following output value:
-`ytvub873@gmail.com`
+| Name       | Description                                                                         | Default | Example Output                                 |
+| ---------- | ----------------------------------------------------------------------------------- | ------- | ---------------------------------------------- |
+| Email Type | Provides a way to generate unique email addresses by appending a UUID to the domain | uuid_v4 | ab6b676b-0d0e-4e38-b98a-3935a832da7d@gmail.com |
+
+**Examples**
+
+| Example Output                         |
+| -------------------------------------- |
+| `ab6b676b-0d0e-4e38-b98a-3935a832da7d` |
+| `jFrankd@msn.com`                      |
+
+### Generate Boolean\{#generate-boolean}
+
+Randomly generates a boolean value.
 
 **Configurations**
 
 There are no configurations for this transformer.
 
 **Examples**
-
-| Example Output        |
-| --------------------- |
-| `f98723uh@gmail.com`  |
-| `9cd@msn.com`         |
-| `mDy@gmail.edu `      |
-| `fweq23f@hotmail.com` |
-
-**Configurations**
-
-Depending on your logic, you may want to configure the output email. The transform email transformer has the following configurations:
-
-| Name             | Description                                                                                                                                                                                                               | Default | Example Input           | Example Output                               |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------- | -------------------------------------------- |
-| PreserveDomain   | Carries over the input domain and top-level to the output email address.                                                                                                                                                  | false   | `john@gmail.com`        | `fjf2903@gmail.com`                          |
-| PreserveLength   | Ensures the output email address is the same length as the input email address.                                                                                                                                           | false   | `john@gmail.com`        | `hw98@gmail.edu `                            |
-| Excluded Domains | Specify a list of comma separated domains to exclude from transformation logic.                                                                                                                                           | empty   | `gmail.com,hotmail.com` | `hw98@gmail.edu `                            |
-| Email Type       | Specify how the email should be transformed. Today the options are uuid v4 and fullname. Fullname is not guaranteed to be unique, although it has high cardinality. For unique transformers, it's advised to use uuid v4. | uuid v4 | `foo@gmail.com`         | `d62bcb6a98ee4316a078852efda21c3d@gmail.com` |
-
-**Examples**
-
-There are several ways you can mix-and-match configurations to get different potential email formats. Note that the Excluded Domains List pertains to the transformed emails. If the PreserverDomain is true and there is a domain in the Excluded Domains list, then the default logic would be to **not** preserve the domain but since we are excluding those domains from the transformation logic via the exclude list, then those domains **will** be excluded.
-
-Here are some possible combinations:
-
-| PreserveLength | PreserveDomain | Exclude Domains | Example Input        | Example Output        |
-| -------------- | -------------- | --------------- | -------------------- | --------------------- |
-| false          | true           | `gmail.com`     | `evis@gmail.com`     | `f9nkeuh@ergwer.wewe` |
-| true           | false          | `gmail.com`     | `f98723uh@gmail.com` | `f98723uh@gmail.com`  |
-| true           | true           | `gmail.com`     | `evis@gmail.com`     | `f98723uh@weefw.wefw` |
-| false          | false          | `gmail.com`     | `evis@gmail.com`     | `f98723uh@gmail.com`  |
-
-### Generate Boolean\{#generate-boolean}
-
-The generate boolean transformer randomly generates a boolean value.
-
-**Configurations**
-
-There are no configurations for the random boolean transformer.
-
-**Examples**
-
-Here are some examples of what an output random boolean value may look like.
 
 | Example Output |
 | -------------- |
@@ -157,21 +116,17 @@ Here are some examples of what an output random boolean value may look like.
 
 ### Generate Card Number\{#generate-card-number}
 
-The generate card number transformer generates a new card number that is [luhn valid.](https://en.wikipedia.org/wiki/Luhn_algorithm)
+Generates a new card number that can be [luhn valid.](https://en.wikipedia.org/wiki/Luhn_algorithm)
 
-By default, the card number transformer generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
+By default, generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output card number. The card number transformer has the following configurations:
 
 | Name       | Description                                           | Default | Example Output   |
 | ---------- | ----------------------------------------------------- | ------- | ---------------- |
 | Valid Luhn | Generate a card number that can pass luhn validation. | true    | 6621238134011099 |
 
 **Examples**
-
-Here are some examples of an output card number:
 
 | Valid Luhn | Example Output   |
 | ---------- | ---------------- |
@@ -180,17 +135,13 @@ Here are some examples of an output card number:
 
 ### Generate City\{#generate-city}
 
-The generate city transformer generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
-
-If you'd rather not get back a real city value, you can use the [Generate Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
+Generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected
 
 **Configurations**
 
-There are no configurations for the city transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output City value may look like.
 
 | Example Output |
 | -------------- |
@@ -199,7 +150,7 @@ Here are some examples of what an output City value may look like.
 
 ### Generate Country\{#generate-country}
 
-The generate country transformer generates a randomly selected country. It can return it in either a 2-letter country code format or the full country name.
+Generates a randomly selected country. It can return it in either a 2-letter country code format or the full country name.
 
 **Configurations**
 
@@ -209,16 +160,14 @@ The generate country transformer generates a randomly selected country. It can r
 
 **Examples**
 
-Here are some examples of what an output City value may look like.
-
 | Example Output |
 | -------------- |
-| Louisville     |
-| Manchester     |
+| Canada         |
+| AL             |
 
 ### Generate E164 Phone Number\{#generate-e164-phone-number}
 
-The generate e164 phone transformer generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random phone number with no hyphens in the format:
+Generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random phone number with no hyphens in the format:
 
 `+34567890123`
 
@@ -226,16 +175,12 @@ Phone numbers also vary in length with some international phone numbers reaching
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output e164 phone number:
-
 | Name | Description                                   | Default | Example Output |
 | ---- | --------------------------------------------- | ------- | -------------- |
 | Min  | Min is the lower range of the a length value. | 9       | +29748675      |
 | Max  | Max is the upper range of a length value.     | 12      | +2037486752    |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
 | Min | Max | Example Output |
 | --- | --- | -------------- |
@@ -245,7 +190,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Generate First Name\{#generate-first-name}
 
-The generate first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json)
+Generates a valid first name from a list of predefined first name values.
 
 By default, the generate first name transformer randomly picks a first name with a length between 2 and 12.
 
@@ -255,8 +200,6 @@ There are no configurations for this transformer.
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
-
 | Example Output |
 | -------------- |
 | Benjamin       |
@@ -265,7 +208,7 @@ There are several ways you can mix-and-match configurations to get different fir
 
 ### Generate Float64\{#generate-float64}
 
-The generate float transformer generates a random floating point number.
+Generates a random floating point number.
 
 For example:
 `32.2432`
@@ -278,8 +221,6 @@ If this is not sufficient, contact us about creating a generator that supports n
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
-
 | Name          | Description                                                                                           | Default |
 | ------------- | ----------------------------------------------------------------------------------------------------- | ------- |
 | RandomizeSign | Randomly sets the sign of the value.                                                                  | false   |
@@ -289,11 +230,7 @@ Depending on your validations, you may want to configure the output float. The r
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random float formats.
-
 Note: if randomize sign has been selected, this may cause the generated numbers to exist outside of the configured min/max range.
-
-Here are some possible combinations:
 
 | RandomizeSign | Min    | Max   | Precision | Example Output |
 | ------------- | ------ | ----- | --------- | -------------- |
@@ -304,18 +241,13 @@ Here are some possible combinations:
 
 ### Generate Full Address\{#generate-full-address}
 
-The generate full address transformer generates a randomly selected real full address that exists in the United States. You can see the complete list of full addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json)
-
-The full address transformer returns a valid United States address. For example:
-`123 Main Street Boston, Massachusetts, 02169`
+Generates a randomly selected real full address that exists in the United States.
 
 **Configurations**
 
-There are no configurations for the full address transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output full address value may look like.
 
 | Example Output                                      |
 | --------------------------------------------------- |
@@ -324,15 +256,13 @@ Here are some examples of what an output full address value may look like.
 
 ### Generate Full Name\{#generate-full-name}
 
-The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
+Generates a valid full name from a list of predefined full name values.
 
 **Configurations**
 
 There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output full name value may look like.
 
 | Example Output  |
 | --------------- |
@@ -342,7 +272,7 @@ Here are some examples of what an output full name value may look like.
 
 ### Generate Gender\{#generate-gender}
 
-The generate gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
+Randomly selects a gender value from a predefined list of genders. Here is the list:
 
 | Gender    | Abbreviation |
 | --------- | ------------ |
@@ -355,15 +285,11 @@ By default, the gender transformer does not abbreviate the gender. If you'd like
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output gender. The gender transformer has the following configurations:
-
 | Name       | Description                                                                    | Default | Example Output |
 | ---------- | ------------------------------------------------------------------------------ | ------- | -------------- |
 | Abbreviate | Abbreviate will abbreviate the output gender so that it is only one character. | false   | u              |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
 
 | Abbreviate | Example Output |
 | ---------- | -------------- |
@@ -373,18 +299,13 @@ There are several ways you can mix-and-match configurations to get different ful
 
 ### Generate Int64 Phone Number\{#generate-int64-phone-number}
 
-The generate int64 phone number generates a random 10 digit phone number with a valid US area code and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
-
-For example, the generate int64 phone number transformer could generate the following output value:
-`5698437232`
+Generates a random 10 digit phone number with a valid US area code and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
 
 **Configurations**
 
 There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what the output values could look like:
 
 | Example Output |
 | -------------- |
@@ -393,24 +314,28 @@ Here are some examples of what the output values could look like:
 
 ### Generate Javascript\{#generate-javascript}
 
-The generate javascript transformer allows the user to define some javascript code and then execute that on every row that they are generating.
+Allows the user to define Javascript code and then execute that on every row that they are generating. This transformer supports JS ECMA 5 and most of the standard JS lib. It does not currently support importing third party libraries.
 
 **Configurations**
 
 | Name | Description                               | Default         | Example Output |
-| ---- | ----------------------------------------- | --------------- | -------------- |
-| Code | The javascript code that will be executed | `return 'test'` | `test`         |
+| ---- | ----------------------------------------- | --------------- | -------------- | --- |
+| Code | The javascript code that will be executed | `return 'test'` | `test`         | \   |
+
+**Example**
+
+| Code            | Example Output |
+| --------------- | -------------- |
+| `return 'test'` | `test`         |
 
 ### Generate Random Int64\{#generate-random-int64}
 
-The generate random int64 transformer generates a random integer and returns it as a int64 type.
+Generates a random integer and returns it as a int64 type.
 
 For example:
 `6782`
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
 
 | Name          | Description                                          | Default |
 | ------------- | ---------------------------------------------------- | ------- |
@@ -420,11 +345,7 @@ Depending on your validations, you may want to configure the output float. The r
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random integer formats.
-
 Note: if randomize sign has been selected, this may cause the generated numbers to exist outside of the configured min/max range.
-
-Here are some possible combinations:
 
 | RandomizeSign | Min | Max | Example Output |
 | ------------- | --- | --- | -------------- |
@@ -434,15 +355,13 @@ Here are some possible combinations:
 
 ### Generate Last Name\{#generate-last-name}
 
-The generate last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+Generates a valid last name from a list of predefined last name values.
 
 **Configurations**
 
-This transformer has no configurations.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some possible output examples:
 
 | Example Output |
 | -------------- |
@@ -452,15 +371,13 @@ Here are some possible output examples:
 
 ### Generate SHA256 Hash\{#generate-sha256-hash}
 
-The generate sha256 hash transformer generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
+Generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
 
 **Configurations**
 
-There are no configurations for the hash transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output hash value may look like.
 
 | Example Output                                                    |
 | ----------------------------------------------------------------- |
@@ -470,18 +387,13 @@ Here are some examples of what an output hash value may look like.
 
 ### Generate SSN\{#generate-ssn}
 
-The generate ssn transformer randomly generates a social security number and returns it with hyphens as a string.
-
-For, example:
-`123-45-6789`
+Randomly generates a social security number and returns it with hyphens as a string.
 
 **Configurations**
 
-There are no configurations for the ssn transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output street address value may look like.
 
 | Example Output |
 | -------------- |
@@ -490,21 +402,15 @@ Here are some examples of what an output street address value may look like.
 
 ### Generate State\{#generate-state}
 
-The generate state transformer generates a randomly selected US state in either 2-letter state code format or the full state name. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/states.go).
-
-If you'd rather not get back a real state value, you can use the [Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
+Generates a randomly selected US state in either 2-letter state code format or the full state name.
 
 **Configurations**
-
-Here the configurations for the Generate State Transformer:
 
 | Name               | Description                                                                                                            | Default | Example Output |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------- | -------------- |
 | Generate Full Name | Set to true to return the full state name with a capitalized first letter. Returns the 2-letter state code by default. | false   | CA             |
 
 **Examples**
-
-Here are some examples of what an output state value may look like.
 
 | State Code | Example Output |
 | ---------- | -------------- |
@@ -513,18 +419,13 @@ Here are some examples of what an output state value may look like.
 
 ### Generate Street Address\{#generate-street-address}
 
-The generate street address transformer generates a randomly selects a real street address that exists in the United States. You can see the complete list of street addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
-
-The street address transformer returns a valid United States address. For example:
-`123 Main Street Boston`
+Generates a randomly selects a real street address that exists in the United States.
 
 **Configurations**
 
-There are no configurations for the street address transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output street address value may look like.
 
 | Example Output                |
 | ----------------------------- |
@@ -533,11 +434,9 @@ Here are some examples of what an output street address value may look like.
 
 ### Generate String Phone Number\{#generate-string-phone-number}
 
-The generate string phone transformer generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
+Generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
 
 **Configurations**
-
-Here the configurations for the Generate String Phone Number Transformer:
 
 | Name | Description                                                            | Default | Example Output |
 | ---- | ---------------------------------------------------------------------- | ------- | -------------- |
@@ -545,8 +444,6 @@ Here the configurations for the Generate String Phone Number Transformer:
 | Max  | Max is the upper range of a length value. The maximum range is 15.     | 15      | 2037486752     |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
 | Min | Max | Example Output |
 | --- | --- | -------------- |
@@ -556,7 +453,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Generate Random String\{#generate-random-string}
 
-The generate random string transformer generates a random string of alphanumeric characters.
+Generates a random string of alphanumeric characters.
 
 For example:
 `h2983hf28h92`
@@ -565,16 +462,12 @@ By default, the random string transformer generates a string of 10 characters lo
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output string. The generate string transformer has the following configurations:
-
 | Name | Description                                                                         | Default | Example Output |
 | ---- | ----------------------------------------------------------------------------------- | ------- | -------------- |
 | Min  | Specifies the min range for a generated int64 value. This supports negative values. | 2       | jn9d           |
 | Max  | Specifies the max range for a generated int64 value. This supports negative values. | 7       | hd9n93         |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
 | Min | Max | Example Output |
 | --- | --- | -------------- |
@@ -584,7 +477,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Generate Unix Timestamp\{#generate-unix-timestamp}
 
-The generate unix timestamp transformer randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
+Randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
 
 By default, the generated timestamp will always be in the **past**.
 
@@ -592,9 +485,7 @@ By default, the generated timestamp will always be in the **past**.
 
 There are no configurations for this transformer.
 
-**Examples**
-
-Here are some examples of what an output state value may look like.
+**Examples**=
 
 | Example Output |
 | -------------- |
@@ -603,15 +494,13 @@ Here are some examples of what an output state value may look like.
 
 ### Generate Username\{#generate-username}
 
-The generate username transformer generates a random string in the format of `<first_initial><last_name>`. The last names are pulled from the last name transformer(/transformers/system#generate-last-name).
+The generate username transformer generates a random string in the format of `<first_initial><last_name>`.
 
 **Configurations**
 
-There are no configurations for the state transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output state value may look like.
 
 | Example Output |
 | -------------- |
@@ -620,7 +509,7 @@ Here are some examples of what an output state value may look like.
 
 ### Generate UTC Timestamp\{#generate-utc-timestamp}
 
-The generate utc timestamp transformer randomly generates a utc timestamp in UTC timezone and returns back an time.Time representation of that timestamp.
+Randomly generates a utc timestamp in UTC timezone and returns back a time.Time representation of that timestamp.
 
 By default, the generated timestamp will always be in the **past**.
 
@@ -630,8 +519,6 @@ There are no configurations for this transformer.
 
 **Examples**
 
-Here are some examples of what an output state value may look like.
-
 | Example Output                   |
 | -------------------------------- |
 | July 8, 2025, 00:00:00 UTC       |
@@ -639,22 +526,18 @@ Here are some examples of what an output state value may look like.
 
 ### Generate UUID\{#generate-uuid}
 
-The generate UUID transformer generates a new UUID v4.
+Generates a new UUID v4.
 
 For example:
 `6d871028b072442c9ad9e6e4e223adfa`
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output uuid. The uuid transformer has the following configurations:
-
 | Name            | Description                                                                                                                                                | Default | Example Output                       |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------ |
 | Include hyphens | Includes hyphens in the output UUID. Note: For some databases, such as Postgres, it will automatically convert any UUID without hyphens to having hyphens. | false   | 6817d39c-ea4f-45ec-a81c-bc0801355576 |
 
 **Examples**
-
-Here are some example UUID values that the uuid transformer can generate:
 
 | Include Hyphens | Example Output                       |
 | --------------- | ------------------------------------ |
@@ -663,17 +546,13 @@ Here are some example UUID values that the uuid transformer can generate:
 
 ### Generate Zipcode\{#generate-zipcode}
 
-The generate zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
-
-If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
+Generates a randomly selected US zipcode.
 
 **Configurations**
 
-There are no configurations for the zipcode transformer.
+There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output zipcode value may look like.
 
 | Example Output |
 | -------------- |
@@ -682,7 +561,7 @@ Here are some examples of what an output zipcode value may look like.
 
 ### Transform Email\{#transform-email}
 
-The transform email transformer can anonymize an existing email address or generate a new randomized email address in the format:
+Anonymizes an existing email address or generate a new randomized email address in the format:
 
 `<username>@<domain>.<top-level-domain>`
 
@@ -690,39 +569,39 @@ By default, the transformer randomizes the username, domain and top-level domain
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output email address. The transform email transformer has the following configurations:
-
 | Name                 | Description                                                                                       | Default | Example Input   | Example Output                                 |
 | -------------------- | ------------------------------------------------------------------------------------------------- | ------- | --------------- | ---------------------------------------------- |
 | Preserve Length      | Preserve Length will ensure that the output email is the same length as the input                 | false   | john@gmail      | william@gmail.com                              |
 | Preserve Domain      | Preserve Domain will ensure that the output email domain is the same as the input email domain    | false   | john@gmail      | william@yahoo.com                              |
 | Excluded Domains     | Takes in a list of comma separated domains and excludes them from the transformer                 | []      | @gmail          | william@gmail.com                              |
 | Email Type           | Provides a way to generate unique email addresses by appending a UUID to the domain               | uuid_v4 | john@gmail      | ab6b676b-0d0e-4e38-b98a-3935a832da7d@gmail.com |
-| Invalid Email Action | Provide a way for Neosync to handle email strings that are not formatted as valid email addresses | reject  | john@gmail..com |                                                |
+| Invalid Email Action | Provide a way for Neosync to handle email strings that are not formatted as valid email addresses | reject  | john@gmail..com | null                                           |
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential email formats. Note that the Excluded Domains List pertains to the transformed emails. If the PreserverDomain is true and there is a domain in the Excluded Domains list, then the default logic would be to **not** preserve the domain but since we are excluding those domains from the transformation logic via the exclude list, then those domains **will** be excluded.
+
+| PreserveLength | PreserveDomain | Exclude Domains | Example Input        | Invalid Email Action | Example Output        |
+| -------------- | -------------- | --------------- | -------------------- | -------------------- | --------------------- |
+| false          | true           | `gmail.com`     | `evis@gmail.com`     | reject               | `f9nkeuh@ergwer.wewe` |
+| false          | true           | `gmail.com`     | `evis@gmail....com`  | reject               | ``                    |
+| true           | false          | `gmail.com`     | `f98723uh@gmail.com` | null                 | `f98723uh@gmail.com`  |
+| true           | true           | `gmail.com`     | `evis@gmail.com`     | passthrough          | `f98723uh@weefw.wefw` |
+| false          | false          | `gmail.com`     | `evis@gmail.com`     | passthrough          | `f98723uh@gmail.com`  |
 
 ### Transform E164 Phone Number\{#transform-e164-phone-number}
 
-The transform e164 phone transformer can anonymize an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
-
-For example, the following input value:
-`+7829828714`
-
-Could produce the following output value:
-`+5698437232`
+Anonymizes an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
 
 E164 Phone numbers vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value in order maintain the same shape as the input value.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output e164 phone number. The transform e164 phone number transformer has the following configurations:
 
 | Name            | Description                                                                                                                                                                             | Default | Example Input | Example Output |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
 | Preserve Length | Preserve Length will ensure that the output e164 phone number is the same length as the input phone number. If set to false, it will generate a value between 9 and 15 characters long. | false   | +8923786243   | +290374867526  |
 
 **Examples**
-
-Here are some examples of what the transform e164 phone number transformer can output:
 
 | Preserve Length | Example Input | Example Output |
 | --------------- | ------------- | -------------- |
@@ -731,21 +610,17 @@ Here are some examples of what the transform e164 phone number transformer can o
 
 ### Transform First Name\{#transform-first-name}
 
-The transform first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
+Generates a valid first name from a list of predefined first name values.
 
 By default, the first name transformer generates a first name of random length. To preserve the length of the input first name, you can set the `preserveLength` config.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output first name. The first name transformer has the following configurations:
 
 | Name           | Description                                                                                                                                                                 | Default | Example Input | Example Output |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
 | PreserveLength | Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long. | false   | Johnathan     | Bill           |
 
 **Examples**
-
-Here are some examples of what the transform first name transformer can output:
 
 | PreserveLength | Example Input | Example Output |
 | -------------- | ------------- | -------------- |
@@ -754,16 +629,11 @@ Here are some examples of what the transform first name transformer can output:
 
 ### Transform Float64\{#transform-float64}
 
-The transform float transformer can anonymize an existing float64 value or generate a completely random floating point number.
-
-For example:
-`32.2432`
+Anonymizes an existing float64 value or generate a completely random floating point number.
 
 The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and lower bound around the value that you want to anonymize relative to the input. For example, if the input value is 10, and you set the `randomizationRangeMin` value to 5, then the minimum will be 5. And if you set the `randomizationRangeMax` to 5, then the maximum will be 15 ( 10 + 5 = 15).
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
 | Name               | Description                                          | Default |
 | ------------------ | ---------------------------------------------------- | ------- |
@@ -771,8 +641,6 @@ Depending on your validations, you may want to configure the output float. The r
 | Relative Range Max | Sets the upper bound of a range for the input value. | 50.00   |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
 
 | Randomization Range Min | Randomization Range Max | Example Input | Example Output |
 | ----------------------- | ----------------------- | ------------- | -------------- |
@@ -782,21 +650,17 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform Full Name\{#transform-full-name}
 
-The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
+Generates a valid full name from a list of predefined full name values.
 
 By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output full name. The full name transformer has the following configurations:
-
-| Name           | Description                                                                                                                                                                                                                                                                                    | Default | Example Input | Example Output |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
-| PreserveLength | Preserve Length will ensure that the output full name is the same length as the input full name by preserving the length of the first and last names. The preserveLength config only preserves first and/or last names up to 12 characters long. So the max full name length is 25 characters. | false   | John          | Bill           |
+| Name           | Description                                                                                                                                                                                                                                                         | Default | Example Input | Example Output |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| PreserveLength | Preserve Length ensures that the output full name is the same length as the input full name by preserving the length of the first and last names. It only preserves first and/or last names up to 12 characters long. So the max full name length is 25 characters. | false   | John          | Bill           |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
 
 | PreserveLength | Example Input | Example Output  |
 | -------------- | ------------- | --------------- |
@@ -806,27 +670,17 @@ There are several ways you can mix-and-match configurations to get different ful
 
 ### Transform Int64 Phone Number\{#transform-int64-phone-number}
 
-The transform int64 phone transformer can anonymize an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
-
-For example, the following input value:
-`7829828714`
-
-Would produce the following output value:
-`5698437232`
+Anonymizes an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
 
 You can see we generated a new phone integer value that can be used as an integer phone number. Also, note that we don't include hyphens in this transformer since the output type is an `integer`.
 
 **#Configurations**
-
-Depending on your validations, you may want to configure the output phone number.
 
 | Name           | Description                                                                                            | Default | Example Input | Example Output |
 | -------------- | ------------------------------------------------------------------------------------------------------ | ------- | ------------- | -------------- |
 | PreserveLength | Preserve Length will ensure that the output phone number is the same length as the input phone number. | false   | 892387786243  | 2903748675392  |
 
 **Examples**
-
-Here are some possible example output values:
 
 | PreserveLength | Example Input | Example Output |
 | -------------- | ------------- | -------------- |
@@ -835,14 +689,9 @@ Here are some possible example output values:
 
 ### Transform Int64\{#transform-int64}
 
-The random integer transformer generates a random integer.
-
-For example:
-`6782`
+Anonymizes an existing int64 value.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
 
 | Name               | Description                                                  | Default |
 | ------------------ | ------------------------------------------------------------ | ------- |
@@ -850,8 +699,6 @@ Depending on your validations, you may want to configure the output integer. The
 | Relative Range Max | Sets the upper bound of a range relative to the input value. | 50      |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
 
 | Relative Range Min | Relative Range Max | Example Input | Example Output |
 | ------------------ | ------------------ | ------------- | -------------- |
@@ -861,7 +708,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform Javascript\{#transform-javascript}
 
-The transform javascript transformer execute user provided code on the incoming input value. It's a very flexible way to transform the incoming input value however you'd like.
+Executes user provided code on the incoming input value. It's a very flexible way to transform the incoming input value however you'd like.
 
 For example:
 
@@ -881,8 +728,6 @@ return append(value);
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
-
 | Relative Range Min | Relative Range Max | Example Input | Example Output |
 | ------------------ | ------------------ | ------------- | -------------- |
 | 5                  | 5                  | 10            | 15             |
@@ -891,21 +736,17 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform Last Name\{#transform-last-name}
 
-The transform last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+Generates a valid last name from a list of predefined last name values.
 
 By default, the last name transformer generates a last name of random length. To preserve the length of the input last name, you can set the `preserveLength` config.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output last name. The last name transformer has the following configurations:
 
 | Name           | Description                                                                                                                                                               | Default | Example Input | Example Output |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
 | PreserveLength | Preserve Length will ensure that the output last name is the same length as the input last name. The preserveLength config only preserves names up to 12 characters long. | false   | Hills         | Kunze          |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different last name formats. Here are some possible combinations:
 
 | PreserveLength | Example Input | Example Output |
 | -------------- | ------------- | -------------- |
@@ -915,27 +756,17 @@ There are several ways you can mix-and-match configurations to get different las
 
 ### Transform Phone Number\{#transform-phone-number}
 
-The transform phone transformer can anonymize an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
+Anonymizes an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
 
 By default, the transform phone transformer generates a random 10 string value phone number with no hyphens.
 
-For example, the following input value:
-`7829828714`
-
-Would produce the following output value:
-`5698437232`
-
 **Configurations**
-
-Depending on your validations, you may want to configure the output phone number. Here are the configurations for the transform string phone number transformer.
 
 | Name           | Description                                                                                            | Default | Example Input   | Example Output  |
 | -------------- | ------------------------------------------------------------------------------------------------------ | ------- | --------------- | --------------- |
 | PreserveLength | Preserve Length will ensure that the output phone number is the same length as the input phone number. | false   | 892387243786243 | 290374867526392 |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
 | PreserveLength | Example Input | Example Output |
 | -------------- | ------------- | -------------- |
@@ -944,24 +775,17 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform String\{#transform-string}
 
-The random string transformer generates a random string of alphanumeric characters.
-
-For example:
-`h2983hf28h92`
+Anonymizes an existing string value of alphanumeric characters.
 
 By default, the random string transformer generates a string of 10 characters long.
 
 **Configurations**
-
-Depending on your validations, you may want to configure the output string. The random string transformer has the following configurations:
 
 | Name            | Description                                                     | Default | Example Input | Example Output |
 | --------------- | --------------------------------------------------------------- | ------- | ------------- | -------------- |
 | Preserve Length | Preserves the length of the input integer to the output string. | false   | hello         | 9Fau3          |
 
 **Examples**
-
-There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
 | PreserveLength | Example Input | Example Output |
 | -------------- | ------------- | -------------- |
@@ -987,8 +811,6 @@ Note that this does not work for hex values: 0x00 -> 0x1F such as chinese charac
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
-
 | Regex    | Example Input | Example Output |
 | -------- | ------------- | -------------- |
 |          | helloworld    | didlenfioq     |
@@ -997,15 +819,15 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Passthrough\{#passthrough}
 
-The passthrough transformer simplify passes the input data out to the output without making any modifications to it. This is useful in many circumstances but cautious of accidentally leaking sensitive data through this transformer.
+Passes the input data out to the output without making any modifications to it. This is useful in many circumstances but cautious of accidentally leaking sensitive data through this transformer.
 
 ### Null\{#null}
 
-The null transformer simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
+Simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
 
 **Configurations**
 
-There are no configurations for the null transformer.
+There are no configurations for this transformer.
 
 **Examples**
 
@@ -1017,15 +839,13 @@ Here are some examples of what an output null value may look like.
 
 ### Use Column Default\{#use-column-default}
 
-The use column default transformer automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database. This is typically used in conjunction with `GENERATED` columns.
+Automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database. This is typically used in conjunction with `GENERATED` columns.
 
 **Configurations**
 
 There are no configurations for this transformer.
 
 **Examples**
-
-Here are some examples of what an output null value may look like.
 
 | Example Input | Example Output |
 | ------------- | -------------- |
