@@ -2,7 +2,7 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"crypto/sha256"
+	"crypto/sha1"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -256,11 +256,11 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 }
 
 func hashPrimaryKeyMetaKey(schema, table, column string) string {
-	return generateSha256Hash(fmt.Sprintf("neosync_%s_%s_%s", schema, table, column))
+	return generateSha1Hash(fmt.Sprintf("neosync_%s_%s_%s", schema, table, column))
 }
 
-func generateSha256Hash(input string) string {
-	hasher := sha256.New()
+func generateSha1Hash(input string) string {
+	hasher := sha1.New() //nolint:gosec
 	hasher.Write([]byte(input))
 	hashBytes := hasher.Sum(nil)
 	return hex.EncodeToString(hashBytes)
