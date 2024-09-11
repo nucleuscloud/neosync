@@ -166,18 +166,21 @@ const PostgresDbDestinationOptionsFormValues = Yup.object({
   truncateCascade: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
+  skipForeignKeyViolations: Yup.boolean().optional().default(false),
 });
 
 const MysqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
+  skipForeignKeyViolations: Yup.boolean().optional().default(false),
 });
 
 const MssqlDbDestinationOptionsFormValues = Yup.object({
   truncateBeforeInsert: Yup.boolean().optional().default(false),
   initTableSchema: Yup.boolean().optional().default(false),
   onConflictDoNothing: Yup.boolean().optional().default(false),
+  skipForeignKeyViolations: Yup.boolean().optional().default(false),
 });
 
 export const DestinationOptionsFormValues = Yup.object({

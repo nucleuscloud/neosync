@@ -1429,9 +1429,10 @@ type MongoDestinationOptions struct{}
 
 type AwsS3DestinationOptions struct{}
 type PostgresDestinationOptions struct {
-	TruncateTableConfig *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
-	InitTableSchema     bool                         `json:"initTableSchema"`
-	OnConflictConfig    *PostgresOnConflictConfig    `json:"onConflictConfig,omitempty"`
+	TruncateTableConfig      *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
+	InitTableSchema          bool                         `json:"initTableSchema"`
+	OnConflictConfig         *PostgresOnConflictConfig    `json:"onConflictConfig,omitempty"`
+	SkipForeignKeyViolations bool                         `json:"skipForeignKeyViolations"`
 }
 
 type PostgresOnConflictConfig struct {
@@ -1466,9 +1467,10 @@ func (t *PostgresTruncateTableConfig) FromDto(dto *mgmtv1alpha1.PostgresTruncate
 }
 
 type MysqlDestinationOptions struct {
-	TruncateTableConfig *MysqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
-	InitTableSchema     bool                      `json:"initTableSchema"`
-	OnConflictConfig    *MysqlOnConflictConfig    `json:"onConflict,omitempty"`
+	TruncateTableConfig      *MysqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
+	InitTableSchema          bool                      `json:"initTableSchema"`
+	OnConflictConfig         *MysqlOnConflictConfig    `json:"onConflict,omitempty"`
+	SkipForeignKeyViolations bool                      `json:"skipForeignKeyViolations"`
 }
 
 type MysqlOnConflictConfig struct {
@@ -1500,9 +1502,10 @@ func (t *MysqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MysqlTruncateTableC
 }
 
 type MssqlDestinationOptions struct {
-	TruncateTableConfig *MssqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
-	InitTableSchema     bool                      `json:"initTableSchema"`
-	OnConflictConfig    *MssqlOnConflictConfig    `json:"onConflict,omitempty"`
+	TruncateTableConfig      *MssqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
+	InitTableSchema          bool                      `json:"initTableSchema"`
+	OnConflictConfig         *MssqlOnConflictConfig    `json:"onConflict,omitempty"`
+	SkipForeignKeyViolations bool                      `json:"skipForeignKeyViolations"`
 }
 
 func (m *MssqlDestinationOptions) ToDto() *mgmtv1alpha1.MssqlDestinationConnectionOptions {
@@ -1516,9 +1519,10 @@ func (m *MssqlDestinationOptions) ToDto() *mgmtv1alpha1.MssqlDestinationConnecti
 	}
 
 	return &mgmtv1alpha1.MssqlDestinationConnectionOptions{
-		TruncateTable:   truncateTableConfig,
-		InitTableSchema: m.InitTableSchema,
-		OnConflict:      onconflictConfig,
+		TruncateTable:            truncateTableConfig,
+		InitTableSchema:          m.InitTableSchema,
+		OnConflict:               onconflictConfig,
+		SkipForeignKeyViolations: m.SkipForeignKeyViolations,
 	}
 }
 func (m *MssqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MssqlDestinationConnectionOptions) {
@@ -1534,6 +1538,7 @@ func (m *MssqlDestinationOptions) FromDto(dto *mgmtv1alpha1.MssqlDestinationConn
 		m.TruncateTableConfig = &MssqlTruncateTableConfig{}
 		m.TruncateTableConfig.FromDto(dto.GetTruncateTable())
 	}
+	m.SkipForeignKeyViolations = dto.GetSkipForeignKeyViolations()
 }
 
 type MssqlOnConflictConfig struct {
@@ -1581,9 +1586,10 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
-					TruncateTable:   j.PostgresOptions.TruncateTableConfig.ToDto(),
-					InitTableSchema: j.PostgresOptions.InitTableSchema,
-					OnConflict:      j.PostgresOptions.OnConflictConfig.ToDto(),
+					TruncateTable:            j.PostgresOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema:          j.PostgresOptions.InitTableSchema,
+					OnConflict:               j.PostgresOptions.OnConflictConfig.ToDto(),
+					SkipForeignKeyViolations: j.PostgresOptions.SkipForeignKeyViolations,
 				},
 			},
 		}
@@ -1598,9 +1604,10 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
 				MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
-					TruncateTable:   j.MysqlOptions.TruncateTableConfig.ToDto(),
-					InitTableSchema: j.MysqlOptions.InitTableSchema,
-					OnConflict:      j.MysqlOptions.OnConflictConfig.ToDto(),
+					TruncateTable:            j.MysqlOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema:          j.MysqlOptions.InitTableSchema,
+					OnConflict:               j.MysqlOptions.OnConflictConfig.ToDto(),
+					SkipForeignKeyViolations: j.MysqlOptions.SkipForeignKeyViolations,
 				},
 			},
 		}
@@ -1653,8 +1660,9 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		truncateCfg := &PostgresTruncateTableConfig{}
 		truncateCfg.FromDto(config.PostgresOptions.TruncateTable)
 		j.PostgresOptions = &PostgresDestinationOptions{
-			InitTableSchema:     config.PostgresOptions.InitTableSchema,
-			TruncateTableConfig: truncateCfg,
+			InitTableSchema:          config.PostgresOptions.InitTableSchema,
+			TruncateTableConfig:      truncateCfg,
+			SkipForeignKeyViolations: config.PostgresOptions.InitTableSchema,
 		}
 		if config.PostgresOptions.OnConflict != nil {
 			onConflictCfg := &PostgresOnConflictConfig{}
@@ -1665,8 +1673,9 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		truncateCfg := &MysqlTruncateTableConfig{}
 		truncateCfg.FromDto(config.MysqlOptions.TruncateTable)
 		j.MysqlOptions = &MysqlDestinationOptions{
-			InitTableSchema:     config.MysqlOptions.InitTableSchema,
-			TruncateTableConfig: truncateCfg,
+			InitTableSchema:          config.MysqlOptions.InitTableSchema,
+			TruncateTableConfig:      truncateCfg,
+			SkipForeignKeyViolations: config.MysqlOptions.SkipForeignKeyViolations,
 		}
 		if config.MysqlOptions.OnConflict != nil {
 			onConflictCfg := &MysqlOnConflictConfig{}
