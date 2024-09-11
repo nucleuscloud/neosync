@@ -18,8 +18,9 @@ type Service struct {
 }
 
 type Config struct {
-	IsAuthEnabled  bool
-	IsNeosyncCloud bool
+	IsAuthEnabled            bool
+	IsNeosyncCloud           bool
+	DefaultMaxAllowedRecords *int64
 }
 
 func New(

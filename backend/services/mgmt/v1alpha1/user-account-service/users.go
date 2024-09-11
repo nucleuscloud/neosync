@@ -172,7 +172,7 @@ func (s *Service) SetPersonalAccount(
 		return nil, err
 	}
 
-	account, err := s.db.SetPersonalAccount(ctx, userId)
+	account, err := s.db.SetPersonalAccount(ctx, userId, s.cfg.DefaultMaxAllowedRecords)
 	if err != nil {
 		return nil, err
 	}

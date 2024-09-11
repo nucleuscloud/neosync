@@ -348,8 +348,9 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
-		IsAuthEnabled:  isAuthEnabled,
-		IsNeosyncCloud: getIsNeosyncCloud(),
+		IsAuthEnabled:            isAuthEnabled,
+		IsNeosyncCloud:           getIsNeosyncCloud(),
+		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
 	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient))
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
@@ -903,4 +904,12 @@ func getKubernetesNamespace() string {
 
 func getKubernetesWorkerAppName() string {
 	return viper.GetString("KUBERNETES_WORKER_APP_NAME")
+}
+
+func getDefaultMaxAllowedRecords() *int64 {
+	val := viper.GetInt64("MAX_ALLOWED_RECORDS")
+	if val <= 0 {
+		return nil
+	}
+	return &val
 }

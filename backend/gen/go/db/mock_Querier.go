@@ -660,9 +660,9 @@ func (_c *MockQuerier_CreateNonMachineUser_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
-// CreatePersonalAccount provides a mock function with given fields: ctx, db, accountSlug
-func (_m *MockQuerier) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
-	ret := _m.Called(ctx, db, accountSlug)
+// CreatePersonalAccount provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreatePersonalAccount(ctx context.Context, db DBTX, arg CreatePersonalAccountParams) (NeosyncApiAccount, error) {
+	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreatePersonalAccount")
@@ -670,17 +670,17 @@ func (_m *MockQuerier) CreatePersonalAccount(ctx context.Context, db DBTX, accou
 
 	var r0 NeosyncApiAccount
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiAccount, error)); ok {
-		return rf(ctx, db, accountSlug)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreatePersonalAccountParams) (NeosyncApiAccount, error)); ok {
+		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) NeosyncApiAccount); ok {
-		r0 = rf(ctx, db, accountSlug)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreatePersonalAccountParams) NeosyncApiAccount); ok {
+		r0 = rf(ctx, db, arg)
 	} else {
 		r0 = ret.Get(0).(NeosyncApiAccount)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, accountSlug)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreatePersonalAccountParams) error); ok {
+		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -696,14 +696,14 @@ type MockQuerier_CreatePersonalAccount_Call struct {
 // CreatePersonalAccount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - accountSlug string
-func (_e *MockQuerier_Expecter) CreatePersonalAccount(ctx interface{}, db interface{}, accountSlug interface{}) *MockQuerier_CreatePersonalAccount_Call {
-	return &MockQuerier_CreatePersonalAccount_Call{Call: _e.mock.On("CreatePersonalAccount", ctx, db, accountSlug)}
+//   - arg CreatePersonalAccountParams
+func (_e *MockQuerier_Expecter) CreatePersonalAccount(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreatePersonalAccount_Call {
+	return &MockQuerier_CreatePersonalAccount_Call{Call: _e.mock.On("CreatePersonalAccount", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_CreatePersonalAccount_Call) Run(run func(ctx context.Context, db DBTX, accountSlug string)) *MockQuerier_CreatePersonalAccount_Call {
+func (_c *MockQuerier_CreatePersonalAccount_Call) Run(run func(ctx context.Context, db DBTX, arg CreatePersonalAccountParams)) *MockQuerier_CreatePersonalAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreatePersonalAccountParams))
 	})
 	return _c
 }
@@ -713,7 +713,7 @@ func (_c *MockQuerier_CreatePersonalAccount_Call) Return(_a0 NeosyncApiAccount, 
 	return _c
 }
 
-func (_c *MockQuerier_CreatePersonalAccount_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiAccount, error)) *MockQuerier_CreatePersonalAccount_Call {
+func (_c *MockQuerier_CreatePersonalAccount_Call) RunAndReturn(run func(context.Context, DBTX, CreatePersonalAccountParams) (NeosyncApiAccount, error)) *MockQuerier_CreatePersonalAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

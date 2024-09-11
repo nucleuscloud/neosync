@@ -182,7 +182,7 @@ func Test_SetPersonalAccount(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, 123)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -214,7 +214,7 @@ func Test_SetPersonalAccount_CreateUserAssociation(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, 123)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -243,7 +243,7 @@ func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, 123)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -271,7 +271,7 @@ func Test_SetPersonalAccount_Rollback(t *testing.T) {
 	}).Return(db_queries.NeosyncApiAccountUserAssociation{AccountID: accountUuid, UserID: userUuid}, errors.New("boo"))
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, 123)
 
 	mockTx.AssertNotCalled(t, "Commit", ctx)
 	assert.Error(t, err)
