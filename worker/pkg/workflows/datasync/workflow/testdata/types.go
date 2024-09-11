@@ -19,6 +19,7 @@ type TestJobOptions struct {
 	Truncate                      bool
 	TruncateCascade               bool
 	DefaultTransformers           *DefaultTransformers
+	SkipForeignKeyViolations      bool
 }
 type IntegrationTest struct {
 	Name               string
@@ -30,6 +31,6 @@ type IntegrationTest struct {
 	JobMappings        []*mgmtv1alpha1.JobMapping
 	JobOptions         *TestJobOptions
 	VirtualForeignKeys []*mgmtv1alpha1.VirtualForeignConstraint
-	ExpectError        *bool
+	ExpectError        bool
 	Expected           map[string]*ExpectedOutput // schema.table -> expected output
 }
