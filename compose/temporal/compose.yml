@@ -52,6 +52,22 @@ services:
       kompose.volume.type: configMap
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "tctl",
+          "--address",
+          "temporal:7233",
+          "workflow",
+          "list",
+          "||",
+          "exit 1",
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
   # temporal-admin-tools:
   #   container_name: temporal-admin-tools
   #   depends_on:

@@ -1,38 +1,22 @@
 # Build the manager binary
 FROM golang:1.22-bookworm AS builder
 
+WORKDIR /workspace
+
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   apt-get install --no-install-recommends -y \
     build-essential
 
-WORKDIR /workspace
+RUN go install github.com/air-verse/air@latest
+
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY go.mod go.sum ./
 
-RUN --mount=type=cache,target=/go/pkg/mod \
-  go mod download
+RUN go mod download
 
-WORKDIR /workspace
-COPY backend/internal/ backend/internal/
-COPY backend/pkg/ backend/pkg/
-COPY backend/sql backend/sql/
-COPY backend/gen/ backend/gen/
-COPY internal/ internal/
+COPY worker/dev/build/.air.toml .air.toml
 
 WORKDIR /workspace/worker
 
-# Copy the go source
-COPY worker/cmd/ cmd/
-COPY worker/internal/ internal/
-COPY worker/pkg/ pkg/
-
-# Build
-RUN --mount=type=cache,target=/go/pkg/mod \
-  --mount=type=cache,target=/root/.cache/go-build \
-  go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
-
-ENTRYPOINT ["/workspace/worker/bin/worker"]
-
-CMD ["serve"]
+CMD ["air", "-c", "/workspace/.air.toml"]

@@ -31,3 +31,5 @@ frontend/out
 /package-lock.json
 
 env/
+
+tmp
