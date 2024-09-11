@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -274,7 +275,7 @@ func buildBenthosSqlSourceConfigResponses(
 			TableSchema:     mappings.Schema,
 			TableName:       mappings.Table,
 			Columns:         config.InsertColumns(),
-			IdentityColumns: getIdentityColumns(config.Table(), config.InsertColumns(), groupedColumnInfo),
+			IdentityColumns: getIdentityColumns(driver, config.Table(), config.InsertColumns(), groupedColumnInfo),
 			primaryKeys:     config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
@@ -288,7 +289,7 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func getIdentityColumns(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
+func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
 	identityCols := []string{}
 	colInfo, ok := groupedColumnInfo[table]
 	if !ok {
@@ -297,6 +298,10 @@ func getIdentityColumns(table string, cols []string, groupedColumnInfo map[strin
 	for _, c := range cols {
 		info, ok := colInfo[c]
 		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
+			if driver == sqlmanager_shared.PostgresDriver && *info.IdentityGeneration != "a" {
+				// only add generate always postgres identity columns
+				continue
+			}
 			identityCols = append(identityCols, c)
 		}
 	}
@@ -515,9 +520,9 @@ func getInsertPrefixAndSuffix(
 	if len(identityColumns) == 0 {
 		return pre, suff
 	}
+	tableName := neosync_benthos.BuildBenthosTable(schema, table)
 	switch driver {
 	case sqlmanager_shared.MssqlDriver:
-		tableName := neosync_benthos.BuildBenthosTable(schema, table)
 		if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
 			enableIdentityInsert := true
 			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
@@ -528,7 +533,12 @@ func getInsertPrefixAndSuffix(
 		}
 		return pre, suff
 	case sqlmanager_shared.PostgresDriver:
-		return pre, suff
+		passIdCols := getPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap)
+		var idResetSql string
+		for _, c := range passIdCols {
+			idResetSql += sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, c)
+		}
+		return pre, &idResetSql
 	default:
 		return pre, suff
 	}
@@ -549,6 +559,24 @@ func hasPassthroughIdentityColumn(table string, identityColumns []string, colTra
 		}
 	}
 	return false
+}
+
+func getPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) []string {
+	passthroughIdCols := []string{}
+	for _, c := range identityColumns {
+		colTMap, ok := colTransformerMap[table]
+		if !ok {
+			continue
+		}
+		transformer, ok := colTMap[c]
+		if !ok {
+			continue
+		}
+		if transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH {
+			passthroughIdCols = append(passthroughIdCols, c)
+		}
+	}
+	return passthroughIdCols
 }
 
 func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
