@@ -510,19 +510,26 @@ func getInsertPrefixAndSuffix(
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) (prefix, suffix *string) {
 	var pre, suff *string
-	if driver != sqlmanager_shared.MssqlDriver || len(identityColumns) == 0 {
+	if len(identityColumns) == 0 {
 		return pre, suff
 	}
-	tableName := neosync_benthos.BuildBenthosTable(schema, table)
-	if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
-		enableIdentityInsert := true
-		p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
-		pre = &p
-		s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
-		s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
-		suff = &s
+	switch driver {
+	case sqlmanager_shared.MssqlDriver:
+		tableName := neosync_benthos.BuildBenthosTable(schema, table)
+		if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
+			enableIdentityInsert := true
+			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
+			pre = &p
+			s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
+			s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
+			suff = &s
+		}
+		return pre, suff
+	case sqlmanager_shared.PostgresDriver:
+		return pre, suff
+	default:
+		return pre, suff
 	}
-	return pre, suff
 }
 
 func hasPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) bool {
