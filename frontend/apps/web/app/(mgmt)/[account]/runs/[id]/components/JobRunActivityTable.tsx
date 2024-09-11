@@ -6,12 +6,13 @@ import { DataTable } from './JobRunActivityTable/data-table';
 
 interface JobRunActivityTableProps {
   jobRunEvents?: JobRunEvent[];
+  onViewSelectClicked(schema: string, table: string): void;
 }
 
 export default function JobRunActivityTable(
   props: JobRunActivityTableProps
 ): ReactElement {
-  const { jobRunEvents } = props;
+  const { jobRunEvents, onViewSelectClicked } = props;
 
   const columns = useMemo(() => getColumns({}), []);
 
@@ -22,7 +23,12 @@ export default function JobRunActivityTable(
 
   return (
     <div>
-      <DataTable columns={columns} data={jobRunEvents} isError={isError} />
+      <DataTable
+        columns={columns}
+        data={jobRunEvents}
+        isError={isError}
+        onViewSelectClicked={onViewSelectClicked}
+      />
     </div>
   );
 }
