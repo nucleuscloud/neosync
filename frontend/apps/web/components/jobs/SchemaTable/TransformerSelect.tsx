@@ -132,7 +132,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                               )}
                             />
                             <div className="items-center">
-                              <TruncatedText text={t?.name} maxWidth={250} />
+                              <TruncatedText text={t?.name} maxWidth={200} />
                             </div>
                           </div>
                         </div>
