@@ -12,7 +12,12 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    // "no-console": ["error", { "allow": ["error"] }],
+    "no-console": [
+      "error",
+      {
+        "allow": ["error", "warn"]
+      }
+    ],
     "@typescript-eslint/no-explicit-any": "error"
   },
   "plugins": ["@typescript-eslint"],
