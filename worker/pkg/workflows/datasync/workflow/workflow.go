@@ -160,7 +160,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	var activityErr error
 
 	workselector.AddReceive(stopChan, func(c workflow.ReceiveChannel, more bool) {
-		// Stop signal receied, exit the routing
+		// Stop signal received, exit the routing
 		logger.Warn("received signal to stop workflow based on account status")
 		activityErr = invalidAccountStatusError
 		cancelHandler()
@@ -205,7 +205,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 		if ctx.Err() != nil {
 			if errors.Is(ctx.Err(), context.Canceled) {
-				return nil, errors.New("workflow canceled due to error or stop signal")
+				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
 			}
 			return nil, ctx.Err()
 		}
@@ -222,18 +222,18 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 		if ctx.Err() != nil {
 			if errors.Is(ctx.Err(), context.Canceled) {
-				return nil, errors.New("workflow canceled due to error or stop signal")
+				return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
 			}
-			return nil, fmt.Errorf("exiting workflow in roots due to ctx err: %w", ctx.Err())
+			return nil, fmt.Errorf("exiting workflow in root sync due to err: %w", ctx.Err())
 		}
 
 		// todo: deadlock detection
 		for _, bc := range splitConfigs.Dependents {
 			if ctx.Err() != nil {
 				if errors.Is(ctx.Err(), context.Canceled) {
-					return nil, errors.New("workflow canceled due to error or stop signal")
+					return nil, fmt.Errorf("workflow canceled due to error or stop signal: %w", ctx.Err())
 				}
-				return nil, fmt.Errorf("exiting workflow in dependencts due to ctx err: %w", ctx.Err())
+				return nil, fmt.Errorf("exiting workflow in dependent sync due err: %w", ctx.Err())
 			}
 			bc := bc
 			if _, configStarted := started.Load(bc.Name); configStarted {
