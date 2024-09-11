@@ -73,7 +73,7 @@ func (d *NucleusDb) SetPersonalAccount(
 		} else if err != nil && IsNoRows(err) {
 			pgMaxAllowedRecords := pgtype.Int8{}
 			if maxAllowedRecords != nil && *maxAllowedRecords > 0 {
-				err := pgMaxAllowedRecords.Scan(maxAllowedRecords)
+				err := pgMaxAllowedRecords.Scan(*maxAllowedRecords)
 				if err != nil {
 					return fmt.Errorf("maxAllowedRecords was not scannable to pgtype.Int8: %w", err)
 				}
