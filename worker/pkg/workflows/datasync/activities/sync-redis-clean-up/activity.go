@@ -10,12 +10,12 @@ import (
 	neosync_redis "github.com/nucleuscloud/neosync/worker/internal/redis"
 	redis "github.com/redis/go-redis/v9"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 )
 
 type DeleteRedisHashRequest struct {
-	JobId      string
-	WorkflowId string
-	HashKey    string
+	JobId   string
+	HashKey string
 }
 
 type DeleteRedisHashResponse struct {
@@ -25,7 +25,13 @@ func DeleteRedisHash(
 	ctx context.Context,
 	req *DeleteRedisHashRequest,
 ) (*DeleteRedisHashResponse, error) {
-	logger := activity.GetLogger(ctx)
+	activityInfo := activity.GetInfo(ctx)
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"jobId", req.JobId,
+		"WorkflowID", activityInfo.WorkflowExecution.ID,
+		"RunID", activityInfo.WorkflowExecution.RunID,
+	)
 	_ = logger
 	go func() {
 		for {
@@ -40,10 +46,13 @@ func DeleteRedisHash(
 
 	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 	slogger = slogger.With(
-		"WorkflowID", req.WorkflowId,
+		"jobId", req.JobId,
+		"WorkflowID", activityInfo.WorkflowExecution.ID,
+		"RunID", activityInfo.WorkflowExecution.RunID,
 		"RedisHashKey", req.HashKey,
 	)
 
+	// todo: this should be factored out of here and live on the activity itself
 	redisClient, err := neosync_redis.GetRedisClient()
 	if err != nil {
 		return nil, err

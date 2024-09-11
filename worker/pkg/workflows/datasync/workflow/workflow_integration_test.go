@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -128,6 +129,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -293,6 +300,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mssql() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -454,6 +467,12 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	}
 	// neosync api mocks
 	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
 	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 		mgmtv1alpha1connect.JobServiceGetJobProcedure,
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -639,6 +658,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -828,6 +853,12 @@ func (s *IntegrationTestSuite) Test_Workflow_DynamoDB_Sync() {
 					}
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -1113,6 +1144,12 @@ func (s *IntegrationTestSuite) Test_Workflow_MongoDB_Sync() {
 					destConnectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
 
 					mux := http.NewServeMux()
+					mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+						mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+							return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+						},
+					))
 					mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
 						mgmtv1alpha1connect.JobServiceGetJobProcedure,
 						func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
@@ -1352,6 +1389,7 @@ func executeWorkflow(
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
 	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(srv.Client(), srv.URL)
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
 	sqlconnector := &sqlconnect.SqlOpenConnector{}
 	redisconfig := &shared.RedisConfig{
 		Url:  redisUrl,
@@ -1387,12 +1425,14 @@ func executeWorkflow(
 	syncActivity := sync_activity.New(connclient, jobclient, &sync.Map{}, temporalClientMock, activityMeter, sync_activity.NewBenthosStreamManager(), disableReaper)
 	retrieveActivityOpts := syncactivityopts_activity.New(jobclient)
 	runSqlInitTableStatements := runsqlinittablestmts_activity.New(jobclient, connclient, sqlmanager)
+	accountStatusActivity := accountstatus_activity.New(userclient)
 	env.RegisterWorkflow(Workflow)
 	env.RegisterActivity(syncActivity.Sync)
 	env.RegisterActivity(retrieveActivityOpts.RetrieveActivityOptions)
 	env.RegisterActivity(runSqlInitTableStatements.RunSqlInitTableStatements)
 	env.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
 	env.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
+	env.RegisterActivity(accountStatusActivity.CheckAccountStatus)
 	env.SetTestTimeout(600 * time.Second) // increase the test timeout
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{JobId: jobId})

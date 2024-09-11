@@ -31,8 +31,7 @@ func New(
 }
 
 type RunSqlInitTableStatementsRequest struct {
-	JobId      string
-	WorkflowId string
+	JobId string
 }
 
 type RunSqlInitTableStatementsResponse struct {
@@ -42,11 +41,12 @@ func (a *Activity) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
 ) (*RunSqlInitTableStatementsResponse, error) {
+	info := activity.GetInfo(ctx)
 	logger := log.With(
 		activity.GetLogger(ctx),
 		"jobId", req.JobId,
-		"WorkflowID", req.WorkflowId,
-		// "RunID", wfmetadata.RunId,
+		"WorkflowID", info.WorkflowExecution.ID,
+		"RunID", info.WorkflowExecution.RunID,
 	)
 	_ = logger
 
@@ -68,7 +68,8 @@ func (a *Activity) RunSqlInitTableStatements(
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(
 		"jobId", req.JobId,
-		"WorkflowID", req.WorkflowId,
+		"WorkflowID", info.WorkflowExecution.ID,
+		"RunID", info.WorkflowExecution.RunID,
 	)
 	return builder.RunSqlInitTableStatements(ctx, req, slogger)
 }

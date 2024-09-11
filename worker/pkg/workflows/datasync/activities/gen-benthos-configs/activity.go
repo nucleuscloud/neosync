@@ -16,8 +16,7 @@ import (
 )
 
 type GenerateBenthosConfigsRequest struct {
-	JobId      string
-	WorkflowId string
+	JobId string
 }
 type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*BenthosConfigResponse
@@ -120,5 +119,5 @@ func (a *Activity) GenerateBenthosConfigs(
 		a.metricsEnabled,
 	)
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
-	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
+	return bbuilder.GenerateBenthosConfigs(ctx, req, &workflowMetadata{WorkflowId: info.WorkflowExecution.ID}, slogger)
 }
