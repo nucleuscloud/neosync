@@ -253,9 +253,9 @@ interface AddNewRecordProps {
 }
 
 const AddNewNosqlRecordFormValues = Yup.object({
-  collection: Yup.string().required(),
+  collection: Yup.string().required('The Collection is required.'),
   key: Yup.string()
-    .required()
+    .required('The Key is required.')
     .test({
       name: 'uniqueMapping',
       message: 'This key already exists in the selected collection.',

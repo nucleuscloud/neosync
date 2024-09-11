@@ -449,7 +449,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 					RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 						Url:            b.redisConfig.Url,
 						Key:            hashedKey,
-						FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s_%s_%s"): json(%q)}`, benthosConfig.TableSchema, benthosConfig.TableName, col, col), // map of original value to transformed value
+						FieldsMapping:  fmt.Sprintf(`root = {meta(%q): json(%q)}`, hashPrimaryKeyMetaKey(benthosConfig.TableSchema, benthosConfig.TableName, col), col), // map of original value to transformed value
 						WalkMetadata:   false,
 						WalkJsonObject: false,
 						Kind:           &b.redisConfig.Kind,

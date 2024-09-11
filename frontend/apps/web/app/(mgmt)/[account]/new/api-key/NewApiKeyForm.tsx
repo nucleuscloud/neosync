@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { ApiKeyFormValues } from '@/yup-validations/apikey';
 import { Timestamp } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -38,31 +38,6 @@ import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as Yup from 'yup';
-
-const FormValues = Yup.object({
-  name: Yup.string()
-    .required()
-    .min(3)
-    .max(30)
-    .test(
-      'validApiKeyName',
-      'API Key Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      (value) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        if (!RESOURCE_NAME_REGEX.test(value)) {
-          return false;
-        }
-        // todo: add server-side check to see if it's available on the backend
-        return true;
-      }
-    ),
-  expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
-  expiresAt: Yup.date().required(),
-});
-type FormValues = Yup.InferType<typeof FormValues>;
 
 export interface ApiKeyValueSessionStore {
   keyValue: string;
@@ -71,9 +46,9 @@ export interface ApiKeyValueSessionStore {
 export default function NewApiKeyForm(): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
-  const form = useForm<FormValues>({
+  const form = useForm<ApiKeyFormValues>({
     mode: 'onChange',
-    resolver: yupResolver(FormValues),
+    resolver: yupResolver(ApiKeyFormValues),
     defaultValues: {
       name: '',
       expiresAtSelect: '7',
@@ -83,7 +58,7 @@ export default function NewApiKeyForm(): ReactElement {
   const posthog = usePostHog();
   const { mutateAsync } = useMutation(createAccountApiKey);
 
-  async function onSubmit(values: FormValues): Promise<void> {
+  async function onSubmit(values: ApiKeyFormValues): Promise<void> {
     if (!account) {
       return;
     }

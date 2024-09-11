@@ -7,18 +7,20 @@ const KEYCLOAK_SIG_HEADER = 'X-Keycloak-Signature';
 const ATTIO_API_KEY = process.env.ATTIO_API_KEY;
 
 const RegisterEvent = Yup.object({
-  time: Yup.number().required(),
-  type: Yup.string().oneOf(['access.REGISTER']).required(),
+  time: Yup.number().required('The Time is required.'),
+  type: Yup.string()
+    .oneOf(['access.REGISTER'])
+    .required('The Type is required.'),
   authDetails: Yup.object({
-    userId: Yup.string().required(),
-    ipAddress: Yup.string().required(),
+    userId: Yup.string().required('The userId is required.'),
+    ipAddress: Yup.string().required('The IP Address is required.'),
   }),
   details: Yup.object({
-    email: Yup.string().required(),
+    email: Yup.string().required('The Email is required.'),
     first_name: Yup.string(),
     last_name: Yup.string(),
     identity_provider: Yup.string(),
-  }).required(),
+  }).required('The Details are required.'),
 });
 type RegisterEvent = Yup.InferType<typeof RegisterEvent>;
 

@@ -677,9 +677,6 @@ func (s *Service) GetRunContext(
 	if err != nil {
 		return nil, err
 	}
-	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
-	}
 
 	runContext, err := s.db.Q.GetRunContextByKey(ctx, s.db.Db, db_queries.GetRunContextByKeyParams{
 		WorkflowId: id.GetJobRunId(),

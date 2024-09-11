@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
+import { TemporalFormValues } from '@/yup-validations/temporal';
 import {
   createConnectQueryKey,
   useMutation,
@@ -33,15 +34,6 @@ import Error from 'next/error';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  namespace: Yup.string().required(),
-  syncJobName: Yup.string().required(),
-  temporalUrl: Yup.string().required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function Temporal(): ReactElement {
   const { account } = useAccount();
@@ -55,8 +47,8 @@ export default function Temporal(): ReactElement {
   const { mutateAsync } = useMutation(setAccountTemporalConfig);
   const queryclient = useQueryClient();
 
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<TemporalFormValues>({
+    resolver: yupResolver(TemporalFormValues),
     defaultValues: {
       namespace: 'default',
       syncJobName: 'sync-job',
@@ -68,7 +60,7 @@ export default function Temporal(): ReactElement {
       temporalUrl: tcData?.config?.url ?? 'localhost:7233',
     },
   });
-  async function onSubmit(values: FormValues): Promise<void> {
+  async function onSubmit(values: TemporalFormValues): Promise<void> {
     if (!account) {
       return;
     }

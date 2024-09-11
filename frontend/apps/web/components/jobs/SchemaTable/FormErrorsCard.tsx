@@ -35,8 +35,8 @@ export default function FormErrorsCard(props: Props): ReactElement {
   const messages = formErrorsToMessages(formErrors);
   return (
     <Card className="w-full flex flex-col">
-      <CardHeader className="flex flex-col gap-2">
-        <div className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col">
+        <div className="flex flex-row items-center justify-between h-8">
           <div className="flex flex-row items-center gap-2">
             {messages.length != 0 ? (
               <ExclamationTriangleIcon className="h-4 w-4 text-destructive dark:text-red-400 text-red-600" />
@@ -45,7 +45,11 @@ export default function FormErrorsCard(props: Props): ReactElement {
             )}
             <CardTitle>Validations</CardTitle>
             {messages.length != 0 && (
-              <Badge variant="destructive">{messages.length} Errors</Badge>
+              <Badge variant="destructive">
+                {messages.length == 1
+                  ? `${messages.length} Error`
+                  : `${messages.length} Errors`}
+              </Badge>
             )}
           </div>
           <div className="flex">

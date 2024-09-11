@@ -11,7 +11,7 @@ import (
 func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
   return []*mgmtv1alpha1.JobMapping{
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "store_notifications",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -19,7 +19,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "stores",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -27,7 +27,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "stores",
 			Column: "notifications_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -35,7 +35,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "store_customers",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -43,7 +43,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "store_customers",
 			Column: "store_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -51,7 +51,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "store_customers",
 			Column: "referred_by_code",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -59,7 +59,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "referral_codes",
 			Column: "id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -67,7 +67,7 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			},
 		},
 		{
-			Schema: "primary_key",
+			Schema: "primary_$key",
 			Table:  "referral_codes",
 			Column: "customer_id",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
