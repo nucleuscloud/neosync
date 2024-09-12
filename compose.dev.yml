@@ -13,7 +13,6 @@ include:
 services:
   app:
     container_name: neosync-app
-    # image: neosync-app
     build:
       context: ./
       dockerfile: ./frontend/apps/web/dev/build/Dockerfile.dev
