@@ -1,5 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS alltypes;
-CREATE TABLE alltypes.all_postgres_types (
+CREATE TABLE IF NOT EXISTS alltypes.all_postgres_types (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- Numeric Types
     smallint_col SMALLINT,
@@ -183,7 +183,7 @@ INSERT INTO alltypes.all_postgres_types (
 );
 
 
-CREATE TABLE alltypes.array_types (
+CREATE TABLE IF NOT EXISTS alltypes.array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,
     "int_array" _int4,
     "smallint_array" _int2,
