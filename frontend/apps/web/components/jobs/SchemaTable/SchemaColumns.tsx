@@ -94,7 +94,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 30,
+      maxSize: 30,
     },
     {
       accessorKey: 'schema',
@@ -141,7 +141,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         );
       },
       maxSize: 500,
-      size: 300,
     },
     {
       accessorKey: 'column',
@@ -152,7 +151,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         return <TruncatedText text={row.getValue<string>('column')} />;
       },
       maxSize: 500,
-      size: 200,
     },
     {
       id: 'constraints',
@@ -499,7 +497,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </div>
         );
       },
-      size: 250,
     },
   ];
 }
