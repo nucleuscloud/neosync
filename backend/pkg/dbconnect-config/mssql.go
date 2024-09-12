@@ -36,7 +36,7 @@ func NewFromMssqlConnection(config *mgmtv1alpha1.ConnectionConfig_MssqlConfig, c
 			if err != nil {
 				return nil, fmt.Errorf("invalid port when processing mssql connection url: %w", err)
 			}
-			port = shared.Ptr(int32(parsedPort)) //nolint:gosec // Ignoring for now
+			port = shared.Ptr(int32(parsedPort))
 		}
 
 		var instance *string

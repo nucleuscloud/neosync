@@ -84,7 +84,7 @@ func NewFromPostgresConnection(config *mgmtv1alpha1.ConnectionConfig_PgConfig, c
 		return &GeneralDbConnectConfig{
 			driver:      postgresDriver,
 			host:        host,
-			port:        shared.Ptr(int32(port)), //nolint:gosec // Ignoring for now
+			port:        shared.Ptr(int32(port)),
 			database:    shared.Ptr(strings.TrimPrefix(u.Path, "/")),
 			user:        user,
 			pass:        pass,

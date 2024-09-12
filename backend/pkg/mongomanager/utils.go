@@ -202,7 +202,7 @@ func toUint32(value any) (uint32, error) {
 		if v > math.MaxUint32 {
 			return 0, errors.New("int value out of range for uint32")
 		}
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case int8:
 		if v < 0 {
 			return 0, errors.New("cannot convert negative int8 to uint32")
@@ -222,12 +222,12 @@ func toUint32(value any) (uint32, error) {
 		if v < 0 || v > math.MaxUint32 {
 			return 0, errors.New("int64 value out of range for uint32")
 		}
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case uint:
 		if v > math.MaxUint32 {
 			return 0, errors.New("uint value out of range for uint32")
 		}
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case uint8:
 		return uint32(v), nil
 	case uint16:
@@ -238,7 +238,7 @@ func toUint32(value any) (uint32, error) {
 		if v > math.MaxUint32 {
 			return 0, errors.New("uint64 value out of range for uint32")
 		}
-		return uint32(v), nil //nolint:gosec
+		return uint32(v), nil
 	case float32:
 		if v < 0 || v > math.MaxUint32 || float32(uint32(v)) != v {
 			return 0, errors.New("float32 value out of range or not representable as uint32")
@@ -254,7 +254,7 @@ func toUint32(value any) (uint32, error) {
 		if err != nil {
 			return 0, fmt.Errorf("cannot convert string to uint32: %v", err)
 		}
-		return uint32(num), nil //nolint:gosec
+		return uint32(num), nil
 	default:
 		return 0, fmt.Errorf("unsupported type: %T", value)
 	}

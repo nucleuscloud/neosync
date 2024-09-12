@@ -11015,7 +11015,7 @@
             },
             {
               "name": "skip_foreign_key_violations",
-              "description": "",
+              "description": "Insert all valid records, skipping any that violate foreign key constraints.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -11279,7 +11279,7 @@
             },
             {
               "name": "skip_foreign_key_violations",
-              "description": "",
+              "description": "Insert all valid records, skipping any that violate foreign key constraints.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -11663,7 +11663,7 @@
             },
             {
               "name": "skip_foreign_key_violations",
-              "description": "",
+              "description": "Insert all valid records, skipping any that violate foreign key constraints.",
               "label": "",
               "type": "bool",
               "longType": "bool",

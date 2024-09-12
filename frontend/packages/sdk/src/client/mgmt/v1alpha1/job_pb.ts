@@ -1771,6 +1771,8 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
   onConflict?: PostgresOnConflictConfig;
 
   /**
+   * Insert all valid records, skipping any that violate foreign key constraints.
+   *
    * @generated from field: bool skip_foreign_key_violations = 4;
    */
   skipForeignKeyViolations = false;
@@ -1906,6 +1908,8 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
   onConflict?: MysqlOnConflictConfig;
 
   /**
+   * Insert all valid records, skipping any that violate foreign key constraints.
+   *
    * @generated from field: bool skip_foreign_key_violations = 4;
    */
   skipForeignKeyViolations = false;
@@ -2039,6 +2043,8 @@ export class MssqlDestinationConnectionOptions extends Message<MssqlDestinationC
   onConflict?: MssqlOnConflictConfig;
 
   /**
+   * Insert all valid records, skipping any that violate foreign key constraints.
+   *
    * @generated from field: bool skip_foreign_key_violations = 4;
    */
   skipForeignKeyViolations = false;

@@ -290,6 +290,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
+	if s.driver == sqlmanager_shared.PostgresDriver && len(s.identityColumns) > 0 {
+		sqlSplit := strings.Split(insertQuery, ") VALUES (")
+		insertQuery = sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+	}
+
 	query := s.buildQuery(insertQuery)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
