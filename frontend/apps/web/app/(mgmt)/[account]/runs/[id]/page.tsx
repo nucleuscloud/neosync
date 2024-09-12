@@ -42,6 +42,7 @@ import {
   terminateJobRun,
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
+import { formatDuration, intervalToDuration } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -123,11 +124,7 @@ export default function Page({ params }: PageProps): ReactElement {
           const minutes = Math.floor(diffInSeconds / 60);
           const seconds = diffInSeconds % 60;
           // handle plural minutes and seconds and set the duration
-          setDuration(
-            minutes > 0
-              ? `${minutes} minute${minutes > 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`
-              : `${seconds} second${seconds !== 1 ? 's' : ''}`
-          );
+          setDuration(formatDuration({ minutes: minutes, seconds: seconds }));
         }
       };
 
@@ -470,16 +467,11 @@ function getDuration(completedAt?: Date, startedAt?: Date): string {
   if (!startedAt || !completedAt) {
     return '';
   }
-  var diff = (completedAt.getTime() - startedAt.getTime()) / 1000;
-  const minutes = Math.floor(diff / 60);
-  const seconds = Math.round(diff % 60);
-  // handle plural minutes and seconds
-  if (minutes === 0) {
-    return `${seconds} second${seconds !== 1 ? 's' : ''}`;
-  }
-  return `${minutes} minute${minutes > 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`;
-}
 
+  const duration = intervalToDuration({ start: startedAt, end: completedAt });
+
+  return formatDuration(duration, { format: ['minutes', 'seconds'] });
+}
 interface AlertProps {
   title: string;
   description: string;
