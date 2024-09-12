@@ -1,19 +1,14 @@
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  MagnifyingGlassIcon,
-} from '@radix-ui/react-icons';
 import { Column } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/libs/utils';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CaretSortIcon,
+} from '@radix-ui/react-icons';
+import { FaSearch } from 'react-icons/fa';
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -27,46 +22,52 @@ export function SchemaColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   return (
-    <div className={cn('flex items-center space-x-2', className)}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+    <div className="flex flex-row gap-2 items-center justify-start">
+      {column.getCanFilter() && (
+        <div>
+          <div className="relative">
+            <Input
+              type="text"
+              value={(column.getFilterValue() ?? '') as string}
+              onChange={(e) => column.setFilterValue(e.target.value)}
+              placeholder={title}
+              className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-transparent text-xs pl-8 h-8"
+            />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
+      )}
+      {!column.getCanFilter() && (
+        <span className={cn(className, 'text-xs')}>{title}</span>
+      )}
+      {column.getCanSort() && (
+        <div>
           <Button
+            type="button"
+            onClick={() => {
+              const sorted = column.getIsSorted();
+
+              if (!sorted) {
+                column.toggleSorting(false);
+              } else if (sorted === 'asc') {
+                column.toggleSorting(true);
+              } else if (sorted === 'desc') {
+                column.toggleSorting(undefined);
+              }
+            }}
             variant="ghost"
-            size="sm"
-            className="-ml-3 data-[state=open]:bg-accent hover:border hover:border-gray-400 text-nowrap"
+            className="px-1"
           >
-            <span>{title}</span>
             {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className="ml-2 h-4 w-4" />
+              <ArrowDownIcon className="h-4 w-4" />
             ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className="ml-2 h-4 w-4" />
+              <ArrowUpIcon className="h-4 w-4" />
             ) : (
-              <MagnifyingGlassIcon className="ml-2 h-4 w-4" />
+              <CaretSortIcon className="h-4 w-4" />
             )}
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <Input
-            type="text"
-            value={(column.getFilterValue() ?? '') as string}
-            onChange={(e) => column.setFilterValue(e.target.value)}
-            placeholder={`Search...`}
-            className="w-36 border rounded"
-          />
-          {column.getCanSort() && (
-            <>
-              <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-                <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                Asc
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-                <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                Desc
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 }

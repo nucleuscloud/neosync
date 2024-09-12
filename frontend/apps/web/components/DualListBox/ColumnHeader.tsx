@@ -42,7 +42,13 @@ export default function ColumnHeader<TData, TValue>({
             type="button"
             onClick={() => {
               const sorted = column.getIsSorted();
-              column.toggleSorting(sorted ? sorted === 'asc' : false);
+              if (!sorted) {
+                column.toggleSorting(false);
+              } else if (sorted === 'asc') {
+                column.toggleSorting(true);
+              } else if (sorted === 'desc') {
+                column.toggleSorting(undefined);
+              }
             }}
             variant="ghost"
             className="px-1"

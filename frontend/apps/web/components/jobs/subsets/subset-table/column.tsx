@@ -1,6 +1,5 @@
 'use client';
 
-import ColumnHeader from '@/components/DualListBox/ColumnHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +11,7 @@ import {
 import { Pencil1Icon, ReloadIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement } from 'react';
+import { SchemaColumnHeader } from '../../SchemaTable/SchemaColumnHeader';
 import { DataTableColumnHeader } from './data-table-column-header';
 
 export interface TableRow {
@@ -55,11 +55,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       id: 'schemaTable',
       footer: (props) => props.column.id,
       header: ({ column }) => (
-        <ColumnHeader
-          column={column}
-          title={'Table'}
-          placeholder={'Search Tables ...'}
-        />
+        <SchemaColumnHeader column={column} title={'Table'} />
       ),
     },
     {
