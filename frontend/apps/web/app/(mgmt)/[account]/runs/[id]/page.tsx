@@ -122,6 +122,7 @@ export default function Page({ params }: PageProps): ReactElement {
           );
           const minutes = Math.floor(diffInSeconds / 60);
           const seconds = diffInSeconds % 60;
+          // handle plural minutes and seconds and set the duration
           setDuration(
             minutes > 0
               ? `${minutes} minute${minutes > 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`
@@ -131,13 +132,14 @@ export default function Page({ params }: PageProps): ReactElement {
       };
 
       updateDuration();
+      // sets up an internval to call the timer ever second
       timer = setInterval(updateDuration, 1000);
     } else if (jobRun?.completedAt && jobRun?.startedAt) {
       setDuration(
         getDuration(jobRun.completedAt.toDate(), jobRun.startedAt.toDate())
       );
     }
-
+    // cleans up and restarts the interval if the job isn't done yet
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -464,14 +466,14 @@ function StatCard(props: StatCardProps): ReactElement {
   );
 }
 
-function getDuration(dateTimeValue2?: Date, dateTimeValue1?: Date): string {
-  if (!dateTimeValue1 || !dateTimeValue2) {
+function getDuration(completedAt?: Date, startedAt?: Date): string {
+  if (!startedAt || !completedAt) {
     return '';
   }
-  var differenceValue =
-    (dateTimeValue2.getTime() - dateTimeValue1.getTime()) / 1000;
-  const minutes = Math.floor(differenceValue / 60);
-  const seconds = Math.round(differenceValue % 60);
+  var diff = (completedAt.getTime() - startedAt.getTime()) / 1000;
+  const minutes = Math.floor(diff / 60);
+  const seconds = Math.round(diff % 60);
+  // handle plural minutes and seconds
   if (minutes === 0) {
     return `${seconds} second${seconds !== 1 ? 's' : ''}`;
   }
