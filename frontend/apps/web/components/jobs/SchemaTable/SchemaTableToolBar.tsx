@@ -77,12 +77,15 @@ export function SchemaTableToolbar<TData>({
     transformerHandler,
     bulkTransformer
   );
-  const allowedTransformers = getFilteredTransformersForBulkSet(
-    table.getSelectedRowModel().rows,
-    transformerHandler,
-    constraintHandler,
-    jobType
-  );
+  // conditionally computed the allowed transformers only if there are selected rows
+  const allowedTransformers = hasSelectedRows
+    ? getFilteredTransformersForBulkSet(
+        table.getSelectedRowModel().rows,
+        transformerHandler,
+        constraintHandler,
+        jobType
+      )
+    : { system: [], userDefined: [] };
   const isBulkApplyDisabled =
     !bulkTransformer ||
     !hasSelectedRows ||
