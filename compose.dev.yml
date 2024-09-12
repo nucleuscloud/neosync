@@ -13,10 +13,9 @@ include:
 services:
   app:
     container_name: neosync-app
-    image: neosync-app
     build:
-      context: ./frontend
-      dockerfile: ./apps/web/dev/build/Dockerfile.dev
+      context: ./
+      dockerfile: ./frontend/apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
     environment:
@@ -33,17 +32,9 @@ services:
 
     networks:
       - neosync-network
-    develop:
-      watch:
-        - path: frontend/package.json
-          action: rebuild
-        - path: frontend/package-lock.json
-          action: rebuild
-        - path: frontend/
-          action: sync
-          target: /app
-          ignore:
-            - frontend/node_modules/
+    volumes:
+      - ./frontend:/app/:rw
+      - neosync_app_nodemodules:/app/node_modules
 
   db:
     container_name: neosync-db
@@ -67,13 +58,11 @@ services:
 
   api:
     container_name: neosync-api
-    image: neosync-api
     build:
       context: ./
       dockerfile: ./backend/dev/build/Dockerfile.dev
     ports:
       - 8080:8080
-    command: serve connect
     environment:
       - HOST=0.0.0.0
       - PORT=8080
@@ -103,25 +92,18 @@ services:
         condition: service_healthy
         restart: true
     volumes:
-      - neosync_backend_build_cache:/root/.cache/go-build
+      - ./backend:/workspace/backend:rw
+      - ./worker:/workspace/worker:rw
+      - ./internal:/workspace/internal:rw
+      - ./go.mod:/workspace/go.mod:rw
+      - ./go.sum:/workspace/go.sum:rw
+      - neosync_api_tmp:/workspace/tmp
       - neosync_go_mod_cache:/go/pkg/mod
-    develop:
-      watch:
-        - action: rebuild
-          path: internal
-        - action: rebuild
-          path: backend
-        - action: rebuild
-          path: worker
-        - action: rebuild
-          path: go.mod
-        - action: rebuild
-          path: go.sum
+      - neosync_backend_build_cache:/root/.cache/go-build
     restart: on-failure
 
   worker:
     container_name: neosync-worker
-    image: neosync-worker
     build:
       context: ./
       dockerfile: ./worker/dev/build/Dockerfile.dev
@@ -137,21 +119,19 @@ services:
     networks:
       - neosync-network
       - temporal-network
+    depends_on:
+      temporal:
+        condition: service_healthy
+        restart: true
     volumes:
-      - neosync_worker_build_cache:/root/.cache/go-build
+      - ./backend:/workspace/backend:rw
+      - ./worker:/workspace/worker:rw
+      - ./internal:/workspace/internal:rw
+      - ./go.mod:/workspace/go.mod:rw
+      - ./go.sum:/workspace/go.sum:rw
+      - neosync_worker_tmp:/workspace/tmp
       - neosync_go_mod_cache:/go/pkg/mod
-    develop:
-      watch:
-        - action: rebuild
-          path: internal
-        - action: rebuild
-          path: worker
-        - action: rebuild
-          path: backend
-        - action: rebuild
-          path: go.mod
-        - action: rebuild
-          path: go.sum
+      - neosync_worker_build_cache:/root/.cache/go-build
     restart: on-failure
 
   redis:
@@ -168,9 +148,12 @@ services:
 volumes:
   neosync_redis_cache:
   neosync_pg_data:
-  neosync_worker_build_cache:
+  neosync_api_tmp:
   neosync_backend_build_cache:
+  neosync_worker_tmp:
+  neosync_worker_build_cache:
   neosync_go_mod_cache:
+  neosync_app_nodemodules:
 
 networks:
   neosync-network:

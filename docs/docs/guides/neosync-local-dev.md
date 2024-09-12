@@ -34,21 +34,22 @@ Afterwards, drop your token in the `backend/.env.dev.secrets` file.
 echo "BUF_TOKEN=<token>" >> ./backend/.env.dev.secrets
 ```
 
-The docker compose environment runs almost entirely by itself. However, the Golang services (backend, worker), must be built on the host system.
+The docker compose environment runs entirely by itself.
 
-This can be done easily from the root by simply running `make dbuild`. This will build the project for Docker (Linux). It builds the entire project so it may take some time.
-Note: This command will not build the frontend and will only install node modules. This is because Nextjs runs in dev mode and only builds what it needs to. The frontend build command is meant for production deployments.
+To start:
 
-Afterwards, running `make compose/dev/up` will stand up Neosync and it's dependencies.
-**Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
+```
+make compose/dev/up
+```
 
-The frontend, backend, and worker will be in watch mode, which will cause them to look for changes and reload. The frontend will reload on save, where as the backend/worker will reload on the next `make dbuild` run.
+> Note: The `backend` and `worker` containers will start but may take some time to to do their initial build.
 
-You can run the sub-commands to make this faster as you won't need to rebuild the entire project.
+Once they have a build cache, they will come online and re-build much faster!
 
-```sh
-make dbuild/backend
-make dbuild/worker
+To stop:
+
+```
+make compose/dev/down
 ```
 
 Once everything is up and running, The app can be accessed locally at [http://localhost:3000](http://localhost:3000).
@@ -69,7 +70,10 @@ make compose/dev/auth/down
 
 ## Setup with Tilt
 
-Developing with Kubernetes via Tilt is also an option, however it is a bit more setup and is heavier. The benefits of this are that it allows you to develop more closely to what a k8s production environment could look like.d
+Developing with Kubernetes via Tilt is also an option, however it is a bit more setup and is heavier. The benefits of this are that it allows you to develop more closely to what a k8s production environment could look like.
+
+> Note: This was our original way of developing Neosync but we have transitioned to a docker compose setup for development.
+> If you're trying this and run into issues. please reach out to us on Discord.
 
 ### Docker Desktop
 
