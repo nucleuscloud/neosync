@@ -321,7 +321,7 @@ export default function Page({ params }: PageProps): ReactElement {
               header="Completion Time"
               content={formatDateTime(jobRun?.completedAt?.toDate())}
             />
-            <StatCard header="Duratfewfewion" content={duration} />
+            <StatCard header="Duration" content={duration} />
           </div>
           <div className="space-y-4">
             {jobRun?.pendingActivities.map((a) => {
