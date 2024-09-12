@@ -1,7 +1,6 @@
 package querybuilder
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -72,9 +71,9 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(driver string, row []any) goqu.Vals {
+func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(row)
+		return getPgGoquVals(row, columnDataTypes)
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
@@ -87,19 +86,16 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 	return gval
 }
 
-func getPgGoquVals(row []any) goqu.Vals {
+func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 	gval := goqu.Vals{}
-	for _, a := range row {
+	for i, a := range row {
 		ar, isSlice := a.([]any)
 		if gotypeutil.IsMultiDimensionalSlice(a) {
-			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
+			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, pgutil.ToPgCastType(columnDataTypes[i]))))
 		} else if isSlice {
-			fmt.Println("IS SLICE")
 			mapSlice, err := gotypeutil.ParseSliceToMapSlice(ar)
 			if err == nil {
-				fmt.Println("IS MAP SLICE")
-				fmt.Println(pgutil.FormatPgArrayLiteral(mapSlice))
-				gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(mapSlice)))
+				gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(mapSlice, pgutil.ToPgCastType(columnDataTypes[i]))))
 				continue
 			}
 			gval = append(gval, pq.Array(ar))
@@ -109,8 +105,6 @@ func getPgGoquVals(row []any) goqu.Vals {
 			gval = append(gval, a)
 		}
 	}
-	jsonF, _ := json.MarshalIndent(gval, "", " ")
-	fmt.Printf("%s \n", string(jsonF))
 	return gval
 }
 
@@ -125,6 +119,7 @@ func isDefault(val any) bool {
 func BuildInsertQuery(
 	driver, schema, table string,
 	columns []string,
+	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
 ) (string, error) {
@@ -136,7 +131,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(driver, row)
+		gval := getGoquVals(driver, row, columnDataTypes)
 		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query

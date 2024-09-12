@@ -92,9 +92,6 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
-	for col, val := range jObj {
-		fmt.Printf("%s  %+v  %v \n", col, val, reflect.TypeOf(val))
-	}
 
 	return jObj, nil
 }
@@ -120,7 +117,6 @@ func ConvertRowsForPostgres(rows [][]any) [][]any {
 }
 
 func GoTypeToPgType(val any) any {
-	fmt.Printf("%T  %+v \n", val, val)
 	switch v := val.(type) {
 	case map[string]any:
 		bits, err := gotypeutil.MapToJson(v)
@@ -184,7 +180,7 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 
 	// handles multi-dimensional slices
 	subSize := 1
-	for _, dim := range dims[1:] {
+	for _, dim := range dims[1:] { // nolint:gosec
 		subSize *= dim
 	}
 
@@ -198,12 +194,31 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 	return slice.Interface()
 }
 
-// returns string in this form ARRAY[[a,b],[c,d]]
-func FormatPgArrayLiteral(arr any) string {
-	return "ARRAY" + formatArrayLiteral(arr)
+type CastType string
+
+const (
+	CastTypeNone  CastType = ""
+	CastTypeJSON  CastType = "json"
+	CastTypeJSONB CastType = "jsonb"
+)
+
+func ToPgCastType(castTypeStr string) CastType {
+	switch strings.ToLower(castTypeStr) {
+	case "_json", "json", "json[]":
+		return CastTypeJSON
+	case "_jsonb", "jsonb", "jsonb[]":
+		return CastTypeJSONB
+	default:
+		return ""
+	}
 }
 
-func formatArrayLiteral(arr any) string {
+// returns string in this form ARRAY[[a,b],[c,d]]
+func FormatPgArrayLiteral(arr any, castType CastType) string {
+	return "ARRAY" + formatArrayLiteral(arr, castType)
+}
+
+func formatArrayLiteral(arr any, castType CastType) string {
 	v := reflect.ValueOf(arr)
 
 	if v.Kind() == reflect.Slice {
@@ -212,7 +227,7 @@ func formatArrayLiteral(arr any) string {
 			if i > 0 {
 				result += ","
 			}
-			result += formatArrayLiteral(v.Index(i).Interface())
+			result += formatArrayLiteral(v.Index(i).Interface(), castType)
 		}
 		result += "]"
 		return result
@@ -220,7 +235,7 @@ func formatArrayLiteral(arr any) string {
 
 	switch val := arr.(type) {
 	case map[string]any:
-		return formatMapLiteral(val)
+		return formatMapLiteral(val, castType)
 	case string:
 		return fmt.Sprintf("'%s'", strings.ReplaceAll(val, "'", "''"))
 	default:
@@ -228,41 +243,19 @@ func formatArrayLiteral(arr any) string {
 	}
 }
 
-// func formatMapLiteral(m map[string]any) string {
-// 	pairs := make([]string, 0, len(m))
-// 	for k, v := range m {
-// 		pairs = append(pairs, fmt.Sprintf("('%s',%s)", strings.ReplaceAll(k, "'", "''"), formatArrayLiteral(v)))
-// 	}
-// 	sort.Strings(pairs) // sort for consistent output
-// 	return strings.Join(pairs, ",")
-// }
-
-func formatMapLiteral(m map[string]any, jsonType string) string {
+func formatMapLiteral(m map[string]any, castType CastType) string {
 	jsonBytes, err := json.Marshal(m)
 	if err != nil {
 		return fmt.Sprintf("%v", m)
 	}
-	return fmt.Sprintf("'%s'", string(jsonBytes))
+
+	formattedJson := fmt.Sprintf("'%s'", string(jsonBytes))
+	if castType != CastTypeNone {
+		return fmt.Sprintf("%s::%s", formattedJson, castType)
+	}
+	return formattedJson
 }
 
 func IsPgArrayType(dbTypeName string) bool {
 	return strings.HasPrefix(dbTypeName, "_")
 }
-
-// func ConvertToPostgresJSONArray(mapSlice []map[string]any, jsonType string) (string, error) {
-// 	jsonStrings := []string{}
-// 	for _, m := range mapSlice {
-// 		jsonBytes, err := json.Marshal(m)
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		jsonStrings = append(jsonStrings, string(jsonBytes))
-// 	}
-// 	formattedStrings := []string{}
-// 	for _, jsonStr := range jsonStrings {
-// 		formattedStrings = append(formattedStrings, fmt.Sprintf("'%s'::%s", jsonStr, jsonType))
-// 	}
-
-// 	// Join the formatted strings with commas to create the array format
-// 	return fmt.Sprintf("ARRAY[%s]", strings.Join(formattedStrings, ", ")), nil
-// }

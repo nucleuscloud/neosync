@@ -84,9 +84,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	var primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey            // schema.table -> column -> ForeignKey
-	var colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer // schema.table -> column -> transformer
-	var aiGroupedTableCols map[string][]string                                      // map of table key to columns for AI Generated schemas
+	var primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey                 // schema.table -> column -> ForeignKey
+	var colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer      // schema.table -> column -> transformer
+	var sqlSourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo // schema.table -> column -> column info struct
+	var aiGroupedTableCols map[string][]string                                           // map of table key to columns for AI Generated schemas
 
 	switch job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
@@ -109,6 +110,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		primaryKeyToForeignKeysMap = resp.primaryKeyToForeignKeysMap
 		colTransformerMap = resp.ColumnTransformerMap
+		sqlSourceSchemaColumnInfoMap = resp.SchemaColumnInfoMap
 		responses = append(responses, resp.BenthosConfigs...)
 	case *mgmtv1alpha1.JobSourceOptions_Mongodb:
 		resp, err := b.getMongoDbSyncBenthosConfigResponses(ctx, job, slogger)
@@ -131,20 +133,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
-		var schemaColMap map[string]map[string]*sqlmanager_shared.ColumnInfo
-		switch destinationConnection.ConnectionConfig.Config.(type) {
-		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-			destDb, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new sql db: %w", err)
-			}
-			colMap, err := destDb.Db.GetSchemaColumnMap(ctx)
-			if err != nil {
-				return nil, err
-			}
-			schemaColMap = colMap
-			destDb.Db.Close()
-		}
+		sqlSchemaColMap := b.GetSqlSchemaColumnMap(ctx, destinationConnection, sqlSourceSchemaColumnInfoMap, slogger)
 		for _, resp := range responses {
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
@@ -156,10 +145,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, err
 				}
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
-				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
+				if isSyncConfig(resp.Config.Input) {
 					// SQL sync output
+					var colInfoMap map[string]*sqlmanager_shared.ColumnInfo
+					colMap, ok := sqlSchemaColMap[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)]
+					if ok {
+						colInfoMap = colMap
+					}
 
-					outputs, err := b.getSqlSyncBenthosOutput(driver, destination, resp, dsn, primaryKeyToForeignKeysMap, colTransformerMap, schemaColMap[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)])
+					outputs, err := b.getSqlSyncBenthosOutput(driver, destination, resp, dsn, primaryKeyToForeignKeysMap, colTransformerMap, colInfoMap)
 					if err != nil {
 						return nil, err
 					}
@@ -296,6 +290,41 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		BenthosConfigs: outputConfigs,
 		AccountId:      job.GetAccountId(),
 	}, nil
+}
+
+// tries to get destination schema column info map
+// if not uses source destination schema column info map
+func (b *benthosBuilder) GetSqlSchemaColumnMap(
+	ctx context.Context,
+	destinationConnection *mgmtv1alpha1.Connection,
+	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	slogger *slog.Logger,
+) map[string]map[string]*sqlmanager_shared.ColumnInfo {
+	var schemaColMap map[string]map[string]*sqlmanager_shared.ColumnInfo
+	switch destinationConnection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		destDb, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+		if err != nil {
+			destDb.Db.Close()
+			return sourceSchemaColumnInfoMap
+		}
+		colMap, err := destDb.Db.GetSchemaColumnMap(ctx)
+		if err != nil {
+			destDb.Db.Close()
+			return sourceSchemaColumnInfoMap
+		}
+		if len(colMap) == 0 {
+			schemaColMap = sourceSchemaColumnInfoMap
+		} else {
+			schemaColMap = colMap
+		}
+		destDb.Db.Close()
+	}
+	return schemaColMap
+}
+
+func isSyncConfig(input *neosync_benthos.InputConfig) bool {
+	return input.SqlSelect != nil || input.PooledSqlRaw != nil
 }
 
 // this method modifies the input responses by nilling out the benthos config. it returns the same slice for convenience

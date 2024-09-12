@@ -10,6 +10,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
@@ -288,28 +289,22 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 		rows = append(rows, args)
 	}
-	fmt.Println("HERE")
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
-	fmt.Println()
-	fmt.Println(insertQuery)
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
 	if s.driver == sqlmanager_shared.PostgresDriver && len(s.identityColumns) > 0 {
-		sqlSplit := strings.Split(insertQuery, ") VALUES (")
-		insertQuery = sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
 	query := s.buildQuery(insertQuery)
-	fmt.Println()
-	fmt.Println(query)
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
@@ -330,7 +325,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
 		if err != nil {
 			return err
 		}

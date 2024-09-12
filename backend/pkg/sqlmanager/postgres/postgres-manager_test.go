@@ -152,3 +152,33 @@ func Test_SequenceConfiguration(t *testing.T) {
 		s.ToGeneratedAlwaysIdentity(),
 	)
 }
+
+func Test_BuildPgInsertIdentityAlwaysSql(t *testing.T) {
+	t.Run("Basic insert query", func(t *testing.T) {
+		input := "INSERT INTO users (id, name, email) VALUES (1, 'John', 'john@example.com')"
+		expected := "INSERT INTO users (id, name, email) OVERRIDING SYSTEM VALUE VALUES(1, 'John', 'john@example.com')"
+		result := BuildPgInsertIdentityAlwaysSql(input)
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("Insert query with multiple values", func(t *testing.T) {
+		input := "INSERT INTO products (id, name, price) VALUES (1, 'Apple', 0.99), (2, 'Orange', 1.29)"
+		expected := "INSERT INTO products (id, name, price) OVERRIDING SYSTEM VALUE VALUES(1, 'Apple', 0.99), (2, 'Orange', 1.29)"
+		result := BuildPgInsertIdentityAlwaysSql(input)
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("Insert query with quoted values", func(t *testing.T) {
+		input := "INSERT INTO quotes (id, text) VALUES (1, 'It''s a quote')"
+		expected := "INSERT INTO quotes (id, text) OVERRIDING SYSTEM VALUE VALUES(1, 'It''s a quote')"
+		result := BuildPgInsertIdentityAlwaysSql(input)
+		require.Equal(t, expected, result)
+	})
+
+	t.Run("Insert query with parentheses in values", func(t *testing.T) {
+		input := "INSERT INTO data (id, value) VALUES (1, '(nested) (parentheses)')"
+		expected := "INSERT INTO data (id, value) OVERRIDING SYSTEM VALUE VALUES(1, '(nested) (parentheses)')"
+		result := BuildPgInsertIdentityAlwaysSql(input)
+		require.Equal(t, expected, result)
+	})
+}

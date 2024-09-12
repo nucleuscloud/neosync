@@ -907,3 +907,10 @@ func BuildPgIdentityColumnResetCurrentSql(
 ) string {
 	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 0));", schema, table, column, column, schema, table)
 }
+
+func BuildPgInsertIdentityAlwaysSql(
+	insertQuery string,
+) string {
+	sqlSplit := strings.Split(insertQuery, ") VALUES (")
+	return sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+}
