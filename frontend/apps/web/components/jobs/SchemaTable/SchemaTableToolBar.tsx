@@ -230,12 +230,12 @@ function getFilteredTransformersForBulkSet<TData>(
     userDefinedArrays.push(userDefined);
   });
 
-  const uniqueSystemSources = findCommonSystem(systemArrays);
+  const uniqueSystemSources = findCommonSystemSources(systemArrays);
   const uniqueSystem = uniqueSystemSources
     .map((source) => transformerHandler.getSystemTransformerBySource(source))
     .filter((x): x is SystemTransformer => !!x);
 
-  const uniqueIds = findCommonUserDefined(userDefinedArrays);
+  const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
   const uniqueUserDef = uniqueIds
     .map((id) => transformerHandler.getUserDefinedTransformerById(id))
     .filter((x): x is UserDefinedTransformer => !!x);
@@ -246,7 +246,9 @@ function getFilteredTransformersForBulkSet<TData>(
   };
 }
 
-function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
+function findCommonSystemSources(
+  arrays: SystemTransformer[][]
+): TransformerSource[] {
   const elementCount: Record<TransformerSource, number> = {} as Record<
     TransformerSource,
     number
@@ -274,7 +276,9 @@ function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
   return commonElements;
 }
 
-function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
+function findCommonUserDefinedIds(
+  arrays: UserDefinedTransformer[][]
+): string[] {
   const elementCount: Record<string, number> = {};
   const subArrayCount = arrays.length;
   const commonElements: string[] = [];
@@ -282,10 +286,10 @@ function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
   arrays.forEach((subArray) => {
     // Use a Set to ensure each element in a sub-array is counted only once
     new Set(subArray).forEach((element) => {
-      if (!elementCount[element.source]) {
-        elementCount[element.source] = 1;
+      if (!elementCount[element.id]) {
+        elementCount[element.id] = 1;
       } else {
-        elementCount[element.source]++;
+        elementCount[element.id]++;
       }
     });
   });
