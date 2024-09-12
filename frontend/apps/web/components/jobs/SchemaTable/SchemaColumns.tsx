@@ -312,7 +312,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -332,7 +332,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -351,7 +351,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
