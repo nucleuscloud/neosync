@@ -12,7 +12,6 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	querybuilder "github.com/nucleuscloud/neosync/worker/pkg/query-builder"
@@ -291,6 +290,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
+
 	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
@@ -349,9 +349,6 @@ func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any)
 	case sqlmanager_shared.MssqlDriver:
 		newDataRows := sqlserverutil.GoTypeToSqlServerType(dataRows)
 		return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, newDataRows)
-	case sqlmanager_shared.PostgresDriver:
-		newDataRows := pgutil.ConvertRowsForPostgres(dataRows)
-		return columnNames, newDataRows
 	default:
 		return columnNames, dataRows
 	}

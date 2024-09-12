@@ -89,16 +89,23 @@ func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 	gval := goqu.Vals{}
 	for i, a := range row {
-		ar, isSlice := a.([]any)
-		if gotypeutil.IsMultiDimensionalSlice(a) {
-			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, pgutil.ToPgCastType(columnDataTypes[i]))))
-		} else if isSlice {
-			mapSlice, err := gotypeutil.ParseSliceToMapSlice(ar)
-			if err == nil {
-				gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(mapSlice, pgutil.ToPgCastType(columnDataTypes[i]))))
+		colDataType := columnDataTypes[i]
+		if gotypeutil.IsMap(a) {
+			bits, err := gotypeutil.MapToJson(a)
+			if err != nil {
+				gval = append(gval, a)
 				continue
 			}
-			gval = append(gval, pq.Array(ar))
+			gval = append(gval, bits)
+		} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
+			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
+		} else if gotypeutil.IsSlice(a) {
+			s, err := gotypeutil.ParseSlice(a)
+			if err != nil {
+				gval = append(gval, a)
+				continue
+			}
+			gval = append(gval, pq.Array(s))
 		} else if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func ParseStringAsNumber(s string) (any, error) {
 	return nil, errors.New("input string is neither a valid int nor a float")
 }
 
-func MapToJson(m map[string]any) ([]byte, error) {
+func MapToJson(m any) ([]byte, error) {
 	jsonData, err := json.Marshal(m)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling map to JSON: %w", err)
@@ -36,16 +37,16 @@ func JsonToMap(j []byte) (map[string]any, error) {
 	return jMap, nil
 }
 
-func ParseSliceToMapSlice(input []any) ([]map[string]any, error) {
-	result := make([]map[string]any, 0, len(input))
-
-	for _, item := range input {
-		if m, ok := item.(map[string]any); ok {
-			result = append(result, m)
-		} else {
-			return nil, fmt.Errorf("item is not of type map[string]any")
-		}
+func ParseSlice(input any) ([]any, error) {
+	v := reflect.ValueOf(input)
+	if v.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("value is not a slice")
 	}
 
+	length := v.Len()
+	result := make([]any, length)
+	for i := 0; i < length; i++ {
+		result[i] = v.Index(i).Interface()
+	}
 	return result, nil
 }

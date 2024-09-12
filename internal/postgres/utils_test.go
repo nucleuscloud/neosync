@@ -141,8 +141,8 @@ func Test_FormatPgArrayLiteral(t *testing.T) {
 			map[string]any{"age": 30, "city": "New York"},
 			map[string]any{"age": 25, "city": "San Francisco"},
 		}
-		expected := `ARRAY['{"age":30,"city":"New York"}'::json,'{"age":25,"city":"San Francisco"}'::json]`
-		result := FormatPgArrayLiteral(input, "json")
+		expected := `ARRAY['{"age":30,"city":"New York"}','{"age":25,"city":"San Francisco"}']::json[]`
+		result := FormatPgArrayLiteral(input, "json[]")
 		require.Equal(t, expected, result, "Array of key-value pairs should be formatted correctly")
 	})
 
@@ -157,8 +157,8 @@ func Test_FormatPgArrayLiteral(t *testing.T) {
 				},
 			},
 		}
-		expected := `ARRAY['simple string','{"details":{"age":"30","city":"New York"},"name":"John"}'::jsonb]`
-		result := FormatPgArrayLiteral(input, "jsonb")
+		expected := `ARRAY['simple string','{"details":{"age":"30","city":"New York"},"name":"John"}']::jsonb[]`
+		result := FormatPgArrayLiteral(input, "jsonb[]")
 		require.Equal(t, expected, result, "Array with nested key-value pairs should be formatted correctly")
 	})
 }
