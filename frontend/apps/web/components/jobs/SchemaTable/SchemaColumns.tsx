@@ -11,12 +11,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Transformer } from '@/shared/transformers';
+import {
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -91,7 +94,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 30,
+      maxSize: 30,
     },
     {
       accessorKey: 'schema',
@@ -138,7 +141,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         );
       },
       maxSize: 500,
-      size: 300,
     },
     {
       accessorKey: 'column',
@@ -149,7 +151,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         return <TruncatedText text={row.getValue<string>('column')} />;
       },
       maxSize: 500,
-      size: 200,
     },
     {
       id: 'constraints',
@@ -309,7 +310,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -329,7 +330,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -348,7 +349,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 <div>
                   <TooltipProvider>
                     <Tooltip delayDuration={200}>
-                      <TooltipTrigger>
+                      <TooltipTrigger type="button">
                         <Badge
                           variant="outline"
                           className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -446,24 +447,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   filtered.userDefined
                 );
 
-                let transformer: Transformer | undefined;
-                if (
-                  fv.source === TransformerSource.USER_DEFINED &&
-                  fv.config.case === 'userDefinedTransformerConfig'
-                ) {
-                  transformer =
-                    filteredTransformerHandler.getUserDefinedTransformerById(
-                      fv.config.value.id
-                    );
-                } else {
-                  transformer =
-                    filteredTransformerHandler.getSystemTransformerBySource(
-                      fv.source
-                    );
-                }
-                const buttonText = transformer
-                  ? transformer.name
-                  : 'Select Transformer';
+                const transformer = getTransformerFromField(
+                  filteredTransformerHandler,
+                  fv
+                );
                 return (
                   <FormItem>
                     <FormControl>
@@ -483,7 +470,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         <div>
                           <TransformerSelect
                             getTransformers={() => filtered}
-                            buttonText={buttonText}
+                            buttonText={getTransformerSelectButtonText(
+                              transformer
+                            )}
                             value={fv}
                             onSelect={field.onChange}
                             side={'left'}
@@ -492,12 +481,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           />
                         </div>
                         <EditTransformerOptions
-                          transformer={transformer ?? new SystemTransformer()}
+                          transformer={transformer}
                           value={fv}
                           onSubmit={(newvalue) => {
                             field.onChange(newvalue);
                           }}
-                          disabled={!transformer}
+                          disabled={isInvalidTransformer(transformer)}
                         />
                       </div>
                     </FormControl>
@@ -508,7 +497,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </div>
         );
       },
-      size: 250,
     },
   ];
 }

@@ -29,7 +29,11 @@ import {
 } from '@/components/ui/select';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/shared/transformers';
+import {
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
   EditDestinationOptionsFormValues,
@@ -408,23 +412,8 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
           control={form.control}
           name="transformer"
           render={({ field }) => {
-            let transformer: Transformer | undefined;
             const fv = field.value;
-            if (
-              fv.source === TransformerSource.USER_DEFINED &&
-              fv.config.case === 'userDefinedTransformerConfig'
-            ) {
-              transformer = transformerHandler.getUserDefinedTransformerById(
-                fv.config.value.id
-              );
-            } else {
-              transformer = transformerHandler.getSystemTransformerBySource(
-                fv.source
-              );
-            }
-            const buttonText = transformer
-              ? transformer.name
-              : 'Select Transformer';
+            const transformer = getTransformerFromField(transformerHandler, fv);
             return (
               <FormItem>
                 <FormLabel>Transformer</FormLabel>
@@ -436,7 +425,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
                         getTransformers={() =>
                           transformerHandler.getTransformers()
                         }
-                        buttonText={buttonText}
+                        buttonText={getTransformerSelectButtonText(transformer)}
                         value={fv}
                         onSelect={field.onChange}
                         side={'left'}
@@ -450,7 +439,7 @@ function AddNewRecord(props: AddNewRecordProps): ReactElement {
                       onSubmit={(newvalue) => {
                         field.onChange(newvalue);
                       }}
-                      disabled={!transformer}
+                      disabled={isInvalidTransformer(transformer)}
                     />
                   </div>
                 </FormControl>
@@ -626,29 +615,14 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
         // row.original works here. There must be a caching bug with the transformer prop being an object.
         // This may be related: https://github.com/TanStack/table/issues/5363
         const fv = row.original.transformer;
-        let transformer: Transformer | undefined;
-        if (
-          fv.source === TransformerSource.USER_DEFINED &&
-          fv.config.case === 'userDefinedTransformerConfig'
-        ) {
-          transformer = transformerHandler.getUserDefinedTransformerById(
-            fv.config.value.id
-          );
-        } else {
-          transformer = transformerHandler.getSystemTransformerBySource(
-            fv.source
-          );
-        }
-        const buttonText = transformer
-          ? transformer.name
-          : 'Select Transformer';
+        const transformer = getTransformerFromField(transformerHandler, fv);
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-row gap-2">
               <div>
                 <TransformerSelect
                   getTransformers={() => transformerHandler.getTransformers()}
-                  buttonText={buttonText}
+                  buttonText={getTransformerSelectButtonText(transformer)}
                   value={fv}
                   onSelect={(updatedTransformer) =>
                     onEdit(
@@ -667,7 +641,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                 />
               </div>
               <EditTransformerOptions
-                transformer={transformer ?? new SystemTransformer()}
+                transformer={transformer}
                 value={fv}
                 onSubmit={(updatedTransformer) => {
                   onEdit(
@@ -680,7 +654,7 @@ function getColumns(props: GetColumnsProps): ColumnDef<Row>[] {
                     row.index
                   );
                 }}
-                disabled={!transformer}
+                disabled={isInvalidTransformer(transformer)}
               />
             </div>
           </span>

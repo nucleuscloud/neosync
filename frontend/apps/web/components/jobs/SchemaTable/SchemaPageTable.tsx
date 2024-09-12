@@ -129,7 +129,7 @@ export default function SchemaPageTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody
-            className="grid"
+            className="grid relative"
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}

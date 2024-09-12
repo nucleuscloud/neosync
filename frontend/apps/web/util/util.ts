@@ -1,9 +1,14 @@
+import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-handler';
+import { Transformer } from '@/shared/transformers';
+import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   GenerateEmailType,
   InvalidEmailAction,
   SupportedJobType,
+  SystemTransformer,
   TransformerDataType,
   TransformerSource,
+  UserDefinedTransformer,
 } from '@neosync/sdk';
 import { format } from 'date-fns';
 
@@ -130,4 +135,54 @@ export function getInvalidEmailActionString(
 ): string {
   const value = InvalidEmailAction[invalidEmailAction];
   return value ? value.toLowerCase() : 'unknown';
+}
+
+// Given the currently selected transformer mapping config, return the relevant Transformer
+export function getTransformerFromField(
+  handler: TransformerHandler,
+  value: JobMappingTransformerForm
+): Transformer {
+  if (
+    value.source === TransformerSource.USER_DEFINED &&
+    value.config.case === 'userDefinedTransformerConfig'
+  ) {
+    return (
+      handler.getUserDefinedTransformerById(value.config.value.id) ??
+      new SystemTransformer()
+    );
+  }
+  return (
+    handler.getSystemTransformerBySource(value.source) ??
+    new SystemTransformer()
+  );
+}
+
+// Checks to see if the source is unspecified
+export function isInvalidTransformer(transformer: Transformer): boolean {
+  return transformer.source === TransformerSource.UNSPECIFIED;
+}
+
+export function getTransformerSelectButtonText(
+  transformer: Transformer,
+  defaultText: string = 'Select Transformer'
+): string {
+  return isInvalidTransformer(transformer) ? defaultText : transformer.name;
+}
+
+export function getFilterdTransformersByType(
+  transformerHandler: TransformerHandler,
+  datatype: TransformerDataType
+): {
+  system: SystemTransformer[];
+  userDefined: UserDefinedTransformer[];
+} {
+  return transformerHandler.getFilteredTransformers({
+    isForeignKey: false,
+    isVirtualForeignKey: false,
+    hasDefault: false,
+    isNullable: true,
+    isGenerated: false,
+    dataType: datatype,
+    jobType: SupportedJobType.SYNC,
+  });
 }
