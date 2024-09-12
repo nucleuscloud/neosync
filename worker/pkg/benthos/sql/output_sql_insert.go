@@ -296,6 +296,9 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	query := s.buildQuery(insertQuery)
+	fmt.Println()
+	fmt.Println(query)
+	fmt.Println()
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err

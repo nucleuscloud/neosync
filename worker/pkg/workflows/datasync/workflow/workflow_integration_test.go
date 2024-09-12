@@ -31,6 +31,7 @@ import (
 	mssql_datatypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/data-types"
 	mssql_simple "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mssql/simple"
 
+	mysql_alltypes "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/all-types"
 	mysql_compositekeys "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/composite-keys"
 	mysql_initschema "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/init-schema"
 	mysql_multipledbs "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata/mysql/multiple-dbs"
@@ -598,13 +599,15 @@ func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	mdTests := mysql_multipledbs.GetSyncTests()
 	initTests := mysql_initschema.GetSyncTests()
 	compositeTests := mysql_compositekeys.GetSyncTests()
+	dataTypesTests := mysql_alltypes.GetSyncTests()
 	allTests["Multiple_Dbs"] = mdTests
 	allTests["Composite_Keys"] = compositeTests
 	allTests["Init_Schema"] = initTests
+	allTests["Data_Types"] = dataTypesTests
 	return allTests
 }
 
-func (s *IntegrationTestSuite) Test_Workflow_Mysql_Sync() {
+func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 	tests := getAllMysqlSyncTests()
 	for groupName, group := range tests {
 		group := group
