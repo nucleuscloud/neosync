@@ -543,7 +543,7 @@ func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemInformationResponse{
-		Version:   versionInfo.GitVersion + "fo",
+		Version:   versionInfo.GitVersion,
 		Commit:    versionInfo.GitCommit,
 		Compiler:  versionInfo.Compiler,
 		Platform:  versionInfo.Platform,
