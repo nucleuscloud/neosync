@@ -429,7 +429,7 @@ func commonRetryBackOffCtorFromParsed(pConf *service.ParsedConfig) (ctor func() 
 		boff.MaxElapsedTime = maxElapsed
 
 		if maxRetries > 0 {
-			return backoff.WithMaxRetries(boff, uint64(maxRetries))
+			return backoff.WithMaxRetries(boff, uint64(maxRetries)) //nolint:gosec
 		}
 		return boff
 	}, nil

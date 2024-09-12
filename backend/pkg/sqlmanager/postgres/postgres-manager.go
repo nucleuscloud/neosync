@@ -901,3 +901,9 @@ func EscapePgColumns(cols []string) []string {
 func EscapePgColumn(col string) string {
 	return fmt.Sprintf("%q", col)
 }
+
+func BuildPgIdentityColumnResetCurrentSql(
+	schema, table, column string,
+) string {
+	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 0));", schema, table, column, column, schema, table)
+}

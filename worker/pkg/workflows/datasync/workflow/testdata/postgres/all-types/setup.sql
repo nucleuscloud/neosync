@@ -1,5 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS ptypes;
 -- CREATE TABLE ptypes.all_postgres_types (
+--     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 --     -- Numeric Types
 --     smallint_col SMALLINT,
 --     integer_col INTEGER,
@@ -82,6 +83,7 @@ CREATE SCHEMA IF NOT EXISTS ptypes;
 
 
 -- INSERT INTO ptypes.all_postgres_types (
+--     Id,
 --     smallint_col, 
 --     integer_col, 
 --     bigint_col, 
@@ -130,6 +132,7 @@ CREATE SCHEMA IF NOT EXISTS ptypes;
 --     tsvector_col, 
 --     oid_col
 -- ) VALUES (
+--     DEFAULT,
 --     32767,  -- smallint_col
 --     2147483647,  -- integer_col
 --     9223372036854775807,  -- bigint_col

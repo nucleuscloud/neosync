@@ -137,6 +137,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	columnDataTypes, err := conf.FieldStringList("column_data_types")
+	if err != nil {
+		return nil, err
+	}
+
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -196,6 +201,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		schema:                   schema,
 		table:                    table,
 		columns:                  columns,
+		columnDataTypes:          columnDataTypes,
 		identityColumns:          identityColumns,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
@@ -294,6 +300,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
+	}
+
+	if s.driver == sqlmanager_shared.PostgresDriver && len(s.identityColumns) > 0 {
+		sqlSplit := strings.Split(insertQuery, ") VALUES (")
+		insertQuery = sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
 	}
 
 	query := s.buildQuery(insertQuery)
