@@ -1,3 +1,6 @@
+import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-handler';
+import { Transformer } from '@/shared/transformers';
+import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   GenerateEmailType,
   InvalidEmailAction,
@@ -130,4 +133,18 @@ export function getInvalidEmailActionString(
 ): string {
   const value = InvalidEmailAction[invalidEmailAction];
   return value ? value.toLowerCase() : 'unknown';
+}
+
+// Given the currently selected transformer mapping config, return the relevant Transformer
+export function getSelectedTransformerFromMapping(
+  handler: TransformerHandler,
+  value: JobMappingTransformerForm
+): Transformer | undefined {
+  if (
+    value.source === TransformerSource.USER_DEFINED &&
+    value.config.case === 'userDefinedTransformerConfig'
+  ) {
+    return handler.getUserDefinedTransformerById(value.config.value.id);
+  }
+  return handler.getSystemTransformerBySource(value.source);
 }

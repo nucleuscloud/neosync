@@ -11,12 +11,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Transformer } from '@/shared/transformers';
+import { getSelectedTransformerFromMapping } from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { SystemTransformer, TransformerSource } from '@neosync/sdk';
+import { SystemTransformer } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -446,21 +446,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   filtered.userDefined
                 );
 
-                let transformer: Transformer | undefined;
-                if (
-                  fv.source === TransformerSource.USER_DEFINED &&
-                  fv.config.case === 'userDefinedTransformerConfig'
-                ) {
-                  transformer =
-                    filteredTransformerHandler.getUserDefinedTransformerById(
-                      fv.config.value.id
-                    );
-                } else {
-                  transformer =
-                    filteredTransformerHandler.getSystemTransformerBySource(
-                      fv.source
-                    );
-                }
+                const transformer = getSelectedTransformerFromMapping(
+                  filteredTransformerHandler,
+                  fv
+                );
                 const buttonText = transformer
                   ? transformer.name
                   : 'Select Transformer';

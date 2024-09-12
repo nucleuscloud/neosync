@@ -8,7 +8,7 @@ import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/shared/transformers';
+import { getSelectedTransformerFromMapping } from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
@@ -58,19 +58,10 @@ export function SchemaTableToolbar<TData>({
 
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
-  let transformer: Transformer | undefined;
-  if (
-    bulkTransformer.source === TransformerSource.USER_DEFINED &&
-    bulkTransformer.config.case === 'userDefinedTransformerConfig'
-  ) {
-    transformer = transformerHandler.getUserDefinedTransformerById(
-      bulkTransformer.config.value.id
-    );
-  } else {
-    transformer = transformerHandler.getSystemTransformerBySource(
-      bulkTransformer.source
-    );
-  }
+  const transformer = getSelectedTransformerFromMapping(
+    transformerHandler,
+    bulkTransformer
+  );
   const buttonText = transformer ? transformer.name : 'Bulk set transformers';
   const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
 
