@@ -73,38 +73,14 @@ export function SchemaTableToolbar<TData>({
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
-            getTransformers={() => {
-              const systemArrays: SystemTransformer[][] = [];
-              const userDefinedArrays: UserDefinedTransformer[][] = [];
-              table.getSelectedRowModel().rows.forEach((row) => {
-                const { system, userDefined } =
-                  transformerHandler.getFilteredTransformers(
-                    getTransformerFilter(
-                      constraintHandler,
-                      fromRowDataToColKey(row as unknown as Row<RowData>),
-                      jobType
-                    )
-                  );
-                systemArrays.push(system);
-                userDefinedArrays.push(userDefined);
-              });
-              const uniqueSystemSources = findCommonSystem(systemArrays);
-              const uniqueSystem = uniqueSystemSources
-                .map((source) =>
-                  transformerHandler.getSystemTransformerBySource(source)
-                )
-                .filter((x): x is SystemTransformer => !!x);
-              const uniqueIds = findCommonUserDefined(userDefinedArrays);
-              const uniqueUserDef = uniqueIds
-                .map((id) =>
-                  transformerHandler.getUserDefinedTransformerById(id)
-                )
-                .filter((x): x is UserDefinedTransformer => !!x);
-              return {
-                system: uniqueSystem,
-                userDefined: uniqueUserDef,
-              };
-            }}
+            getTransformers={() =>
+              getFilteredTransformersForBulkSet(
+                table.getSelectedRowModel().rows,
+                transformerHandler,
+                constraintHandler,
+                jobType
+              )
+            }
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {
@@ -228,6 +204,46 @@ export function SchemaTableToolbar<TData>({
       </div>
     </div>
   );
+}
+
+function getFilteredTransformersForBulkSet<TData>(
+  rows: Row<TData>[],
+  transformerHandler: TransformerHandler,
+  constraintHandler: SchemaConstraintHandler,
+  jobType: JobType
+): {
+  system: SystemTransformer[];
+  userDefined: UserDefinedTransformer[];
+} {
+  const systemArrays: SystemTransformer[][] = [];
+  const userDefinedArrays: UserDefinedTransformer[][] = [];
+
+  rows.forEach((row) => {
+    const { system, userDefined } = transformerHandler.getFilteredTransformers(
+      getTransformerFilter(
+        constraintHandler,
+        fromRowDataToColKey(row as unknown as Row<RowData>), // this will bite us at some point
+        jobType
+      )
+    );
+    systemArrays.push(system);
+    userDefinedArrays.push(userDefined);
+  });
+
+  const uniqueSystemSources = findCommonSystem(systemArrays);
+  const uniqueSystem = uniqueSystemSources
+    .map((source) => transformerHandler.getSystemTransformerBySource(source))
+    .filter((x): x is SystemTransformer => !!x);
+
+  const uniqueIds = findCommonUserDefined(userDefinedArrays);
+  const uniqueUserDef = uniqueIds
+    .map((id) => transformerHandler.getUserDefinedTransformerById(id))
+    .filter((x): x is UserDefinedTransformer => !!x);
+
+  return {
+    system: uniqueSystem,
+    userDefined: uniqueUserDef,
+  };
 }
 
 function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
