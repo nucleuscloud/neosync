@@ -132,7 +132,7 @@ export default function Page({ params }: PageProps): ReactElement {
       };
 
       updateDuration();
-      // sets up an internval to call the timer ever second
+      // sets up an interval to call the timer every second
       timer = setInterval(updateDuration, 1000);
     } else if (jobRun?.completedAt && jobRun?.startedAt) {
       setDuration(
