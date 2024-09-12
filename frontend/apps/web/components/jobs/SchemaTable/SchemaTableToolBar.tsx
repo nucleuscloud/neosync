@@ -173,12 +173,17 @@ export function SchemaTableToolbar<TData>({
           {jobType === 'sync' && (
             <ConfirmationDialog
               trigger={
-                <Button variant="outline" type="button">
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={form.getValues('mappings').length == 0}
+                  className="flex flex-row gap-1"
+                >
                   <ButtonText text="Apply Default Transformers" />
                 </Button>
               }
-              headerText="Apply all default transformations?"
-              description="This setting will apply the 'Passthrough' Transformer to all columns that are not generated, while applying the 'Use Column Default' Transformer to all generated columns."
+              headerText="Apply Default Transformers?"
+              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated columns."
               buttonText="Apply"
               onConfirm={() => {
                 const formMappings = form.getValues('mappings');
