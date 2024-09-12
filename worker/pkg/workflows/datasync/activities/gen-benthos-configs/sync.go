@@ -399,9 +399,11 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 	dsn string,
 	primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	colInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 ) ([]neosync_benthos.Outputs, error) {
 	// TODO grab column types from destination
 	// pass into benthos config as []string{} like gen ai benthos config
+
 	outputs := []neosync_benthos.Outputs{}
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
 	destOpts := getDestinationOptions(destination)
@@ -468,6 +470,12 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 			}
 		}
 
+		columnTypes := []string{}
+		for _, c := range benthosConfig.Columns {
+			colType := colInfoMap[c]
+			columnTypes = append(columnTypes, colType.DataType)
+		}
+
 		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.IdentityColumns, colTransformerMap)
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -479,6 +487,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
+						ColumnsDataTypes:         columnTypes,
 						IdentityColumns:          benthosConfig.IdentityColumns,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,

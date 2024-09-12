@@ -26,6 +26,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
+		Field(service.NewStringListField("column_data_types")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -98,6 +99,7 @@ type pooledInsertOutput struct {
 	schema                   string
 	table                    string
 	columns                  []string
+	columnDataTypes          []string
 	identityColumns          []string
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool

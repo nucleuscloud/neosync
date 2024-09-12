@@ -131,6 +131,20 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
+		var schemaColMap map[string]map[string]*sqlmanager_shared.ColumnInfo
+		switch destinationConnection.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			destDb, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
+			if err != nil {
+				return nil, fmt.Errorf("unable to create new sql db: %w", err)
+			}
+			colMap, err := destDb.Db.GetSchemaColumnMap(ctx)
+			if err != nil {
+				return nil, err
+			}
+			schemaColMap = colMap
+			destDb.Db.Close()
+		}
 		for _, resp := range responses {
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
@@ -144,7 +158,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
 					// SQL sync output
-					outputs, err := b.getSqlSyncBenthosOutput(driver, destination, resp, dsn, primaryKeyToForeignKeysMap, colTransformerMap)
+
+					outputs, err := b.getSqlSyncBenthosOutput(driver, destination, resp, dsn, primaryKeyToForeignKeysMap, colTransformerMap, schemaColMap[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)])
 					if err != nil {
 						return nil, err
 					}
