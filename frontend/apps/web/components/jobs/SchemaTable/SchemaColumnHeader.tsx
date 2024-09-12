@@ -31,7 +31,7 @@ export function SchemaColumnHeader<TData, TValue>({
               value={(column.getFilterValue() ?? '') as string}
               onChange={(e) => column.setFilterValue(e.target.value)}
               placeholder={title}
-              className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-transparent text-xs pl-8 h-8"
+              className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-transparent text-xs h-8 pl-8"
             />
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
