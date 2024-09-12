@@ -43,7 +43,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
@@ -107,6 +107,41 @@ export default function Page({ params }: PageProps): ReactElement {
   });
   const [isRetrievingRunContext, setIsRetrievingRunContext] =
     useState<boolean>(false);
+
+  const [duration, setDuration] = useState<string>('');
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (jobRun?.startedAt && jobRun?.status === JobRunStatusEnum.RUNNING) {
+      const updateDuration = () => {
+        const now = new Date();
+        const startTime = jobRun?.startedAt?.toDate();
+        if (startTime) {
+          const diffInSeconds = Math.floor(
+            (now.getTime() - startTime.getTime()) / 1000
+          );
+          const minutes = Math.floor(diffInSeconds / 60);
+          const seconds = diffInSeconds % 60;
+          setDuration(
+            minutes > 0
+              ? `${minutes} minute${minutes > 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`
+              : `${seconds} second${seconds !== 1 ? 's' : ''}`
+          );
+        }
+      };
+
+      updateDuration();
+      timer = setInterval(updateDuration, 1000);
+    } else if (jobRun?.completedAt && jobRun?.startedAt) {
+      setDuration(
+        getDuration(jobRun.completedAt.toDate(), jobRun.startedAt.toDate())
+      );
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [jobRun?.startedAt, jobRun?.completedAt, jobRun?.status]);
 
   async function onDelete(): Promise<void> {
     try {
@@ -286,13 +321,7 @@ export default function Page({ params }: PageProps): ReactElement {
               header="Completion Time"
               content={formatDateTime(jobRun?.completedAt?.toDate())}
             />
-            <StatCard
-              header="Duration"
-              content={getDuration(
-                jobRun?.completedAt?.toDate(),
-                jobRun?.startedAt?.toDate()
-              )}
-            />
+            <StatCard header="Duratfewfewion" content={duration} />
           </div>
           <div className="space-y-4">
             {jobRun?.pendingActivities.map((a) => {
@@ -441,12 +470,12 @@ function getDuration(dateTimeValue2?: Date, dateTimeValue1?: Date): string {
   }
   var differenceValue =
     (dateTimeValue2.getTime() - dateTimeValue1.getTime()) / 1000;
-  const minutes = Math.abs(Math.round(differenceValue / 60));
+  const minutes = Math.floor(differenceValue / 60);
   const seconds = Math.round(differenceValue % 60);
   if (minutes === 0) {
-    return `${seconds} seconds`;
+    return `${seconds} second${seconds !== 1 ? 's' : ''}`;
   }
-  return `${minutes} minutes ${seconds} seconds`;
+  return `${minutes} minute${minutes > 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`;
 }
 
 interface AlertProps {
