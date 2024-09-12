@@ -177,7 +177,6 @@ export function SchemaTableToolbar<TData>({
                   variant="outline"
                   type="button"
                   disabled={form.getValues('mappings').length == 0}
-                  className="flex flex-row gap-1"
                 >
                   <ButtonText text="Apply Default Transformers" />
                 </Button>
