@@ -1,19 +1,17 @@
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { FormDescription, FormLabel } from '@/components/ui/form';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Transformer } from '@/shared/transformers';
+import {
+  getFilterdTransformersByType,
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   DynamoDBSourceOptionsFormValues,
   DynamoDBSourceUnmappedTransformConfigFormValues,
-  JobMappingTransformerForm,
 } from '@/yup-validations/jobs';
-import {
-  SupportedJobType,
-  SystemTransformer,
-  TransformerDataType,
-  TransformerSource,
-  UserDefinedTransformer,
-} from '@neosync/sdk';
+import { TransformerDataType } from '@neosync/sdk';
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -118,7 +116,7 @@ function UnmappedTransformConfigForm(
                 TransformerDataType.ANY
               )
             }
-            buttonText={getButtonText(byteTransformer)}
+            buttonText={getTransformerSelectButtonText(byteTransformer)}
             value={value.byte}
             onSelect={(newVal) => setValue({ ...value, byte: newVal })}
             disabled={false}
@@ -146,7 +144,7 @@ function UnmappedTransformConfigForm(
                 TransformerDataType.BOOLEAN
               )
             }
-            buttonText={getButtonText(boolTransformer)}
+            buttonText={getTransformerSelectButtonText(boolTransformer)}
             value={value.boolean}
             onSelect={(newVal) => setValue({ ...value, boolean: newVal })}
             disabled={false}
@@ -174,7 +172,7 @@ function UnmappedTransformConfigForm(
                 TransformerDataType.INT64
               )
             }
-            buttonText={getButtonText(numTransformer)}
+            buttonText={getTransformerSelectButtonText(numTransformer)}
             value={value.n}
             onSelect={(newVal) => setValue({ ...value, n: newVal })}
             disabled={false}
@@ -202,7 +200,7 @@ function UnmappedTransformConfigForm(
                 TransformerDataType.STRING
               )
             } // todo: filter this by type
-            buttonText={getButtonText(strTransformer)}
+            buttonText={getTransformerSelectButtonText(strTransformer)}
             value={value.s}
             onSelect={(newVal) => setValue({ ...value, s: newVal })}
             disabled={false}
@@ -216,54 +214,6 @@ function UnmappedTransformConfigForm(
         </div>
       </div>
     </div>
-  );
-}
-
-function getFilterdTransformersByType(
-  transformerHandler: TransformerHandler,
-  datatype: TransformerDataType
-): {
-  system: SystemTransformer[];
-  userDefined: UserDefinedTransformer[];
-} {
-  return transformerHandler.getFilteredTransformers({
-    isForeignKey: false,
-    isVirtualForeignKey: false,
-    hasDefault: false,
-    isNullable: true,
-    isGenerated: false,
-    dataType: datatype,
-    jobType: SupportedJobType.SYNC,
-  });
-}
-
-function isInvalidTransformer(transformer: Transformer): boolean {
-  return transformer.source === TransformerSource.UNSPECIFIED;
-}
-
-function getButtonText(transformer: Transformer): string {
-  return isInvalidTransformer(transformer)
-    ? 'Select Transformer'
-    : transformer.name;
-}
-
-// todo: centralize this, we're copying this logic in a few different spots that we call the EditTransformerOptions component
-function getTransformerFromField(
-  handler: TransformerHandler,
-  value: JobMappingTransformerForm
-): Transformer {
-  if (
-    value.source === TransformerSource.USER_DEFINED &&
-    value.config.case === 'userDefinedTransformerConfig'
-  ) {
-    return (
-      handler.getUserDefinedTransformerById(value.config.value.id) ??
-      new SystemTransformer()
-    );
-  }
-  return (
-    handler.getSystemTransformerBySource(value.source) ??
-    new SystemTransformer()
   );
 }
 

@@ -8,7 +8,11 @@ import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/shared/transformers';
+import {
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
@@ -58,20 +62,10 @@ export function SchemaTableToolbar<TData>({
 
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
-  let transformer: Transformer | undefined;
-  if (
-    bulkTransformer.source === TransformerSource.USER_DEFINED &&
-    bulkTransformer.config.case === 'userDefinedTransformerConfig'
-  ) {
-    transformer = transformerHandler.getUserDefinedTransformerById(
-      bulkTransformer.config.value.id
-    );
-  } else {
-    transformer = transformerHandler.getSystemTransformerBySource(
-      bulkTransformer.source
-    );
-  }
-  const buttonText = transformer ? transformer.name : 'Bulk set transformers';
+  const transformer = getTransformerFromField(
+    transformerHandler,
+    bulkTransformer
+  );
   const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
 
   return (
@@ -79,44 +73,23 @@ export function SchemaTableToolbar<TData>({
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
-            getTransformers={() => {
-              const systemArrays: SystemTransformer[][] = [];
-              const userDefinedArrays: UserDefinedTransformer[][] = [];
-              table.getSelectedRowModel().rows.forEach((row) => {
-                const { system, userDefined } =
-                  transformerHandler.getFilteredTransformers(
-                    getTransformerFilter(
-                      constraintHandler,
-                      fromRowDataToColKey(row as unknown as Row<RowData>),
-                      jobType
-                    )
-                  );
-                systemArrays.push(system);
-                userDefinedArrays.push(userDefined);
-              });
-              const uniqueSystemSources = findCommonSystem(systemArrays);
-              const uniqueSystem = uniqueSystemSources
-                .map((source) =>
-                  transformerHandler.getSystemTransformerBySource(source)
-                )
-                .filter((x): x is SystemTransformer => !!x);
-              const uniqueIds = findCommonUserDefined(userDefinedArrays);
-              const uniqueUserDef = uniqueIds
-                .map((id) =>
-                  transformerHandler.getUserDefinedTransformerById(id)
-                )
-                .filter((x): x is UserDefinedTransformer => !!x);
-              return {
-                system: uniqueSystem,
-                userDefined: uniqueUserDef,
-              };
-            }}
+            getTransformers={() =>
+              getFilteredTransformersForBulkSet(
+                table.getSelectedRowModel().rows,
+                transformerHandler,
+                constraintHandler,
+                jobType
+              )
+            }
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            buttonText={buttonText}
+            buttonText={getTransformerSelectButtonText(
+              transformer,
+              'Bulk set transformers'
+            )}
             disabled={!hasSelectedRows}
             buttonClassName="w-[275px]"
             notFoundText="No transformers found for the given selection."
@@ -125,7 +98,7 @@ export function SchemaTableToolbar<TData>({
             transformer={transformer ?? new SystemTransformer()}
             value={bulkTransformer}
             onSubmit={setBulkTransformer}
-            disabled={!transformer}
+            disabled={isInvalidTransformer(transformer)}
           />
           <Button
             disabled={isBulkApplyDisabled}
@@ -237,7 +210,49 @@ export function SchemaTableToolbar<TData>({
   );
 }
 
-function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
+function getFilteredTransformersForBulkSet<TData>(
+  rows: Row<TData>[],
+  transformerHandler: TransformerHandler,
+  constraintHandler: SchemaConstraintHandler,
+  jobType: JobType
+): {
+  system: SystemTransformer[];
+  userDefined: UserDefinedTransformer[];
+} {
+  const systemArrays: SystemTransformer[][] = [];
+  const userDefinedArrays: UserDefinedTransformer[][] = [];
+
+  rows.forEach((row) => {
+    const { system, userDefined } = transformerHandler.getFilteredTransformers(
+      getTransformerFilter(
+        constraintHandler,
+        fromRowDataToColKey(row as unknown as Row<RowData>), // this will bite us at some point
+        jobType
+      )
+    );
+    systemArrays.push(system);
+    userDefinedArrays.push(userDefined);
+  });
+
+  const uniqueSystemSources = findCommonSystemSources(systemArrays);
+  const uniqueSystem = uniqueSystemSources
+    .map((source) => transformerHandler.getSystemTransformerBySource(source))
+    .filter((x): x is SystemTransformer => !!x);
+
+  const uniqueIds = findCommonUserDefinedIds(userDefinedArrays);
+  const uniqueUserDef = uniqueIds
+    .map((id) => transformerHandler.getUserDefinedTransformerById(id))
+    .filter((x): x is UserDefinedTransformer => !!x);
+
+  return {
+    system: uniqueSystem,
+    userDefined: uniqueUserDef,
+  };
+}
+
+function findCommonSystemSources(
+  arrays: SystemTransformer[][]
+): TransformerSource[] {
   const elementCount: Record<TransformerSource, number> = {} as Record<
     TransformerSource,
     number
@@ -265,7 +280,9 @@ function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
   return commonElements;
 }
 
-function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
+function findCommonUserDefinedIds(
+  arrays: UserDefinedTransformer[][]
+): string[] {
   const elementCount: Record<string, number> = {};
   const subArrayCount = arrays.length;
   const commonElements: string[] = [];
@@ -273,10 +290,10 @@ function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
   arrays.forEach((subArray) => {
     // Use a Set to ensure each element in a sub-array is counted only once
     new Set(subArray).forEach((element) => {
-      if (!elementCount[element.source]) {
-        elementCount[element.source] = 1;
+      if (!elementCount[element.id]) {
+        elementCount[element.id] = 1;
       } else {
-        elementCount[element.source]++;
+        elementCount[element.id]++;
       }
     });
   });
