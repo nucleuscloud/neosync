@@ -78,12 +78,10 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		case []byte:
 			if isJsonPgDataType(ctype.DatabaseTypeName()) {
 				jmap, err := gotypeutil.JsonToMap(t)
-				if err != nil {
-					jObj[col] = string(t)
+				if err == nil {
+					jObj[col] = jmap
 					continue
 				}
-				jObj[col] = jmap
-				continue
 			}
 			jObj[col] = string(t)
 		case *PgxArray[any]:
@@ -130,24 +128,7 @@ func GoTypeToPgType(val any) any {
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {
-	var newArray []any
-	if isJsonArrayPgDataType(array.colDataType) {
-		for _, e := range array.Elements {
-			jsonBits, ok := e.([]byte)
-			if ok {
-				jmap, err := gotypeutil.JsonToMap(jsonBits)
-				if err != nil {
-					newArray = append(newArray, e)
-				} else {
-					newArray = append(newArray, jmap)
-				}
-			} else {
-				newArray = append(newArray, e)
-			}
-		}
-	} else {
-		newArray = array.Elements
-	}
+	goSlice := convertArrayToGoType(array)
 
 	dim := array.Dimensions()
 	if len(dim) > 1 {
@@ -155,8 +136,32 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 		for _, d := range dim {
 			dims = append(dims, int(d.Length))
 		}
-		return CreateMultiDimSlice(dims, newArray)
+		return CreateMultiDimSlice(dims, goSlice)
 	}
+	return goSlice
+}
+
+func convertArrayToGoType(array *PgxArray[any]) []any {
+	if !isJsonArrayPgDataType(array.colDataType) {
+		return array.Elements
+	}
+
+	var newArray []any
+	for _, e := range array.Elements {
+		jsonBits, ok := e.([]byte)
+		if !ok {
+			newArray = append(newArray, e)
+			continue
+		}
+
+		jmap, err := gotypeutil.JsonToMap(jsonBits)
+		if err != nil {
+			newArray = append(newArray, e)
+		} else {
+			newArray = append(newArray, jmap)
+		}
+	}
+
 	return newArray
 }
 
@@ -180,7 +185,7 @@ func CreateMultiDimSlice(dims []int, elements []any) any {
 
 	// handles multi-dimensional slices
 	subSize := 1
-	for _, dim := range dims[1:] { // nolint:gosec
+	for _, dim := range dims[1:] { //nolint:gosec
 		subSize *= dim
 	}
 
