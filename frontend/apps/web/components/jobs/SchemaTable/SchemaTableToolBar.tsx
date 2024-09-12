@@ -7,16 +7,23 @@ import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTran
 import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
+import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
   getTransformerFromField,
   getTransformerSelectButtonText,
   isInvalidTransformer,
 } from '@/util/util';
 import {
+  convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
   SchemaFormValues,
-  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import {
   GenerateDefault,
@@ -27,7 +34,11 @@ import {
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
-import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
+import {
+  CheckIcon,
+  Cross2Icon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
@@ -66,21 +77,23 @@ export function SchemaTableToolbar<TData>({
     transformerHandler,
     bulkTransformer
   );
-  const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
+  const allowedTransformers = getFilteredTransformersForBulkSet(
+    table.getSelectedRowModel().rows,
+    transformerHandler,
+    constraintHandler,
+    jobType
+  );
+  const isBulkApplyDisabled =
+    !bulkTransformer ||
+    !hasSelectedRows ||
+    !isTransformerAllowed(allowedTransformers, transformer, true);
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
-            getTransformers={() =>
-              getFilteredTransformersForBulkSet(
-                table.getSelectedRowModel().rows,
-                transformerHandler,
-                constraintHandler,
-                jobType
-              )
-            }
+            getTransformers={() => allowedTransformers}
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {
@@ -95,37 +108,63 @@ export function SchemaTableToolbar<TData>({
             notFoundText="No transformers found for the given selection."
           />
           <EditTransformerOptions
-            transformer={transformer ?? new SystemTransformer()}
+            transformer={transformer}
             value={bulkTransformer}
             onSubmit={setBulkTransformer}
-            disabled={isInvalidTransformer(transformer)}
+            disabled={!hasSelectedRows || isInvalidTransformer(transformer)}
           />
-          <Button
-            disabled={isBulkApplyDisabled}
-            type="button"
-            variant="outline"
-            className={cn(isBulkApplyDisabled ? undefined : 'border-blue-600')}
-            onClick={() => {
-              table.getSelectedRowModel().rows.forEach((r) => {
-                form.setValue(
-                  `mappings.${r.index}.transformer`,
-                  bulkTransformer,
-                  {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: false, // this is really expensive, see the trigger call below
-                  }
+          <div className="flex flex-row gap-1">
+            <Button
+              disabled={isBulkApplyDisabled}
+              type="button"
+              variant="outline"
+              className={cn(
+                isBulkApplyDisabled ? undefined : 'border-blue-600'
+              )}
+              onClick={() => {
+                table.getSelectedRowModel().rows.forEach((r) => {
+                  form.setValue(
+                    `mappings.${r.index}.transformer`,
+                    bulkTransformer,
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: false, // this is really expensive, see the trigger call below
+                    }
+                  );
+                });
+                setBulkTransformer(
+                  convertJobMappingTransformerToForm(
+                    new JobMappingTransformer()
+                  )
                 );
-              });
-              setBulkTransformer(
-                convertJobMappingTransformerToForm(new JobMappingTransformer())
-              );
-              form.trigger('mappings'); // trigger validation after bulk updating the selected form options
-              table.resetRowSelection(true);
-            }}
-          >
-            <CheckIcon />
-          </Button>
+                form.trigger('mappings'); // trigger validation after bulk updating the selected form options
+                table.resetRowSelection(true);
+              }}
+            >
+              <CheckIcon />
+            </Button>
+            {isBulkApplyDisabled &&
+              hasSelectedRows &&
+              !isTransformerAllowed(allowedTransformers, transformer, true) && (
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <ExclamationTriangleIcon className="h-4 w-4  dark:text-yellow-400 text-yellow-600" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Unable to apply selected transformer in bulk due to
+                        current row selection resulting in no valid overlapping
+                        transformers.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+          </div>
         </div>
         <div className="flex flex-row items-center gap-2">
           {isFiltered && (
@@ -208,6 +247,27 @@ export function SchemaTableToolbar<TData>({
       </div>
     </div>
   );
+}
+
+function isTransformerAllowed(
+  {
+    system,
+    userDefined,
+  }: {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  },
+  selected: Transformer,
+  allowInvalidTransformer: boolean = false // Allows transformers in the default state
+): boolean {
+  if (allowInvalidTransformer && isInvalidTransformer(selected)) {
+    return true; // allows folks to unset transformers. We should eventually make this a discrete button somewhere
+  }
+  if (isSystemTransformer(selected)) {
+    return system.some((t) => t.source === selected.source);
+  } else {
+    return userDefined.some((t) => t.id === selected.id);
+  }
 }
 
 function getFilteredTransformersForBulkSet<TData>(
