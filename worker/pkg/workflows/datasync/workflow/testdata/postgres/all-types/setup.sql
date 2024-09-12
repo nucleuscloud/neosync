@@ -1,5 +1,5 @@
-CREATE SCHEMA IF NOT EXISTS ptypes;
-CREATE TABLE ptypes.all_postgres_types (
+CREATE SCHEMA IF NOT EXISTS alltypes;
+CREATE TABLE alltypes.all_postgres_types (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- Numeric Types
     smallint_col SMALLINT,
@@ -82,7 +82,7 @@ CREATE TABLE ptypes.all_postgres_types (
 );
 
 
-INSERT INTO ptypes.all_postgres_types (
+INSERT INTO alltypes.all_postgres_types (
     Id,
     smallint_col, 
     integer_col, 
@@ -183,7 +183,7 @@ INSERT INTO ptypes.all_postgres_types (
 );
 
 
-CREATE TABLE ptypes.array_types (
+CREATE TABLE alltypes.array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,
     "int_array" _int4,
     "smallint_array" _int2,
@@ -220,7 +220,7 @@ CREATE TABLE ptypes.array_types (
 );
 
 
-INSERT INTO ptypes.array_types (
+INSERT INTO alltypes.array_types (
     id, int_array, smallint_array, bigint_array, real_array, double_array,
     text_array, varchar_array, char_array, boolean_array, date_array,
     time_array, timestamp_array, timestamptz_array, interval_array,
