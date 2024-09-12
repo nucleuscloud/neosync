@@ -97,6 +97,7 @@ type pooledInsertOutput struct {
 	schema                   string
 	table                    string
 	columns                  []string
+	columnDataTypes          []string
 	identityColumns          []string
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
@@ -130,6 +131,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	columns, err := conf.FieldStringList("columns")
+	if err != nil {
+		return nil, err
+	}
+
+	columnDataTypes, err := conf.FieldStringList("column_data_types")
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +199,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		schema:                   schema,
 		table:                    table,
 		columns:                  columns,
+		columnDataTypes:          columnDataTypes,
 		identityColumns:          identityColumns,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
