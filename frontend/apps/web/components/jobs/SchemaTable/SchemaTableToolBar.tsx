@@ -8,7 +8,11 @@ import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
-import { getSelectedTransformerFromMapping } from '@/util/util';
+import {
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
@@ -58,11 +62,10 @@ export function SchemaTableToolbar<TData>({
 
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
-  const transformer = getSelectedTransformerFromMapping(
+  const transformer = getTransformerFromField(
     transformerHandler,
     bulkTransformer
   );
-  const buttonText = transformer ? transformer.name : 'Bulk set transformers';
   const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
 
   return (
@@ -107,7 +110,10 @@ export function SchemaTableToolbar<TData>({
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            buttonText={buttonText}
+            buttonText={getTransformerSelectButtonText(
+              transformer,
+              'Bulk set transformers'
+            )}
             disabled={!hasSelectedRows}
             buttonClassName="w-[275px]"
             notFoundText="No transformers found for the given selection."
@@ -116,7 +122,7 @@ export function SchemaTableToolbar<TData>({
             transformer={transformer ?? new SystemTransformer()}
             value={bulkTransformer}
             onSubmit={setBulkTransformer}
-            disabled={!transformer}
+            disabled={isInvalidTransformer(transformer)}
           />
           <Button
             disabled={isBulkApplyDisabled}

@@ -11,12 +11,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getSelectedTransformerFromMapping } from '@/util/util';
+import {
+  getTransformerFromField,
+  getTransformerSelectButtonText,
+  isInvalidTransformer,
+} from '@/util/util';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { SystemTransformer } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -446,13 +449,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   filtered.userDefined
                 );
 
-                const transformer = getSelectedTransformerFromMapping(
+                const transformer = getTransformerFromField(
                   filteredTransformerHandler,
                   fv
                 );
-                const buttonText = transformer
-                  ? transformer.name
-                  : 'Select Transformer';
                 return (
                   <FormItem>
                     <FormControl>
@@ -472,7 +472,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         <div>
                           <TransformerSelect
                             getTransformers={() => filtered}
-                            buttonText={buttonText}
+                            buttonText={getTransformerSelectButtonText(
+                              transformer
+                            )}
                             value={fv}
                             onSelect={field.onChange}
                             side={'left'}
@@ -481,12 +483,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           />
                         </div>
                         <EditTransformerOptions
-                          transformer={transformer ?? new SystemTransformer()}
+                          transformer={transformer}
                           value={fv}
                           onSubmit={(newvalue) => {
                             field.onChange(newvalue);
                           }}
-                          disabled={!transformer}
+                          disabled={isInvalidTransformer(transformer)}
                         />
                       </div>
                     </FormControl>
