@@ -96,7 +96,7 @@ export default function SchemaPageTable<TData, TValue>({
       </div>
       <div
         className={cn(
-          'rounded-md border min-h-[145px] max-h-[500px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
+          'rounded-md border min-h-[145px] max-h-[1000px] relative border-gray-300 dark:border-gray-700 overflow-hidden',
           rows.length > 0 && 'overflow-auto'
         )}
         ref={tableContainerRef}
