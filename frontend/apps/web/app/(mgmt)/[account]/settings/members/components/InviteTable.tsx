@@ -33,8 +33,8 @@ import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { AccountInvite } from '@neosync/sdk';
 import {
-  deleteAccountApiKey,
   getTeamAccountInvites,
+  removeTeamAccountInvite,
 } from '@neosync/sdk/connectquery';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { toast } from 'sonner';
@@ -117,7 +117,7 @@ export function InvitesTable(props: Props) {
       data={data?.invites || []}
       accountId={accountId}
       onDeleted={() => refetch()}
-      onSubmit={() => refetch()}
+      onInvited={() => refetch()}
     />
   );
 }
@@ -126,10 +126,10 @@ interface DataTableProps {
   data: AccountInvite[];
   accountId: string;
   onDeleted(id: string): void;
-  onSubmit(): void;
+  onInvited(): void;
 }
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, accountId, onDeleted, onSubmit } = props;
+  const { data, accountId, onDeleted, onInvited } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -170,7 +170,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
           }
           className="max-w-sm"
         />
-        <InviteUserForm accountId={accountId} onInvited={onSubmit} />
+        <InviteUserForm accountId={accountId} onInvited={onInvited} />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -232,7 +232,7 @@ interface DeleteInviteButtonProps {
 }
 
 function DeleteInviteButton({ inviteId, onDeleted }: DeleteInviteButtonProps) {
-  const { mutateAsync } = useMutation(deleteAccountApiKey);
+  const { mutateAsync } = useMutation(removeTeamAccountInvite);
 
   async function onRemove(): Promise<void> {
     try {
