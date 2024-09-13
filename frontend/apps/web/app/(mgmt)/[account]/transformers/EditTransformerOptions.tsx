@@ -98,7 +98,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           </div>
           <Separator />
         </DialogHeader>
-        <div className="pt-8 ">
+        <div className="pt-4">
           {transformer && (
             <EditTransformerConfig
               value={
