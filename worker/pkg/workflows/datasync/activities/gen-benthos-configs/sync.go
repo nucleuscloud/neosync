@@ -24,6 +24,7 @@ type sqlSyncResp struct {
 	BenthosConfigs             []*BenthosConfigResponse
 	primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey
 	ColumnTransformerMap       map[string]map[string]*mgmtv1alpha1.JobMappingTransformer
+	SchemaColumnInfoMap        map[string]map[string]*sqlmanager_shared.ColumnInfo
 }
 
 func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
@@ -104,6 +105,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		BenthosConfigs:             sourceResponses,
 		primaryKeyToForeignKeysMap: primaryKeyToForeignKeysMap,
 		ColumnTransformerMap:       colTransformerMap,
+		SchemaColumnInfoMap:        groupedSchemas,
 	}, nil
 }
 
@@ -404,6 +406,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 	dsn string,
 	primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	colInfoMap map[string]*sqlmanager_shared.ColumnInfo,
 ) ([]neosync_benthos.Outputs, error) {
 	outputs := []neosync_benthos.Outputs{}
 	tableKey := neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName)
@@ -471,6 +474,16 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 			}
 		}
 
+		columnTypes := []string{}
+		for _, c := range benthosConfig.Columns {
+			colType, ok := colInfoMap[c]
+			if ok {
+				columnTypes = append(columnTypes, colType.DataType)
+			} else {
+				columnTypes = append(columnTypes, "")
+			}
+		}
+
 		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.IdentityColumns, colTransformerMap)
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
@@ -482,6 +495,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Schema:                   benthosConfig.TableSchema,
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
+						ColumnsDataTypes:         columnTypes,
 						IdentityColumns:          benthosConfig.IdentityColumns,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,

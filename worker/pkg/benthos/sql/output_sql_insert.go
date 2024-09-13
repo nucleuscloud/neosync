@@ -10,6 +10,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
@@ -25,6 +26,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("schema")).
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
+		Field(service.NewStringListField("column_data_types")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -97,6 +99,7 @@ type pooledInsertOutput struct {
 	schema                   string
 	table                    string
 	columns                  []string
+	columnDataTypes          []string
 	identityColumns          []string
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
@@ -130,6 +133,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	columns, err := conf.FieldStringList("columns")
+	if err != nil {
+		return nil, err
+	}
+
+	columnDataTypes, err := conf.FieldStringList("column_data_types")
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +201,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		schema:                   schema,
 		table:                    table,
 		columns:                  columns,
+		columnDataTypes:          columnDataTypes,
 		identityColumns:          identityColumns,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
@@ -281,7 +290,8 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
+
+	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
@@ -291,8 +301,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 
 	if s.driver == sqlmanager_shared.PostgresDriver && len(s.identityColumns) > 0 {
-		sqlSplit := strings.Split(insertQuery, ") VALUES (")
-		insertQuery = sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
 	query := s.buildQuery(insertQuery)
@@ -316,7 +325,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
 		if err != nil {
 			return err
 		}
