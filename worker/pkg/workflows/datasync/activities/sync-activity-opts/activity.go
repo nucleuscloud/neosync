@@ -103,8 +103,9 @@ func getGenerateRequestedCount(config *mgmtv1alpha1.GenerateSourceOptions) uint6
 	return total
 }
 
+// if the input is less than or equal to 0, returns nil
 func zeroToNilPointer[T uint64 | int64](value T) *T {
-	if value == 0 {
+	if value <= 0 {
 		return nil
 	}
 	return &value

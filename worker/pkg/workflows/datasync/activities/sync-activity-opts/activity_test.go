@@ -229,4 +229,5 @@ func Test_zeroToNilPointer(t *testing.T) {
 	require.Equal(t, val, *resp)
 
 	require.Nil(t, zeroToNilPointer(uint64(0)))
+	require.Nil(t, zeroToNilPointer(int64(-1)))
 }
