@@ -26,7 +26,8 @@ func New(
 }
 
 type CheckAccountStatusRequest struct {
-	AccountId string
+	AccountId            string
+	RequestedRecordCount *uint64
 }
 
 type CheckAccountStatusResponse struct {
@@ -60,14 +61,17 @@ func (a *Activity) CheckAccountStatus(
 	logger.Debug("checking account status")
 
 	resp, err := a.userclient.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId: req.AccountId,
+		AccountId:            req.AccountId,
+		RequestedRecordCount: req.RequestedRecordCount,
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
 
+	if resp.Msg.GetReason() != "" {
+		logger = log.With(logger, "reason", resp.Msg.GetReason())
+	}
 	logger.Debug(fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()))
 
-	// todo: add reason
-	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: nil}, nil
+	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason}, nil
 }
