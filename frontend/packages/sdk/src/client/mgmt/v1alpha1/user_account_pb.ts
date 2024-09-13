@@ -1804,6 +1804,13 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
    */
   isValid = false;
 
+  /**
+   * If the account is not valid, a reason for why may be provided.
+   *
+   * @generated from field: optional string reason = 2;
+   */
+  reason?: string;
+
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1813,6 +1820,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   static readonly typeName = "mgmt.v1alpha1.IsAccountStatusValidResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {

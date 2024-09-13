@@ -5124,6 +5124,10 @@ func (m *IsAccountStatusValidResponse) validate(all bool) error {
 
 	// no validation rules for IsValid
 
+	if m.Reason != nil {
+		// no validation rules for Reason
+	}
+
 	if len(errors) > 0 {
 		return IsAccountStatusValidResponseMultiError(errors)
 	}

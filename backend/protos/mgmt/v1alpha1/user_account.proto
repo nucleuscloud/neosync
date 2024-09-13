@@ -188,6 +188,8 @@ message IsAccountStatusValidRequest {
 }
 message IsAccountStatusValidResponse {
   bool is_valid = 1;
+  // If the account is not valid, a reason for why may be provided.
+  optional string reason = 2;
 }
 
 service UserAccountService {
