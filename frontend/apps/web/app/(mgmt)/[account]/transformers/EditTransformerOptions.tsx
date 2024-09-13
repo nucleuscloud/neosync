@@ -98,11 +98,12 @@ export default function EditTransformerOptions(props: Props): ReactElement {
               <div className="flex flex-row items-center gap-2">
                 <DialogDescription>
                   {transformer?.description}{' '}
-                  {/* dont render the learn more link for the js transformers since they have their own special link */}
+                  {/* don't render the learn more link for the js transformers since they have their own special link && only render for system transformers*/}
                   {TransformerSource[transformer.source] !=
                     'GENERATE_JAVASCRIPT' &&
                     TransformerSource[transformer.source] !=
-                      'TRANSFORM_JAVASCRIPT' && (
+                      'TRANSFORM_JAVASCRIPT' &&
+                    isSystemTransformer(transformer) && (
                       <LearnMoreLink
                         href={constructDocsLink(transformer.source)}
                       />
