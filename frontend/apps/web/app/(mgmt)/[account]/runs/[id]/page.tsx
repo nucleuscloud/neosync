@@ -115,16 +115,8 @@ export default function Page({ params }: PageProps): ReactElement {
     let timer: NodeJS.Timeout;
     if (jobRun?.startedAt && jobRun?.status === JobRunStatusEnum.RUNNING) {
       const updateDuration = () => {
-        const now = new Date();
-        const startTime = jobRun?.startedAt?.toDate();
-        if (startTime) {
-          const diffInSeconds = Math.floor(
-            (now.getTime() - startTime.getTime()) / 1000
-          );
-          const minutes = Math.floor(diffInSeconds / 60);
-          const seconds = diffInSeconds % 60;
-          // handle plural minutes and seconds and set the duration
-          setDuration(formatDuration({ minutes: minutes, seconds: seconds }));
+        if (jobRun?.startedAt?.toDate()) {
+          setDuration(getDuration(new Date(), jobRun?.startedAt?.toDate()));
         }
       };
 
