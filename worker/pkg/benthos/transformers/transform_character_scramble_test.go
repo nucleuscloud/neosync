@@ -10,6 +10,7 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -219,11 +220,17 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionTransformerWithEmptyValue(t *testing.T) {
-	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q,user_provided_regex:%q)`, nilString, nilString)
+	emptyString := ""
+	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q)`, emptyString)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the character substitution transformer")
+	require.NoError(t, err, "failed to parse the character substitution transformer")
 
-	_, err = ex.Query(nil)
-	assert.NoError(t, err)
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.NotNil(t, res, "The response shouldnt be nil")
+
+	responseStr, ok := res.(*string)
+	require.True(t, ok)
+	require.NotNil(t, responseStr)
+	require.Equal(t, emptyString, *responseStr)
 }

@@ -106,7 +106,7 @@ Note that this does not work for hex values: 0x00 -> 0x1F
 
 func transformCharacterScramble(randomizer rng.Rand, value, regex string) (*string, error) {
 	if value == "" {
-		return nil, nil
+		return &value, nil
 	}
 
 	if regex != "" {
