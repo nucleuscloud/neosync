@@ -59,6 +59,31 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		"accountId", actOptResp.AccountId,
 	)
 
+	if actOptResp.RequestedRecordCount != nil && *actOptResp.RequestedRecordCount > 0 {
+		logger.Info("requested record count of %d", *actOptResp.RequestedRecordCount)
+	}
+	var result *accountstatus_activity.CheckAccountStatusResponse
+	var a *accountstatus_activity.Activity
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.CheckAccountStatus,
+		&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId, RequestedRecordCount: actOptResp.RequestedRecordCount}).
+		Get(ctx, &result)
+	if err != nil {
+		logger.Error("encountered error while checking account status", "error", err)
+		cancelHandler()
+		return nil, fmt.Errorf("unable to continue workflow due to error when checking account status: %w", err)
+	}
+	if !result.IsValid {
+		logger.Warn("account is no longer is valid state")
+		cancelHandler()
+		reason := "no reason provided"
+		if result.Reason != nil {
+			reason = *result.Reason
+		}
+		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q", reason)
+	}
+
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
 	var genbenthosactivity *genbenthosconfigs_activity.Activity
