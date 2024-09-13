@@ -85,14 +85,6 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 		{
 			Schema: "all_types",
 			Table:  "all_data_types",
-			Column: "bit_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
 			Column: "date_col",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
@@ -238,70 +230,6 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 			Schema: "all_types",
 			Table:  "all_data_types",
 			Column: "set_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "geometry_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "point_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "linestring_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "polygon_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "multipoint_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "multilinestring_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "multipolygon_col",
-			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-			},
-		},
-		{
-			Schema: "all_types",
-			Table:  "all_data_types",
-			Column: "geometrycollection_col",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 			},

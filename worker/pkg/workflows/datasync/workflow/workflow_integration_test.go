@@ -603,7 +603,7 @@ func getAllMysqlSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	allTests["Multiple_Dbs"] = mdTests
 	allTests["Composite_Keys"] = compositeTests
 	allTests["Init_Schema"] = initTests
-	allTests["Data_Types"] = dataTypesTests
+	allTests["DataTypes"] = dataTypesTests
 	return allTests
 }
 

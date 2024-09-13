@@ -218,6 +218,10 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	cTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
 
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
@@ -227,13 +231,21 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
 	}
+	fmt.Println()
+	fmt.Println("INPUT ROWS")
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
+		colDataType := cTypes[i]
+		fmt.Printf("%s %s %T %+v \n\n", col, colDataType.DatabaseTypeName(), v, v)
 		switch t := v.(type) {
 		case string:
 			jObj[col] = t
 		case []byte:
+			if colDataType.DatabaseTypeName() == "BINARY" {
+				jObj[col] = t
+				continue
+			}
 			jObj[col] = string(t)
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 			jObj[col] = t
@@ -244,6 +256,12 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 		default:
 			jObj[col] = t
 		}
+	}
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("INPUT OBJECT")
+	for k, v := range jObj {
+		fmt.Printf("%s %T %+v \n\n", k, v, v)
 	}
 
 	return jObj, nil

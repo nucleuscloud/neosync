@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     decimal_col DECIMAL(10, 2),
     float_col FLOAT(7, 4),
     double_col DOUBLE(15, 8),
-    bit_col BIT(8),
+    -- bit_col BIT(8),
 
     -- Date and Time Types
     date_col DATE,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     -- String Types
     char_col CHAR(10),
     varchar_col VARCHAR(255) NOT NULL,
-    binary_col BINARY(10),
+    binary_col BINARY(3),
     varbinary_col VARBINARY(255),
     tinyblob_col TINYBLOB,
     tinytext_col TINYTEXT,
@@ -40,14 +40,14 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     set_col SET('option1', 'option2', 'option3'),
 
     -- Spatial Data Types
-    geometry_col GEOMETRY,
-    point_col POINT,
-    linestring_col LINESTRING,
-    polygon_col POLYGON,
-    multipoint_col MULTIPOINT,
-    multilinestring_col MULTILINESTRING,
-    multipolygon_col MULTIPOLYGON,
-    geometrycollection_col GEOMETRYCOLLECTION,
+    -- geometry_col GEOMETRY,
+    -- point_col POINT,
+    -- linestring_col LINESTRING,
+    -- polygon_col POLYGON,
+    -- multipoint_col MULTIPOINT,
+    -- multilinestring_col MULTILINESTRING,
+    -- multipolygon_col MULTIPOLYGON,
+    -- geometrycollection_col GEOMETRYCOLLECTION,
 
     -- JSON Data Type
     json_col JSON,
