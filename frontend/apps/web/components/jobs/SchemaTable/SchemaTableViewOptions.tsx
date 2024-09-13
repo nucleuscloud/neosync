@@ -23,7 +23,7 @@ export function SchemaTableViewOptions<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto h-8 flex">
+        <Button variant="outline" className="h-8 flex">
           <MixerHorizontalIcon className="mr-2 h-4 w-4" />
           View
         </Button>

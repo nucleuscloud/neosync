@@ -66,7 +66,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           variant="outline"
           size="sm"
           disabled={disabled}
-          className="hidden h-[36px] lg:flex"
+          className="h-[36px] lg:flex"
           type="button"
           onClick={() => setIsSheetOpen(true)}
         >
