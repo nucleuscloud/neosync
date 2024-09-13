@@ -133,7 +133,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
-		sqlSchemaColMap := b.GetSqlSchemaColumnMap(ctx, destinationConnection, sqlSourceSchemaColumnInfoMap, slogger)
+		sqlSchemaColMap := b.GetSqlSchemaColumnMap(ctx, destination, destinationConnection, sqlSourceSchemaColumnInfoMap, slogger)
 		for _, resp := range responses {
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
@@ -296,27 +296,30 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 // if not uses source destination schema column info map
 func (b *benthosBuilder) GetSqlSchemaColumnMap(
 	ctx context.Context,
+	destination *mgmtv1alpha1.JobDestination,
 	destinationConnection *mgmtv1alpha1.Connection,
 	sourceSchemaColumnInfoMap map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	slogger *slog.Logger,
 ) map[string]map[string]*sqlmanager_shared.ColumnInfo {
-	var schemaColMap map[string]map[string]*sqlmanager_shared.ColumnInfo
+	schemaColMap := sourceSchemaColumnInfoMap
+	destOpts, err := shared.GetSqlJobDestinationOpts(destination.GetOptions())
+	if err != nil || destOpts.InitSchema {
+		return schemaColMap
+	}
 	switch destinationConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		destDb, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
 		if err != nil {
 			destDb.Db.Close()
-			return sourceSchemaColumnInfoMap
+			return schemaColMap
 		}
-		colMap, err := destDb.Db.GetSchemaColumnMap(ctx)
+		destColMap, err := destDb.Db.GetSchemaColumnMap(ctx)
 		if err != nil {
 			destDb.Db.Close()
-			return sourceSchemaColumnInfoMap
+			return schemaColMap
 		}
-		if len(colMap) == 0 {
-			schemaColMap = sourceSchemaColumnInfoMap
-		} else {
-			schemaColMap = colMap
+		if len(destColMap) != 0 {
+			schemaColMap = destColMap
 		}
 		destDb.Db.Close()
 	}

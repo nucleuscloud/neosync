@@ -236,3 +236,37 @@ func GetConnectionById(
 	}
 	return getConnResp.Msg.Connection, nil
 }
+
+type SqlJobDestinationOpts struct {
+	TruncateBeforeInsert bool
+	TruncateCascade      bool
+	InitSchema           bool
+}
+
+func GetSqlJobDestinationOpts(
+	options *mgmtv1alpha1.JobDestinationOptions,
+) (*SqlJobDestinationOpts, error) {
+	if options == nil {
+		return &SqlJobDestinationOpts{}, nil
+	}
+	switch opts := options.GetConfig().(type) {
+	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+		return &SqlJobDestinationOpts{
+			TruncateBeforeInsert: opts.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			TruncateCascade:      opts.PostgresOptions.GetTruncateTable().GetCascade(),
+			InitSchema:           opts.PostgresOptions.GetInitTableSchema(),
+		}, nil
+	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
+		return &SqlJobDestinationOpts{
+			TruncateBeforeInsert: opts.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			InitSchema:           opts.MysqlOptions.GetInitTableSchema(),
+		}, nil
+	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+		return &SqlJobDestinationOpts{
+			TruncateBeforeInsert: opts.MssqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			InitSchema:           opts.MssqlOptions.GetInitTableSchema(),
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported job destination options type: %T", opts)
+	}
+}
