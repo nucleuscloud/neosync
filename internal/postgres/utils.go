@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
@@ -118,6 +119,9 @@ func pgArrayToGoSlice(array *PgxArray[any]) any {
 
 func convertArrayToGoType(array *PgxArray[any]) []any {
 	if !isJsonArrayPgDataType(array.colDataType) {
+		if isPgUuidArray(array.colDataType) {
+			return convertBytesToUuidSlice(array.Elements)
+		}
 		return array.Elements
 	}
 
@@ -138,6 +142,20 @@ func convertArrayToGoType(array *PgxArray[any]) []any {
 	}
 
 	return newArray
+}
+
+func isPgUuidArray(colDataType string) bool {
+	return strings.EqualFold(colDataType, "_uuid")
+}
+
+func convertBytesToUuidSlice(uuids []any) []any {
+	uuidSlice := []any{}
+	for _, el := range uuids {
+		if id, ok := el.([16]uint8); ok {
+			uuidSlice = append(uuidSlice, uuid.UUID(id).String())
+		}
+	}
+	return uuidSlice
 }
 
 // converts flat slice to multi-dimensional slice

@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS alltypes.array_types (
     "path_array" _path,
     "polygon_array" _polygon,
     "circle_array" _circle,
-    -- "uuid_array" _uuid,  // broken
+    "uuid_array" _uuid,
     "json_array" _json,
     "jsonb_array" _jsonb,
     "bit_array" _bit,
@@ -228,7 +228,7 @@ INSERT INTO alltypes.array_types (
     point_array, line_array, lseg_array,
     -- box_array,
     path_array, polygon_array, circle_array, 
-    -- uuid_array, 
+    uuid_array, 
     json_array, jsonb_array, 
     bit_array, varbit_array, numeric_array,
     money_array, xml_array, int_double_array
@@ -257,7 +257,7 @@ INSERT INTO alltypes.array_types (
     ARRAY['((1,1),(2,2),(3,3))'::path, '((4,4),(5,5),(6,6))'::path],
     ARRAY['((1,1),(2,2),(3,3))'::polygon, '((4,4),(5,5),(6,6))'::polygon],
     ARRAY['<(1,1),1>'::circle, '<(2,2),2>'::circle],
-    -- ARRAY['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid, 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid],
+    ARRAY['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid, 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid],
     ARRAY['{"key": "value1"}'::json, '{"key": "value2"}'::json],
     ARRAY['{"key": "value1"}'::jsonb, '{"key": "value2"}'::jsonb],
     ARRAY['101'::bit(3), '110'::bit(3)],
