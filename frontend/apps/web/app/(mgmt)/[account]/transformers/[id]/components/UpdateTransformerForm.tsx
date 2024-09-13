@@ -1,5 +1,6 @@
 'use client';
 import TransformerForm from '@/app/(mgmt)/[account]/new/transformer/TransformerForms/TransformerForm';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +25,7 @@ import {
 } from '@/yup-validations/transformer-validations';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { UserDefinedTransformer } from '@neosync/sdk';
+import { TransformerSource, UserDefinedTransformer } from '@neosync/sdk';
 import {
   isTransformerNameAvailable,
   updateUserDefinedTransformer,
@@ -34,6 +35,7 @@ import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { constructDocsLink } from '../../EditTransformerOptions';
 
 interface Props {
   currentTransformer: UserDefinedTransformer;
@@ -106,7 +108,19 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           render={() => (
             <FormItem>
               <FormLabel>Source Transformer</FormLabel>
-              <FormDescription>The system transformer source.</FormDescription>
+              <FormDescription>
+                The system transformer source.{' '}
+                {currentTransformer.source !== 0 &&
+                  currentTransformer.source !== null &&
+                  TransformerSource[currentTransformer.source ?? 0] !=
+                    'GENERATE_JAVASCRIPT' &&
+                  TransformerSource[currentTransformer.source ?? 0] !=
+                    'TRANSFORM_JAVASCRIPT' && (
+                    <LearnMoreLink
+                      href={constructDocsLink(currentTransformer.source ?? 0)}
+                    />
+                  )}
+              </FormDescription>
               <FormControl>
                 <Select disabled={true}>
                   <SelectTrigger>
