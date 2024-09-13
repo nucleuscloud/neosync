@@ -70,7 +70,7 @@ func (a *Activity) CheckAccountStatus(
 
 	logger.Debug(
 		fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()),
-		"reason", withReasonOrDefault(resp.Msg.Reason),
+		"reason", withReasonOrDefault(resp.Msg.GetReason()),
 	)
 
 	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason}, nil
@@ -78,9 +78,9 @@ func (a *Activity) CheckAccountStatus(
 
 const defaultReason = "no reason provided"
 
-func withReasonOrDefault(reason *string) string {
-	if reason == nil || *reason == "" {
+func withReasonOrDefault(reason string) string {
+	if reason == "" {
 		return defaultReason
 	}
-	return *reason
+	return reason
 }
