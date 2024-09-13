@@ -1,3 +1,4 @@
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,7 @@ import {
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerConfig } from '@neosync/sdk';
+import { TransformerConfig, TransformerSource } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
   EyeOpenIcon,
@@ -79,6 +80,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
       <DialogContent
         className="max-w-3xl"
         onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <div className="flex flex-row w-full">
@@ -93,7 +95,20 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                   </Badge>
                 </div>
               </div>
-              <DialogDescription>{transformer?.description}</DialogDescription>
+              <div className="flex flex-row items-center gap-2">
+                <DialogDescription>
+                  {transformer?.description}{' '}
+                  {/* dont render the learn more link for the js transformers since they have their own special link */}
+                  {TransformerSource[transformer.source] !=
+                    'GENERATE_JAVASCRIPT' &&
+                    TransformerSource[transformer.source] !=
+                      'TRANSFORM_JAVASCRIPT' && (
+                      <LearnMoreLink
+                        href={constructDocsLink(transformer.source)}
+                      />
+                    )}
+                </DialogDescription>
+              </div>
             </div>
           </div>
           <Separator />
@@ -215,4 +230,15 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
       </div>
     </Alert>
   );
+}
+
+function constructDocsLink(source: number): string {
+  console.log('s', TransformerSource[source]);
+  const name: string = TransformerSource[source]
+    .toLowerCase()
+    .replaceAll('_', '-');
+
+  console.log('name', name);
+
+  return `https://docs.neosync.dev/transformers/system#${name}`;
 }

@@ -20,7 +20,7 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | --------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | [Generate Categorical](/transformers/system#generate-categorical)                 | string  | Randomly selects a value from a defined set of categorical values                                                                |
 | [Generate Email](/transformers/system#generate-email)                             | string  | Generates a new randomized email address.                                                                                        |
-| [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | Generates a boolean value at random.                                                                                             |
+| [Generate Boolean](/transformers/system#generate-bool)                            | boolean | Generates a boolean value at random.                                                                                             |
 | [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | Generates a card number.                                                                                                         |
 | [Generate City](/transformers/system#generate-city)                               | string  | Randomly selects a city from a list of predefined US cities.                                                                     |
 | [Generate Country](/transformers/system#generate-country)                         | string  | Randomly selects a country and returns it as a 2-letter country code or the full country name                                    |
@@ -32,17 +32,17 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | [Generate Gender](/transformers/system#generate-gender)                           | string  | Randomly generates one of the following genders: female, male, undefined, nonbinary.                                             |
 | [Generate Javascript](/transformers/system#generate-javascript)                   | any     | Executes provided javascript code in the transformer for every row                                                               |
 | [Generate Int64 Phone Number](/transformers/system#generate-int64-phone-number)   | int64   | Generates a new phone number of type int64 with a default length of 10.                                                          |
-| [Generate Random Int64](/transformers/system#generate-random-int64)               | int64   | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
+| [Generate Random Int64](/transformers/system#generate-int64)                      | int64   | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
 | [Generate Last Name](/transformers/system#generate-last-name)                     | int64   | Generates a random last name.                                                                                                    |
-| [Generate SHA256 Hash](/transformers/system#generate-sha256-hash)                 | string  | SHA256 hashes a randomly generated value.                                                                                        |
+| [Generate SHA256 Hash](/transformers/system#generate-sha256hash)                  | string  | SHA256 hashes a randomly generated value.                                                                                        |
 | [Generate SSN](/transformers/system#generate-ssn)                                 | string  | Generates a completely random social security numbers including the hyphens in the format `xxx-xx-xxxx`.                         |
 | [Generate State](/transformers/system#generate-state)                             | string  | Randomly selects a US state and returns the two-character state code.                                                            |
 | [Generate Street Address](/transformers/system#generate-street-address)           | string  | Randomly generates a street address.                                                                                             |
 | [Generate String Phone Number](/transformers/system#generate-string-phone-number) | string  | Generates a Generate phone number and returns it as a string.                                                                    |
 | [Generate Random String](/transformers/system#generate-random-string)             | string  | Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.       |
-| [Generate Unix Timestamp](/transformers/system#generate-unix-timestamp)           | int64   | Randomly generates a Unix timestamp.                                                                                             |
+| [Generate Unix Timestamp](/transformers/system#generate-unixtimestamp)            | int64   | Randomly generates a Unix timestamp.                                                                                             |
 | [Generate Username](/transformers/system#generate-username)                       | string  | Randomly generates a username                                                                                                    |
-| [Generate UTC Timestamp](/transformers/system#generate-utc-timestamp)             | time    | Randomly generates a UTC timestamp.                                                                                              |
+| [Generate UTC Timestamp](/transformers/system#generate-utctimestamp)              | time    | Randomly generates a UTC timestamp.                                                                                              |
 | [Generate UUID](/transformers/system#generate-uuid)                               | uuid    | Generates a new UUIDv4 id.                                                                                                       |
 | [Generate Zip code](/transformers/system#generate-zipcode)                        | string  | Randomly selects a zip code from a list of predefined US zip codes.                                                              |
 | [Transform Email](/transformers/system#transform-email)                           | string  | Transforms an existing email address.                                                                                            |
@@ -58,8 +58,8 @@ Neosync ships with 40+ System Transformers to give you an easy way to get starte
 | [Transform String](/transformers/system#transform-string)                         | string  | Transforms an existing string value.                                                                                             |
 | [Transform Character Scramble](/transformers/system#transform-character-scramble) | string  | Transforms an existing string value by scrambling the characters while maintaining the format.                                   |
 | [Passthrough](/transformers/system#passthrough)                                   | string  | Passes the input value through to the destination with no changes.                                                               |
-| [Null](/transformers/system#null)                                                 | string  | Inserts a `null` string instead of the source value.                                                                             |
-| [Use Column Default](/transformers/system#use-column-default)                     | any     | Applies the predefined default value of a column as specified in the SQL database schema                                         |
+| [Null](/transformers/system#generate-null)                                        | string  | Inserts a `null` string instead of the source value.                                                                             |
+| [Use Column Default](/transformers/system#generate-default)                       | any     | Applies the predefined default value of a column as specified in the SQL database schema                                         |
 
 ### Generate Categorical\{#generate-categorical}
 
@@ -99,7 +99,7 @@ By default, the transformer randomizes the username, domain and top-level domain
 | `ab6b676b-0d0e-4e38-b98a-3935a832da7d` |
 | `jFrankd@msn.com`                      |
 
-### Generate Boolean\{#generate-boolean}
+### Generate Boolean\{#generate-bool}
 
 Randomly generates a boolean value.
 
@@ -319,8 +319,8 @@ Allows the user to define Javascript code and then execute that on every row tha
 **Configurations**
 
 | Name | Description                               | Default         | Example Output |
-| ---- | ----------------------------------------- | --------------- | -------------- | --- |
-| Code | The javascript code that will be executed | `return 'test'` | `test`         | \   |
+| ---- | ----------------------------------------- | --------------- | -------------- |
+| Code | The javascript code that will be executed | `return 'test'` | `test`         |
 
 **Example**
 
@@ -328,7 +328,7 @@ Allows the user to define Javascript code and then execute that on every row tha
 | --------------- | -------------- |
 | `return 'test'` | `test`         |
 
-### Generate Random Int64\{#generate-random-int64}
+### Generate Random Int64\{#generate-int64}
 
 Generates a random integer and returns it as a int64 type.
 
@@ -369,7 +369,7 @@ There are no configurations for this transformer.
 | Sporer         |
 | Rodriguezon    |
 
-### Generate SHA256 Hash\{#generate-sha256-hash}
+### Generate SHA256 Hash\{#generate-sha256hash}
 
 Generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
 
@@ -475,7 +475,7 @@ By default, the random string transformer generates a string of 10 characters lo
 | 1   | 20  | 29h23rega9     |
 | 5   | 5   | h2dni          |
 
-### Generate Unix Timestamp\{#generate-unix-timestamp}
+### Generate Unix Timestamp\{#generate-unixtimestamp}
 
 Randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
 
@@ -507,7 +507,7 @@ There are no configurations for this transformer.
 | jdoe           |
 | lsmith         |
 
-### Generate UTC Timestamp\{#generate-utc-timestamp}
+### Generate UTC Timestamp\{#generate-utctimestamp}
 
 Randomly generates a utc timestamp in UTC timezone and returns back a time.Time representation of that timestamp.
 
@@ -821,7 +821,7 @@ Note that this does not work for hex values: 0x00 -> 0x1F such as chinese charac
 
 Passes the input data out to the output without making any modifications to it. This is useful in many circumstances but cautious of accidentally leaking sensitive data through this transformer.
 
-### Null\{#null}
+### Null\{#generate-null}
 
 Simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
 
@@ -837,7 +837,7 @@ Here are some examples of what an output null value may look like.
 | ------------- | -------------- |
 | N/A           | null           |
 
-### Use Column Default\{#use-column-default}
+### Use Column Default\{#generate-default}
 
 Automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database. This is typically used in conjunction with `GENERATED` columns.
 
