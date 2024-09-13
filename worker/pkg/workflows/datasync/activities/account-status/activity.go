@@ -68,10 +68,19 @@ func (a *Activity) CheckAccountStatus(
 		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
 	}
 
-	if resp.Msg.GetReason() != "" {
-		logger = log.With(logger, "reason", resp.Msg.GetReason())
-	}
-	logger.Debug(fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()))
+	logger.Debug(
+		fmt.Sprintf("account status: %v", resp.Msg.GetIsValid()),
+		"reason", withReasonOrDefault(resp.Msg.Reason),
+	)
 
 	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason}, nil
+}
+
+const defaultReason = "no reason provided"
+
+func withReasonOrDefault(reason *string) string {
+	if reason == nil || *reason == "" {
+		return defaultReason
+	}
+	return *reason
 }
