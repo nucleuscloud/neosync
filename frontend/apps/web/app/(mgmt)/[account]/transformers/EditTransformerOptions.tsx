@@ -233,7 +233,7 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
   );
 }
 
-function constructDocsLink(source: number): string {
+export function constructDocsLink(source: number): string {
   const name: string = TransformerSource[source]
     .toLowerCase()
     .replaceAll('_', '-');
