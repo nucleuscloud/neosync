@@ -67,9 +67,9 @@ WHERE u.id = sqlc.arg('userId') AND a.account_type = 1;
 
 -- name: CreatePersonalAccount :one
 INSERT INTO neosync_api.accounts (
-  account_type, account_slug
+  account_type, account_slug, max_allowed_records
 ) VALUES (
-  0, $1
+  0, $1, $2
 )
 RETURNING *;
 

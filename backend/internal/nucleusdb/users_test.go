@@ -182,7 +182,7 @@ func Test_SetPersonalAccount(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, ptr(int64(123)))
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -214,11 +214,15 @@ func Test_SetPersonalAccount_CreateUserAssociation(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, ptr(int64(123)))
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, accountUuid, resp.ID)
+}
+
+func ptr[T any](val T) *T {
+	return &val
 }
 
 func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
@@ -235,7 +239,7 @@ func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
 
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
-	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
 		AccountID: accountUuid,
 		UserID:    userUuid,
@@ -243,7 +247,7 @@ func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, ptr(int64(123)))
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -264,14 +268,14 @@ func Test_SetPersonalAccount_Rollback(t *testing.T) {
 
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
-	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
 		AccountID: accountUuid,
 		UserID:    userUuid,
 	}).Return(db_queries.NeosyncApiAccountUserAssociation{AccountID: accountUuid, UserID: userUuid}, errors.New("boo"))
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.SetPersonalAccount(ctx, userUuid)
+	resp, err := service.SetPersonalAccount(ctx, userUuid, ptr(int64(123)))
 
 	mockTx.AssertNotCalled(t, "Commit", ctx)
 	assert.Error(t, err)
