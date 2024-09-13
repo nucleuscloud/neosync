@@ -45,7 +45,7 @@ func requireConnectError(t testing.TB, err error, code connect.Code) {
 func (s *IntegrationTestSuite) setMaxAllowedRecords(
 	ctx context.Context,
 	accountId string,
-	maxAllowed uint64,
+	maxAllowed uint64, //nolint:unparam // want to leave it here to allow other options in the future
 ) error {
 	accountUuid, err := nucleusdb.ToUuid(accountId)
 	if err != nil {
