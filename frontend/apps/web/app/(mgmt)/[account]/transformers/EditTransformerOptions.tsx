@@ -234,12 +234,9 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
 }
 
 function constructDocsLink(source: number): string {
-  console.log('s', TransformerSource[source]);
   const name: string = TransformerSource[source]
     .toLowerCase()
     .replaceAll('_', '-');
-
-  console.log('name', name);
 
   return `https://docs.neosync.dev/transformers/system#${name}`;
 }
