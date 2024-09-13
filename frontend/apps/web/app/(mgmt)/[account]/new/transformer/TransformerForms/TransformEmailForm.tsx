@@ -94,7 +94,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         </div>
         <FormErrorMessage message={errors?.excludedDomains?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Email Type</FormLabel>
           <FormDescription>
@@ -135,7 +135,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         </Select>
         <FormErrorMessage message={errors?.emailType?.message} />
       </div>
-      <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+      <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
         <div className="space-y-0.5 w-[80%]">
           <FormLabel>Invalid Email Action</FormLabel>
           <FormDescription>
