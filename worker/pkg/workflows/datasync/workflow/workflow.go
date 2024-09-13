@@ -91,7 +91,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		if result.Reason != nil {
 			reason = *result.Reason
 		}
-		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q", reason)
+		return nil, fmt.Errorf("halting job run due to account in invalid state. Reason: %q: %w", reason, invalidAccountStatusError)
 	}
 
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse

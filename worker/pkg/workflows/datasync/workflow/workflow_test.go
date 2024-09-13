@@ -38,6 +38,9 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 			},
 			AccountId: uuid.NewString(),
 		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
@@ -68,6 +71,9 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 			},
 			AccountId: uuid.NewString(),
 		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -100,6 +106,9 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 			},
 			AccountId: uuid.NewString(),
 		}, nil)
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -134,6 +143,10 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
@@ -222,6 +235,9 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
@@ -332,6 +348,9 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
+	var accStatsActivity *accountstatus_activity.Activity
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil)
 	var genact *genbenthosconfigs_activity.Activity
 	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
@@ -628,9 +647,12 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
+
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
-		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: false}, nil)
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil).Once()
+	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: false}, nil).Once()
 
 	syncActivity := sync_activity.Activity{}
 	env.
@@ -650,7 +672,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 	require.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	require.True(t, errors.As(err, &applicationErr))
-	require.Equal(t, invalidAccountStatusError.Error(), applicationErr.Error())
+	require.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }
@@ -897,7 +919,7 @@ func Test_Workflow_Initial_AccountStatus(t *testing.T) {
 	assert.Error(t, err)
 	var applicationErr *temporal.ApplicationError
 	assert.True(t, errors.As(err, &applicationErr))
-	assert.Equal(t, `halting job run due to account in invalid state. Reason: "test failure"`, applicationErr.Error())
+	assert.ErrorContains(t, applicationErr, invalidAccountStatusError.Error())
 
 	env.AssertExpectations(t)
 }
