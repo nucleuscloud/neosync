@@ -19,40 +19,38 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4 pt-4">
+    <div className="flex flex-col w-full space-y-4">
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-        <div className="space-y-0.5">
+        <div className="space-y-0.5 w-[80%]">
           <FormLabel>Randomize Sign</FormLabel>
-          <FormDescription className="w-[80%]">
-            {`After the value has been generated, will randomly flip the sign. This may cause the generated value to be out of the defined min/max range.
+          <FormDescription>
+            {`Will randomly assign the sign. This may cause the generated value to be out of the defined min/max range.
                   If the min/max is 20-40, the value may be in the following ranges: 20 <= x <= 40 and -40 <= x <= -20`}
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
-            <div className="w-[300px]">
-              <Switch
-                checked={value.randomizeSign}
-                onCheckedChange={(checked) =>
-                  setValue(
-                    new GenerateFloat64({ ...value, randomizeSign: checked })
-                  )
-                }
-                disabled={isDisabled}
-              />
-              <FormErrorMessage message={errors?.randomizeSign?.message} />
-            </div>
+            <Switch
+              checked={value.randomizeSign}
+              onCheckedChange={(checked) =>
+                setValue(
+                  new GenerateFloat64({ ...value, randomizeSign: checked })
+                )
+              }
+              disabled={isDisabled}
+            />
           </div>
+          <FormErrorMessage message={errors?.randomizeSign?.message} />
         </div>
       </div>
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-        <div className="space-y-0.5">
+        <div className="space-y-0.5 w-[80%]">
           <FormLabel>Minimum Value</FormLabel>
           <FormDescription>
             Sets a minimum range for generated float64 value.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
@@ -82,7 +80,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
             Sets a maximum range for generated float64 value.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
@@ -114,7 +112,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
             of 23.567 to 23.56.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col ">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input

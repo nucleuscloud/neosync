@@ -77,7 +77,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-2xl"
+        className="max-w-3xl"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
