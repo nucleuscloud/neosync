@@ -191,6 +191,7 @@ export default function NewTransformer(): ReactElement {
                       'TRANSFORM_JAVASCRIPT' && (
                       <LearnMoreLink
                         href={constructDocsLink(formSource ?? 0)}
+                        classNames={'text-[0.8rem]'}
                       />
                     )}
                 </FormDescription>

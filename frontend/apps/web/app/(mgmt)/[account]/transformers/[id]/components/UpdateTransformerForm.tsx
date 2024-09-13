@@ -118,6 +118,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                     'TRANSFORM_JAVASCRIPT' && (
                     <LearnMoreLink
                       href={constructDocsLink(currentTransformer.source ?? 0)}
+                      classNames={'text-[0.8rem]'}
                     />
                   )}
               </FormDescription>
