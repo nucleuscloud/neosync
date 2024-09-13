@@ -148,6 +148,15 @@ spec:
                   fieldPath: metadata.labels['tags.datadoghq.com/version']
             {{- end }}
 
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.neosync.dev/service']
+            - name: OTEL_SERVICE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.neosync.dev/version']
+
             {{- with .Values.extraEnvVars }}
             {{- range .}}
             - name: {{ .name }}
