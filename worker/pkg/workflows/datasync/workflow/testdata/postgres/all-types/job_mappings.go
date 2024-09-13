@@ -565,6 +565,14 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 		{
 			Schema: "alltypes",
 			Table:  "array_types",
+			Column: "uuid_array",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "alltypes",
+			Table:  "array_types",
 			Column: "json_array",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
