@@ -28,7 +28,7 @@ export default function GenerateInternationalPhoneNumberForm(
             be less than 9.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
@@ -59,7 +59,7 @@ export default function GenerateInternationalPhoneNumberForm(
             be greater than 15.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input

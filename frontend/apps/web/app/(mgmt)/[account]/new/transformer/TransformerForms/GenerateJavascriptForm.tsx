@@ -79,57 +79,59 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
   }
 
   return (
-    <div className="pt-4">
-      <div>
-        <div className="flex flex-row justify-between">
-          <div className="space-y-0.5">
-            <FormLabel>Transformer Code</FormLabel>
-            <div className="text-[0.8rem] text-muted-foreground">
-              Define your own Transformation below using Javascript.
-              <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
-            </div>
+    <div>
+      <div className="flex flex-row items-center justify-between">
+        <div className="space-y-0.5">
+          <FormLabel>Transformer Code</FormLabel>
+          <div className="text-[0.8rem] text-muted-foreground">
+            Define your own Transformation below using Javascript.
+            <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
           </div>
-          <div className="flex flex-row gap-2">
-            {isCodeValid !== 'null' && (
-              <Badge
-                variant={isCodeValid === 'valid' ? 'success' : 'destructive'}
-                className="h-9 px-4 py-2"
-              >
-                <ButtonText
-                  leftIcon={
-                    isCodeValid === 'valid' ? (
-                      <CheckCircledIcon />
-                    ) : isCodeValid === 'invalid' ? (
-                      <CrossCircledIcon />
-                    ) : null
-                  }
-                  text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
-                />
-              </Badge>
-            )}
-            <Button type="button" onClick={handleValidateCode}>
+        </div>
+        <div className="flex flex-row gap-2">
+          {isCodeValid !== 'null' && (
+            <Badge
+              variant={isCodeValid === 'valid' ? 'success' : 'destructive'}
+              className="h-9 px-4 py-2"
+            >
               <ButtonText
-                leftIcon={isValidatingCode ? <Spinner /> : null}
-                text={'Validate'}
+                leftIcon={
+                  isCodeValid === 'valid' ? (
+                    <CheckCircledIcon />
+                  ) : isCodeValid === 'invalid' ? (
+                    <CrossCircledIcon />
+                  ) : null
+                }
+                text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
               />
-            </Button>
-          </div>
+            </Badge>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleValidateCode}
+          >
+            <ButtonText
+              leftIcon={isValidatingCode ? <Spinner /> : null}
+              text={'Validate'}
+            />
+          </Button>
         </div>
-        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-          <Editor
-            height="50vh"
-            width="100%"
-            language="javascript"
-            value={value.code}
-            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
-            onChange={(e) => {
-              setValue(new GenerateJavascript({ ...value, code: e ?? '' }));
-            }}
-            options={options}
-          />
-        </div>
-        <FormErrorMessage message={errors?.code?.message} />
       </div>
+      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm mt-4">
+        <Editor
+          height="50vh"
+          width="100%"
+          language="javascript"
+          value={value.code}
+          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
+          onChange={(e) => {
+            setValue(new GenerateJavascript({ ...value, code: e ?? '' }));
+          }}
+          options={options}
+        />
+      </div>
+      <FormErrorMessage message={errors?.code?.message} />
     </div>
   );
 }

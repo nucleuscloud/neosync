@@ -21,44 +21,49 @@ export default function GenerateEmailForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4">
-      <div className="space-y-0.5">
+    <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+      <div className="space-y-0.5 w-[80%]">
         <FormLabel>Email Type</FormLabel>
         <FormDescription>
-          Configure the email type that will be used during generation.
+          Select the type of email you want to generate. Uuid_v4 emails
+          guarantee uniqueness.
         </FormDescription>
       </div>
-      <Select
-        disabled={isDisabled}
-        onValueChange={(newValue) => {
-          setValue(
-            new GenerateEmail({
-              ...value,
-              // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
-              emailType: parseInt(newValue, 10),
-            })
-          );
-        }}
-        value={value.emailType?.toString()}
-      >
-        <SelectTrigger className="w-[300px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {[GenerateEmailType.UUID_V4, GenerateEmailType.FULLNAME].map(
-            (emailType) => (
-              <SelectItem
-                key={emailType}
-                className="cursor-pointer"
-                value={emailType.toString()}
-              >
-                {getGenerateEmailTypeString(emailType)}
-              </SelectItem>
-            )
-          )}
-        </SelectContent>
-      </Select>
-      <FormErrorMessage message={errors?.emailType?.message} />
+      <div className="flex flex-col">
+        <div className="justify-end flex">
+          <Select
+            disabled={isDisabled}
+            onValueChange={(newValue) => {
+              setValue(
+                new GenerateEmail({
+                  ...value,
+                  // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
+                  emailType: parseInt(newValue, 10),
+                })
+              );
+            }}
+            value={value.emailType?.toString()}
+          >
+            <SelectTrigger className="w-[300px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[GenerateEmailType.UUID_V4, GenerateEmailType.FULLNAME].map(
+                (emailType) => (
+                  <SelectItem
+                    key={emailType}
+                    className="cursor-pointer"
+                    value={emailType.toString()}
+                  >
+                    {getGenerateEmailTypeString(emailType)}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <FormErrorMessage message={errors?.emailType?.message} />
+      </div>
     </div>
   );
 }
