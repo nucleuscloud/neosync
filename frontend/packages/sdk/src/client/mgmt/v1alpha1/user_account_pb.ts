@@ -1759,6 +1759,13 @@ export class IsAccountStatusValidRequest extends Message<IsAccountStatusValidReq
    */
   accountId = "";
 
+  /**
+   * An optional count of records to be added to the current usage for validation.
+   *
+   * @generated from field: optional uint64 requested_record_count = 2;
+   */
+  requestedRecordCount?: bigint;
+
   constructor(data?: PartialMessage<IsAccountStatusValidRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1768,6 +1775,7 @@ export class IsAccountStatusValidRequest extends Message<IsAccountStatusValidReq
   static readonly typeName = "mgmt.v1alpha1.IsAccountStatusValidRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "requested_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidRequest {

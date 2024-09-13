@@ -183,6 +183,8 @@ message GetAccountStatusResponse {
 
 message IsAccountStatusValidRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // An optional count of records to be added to the current usage for validation.
+  optional uint64 requested_record_count = 2;
 }
 message IsAccountStatusValidResponse {
   bool is_valid = 1;
