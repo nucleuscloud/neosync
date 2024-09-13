@@ -43,6 +43,16 @@ func withGenerateBenthosConfigsActivityOptions(ctx workflow.Context) workflow.Co
 	})
 }
 
+func withCheckAccountStatusActivityOptions(ctx workflow.Context) workflow.Context {
+	return workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 2 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+		HeartbeatTimeout: 1 * time.Minute,
+	})
+}
+
 func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
 	ctx, cancelHandler := workflow.WithCancel(wfctx)
 	logger := workflow.GetLogger(ctx)
@@ -65,7 +75,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	var result *accountstatus_activity.CheckAccountStatusResponse
 	var a *accountstatus_activity.Activity
 	err = workflow.ExecuteActivity(
-		ctx,
+		withCheckAccountStatusActivityOptions(ctx),
 		a.CheckAccountStatus,
 		&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId, RequestedRecordCount: actOptResp.RequestedRecordCount}).
 		Get(ctx, &result)
@@ -131,13 +141,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	stopChan := workflow.NewNamedChannel(ctx, "account-status")
 	accountStatusTimerDuration := getAccountStatusTimerDuration()
 	workflow.GoNamed(
-		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-			StartToCloseTimeout: 2 * time.Minute,
-			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 2,
-			},
-			HeartbeatTimeout: 1 * time.Minute,
-		}),
+		ctx,
 		"account-status-check",
 		func(ctx workflow.Context) {
 			shouldStop := false
@@ -153,7 +157,11 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 					var result *accountstatus_activity.CheckAccountStatusResponse
 					var a *accountstatus_activity.Activity
-					err = workflow.ExecuteActivity(ctx, a.CheckAccountStatus, &accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId}).Get(ctx, &result)
+					err = workflow.ExecuteActivity(
+						withCheckAccountStatusActivityOptions(ctx),
+						a.CheckAccountStatus,
+						&accountstatus_activity.CheckAccountStatusRequest{AccountId: actOptResp.AccountId}).
+						Get(ctx, &result)
 					if err != nil {
 						logger.Error("encountered error while checking account status", "error", err)
 						stopChan.Send(ctx, true)
