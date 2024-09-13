@@ -6,17 +6,19 @@ import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/job-
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
+import FormErrorMessage from '@/components/FormErrorMessage';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
+import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
   getTransformerFromField,
   getTransformerSelectButtonText,
   isInvalidTransformer,
 } from '@/util/util';
 import {
+  convertJobMappingTransformerToForm,
   JobMappingTransformerForm,
   SchemaFormValues,
-  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import {
   GenerateDefault,
@@ -66,21 +68,26 @@ export function SchemaTableToolbar<TData>({
     transformerHandler,
     bulkTransformer
   );
-  const isBulkApplyDisabled = !bulkTransformer || !hasSelectedRows;
+  // conditionally computed the allowed transformers only if there are selected rows
+  const allowedTransformers = hasSelectedRows
+    ? getFilteredTransformersForBulkSet(
+        table.getSelectedRowModel().rows,
+        transformerHandler,
+        constraintHandler,
+        jobType
+      )
+    : { system: [], userDefined: [] };
+  const isBulkApplyDisabled =
+    !bulkTransformer ||
+    !hasSelectedRows ||
+    !isTransformerAllowed(allowedTransformers, transformer);
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
-      <div className="flex flex-row justify-between pb-2 items-center w-full">
-        <div className="flex flex-col md:flex-row gap-3 w-[250px]">
+      <div className="flex flex-col md:flex-row justify-between pb-2 md:items-center w-full gap-3">
+        <div className="flex flex-col md:flex-row gap-3">
           <TransformerSelect
-            getTransformers={() =>
-              getFilteredTransformersForBulkSet(
-                table.getSelectedRowModel().rows,
-                transformerHandler,
-                constraintHandler,
-                jobType
-              )
-            }
+            getTransformers={() => allowedTransformers}
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {
@@ -91,14 +98,14 @@ export function SchemaTableToolbar<TData>({
               'Bulk set transformers'
             )}
             disabled={!hasSelectedRows}
-            buttonClassName="w-[275px]"
+            buttonClassName="md:max-w-[275px]"
             notFoundText="No transformers found for the given selection."
           />
           <EditTransformerOptions
-            transformer={transformer ?? new SystemTransformer()}
+            transformer={transformer}
             value={bulkTransformer}
             onSubmit={setBulkTransformer}
-            disabled={isInvalidTransformer(transformer)}
+            disabled={!hasSelectedRows || isInvalidTransformer(transformer)}
           />
           <Button
             disabled={isBulkApplyDisabled}
@@ -126,8 +133,18 @@ export function SchemaTableToolbar<TData>({
           >
             <CheckIcon />
           </Button>
+          <div className="flex items-center">
+            {isBulkApplyDisabled &&
+              hasSelectedRows &&
+              !isTransformerAllowed(allowedTransformers, transformer) && (
+                <FormErrorMessage
+                  message={`Can't apply bulk Transformer. The selected rows don't
+                        have any overlapping Transformers.`}
+                />
+              )}
+          </div>
         </div>
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
           {isFiltered && (
             <Button
               variant="outline"
@@ -208,6 +225,26 @@ export function SchemaTableToolbar<TData>({
       </div>
     </div>
   );
+}
+
+function isTransformerAllowed(
+  {
+    system,
+    userDefined,
+  }: {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  },
+  selected: Transformer
+): boolean {
+  if (isInvalidTransformer(selected)) {
+    return true; // allows folks to unset transformers. We should eventually make this a discrete button somewhere
+  }
+  if (isSystemTransformer(selected)) {
+    return system.some((t) => t.source === selected.source);
+  } else {
+    return userDefined.some((t) => t.id === selected.id);
+  }
 }
 
 function getFilteredTransformersForBulkSet<TData>(
