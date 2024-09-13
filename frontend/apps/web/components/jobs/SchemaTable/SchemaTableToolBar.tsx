@@ -89,7 +89,7 @@ export function SchemaTableToolbar<TData>({
   const isBulkApplyDisabled =
     !bulkTransformer ||
     !hasSelectedRows ||
-    !isTransformerAllowed(allowedTransformers, transformer, true);
+    !isTransformerAllowed(allowedTransformers, transformer);
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -149,7 +149,7 @@ export function SchemaTableToolbar<TData>({
             </Button>
             {isBulkApplyDisabled &&
               hasSelectedRows &&
-              !isTransformerAllowed(allowedTransformers, transformer, true) && (
+              !isTransformerAllowed(allowedTransformers, transformer) && (
                 <TooltipProvider>
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
@@ -260,10 +260,9 @@ function isTransformerAllowed(
     system: SystemTransformer[];
     userDefined: UserDefinedTransformer[];
   },
-  selected: Transformer,
-  allowInvalidTransformer: boolean = false // Allows transformers in the default state
+  selected: Transformer
 ): boolean {
-  if (allowInvalidTransformer && isInvalidTransformer(selected)) {
+  if (isInvalidTransformer(selected)) {
     return true; // allows folks to unset transformers. We should eventually make this a discrete button somewhere
   }
   if (isSystemTransformer(selected)) {
