@@ -183,17 +183,13 @@ export default function NewTransformer(): ReactElement {
                 <FormLabel>Source Transformer</FormLabel>
                 <FormDescription>
                   The system transformer to clone.{' '}
-                  {formSource !== 0 &&
-                    formSource !== null &&
-                    TransformerSource[formSource ?? 0] !=
-                      'GENERATE_JAVASCRIPT' &&
-                    TransformerSource[formSource ?? 0] !=
-                      'TRANSFORM_JAVASCRIPT' && (
-                      <LearnMoreLink
-                        href={constructDocsLink(formSource ?? 0)}
-                        classNames={'text-[0.8rem]'}
-                      />
-                    )}
+                  {formSource !== 0 && formSource !== null && (
+                    <LearnMoreLink
+                      href={constructDocsLink(
+                        getTransformerSource(String(formSource))
+                      )}
+                    />
+                  )}
                 </FormDescription>
                 <FormControl>
                   <Select

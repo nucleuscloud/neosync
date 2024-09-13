@@ -99,16 +99,11 @@ export default function ViewSystemTransformers({
                 <FormLabel>Name</FormLabel>
                 <FormDescription>
                   The Transformer name.{' '}
-                  {sourceParam !== 0 &&
-                    sourceParam !== null &&
-                    TransformerSource[sourceParam ?? 0] !=
-                      'GENERATE_JAVASCRIPT' &&
-                    TransformerSource[sourceParam ?? 0] !=
-                      'TRANSFORM_JAVASCRIPT' && (
-                      <LearnMoreLink
-                        href={constructDocsLink(sourceParam ?? 0)}
-                      />
+                  <LearnMoreLink
+                    href={constructDocsLink(
+                      getTransformerSource(String(sourceParam))
                     )}
+                  />
                 </FormDescription>
                 <FormControl>
                   <Input placeholder="Transformer Name" {...field} />

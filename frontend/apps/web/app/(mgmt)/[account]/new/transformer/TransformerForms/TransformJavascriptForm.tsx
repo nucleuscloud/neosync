@@ -4,7 +4,6 @@ import { FormLabel } from '@/components/ui/form';
 import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import Spinner from '@/components/Spinner';
-import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -94,8 +93,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
             <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
               input.{'{'}column_name{'}'}
             </code>
-            .{' '}
-            <LearnMoreLink href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
+            .
           </div>
         </div>
         <div className="flex flex-row gap-2">

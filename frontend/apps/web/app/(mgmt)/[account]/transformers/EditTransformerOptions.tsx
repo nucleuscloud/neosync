@@ -18,7 +18,10 @@ import {
   isUserDefinedTransformer,
   Transformer,
 } from '@/shared/transformers';
-import { getTransformerDataTypesString } from '@/util/util';
+import {
+  getTransformerDataTypesString,
+  getTransformerSourceString,
+} from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
@@ -98,16 +101,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
               <div className="flex flex-row items-center gap-2">
                 <DialogDescription>
                   {transformer?.description}{' '}
-                  {/* don't render the learn more link for the js transformers since they have their own special link && only render for system transformers*/}
-                  {TransformerSource[transformer.source] !=
-                    'GENERATE_JAVASCRIPT' &&
-                    TransformerSource[transformer.source] !=
-                      'TRANSFORM_JAVASCRIPT' &&
-                    isSystemTransformer(transformer) && (
-                      <LearnMoreLink
-                        href={constructDocsLink(transformer.source)}
-                      />
-                    )}
+                  <LearnMoreLink href={constructDocsLink(transformer.source)} />
                 </DialogDescription>
               </div>
             </div>
@@ -233,10 +227,15 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
   );
 }
 
-export function constructDocsLink(source: number): string {
-  const name: string = TransformerSource[source]
-    .toLowerCase()
-    .replaceAll('_', '-');
+export function constructDocsLink(source: TransformerSource): string {
+  const name = getTransformerSourceString(source).replaceAll('_', '-');
 
-  return `https://docs.neosync.dev/transformers/system#${name}`;
+  if (
+    source == TransformerSource.GENERATE_JAVASCRIPT ||
+    source == TransformerSource.TRANSFORM_JAVASCRIPT
+  ) {
+    return `https://docs.neosync.dev/guides/custom-code-transformers`;
+  } else {
+    return `https://docs.neosync.dev/transformers/system#${name}`;
+  }
 }

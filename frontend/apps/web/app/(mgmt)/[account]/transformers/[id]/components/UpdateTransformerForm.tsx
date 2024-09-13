@@ -25,7 +25,7 @@ import {
 } from '@/yup-validations/transformer-validations';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerSource, UserDefinedTransformer } from '@neosync/sdk';
+import { UserDefinedTransformer } from '@neosync/sdk';
 import {
   isTransformerNameAvailable,
   updateUserDefinedTransformer,
@@ -110,17 +110,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
               <FormLabel>Source Transformer</FormLabel>
               <FormDescription>
                 The system transformer source.{' '}
-                {currentTransformer.source !== 0 &&
-                  currentTransformer.source !== null &&
-                  TransformerSource[currentTransformer.source ?? 0] !=
-                    'GENERATE_JAVASCRIPT' &&
-                  TransformerSource[currentTransformer.source ?? 0] !=
-                    'TRANSFORM_JAVASCRIPT' && (
-                    <LearnMoreLink
-                      href={constructDocsLink(currentTransformer.source ?? 0)}
-                      classNames={'text-[0.8rem]'}
-                    />
-                  )}
+                <LearnMoreLink
+                  href={constructDocsLink(currentTransformer.source)}
+                />
               </FormDescription>
               <FormControl>
                 <Select disabled={true}>
