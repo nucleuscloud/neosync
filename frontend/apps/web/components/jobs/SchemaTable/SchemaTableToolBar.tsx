@@ -159,9 +159,8 @@ export function SchemaTableToolbar<TData>({
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        Unable to apply selected transformer in bulk due to
-                        current row selection resulting in no valid overlapping
-                        transformers.
+                        Can't apply bulk Transformer. The selected rows don't
+                        have any overlapping Transformers.
                       </p>
                     </TooltipContent>
                   </Tooltip>
