@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
@@ -158,4 +160,72 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES (1, 'John', '{"tag":"cool"}'), (2, 'Jane', '{"tag":"smart"}')`
 	require.Equal(t, expectedQuery, query)
+}
+
+func TestGetGoquVals(t *testing.T) {
+	t.Run("Postgres", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
+		columnDataTypes := []string{"text", "integer", "boolean", "jsonb", "integer[]"}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 5)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.JSONEq(t, `{"key":"value"}`, string(result[3].([]byte)))
+		require.Equal(t, pq.Array([]any{1, 2, 3}), result[4])
+	})
+
+	t.Run("Postgres Empty Column DataTypes", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		row := []any{"value1", 42, true, "DEFAULT"}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 4)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.Equal(t, goqu.L("DEFAULT"), result[3])
+	})
+
+	t.Run("Mysql", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		row := []any{"value1", 42, true, "DEFAULT"}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 4)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.Equal(t, goqu.L("DEFAULT"), result[3])
+	})
+
+	t.Run("EmptyRow", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Empty(t, result)
+	})
+
+	t.Run("Mismatch length ColumnDataTypes and Row Values", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{"text", 42, true}
+		columnDataTypes := []string{"text"}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 3)
+		require.Equal(t, "text", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+	})
 }

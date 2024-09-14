@@ -89,7 +89,10 @@ func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 	gval := goqu.Vals{}
 	for i, a := range row {
-		colDataType := columnDataTypes[i]
+		var colDataType string
+		if i < len(columnDataTypes) {
+			colDataType = columnDataTypes[i]
+		}
 		if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
 			if err != nil {
