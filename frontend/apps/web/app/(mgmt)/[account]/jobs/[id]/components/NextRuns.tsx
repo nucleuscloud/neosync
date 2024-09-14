@@ -61,7 +61,7 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
                     <TableRow key={`${r}-${index}`}>
                       <TableCell className="py-3">
                         <span className="font-medium">
-                          {formatDateTime(r.toDate())}
+                          {formatDateTime(r?.toDate())}
                         </span>
                       </TableCell>
                     </TableRow>
