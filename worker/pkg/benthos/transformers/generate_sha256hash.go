@@ -12,7 +12,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateSHA256Hash
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("SHA256 hashes a randomly generated value.")
+	spec := bloblang.NewPluginSpec().Description("Generates a random SHA256 hash and returns it as a string.")
 
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {

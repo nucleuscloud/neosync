@@ -15,7 +15,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Transforms an existing float value.").
+		Description("Anonymizes and transforms an existing float value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewFloat64Param("randomization_range_min").Description("Specifies the minimum value for the range of the float.")).
 		Param(bloblang.NewFloat64Param("randomization_range_max").Description("Specifies the maximum value for the randomization range of the float.")).
