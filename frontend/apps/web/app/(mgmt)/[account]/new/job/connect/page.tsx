@@ -730,7 +730,7 @@ interface TestConnectionBadgeProps {
   accountName: string;
 }
 
-function TestConnectionBadge(props: TestConnectionBadgeProps) {
+export function TestConnectionBadge(props: TestConnectionBadgeProps) {
   const { validationResponse, id, accountName } = props;
 
   return (
