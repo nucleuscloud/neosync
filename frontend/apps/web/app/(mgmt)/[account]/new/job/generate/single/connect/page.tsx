@@ -3,6 +3,7 @@ import FormPersist from '@/app/(mgmt)/FormPersist';
 import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
 import { getNewJobSessionKeys } from '@/app/(mgmt)/[account]/jobs/util';
 import Spinner from '@/components/Spinner';
+import TestConnectionBadge from '@/components/connections/TestConnectionBadge';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -41,7 +42,6 @@ import JobsProgressSteps, {
   getJobProgressSteps,
 } from '../../../JobsProgressSteps';
 import ConnectionSelectContent from '../../../connect/ConnectionSelectContent';
-import { TestConnectionBadge } from '../../../connect/page';
 import { SingleTableConnectFormValues } from '../../../job-form-validations';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
