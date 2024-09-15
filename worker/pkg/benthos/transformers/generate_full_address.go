@@ -13,7 +13,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Randomly generates a street address.").
+		Description("Generates a randomly selected real full address that exists in the United States.").
 		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 

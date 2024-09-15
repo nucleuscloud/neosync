@@ -12,7 +12,7 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Description("Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.").
+		Description("Generates a random string of alphanumeric characters..").
 		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum length for the generated string.")).
 		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum length for the generated string.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
