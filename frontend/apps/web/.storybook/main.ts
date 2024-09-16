@@ -11,8 +11,8 @@ function getAbsolutePath(value: string): any {
 }
 const config: StorybookConfig = {
   stories: [
-    '../stories/**/*.mdx',
-    '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // '../stories/**/*.mdx',
+    // '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
     '../components/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
   addons: [
@@ -31,7 +31,6 @@ const config: StorybookConfig = {
     if (config.resolve && config.resolve.alias) {
       config.resolve.alias['@'] = path.resolve(__dirname, '../src');
     }
-
     return config;
   },
 };
