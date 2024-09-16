@@ -148,15 +148,20 @@ func (q *Queries) CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApi
 
 const createPersonalAccount = `-- name: CreatePersonalAccount :one
 INSERT INTO neosync_api.accounts (
-  account_type, account_slug
+  account_type, account_slug, max_allowed_records
 ) VALUES (
-  0, $1
+  0, $1, $2
 )
 RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
 `
 
-func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
-	row := db.QueryRow(ctx, createPersonalAccount, accountSlug)
+type CreatePersonalAccountParams struct {
+	AccountSlug       string
+	MaxAllowedRecords pgtype.Int8
+}
+
+func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, arg CreatePersonalAccountParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, createPersonalAccount, arg.AccountSlug, arg.MaxAllowedRecords)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,

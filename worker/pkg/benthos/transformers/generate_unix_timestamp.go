@@ -12,7 +12,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateUnixTimestamp
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly generates a Unix timestamp.").
+	spec := bloblang.NewPluginSpec().Description("Randomly generates a Unix timestamp that is in the past.").
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

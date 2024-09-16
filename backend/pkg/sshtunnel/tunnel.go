@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/ssh"
@@ -21,7 +23,7 @@ type Sshtunnel struct {
 
 	maxConnectionAttempts uint
 	close                 chan any
-	isOpen                bool
+	isOpen                atomic.Bool
 
 	shutdowns *sync.Map
 
@@ -54,6 +56,7 @@ func New(
 			User:            tunnel.User,
 			Auth:            authmethods,
 			HostKeyCallback: getHostKeyCallback(serverPublicKey),
+			Timeout:         30 * time.Second,
 		},
 
 		shutdowns: &sync.Map{},
@@ -85,45 +88,56 @@ func (t *Sshtunnel) Start(logger *slog.Logger) (chan any, error) {
 }
 
 func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.Logger) {
+	defer func() {
+		if err := listener.Close(); err != nil {
+			if !errors.Is(err, net.ErrClosed) {
+				logger.Error("failed to close tunnel listener", "error", err)
+			}
+		}
+	}()
+
 	t.local.Port = listener.Addr().(*net.TCPAddr).Port
-	t.isOpen = true
-	hasSignaledReady := false
+	t.isOpen.Store(true)
+	close(ready)
 
 	for {
-		if !t.isOpen {
+		if !t.isOpen.Load() {
 			break
 		}
 
-		c := make(chan net.Conn)
+		conn, err := listener.Accept()
+		if err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				logger.Debug("listener closed, stopping serve loop")
+				return
+			}
+			logger.Error("failed to accept local connection for tunnel", "error", err)
+			continue
+		}
 
+		logger.Debug("accepted new connection for tunnel", "remoteAddr", conn.RemoteAddr().String())
 		sessionId := uuid.NewString()
-		go newConnectionWaiter(listener, c, ready, hasSignaledReady, logger) // begins accepting connections and sends the connection onto the channel
-		hasSignaledReady = true
-		logger.Debug(fmt.Sprintf("listening for new local connections on %s", t.local.String()))
-		shutdown := make(chan any, 1)
+		shutdown := make(chan any)
 		t.shutdowns.Store(sessionId, shutdown)
-		select {
-		case <-t.close:
-			logger.Debug("received close signal from client...")
-			t.isOpen = false
-			go func() {
-				t.shutdowns.Range(func(key, value any) bool {
-					sd, ok := value.(chan any)
-					if ok {
-						sd <- struct{}{}
-					} else {
-						logger.Warn(fmt.Sprintf("was unable to cast shutdown value to chan any. was %T", sd))
+
+		go func() {
+			defer func() {
+				t.shutdowns.Delete(sessionId)
+				if err := conn.Close(); err != nil {
+					if !errors.Is(err, net.ErrClosed) {
+						logger.Error("failed to close tunnel connection for session", "error", err, "sessionId", sessionId)
 					}
-					return true
-				})
-				if err := listener.Close(); err != nil {
-					logger.Error(err.Error())
 				}
 			}()
-		case conn := <-c:
-			logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", conn.LocalAddr().String(), conn.RemoteAddr().String()))
-			go t.forward(conn, sessionId, shutdown, logger.With("tunnelSessionId", sessionId))
-		}
+			select {
+			case <-t.close:
+				logger.Debug("received close signal, closing connection", "sessionId", sessionId)
+			case <-shutdown:
+				logger.Debug("received shutdown signal for session", "sessionId", sessionId)
+			default:
+				t.forward(conn, sessionId, shutdown, logger.With("sessionId", sessionId))
+			}
+		}()
 	}
 
 	logger.Debug("tunnel closed")
@@ -172,8 +186,19 @@ func (t *Sshtunnel) forward(localConnection net.Conn, sessionId string, shutdown
 			logger.Debug("connection done, closed local and remote connections")
 		}
 	}()
-	go copyConnection(localConnection, remoteConnection, done, logger.With("direction", "remote->local"))
-	go copyConnection(remoteConnection, localConnection, done, logger.With("direction", "local->remote"))
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		done <- copyConnection(localConnection, remoteConnection, logger.With("direction", "remote->local"))
+	}()
+	go func() {
+		defer wg.Done()
+		done <- copyConnection(remoteConnection, localConnection, logger.With("direction", "local->remote"))
+	}()
+	wg.Wait()
+	logger.Debug("tunnel forwarding complete for session")
 }
 
 func (t *Sshtunnel) closeSshClient() {
@@ -239,40 +264,32 @@ func getSshClient(
 }
 
 // Writer is what receives the input (dst), reader is what the input is read from (src)
-func copyConnection(writer, reader net.Conn, done chan<- error, logger *slog.Logger) {
+func copyConnection(writer, reader net.Conn, logger *slog.Logger) error {
 	_, err := io.Copy(writer, reader)
 	if err != nil {
-		logger.Error(fmt.Sprintf("io.Copy error: %s", err))
+		if errors.Is(err, net.ErrClosed) {
+			// This can be a common error if the thing using the ssh connection was abruptly closed.
+			// This is common if a user is trying to test their database connection, but they've given Neosync bad credentials
+			// or something else that causes the server to force close the client connection
+			logger.Warn("connection was closed before reaching end of input", "error", err)
+		} else {
+			logger.Error("unexpected error while streaming through tunnel", "error", err)
+		}
 	} else {
-		logger.Debug("io.Copy returned successfully")
+		logger.Debug("ssh tunnel stream completed successfully")
 	}
-	done <- err
-}
-
-func newConnectionWaiter(
-	listener net.Listener,
-	c chan<- net.Conn,
-	ready chan<- any,
-	hasSignaledReady bool,
-	logger *slog.Logger,
-) {
-	go func() {
-		if !hasSignaledReady {
-			logger.Debug("notifying ready channel")
-			ready <- struct{}{}
-		}
-	}()
-	conn, err := listener.Accept()
-	if err != nil {
-		if !errors.Is(err, net.ErrClosed) {
-			logger.Error(fmt.Sprintf("unable to accept new connection: %v", err))
-		}
-		return
-	}
-	logger.Debug("sending connection to channel")
-	c <- conn
+	return err
 }
 
 func (t *Sshtunnel) Close() {
-	t.close <- struct{}{}
+	if !t.isOpen.CompareAndSwap(true, false) {
+		return
+	}
+	close(t.close)
+	t.shutdowns.Range(func(key, value any) bool {
+		if ch, ok := value.(chan any); ok {
+			close(ch)
+		}
+		return true
+	})
 }

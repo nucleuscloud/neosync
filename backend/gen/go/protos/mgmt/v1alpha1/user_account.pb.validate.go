@@ -5015,6 +5015,10 @@ func (m *IsAccountStatusValidRequest) validate(all bool) error {
 
 	// no validation rules for AccountId
 
+	if m.RequestedRecordCount != nil {
+		// no validation rules for RequestedRecordCount
+	}
+
 	if len(errors) > 0 {
 		return IsAccountStatusValidRequestMultiError(errors)
 	}
@@ -5119,6 +5123,10 @@ func (m *IsAccountStatusValidResponse) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for IsValid
+
+	if m.Reason != nil {
+		// no validation rules for Reason
+	}
 
 	if len(errors) > 0 {
 		return IsAccountStatusValidResponseMultiError(errors)

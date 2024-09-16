@@ -1,12 +1,15 @@
 package integrationtests_test
 
 import (
+	"testing"
+
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
@@ -420,6 +423,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	requireNoErrResp(s.T(), resp, err)
 
 	require.True(s.T(), resp.Msg.GetIsValid())
+	require.Empty(s.T(), resp.Msg.GetReason())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
@@ -441,4 +445,41 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	requireNoErrResp(s.T(), resp, err)
 
 	require.False(s.T(), resp.Msg.GetIsValid())
+	require.NotEmpty(s.T(), resp.Msg.GetReason())
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
+	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+
+	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
+	require.NoError(s.T(), err)
+
+	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Twice().
+		Return(model.Vector{{
+			Value:     50,
+			Timestamp: 0,
+		}}, promv1.Warnings{}, nil)
+
+	t := s.T()
+	t.Run("over the limit", func(t *testing.T) {
+		resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId:            accountId,
+			RequestedRecordCount: shared.Ptr(uint64(51)), // puts the user one over the limit
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.False(s.T(), resp.Msg.GetIsValid())
+		require.NotEmpty(s.T(), resp.Msg.GetReason())
+	})
+	t.Run("under the limit", func(t *testing.T) {
+		resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId:            accountId,
+			RequestedRecordCount: shared.Ptr(uint64(50)),
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.True(s.T(), resp.Msg.GetIsValid())
+		require.Empty(s.T(), resp.Msg.GetReason())
+	})
 }

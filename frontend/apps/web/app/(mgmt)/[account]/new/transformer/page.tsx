@@ -2,6 +2,7 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,6 +54,7 @@ import {
   CreateUserDefinedTransformerFormContext,
   CreateUserDefinedTransformerFormValues,
 } from '../../../../../yup-validations/transformer-validations';
+import { constructDocsLink } from '../../transformers/EditTransformerOptions';
 import TransformerForm from './TransformerForms/TransformerForm';
 
 function getTransformerSource(sourceStr: string): TransformerSource {
@@ -180,7 +182,14 @@ export default function NewTransformer(): ReactElement {
               <FormItem>
                 <FormLabel>Source Transformer</FormLabel>
                 <FormDescription>
-                  The system transformer to clone.
+                  The system transformer to clone.{' '}
+                  {formSource !== 0 && formSource !== null && (
+                    <LearnMoreLink
+                      href={constructDocsLink(
+                        getTransformerSource(String(formSource))
+                      )}
+                    />
+                  )}
                 </FormDescription>
                 <FormControl>
                   <Select

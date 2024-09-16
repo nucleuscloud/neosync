@@ -63,6 +63,7 @@ func (d *NucleusDb) SetUserByAuthSub(
 func (d *NucleusDb) SetPersonalAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
+	maxAllowedRecords *int64, // only used when personal account is created
 ) (*db_queries.NeosyncApiAccount, error) {
 	var personalAccount *db_queries.NeosyncApiAccount
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
@@ -70,7 +71,14 @@ func (d *NucleusDb) SetPersonalAccount(
 		if err != nil && !IsNoRows(err) {
 			return err
 		} else if err != nil && IsNoRows(err) {
-			account, err = d.Q.CreatePersonalAccount(ctx, dbtx, "personal")
+			pgMaxAllowedRecords := pgtype.Int8{}
+			if maxAllowedRecords != nil && *maxAllowedRecords > 0 {
+				err := pgMaxAllowedRecords.Scan(*maxAllowedRecords)
+				if err != nil {
+					return fmt.Errorf("maxAllowedRecords was not scannable to pgtype.Int8: %w", err)
+				}
+			}
+			account, err = d.Q.CreatePersonalAccount(ctx, dbtx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgMaxAllowedRecords})
 			if err != nil {
 				return err
 			}

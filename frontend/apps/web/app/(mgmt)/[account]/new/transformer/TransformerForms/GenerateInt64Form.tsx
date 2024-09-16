@@ -18,26 +18,24 @@ export default function GenerateInt64Form(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4">
       <div className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-        <div className="space-y-0.5">
+        <div className="space-y-0.5 w-[80%]">
           <FormLabel>Randomize Sign</FormLabel>
           <FormDescription>
-            {`After the value has been generated, will randomly flip the sign. This may cause the generated value to be out of the defined min/max range.
+            {`Will randomly assign the sign.  This may cause the generated value to be out of the defined min/max range.
                   If the min/max is 20-40, the value may be in the following ranges: 20 <= x <= 40 and -40 <= x <= -20`}
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
-            <div className="w-[300px]">
-              <Switch
-                checked={value.randomizeSign}
-                onCheckedChange={(checked) =>
-                  setValue(
-                    new GenerateInt64({ ...value, randomizeSign: checked })
-                  )
-                }
-                disabled={isDisabled}
-              />
-            </div>
+            <Switch
+              checked={value.randomizeSign}
+              onCheckedChange={(checked) =>
+                setValue(
+                  new GenerateInt64({ ...value, randomizeSign: checked })
+                )
+              }
+              disabled={isDisabled}
+            />
           </div>
           <FormErrorMessage message={errors?.randomizeSign?.message} />
         </div>
@@ -49,7 +47,7 @@ export default function GenerateInt64Form(props: Props): ReactElement {
             Sets a minimum range for generated int64 value.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input
@@ -79,7 +77,7 @@ export default function GenerateInt64Form(props: Props): ReactElement {
             Sets a maximum range for generated int64 value.
           </FormDescription>
         </div>
-        <div className="flex flex-col h-14">
+        <div className="flex flex-col">
           <div className="justify-end flex">
             <div className="w-[300px]">
               <Input

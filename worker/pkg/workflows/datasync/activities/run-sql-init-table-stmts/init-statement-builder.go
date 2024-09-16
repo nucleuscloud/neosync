@@ -82,7 +82,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			// nothing to do for Bucket destinations
 			continue
 		}
-		sqlopts, err := getSqlJobDestinationOpts(destination.GetOptions())
+		sqlopts, err := shared.GetSqlJobDestinationOpts(destination.GetOptions())
 		if err != nil {
 			return nil, err
 		}
@@ -331,38 +331,4 @@ func getFilteredForeignToPrimaryTableMap(td map[string][]*sqlmanager_shared.Fore
 		}
 	}
 	return dpMap
-}
-
-type sqlJobDestinationOpts struct {
-	TruncateBeforeInsert bool
-	TruncateCascade      bool
-	InitSchema           bool
-}
-
-func getSqlJobDestinationOpts(
-	options *mgmtv1alpha1.JobDestinationOptions,
-) (*sqlJobDestinationOpts, error) {
-	if options == nil {
-		return &sqlJobDestinationOpts{}, nil
-	}
-	switch opts := options.GetConfig().(type) {
-	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
-		return &sqlJobDestinationOpts{
-			TruncateBeforeInsert: opts.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
-			TruncateCascade:      opts.PostgresOptions.GetTruncateTable().GetCascade(),
-			InitSchema:           opts.PostgresOptions.GetInitTableSchema(),
-		}, nil
-	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
-		return &sqlJobDestinationOpts{
-			TruncateBeforeInsert: opts.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
-			InitSchema:           opts.MysqlOptions.GetInitTableSchema(),
-		}, nil
-	case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
-		return &sqlJobDestinationOpts{
-			TruncateBeforeInsert: opts.MssqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
-			InitSchema:           opts.MssqlOptions.GetInitTableSchema(),
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported job destination options type: %T", opts)
-	}
 }

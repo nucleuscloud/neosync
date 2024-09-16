@@ -17,7 +17,7 @@ export default function GenerateCategoricalForm(props: Props): ReactElement {
   const { value, setValue, isDisabled, errors } = props;
 
   return (
-    <div className="flex flex-col w-full space-y-4">
+    <div className="flex flex-col w-full space-y-4 rounded-lg border dark:border-gray-700 p-3">
       <div className="space-y-0.5">
         <FormLabel>Categories</FormLabel>
         <FormDescription>

@@ -51,6 +51,40 @@ func Test_Activity_Success(t *testing.T) {
 	require.Nil(t, res.Reason)
 }
 
+func Test_Activity_Success_With_RequestedRecordCount(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	accountId := uuid.NewString()
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			if r.Msg.GetAccountId() == accountId && r.Msg.GetRequestedRecordCount() == uint64(5) {
+				reason := "foo"
+				return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: false, Reason: &reason}), nil
+			}
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
+	srv := startHTTPServer(t, mux)
+
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
+	activity := New(userclient)
+
+	env.RegisterActivity(activity)
+
+	requestedCount := uint64(5)
+	val, err := env.ExecuteActivity(activity.CheckAccountStatus, &CheckAccountStatusRequest{AccountId: accountId, RequestedRecordCount: &requestedCount})
+	require.NoError(t, err)
+	res := &CheckAccountStatusResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+	require.False(t, res.IsValid)
+	require.NotNil(t, res.Reason)
+}
+
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 	tb.Helper()
 	srv := httptest.NewUnstartedServer(h)

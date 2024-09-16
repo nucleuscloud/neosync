@@ -1,23 +1,27 @@
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import {
   isSystemTransformer,
   isUserDefinedTransformer,
   Transformer,
 } from '@/shared/transformers';
-import { getTransformerDataTypesString } from '@/util/util';
+import {
+  getTransformerDataTypesString,
+  getTransformerSourceString,
+} from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
@@ -25,10 +29,9 @@ import {
 } from '@/yup-validations/jobs';
 import { useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerConfig } from '@neosync/sdk';
+import { TransformerConfig, TransformerSource } from '@neosync/sdk';
 import { validateUserJavascriptCode } from '@neosync/sdk/connectquery';
 import {
-  Cross2Icon,
   EyeOpenIcon,
   MixerHorizontalIcon,
   Pencil1Icon,
@@ -53,22 +56,22 @@ interface Props {
 // This is partially solved by memoizing the tanstack columns, but any time the columns need to re-render, this sheet will close if it's open.
 export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, disabled, value, onSubmit } = props;
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleClose = () => {
-    setIsSheetOpen(false);
+    setIsDialogOpen(false);
   };
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-      <SheetTrigger asChild>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
         <Button
           variant="outline"
           size="sm"
           disabled={disabled}
-          className="hidden h-[36px] lg:flex"
+          className="h-[36px] lg:flex"
           type="button"
-          onClick={() => setIsSheetOpen(true)}
+          onClick={() => setIsDialogOpen(true)}
         >
           {isUserDefinedTransformer(transformer) ? (
             <EyeOpenIcon />
@@ -76,32 +79,36 @@ export default function EditTransformerOptions(props: Props): ReactElement {
             <Pencil1Icon />
           )}
         </Button>
-      </SheetTrigger>
-      <SheetContent
-        className="w-[800px]"
+      </DialogTrigger>
+      <DialogContent
+        className="max-w-3xl"
         onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <SheetHeader>
+        <DialogHeader>
           <div className="flex flex-row w-full">
             <div className="flex flex-col space-y-2 w-full">
               <div className="flex flex-row justify-between items-center">
-                <div className="flex flex-row gap-2">
-                  <SheetTitle>{transformer.name}</SheetTitle>
+                <div className="flex flex-row gap-4">
+                  <DialogTitle className="text-xl">
+                    {transformer.name}
+                  </DialogTitle>
                   <Badge variant="outline">
                     {getTransformerDataTypesString(transformer.dataTypes)}
                   </Badge>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleClose}>
-                  <Cross2Icon className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </Button>
               </div>
-              <SheetDescription>{transformer?.description}</SheetDescription>
+              <div className="flex flex-row items-center gap-2">
+                <DialogDescription>
+                  {transformer?.description}{' '}
+                  <LearnMoreLink href={constructDocsLink(transformer.source)} />
+                </DialogDescription>
+              </div>
             </div>
           </div>
           <Separator />
-        </SheetHeader>
-        <div className="pt-8">
+        </DialogHeader>
+        <div className="pt-4">
           {transformer && (
             <EditTransformerConfig
               value={
@@ -119,11 +126,12 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                 handleClose();
               }}
               isDisabled={disabled || isUserDefinedTransformer(transformer)}
+              onClose={handleClose}
             />
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -131,12 +139,13 @@ interface EditTransformerConfigProps {
   value: TransformerConfig;
   onSubmit(newValue: TransformerConfig): void;
   isDisabled: boolean;
+  onClose: () => void;
 }
 
 function EditTransformerConfig(
   props: EditTransformerConfigProps
 ): ReactElement {
-  const { value, onSubmit, isDisabled } = props;
+  const { value, onSubmit, isDisabled, onClose } = props;
 
   const { account } = useAccount();
   const { mutateAsync: isJavascriptCodeValid } = useMutation(
@@ -179,7 +188,11 @@ function EditTransformerConfig(
             </FormItem>
           )}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-between w-full">
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+
           <Button
             type="button"
             disabled={isDisabled || !form.formState.isValid}
@@ -212,4 +225,17 @@ function NoAdditionalTransformerConfigurations(): ReactElement {
       </div>
     </Alert>
   );
+}
+
+export function constructDocsLink(source: TransformerSource): string {
+  const name = getTransformerSourceString(source).replaceAll('_', '-');
+
+  if (
+    source == TransformerSource.GENERATE_JAVASCRIPT ||
+    source == TransformerSource.TRANSFORM_JAVASCRIPT
+  ) {
+    return `https://docs.neosync.dev/guides/custom-code-transformers`;
+  } else {
+    return `https://docs.neosync.dev/transformers/system#${name}`;
+  }
 }

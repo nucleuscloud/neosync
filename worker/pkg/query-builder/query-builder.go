@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
@@ -11,6 +12,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
+	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
@@ -69,13 +71,13 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(driver string, row []any) goqu.Vals {
+func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(row)
+		return getPgGoquVals(row, columnDataTypes)
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
-		if a == defaultStr {
+		if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
@@ -84,26 +86,50 @@ func getGoquVals(driver string, row []any) goqu.Vals {
 	return gval
 }
 
-func getPgGoquVals(row []any) goqu.Vals {
+func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 	gval := goqu.Vals{}
-	for _, a := range row {
-		ar, ok := a.([]any)
-		if pgutil.IsMultiDimensionalSlice(a) {
-			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a)))
-		} else if ok {
-			gval = append(gval, pq.Array(ar))
-		} else if a == defaultStr {
+	for i, a := range row {
+		var colDataType string
+		if i < len(columnDataTypes) {
+			colDataType = columnDataTypes[i]
+		}
+		if gotypeutil.IsMap(a) {
+			bits, err := gotypeutil.MapToJson(a)
+			if err != nil {
+				gval = append(gval, a)
+				continue
+			}
+			gval = append(gval, bits)
+		} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
+			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
+		} else if gotypeutil.IsSlice(a) {
+			s, err := gotypeutil.ParseSlice(a)
+			if err != nil {
+				gval = append(gval, a)
+				continue
+			}
+			gval = append(gval, pq.Array(s))
+		} else if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
 		}
 	}
 	return gval
+}
+
+func isDefault(val any) bool {
+	valStr, isString := val.(string)
+	if !isString {
+		return false
+	}
+	return strings.EqualFold(valStr, defaultStr)
 }
 
 func BuildInsertQuery(
 	driver, schema, table string,
 	columns []string,
+	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
 ) (string, error) {
@@ -115,7 +141,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(driver, row)
+		gval := getGoquVals(driver, row, columnDataTypes)
 		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query
@@ -142,7 +168,7 @@ func BuildUpdateQuery(
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
 		val := columnValueMap[col]
-		if val == defaultStr {
+		if isDefault(val) {
 			updateRecord[col] = goqu.L(defaultStr)
 		} else {
 			updateRecord[col] = val

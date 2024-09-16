@@ -4,7 +4,6 @@ import { FormLabel } from '@/components/ui/form';
 import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import Spinner from '@/components/Spinner';
-import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,68 +79,69 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
   }
 
   return (
-    <div className="pt-4">
-      <div>
-        <div className="flex flex-row justify-between">
-          <div className="space-y-0.5">
-            <FormLabel>Transformer Code</FormLabel>
-            <div className="text-[0.8rem] text-muted-foreground">
-              Define your own Transformation below using Javascript. The source
-              column value will be available at the{' '}
-              <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
-                value
-              </code>{' '}
-              keyword. While additional columns can be accessed at{' '}
-              <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
-                input.{'{'}column_name{'}'}
-              </code>
-              .{' '}
-              <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
-            </div>
+    <div>
+      <div className="flex flex-row items-center justify-between">
+        <div className="space-y-0.5">
+          <FormLabel>Transformer Code</FormLabel>
+          <div className="text-sm text-muted-foreground w-[90%]">
+            Define your own Transformation below using Javascript. The source
+            column value will be available at the{' '}
+            <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
+              value
+            </code>{' '}
+            keyword. While additional columns can be accessed at{' '}
+            <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
+              input.{'{'}column_name{'}'}
+            </code>
+            .
           </div>
-          <div className="flex flex-row gap-2">
-            {isCodeValid !== 'null' && (
-              <Badge
-                variant={isCodeValid === 'valid' ? 'success' : 'destructive'}
-                className="h-9 px-4 py-2"
-              >
-                <ButtonText
-                  leftIcon={
-                    isCodeValid === 'valid' ? (
-                      <CheckCircledIcon />
-                    ) : isCodeValid === 'invalid' ? (
-                      <CrossCircledIcon />
-                    ) : null
-                  }
-                  text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
-                />
-              </Badge>
-            )}
-            <Button type="button" onClick={handleValidateCode}>
+        </div>
+        <div className="flex flex-row gap-2">
+          {isCodeValid !== 'null' && (
+            <Badge
+              variant={isCodeValid === 'valid' ? 'success' : 'destructive'}
+              className="h-9 px-4 py-2"
+            >
               <ButtonText
-                leftIcon={isValidatingCode ? <Spinner /> : null}
-                text={'Validate'}
+                leftIcon={
+                  isCodeValid === 'valid' ? (
+                    <CheckCircledIcon />
+                  ) : isCodeValid === 'invalid' ? (
+                    <CrossCircledIcon />
+                  ) : null
+                }
+                text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
               />
-            </Button>
-          </div>
+            </Badge>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleValidateCode}
+          >
+            <ButtonText
+              leftIcon={isValidatingCode ? <Spinner /> : null}
+              text={'Validate'}
+            />
+          </Button>
         </div>
-        <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
-          <Editor
-            height="50vh"
-            width="100%"
-            language="javascript"
-            value={value.code}
-            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
-            onChange={(newCode) => {
-              setValue(
-                new TransformJavascript({ ...value, code: newCode ?? '' })
-              );
-            }}
-            options={options}
-          />
-        </div>
-        <FormErrorMessage message={errors?.code?.message} />
       </div>
+      <div className="flex flex-col items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm mt-4">
+        <Editor
+          height="50vh"
+          width="100%"
+          language="javascript"
+          value={value.code}
+          theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
+          onChange={(newCode) => {
+            setValue(
+              new TransformJavascript({ ...value, code: newCode ?? '' })
+            );
+          }}
+          options={options}
+        />
+      </div>
+      <FormErrorMessage message={errors?.code?.message} />
     </div>
   );
 }

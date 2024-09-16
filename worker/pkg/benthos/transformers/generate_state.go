@@ -12,7 +12,7 @@ import (
 // +neosyncTransformerBuilder:generate:generateState
 
 func init() {
-	spec := bloblang.NewPluginSpec().Description("Randomly selects a US state and either returns the two character state code or the full state name.").
+	spec := bloblang.NewPluginSpec().Description("Randomly selects a US state and by default, returns it as a 2-letter state code.").
 		Param(bloblang.NewBoolParam("generate_full_name").Default(false).Description("If true returns the full state name instead of the two character state code.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 

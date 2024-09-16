@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
@@ -103,22 +105,127 @@ func Test_BuildInsertQuery(t *testing.T) {
 		schema              string
 		table               string
 		columns             []string
+		columnDataTypes     []string
 		values              [][]any
 		onConflictDoNothing bool
 		expected            string
 	}{
-		{"Single Column mysql", "mysql", "public", "users", []string{"name"}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users` (`name`) VALUES ('Alice'), ('Bob')"},
-		{"Special characters mysql", "mysql", "public", "users.stage$dev", []string{"name"}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users.stage$dev` (`name`) VALUES ('Alice'), ('Bob')"},
-		{"Multiple Columns mysql", "mysql", "public", "users", []string{"name", "email"}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com')"},
-		{"Single Column postgres", "postgres", "public", "users", []string{"name"}, [][]any{{"Alice"}, {"Bob"}}, false, `INSERT INTO "public"."users" ("name") VALUES ('Alice'), ('Bob')`},
-		{"Multiple Columns postgres", "postgres", "public", "users", []string{"name", "email"}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, `INSERT INTO "public"."users" ("name", "email") VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com') ON CONFLICT DO NOTHING`},
+		{"Single Column mysql", "mysql", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users` (`name`) VALUES ('Alice'), ('Bob')"},
+		{"Special characters mysql", "mysql", "public", "users.stage$dev", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users.stage$dev` (`name`) VALUES ('Alice'), ('Bob')"},
+		{"Multiple Columns mysql", "mysql", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com')"},
+		{"Single Column postgres", "postgres", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, `INSERT INTO "public"."users" ("name") VALUES ('Alice'), ('Bob')`},
+		{"Multiple Columns postgres", "postgres", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, `INSERT INTO "public"."users" ("name", "email") VALUES ('Alice', 'alice@fake.com'), ('Bob', 'bob@fake.com') ON CONFLICT DO NOTHING`},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.values, &tt.onConflictDoNothing)
+			actual, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func Test_BuildInsertQuery_JsonArray(t *testing.T) {
+	driver := sqlmanager_shared.PostgresDriver
+	schema := "public"
+	table := "test_table"
+	columns := []string{"id", "name", "tags"}
+	columnDataTypes := []string{"int", "text", "jsonb[]"}
+	values := [][]any{
+		{1, "John", []map[string]any{{"tag": "cool"}, {"tag": "awesome"}}},
+		{2, "Jane", []map[string]any{{"tag": "smart"}, {"tag": "clever"}}},
+	}
+	onConflictDoNothing := false
+
+	query, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	require.NoError(t, err)
+	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES (1, 'John', ARRAY['{"tag":"cool"}','{"tag":"awesome"}']::jsonb[]), (2, 'Jane', ARRAY['{"tag":"smart"}','{"tag":"clever"}']::jsonb[])`
+	require.Equal(t, expectedQuery, query)
+}
+
+func Test_BuildInsertQuery_Json(t *testing.T) {
+	driver := sqlmanager_shared.PostgresDriver
+	schema := "public"
+	table := "test_table"
+	columns := []string{"id", "name", "tags"}
+	columnDataTypes := []string{"int", "text", "json"}
+	values := [][]any{
+		{1, "John", map[string]any{"tag": "cool"}},
+		{2, "Jane", map[string]any{"tag": "smart"}},
+	}
+	onConflictDoNothing := false
+
+	query, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	require.NoError(t, err)
+	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES (1, 'John', '{"tag":"cool"}'), (2, 'Jane', '{"tag":"smart"}')`
+	require.Equal(t, expectedQuery, query)
+}
+
+func TestGetGoquVals(t *testing.T) {
+	t.Run("Postgres", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
+		columnDataTypes := []string{"text", "integer", "boolean", "jsonb", "integer[]"}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 5)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.JSONEq(t, `{"key":"value"}`, string(result[3].([]byte)))
+		require.Equal(t, pq.Array([]any{1, 2, 3}), result[4])
+	})
+
+	t.Run("Postgres Empty Column DataTypes", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		row := []any{"value1", 42, true, "DEFAULT"}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 4)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.Equal(t, goqu.L("DEFAULT"), result[3])
+	})
+
+	t.Run("Mysql", func(t *testing.T) {
+		driver := sqlmanager_shared.MysqlDriver
+		row := []any{"value1", 42, true, "DEFAULT"}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 4)
+		require.Equal(t, "value1", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+		require.Equal(t, goqu.L("DEFAULT"), result[3])
+	})
+
+	t.Run("EmptyRow", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{}
+		columnDataTypes := []string{}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Empty(t, result)
+	})
+
+	t.Run("Mismatch length ColumnDataTypes and Row Values", func(t *testing.T) {
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{"text", 42, true}
+		columnDataTypes := []string{"text"}
+
+		result := getGoquVals(driver, row, columnDataTypes)
+
+		require.Len(t, result, 3)
+		require.Equal(t, "text", result[0])
+		require.Equal(t, 42, result[1])
+		require.Equal(t, true, result[2])
+	})
 }

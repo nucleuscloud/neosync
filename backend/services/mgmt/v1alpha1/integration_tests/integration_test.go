@@ -128,8 +128,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
 	}
 
+	maxAllowed := int64(10000)
 	unauthdUserService := v1alpha1_useraccountservice.New(
-		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false},
+		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false, DefaultMaxAllowedRecords: &maxAllowed},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,

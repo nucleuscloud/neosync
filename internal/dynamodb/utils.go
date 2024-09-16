@@ -11,7 +11,7 @@ import (
 	gabs "github.com/Jeffail/gabs/v2"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	gotypeparser "github.com/nucleuscloud/neosync/internal/gotype-parser"
+	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 	neosync_types "github.com/nucleuscloud/neosync/internal/types"
 )
 
@@ -39,7 +39,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				}
 				return byteSlice
 			case "N":
-				n, err := gotypeparser.ParseStringAsNumber(dynamoValue.(string))
+				n, err := gotypeutil.ParseStringAsNumber(dynamoValue.(string))
 				if err != nil {
 					return dynamoValue
 				}
@@ -92,7 +92,7 @@ func ParseDynamoDBAttributeValue(key string, value any, keyTypeMap map[string]ne
 				numbers := dynamoValue.([]any)
 				result := make([]any, len(numbers))
 				for i, num := range numbers {
-					n, err := gotypeparser.ParseStringAsNumber(num.(string))
+					n, err := gotypeutil.ParseStringAsNumber(num.(string))
 					if err != nil {
 						result[i] = num
 					}
@@ -143,7 +143,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 		}
 		return mAny
 	case *types.AttributeValueMemberN:
-		n, err := gotypeparser.ParseStringAsNumber(t.Value)
+		n, err := gotypeutil.ParseStringAsNumber(t.Value)
 		if err != nil {
 			return t.Value
 		}
@@ -152,7 +152,7 @@ func ParseAttributeValue(key string, v types.AttributeValue, keyTypeMap map[stri
 		keyTypeMap[key] = neosync_types.NumberSet
 		lAny := make([]any, len(t.Value))
 		for i, v := range t.Value {
-			n, err := gotypeparser.ParseStringAsNumber(v)
+			n, err := gotypeutil.ParseStringAsNumber(v)
 			if err != nil {
 				return v
 			}
