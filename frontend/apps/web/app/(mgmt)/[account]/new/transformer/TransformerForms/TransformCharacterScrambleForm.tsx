@@ -1,7 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
-import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { FormDescription, FormLabel } from '@/components/ui/form';
@@ -9,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 
 import FormErrorMessage from '@/components/FormErrorMessage';
+import LearnMoreLink from '@/components/labels/LearnMoreLink';
 import { Button } from '@/components/ui/button';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
@@ -95,7 +95,7 @@ export default function TransformCharacterScrambleForm(
             Provide a Go regular expression to match and transform a substring
             of the value. Leave this blank to transform the entire value. Note:
             the regex needs to compile in Go.{' '}
-            <LearnMoreTag href="https://docs.neosync.dev/transformers/system#transform-character-scramble" />
+            <LearnMoreLink href="https://docs.neosync.dev/transformers/system#transform-character-scramble" />
           </FormDescription>
         </div>
         <div className="flex flex-col">

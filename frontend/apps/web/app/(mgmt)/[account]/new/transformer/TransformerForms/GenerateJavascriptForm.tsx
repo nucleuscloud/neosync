@@ -4,7 +4,6 @@ import { FormLabel } from '@/components/ui/form';
 import ButtonText from '@/components/ButtonText';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import Spinner from '@/components/Spinner';
-import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -83,9 +82,8 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
       <div className="flex flex-row items-center justify-between">
         <div className="space-y-0.5">
           <FormLabel>Transformer Code</FormLabel>
-          <div className="text-[0.8rem] text-muted-foreground">
-            Define your own Transformation below using Javascript.
-            <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
+          <div className="text-sm text-muted-foreground">
+            Define your own Transformation below using Javascript
           </div>
         </div>
         <div className="flex flex-row gap-2">

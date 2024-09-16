@@ -37,7 +37,7 @@ export default function PageHeader(props: Props) {
         <div className="flex flex-col md:flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
           <div className="flex flex-row items-center gap-4">
-            <h1 className="text-2xl font-bold tracking-tight truncate   max-w-[300px] lg:max-w-[600px]">
+            <h1 className="text-2xl font-bold tracking-tight truncate max-w-[300px] lg:max-w-[600px]">
               {header}
             </h1>
             {leftBadgeValue && (
