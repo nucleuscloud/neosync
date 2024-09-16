@@ -282,7 +282,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
 	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
 	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
-	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().Format(metrics.NeosyncDateFormat)
+	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
 
 	streamBuilderMu.Lock()
 	streambldr := benthosenv.NewStreamBuilder()
