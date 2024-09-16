@@ -92,8 +92,6 @@ type Activity struct {
 	disableReaper        bool
 }
 
-const usageDateFormat = "2006-01-02"
-
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
 		mongoprovider.NewProvider(),
