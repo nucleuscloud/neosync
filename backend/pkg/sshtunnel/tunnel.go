@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"sync/atomic"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/ssh"
@@ -21,7 +22,7 @@ type Sshtunnel struct {
 
 	maxConnectionAttempts uint
 	close                 chan any
-	isOpen                bool
+	isOpen                atomic.Bool
 
 	shutdowns *sync.Map
 
@@ -86,18 +87,18 @@ func (t *Sshtunnel) Start(logger *slog.Logger) (chan any, error) {
 
 func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.Logger) {
 	t.local.Port = listener.Addr().(*net.TCPAddr).Port
-	t.isOpen = true
+	t.isOpen.Store(true)
 	hasSignaledReady := false
 
 	for {
-		if !t.isOpen {
+		if !t.isOpen.Load() {
 			break
 		}
 
-		c := make(chan net.Conn)
+		localConnectionChan := make(chan net.Conn)
 
 		sessionId := uuid.NewString()
-		go newConnectionWaiter(listener, c, ready, hasSignaledReady, logger) // begins accepting connections and sends the connection onto the channel
+		go newConnectionWaiter(listener, localConnectionChan, ready, hasSignaledReady, logger) // begins accepting connections and sends the connection onto the channel
 		hasSignaledReady = true
 		logger.Debug(fmt.Sprintf("listening for new local connections on %s", t.local.String()))
 		shutdown := make(chan any, 1)
@@ -105,7 +106,7 @@ func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.
 		select {
 		case <-t.close:
 			logger.Debug("received close signal from client...")
-			t.isOpen = false
+			t.isOpen.Store(false)
 			go func() {
 				t.shutdowns.Range(func(key, value any) bool {
 					sd, ok := value.(chan any)
@@ -120,9 +121,9 @@ func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.
 					logger.Error(err.Error())
 				}
 			}()
-		case conn := <-c:
-			logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", conn.LocalAddr().String(), conn.RemoteAddr().String()))
-			go t.forward(conn, sessionId, shutdown, logger.With("tunnelSessionId", sessionId))
+		case localConnection := <-localConnectionChan:
+			logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", localConnection.LocalAddr().String(), localConnection.RemoteAddr().String()))
+			go t.forward(localConnection, sessionId, shutdown, logger.With("tunnelSessionId", sessionId))
 		}
 	}
 
