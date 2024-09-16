@@ -21,6 +21,7 @@ const config: StorybookConfig = {
     getAbsolutePath('@storybook/addon-essentials'),
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-interactions'),
+    getAbsolutePath("@storybook/addon-themes")
   ],
   framework: {
     name: getAbsolutePath('@storybook/nextjs'),
