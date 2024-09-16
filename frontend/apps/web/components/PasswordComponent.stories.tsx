@@ -29,7 +29,7 @@ export const Disabled: Story = {
   },
 };
 
-export const Test: Story = {
+export const FullExample: Story = {
   args: {},
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
