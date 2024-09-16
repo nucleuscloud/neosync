@@ -27,7 +27,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
           onClick={() => setShowPassword((prev) => !prev)}
           disabled={props.disabled}
         >
-          {showPassword ? (
+          {showPassword && !props.disabled ? (
             <EyeOpenIcon className="h-4 w-4" aria-hidden="true" />
           ) : (
             <EyeNoneIcon className="h-4 w-4" aria-hidden="true" />
