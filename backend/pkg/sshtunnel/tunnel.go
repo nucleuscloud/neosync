@@ -242,9 +242,13 @@ func getSshClient(
 func copyConnection(writer, reader net.Conn, done chan<- error, logger *slog.Logger) {
 	_, err := io.Copy(writer, reader)
 	if err != nil {
-		logger.Error(fmt.Sprintf("io.Copy error: %s", err))
+		if errors.Is(err, net.ErrClosed) {
+			logger.Warn("connection was closed before reaching end of input", "error", err)
+		} else {
+			logger.Error("unexpected error while streaming through tunnel", "error", err)
+		}
 	} else {
-		logger.Debug("io.Copy returned successfully")
+		logger.Debug("ssh tunnel stream completed successfully")
 	}
 	done <- err
 }
