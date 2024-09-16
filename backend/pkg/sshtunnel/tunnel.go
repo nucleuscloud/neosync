@@ -90,7 +90,9 @@ func (t *Sshtunnel) Start(logger *slog.Logger) (chan any, error) {
 func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.Logger) {
 	defer func() {
 		if err := listener.Close(); err != nil {
-			logger.Error("failed to close tunnel listener", "error", err)
+			if !errors.Is(err, net.ErrClosed) {
+				logger.Error("failed to close tunnel listener", "error", err)
+			}
 		}
 	}()
 
