@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/ssh"
@@ -55,6 +56,7 @@ func New(
 			User:            tunnel.User,
 			Auth:            authmethods,
 			HostKeyCallback: getHostKeyCallback(serverPublicKey),
+			Timeout:         30 * time.Second,
 		},
 
 		shutdowns: &sync.Map{},
