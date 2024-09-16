@@ -91,7 +91,7 @@ It's generally not a good practice to publicly expose a database and to instead 
 
 If you require a bastion host and need help setting one up or configuring one, check out out [this tutorial from Azure](https://learn.microsoft.com/en-us/azure/private-link/tutorial-private-endpoint-sql-portal) guide.
 
-**Note** For Azure deployments: when trying to connect to your SQL Server instance in a private VPC with a bastion host - make sure to add the database server to the DB user (using an `@`)you're using to connect.
+**Note** For Azure deployments: when trying to connect to your SQL Server instance in a private VPC with a bastion host - make sure to add the database server to the DB user (using an `@`) you're using to connect.
 
 For example, if your database user is `johndoe` and your database host is `test-sql-server.database.windows.net`. Then your connection string should be:
 
