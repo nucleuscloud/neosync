@@ -130,7 +130,7 @@ interface PlansProps {
 function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
   return (
     <div className="border border-gray-200 rounded-xl">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
         <div>
           <div className="flex flex-row items-center gap-2 text-sm p-6">
             <p className="font-semibold">Current Plan:</p>
@@ -138,7 +138,7 @@ function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
           </div>
           <Separator />
         </div>
-        <div className="flex flex-col lg:flex-row gap-2 justify-center pb-6">
+        <div className="flex flex-col xl:flex-row gap-2 justify-center p-6">
           {plans.map((plan) => (
             <PlanInfo
               key={plan.name}
@@ -167,8 +167,8 @@ function PlanInfo(props: PlanInfoProps): ReactElement {
       <div
         className={
           isCurrentPlan
-            ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl lg:w-[350px] h-[459px]`
-            : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl lg:w-[350px] mt-[56px] h-[459px]`
+            ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl xl:w-[350px] h-[459px]`
+            : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl xl:w-[350px] mt-[56px] h-[459px]`
         }
       >
         <div className="flex flex-col gap-6">
@@ -176,7 +176,7 @@ function PlanInfo(props: PlanInfoProps): ReactElement {
             <Badge variant="outline">{plan.name} Plan</Badge>
           </div>
           <div className="flex justify-center flex-row gap-2">
-            <div className="text-3xl ">{plan.price}</div>
+            <div className="text-3xl">{plan.price}</div>
           </div>
           <div className="flex flex-col gap-2">
             {plan.features.map((feat) => (
