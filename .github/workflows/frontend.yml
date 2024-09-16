@@ -71,6 +71,9 @@ jobs:
   storybook:
     name: Storybook Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/apps/web
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
