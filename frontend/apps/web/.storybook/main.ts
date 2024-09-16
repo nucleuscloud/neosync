@@ -22,6 +22,7 @@ const config: StorybookConfig = {
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-interactions'),
     getAbsolutePath('@storybook/addon-themes'),
+    getAbsolutePath("@storybook/addon-webpack5-compiler-swc")
   ],
   framework: {
     name: getAbsolutePath('@storybook/nextjs'),

@@ -82,6 +82,7 @@
     "@storybook/addon-links": "^8.3.1",
     "@storybook/addon-onboarding": "^8.3.1",
     "@storybook/addon-themes": "^8.3.1",
+    "@storybook/addon-webpack5-compiler-swc": "^1.0.5",
     "@storybook/blocks": "^8.3.01",
     "@storybook/jest": "^0.2.3",
     "@storybook/nextjs": "^8.3.1",
