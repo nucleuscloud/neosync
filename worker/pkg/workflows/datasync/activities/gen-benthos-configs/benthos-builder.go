@@ -256,8 +256,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		labels := metrics.MetricLabels{
 			metrics.NewEqLabel(metrics.AccountIdLabel, job.AccountId),
 			metrics.NewEqLabel(metrics.JobIdLabel, job.Id),
-			metrics.NewEqLabel(metrics.TemporalWorkflowId, "${TEMPORAL_WORKFLOW_ID}"),
-			metrics.NewEqLabel(metrics.TemporalRunId, "${TEMPORAL_RUN_ID}"),
+			metrics.NewEqLabel(metrics.TemporalWorkflowId, withEnvInterpolation(metrics.TemporalWorkflowIdEnvKey)),
+			metrics.NewEqLabel(metrics.TemporalRunId, withEnvInterpolation(metrics.TemporalRunIdEnvKey)),
+			metrics.NewEqLabel(metrics.NeosyncDateLabel, withEnvInterpolation(metrics.NeosyncDateEnvKey)),
 		}
 		for _, resp := range responses {
 			joinedLabels := append(labels, resp.metriclabels...) //nolint:gocritic
@@ -290,6 +291,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		BenthosConfigs: outputConfigs,
 		AccountId:      job.GetAccountId(),
 	}, nil
+}
+
+func withEnvInterpolation(input string) string {
+	return fmt.Sprintf("${%s}", input)
 }
 
 // tries to get destination schema column info map

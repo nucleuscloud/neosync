@@ -19,6 +19,7 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
@@ -90,6 +91,8 @@ type Activity struct {
 	benthosStreamManager BenthosStreamManagerClient
 	disableReaper        bool
 }
+
+const usageDateFormat = "2006-01-02"
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
@@ -279,8 +282,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
-	envKeyMap["TEMPORAL_WORKFLOW_ID"] = info.WorkflowExecution.ID
-	envKeyMap["TEMPORAL_RUN_ID"] = info.WorkflowExecution.RunID
+	envKeyMap[metrics.TemporalWorkflowIdEnvKey] = info.WorkflowExecution.ID
+	envKeyMap[metrics.TemporalRunIdEnvKey] = info.WorkflowExecution.RunID
+	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().Format(metrics.NeosyncDateFormat)
 
 	streamBuilderMu.Lock()
 	streambldr := benthosenv.NewStreamBuilder()
