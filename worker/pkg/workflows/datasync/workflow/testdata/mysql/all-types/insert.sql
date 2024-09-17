@@ -3,7 +3,7 @@ USE all_types;
 INSERT INTO all_data_types (
     tinyint_col, smallint_col, mediumint_col, int_col, bigint_col,
     decimal_col, float_col, double_col, 
-    -- bit_col,
+    bit_col,
     date_col, time_col, datetime_col, year_col,
     char_col, varchar_col, binary_col, varbinary_col,
     tinyblob_col, tinytext_col, blob_col, text_col,
@@ -16,7 +16,7 @@ INSERT INTO all_data_types (
 ) VALUES (
     127, 32767, 8388607, 2147483647, 9223372036854775807,
     1234.56, 3.1415, 3.14159265359, 
-    -- b'10101010',
+    b'10101010',
     '2023-09-12', '14:30:00', '2023-09-12 14:30:00', 2023,
     'Fixed Char', 'Variable Char', 'Bin', 'VarBinary',
     'Tiny BLOB', 'Tiny Text', 'Regular BLOB', 'Regular Text',

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     decimal_col DECIMAL(10, 2),
     float_col FLOAT(7, 4),
     double_col DOUBLE(15, 8),
-    -- bit_col BIT(8),
+    bit_col BIT(8),
 
     -- Date and Time Types
     date_col DATE,

@@ -59,7 +59,7 @@ func (s *MysqlIntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	connstr, err := container.ConnectionString(s.ctx, "multiStatements=true")
+	connstr, err := container.ConnectionString(s.ctx, "multiStatements=true&&parseTime=true")
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +76,7 @@ func (s *MysqlIntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", user, pass, containerHost, containerPort.Port(), dbname)
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true&parseTime=true", user, pass, containerHost, containerPort.Port(), dbname)
 
 	s.conncfg = &mgmtv1alpha1.MysqlConnectionConfig{
 		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{

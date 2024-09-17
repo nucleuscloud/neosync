@@ -38,7 +38,7 @@ func Test_NewFromMysqlConnection_Connection(t *testing.T) {
 		user:          "test-user",
 		pass:          "test-pass",
 		mysqlProtocol: ptr("tcp"),
-		queryParams:   url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}},
+		queryParams:   url.Values{"timeout": []string{"5s"}, "multiStatements": []string{"true"}, "parseTime": []string{"true"}},
 	})
 }
 
@@ -61,7 +61,7 @@ func Test_NewFromMysqlConnection_Url_mysql(t *testing.T) {
 		user:          "myuser",
 		pass:          "mypassword",
 		mysqlProtocol: nil,
-		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}, "parseTime": []string{"true"}},
 	})
 }
 func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
@@ -83,7 +83,7 @@ func Test_NewFromMysqlConnection_Url_mysqlx(t *testing.T) {
 		user:          "myuser",
 		pass:          "mypassword",
 		mysqlProtocol: nil,
-		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}},
+		queryParams:   url.Values{"ssl": []string{"true"}, "multiStatements": []string{"true"}, "timeout": []string{"5s"}, "parseTime": []string{"true"}},
 	})
 }
 

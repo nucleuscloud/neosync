@@ -332,9 +332,9 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		driver = sqlmanager_shared.PostgresDriver
 	case sqlmanager_shared.MysqlDriver:
 		if strings.Contains(connectionUrl, "?") {
-			connectionUrl = fmt.Sprintf("%s&multiStatements=true", connectionUrl)
+			connectionUrl = fmt.Sprintf("%s&multiStatements=true&parseTime=true", connectionUrl)
 		} else {
-			connectionUrl = fmt.Sprintf("%s?multiStatements=true", connectionUrl)
+			connectionUrl = fmt.Sprintf("%s?multiStatements=true&parseTime=true", connectionUrl)
 		}
 
 		conn, err := sql.Open(sqlmanager_shared.MysqlDriver, connectionUrl)

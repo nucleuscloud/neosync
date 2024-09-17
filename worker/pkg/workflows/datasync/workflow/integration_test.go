@@ -328,7 +328,7 @@ func createMysqlTestContainer(
 	if err != nil {
 		return nil, err
 	}
-	connstr, err := container.ConnectionString(ctx, "multiStatements=true")
+	connstr, err := container.ConnectionString(ctx, "multiStatements=true&parseTime=true")
 	if err != nil {
 		panic(err)
 	}
@@ -345,7 +345,7 @@ func createMysqlTestContainer(
 		return nil, err
 	}
 
-	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true", username, password, containerHost, containerPort.Port(), database)
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true&parseTime=true", username, password, containerHost, containerPort.Port(), database)
 	return &mysqlTestContainer{
 		pool:      pool,
 		url:       connUrl,

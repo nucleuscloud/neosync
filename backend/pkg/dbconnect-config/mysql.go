@@ -18,6 +18,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
 		}
 		query.Add("multiStatements", "true")
+		query.Add("parseTime", "true")
 		return &GeneralDbConnectConfig{
 			driver:        mysqlDriver,
 			host:          cc.Connection.Host,
@@ -74,6 +75,7 @@ func NewFromMysqlConnection(config *mgmtv1alpha1.ConnectionConfig_MysqlConfig, c
 			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
 		}
 		query.Add("multiStatements", "true")
+		query.Add("parseTime", "true")
 
 		return &GeneralDbConnectConfig{
 			driver:        u.Scheme,
