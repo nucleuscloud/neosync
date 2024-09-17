@@ -44,10 +44,7 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
     <div className="flex flex-row gap-1 items-center">
       <UpgradeInfoDialog
         upgradeHref={buttonHref}
-        reason={
-          isAccountStatusValidResp?.reason ??
-          'this will be the reason that comes back from the API server that describes why their account is not currently in a valid state.'
-        }
+        reason={isAccountStatusValidResp?.reason}
       />
       <UpgradeButton href={buttonHref} />
     </div>
