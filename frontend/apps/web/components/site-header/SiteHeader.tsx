@@ -10,14 +10,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { ArrowUpIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
+import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import SupportDrawer from '../SupportDrawer';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
+import Upgrade from './Upgrade';
 import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
@@ -28,9 +28,10 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {!systemAppConfig?.isNeosyncCloud && (
-            <UpgradeButton href={systemAppConfig.calendlyUpgradeLink} />
-          )}
+          <Upgrade
+            buttonHref={systemAppConfig.calendlyUpgradeLink}
+            isNeosyncCloud={systemAppConfig.isNeosyncCloud}
+          />
           <SupportSheet />
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <ModeToggle />
@@ -38,25 +39,6 @@ export default function SiteHeader(): ReactElement {
         </div>
       </div>
     </header>
-  );
-}
-
-interface UpgradeButtonProps {
-  href: string;
-}
-function UpgradeButton(props: UpgradeButtonProps): ReactElement {
-  const { href } = props;
-  return (
-    <div>
-      <Button variant="outline" size="sm">
-        <div className="flex flex-row gap-2 items-center">
-          <Link href={href} target="_blank">
-            <div>Upgrade</div>
-          </Link>
-          <ArrowUpIcon />{' '}
-        </div>
-      </Button>
-    </div>
   );
 }
 

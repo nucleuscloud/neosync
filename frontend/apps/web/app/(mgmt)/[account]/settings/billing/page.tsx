@@ -7,7 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { toTitleCase } from '@/util/util';
+import { useQuery } from '@connectrpc/connect-query';
 import { UserAccountType } from '@neosync/sdk';
+import { getAccountStatus } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
@@ -245,4 +247,19 @@ function PlanButton(props: PlanButtonProps): ReactElement {
         );
       }
   }
+}
+
+interface AccountStatusProps {
+  accountId: string;
+}
+
+function AccountStatus(props: AccountStatusProps): ReactElement {
+  const { accountId } = props;
+  const { data: accountStatusResp } = useQuery(
+    getAccountStatus,
+    { accountId },
+    { enabled: !!accountId }
+  );
+
+  return <div />;
 }
