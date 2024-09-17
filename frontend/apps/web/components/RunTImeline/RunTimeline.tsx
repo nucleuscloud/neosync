@@ -1,3 +1,4 @@
+import { cn } from '@/libs/utils';
 import { format } from 'date-fns';
 import { ReactElement, useMemo, useState } from 'react';
 import { Badge } from '../ui/badge';
@@ -19,8 +20,6 @@ export default function RunTimeline(props: Props): ReactElement {
   const { isError, tasks, onTaskClick } = props;
 
   const [hoveredTask, setHoveredTask] = useState<string | null>(null);
-
-  console.log('tasks', tasks, isError);
 
   const formatFullDate = (date: Date) => {
     return format(date, 'MM/dd/yyyy HH:mm:ss:SSS');
@@ -62,6 +61,8 @@ export default function RunTimeline(props: Props): ReactElement {
     return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 100;
   };
 
+  // TODO: feed the subtasks to the the pop up and display them there
+
   return (
     <div
       className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden"
@@ -100,7 +101,10 @@ export default function RunTimeline(props: Props): ReactElement {
           return (
             <div
               key={task.id}
-              className="absolute h-8 bg-blue-500 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center"
+              className={cn(
+                isError ? 'bg-red-400' : 'bg-blue-500',
+                'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
+              )}
               style={{
                 left: `${left}%`,
                 width: `${width}%`,
