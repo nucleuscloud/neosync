@@ -66,6 +66,8 @@ import (
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	promconfig "github.com/prometheus/common/config"
+
+	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 func NewCmd() *cobra.Command {
@@ -347,11 +349,12 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient))
+	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), getStripeApiClient())
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -912,4 +915,20 @@ func getDefaultMaxAllowedRecords() *int64 {
 		return nil
 	}
 	return &val
+}
+
+func getStripeApiClient() *stripeapiclient.API {
+	apiKey := getStripeApiKey()
+	if apiKey != nil {
+		return stripeapiclient.New(*apiKey, nil)
+	}
+	return nil
+}
+
+func getStripeApiKey() *string {
+	value := viper.GetString("STRIPE_API_KEY")
+	if value == "" {
+		return nil
+	}
+	return &value
 }

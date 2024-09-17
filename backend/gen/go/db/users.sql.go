@@ -731,6 +731,35 @@ func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 	return i, err
 }
 
+const setNewAccountStripeCustomerId = `-- name: SetNewAccountStripeCustomerId :one
+UPDATE neosync_api.accounts
+SET stripe_customer_id = $1
+WHERE id = $2
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
+`
+
+type SetNewAccountStripeCustomerIdParams struct {
+	StripeCustomerID pgtype.Text
+	AccountId        pgtype.UUID
+}
+
+func (q *Queries) SetNewAccountStripeCustomerId(ctx context.Context, db DBTX, arg SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, setNewAccountStripeCustomerId, arg.StripeCustomerID, arg.AccountId)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+		&i.OnboardingConfig,
+		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
+	)
+	return i, err
+}
+
 const updateAccountInviteToAccepted = `-- name: UpdateAccountInviteToAccepted :one
 UPDATE neosync_api.account_invites
 SET accepted = true

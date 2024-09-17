@@ -3,9 +3,11 @@ package nucleusdb
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -150,6 +152,43 @@ func (d *NucleusDb) CreateTeamAccount(
 		return nil, err
 	}
 	return teamAccount, nil
+}
+
+func (d *NucleusDb) UpsertStripeCustomerId(
+	ctx context.Context,
+	accountId pgtype.UUID,
+	getStripeCustomerId func(ctx context.Context) (string, error),
+	logger *slog.Logger,
+) (*db_queries.NeosyncApiAccount, error) {
+	var account *db_queries.NeosyncApiAccount
+
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
+		acc, err := d.Q.GetAccount(ctx, dbtx, accountId)
+		if err != nil {
+			return err
+		}
+
+		if acc.StripeCustomerID.Valid {
+			account = &acc
+			return nil
+		}
+		customerId, err := getStripeCustomerId(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to get stripe customer id: %w", err)
+		}
+		updatedAcc, err := d.Q.SetNewAccountStripeCustomerId(ctx, dbtx, db_queries.SetNewAccountStripeCustomerIdParams{
+			StripeCustomerID: pgtype.Text{String: customerId, Valid: true},
+		})
+		if updatedAcc.StripeCustomerID.String != customerId {
+			logger.Warn("orphaned stripe customer id was created", "accountId", accountId)
+		}
+		account = &updatedAcc
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return account, nil
 }
 
 func (d *NucleusDb) CreateTeamAccountInvite(

@@ -6,6 +6,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 type Service struct {
@@ -15,6 +16,7 @@ type Service struct {
 	authclient            auth_client.Interface
 	authadminclient       authmgmt.Interface
 	prometheusclient      promv1.API
+	stripeclient          *stripeapiclient.API
 }
 
 type Config struct {
@@ -30,6 +32,7 @@ func New(
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
 	prometheusclient promv1.API,
+	stripeclient *stripeapiclient.API,
 ) *Service {
 	return &Service{
 		cfg:                   cfg,
@@ -38,5 +41,6 @@ func New(
 		authclient:            authclient,
 		authadminclient:       authadminclient,
 		prometheusclient:      prometheusclient,
+		stripeclient:          stripeclient,
 	}
 }

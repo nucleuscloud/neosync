@@ -2,7 +2,9 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"connectrpc.com/connect"
@@ -18,6 +20,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
+	"github.com/stripe/stripe-go/v79"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -247,9 +250,44 @@ func (s *Service) CreateTeamAccount(
 		return nil, err
 	}
 
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	if !account.StripeCustomerID.Valid && s.stripeclient != nil {
+		account, err = s.db.UpsertStripeCustomerId(ctx, account.ID, func(ctx context.Context) (string, error) {
+			customer, err := s.stripeclient.Customers.New(&stripe.CustomerParams{
+				Email: s.getEmailFromToken(ctx, logger),
+				Name:  stripe.String(account.AccountSlug),
+				Metadata: map[string]string{
+					"accountId":   nucleusdb.UUIDString(account.ID),
+					"createdById": nucleusdb.UUIDString(userId),
+				},
+			})
+			if err != nil {
+				return "", fmt.Errorf("unable to create new stripe customer: %w", err)
+			}
+			return customer.ID, nil
+		}, logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
+		}
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
 		AccountId: nucleusdb.UUIDString(account.ID),
 	}), nil
+}
+
+func (s *Service) getEmailFromToken(ctx context.Context, logger *slog.Logger) *string {
+	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve token from ctx when getting email: %w", err).Error())
+		return nil
+	}
+	if tokenctxResp.JwtContextData != nil && tokenctxResp.JwtContextData.Claims != nil {
+		return tokenctxResp.JwtContextData.Claims.Email
+	}
+	logger.Error(errors.New("unable to retrieve email from token ctx").Error())
+	return nil
 }
 
 func (s *Service) GetTeamAccountMembers(
