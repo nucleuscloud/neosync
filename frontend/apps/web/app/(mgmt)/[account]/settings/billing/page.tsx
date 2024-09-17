@@ -136,7 +136,7 @@ function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
             <p className="font-semibold">Current Plan:</p>
             <Badge>{toTitleCase(UserAccountType[accountType])} Plan</Badge>
           </div>
-          <Separator />
+          <Separator className="dark:bg-gray-600" />
         </div>
         <div className="flex flex-col xl:flex-row gap-2 justify-center p-6">
           {plans.map((plan) => (
