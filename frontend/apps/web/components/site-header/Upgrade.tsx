@@ -42,7 +42,13 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
 
   return (
     <div className="flex flex-row gap-1 items-center">
-      <UpgradeInfoDialog upgradeHref={buttonHref} />
+      <UpgradeInfoDialog
+        upgradeHref={buttonHref}
+        reason={
+          isAccountStatusValidResp?.reason ??
+          'this will be the reason that comes back from the API server that describes why their account is not currently in a valid state.'
+        }
+      />
       <UpgradeButton href={buttonHref} />
     </div>
   );
@@ -54,7 +60,7 @@ interface UpgradeInfoDialogProps {
 }
 
 function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
-  const { upgradeHref } = props;
+  const { upgradeHref, reason } = props;
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -64,12 +70,15 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="gap-3">
-          <DialogTitle>Upgrade to continue using Neosync</DialogTitle>
-          <DialogDescription className="tracking-tight">
+          <DialogTitle className="text-xl tracking-tight">
+            Upgrade to continue using Neosync
+          </DialogTitle>
+          <DialogDescription className="text-lg tracking-tight">
             The plan you are on has expired or has used up all of its available
             records for the current cycle.
           </DialogDescription>
         </DialogHeader>
+        {!!reason && <IncludedReason reason={reason} />}
         <DialogFooter className="md:justify-between">
           <DialogClose asChild>
             <Button type="button" variant="secondary">
@@ -80,5 +89,19 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface IncludedReasonProps {
+  reason: string;
+}
+
+function IncludedReason(props: IncludedReasonProps): ReactElement {
+  const { reason } = props;
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-lg">Reason</span>
+      <p>{reason}</p>
+    </div>
   );
 }
