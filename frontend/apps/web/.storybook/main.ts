@@ -1,7 +1,7 @@
 import type { StorybookConfig } from '@storybook/nextjs';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
 
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -45,6 +45,7 @@ const config: StorybookConfig = {
         ...(config.resolve.plugins || []),
         new TsconfigPathsPlugin({
           extensions: config.resolve.extensions,
+          configFile: resolve(__dirname, '../tsconfig.json'),
         }),
       ];
     }
