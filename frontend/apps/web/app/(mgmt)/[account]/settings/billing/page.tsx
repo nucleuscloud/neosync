@@ -1,4 +1,5 @@
 'use client';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,20 @@ import Error from 'next/error';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 
-const plans = [
+type PlanName = 'Personal' | 'Team' | 'Enterprise';
+
+interface Plan {
+  name: PlanName;
+  features: string[];
+  price: string;
+  planType: UserAccountType;
+}
+
+const ALL_PLANS: Plan[] = [
   {
     name: 'Personal',
     features: [
-      '100k records/month',
+      '20k records/month',
       'Unlimited Jobs',
       '1 user',
       'US Region',
@@ -25,6 +35,7 @@ const plans = [
       'Community Discord',
     ],
     price: 'Free',
+    planType: UserAccountType.PERSONAL,
   },
   {
     name: 'Team',
@@ -38,6 +49,7 @@ const plans = [
       'Private Discord/Slack',
     ],
     price: 'Contact us',
+    planType: UserAccountType.TEAM,
   },
   {
     name: 'Enterprise',
@@ -51,6 +63,7 @@ const plans = [
       'Private Discord/Slack',
     ],
     price: 'Contact Us',
+    planType: UserAccountType.ENTERPRISE,
   },
 ];
 
@@ -68,21 +81,19 @@ export default function Billing(): ReactElement {
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-10">
-        <div>
-          <div className="text-xl font-seminold">Billing</div>
-          <div className="text-sm">
-            {`Manage your workspace's plan and billing information`}
-          </div>
-          <Separator />
-        </div>
+    <div className="flex flex-col gap-5">
+      <SubPageHeader
+        header="Billing"
+        description="Manage your workspace's plan and billing information"
+      />
+      <div className="py-4">
         <NeedHelp />
-        <Plans
-          planType={account.type ?? UserAccountType.PERSONAL}
-          upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
-        />
       </div>
+      <Plans
+        accountType={account.type}
+        upgradeHref={systemAppConfigData.calendlyUpgradeLink}
+        plans={ALL_PLANS}
+      />
     </div>
   );
 }
@@ -110,80 +121,92 @@ function NeedHelp(): ReactElement {
   );
 }
 
-interface PlanProps {
-  planType: UserAccountType;
+interface PlansProps {
+  accountType: UserAccountType;
+  plans: Plan[];
   upgradeHref: string;
 }
 
-function Plans({ planType, upgradeHref }: PlanProps): ReactElement {
+function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
   return (
-    <div>
-      <div className="border border-gray-200 rounded-xl p-6 flex flex-col gap-4">
-        <div className="flex flex-row items-center gap-2 text-sm">
-          <div className="font-semibold">Current Plan:</div>
-          <div>
-            <Badge>{toTitleCase(UserAccountType[planType])} Plan</Badge>
-          </div>
-        </div>
+    <div className="border border-gray-200 rounded-xl">
+      <div className="flex flex-col gap-3">
         <div>
-          <div className="flex flex-row justify-between items-center"></div>
-        </div>
-        <Separator />
-        <div className="flex flex-row items-center gap-2 justify-center">
-          <div className="flex flex-col lg:flex-row gap-2 pt-6">
-            {plans.map((plan, ind) => (
-              <div key={plan.name}>
-                {planType == ind + 1 && (
-                  <div className="flex justify-center bg-gradient-to-t from-[#191919] to-[#484848] text-white p-4 shadow-lg rounded-t-xl">
-                    Current Plan
-                  </div>
-                )}
-                <div
-                  className={
-                    planType == ind + 1
-                      ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl lg:w-[350px] h-[459px]`
-                      : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl lg:w-[350px] mt-[56px] h-[459px]`
-                  }
-                >
-                  <div className="flex flex-col gap-6">
-                    <div className="flex justify-center">
-                      <Badge variant="outline">{plan.name} Plan</Badge>
-                    </div>
-                    <div className="flex justify-center flex-row gap-2">
-                      <div className="text-3xl ">{plan.price}</div>
-                      {plan.name == 'Team' && (
-                        <div className="text-sm self-end pb-1">/mo</div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {plan.features.map((feat) => (
-                        <div
-                          key={feat}
-                          className="flex flex-row items-center gap-2"
-                        >
-                          <CheckCircledIcon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
-                          <div>{feat}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <PlanButton
-                      plan={plan.name}
-                      planType={planType}
-                      upgradeHref={upgradeHref}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-row items-center gap-2 text-sm p-6">
+            <p className="font-semibold">Current Plan:</p>
+            <Badge>{toTitleCase(UserAccountType[accountType])} Plan</Badge>
           </div>
+          <Separator className="dark:bg-gray-600" />
+        </div>
+        <div className="flex flex-col xl:flex-row gap-2 justify-center p-6">
+          {plans.map((plan) => (
+            <PlanInfo
+              key={plan.name}
+              plan={plan}
+              activePlan={accountType}
+              upgradeHref={upgradeHref}
+            />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
+interface PlanInfoProps {
+  plan: Plan;
+  activePlan: UserAccountType;
+  upgradeHref: string;
+}
+function PlanInfo(props: PlanInfoProps): ReactElement {
+  const { plan, activePlan, upgradeHref } = props;
+  const isCurrentPlan = activePlan === plan.planType;
+  return (
+    <div>
+      {isCurrentPlan && <CurrentPlan />}
+      <div
+        className={
+          isCurrentPlan
+            ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl xl:w-[350px] h-[459px]`
+            : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl xl:w-[350px] mt-[56px] h-[459px]`
+        }
+      >
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-center">
+            <Badge variant="outline">{plan.name} Plan</Badge>
+          </div>
+          <div className="flex justify-center flex-row gap-2">
+            <div className="text-3xl">{plan.price}</div>
+          </div>
+          <div className="flex flex-col gap-2">
+            {plan.features.map((feat) => (
+              <div key={feat} className="flex flex-row items-center gap-2">
+                <CheckCircledIcon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
+                <div>{feat}</div>
+              </div>
+            ))}
+          </div>
+          <PlanButton
+            plan={plan.name}
+            planType={activePlan}
+            upgradeHref={upgradeHref}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CurrentPlan(): ReactElement {
+  return (
+    <div className="flex justify-center bg-gradient-to-t from-[#191919] to-[#484848] text-white p-4 shadow-lg rounded-t-xl">
+      <p>Current Plan</p>
+    </div>
+  );
+}
+
 interface PlanButtonProps {
-  plan: string;
+  plan: PlanName;
   planType: UserAccountType;
   upgradeHref: string;
 }
@@ -195,14 +218,14 @@ function PlanButton(props: PlanButtonProps): ReactElement {
       if (planType == UserAccountType.PERSONAL) {
         return <div></div>;
       } else {
-        return <Button>Get Started</Button>;
+        return <Button type="button">Get Started</Button>;
       }
     case 'Team':
       if (planType == UserAccountType.TEAM) {
         return <div></div>;
       } else {
         return (
-          <Button>
+          <Button type="button">
             <Link href={upgradeHref} className="w-[242px]" target="_blank">
               Get in touch
             </Link>
@@ -214,7 +237,7 @@ function PlanButton(props: PlanButtonProps): ReactElement {
         return <div></div>;
       } else {
         return (
-          <Button>
+          <Button type="button">
             <Link href={upgradeHref} className="w-[242px]" target="_blank">
               Get in touch
             </Link>
@@ -222,5 +245,4 @@ function PlanButton(props: PlanButtonProps): ReactElement {
         );
       }
   }
-  return <div />;
 }
