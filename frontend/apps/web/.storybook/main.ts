@@ -1,6 +1,6 @@
 import type { StorybookConfig } from '@storybook/nextjs';
 
-import { dirname, join } from 'path';
+import path, { dirname, join } from 'path';
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -22,21 +22,21 @@ const config: StorybookConfig = {
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-interactions'),
     getAbsolutePath('@storybook/addon-themes'),
-    getAbsolutePath("@storybook/addon-webpack5-compiler-swc")
+    getAbsolutePath('@storybook/addon-webpack5-compiler-swc'),
   ],
   framework: {
     name: getAbsolutePath('@storybook/nextjs'),
     options: {},
   },
-  // webpackFinal: (config) => {
-  //   if (config.resolve && config.resolve.alias) {
-  //     config.resolve.alias['@neosync/sdk'] = path.resolve(
-  //       __dirname,
-  //       '../../sdk/ts-client/*'
-  //     );
-  //     // config.resolve.alias['@'] = path.resolve(__dirname, '../');
-  //   }
-  //   return config;
-  // },
+  webpackFinal: (config) => {
+    if (config.resolve && config.resolve.alias) {
+      config.resolve.alias['@neosync/sdk'] = path.resolve(
+        __dirname,
+        '../../packages/sdk'
+      );
+      // config.resolve.alias['@'] = path.resolve(__dirname, '../');
+    }
+    return config;
+  },
 };
 export default config;
