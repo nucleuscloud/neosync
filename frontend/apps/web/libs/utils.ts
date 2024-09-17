@@ -24,12 +24,12 @@ export function getSingleOrUndefined(
 export function splitConnections(connections: Connection[]): {
   postgres: Connection[];
   mysql: Connection[];
+  mssql: Connection[];
   s3: Connection[];
   openai: Connection[];
   mongodb: Connection[];
   gcpcs: Connection[];
   dynamodb: Connection[];
-  mssql: Connection[];
 } {
   const postgres: Connection[] = [];
   const mysql: Connection[] = [];

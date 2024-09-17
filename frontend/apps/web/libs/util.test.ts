@@ -67,6 +67,11 @@ describe('splitConnections', () => {
       config: { case: 'mysqlConfig', value: {} as MysqlConnectionConfig },
     } as ConnectionConfig,
   });
+  const mssql = new Connection({
+    connectionConfig: {
+      config: { case: 'mssqlConfig', value: {} as MssqlConnectionConfig },
+    } as ConnectionConfig,
+  });
   const s3 = new Connection({
     connectionConfig: {
       config: { case: 'awsS3Config', value: {} as AwsS3ConnectionConfig },
@@ -130,6 +135,7 @@ describe('splitConnections', () => {
     const connections: Connection[] = [
       postgres,
       mysql,
+      mssql,
       s3,
       openai,
       mongodb,
@@ -140,6 +146,7 @@ describe('splitConnections', () => {
     const expected = {
       postgres: [postgres],
       mysql: [mysql],
+      mssql: [mssql],
       s3: [s3],
       openai: [openai],
       mongodb: [mongodb],
@@ -154,6 +161,7 @@ describe('splitConnections', () => {
     const expected = {
       postgres: [],
       mysql: [],
+      mssql: [],
       s3: [],
       openai: [],
       mongodb: [],

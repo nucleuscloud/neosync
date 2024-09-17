@@ -48,6 +48,14 @@ const config: StorybookConfig = {
           configFile: resolve(__dirname, '../tsconfig.json'),
         }),
       ];
+      // config.resolve.alias = {
+      //   ...config.resolve.alias,
+      //   '@neosync/sdk': resolve(__dirname, '../../../packages/sdk'),
+      // };
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@neosync/sdk': resolve(__dirname, '../../sdk/ts-client'),
+      };
     }
     return config;
   },
