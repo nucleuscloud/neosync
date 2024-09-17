@@ -2,10 +2,8 @@ import type { Config } from 'jest';
 import nextJest from 'next/jest.js';
 
 // import { getPackageAliases } from '@storybook/nextjs/export-mocks';
-import { pathsToModuleNameMapper } from 'ts-jest';
 
 import path from 'path';
-import { compilerOptions } from './tsconfig.json';
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
@@ -59,19 +57,44 @@ const createJestConfig = nextJest({
 //   ],
 // };
 
+// const config: Config = {
+//   preset: 'ts-jest',
+//   coverageProvider: 'v8',
+//   testEnvironment: 'jsdom',
+//   verbose: true,
+//   moduleNameMapper: {
+//     ...pathsToModuleNameMapper(compilerOptions.paths, {
+//       prefix: path.join('<rootDir>', '..'),
+//     }),
+//   },
+//   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+//   moduleDirectories: ['node_modules', path.join(__dirname, '..')],
+//   roots: ['<rootDir>', path.join(__dirname, '..', 'sdk', 'ts-client')],
+// };
+
 const config: Config = {
   preset: 'ts-jest',
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
   verbose: true,
   moduleNameMapper: {
-    ...pathsToModuleNameMapper(compilerOptions.paths, {
-      prefix: path.join('<rootDir>', '..'),
-    }),
+    '^@neosync/sdk$': path.join(__dirname, '../../../packages/sdk/src'),
+    '^@neosync/sdk/(.*)$': path.join(__dirname, '../../../packages/sdk/src/$1'),
+    '^@/(.*)$': '<rootDir>/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleDirectories: ['node_modules', path.join(__dirname, '..')],
-  roots: ['<rootDir>', path.join(__dirname, '..', 'sdk', 'ts-client')],
+  roots: ['<rootDir>', path.join(__dirname, '..', '..', 'packages', 'sdk')],
+  moduleFileExtensions: [
+    'js',
+    'mjs',
+    'cjs',
+    'jsx',
+    'ts',
+    'tsx',
+    'json',
+    'node',
+  ],
 };
 
 export default createJestConfig(config);
