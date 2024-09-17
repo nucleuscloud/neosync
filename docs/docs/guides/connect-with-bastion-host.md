@@ -35,13 +35,23 @@ This next section will showcase how to set up a Bastion Host via Terraform on AW
 
 ### Creating a SSH key for use with Neosync
 
-To generate an SSH key, open up your terminal of choice and run the following:
+You may generate a SSH key in any way that is comfortable to you. Neosync does not require any specific algorithm, but a few different options are detailed below.
 
-```sh
-$ ssh-keygen -t ed25519 -C "your_email@example.com
+#### ED25519
+
+```console
+$ ssh-keygen -t ed25519
+```
+
+#### RSA
+
+```console
+$ ssh-keygen -t rsa -b 4096
 ```
 
 It's up to you if you'd like to attach a password to this key.
+
+If that is desirable, run the command with `-C "youremail@example.com` and the system should prompt a password. To be sure, `-N ""` may also be provided.
 
 Afterwards, you'll have two new files in your `~/.ssh` folder, the public and private key.
 We'll need both of these at various points throughout the rest of this guide.
