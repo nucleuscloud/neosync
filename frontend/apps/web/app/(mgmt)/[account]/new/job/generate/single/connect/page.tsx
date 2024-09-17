@@ -205,6 +205,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               const destId = form.getValues(
                                 'destination.connectionId'
                               );
+                              if (!destId) {
+                                form.setValue(
+                                  'destination.connectionId',
+                                  value
+                                );
+                              }
 
                               setIsSourceValidating(true);
                               try {
@@ -224,13 +230,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 );
                               } finally {
                                 setIsSourceValidating(false);
-                              }
-
-                              if (!destId) {
-                                form.setValue(
-                                  'destination.connectionId',
-                                  value
-                                );
                               }
                             }}
                             value={field.value}
