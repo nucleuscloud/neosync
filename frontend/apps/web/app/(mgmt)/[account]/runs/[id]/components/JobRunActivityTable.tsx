@@ -23,16 +23,16 @@ export default function JobRunActivityTable(
   const isError = jobRunEvents.some((e) => e.tasks.some((t) => t.error));
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <RunTimeline
+        isError={isError}
+        tasks={convertJobRunEventToTask(jobRunEvents)}
+      />
       <DataTable
         columns={columns}
         data={jobRunEvents}
         isError={isError}
         onViewSelectClicked={onViewSelectClicked}
-      />
-      <RunTimeline
-        isError={isError}
-        tasks={convertJobRunEventToTask(jobRunEvents)}
       />
     </div>
   );
