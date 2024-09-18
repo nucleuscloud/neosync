@@ -58,6 +58,7 @@ A Helm chart for the Neosync Backend API
 | migrations.db.port | int | `5432` | The database port |
 | migrations.db.schemaDir | string | `"/migrations"` | The directory where the migrations are located. |
 | migrations.db.username | string | `nil` | The username that will be used for authentication |
+| migrations.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment. |
 | nameOverride | string | `nil` | Override the name specified on the Chart, which defaults to .Chart.Name |
 | neosyncCloud.enabled | bool | `false` | Whether or not this is NeosyncCloud |
 | neosyncCloud.workerApiKeys | list | `[]` | Worker API keys that have been allowlisted to for use |
