@@ -6,12 +6,16 @@ metadata:
   labels:
       {{- include "neosync-worker.labels" . | nindent 4 }}
     {{- if eq .Values.datadog.enabled true }}
+    {{- if .Values.nucleusEnv }}
     tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+    {{- end }}
     tags.datadoghq.com/service: {{ template "neosync-worker.fullname" . }}
     tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
     {{- end }}
 
+    {{- if .Values.nucleusEnv }}
     tags.neosync.dev/env: {{ .Values.nucleusEnv }}
+    {{- end }}
     tags.neosync.dev/service: {{ template "neosync-worker.fullname" . }}
     tags.neosync.dev/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
   {{- if .Values.deploymentAnnotations }}
@@ -48,11 +52,15 @@ spec:
         {{- end }}
         {{- if eq .Values.datadog.enabled true }}
         admission.datadoghq.com/enabled: "true"
+        {{- if .Values.nucleusEnv }}
         tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+        {{- end }}
         tags.datadoghq.com/service: {{ template "neosync-worker.fullname" . }}
         tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
         {{- end }}
+        {{- if .Values.nucleusEnv }}
         tags.neosync.dev/env: {{ .Values.nucleusEnv }}
+        {{- end }}
         tags.neosync.dev/service: {{ template "neosync-worker.fullname" . }}
         tags.neosync.dev/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
     spec:
