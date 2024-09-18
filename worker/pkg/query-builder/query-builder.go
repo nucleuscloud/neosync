@@ -29,12 +29,19 @@ type SubsetColumnConstraint struct {
 	ForeignKey  *SubsetReferenceKey
 }
 
+func getGoquDialect(driver string) goqu.DialectWrapper {
+	if driver == sqlmanager_shared.PostgresDriver {
+		return goqu.Dialect("postgres")
+	}
+	return goqu.Dialect(driver)
+}
+
 func BuildSelectQuery(
 	driver, table string,
 	columns []string,
 	whereClause *string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
@@ -62,7 +69,7 @@ func BuildSelectLimitQuery(
 	driver, table string,
 	limit uint,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	sql, _, err := builder.From((sqltable)).Limit(limit).ToSQL()
 	if err != nil {
@@ -132,14 +139,14 @@ func BuildInsertQuery(
 	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
-) (string, error) {
-	builder := goqu.Dialect(driver)
+) (string, []any, error) {
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))
 	for i, col := range columns {
 		insertCols[i] = col
 	}
-	insert := builder.Insert(sqltable).Cols(insertCols...)
+	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
 		gval := getGoquVals(driver, row, columnDataTypes)
 		insert = insert.Vals(gval)
@@ -149,11 +156,11 @@ func BuildInsertQuery(
 		insert = insert.OnConflict(goqu.DoNothing())
 	}
 
-	query, _, err := insert.ToSQL()
+	query, args, err := insert.ToSQL()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return query, nil
+	return query, args, nil
 }
 
 func BuildUpdateQuery(
@@ -162,7 +169,7 @@ func BuildUpdateQuery(
 	whereColumns []string,
 	columnValueMap map[string]any,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 
 	updateRecord := goqu.Record{}
@@ -195,7 +202,7 @@ func BuildUpdateQuery(
 func BuildTruncateQuery(
 	driver, table string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	truncate := builder.Truncate(sqltable)
 	query, _, err := truncate.ToSQL()
