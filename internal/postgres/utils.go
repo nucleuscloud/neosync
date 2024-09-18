@@ -75,6 +75,7 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	for i, v := range values {
 		col := columnNames[i]
 		ctype := cTypes[i]
+		fmt.Printf("%s %s %T %+v \n\n", col, ctype.DatabaseTypeName(), v, v)
 		switch t := v.(type) {
 		case []byte:
 			if isJsonPgDataType(ctype.DatabaseTypeName()) {

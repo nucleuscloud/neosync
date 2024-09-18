@@ -85,6 +85,14 @@ func GetDefaultSyncJobMappings()[]*mgmtv1alpha1.JobMapping {
 		{
 			Schema: "all_types",
 			Table:  "all_data_types",
+			Column: "bit_col",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+			},
+		},
+		{
+			Schema: "all_types",
+			Table:  "all_data_types",
 			Column: "date_col",
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,

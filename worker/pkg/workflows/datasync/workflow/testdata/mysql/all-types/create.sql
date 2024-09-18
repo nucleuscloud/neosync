@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     enum_col ENUM('value1', 'value2', 'value3'),
     set_col SET('option1', 'option2', 'option3'),
 
-    -- Spatial Data Types
+    -- Spatial Data Types  BROKEN
     -- geometry_col GEOMETRY,
     -- point_col POINT,
     -- linestring_col LINESTRING,

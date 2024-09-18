@@ -132,14 +132,14 @@ func BuildInsertQuery(
 	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
-) (string, error) {
+) (string, []any, error) {
 	builder := goqu.Dialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))
 	for i, col := range columns {
 		insertCols[i] = col
 	}
-	insert := builder.Insert(sqltable).Cols(insertCols...)
+	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
 		gval := getGoquVals(driver, row, columnDataTypes)
 		insert = insert.Vals(gval)
@@ -149,11 +149,11 @@ func BuildInsertQuery(
 		insert = insert.OnConflict(goqu.DoNothing())
 	}
 
-	query, _, err := insert.ToSQL()
+	query, args, err := insert.ToSQL()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return query, nil
+	return query, args, nil
 }
 
 func BuildUpdateQuery(

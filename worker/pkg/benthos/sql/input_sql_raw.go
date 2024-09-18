@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/Jeffail/shutdown"
@@ -11,6 +12,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
+	"github.com/nucleuscloud/neosync/internal/sqlscanners"
 	sqlserverutil "github.com/nucleuscloud/neosync/internal/sqlserver"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -209,11 +211,11 @@ func sqlRowToMap(rows *sql.Rows, driver string) (map[string]any, error) {
 	case sqlmanager_shared.MssqlDriver:
 		return sqlserverutil.SqlRowToSqlServerTypesMap(rows)
 	default:
-		return genericSqlRowToMap(rows)
+		return mysqlSqlRowToMap(rows)
 	}
 }
 
-func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
+func mysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	columnNames, err := rows.Columns()
 	if err != nil {
 		return nil, err
@@ -226,7 +228,18 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
 	for i := range values {
-		valuesWrapped = append(valuesWrapped, &values[i])
+		colType := cTypes[i].DatabaseTypeName()
+		fmt.Println("")
+		fmt.Println(cTypes[i].Name())
+		fmt.Println("cTypes[i].ScanType()")
+		fmt.Println(cTypes[i].Length())
+		if strings.EqualFold(colType, "bit") {
+			var bitStr sqlscanners.BitString
+			values[i] = &bitStr
+			valuesWrapped = append(valuesWrapped, values[i])
+		} else {
+			valuesWrapped = append(valuesWrapped, &values[i])
+		}
 	}
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
@@ -242,7 +255,7 @@ func genericSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 		case string:
 			jObj[col] = t
 		case []byte:
-			if colDataType.DatabaseTypeName() == "BINARY" {
+			if strings.EqualFold(colDataType.DatabaseTypeName(), "binary") {
 				jObj[col] = t
 				continue
 			}

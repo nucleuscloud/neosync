@@ -86,6 +86,7 @@ func parseArgs(call goja.FunctionCall, ptrs ...any) error {
 		var err error
 		switch p := ptr.(type) {
 		case *string:
+			fmt.Println("*string")
 			*p = arg.String()
 		case *int:
 			*p = int(arg.ToInteger())
@@ -102,8 +103,10 @@ func parseArgs(call goja.FunctionCall, ptrs ...any) error {
 		case *[]map[string]any:
 			*p, err = getMapSliceFromValue(arg)
 		case *goja.Value:
+			fmt.Println("goja.Value")
 			*p = arg
 		case *any:
+			fmt.Println("GOJA parse args EXPORT", arg.Export())
 			*p = arg.Export()
 		default:
 			return fmt.Errorf("encountered unhandled type %T while trying to parse %v into %v", arg.ExportType().String(), arg, p)
