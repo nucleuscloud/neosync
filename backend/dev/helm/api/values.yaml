@@ -21,9 +21,6 @@ migrations:
     password: foofar
     disableSsl: true
     schemaDir: /app/migrations
-  extraEnvVars:
-    - name: foo
-      value: bar
 
 terminationGracePeriodSeconds: 300
 shutdownTimeoutSeconds: 5
