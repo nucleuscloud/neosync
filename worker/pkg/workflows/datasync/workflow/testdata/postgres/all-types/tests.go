@@ -15,8 +15,9 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				TruncateCascade: true,
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"alltypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"alltypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"alltypes.array_types":        &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"alltypes.time_time":          &workflow_testdata.ExpectedOutput{RowCount: 2},
 			},
 		},
 		{
@@ -29,8 +30,9 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 				InitSchema: true,
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
-				"alltypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"alltypes.all_postgres_types": &workflow_testdata.ExpectedOutput{RowCount: 2},
 				"alltypes.array_types":        &workflow_testdata.ExpectedOutput{RowCount: 1},
+				"alltypes.time_time":          &workflow_testdata.ExpectedOutput{RowCount: 2},
 			},
 		},
 	}

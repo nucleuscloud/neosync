@@ -307,11 +307,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if s.driver != sqlmanager_shared.PostgresDriver {
 		insertQuery = s.buildQuery(insertQuery)
 	}
-	fmt.Println()
-	fmt.Println(insertQuery)
-	fmt.Println()
-	fmt.Println(args)
-	fmt.Println()
+
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err

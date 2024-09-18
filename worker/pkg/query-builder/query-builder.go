@@ -140,7 +140,7 @@ func BuildInsertQuery(
 	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
-) (string, []any, error) {
+) (sql string, args []any, err error) {
 	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))

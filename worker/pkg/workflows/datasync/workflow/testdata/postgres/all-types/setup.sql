@@ -182,6 +182,42 @@ INSERT INTO alltypes.all_postgres_types (
     123456  -- oid_col
 );
 
+INSERT INTO alltypes.all_postgres_types (
+    Id
+) VALUES (
+    DEFAULT
+);
+
+
+CREATE TABLE IF NOT EXISTS alltypes.time_time (
+    id SERIAL PRIMARY KEY,
+    timestamp_col TIMESTAMP,
+    timestamptz_col TIMESTAMPTZ,
+    date_col DATE
+);
+
+INSERT INTO alltypes.time_time (
+    timestamp_col,
+    timestamptz_col,
+    date_col
+) 
+VALUES (
+    '2024-03-18 10:30:00',
+    '2024-03-18 10:30:00+00',
+    '2024-03-18'
+);
+
+INSERT INTO alltypes.time_time (
+    timestamp_col,
+    timestamptz_col,
+    date_col
+) 
+VALUES (
+    '0001-01-01 00:00:00 BC',
+    '0001-01-01 00:00:00+00 BC',
+    '0001-01-01 BC'
+);
+
 
 CREATE TABLE IF NOT EXISTS alltypes.array_types (
     "id" BIGINT NOT NULL PRIMARY KEY,
