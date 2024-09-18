@@ -1,5 +1,11 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
-import { format } from 'date-fns';
+import { format, formatDuration, intervalToDuration } from 'date-fns';
 import { ReactElement, useMemo, useState } from 'react';
 import { Badge } from '../ui/badge';
 
@@ -28,6 +34,23 @@ export default function RunTimeline(props: Props): ReactElement {
   const formatDate = (date: Date) => format(date, 'MM/dd/yyyy');
   const formatTime = (date: Date) => format(date, 'HH:mm:ss:SSS');
 
+  const formatTaskDuration = (start: Date, end: Date) => {
+    const duration = intervalToDuration({ start, end });
+    const milliseconds = end.getTime() - start.getTime();
+    const millis = milliseconds % 1000;
+
+    // Format the duration string without empty components
+    const formattedDuration = formatDuration(duration, {
+      format: ['hours', 'minutes', 'seconds'],
+      delimiter: ', ',
+    });
+
+    if (!formattedDuration) {
+      return `${millis} ms`;
+    }
+
+    return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
+  };
   const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
     // find the first start time
     const start = new Date(Math.min(...tasks.map((t) => t.start.getTime())));
@@ -61,37 +84,24 @@ export default function RunTimeline(props: Props): ReactElement {
     return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 100;
   };
 
-  // TODO: feed the subtasks to the the pop up and display them there
-
+  console.log('tasks', tasks);
   return (
     <div
-      className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden"
-      style={{ height: `${tasks.length * 40 + 140}px` }} // 140 for the tooltip which we need to update and fix
+      className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden overflow-y-auto max-h-[800px]"
+      style={{ height: `${tasks.length * 40 + 56}px` }} // 140 for the tooltip which we need to update and fix
     >
-      {/* time axis */}
-      <div className="sticky top-0 h-16 bg-gray-200 dark:bg-gray-800 z-10 px-6">
-        <div className="relative w-full h-full">
-          {timeLabels.map((label, index) => (
-            <div
-              key={index}
-              className="absolute top-0 text-xs text-gray-600 dark:text-gray-300"
-              style={{ left: `${getPositionPercentage(label)}%` }}
-            >
-              <div className="whitespace-nowrap py-1">{formatDate(label)}</div>
-              <div className="whitespace-nowrap">{formatTime(label)}</div>
-              <div className="h-4 w-[4px] rounded-full bg-gray-700 mx-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* steps */}
+      <TableHeader
+        getPositionPercentage={getPositionPercentage}
+        formatDate={formatDate}
+        timeLabels={timeLabels}
+      />
       <div className="relative pt-12 ">
-        {/* the grid lines */}
         {tasks.map((_, index) => (
           <div
             key={`grid-line-${index}`}
             className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
             style={{ top: `${index * 40}px` }}
+            id="grid-lines"
           />
         ))}
         {tasks.map((task, index) => {
@@ -99,60 +109,74 @@ export default function RunTimeline(props: Props): ReactElement {
           const width = getPositionPercentage(task.end) - left;
 
           return (
-            <div
-              key={task.id}
-              className={cn(
-                isError ? 'bg-red-400' : 'bg-blue-500',
-                'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
-              )}
-              style={{
-                left: `${left}%`,
-                width: `${width}%`,
-                top: `${index * 40 + 4}px`,
-              }}
-              onClick={() => onTaskClick?.(task)}
-              onMouseEnter={() => setHoveredTask(task.id)}
-              onMouseLeave={() => setHoveredTask(null)}
-            >
-              <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full text-center justify-start flex">
-                {task.name}
-              </div>
-              {hoveredTask === task.id && (
-                <ActivityStepHover
-                  task={task}
-                  formatFullDate={formatFullDate}
-                />
-              )}
-            </div>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    key={task.id}
+                    className={cn(
+                      isError ? 'bg-red-400' : 'bg-blue-500',
+                      'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
+                    )}
+                    style={{
+                      left: `${left}%`,
+                      width: `${width}%`,
+                      top: `${index * 40 + 4}px`,
+                    }}
+                    onClick={() => onTaskClick?.(task)}
+                  >
+                    <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
+                      <p>{task.name}</p>
+                      <span className="text-xs bg-black text-white px-1 py-0.5 rounded text-nowrap">
+                        {formatTaskDuration(task.start, task.end)}
+                      </span>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent align="start">
+                  <div>
+                    <strong>Start:</strong>{' '}
+                    <Badge variant="default">
+                      {formatFullDate(task.start)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <strong>Finish:</strong>{' '}
+                    <Badge variant="default">{formatFullDate(task.end)}</Badge>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         })}
       </div>
     </div>
   );
 
-  interface ActivityStepHoverProps {
-    task: Task;
-    formatFullDate: (date: Date) => string;
+  interface TableHeaderProps {
+    formatDate: (date: Date) => string;
+    getPositionPercentage: (time: Date) => number;
+    timeLabels: Date[];
   }
 
-  function ActivityStepHover(props: ActivityStepHoverProps): ReactElement {
-    const { task, formatFullDate } = props;
+  function TableHeader(props: TableHeaderProps): ReactElement {
+    const { formatDate, getPositionPercentage, timeLabels } = props;
 
     return (
-      <div className="absolute top-full left-0 mt-2 p-2 bg-white dark:bg-gray-700 dark:border dark:border-gray-700 shadow-lg rounded z-20 whitespace-nowrap text-sm space-y-2">
-        <div>
-          <strong>Start:</strong>{' '}
-          <Badge variant="default">{formatFullDate(task.start)}</Badge>
+      <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6">
+        <div className="relative w-full h-full">
+          {timeLabels.map((label, index) => (
+            <div
+              key={index}
+              className="absolute top-0 text-xs text-gray-700 dark:text-gray-300"
+              style={{ left: `${getPositionPercentage(label)}%` }}
+            >
+              <div className="whitespace-nowrap py-1">{formatDate(label)}</div>
+              <div className="whitespace-nowrap">{formatTime(label)}</div>
+              <div className="h-4 w-[1px] rounded-full bg-gray-500 mx-auto" />
+            </div>
+          ))}
         </div>
-        <div>
-          <strong>Finish:</strong>{' '}
-          <Badge variant="default">{formatFullDate(task.end)}</Badge>
-        </div>
-        {task.dependencies && (
-          <p>
-            <strong>Dependencies:</strong> {task.dependencies.join(', ')}
-          </p>
-        )}
       </div>
     );
   }

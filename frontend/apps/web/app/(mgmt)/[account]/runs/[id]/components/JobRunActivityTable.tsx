@@ -67,37 +67,29 @@ this is what one object looks like
 */
 
 function convertJobRunEventToTask(jre: JobRunEvent[]): Task[] {
-  // jre might have sub tasks so we want to flatten the entire thing so we can use it in the timeline view with dependencies
+  console.log('Input job run events:', jre);
 
-  return jre.flatMap((jre: JobRunEvent, eventIndex: number): Task[] => {
-    const mainTask: Task = {
-      id: `event-${eventIndex}`,
-      name: jre.type,
-      start: convertTimestampToDate(jre.startTime),
-      end: convertTimestampToDate(jre.closeTime),
-    };
+  /* 
+  some tasks, like the checkAccoutStatus will get scheudled but never run if the job finishes before it's set to run, and as a result, the JobRunEvent doesn't return a closeTime, so we need to filter these out so they don't continue to run in the table
+  */
 
-    // const subTasks: Task[] = jre.tasks.map(
-    //   (task: JobRunEventTask, taskIndex: number) => ({
-    //     id: `event-${eventIndex}-task-${taskIndex}`,
-    //     name: task.type || `Subtask ${taskIndex + 1}`,
-    //     start: task.eventTime
-    //       ? new Date(Number(task.eventTime.seconds) * 10)
-    //       : mainTask.start,
-    //     end: task.eventTime
-    //       ? new Date(Number(task.eventTime.seconds) * 30)
-    //       : mainTask.end,
-    //     dependencies: [mainTask.id],
-    //   })
-    // );
+  const tasks = jre
+    .filter(
+      (event) => event.closeTime !== undefined && event.closeTime !== null
+    )
+    .flatMap((event: JobRunEvent, eventIndex: number): Task[] => {
+      const mainTask: Task = {
+        id: `event-${eventIndex}`,
+        name: event.type,
+        start: convertTimestampToDate(event.startTime),
+        end: convertTimestampToDate(event.closeTime),
+      };
 
-    // // If there are subtasks, make the main task depend on all subtasks
-    // if (subTasks.length > 0) {
-    //   mainTask.dependencies = subTasks.map((task) => task.id);
-    // }
+      return [mainTask];
+    });
 
-    return [mainTask];
-  });
+  console.log('Converted tasks:', tasks);
+  return tasks;
 }
 
 function convertTimestampToDate(
