@@ -150,6 +150,7 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
 		if err := up_cmd.Up(
 			ctx,
 			nucleusdb.GetDbUrl(dbMigConfig),
