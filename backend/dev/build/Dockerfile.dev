@@ -16,6 +16,5 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY backend/dev/build/.air.toml .air.toml
-COPY /backend/sql/postgresql/schema/ /migrations/
 
 CMD ["air", "-c", "/workspace/.air.toml"]
