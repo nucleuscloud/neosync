@@ -304,13 +304,27 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
-	query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
+	if s.driver != sqlmanager_shared.PostgresDriver {
+		insertQuery = s.buildQuery(insertQuery)
+	}
+	fmt.Println()
+	fmt.Println(insertQuery)
+	fmt.Println()
+	fmt.Println(args)
+	fmt.Println()
+	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
 		}
 		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows)
 		if err != nil {
+			return err
+		}
+	}
+	if s.driver == sqlmanager_shared.PostgresDriver && s.suffix != nil && *s.suffix != "" {
+		// to prevent postgres cannot insert multiple commands into a prepared statement error
+		// must run table identity count reset separately
+		if _, err := s.db.ExecContext(ctx, *s.suffix); err != nil {
 			return err
 		}
 	}

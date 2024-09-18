@@ -11,6 +11,7 @@ import (
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
 	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"

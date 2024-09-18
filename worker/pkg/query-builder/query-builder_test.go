@@ -119,7 +119,7 @@ func Test_BuildInsertQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
+			actual, _, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 		})
@@ -138,7 +138,8 @@ func Test_BuildInsertQuery_JsonArray(t *testing.T) {
 	}
 	onConflictDoNothing := false
 
-	query, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, args, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	fmt.Println(args)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES (1, 'John', ARRAY['{"tag":"cool"}','{"tag":"awesome"}']::jsonb[]), (2, 'Jane', ARRAY['{"tag":"smart"}','{"tag":"clever"}']::jsonb[])`
 	require.Equal(t, expectedQuery, query)
@@ -156,10 +157,11 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 	}
 	onConflictDoNothing := false
 
-	query, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, args, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
 	require.NoError(t, err)
-	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES (1, 'John', '{"tag":"cool"}'), (2, 'Jane', '{"tag":"smart"}')`
+	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, $3), ($4, $5, $6)`
 	require.Equal(t, expectedQuery, query)
+	require.Equal(t, []any{int64(1), "John", []byte{123, 34, 116, 97, 103, 34, 58, 34, 99, 111, 111, 108, 34, 125}, int64(2), "Jane", []byte{123, 34, 116, 97, 103, 34, 58, 34, 115, 109, 97, 114, 116, 34, 125}}, args)
 }
 
 func TestGetGoquVals(t *testing.T) {
