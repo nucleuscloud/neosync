@@ -23,6 +23,8 @@ type Config struct {
 	IsAuthEnabled            bool
 	IsNeosyncCloud           bool
 	DefaultMaxAllowedRecords *int64
+	AppBaseUrl               string
+	StripePriceLookupKey     string
 }
 
 func New(

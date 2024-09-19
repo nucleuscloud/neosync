@@ -2149,6 +2149,10 @@ func (m *CreateTeamAccountResponse) validate(all bool) error {
 
 	// no validation rules for AccountId
 
+	if m.CheckoutSessionUrl != nil {
+		// no validation rules for CheckoutSessionUrl
+	}
+
 	if len(errors) > 0 {
 		return CreateTeamAccountResponseMultiError(errors)
 	}

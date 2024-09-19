@@ -355,6 +355,8 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
+		AppBaseUrl:               getAppBaseUrl(),
+		StripePriceLookupKey:     getStripePriceLookupKey(),
 	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), getStripeApiClient())
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
@@ -932,4 +934,12 @@ func getStripeApiKey() *string {
 		return nil
 	}
 	return &value
+}
+
+func getStripePriceLookupKey() string {
+	return viper.GetString("STRIPE_TEAMPLAN_LOOKUP_KEY")
+}
+
+func getAppBaseUrl() string {
+	return viper.GetString("APP_BASEURL")
 }

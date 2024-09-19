@@ -2,6 +2,7 @@ package nucleusdb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -121,23 +122,26 @@ func (d *NucleusDb) CreateTeamAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	teamName string,
+	logger *slog.Logger,
 ) (*db_queries.NeosyncApiAccount, error) {
 	var teamAccount *db_queries.NeosyncApiAccount
-	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
 		accounts, err := d.Q.GetAccountsByUser(ctx, dbtx, userId)
 		if err != nil && !IsNoRows(err) {
-			return err
+			return fmt.Errorf("unable to get account(s) by user id: %w", err)
 		} else if err != nil && IsNoRows(err) {
 			accounts = []db_queries.NeosyncApiAccount{}
 		}
+		logger.Debug(fmt.Sprintf("found %d accounts for user during team account creation", len(accounts)))
 		for idx := range accounts {
 			if strings.EqualFold(accounts[idx].AccountSlug, teamName) {
 				return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", teamName))
 			}
 		}
+
 		account, err := d.Q.CreateTeamAccount(ctx, dbtx, teamName)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to create team account: %w", err)
 		}
 		teamAccount = &account
 		_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
@@ -145,7 +149,7 @@ func (d *NucleusDb) CreateTeamAccount(
 			UserID:    userId,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to associate user to newly created team account: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -162,6 +166,7 @@ func (d *NucleusDb) UpsertStripeCustomerId(
 ) (*db_queries.NeosyncApiAccount, error) {
 	var account *db_queries.NeosyncApiAccount
 
+	// Serializable here to ensure the highest level of data integrity and avoid race conditions
 	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
 		acc, err := d.Q.GetAccount(ctx, dbtx, accountId)
 		if err != nil {
@@ -170,15 +175,26 @@ func (d *NucleusDb) UpsertStripeCustomerId(
 
 		if acc.StripeCustomerID.Valid {
 			account = &acc
+			logger.Debug("during stripe customer id upsert, found valid stripe customer id")
 			return nil
 		}
 		customerId, err := getStripeCustomerId(ctx)
 		if err != nil {
 			return fmt.Errorf("unable to get stripe customer id: %w", err)
 		}
+		logger.Debug("created new stripe customer id")
 		updatedAcc, err := d.Q.SetNewAccountStripeCustomerId(ctx, dbtx, db_queries.SetNewAccountStripeCustomerIdParams{
 			StripeCustomerID: pgtype.Text{String: customerId, Valid: true},
+			AccountId:        accountId,
 		})
+		if err != nil {
+			return fmt.Errorf("unable to update account with stripe customer id: %w", err)
+		}
+		// this shouldn't happen unless the write query is bad
+		if !updatedAcc.StripeCustomerID.Valid {
+			return errors.New("tried to update account with stripe customer id but received invalid response")
+		}
+
 		if updatedAcc.StripeCustomerID.String != customerId {
 			logger.Warn("orphaned stripe customer id was created", "accountId", accountId)
 		}

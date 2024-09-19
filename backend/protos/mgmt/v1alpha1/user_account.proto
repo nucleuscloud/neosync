@@ -74,6 +74,8 @@ message CreateTeamAccountRequest {
 }
 message CreateTeamAccountResponse {
   string account_id = 1;
+  // If NeosyncCloud, will respond with a checkout session url so they can setup billing
+  optional string checkout_session_url = 2;
 }
 
 message AccountUser {

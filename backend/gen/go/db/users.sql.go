@@ -734,7 +734,7 @@ func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 const setNewAccountStripeCustomerId = `-- name: SetNewAccountStripeCustomerId :one
 UPDATE neosync_api.accounts
 SET stripe_customer_id = $1
-WHERE id = $2
+WHERE id = $2 AND stripe_customer_id IS NULL
 RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 

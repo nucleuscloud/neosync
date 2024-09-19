@@ -744,6 +744,13 @@ export class CreateTeamAccountResponse extends Message<CreateTeamAccountResponse
    */
   accountId = "";
 
+  /**
+   * If NeosyncCloud, will respond with a checkout session url so they can setup billing
+   *
+   * @generated from field: optional string checkout_session_url = 2;
+   */
+  checkoutSessionUrl?: string;
+
   constructor(data?: PartialMessage<CreateTeamAccountResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -753,6 +760,7 @@ export class CreateTeamAccountResponse extends Message<CreateTeamAccountResponse
   static readonly typeName = "mgmt.v1alpha1.CreateTeamAccountResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "checkout_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateTeamAccountResponse {
