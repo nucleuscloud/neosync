@@ -294,7 +294,7 @@ func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Log
 	}
 }
 
-func (s *Service) generateCheckoutSession(customerId, accountSlug string, userId string) (*stripe.CheckoutSession, error) {
+func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string) (*stripe.CheckoutSession, error) {
 	if s.stripeclient == nil {
 		return nil, errors.New("unable to generate checkout session as stripe client is nil")
 	}
