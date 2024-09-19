@@ -271,9 +271,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					destdb.Db.Close()
 					return nil, err
 				}
+
 				identityStmts := []string{}
 				for table, cols := range schemaColMap {
-					if !slices.Contains(orderedTableDelete, table) {
+					if !slices.Contains(orderedTablesResp.OrderedTables, table) {
 						continue
 					}
 					for _, c := range cols {
