@@ -34,3 +34,5 @@ INSERT INTO all_data_types (
     '{"key": "value", "array": [1, 2, 3]}',
     'value1,value3,value5'
 );
+
+INSERT INTO all_data_types (id) VALUES (DEFAULT);

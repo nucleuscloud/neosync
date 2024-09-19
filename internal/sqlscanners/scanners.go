@@ -61,7 +61,11 @@ func (b *BitString) Scan(value any) error {
 		}
 		b.Bytes = make([]byte, (len(v)+7)/8)
 		for i := range b.Bytes {
-			shiftAmount := (8 * uint(len(b.Bytes)-i-1))
+			bitPosition := len(b.Bytes) - i - 1
+			if bitPosition < 0 || bitPosition > len(b.Bytes) {
+				return fmt.Errorf("error scanning bit. invalid bit position")
+			}
+			shiftAmount := uint(8) * uint(bitPosition)
 			b.Bytes[i] = byte(val >> shiftAmount)
 		}
 	default:

@@ -20,12 +20,12 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
     date_col DATE,
     time_col TIME,
     datetime_col DATETIME,
-    timestamp_col TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    timestamp_col TIMESTAMP,
     year_col YEAR,
 
     -- String Types
     char_col CHAR(10),
-    varchar_col VARCHAR(255) NOT NULL,
+    varchar_col VARCHAR(255),
     binary_col BINARY(3),
     varbinary_col VARBINARY(255),
     tinyblob_col TINYBLOB,
@@ -54,5 +54,4 @@ CREATE TABLE IF NOT EXISTS  all_data_types (
 
     -- Array-like representations
     set_as_array SET('value1', 'value2', 'value3', 'value4', 'value5')
-
 );
