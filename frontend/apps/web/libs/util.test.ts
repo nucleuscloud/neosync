@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import {
   AwsS3ConnectionConfig,
   Connection,

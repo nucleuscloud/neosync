@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import '@testing-library/jest-dom';
 import { fireEvent, screen } from '@testing-library/react';
 
@@ -23,20 +27,3 @@ test('Checks if the form is valid', async () => {
   fireEvent.click(screen.getByRole('button'));
   expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 });
-
-// export const FullExample: Story = {
-//   args: {},
-//   play: async ({ canvasElement }) => {
-//     const canvas = within(canvasElement);
-//     await userEvent.type(
-//       canvas.getByLabelText('password', { selector: 'input' }),
-//       'topsecret'
-//     );
-//     await expect(canvas.getByDisplayValue('topsecret')).toBeInTheDocument();
-
-//     await userEvent.click(canvas.getByRole('button'));
-//     await expect(canvas.getByRole('textbox')).toBeInTheDocument();
-//     await userEvent.click(canvas.getByRole('button'));
-//     await expect(canvas.queryByRole('textbox')).not.toBeInTheDocument();
-//   },
-// };

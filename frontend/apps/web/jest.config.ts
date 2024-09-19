@@ -1,7 +1,9 @@
 import type { Config } from 'jest';
 import nextJest from 'next/jest.js';
 
-// import { getPackageAliases } from '@storybook/nextjs/export-mocks';
+import { getPackageAliases } from '@storybook/nextjs/export-mocks';
+// import { pathsToModuleNameMapper } from 'ts-jest';
+// import { compilerOptions } from './tsconfig.json';
 
 import path from 'path';
 
@@ -10,80 +12,28 @@ const createJestConfig = nextJest({
   dir: './',
 });
 
-// const config: Config = {
-//   preset: 'ts-jest',
-//   // coverageProvider: 'v8',
-//   testEnvironment: 'jsdom',
-//   verbose: true,
-//   // moduleNameMapper: {
-//   //   ...pathsToModuleNameMapper(
-//   //     {
-//   //       '@/*': compilerOptions.paths['@/*'],
-//   //     },
-//   //     { prefix: '<rootDir>/' }
-//   //   ),
-//   //   ...pathsToModuleNameMapper(
-//   //     {
-//   //       '@neosync/sdk': compilerOptions.paths['@neosync/sdk'],
-//   //     }
-//   //     // { prefix: '../' }
-//   //   ),
-//   // },
-//   // moduleNameMapper: {
-//   //   // '^@neosync/sdk/(.*)$': '<rootDir>/../../packages/sdk/$1',
-//   //   // '@neosync/sdk': '<rootDir>/../../packages/sdk/$1',
-//   //   '@neosync/sdk': '../sdk/ts-client/*',
-//   //   '^@neosync/sdk/(.*)$': '../../packages/sdk/$1',
-//   //   '^@/(.*)$': '<rootDir>/$1',
-//   //   // ...getPackageAliases(),
-//   // },
-//   // moduleNameMapper: {
-//   //   ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
-//   //   // ...getPackageAliases,
-//   // },
-//   moduleNameMapper: {
-//     ...pathsToModuleNameMapper(compilerOptions.paths, {
-//       prefix: path.join('<rootDir>', '..'),
-//     }),
-//   },
-//   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-//   // moduleDirectories: ['node_modules', '<rootDir>'],
-//   // roots: ['<rootDir>'],
-//   // modulePaths: [compilerOptions.baseUrl],
-//   moduleDirectories: ['node_modules', path.join(__dirname, '..')],
-//   roots: [
-//     '<rootDir>',
-//     path.join(__dirname, '..', 'sdk'), // Add this line
-//   ],
-// };
-
-// const config: Config = {
-//   preset: 'ts-jest',
-//   coverageProvider: 'v8',
-//   testEnvironment: 'jsdom',
-//   verbose: true,
-//   moduleNameMapper: {
-//     ...pathsToModuleNameMapper(compilerOptions.paths, {
-//       prefix: path.join('<rootDir>', '..'),
-//     }),
-//   },
-//   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-//   moduleDirectories: ['node_modules', path.join(__dirname, '..')],
-//   roots: ['<rootDir>', path.join(__dirname, '..', 'sdk', 'ts-client')],
-// };
+// console.log(
+//   pathsToModuleNameMapper(compilerOptions.paths, {
+//     prefix: '<rootDir>/',
+//   })
+// );
+// console.log(__dirname);
 
 const config: Config = {
   preset: 'ts-jest',
-  coverageProvider: 'v8',
+  // coverageProvider: 'v8',
   testEnvironment: 'jsdom',
   verbose: true,
   moduleNameMapper: {
-    '^@neosync/sdk$': path.join(__dirname, '../../../packages/sdk/src'),
-    '^@neosync/sdk/(.*)$': path.join(__dirname, '../../../packages/sdk/src/$1'),
+    ...getPackageAliases(),
+    // ...pathsToModuleNameMapper(compilerOptions.paths, {
+    //   prefix: '<rootDir>/',
+    // }),
     '^@/(.*)$': '<rootDir>/$1',
+    '^@neosync/sdk$': '<rootDir>/../../packages/sdk/$2',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  moduleDirectories: ['node_modules', path.join(__dirname, '..')],
+  moduleDirectories: ['node_modules'],
   roots: ['<rootDir>', path.join(__dirname, '..', '..', 'packages', 'sdk')],
   moduleFileExtensions: [
     'js',
@@ -95,6 +45,8 @@ const config: Config = {
     'json',
     'node',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
+  testPathIgnorePatterns: ['<rootDir>/.next/'],
 };
 
 export default createJestConfig(config);
