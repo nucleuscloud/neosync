@@ -11,6 +11,7 @@ import (
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
 	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
@@ -29,12 +30,19 @@ type SubsetColumnConstraint struct {
 	ForeignKey  *SubsetReferenceKey
 }
 
+func getGoquDialect(driver string) goqu.DialectWrapper {
+	if driver == sqlmanager_shared.PostgresDriver {
+		return goqu.Dialect("postgres")
+	}
+	return goqu.Dialect(driver)
+}
+
 func BuildSelectQuery(
 	driver, table string,
 	columns []string,
 	whereClause *string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
@@ -62,7 +70,7 @@ func BuildSelectLimitQuery(
 	driver, table string,
 	limit uint,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	sql, _, err := builder.From((sqltable)).Limit(limit).ToSQL()
 	if err != nil {
@@ -132,8 +140,8 @@ func BuildInsertQuery(
 	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
-) (string, []any, error) {
-	builder := goqu.Dialect(driver)
+) (sql string, args []any, err error) {
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 	insertCols := make([]any, len(columns))
 	for i, col := range columns {
@@ -162,7 +170,7 @@ func BuildUpdateQuery(
 	whereColumns []string,
 	columnValueMap map[string]any,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 
 	updateRecord := goqu.Record{}
@@ -195,7 +203,7 @@ func BuildUpdateQuery(
 func BuildTruncateQuery(
 	driver, table string,
 ) (string, error) {
-	builder := goqu.Dialect(driver)
+	builder := getGoquDialect(driver)
 	sqltable := goqu.I(table)
 	truncate := builder.Truncate(sqltable)
 	query, _, err := truncate.ToSQL()

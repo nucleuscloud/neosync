@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "neosync-api.labels" . | nindent 4 }}
     {{- if eq .Values.datadog.enabled true }}
+    {{- if .Values.nucleusEnv }}
     tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+    {{- end }}
     tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
     tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
     {{- end }}
@@ -44,11 +46,15 @@ spec:
         {{- end }}
         {{- if eq .Values.datadog.enabled true }}
         admission.datadoghq.com/enabled: "true"
+        {{- if .Values.nucleusEnv }}
         tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+        {{- end }}
         tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
         tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
         {{- end }}
+        {{- if .Values.nucleusEnv }}
         tags.neosync.dev/env: {{ .Values.nucleusEnv }}
+        {{- end }}
         tags.neosync.dev/service: {{ template "neosync-api.fullname" . }}
         tags.neosync.dev/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
     spec:
@@ -82,6 +88,31 @@ spec:
           args:
             - migrate
             - up
+          env:
+            {{- with .Values.migrations.extraEnvVars }}
+            {{- range .}}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- else if .valueFrom }}
+              valueFrom:
+                {{- if .valueFrom.secretKeyRef }}
+                secretKeyRef:
+                  name: {{ .valueFrom.secretKeyRef.name }}
+                  key: {{ .valueFrom.secretKeyRef.key }}
+                {{- end }}
+                {{- if .valueFrom.configMapKeyRef }}
+                configMapKeyRef:
+                  name: {{ .valueFrom.configMapKeyRef.name }}
+                  key: {{ .valueFrom.configMapKeyRef.key }}
+                {{- end }}
+                {{- if .valueFrom.fieldRef }}
+                fieldRef:
+                  fieldPath: {{ .valueFrom.fieldRef.fieldPath }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
 
           envFrom:
             - secretRef:

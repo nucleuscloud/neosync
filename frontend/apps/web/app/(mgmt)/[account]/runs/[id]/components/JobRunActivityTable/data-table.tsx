@@ -216,7 +216,7 @@ function RunEventSubTable(props: RunEventSubTableProps): React.ReactElement {
                       <div className="flex space-x-2">
                         <span className="max-w-[500px] truncate font-medium">
                           {t.eventTime &&
-                            formatDateTimeMilliseconds(t.eventTime.toDate())}
+                            formatDateTimeMilliseconds(t.eventTime?.toDate())}
                         </span>
                       </div>
                     </TableCell>

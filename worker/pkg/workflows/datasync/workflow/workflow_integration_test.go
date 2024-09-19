@@ -1383,6 +1383,120 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 	return allTests
 }
 
+func (s *IntegrationTestSuite) Test_Workflow_Generate() {
+	// setup
+	testName := "Generate Job"
+	s.RunPostgresSqlFiles(s.postgres.target.pool, "generate-job", []string{"setup.sql"})
+
+	connectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
+	schema := "generate_job"
+	table := "regions"
+
+	destinationOptions := &mgmtv1alpha1.JobDestinationOptions{
+		Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+			PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+				InitTableSchema: false,
+				TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: false,
+				},
+				SkipForeignKeyViolations: false,
+			},
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest]) (*connect.Response[mgmtv1alpha1.IsAccountStatusValidResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetJobProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetJobProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+				Job: &mgmtv1alpha1.Job{
+					Id:        "115aaf2c-776e-4847-8268-d914e3c15968",
+					AccountId: "225aaf2c-776e-4847-8268-d914e3c15988",
+					Source: &mgmtv1alpha1.JobSource{
+						Options: &mgmtv1alpha1.JobSourceOptions{
+							Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+								Generate: &mgmtv1alpha1.GenerateSourceOptions{
+									Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{{Schema: schema, Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+										{Table: table, RowCount: 10},
+									}}},
+									FkSourceConnectionId: &connectionId,
+								},
+							},
+						},
+					},
+					Destinations: []*mgmtv1alpha1.JobDestination{
+						{
+							ConnectionId: connectionId,
+							Options:      destinationOptions,
+						},
+					},
+					Mappings: []*mgmtv1alpha1.JobMapping{
+						{Schema: schema, Table: table, Column: "region_id", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+							Config: &mgmtv1alpha1.TransformerConfig{},
+						}},
+						{Schema: schema, Table: table, Column: "region_name", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+									GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+								},
+							},
+						}},
+					},
+				}}), nil
+		},
+	))
+
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == "226add85-5751-4232-b085-a0ae93afc7ce" {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   "226add85-5751-4232-b085-a0ae93afc7ce",
+						Name: "target",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: s.postgres.target.url,
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, nil
+		},
+	))
+
+	addRunContextProcedureMux(mux)
+	srv := startHTTPServer(s.T(), mux)
+	env := executeWorkflow(s.T(), srv, s.redis.url, "115aaf2c-776e-4847-8268-d914e3c15968")
+	require.Truef(s.T(), env.IsWorkflowCompleted(), fmt.Sprintf("Workflow did not complete. Test: %s", testName))
+	err := env.GetWorkflowError()
+	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
+
+	rows, err := s.postgres.target.pool.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
+	require.NoError(s.T(), err)
+	count := 0
+	for rows.Next() {
+		count++
+	}
+	require.Equalf(s.T(), 10, count, fmt.Sprintf("Test: %s Table: %s", testName, table))
+
+	// tear down
+	s.RunPostgresSqlFiles(s.postgres.target.pool, "generate-job", []string{"teardown.sql"})
+}
+
 func executeWorkflow(
 	t *testing.T,
 	srv *httptest.Server,
