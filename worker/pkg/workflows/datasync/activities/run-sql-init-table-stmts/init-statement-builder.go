@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -270,8 +271,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					destdb.Db.Close()
 					return nil, err
 				}
+
 				identityStmts := []string{}
 				for table, cols := range schemaColMap {
+					if !slices.Contains(orderedTablesResp.OrderedTables, table) {
+						continue
+					}
 					for _, c := range cols {
 						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
 							schema, table := sqlmanager_shared.SplitTableKey(table)
