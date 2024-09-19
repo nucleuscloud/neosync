@@ -39,6 +39,37 @@ proto3.util.setEnumType(UserAccountType, "mgmt.v1alpha1.UserAccountType", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.BillingStatus
+ */
+export enum BillingStatus {
+  /**
+   * @generated from enum value: BILLING_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Corresponds to a billing subscription and rolls up various states into active
+   * This may be split into the future to be more granular and mirror the underlying billing system
+   *
+   * @generated from enum value: BILLING_STATUS_ACTIVE = 1;
+   */
+  ACTIVE = 1,
+
+  /**
+   * If the system could not find any active subscriptions
+   *
+   * @generated from enum value: BILLING_STATUS_EXPIRED = 2;
+   */
+  EXPIRED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(BillingStatus)
+proto3.util.setEnumType(BillingStatus, "mgmt.v1alpha1.BillingStatus", [
+  { no: 0, name: "BILLING_STATUS_UNSPECIFIED" },
+  { no: 1, name: "BILLING_STATUS_ACTIVE" },
+  { no: 2, name: "BILLING_STATUS_EXPIRED" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetUserRequest
  */
 export class GetUserRequest extends Message<GetUserRequest> {
@@ -1724,9 +1755,9 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   /**
    * The current subscription status determined by the billing system.
    *
-   * @generated from field: int32 subscription_status = 3;
+   * @generated from field: mgmt.v1alpha1.BillingStatus subscription_status = 3;
    */
-  subscriptionStatus = 0;
+  subscriptionStatus = BillingStatus.UNSPECIFIED;
 
   constructor(data?: PartialMessage<GetAccountStatusResponse>) {
     super();
@@ -1738,7 +1769,7 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 3, name: "subscription_status", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "subscription_status", kind: "enum", T: proto3.getEnumType(BillingStatus) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountStatusResponse {

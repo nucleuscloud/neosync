@@ -13524,6 +13524,29 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "BillingStatus",
+          "longName": "BillingStatus",
+          "fullName": "mgmt.v1alpha1.BillingStatus",
+          "description": "",
+          "values": [
+            {
+              "name": "BILLING_STATUS_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "BILLING_STATUS_ACTIVE",
+              "number": "1",
+              "description": "Corresponds to a billing subscription and rolls up various states into active\nThis may be split into the future to be more granular and mirror the underlying billing system"
+            },
+            {
+              "name": "BILLING_STATUS_EXPIRED",
+              "number": "2",
+              "description": "If the system could not find any active subscriptions"
+            }
+          ]
+        },
+        {
           "name": "UserAccountType",
           "longName": "UserAccountType",
           "fullName": "mgmt.v1alpha1.UserAccountType",
@@ -14082,9 +14105,9 @@
               "name": "subscription_status",
               "description": "The current subscription status determined by the billing system.",
               "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
+              "type": "BillingStatus",
+              "longType": "BillingStatus",
+              "fullType": "mgmt.v1alpha1.BillingStatus",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

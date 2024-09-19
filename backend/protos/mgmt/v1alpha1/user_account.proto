@@ -172,6 +172,16 @@ message AccountOnboardingConfig {
 message GetAccountStatusRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
+
+enum BillingStatus {
+  BILLING_STATUS_UNSPECIFIED = 0;
+  // Corresponds to a billing subscription and rolls up various states into active
+  // This may be split into the future to be more granular and mirror the underlying billing system
+  BILLING_STATUS_ACTIVE = 1;
+  // If the system could not find any active subscriptions
+  BILLING_STATUS_EXPIRED = 2;
+}
+
 message GetAccountStatusResponse {
   // A count of the currently used records for the current billing period.
   // This may go over the allowed record count depending on when the record count is polled by the metric system.
@@ -180,7 +190,7 @@ message GetAccountStatusResponse {
   optional uint64 allowed_record_count = 2;
 
   // The current subscription status determined by the billing system.
-  int32 subscription_status = 3;
+  BillingStatus subscription_status = 3;
 }
 
 message IsAccountStatusValidRequest {
