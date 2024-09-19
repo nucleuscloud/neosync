@@ -3,6 +3,8 @@ package neosync_benthos_sql
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"strings"
 	"sync"
 
@@ -39,7 +41,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider, isRetry bool) error {
+func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider, isRetry bool, logger *slog.Logger) error {
 	return env.RegisterBatchOutput(
 		"pooled_sql_insert", sqlInsertOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
@@ -52,7 +54,7 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err := newInsertOutput(conf, mgr, dbprovider, isRetry)
+			out, err := newInsertOutput(conf, mgr, dbprovider, isRetry, logger)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
@@ -75,7 +77,8 @@ func init() {
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err := newInsertOutput(conf, mgr, dbprovider, false)
+			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+			out, err := newInsertOutput(conf, mgr, dbprovider, false, logger)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
@@ -95,6 +98,7 @@ type pooledInsertOutput struct {
 	dbMut    sync.RWMutex
 	db       mysql_queries.DBTX
 	logger   *service.Logger
+	slogger  *slog.Logger
 
 	schema                   string
 	table                    string
@@ -112,7 +116,7 @@ type pooledInsertOutput struct {
 	isRetry     bool
 }
 
-func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider, isRetry bool) (*pooledInsertOutput, error) {
+func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider, isRetry bool, logger *slog.Logger) (*pooledInsertOutput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -195,6 +199,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		driver:                   driver,
 		dsn:                      dsn,
 		logger:                   mgr.Logger(),
+		slogger:                  logger,
 		shutSig:                  shutdown.NewSignaller(),
 		argsMapping:              argsMapping,
 		provider:                 provider,
@@ -291,7 +296,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
 
-	insertQuery, args, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
+	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
@@ -335,7 +340,7 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, args, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
 		if err != nil {
 			return err
 		}

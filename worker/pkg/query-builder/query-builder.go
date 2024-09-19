@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -79,9 +80,9 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
+func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes []string) goqu.Vals {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(row, columnDataTypes)
+		return getPgGoquVals(logger, row, columnDataTypes)
 	}
 	gval := goqu.Vals{}
 	for _, a := range row {
@@ -90,6 +91,7 @@ func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 		} else if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
 			if err != nil {
+				logger.Error("unable to marshal map to JSON", err)
 				gval = append(gval, a)
 			} else {
 				gval = append(gval, bits)
@@ -101,7 +103,7 @@ func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 	return gval
 }
 
-func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
+func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string) goqu.Vals {
 	gval := goqu.Vals{}
 	for i, a := range row {
 		var colDataType string
@@ -111,6 +113,7 @@ func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 		if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
 			if err != nil {
+				logger.Error("to marshal map to JSON", err)
 				gval = append(gval, a)
 				continue
 			}
@@ -120,6 +123,7 @@ func getPgGoquVals(row []any, columnDataTypes []string) goqu.Vals {
 		} else if gotypeutil.IsSlice(a) {
 			s, err := gotypeutil.ParseSlice(a)
 			if err != nil {
+				logger.Error("unable to parse slice", err)
 				gval = append(gval, a)
 				continue
 			}
@@ -142,6 +146,7 @@ func isDefault(val any) bool {
 }
 
 func BuildInsertQuery(
+	logger *slog.Logger,
 	driver, schema, table string,
 	columns []string,
 	columnDataTypes []string,
@@ -156,7 +161,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(driver, row, columnDataTypes)
+		gval := getGoquVals(logger, driver, row, columnDataTypes)
 		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query
