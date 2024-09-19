@@ -351,13 +351,18 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
+	stripeclient := getStripeApiClient()
+	if stripeclient != nil {
+		slogger.Debug("stripe client is enabled")
+	}
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
 		AppBaseUrl:               getAppBaseUrl(),
 		StripePriceLookupKey:     getStripePriceLookupKey(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), getStripeApiClient())
+	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), stripeclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

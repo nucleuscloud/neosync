@@ -204,6 +204,15 @@ message IsAccountStatusValidResponse {
   optional string reason = 2;
 }
 
+message GetAccountBillingPortalSessionRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountBillingPortalSessionResponse {
+  // The url that will be redirected to
+  string portal_session_url = 1;
+}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -240,4 +249,7 @@ service UserAccountService {
   rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // Returns a new billing portal session if the account has a billing customer id
+  rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {}
 }

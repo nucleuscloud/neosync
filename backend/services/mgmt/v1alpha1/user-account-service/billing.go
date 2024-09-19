@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/stripe/stripe-go/v79"
@@ -56,7 +59,7 @@ func (s *Service) GetAccountStatus(
 					SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_UNSPECIFIED,
 				}), nil
 			}
-
+			logger.Debug("attempting to find active stripe subscription")
 			subscription, err := s.findActiveStripeSubscription(account.StripeCustomerID.String)
 			if err != nil {
 				return nil, err
@@ -198,7 +201,7 @@ func (s *Service) IsAccountStatusValid(
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
-	reason := "Account is currently in expired state, visit the billing page to activate your subscription"
+	reason := "Account is currently in expired state, visit the billing page to activate your subscription."
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 		IsValid: false,
 		Reason:  &reason,
@@ -231,4 +234,36 @@ func (s *Service) getUsedRecordCountForMonth(
 		totalCount = 0
 	}
 	return uint64(totalCount), nil
+}
+
+func (s *Service) GetAccountBillingPortalSession(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAccountBillingPortalSessionRequest],
+) (*connect.Response[mgmtv1alpha1.GetAccountBillingPortalSessionResponse], error) {
+	if !s.cfg.IsNeosyncCloud || s.stripeclient == nil {
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure, "/")))
+	}
+	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountId)
+	if err != nil {
+		return nil, err
+	}
+	if !account.StripeCustomerID.Valid {
+		return nil, nucleuserrors.NewForbidden("requested account does not have a valid stripe customer id")
+	}
+
+	session, err := s.stripeclient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
+		Customer:  stripe.String(account.StripeCustomerID.String),
+		ReturnURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, account.AccountSlug)),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate billing portal session: %w", err)
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetAccountBillingPortalSessionResponse{
+		PortalSessionUrl: session.URL,
+	}), nil
 }

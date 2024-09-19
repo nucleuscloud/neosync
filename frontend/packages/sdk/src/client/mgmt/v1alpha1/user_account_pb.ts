@@ -1879,3 +1879,79 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
+ */
+export class GetAccountBillingPortalSessionRequest extends Message<GetAccountBillingPortalSessionRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingPortalSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingPortalSessionRequest | PlainMessage<GetAccountBillingPortalSessionRequest> | undefined, b: GetAccountBillingPortalSessionRequest | PlainMessage<GetAccountBillingPortalSessionRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingPortalSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
+ */
+export class GetAccountBillingPortalSessionResponse extends Message<GetAccountBillingPortalSessionResponse> {
+  /**
+   * The url that will be redirected to
+   *
+   * @generated from field: string portal_session_url = 1;
+   */
+  portalSessionUrl = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingPortalSessionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "portal_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingPortalSessionResponse | PlainMessage<GetAccountBillingPortalSessionResponse> | undefined, b: GetAccountBillingPortalSessionResponse | PlainMessage<GetAccountBillingPortalSessionResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingPortalSessionResponse, a, b);
+  }
+}
+

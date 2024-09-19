@@ -13996,6 +13996,54 @@
           ]
         },
         {
+          "name": "GetAccountBillingPortalSessionRequest",
+          "longName": "GetAccountBillingPortalSessionRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountBillingPortalSessionResponse",
+          "longName": "GetAccountBillingPortalSessionResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "portal_session_url",
+              "description": "The url that will be redirected to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetAccountOnboardingConfigRequest",
           "longName": "GetAccountOnboardingConfigRequest",
           "fullName": "mgmt.v1alpha1.GetAccountOnboardingConfigRequest",
@@ -15165,6 +15213,18 @@
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
               }
+            },
+            {
+              "name": "GetAccountBillingPortalSession",
+              "description": "Returns a new billing portal session if the account has a billing customer id",
+              "requestType": "GetAccountBillingPortalSessionRequest",
+              "requestLongType": "GetAccountBillingPortalSessionRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountBillingPortalSessionResponse",
+              "responseLongType": "GetAccountBillingPortalSessionResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
+              "responseStreaming": false
             }
           ]
         }
