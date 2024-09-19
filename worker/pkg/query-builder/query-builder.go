@@ -87,6 +87,13 @@ func getGoquVals(driver string, row []any, columnDataTypes []string) goqu.Vals {
 	for _, a := range row {
 		if isDefault(a) {
 			gval = append(gval, goqu.Literal(defaultStr))
+		} else if gotypeutil.IsMap(a) {
+			bits, err := gotypeutil.MapToJson(a)
+			if err != nil {
+				gval = append(gval, a)
+			} else {
+				gval = append(gval, bits)
+			}
 		} else {
 			gval = append(gval, a)
 		}
