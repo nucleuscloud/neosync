@@ -53,7 +53,7 @@ func (s *Service) GetAccountStatus(
 				AllowedRecordCount: allowedRecordCount,
 				SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_UNSPECIFIED,
 			}), nil
-		} else if s.stripeclient != nil {
+		} else if s.billingclient != nil {
 			if !account.StripeCustomerID.Valid {
 				logger.Warn("stripe is enabled but team account does not have stripe customer id")
 				return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
@@ -80,9 +80,7 @@ func (s *Service) GetAccountStatus(
 }
 
 func (s *Service) findActiveStripeSubscription(customerId string) (*stripe.Subscription, error) {
-	subIter := s.stripeclient.Subscriptions.List(&stripe.SubscriptionListParams{
-		Customer: stripe.String(customerId),
-	})
+	subIter := s.billingclient.GetSubscriptions(customerId)
 	var validSubscription *stripe.Subscription
 	now := time.Now().UTC().Unix()
 
@@ -198,7 +196,7 @@ func (s *Service) IsAccountStatusValid(
 
 	billingStatus := accountStatusResp.Msg.GetSubscriptionStatus()
 
-	if s.stripeclient == nil || billingStatus == mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE {
+	if s.billingclient == nil || billingStatus == mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE {
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
@@ -242,7 +240,7 @@ func (s *Service) GetAccountBillingCheckoutSession(
 	req *connect.Request[mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountBillingCheckoutSessionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	if !s.cfg.IsNeosyncCloud || s.stripeclient == nil {
+	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure, "/")))
 	}
 	logger = logger.With("accountId", req.Msg.GetAccountId())
@@ -284,7 +282,7 @@ func (s *Service) GetAccountBillingPortalSession(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountBillingPortalSessionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountBillingPortalSessionResponse], error) {
-	if !s.cfg.IsNeosyncCloud || s.stripeclient == nil {
+	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingPortalSessionProcedure, "/")))
 	}
 	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
@@ -300,10 +298,7 @@ func (s *Service) GetAccountBillingPortalSession(
 		return nil, nucleuserrors.NewForbidden("requested account does not have a valid stripe customer id")
 	}
 
-	session, err := s.stripeclient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
-		Customer:  stripe.String(account.StripeCustomerID.String),
-		ReturnURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, account.AccountSlug)),
-	})
+	session, err := s.billingclient.NewBillingPortalSession(account.StripeCustomerID.String, account.AccountSlug)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate billing portal session: %w", err)
 	}

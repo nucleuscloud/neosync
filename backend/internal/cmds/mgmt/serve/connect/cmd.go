@@ -56,6 +56,7 @@ import (
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -352,17 +353,20 @@ func serve(ctx context.Context) error {
 	}
 
 	stripeclient := getStripeApiClient()
+	var billingClient *billing.Client
 	if stripeclient != nil {
 		slogger.Debug("stripe client is enabled")
+		billingClient = billing.New(stripeclient, &billing.Config{
+			AppBaseUrl:     getAppBaseUrl(),
+			PriceLookupKey: getStripePriceLookupKey(),
+		})
 	}
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-		AppBaseUrl:               getAppBaseUrl(),
-		StripePriceLookupKey:     getStripePriceLookupKey(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), stripeclient)
+	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

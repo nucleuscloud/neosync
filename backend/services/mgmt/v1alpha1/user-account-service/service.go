@@ -5,8 +5,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 type Service struct {
@@ -16,15 +16,13 @@ type Service struct {
 	authclient            auth_client.Interface
 	authadminclient       authmgmt.Interface
 	prometheusclient      promv1.API
-	stripeclient          *stripeapiclient.API
+	billingclient         billing.Interface
 }
 
 type Config struct {
 	IsAuthEnabled            bool
 	IsNeosyncCloud           bool
 	DefaultMaxAllowedRecords *int64
-	AppBaseUrl               string
-	StripePriceLookupKey     string
 }
 
 func New(
@@ -34,7 +32,7 @@ func New(
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
 	prometheusclient promv1.API,
-	stripeclient *stripeapiclient.API,
+	billingclient billing.Interface,
 ) *Service {
 	return &Service{
 		cfg:                   cfg,
@@ -43,6 +41,6 @@ func New(
 		authclient:            authclient,
 		authadminclient:       authadminclient,
 		prometheusclient:      prometheusclient,
-		stripeclient:          stripeclient,
+		billingclient:         billingclient,
 	}
 }

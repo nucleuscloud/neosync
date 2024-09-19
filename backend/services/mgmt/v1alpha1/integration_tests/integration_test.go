@@ -36,15 +36,12 @@ import (
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
-	stripemocks "github.com/nucleuscloud/neosync/internal/mocks/github.com/stripe/stripe-go/v79"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-
-	"github.com/stripe/stripe-go/v79"
-	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 type unauthdClients struct {
@@ -71,6 +68,7 @@ type mocks struct {
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
 	prometheusclient      *mockPromV1.MockAPI
+	billingclient         *billing.MockInterface
 }
 
 type IntegrationTestSuite struct {
@@ -130,6 +128,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		authclient:            auth_client.NewMockInterface(s.T()),
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
 		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
+		billingclient:         billing.NewMockInterface(s.T()),
 	}
 
 	maxAllowed := int64(10000)
@@ -153,12 +152,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		nil,
 	)
 
-	mockbackend := stripemocks.NewMockBackend(s.T())
-	stripeBackends := &stripe.Backends{
-		API:     mockbackend,
-		Connect: mockbackend,
-		Uploads: mockbackend,
-	}
 	neoCloudUnauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: true},
 		nucleusdb.New(pool, db_queries.New()),
@@ -166,7 +159,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
 		s.mocks.prometheusclient,
-		stripeapiclient.New("testkey", stripeBackends),
+		s.mocks.billingclient,
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(

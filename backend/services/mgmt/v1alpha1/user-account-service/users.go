@@ -20,6 +20,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -234,7 +235,7 @@ func (s *Service) CreateTeamAccount(
 	if !s.cfg.IsAuthEnabled {
 		return nil, nucleuserrors.NewForbidden("unable to create team account as authentication is not enabled")
 	}
-	if s.cfg.IsNeosyncCloud && s.stripeclient == nil {
+	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
 		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments")
 	}
 
@@ -253,7 +254,7 @@ func (s *Service) CreateTeamAccount(
 	}
 
 	var checkoutSessionUrl *string
-	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.stripeclient != nil {
+	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.billingclient != nil {
 		account, err = s.db.UpsertStripeCustomerId(
 			ctx,
 			account.ID,
@@ -279,13 +280,11 @@ func (s *Service) CreateTeamAccount(
 
 func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Logger) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 	return func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
-		customer, err := s.stripeclient.Customers.New(&stripe.CustomerParams{
-			Email: s.getEmailFromToken(ctx, logger),
-			Name:  stripe.String(account.AccountSlug),
-			Metadata: map[string]string{
-				"accountId":   nucleusdb.UUIDString(account.ID),
-				"createdById": userId,
-			},
+		customer, err := s.billingclient.NewCustomer(&billing.CustomerRequest{
+			Email:     *s.getEmailFromToken(ctx, logger),
+			Name:      account.AccountSlug,
+			AccountId: nucleusdb.UUIDString(account.ID),
+			UserId:    userId,
 		})
 		if err != nil {
 			return "", fmt.Errorf("unable to create new stripe customer: %w", err)
@@ -295,37 +294,11 @@ func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Log
 }
 
 func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string) (*stripe.CheckoutSession, error) {
-	if s.stripeclient == nil {
+	if s.billingclient == nil {
 		return nil, errors.New("unable to generate checkout session as stripe client is nil")
 	}
-	pricelistParams := &stripe.PriceListParams{
-		LookupKeys: stripe.StringSlice([]string{s.cfg.StripePriceLookupKey}),
-		Active:     stripe.Bool(true),
-	}
-	priceiterator := s.stripeclient.Prices.List(pricelistParams)
-	var price *stripe.Price
-	for priceiterator.Next() {
-		p := priceiterator.Price()
-		price = p
-	}
-	if price == nil {
-		return nil, errors.New("unable to find price during checkout session lookup")
-	}
 
-	csparams := &stripe.CheckoutSessionParams{
-		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(price.ID),
-				Quantity: stripe.Int64(1), // todo: remove this once we set up metering
-			},
-		},
-		SuccessURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountSlug)),
-		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountSlug)),
-		Customer:   stripe.String(customerId),
-		Metadata:   map[string]string{"userId": userId},
-	}
-	session, err := s.stripeclient.CheckoutSessions.New(csparams)
+	session, err := s.billingclient.NewCheckoutSession(customerId, accountSlug, userId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new stripe checkout session: %w", err)
 	}

@@ -108,3 +108,6 @@ packages:
       outpkg: stripemocks
     interfaces:
       Backend:
+  github.com/nucleuscloud/neosync/internal/billing:
+    interfaces:
+      Interface:
