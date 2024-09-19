@@ -21,9 +21,14 @@ message GetUserAccountsResponse {
 }
 
 message UserAccount {
+  // The unique identifier of the account
   string id = 1;
+  // The account slug
   string name = 2;
+  // The type of account
   UserAccountType type = 3;
+  // Whether or not the account has an associated stripe customer id
+  bool has_stripe_customer_id = 4;
 }
 
 enum UserAccountType {
@@ -204,6 +209,15 @@ message IsAccountStatusValidResponse {
   optional string reason = 2;
 }
 
+message GetAccountBillingCheckoutSessionRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAccountBillingCheckoutSessionResponse {
+  // The url that will be redirected to
+  string checkout_session_url = 1;
+}
+
 message GetAccountBillingPortalSessionRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -249,6 +263,9 @@ service UserAccountService {
   rpc IsAccountStatusValid(IsAccountStatusValidRequest) returns (IsAccountStatusValidResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  // Returns a new checkout session for the account to subscribe
+  rpc GetAccountBillingCheckoutSession(GetAccountBillingCheckoutSessionRequest) returns (GetAccountBillingCheckoutSessionResponse) {}
 
   // Returns a new billing portal session if the account has a billing customer id
   rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {}

@@ -1,6 +1,7 @@
 package dtomaps
 
 import (
+	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -44,8 +45,13 @@ func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1
 
 func ToUserAccount(input *db_queries.NeosyncApiAccount) *mgmtv1alpha1.UserAccount {
 	return &mgmtv1alpha1.UserAccount{
-		Id:   nucleusdb.UUIDString(input.ID),
-		Name: input.AccountSlug,
-		Type: ToAccountTypeDto(AccountType(input.AccountType)),
+		Id:                  nucleusdb.UUIDString(input.ID),
+		Name:                input.AccountSlug,
+		Type:                ToAccountTypeDto(AccountType(input.AccountType)),
+		HasStripeCustomerId: hasStripeCustomerId(input.StripeCustomerID),
 	}
+}
+
+func hasStripeCustomerId(customerId pgtype.Text) bool {
+	return customerId.Valid && customerId.String != ""
 }

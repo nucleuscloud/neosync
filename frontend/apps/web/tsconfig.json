@@ -29,7 +29,7 @@
         "./*"
       ],
       "@neosync/sdk": [
-        "../../packages/sdk/*"
+        "../sdk/ts-client/*"
       ]
     }
   },

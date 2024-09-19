@@ -254,24 +254,16 @@ func (s *Service) CreateTeamAccount(
 
 	var checkoutSessionUrl *string
 	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.stripeclient != nil {
-		account, err = s.db.UpsertStripeCustomerId(ctx, account.ID, func(ctx context.Context) (string, error) {
-			customer, err := s.stripeclient.Customers.New(&stripe.CustomerParams{
-				Email: s.getEmailFromToken(ctx, logger),
-				Name:  stripe.String(account.AccountSlug),
-				Metadata: map[string]string{
-					"accountId":   nucleusdb.UUIDString(account.ID),
-					"createdById": nucleusdb.UUIDString(userId),
-				},
-			})
-			if err != nil {
-				return "", fmt.Errorf("unable to create new stripe customer: %w", err)
-			}
-			return customer.ID, nil
-		}, logger)
+		account, err = s.db.UpsertStripeCustomerId(
+			ctx,
+			account.ID,
+			s.getCreateStripeAccountFunction(user.Msg.GetUserId(), logger),
+			logger,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
 		}
-		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, nucleusdb.UUIDString(account.ID))
+		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId())
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
 		}
@@ -285,7 +277,24 @@ func (s *Service) CreateTeamAccount(
 	}), nil
 }
 
-func (s *Service) generateCheckoutSession(customerId, accountId string) (*stripe.CheckoutSession, error) {
+func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Logger) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+	return func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+		customer, err := s.stripeclient.Customers.New(&stripe.CustomerParams{
+			Email: s.getEmailFromToken(ctx, logger),
+			Name:  stripe.String(account.AccountSlug),
+			Metadata: map[string]string{
+				"accountId":   nucleusdb.UUIDString(account.ID),
+				"createdById": userId,
+			},
+		})
+		if err != nil {
+			return "", fmt.Errorf("unable to create new stripe customer: %w", err)
+		}
+		return customer.ID, nil
+	}
+}
+
+func (s *Service) generateCheckoutSession(customerId, accountSlug string, userId string) (*stripe.CheckoutSession, error) {
 	if s.stripeclient == nil {
 		return nil, errors.New("unable to generate checkout session as stripe client is nil")
 	}
@@ -311,9 +320,10 @@ func (s *Service) generateCheckoutSession(customerId, accountId string) (*stripe
 				Quantity: stripe.Int64(1), // todo: remove this once we set up metering
 			},
 		},
-		SuccessURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountId)),
-		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountId)),
+		SuccessURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountSlug)),
+		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", s.cfg.AppBaseUrl, accountSlug)),
 		Customer:   stripe.String(customerId),
+		Metadata:   map[string]string{"userId": userId},
 	}
 	session, err := s.stripeclient.CheckoutSessions.New(csparams)
 	if err != nil {

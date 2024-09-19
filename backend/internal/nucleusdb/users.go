@@ -161,7 +161,7 @@ func (d *NucleusDb) CreateTeamAccount(
 func (d *NucleusDb) UpsertStripeCustomerId(
 	ctx context.Context,
 	accountId pgtype.UUID,
-	getStripeCustomerId func(ctx context.Context) (string, error),
+	getStripeCustomerId func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error),
 	logger *slog.Logger,
 ) (*db_queries.NeosyncApiAccount, error) {
 	var account *db_queries.NeosyncApiAccount
@@ -178,7 +178,7 @@ func (d *NucleusDb) UpsertStripeCustomerId(
 			logger.Debug("during stripe customer id upsert, found valid stripe customer id")
 			return nil
 		}
-		customerId, err := getStripeCustomerId(ctx)
+		customerId, err := getStripeCustomerId(ctx, acc)
 		if err != nil {
 			return fmt.Errorf("unable to get stripe customer id: %w", err)
 		}

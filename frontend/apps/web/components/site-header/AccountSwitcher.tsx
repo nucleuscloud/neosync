@@ -14,6 +14,7 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -57,19 +58,22 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
   const accounts = data?.accounts ?? [];
+  const router = useRouter();
 
   const { mutateAsync: createTeamAccountAsync } =
     useMutation(createTeamAccount);
 
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
-    // todo: add acount type here
     try {
-      await createTeamAccountAsync({
+      const resp = await createTeamAccountAsync({
         name: values.name,
       });
       setShowNewTeamDialog(false);
       mutate();
       toast.success('Successfully created team!');
+      if (resp.checkoutSessionUrl) {
+        router.push(resp.checkoutSessionUrl);
+      }
     } catch (err) {
       console.error(err);
       toast.error('Unable to create team', {
@@ -92,8 +96,13 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
           activeAccount={account}
           accounts={accounts}
           onAccountSelect={(a) => setAccount(a)}
-          onNewAccount={() => setShowNewTeamDialog(true)}
-          isNeosyncCloud={systemAppConfigData?.isNeosyncCloud ?? false}
+          onNewAccount={() => {
+            if (systemAppConfigData?.isNeosyncCloud) {
+              router.push(`/${account?.name}/settings/billing`);
+              return;
+            }
+            setShowNewTeamDialog(true);
+          }}
         />
       }
     />
@@ -105,19 +114,12 @@ interface AccountSwitcherPopoverProps {
   accounts: UserAccount[];
   onAccountSelect(account: UserAccount): void;
   onNewAccount(): void;
-  isNeosyncCloud: boolean;
 }
 
 function AccountSwitcherPopover(
   props: AccountSwitcherPopoverProps
 ): ReactElement {
-  const {
-    activeAccount,
-    accounts,
-    onAccountSelect,
-    onNewAccount,
-    isNeosyncCloud,
-  } = props;
+  const { activeAccount, accounts, onAccountSelect, onNewAccount } = props;
   const [open, setOpen] = useState(false);
 
   const personalAccounts =
@@ -215,7 +217,7 @@ function AccountSwitcherPopover(
             )}
           </CommandList>
           <CommandSeparator />
-          {!isNeosyncCloud && (
+          {
             <CommandList>
               <CommandGroup>
                 <DialogTrigger asChild>
@@ -232,7 +234,7 @@ function AccountSwitcherPopover(
                 </DialogTrigger>
               </CommandGroup>
             </CommandList>
-          )}
+          }
         </Command>
       </PopoverContent>
     </Popover>

@@ -2,6 +2,7 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -234,6 +235,49 @@ func (s *Service) getUsedRecordCountForMonth(
 		totalCount = 0
 	}
 	return uint64(totalCount), nil
+}
+
+func (s *Service) GetAccountBillingCheckoutSession(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest],
+) (*connect.Response[mgmtv1alpha1.GetAccountBillingCheckoutSessionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	if !s.cfg.IsNeosyncCloud || s.stripeclient == nil {
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.UserAccountServiceGetAccountBillingCheckoutSessionProcedure, "/")))
+	}
+	logger = logger.With("accountId", req.Msg.GetAccountId())
+	accountId, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+
+	// retrieve the account, creates a customer id if one doesn't already exist
+	account, err := s.db.UpsertStripeCustomerId(
+		ctx,
+		*accountId,
+		s.getCreateStripeAccountFunction(user.Msg.GetUserId(), logger),
+		logger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("was unable to get account and/or upsert stripe customer id: %w", err)
+	}
+	if !account.StripeCustomerID.Valid {
+		return nil, errors.New("stripe customer id does not exist on account after creation attempt")
+	}
+
+	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate billing checkout session: %w", err)
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetAccountBillingCheckoutSessionResponse{
+		CheckoutSessionUrl: session.URL,
+	}), nil
 }
 
 func (s *Service) GetAccountBillingPortalSession(

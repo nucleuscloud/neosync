@@ -18,12 +18,12 @@ import {
 import UpgradeButton from './UpgradeButton';
 
 interface UpgradeProps {
-  buttonHref: string;
+  calendlyLink: string;
   isNeosyncCloud: boolean;
 }
 
 export default function Upgrade(props: UpgradeProps): ReactElement | null {
-  const { buttonHref, isNeosyncCloud } = props;
+  const { calendlyLink, isNeosyncCloud } = props;
   const { account } = useAccount();
   const accountId = account?.id;
   const { data: isAccountStatusValidResp, isLoading } = useQuery(
@@ -34,19 +34,19 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
 
   // always surface the upgrade button for non-neosynccloud users
   if (!isNeosyncCloud) {
-    return <UpgradeButton href={buttonHref} />;
+    return <UpgradeButton href={calendlyLink} target="_blank" />;
   }
   if (isLoading || isAccountStatusValidResp?.isValid) {
     return null;
   }
-
+  const billingHref = `/${account?.name}/settings/billing`;
   return (
     <div className="flex flex-row gap-1 items-center">
       <UpgradeInfoDialog
-        upgradeHref={buttonHref}
+        upgradeHref={billingHref}
         reason={isAccountStatusValidResp?.reason}
       />
-      <UpgradeButton href={buttonHref} />
+      <UpgradeButton href={billingHref} />
     </div>
   );
 }
