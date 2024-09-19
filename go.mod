@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.35
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.33
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.34.10
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.61.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.62.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.8
 	github.com/aws/smithy-go v1.20.4
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -80,7 +80,7 @@ require (
 	golang.org/x/net v0.29.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
-	google.golang.org/api v0.197.0
+	google.golang.org/api v0.198.0
 	google.golang.org/grpc v1.66.2
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
@@ -93,10 +93,10 @@ require (
 require (
 	cel.dev/expr v0.15.0 // indirect
 	cloud.google.com/go v0.115.1 // indirect
-	cloud.google.com/go/auth v0.9.3 // indirect
+	cloud.google.com/go/auth v0.9.4 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/bigquery v1.62.0 // indirect
-	cloud.google.com/go/compute/metadata v0.5.0 // indirect
+	cloud.google.com/go/compute/metadata v0.5.1 // indirect
 	cloud.google.com/go/iam v1.2.0 // indirect
 	cloud.google.com/go/longrunning v0.6.0 // indirect
 	cloud.google.com/go/pubsub v1.42.0 // indirect
