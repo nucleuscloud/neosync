@@ -245,6 +245,11 @@ const sidebars: SidebarsConfig = {
       label: 'Viewing Job Run Logs',
     },
     {
+      type: 'doc',
+      id: 'guides/incremental-data-sync',
+      label: 'Incremental Data Syncs',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
