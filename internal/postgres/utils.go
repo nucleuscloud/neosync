@@ -84,7 +84,7 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 					continue
 				}
 			}
-			jObj[col] = string(t)
+			jObj[col] = t
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
 		default:

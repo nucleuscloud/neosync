@@ -291,7 +291,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
 
-	insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
+	insertQuery, args, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
 	if err != nil {
 		return err
 	}
@@ -304,13 +304,23 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
-	query := s.buildQuery(insertQuery)
-	if _, err := s.db.ExecContext(ctx, query); err != nil {
+	if s.driver != sqlmanager_shared.PostgresDriver {
+		insertQuery = s.buildQuery(insertQuery)
+	}
+
+	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
 		}
 		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows)
 		if err != nil {
+			return err
+		}
+	}
+	if s.driver == sqlmanager_shared.PostgresDriver && s.suffix != nil && *s.suffix != "" {
+		// to prevent postgres cannot insert multiple commands into a prepared statement error
+		// must run table identity count reset separately
+		if _, err := s.db.ExecContext(ctx, *s.suffix); err != nil {
 			return err
 		}
 	}
@@ -325,12 +335,12 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, args, err := querybuilder.BuildInsertQuery(s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
 		if err != nil {
 			return err
 		}
 		query := s.buildQuery(insertQuery)
-		_, err = s.db.ExecContext(ctx, query)
+		_, err = s.db.ExecContext(ctx, query, args...)
 		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			errorCount++
 		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
