@@ -87,68 +87,95 @@ export default function RunTimeline(props: Props): ReactElement {
   console.log('tasks', tasks);
   return (
     <div
-      className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden overflow-y-auto max-h-[800px]"
-      style={{ height: `${tasks.length * 40 + 56}px` }} // 140 for the tooltip which we need to update and fix
+      className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden max-h-[800px]"
+      // style={{ height: `${tasks.length * 40 + 200}px` }}
     >
-      <TableHeader
-        getPositionPercentage={getPositionPercentage}
-        formatDate={formatDate}
-        timeLabels={timeLabels}
-      />
-      <div className="relative pt-12 ">
-        {tasks.map((_, index) => (
-          <div
-            key={`grid-line-${index}`}
-            className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
-            style={{ top: `${index * 40}px` }}
-            id="grid-lines"
+      <div className="flex flex-row h-full">
+        <div className="w-1/6">
+          <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-300 dark:border-gray-700" />
+          <div className="border-r border-gray-300 dark:border-gray-700 flex flex-col h-full text-sm ">
+            {tasks.map((task, index) => {
+              const isLastItem = index === tasks.length - 1;
+              return (
+                <div
+                  key={task.id}
+                  className={cn(
+                    'px-2 h-10 items-center flex',
+                    !isLastItem &&
+                      'border-b border-gray-300 dark:border-gray-700'
+                  )}
+                >
+                  <div>{task.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="relative w-5/6">
+          <TableHeader
+            getPositionPercentage={getPositionPercentage}
+            formatDate={formatDate}
+            timeLabels={timeLabels}
           />
-        ))}
-        {tasks.map((task, index) => {
-          const left = getPositionPercentage(task.start);
-          const width = getPositionPercentage(task.end) - left;
 
-          return (
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    key={task.id}
-                    className={cn(
-                      isError ? 'bg-red-400' : 'bg-blue-500',
-                      'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
-                    )}
-                    style={{
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      top: `${index * 40 + 4}px`,
-                    }}
-                    onClick={() => onTaskClick?.(task)}
-                  >
-                    <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
-                      <p>{task.name}</p>
-                      <span className="text-xs bg-black text-white px-1 py-0.5 rounded text-nowrap">
-                        {formatTaskDuration(task.start, task.end)}
-                      </span>
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent align="start">
-                  <div>
-                    <strong>Start:</strong>{' '}
-                    <Badge variant="default">
-                      {formatFullDate(task.start)}
-                    </Badge>
-                  </div>
-                  <div>
-                    <strong>Finish:</strong>{' '}
-                    <Badge variant="default">{formatFullDate(task.end)}</Badge>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        })}
+          {tasks.map((_, index) => (
+            <div
+              key={`grid-line-${index}`}
+              className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
+              style={{ top: `${index * 40 + 55}px` }}
+              id="grid-lines"
+            />
+          ))}
+          {tasks.map((task, index) => {
+            const left = getPositionPercentage(task.start);
+            const width = getPositionPercentage(task.end) - left;
+
+            return (
+              <div className="flex flex-row">
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        key={task.id}
+                        className={cn(
+                          isError ? 'bg-red-400' : 'bg-blue-500',
+                          'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
+                        )}
+                        style={{
+                          left: `${left}%`,
+                          width: `${width}%`,
+                          top: `${index * 40 + 60}px`,
+                        }}
+                        onClick={() => onTaskClick?.(task)}
+                      >
+                        <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
+                          <p>{task.name}</p>
+                          <span className="text-xs bg-black text-white px-1 py-0.5 rounded text-nowrap">
+                            {formatTaskDuration(task.start, task.end)}
+                          </span>
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent align="start">
+                      <div>
+                        <strong>Start:</strong>{' '}
+                        <Badge variant="default">
+                          {formatFullDate(task.start)}
+                        </Badge>
+                      </div>
+                      <div>
+                        <strong>Finish:</strong>{' '}
+                        <Badge variant="default">
+                          {formatFullDate(task.end)}
+                        </Badge>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -163,7 +190,7 @@ export default function RunTimeline(props: Props): ReactElement {
     const { formatDate, getPositionPercentage, timeLabels } = props;
 
     return (
-      <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6">
+      <div className="sticky top-0 h-14 border-b border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 z-10 px-6">
         <div className="relative w-full h-full">
           {timeLabels.map((label, index) => (
             <div
