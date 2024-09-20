@@ -9,11 +9,12 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage, toTitleCase } from '@/util/util';
-import { useMutation } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import {
   getAccountBillingCheckoutSession,
   getAccountBillingPortalSession,
+  isAccountStatusValid,
 } from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
@@ -114,6 +115,12 @@ interface ManageSubscriptionProps {
 function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
   const { account } = props;
 
+  const { data: isAccountStatusValidResp, isLoading } = useQuery(
+    isAccountStatusValid,
+    { accountId: account.id },
+    { enabled: !!account.id }
+  );
+
   const { mutateAsync: getAccountBillingPortalSessionAsync } = useMutation(
     getAccountBillingPortalSession
   );
@@ -145,7 +152,11 @@ function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
       setIsGeneratingUrl(false);
     }
   }
-  if (!account.hasStripeCustomerId) {
+  if (account.hasStripeCustomerId && isLoading) {
+    return <Skeleton />;
+  }
+
+  if (!account.hasStripeCustomerId || !isAccountStatusValidResp?.isValid) {
     return (
       <div>
         <Button type="button" onClick={() => onActivateSubscriptionClick()}>
