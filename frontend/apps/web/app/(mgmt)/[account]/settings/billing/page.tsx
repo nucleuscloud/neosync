@@ -337,21 +337,17 @@ function PlanButton(props: PlanButtonProps): ReactElement {
   switch (plan) {
     case 'Personal':
       if (planType == UserAccountType.PERSONAL) {
-        return (
-          <Button type="button">
-            <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
-          </Button>
-        );
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
-        return <div></div>;
+        return <></>;
       }
     case 'Team':
       if (planType == UserAccountType.TEAM) {
-        return <div></div>;
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
         return (
           <Button type="button">
-            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+            <Link href={upgradeHref} target="_blank">
               Get in touch
             </Link>
           </Button>
@@ -359,15 +355,36 @@ function PlanButton(props: PlanButtonProps): ReactElement {
       }
     case 'Enterprise':
       if (planType == UserAccountType.ENTERPRISE) {
-        return <div></div>;
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
         return (
           <Button type="button">
-            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+            <Link href={upgradeHref} target="_blank">
               Get in touch
             </Link>
           </Button>
         );
       }
   }
+}
+
+interface GetStartedButtonProps {
+  accountSlug: string;
+}
+
+function GetStartedButton(props: GetStartedButtonProps): ReactElement {
+  const { accountSlug } = props;
+  return (
+    <Button type="button">
+      <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
+    </Button>
+  );
+}
+
+interface CreateTeamButtonProps {}
+
+function CreateTeamButton(props: CreateTeamButtonProps): ReactElement {
+  const {} = props;
+
+  return <></>;
 }

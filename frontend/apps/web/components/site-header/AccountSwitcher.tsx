@@ -101,6 +101,11 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
           onNewAccount={() => {
             setShowNewTeamDialog(true);
           }}
+          showCreateTeamDialog={
+            !systemAppConfigData?.isNeosyncCloud ||
+            (systemAppConfigData.isNeosyncCloud &&
+              systemAppConfigData.isStripeEnabled)
+          }
         />
       }
       showSubscriptionInfo={
@@ -116,12 +121,19 @@ interface AccountSwitcherPopoverProps {
   accounts: UserAccount[];
   onAccountSelect(account: UserAccount): void;
   onNewAccount(): void;
+  showCreateTeamDialog: boolean;
 }
 
 function AccountSwitcherPopover(
   props: AccountSwitcherPopoverProps
 ): ReactElement {
-  const { activeAccount, accounts, onAccountSelect, onNewAccount } = props;
+  const {
+    activeAccount,
+    accounts,
+    onAccountSelect,
+    onNewAccount,
+    showCreateTeamDialog,
+  } = props;
   const [open, setOpen] = useState(false);
 
   const personalAccounts =
@@ -219,7 +231,7 @@ function AccountSwitcherPopover(
             )}
           </CommandList>
           <CommandSeparator />
-          {
+          {showCreateTeamDialog && (
             <CommandList>
               <CommandGroup>
                 <DialogTrigger asChild>
@@ -236,7 +248,7 @@ function AccountSwitcherPopover(
                 </DialogTrigger>
               </CommandGroup>
             </CommandList>
-          }
+          )}
         </Command>
       </PopoverContent>
     </Popover>
