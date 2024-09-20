@@ -955,6 +955,10 @@ func getStripePriceLookupMap() (billing.PriceQuantity, error) {
 
 	output := billing.PriceQuantity{}
 	for k, v := range value {
+		if v == "" {
+			output[k] = 0
+			continue
+		}
 		quantity, err := strconv.Atoi(v)
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
