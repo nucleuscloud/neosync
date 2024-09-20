@@ -306,6 +306,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'transformers/sql-javascript',
+      label: 'SQL Type to JS Types',
+    },
+    {
+      type: 'doc',
       id: 'transformers/user-defined',
       label: 'User Defined',
     },

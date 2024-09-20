@@ -55,6 +55,9 @@ func SqlRowToSqlServerTypesMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
+	for col, val := range jObj {
+		fmt.Printf("%s %T %+v \n\n", col, val, val)
+	}
 
 	return jObj, nil
 }
