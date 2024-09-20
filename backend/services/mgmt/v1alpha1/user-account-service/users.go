@@ -236,7 +236,7 @@ func (s *Service) CreateTeamAccount(
 		return nil, nucleuserrors.NewForbidden("unable to create team account as authentication is not enabled")
 	}
 	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
-		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments")
+		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.")
 	}
 
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
