@@ -91,7 +91,7 @@ func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes 
 		} else if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
 			if err != nil {
-				logger.Error("unable to marshal map to JSON", err)
+				logger.Error("unable to marshal map to JSON", "error", err.Error())
 				gval = append(gval, a)
 			} else {
 				gval = append(gval, bits)
@@ -113,7 +113,7 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string) goq
 		if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
 			if err != nil {
-				logger.Error("to marshal map to JSON", err)
+				logger.Error("to marshal map to JSON", "error", err.Error())
 				gval = append(gval, a)
 				continue
 			}
@@ -123,7 +123,7 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string) goq
 		} else if gotypeutil.IsSlice(a) {
 			s, err := gotypeutil.ParseSlice(a)
 			if err != nil {
-				logger.Error("unable to parse slice", err)
+				logger.Error("unable to parse slice", "error", err.Error())
 				gval = append(gval, a)
 				continue
 			}

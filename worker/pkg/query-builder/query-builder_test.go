@@ -2,6 +2,8 @@ package querybuilder
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/doug-martin/goqu/v9"
@@ -99,6 +101,7 @@ func Test_BuildUpdateQuery(t *testing.T) {
 }
 
 func Test_BuildInsertQuery(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	tests := []struct {
 		name                string
 		driver              string
@@ -120,7 +123,7 @@ func Test_BuildInsertQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, args, err := BuildInsertQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
+			actual, args, err := BuildInsertQuery(logger, tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 			require.Equal(t, tt.expectedArgs, args)
@@ -129,6 +132,7 @@ func Test_BuildInsertQuery(t *testing.T) {
 }
 
 func Test_BuildInsertQuery_JsonArray(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	driver := sqlmanager_shared.PostgresDriver
 	schema := "public"
 	table := "test_table"
@@ -140,13 +144,14 @@ func Test_BuildInsertQuery_JsonArray(t *testing.T) {
 	}
 	onConflictDoNothing := false
 
-	query, _, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, _, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, ARRAY['{"tag":"cool"}','{"tag":"awesome"}']::jsonb[]), ($3, $4, ARRAY['{"tag":"smart"}','{"tag":"clever"}']::jsonb[])`
 	require.Equal(t, expectedQuery, query)
 }
 
 func Test_BuildInsertQuery_Json(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	driver := sqlmanager_shared.PostgresDriver
 	schema := "public"
 	table := "test_table"
@@ -158,7 +163,7 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 	}
 	onConflictDoNothing := false
 
-	query, args, err := BuildInsertQuery(driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, args, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, $3), ($4, $5, $6)`
 	require.Equal(t, expectedQuery, query)
@@ -167,11 +172,12 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 
 func TestGetGoquVals(t *testing.T) {
 	t.Run("Postgres", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
 		columnDataTypes := []string{"text", "integer", "boolean", "jsonb", "integer[]"}
 
-		result := getGoquVals(driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes)
 
 		require.Len(t, result, 5)
 		require.Equal(t, "value1", result[0])
@@ -182,11 +188,12 @@ func TestGetGoquVals(t *testing.T) {
 	})
 
 	t.Run("Postgres Empty Column DataTypes", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.MysqlDriver
 		row := []any{"value1", 42, true, "DEFAULT"}
 		columnDataTypes := []string{}
 
-		result := getGoquVals(driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes)
 
 		require.Len(t, result, 4)
 		require.Equal(t, "value1", result[0])
@@ -196,11 +203,12 @@ func TestGetGoquVals(t *testing.T) {
 	})
 
 	t.Run("Mysql", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.MysqlDriver
 		row := []any{"value1", 42, true, "DEFAULT"}
 		columnDataTypes := []string{}
 
-		result := getGoquVals(driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes)
 
 		require.Len(t, result, 4)
 		require.Equal(t, "value1", result[0])
@@ -210,21 +218,23 @@ func TestGetGoquVals(t *testing.T) {
 	})
 
 	t.Run("EmptyRow", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{}
 		columnDataTypes := []string{}
 
-		result := getGoquVals(driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes)
 
 		require.Empty(t, result)
 	})
 
 	t.Run("Mismatch length ColumnDataTypes and Row Values", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{"text", 42, true}
 		columnDataTypes := []string{"text"}
 
-		result := getGoquVals(driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes)
 
 		require.Len(t, result, 3)
 		require.Equal(t, "text", result[0])
