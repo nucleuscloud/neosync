@@ -3,6 +3,7 @@ package benthos_environment
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 
 	neosync_benthos_defaulttransform "github.com/nucleuscloud/neosync/worker/pkg/benthos/default_transform"
 	neosync_benthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
@@ -34,11 +35,11 @@ type MongoConfig struct {
 	Provider neosync_benthos_mongodb.MongoPoolProvider
 }
 
-func New(config *RegisterConfig) (*service.Environment, error) {
-	return NewWithEnvironment(service.NewEnvironment(), config)
+func New(config *RegisterConfig, logger *slog.Logger) (*service.Environment, error) {
+	return NewWithEnvironment(service.NewEnvironment(), config, logger)
 }
 
-func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*service.Environment, error) {
+func NewWithEnvironment(env *service.Environment, config *RegisterConfig, logger *slog.Logger) (*service.Environment, error) {
 	if env == nil {
 		env = service.NewEnvironment()
 	}
@@ -57,7 +58,7 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig) (*serv
 	}
 
 	if config.SqlConfig != nil {
-		err := neosync_benthos_sql.RegisterPooledSqlInsertOutput(env, config.SqlConfig.Provider, config.SqlConfig.IsRetry)
+		err := neosync_benthos_sql.RegisterPooledSqlInsertOutput(env, config.SqlConfig.Provider, config.SqlConfig.IsRetry, logger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_sql_insert output to benthos instance: %w", err)
 		}
