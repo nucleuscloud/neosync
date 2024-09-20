@@ -417,6 +417,62 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	require.Nil(s.T(), resp.Msg.AllowedRecordCount)
 }
 
+type testSubscriptionIter struct {
+	subscriptions []*stripe.Subscription
+	current       int
+}
+
+func (t *testSubscriptionIter) Next() bool {
+	return t.current < len(t.subscriptions)
+}
+func (t *testSubscriptionIter) Subscription() *stripe.Subscription {
+	sub := t.subscriptions[t.current]
+	t.current++
+	return sub
+}
+func (t *testSubscriptionIter) Err() error {
+	return nil
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Billed() {
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+
+	t := s.T()
+
+	t.Run("active sub", func(t *testing.T) {
+		custId := "cust_id1"
+		accountId := s.createBilledTeamAccount(userclient, "test-team", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+			{Status: stripe.SubscriptionStatusIncompleteExpired},
+			{Status: stripe.SubscriptionStatusActive},
+		}}, nil)
+
+		resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.Equal(s.T(), mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE, resp.Msg.GetSubscriptionStatus())
+	})
+
+	t.Run("no active subscriptions", func(t *testing.T) {
+		custId := "cust_id2"
+		accountId := s.createBilledTeamAccount(userclient, "test-team1", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+			{Status: stripe.SubscriptionStatusIncompleteExpired},
+			{Status: stripe.SubscriptionStatusIncompleteExpired},
+		}}, nil)
+
+		resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.Equal(s.T(), mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED, resp.Msg.GetSubscriptionStatus())
+	})
+}
+
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Personal() {
 	accountId := s.createPersonalAccount(s.unauthdClients.users)
 
@@ -513,4 +569,120 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		require.True(s.T(), resp.Msg.GetIsValid())
 		require.Empty(s.T(), resp.Msg.GetReason())
 	})
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Billed() {
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+
+	t := s.T()
+	t.Run("active", func(t *testing.T) {
+		custId := "cust_id1"
+		accountId := s.createBilledTeamAccount(userclient, "test1", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+			{Status: stripe.SubscriptionStatusActive},
+		}}, nil)
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.True(s.T(), resp.Msg.GetIsValid())
+		require.Empty(s.T(), resp.Msg.GetReason())
+	})
+	t.Run("inactive", func(t *testing.T) {
+		custId := "cust_id2"
+		accountId := s.createBilledTeamAccount(userclient, "test2", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+			{Status: stripe.SubscriptionStatusIncompleteExpired},
+		}}, nil)
+
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+
+		require.False(s.T(), resp.Msg.GetIsValid())
+		require.NotEmpty(s.T(), resp.Msg.GetReason())
+	})
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckoutSession() {
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+
+	t := s.T()
+
+	t.Run("billed account - allowed", func(t *testing.T) {
+		teamAccountId := s.createBilledTeamAccount(userclient, "test-team", "test-stripe-id")
+
+		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+			Return(&stripe.CheckoutSession{URL: "new-test-url"}, nil)
+
+		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
+			AccountId: teamAccountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+		require.Equal(s.T(), "new-test-url", resp.Msg.GetCheckoutSessionUrl())
+	})
+
+	t.Run("personal account - disallowed", func(t *testing.T) {
+		personalAccountId := s.createPersonalAccount(userclient)
+		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
+			AccountId: personalAccountId,
+		}))
+		requireErrResp(s.T(), resp, err)
+	})
+
+	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
+		personalAccountId := s.createPersonalAccount(s.unauthdClients.users)
+		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
+			AccountId: personalAccountId,
+		}))
+		requireErrResp(s.T(), resp, err)
+	})
+}
+
+func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSession() {
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+
+	t := s.T()
+
+	t.Run("billed account - allowed", func(t *testing.T) {
+		teamAccountId := s.createBilledTeamAccount(userclient, "test-team", "test-stripe-id")
+
+		s.mocks.billingclient.On("NewBillingPortalSession", mock.Anything, mock.Anything).Once().
+			Return(&stripe.BillingPortalSession{URL: "new-test-url"}, nil)
+
+		resp, err := userclient.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
+			AccountId: teamAccountId,
+		}))
+		requireNoErrResp(s.T(), resp, err)
+		require.Equal(s.T(), "new-test-url", resp.Msg.GetPortalSessionUrl())
+	})
+
+	t.Run("personal account - disallowed", func(t *testing.T) {
+		personalAccountId := s.createPersonalAccount(userclient)
+		resp, err := userclient.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
+			AccountId: personalAccountId,
+		}))
+		requireErrResp(s.T(), resp, err)
+	})
+
+	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
+		personalAccountId := s.createPersonalAccount(s.unauthdClients.users)
+		resp, err := s.unauthdClients.users.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
+			AccountId: personalAccountId,
+		}))
+		requireErrResp(s.T(), resp, err)
+	})
+}
+
+func (s *IntegrationTestSuite) createBilledTeamAccount(client mgmtv1alpha1connect.UserAccountServiceClient, name, stripeCustomerId string) string {
+	s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+		Return(&stripe.Customer{ID: stripeCustomerId}, nil)
+	s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+		Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+	return s.createTeamAccount(client, name)
 }

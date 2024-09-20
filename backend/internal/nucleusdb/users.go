@@ -172,6 +172,9 @@ func (d *NucleusDb) UpsertStripeCustomerId(
 		if err != nil {
 			return err
 		}
+		if acc.AccountType == int16(AccountType_Personal) {
+			return errors.New("unsupported account type may not associate a stripe customer id")
+		}
 
 		if acc.StripeCustomerID.Valid {
 			account = &acc

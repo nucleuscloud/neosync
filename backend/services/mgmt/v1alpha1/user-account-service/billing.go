@@ -13,7 +13,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -38,7 +37,7 @@ func (s *Service) GetAccountStatus(
 	}
 
 	if s.cfg.IsNeosyncCloud {
-		if account.AccountType == int16(dtomaps.AccountType_Personal) {
+		if account.AccountType == int16(nucleusdb.AccountType_Personal) {
 			allowedRecordCount := getAllowedRecordCount(account.MaxAllowedRecords)
 			var usedRecordCount uint64
 			if allowedRecordCount != nil && *allowedRecordCount > 0 {
@@ -82,11 +81,10 @@ func (s *Service) GetAccountStatus(
 func (s *Service) findActiveStripeSubscription(customerId string) (*stripe.Subscription, error) {
 	subIter := s.billingclient.GetSubscriptions(customerId)
 	var validSubscription *stripe.Subscription
-	now := time.Now().UTC().Unix()
 
 	for subIter.Next() {
 		subscription := subIter.Subscription()
-		if isSubscriptionActive(subscription.Status) && subscription.CurrentPeriodStart <= now && subscription.CurrentPeriodEnd > now {
+		if isSubscriptionActive(subscription.Status) {
 			validSubscription = subscription
 			break
 		}
@@ -159,7 +157,7 @@ func (s *Service) IsAccountStatusValid(
 		return nil, fmt.Errorf("unable to retrieve account: %w", err)
 	}
 
-	if account.AccountType == int16(dtomaps.AccountType_Personal) {
+	if account.AccountType == int16(nucleusdb.AccountType_Personal) {
 		if accountStatusResp.Msg.AllowedRecordCount == nil {
 			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 		}

@@ -6,14 +6,19 @@ import (
 
 	"github.com/stripe/stripe-go/v79"
 	stripeapiclient "github.com/stripe/stripe-go/v79/client"
-	"github.com/stripe/stripe-go/v79/subscription"
 )
+
+type SubscriptionIter interface {
+	Subscription() *stripe.Subscription
+	Next() bool
+	Err() error
+}
 
 type Interface interface {
 	NewCustomer(req *CustomerRequest) (*stripe.Customer, error)
 	NewBillingPortalSession(customerId, accountSlug string) (*stripe.BillingPortalSession, error)
 	NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error)
-	GetSubscriptions(customerId string) *subscription.Iter
+	GetSubscriptions(customerId string) SubscriptionIter
 }
 
 type Client struct {
@@ -44,7 +49,7 @@ type CustomerRequest struct {
 	UserId    string
 }
 
-func (c *Client) GetSubscriptions(customerId string) *subscription.Iter {
+func (c *Client) GetSubscriptions(customerId string) SubscriptionIter {
 	return c.client.Subscriptions.List(&stripe.SubscriptionListParams{
 		Customer: stripe.String(customerId),
 	})
