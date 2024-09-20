@@ -101,13 +101,6 @@ packages:
   github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb:
     interfaces:
       dynamoDBAPIV2:
-  github.com/stripe/stripe-go/v79:
-    config:
-      dir: "internal/mocks/{{.PackagePath}}"
-      inpackage: False
-      outpkg: stripemocks
-    interfaces:
-      Backend:
   github.com/nucleuscloud/neosync/internal/billing:
     interfaces:
       Interface:
