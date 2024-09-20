@@ -1,8 +1,8 @@
 package billing
 
 import (
-	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/stripe/stripe-go/v79"
 	stripeapiclient "github.com/stripe/stripe-go/v79/client"
@@ -12,7 +12,7 @@ import (
 type Interface interface {
 	NewCustomer(req *CustomerRequest) (*stripe.Customer, error)
 	NewBillingPortalSession(customerId, accountSlug string) (*stripe.BillingPortalSession, error)
-	NewCheckoutSession(customerId, accountSlug, userId string) (*stripe.CheckoutSession, error)
+	NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error)
 	GetSubscriptions(customerId string) *subscription.Iter
 }
 
@@ -21,11 +21,13 @@ type Client struct {
 	cfg    *Config
 }
 
+type PriceQuantity map[string]int
+
 var _ Interface = (*Client)(nil)
 
 type Config struct {
-	AppBaseUrl     string
-	PriceLookupKey string
+	AppBaseUrl   string
+	PriceLookups PriceQuantity
 }
 
 func New(
@@ -66,20 +68,30 @@ func (c *Client) NewBillingPortalSession(customerId, accountSlug string) (*strip
 	})
 }
 
-func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string) (*stripe.CheckoutSession, error) {
-	price, err := c.getPriceFromLookupKey()
+func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
+	priceMap, err := c.getPricesFromLookupKeys()
 	if err != nil {
 		return nil, err
 	}
 
+	lineitems := []*stripe.CheckoutSessionLineItemParams{}
+	for lookup, quantity := range c.cfg.PriceLookups {
+		price, ok := priceMap[lookup]
+		if !ok {
+			return nil, fmt.Errorf("unable to find stripe price for lookup key: %s", lookup)
+		}
+		lineitem := &stripe.CheckoutSessionLineItemParams{
+			Price: stripe.String(price.ID),
+		}
+		if quantity > 0 {
+			lineitem.Quantity = stripe.Int64(int64(quantity))
+		}
+		lineitems = append(lineitems, lineitem)
+	}
+	logger.Debug("creating stripe checkout session", "numLineItems", len(lineitems))
 	return c.client.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(price.ID),
-				Quantity: stripe.Int64(1), // todo: remove this once we set up metering
-			},
-		},
+		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		LineItems:  lineitems,
 		SuccessURL: stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
 		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
 		Customer:   stripe.String(customerId),
@@ -87,23 +99,33 @@ func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string) (*st
 	})
 }
 
-func (c *Client) getPriceFromLookupKey() (*stripe.Price, error) {
+func (c *Client) getPricesFromLookupKeys() (map[string]*stripe.Price, error) {
+	output := map[string]*stripe.Price{}
 	pricelistParams := &stripe.PriceListParams{
-		LookupKeys: stripe.StringSlice([]string{c.cfg.PriceLookupKey}),
+		LookupKeys: stripe.StringSlice(toLookupKeySlice(c.cfg.PriceLookups)),
 		Active:     stripe.Bool(true),
 	}
 	iter := c.client.Prices.List(pricelistParams)
-	var price *stripe.Price
 	for iter.Next() {
 		p := iter.Price()
-		price = p
-		break
+		if _, ok := c.cfg.PriceLookups[p.LookupKey]; ok {
+			output[p.LookupKey] = p
+		}
 	}
 	if iter.Err() != nil {
 		return nil, iter.Err()
 	}
-	if price == nil {
-		return nil, errors.New("unable to find price during checkout session lookup")
+	if len(output) != len(c.cfg.PriceLookups) {
+		return nil, fmt.Errorf("unable to resolve all stripe price lookups to valid prices. need %d, found %d", len(c.cfg.PriceLookups), len(output))
 	}
-	return price, nil
+	return output, nil
+}
+
+func toLookupKeySlice(pc PriceQuantity) []string {
+	output := []string{}
+
+	for k := range pc {
+		output = append(output, k)
+	}
+	return output
 }

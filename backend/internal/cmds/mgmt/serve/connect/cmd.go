@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -356,9 +357,13 @@ func serve(ctx context.Context) error {
 	var billingClient *billing.Client
 	if stripeclient != nil {
 		slogger.Debug("stripe client is enabled")
+		priceLookups, err := getStripePriceLookupMap()
+		if err != nil {
+			return err
+		}
 		billingClient = billing.New(stripeclient, &billing.Config{
-			AppBaseUrl:     getAppBaseUrl(),
-			PriceLookupKey: getStripePriceLookupKey(),
+			AppBaseUrl:   getAppBaseUrl(),
+			PriceLookups: priceLookups,
 		})
 	}
 
@@ -945,8 +950,18 @@ func getStripeApiKey() *string {
 	return &value
 }
 
-func getStripePriceLookupKey() string {
-	return viper.GetString("STRIPE_TEAMPLAN_LOOKUP_KEY")
+func getStripePriceLookupMap() (billing.PriceQuantity, error) {
+	value := viper.GetStringMapString("STRIPE_PRICE_LOOKUPS")
+
+	output := billing.PriceQuantity{}
+	for k, v := range value {
+		quantity, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
+		}
+		output[k] = quantity
+	}
+	return output, nil
 }
 
 func getAppBaseUrl() string {

@@ -264,7 +264,7 @@ func (s *Service) CreateTeamAccount(
 		if err != nil {
 			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
 		}
-		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId())
+		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
 		}
@@ -293,12 +293,12 @@ func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Log
 	}
 }
 
-func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string) (*stripe.CheckoutSession, error) {
+func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
 	if s.billingclient == nil {
 		return nil, errors.New("unable to generate checkout session as stripe client is nil")
 	}
 
-	session, err := s.billingclient.NewCheckoutSession(customerId, accountSlug, userId)
+	session, err := s.billingclient.NewCheckoutSession(customerId, accountSlug, userId, logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new stripe checkout session: %w", err)
 	}

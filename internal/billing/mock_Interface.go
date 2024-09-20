@@ -3,7 +3,10 @@
 package billing
 
 import (
+	slog "log/slog"
+
 	mock "github.com/stretchr/testify/mock"
+
 	stripe "github.com/stripe/stripe-go/v79"
 
 	subscription "github.com/stripe/stripe-go/v79/subscription"
@@ -129,9 +132,9 @@ func (_c *MockInterface_NewBillingPortalSession_Call) RunAndReturn(run func(stri
 	return _c
 }
 
-// NewCheckoutSession provides a mock function with given fields: customerId, accountSlug, userId
-func (_m *MockInterface) NewCheckoutSession(customerId string, accountSlug string, userId string) (*stripe.CheckoutSession, error) {
-	ret := _m.Called(customerId, accountSlug, userId)
+// NewCheckoutSession provides a mock function with given fields: customerId, accountSlug, userId, logger
+func (_m *MockInterface) NewCheckoutSession(customerId string, accountSlug string, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
+	ret := _m.Called(customerId, accountSlug, userId, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewCheckoutSession")
@@ -139,19 +142,19 @@ func (_m *MockInterface) NewCheckoutSession(customerId string, accountSlug strin
 
 	var r0 *stripe.CheckoutSession
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (*stripe.CheckoutSession, error)); ok {
-		return rf(customerId, accountSlug, userId)
+	if rf, ok := ret.Get(0).(func(string, string, string, *slog.Logger) (*stripe.CheckoutSession, error)); ok {
+		return rf(customerId, accountSlug, userId, logger)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string) *stripe.CheckoutSession); ok {
-		r0 = rf(customerId, accountSlug, userId)
+	if rf, ok := ret.Get(0).(func(string, string, string, *slog.Logger) *stripe.CheckoutSession); ok {
+		r0 = rf(customerId, accountSlug, userId, logger)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*stripe.CheckoutSession)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(customerId, accountSlug, userId)
+	if rf, ok := ret.Get(1).(func(string, string, string, *slog.Logger) error); ok {
+		r1 = rf(customerId, accountSlug, userId, logger)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -168,13 +171,14 @@ type MockInterface_NewCheckoutSession_Call struct {
 //   - customerId string
 //   - accountSlug string
 //   - userId string
-func (_e *MockInterface_Expecter) NewCheckoutSession(customerId interface{}, accountSlug interface{}, userId interface{}) *MockInterface_NewCheckoutSession_Call {
-	return &MockInterface_NewCheckoutSession_Call{Call: _e.mock.On("NewCheckoutSession", customerId, accountSlug, userId)}
+//   - logger *slog.Logger
+func (_e *MockInterface_Expecter) NewCheckoutSession(customerId interface{}, accountSlug interface{}, userId interface{}, logger interface{}) *MockInterface_NewCheckoutSession_Call {
+	return &MockInterface_NewCheckoutSession_Call{Call: _e.mock.On("NewCheckoutSession", customerId, accountSlug, userId, logger)}
 }
 
-func (_c *MockInterface_NewCheckoutSession_Call) Run(run func(customerId string, accountSlug string, userId string)) *MockInterface_NewCheckoutSession_Call {
+func (_c *MockInterface_NewCheckoutSession_Call) Run(run func(customerId string, accountSlug string, userId string, logger *slog.Logger)) *MockInterface_NewCheckoutSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string))
+		run(args[0].(string), args[1].(string), args[2].(string), args[3].(*slog.Logger))
 	})
 	return _c
 }
@@ -184,7 +188,7 @@ func (_c *MockInterface_NewCheckoutSession_Call) Return(_a0 *stripe.CheckoutSess
 	return _c
 }
 
-func (_c *MockInterface_NewCheckoutSession_Call) RunAndReturn(run func(string, string, string) (*stripe.CheckoutSession, error)) *MockInterface_NewCheckoutSession_Call {
+func (_c *MockInterface_NewCheckoutSession_Call) RunAndReturn(run func(string, string, string, *slog.Logger) (*stripe.CheckoutSession, error)) *MockInterface_NewCheckoutSession_Call {
 	_c.Call.Return(run)
 	return _c
 }

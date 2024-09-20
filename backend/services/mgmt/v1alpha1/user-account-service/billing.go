@@ -268,7 +268,7 @@ func (s *Service) GetAccountBillingCheckoutSession(
 		return nil, errors.New("stripe customer id does not exist on account after creation attempt")
 	}
 
-	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId())
+	session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate billing checkout session: %w", err)
 	}
