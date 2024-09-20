@@ -69,7 +69,7 @@ func (d *NucleusDb) SetPersonalAccount(
 	maxAllowedRecords *int64, // only used when personal account is created
 ) (*db_queries.NeosyncApiAccount, error) {
 	var personalAccount *db_queries.NeosyncApiAccount
-	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
 		account, err := d.Q.GetPersonalAccountByUserId(ctx, dbtx, userId)
 		if err != nil && !IsNoRows(err) {
 			return err

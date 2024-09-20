@@ -280,8 +280,12 @@ func (s *Service) CreateTeamAccount(
 
 func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Logger) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
 	return func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+		email := s.getEmailFromToken(ctx, logger)
+		if email == nil {
+			return "", errors.New("unable to retrieve user email from auth token when creating stripe account")
+		}
 		customer, err := s.billingclient.NewCustomer(&billing.CustomerRequest{
-			Email:     *s.getEmailFromToken(ctx, logger),
+			Email:     *email,
 			Name:      account.AccountSlug,
 			AccountId: nucleusdb.UUIDString(account.ID),
 			UserId:    userId,

@@ -14,6 +14,12 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/stripe/stripe-go/v79"
+)
+
+var (
+	testAuthUserId = "test-user"
+	validAuthUser  = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig() {
@@ -110,9 +116,11 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NeosyncCloud() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
-	resp, err := s.neosyncCloudClients.users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
+	resp, err := userclient.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeUnimplemented)
 }
@@ -124,9 +132,11 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NeosyncCloud() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
-	resp, err := s.neosyncCloudClients.users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId}))
+	resp, err := userclient.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeUnimplemented)
 }
@@ -171,10 +181,6 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig(
 	require.Equal(s.T(), validTemporalConfigModel.Url, tc.GetUrl())
 }
 
-var (
-	validAuthUser = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
-)
-
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {
 	client := s.authdClients.getUserClient("test-user1")
 	userId := s.setUser(client)
@@ -185,21 +191,21 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth_NotFound() {
-	client := s.authdClients.getUserClient("test-user")
+	client := s.authdClients.getUserClient(testAuthUserId)
 	resp, err := client.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeNotFound)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetUser_Auth() {
-	client := s.authdClients.getUserClient("test-user")
+	client := s.authdClients.getUserClient(testAuthUserId)
 	userId := s.setUser(client)
 	require.NotEmpty(s.T(), userId)
 	require.NotEqual(s.T(), "00000000-0000-0000-0000-000000000000", userId)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Auth() {
-	client := s.authdClients.getUserClient("test-user")
+	client := s.authdClients.getUserClient(testAuthUserId)
 	s.setUser(client)
 
 	resp, err := client.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
@@ -207,12 +213,27 @@ func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Auth() 
 	require.NotEmpty(s.T(), resp.Msg.GetAccountId())
 }
 
+func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NeosyncCloud() {
+	client := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(client)
+
+	s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+		Return(&stripe.Customer{ID: "test-stripe-id"}, nil)
+	s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+		Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+
+	resp, err := client.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
+	requireNoErrResp(s.T(), resp, err)
+	require.NotEmpty(s.T(), resp.Msg.GetAccountId())
+	require.Equal(s.T(), "test-url", resp.Msg.GetCheckoutSessionUrl())
+}
+
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_Auth() {
-	client := s.authdClients.getUserClient("test-user")
+	client := s.authdClients.getUserClient(testAuthUserId)
 	userId := s.setUser(client)
 	accountId := s.createTeamAccount(client, "test-team")
 
-	s.mocks.authmanagerclient.On("GetUserBySub", mock.Anything, "test-user").
+	s.mocks.authmanagerclient.On("GetUserBySub", mock.Anything, testAuthUserId).
 		Return(validAuthUser, nil)
 
 	resp, err := client.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
@@ -358,7 +379,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetSystemInformation() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
@@ -370,7 +393,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 			Timestamp: 0,
 		}}, promv1.Warnings{}, nil)
 
-	resp, err := s.neosyncCloudClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+	resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -381,9 +404,11 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal_Unlimited() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
-	resp, err := s.neosyncCloudClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+	resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -405,7 +430,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Pers
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
@@ -417,7 +444,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 			Timestamp: 0,
 		}}, promv1.Warnings{}, nil)
 
-	resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+	resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -427,7 +454,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
@@ -439,7 +468,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 			Timestamp: 0,
 		}}, promv1.Warnings{}, nil)
 
-	resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+	resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -449,7 +478,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
-	accountId := s.createPersonalAccount(s.neosyncCloudClients.users)
+	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(userclient)
+	accountId := s.createPersonalAccount(userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
@@ -463,7 +494,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	t := s.T()
 	t.Run("over the limit", func(t *testing.T) {
-		resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 			AccountId:            accountId,
 			RequestedRecordCount: shared.Ptr(uint64(51)), // puts the user one over the limit
 		}))
@@ -473,7 +504,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		require.NotEmpty(s.T(), resp.Msg.GetReason())
 	})
 	t.Run("under the limit", func(t *testing.T) {
-		resp, err := s.neosyncCloudClients.users.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 			AccountId:            accountId,
 			RequestedRecordCount: shared.Ptr(uint64(50)),
 		}))
