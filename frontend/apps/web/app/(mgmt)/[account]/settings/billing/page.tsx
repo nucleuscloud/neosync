@@ -380,11 +380,3 @@ function GetStartedButton(props: GetStartedButtonProps): ReactElement {
     </Button>
   );
 }
-
-interface CreateTeamButtonProps {}
-
-function CreateTeamButton(props: CreateTeamButtonProps): ReactElement {
-  const {} = props;
-
-  return <></>;
-}
