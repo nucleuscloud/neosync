@@ -22,8 +22,6 @@ export default function JobRunActivityTable(
   }
   const isError = jobRunEvents.some((e) => e.tasks.some((t) => t.error));
 
-  console.log('jres', jobRunEvents);
-
   return (
     <div className="flex flex-col gap-4">
       <RunTimeline isError={isError} tasks={jobRunEvents} />

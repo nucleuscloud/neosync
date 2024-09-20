@@ -64,48 +64,44 @@ export default function RunTimeline(props: Props): ReactElement {
 
     return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
   };
-  const { timelineStart, timelineEnd, totalDuration, timeLabels } =
-    useMemo(() => {
-      const start = new Date(
-        Math.min(
-          ...tasks.map((t) => convertTimestampToDate(t.startTime).getTime())
-        )
-      );
-      const end = new Date(
-        Math.max(
-          ...tasks.map((t) => {
-            const errorDate = getCloseOrErrorDate(t);
-            return Math.max(
-              errorDate.getTime(),
-              convertTimestampToDate(t.closeTime || t.startTime).getTime()
-            );
-          })
-        )
-      );
+  const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
+    const start = new Date(
+      Math.min(
+        ...tasks.map((t) => convertTimestampToDate(t.startTime).getTime())
+      )
+    );
+    const end = new Date(
+      Math.max(
+        ...tasks.map((t) => {
+          const errorDate = getCloseOrErrorDate(t);
+          return Math.max(
+            errorDate.getTime(),
+            convertTimestampToDate(t.closeTime || t.startTime).getTime()
+          );
+        })
+      )
+    );
 
-      let duration = end.getTime() - start.getTime();
+    let duration = end.getTime() - start.getTime();
 
-      // Add padding, but limit it to a maximum of 100ms on each side
-      const padding = Math.min(duration * 0.1, 100);
-      const adjustedStart = new Date(start.getTime() - padding);
-      const adjustedEnd = new Date(end.getTime() + padding);
-      const adjustedDuration = adjustedEnd.getTime() - adjustedStart.getTime();
+    // Add padding, but limit it to a maximum of 100ms on each side
+    const padding = Math.min(duration * 0.1, 100);
+    const adjustedStart = new Date(start.getTime() - padding);
+    const adjustedEnd = new Date(end.getTime() + padding);
+    const adjustedDuration = adjustedEnd.getTime() - adjustedStart.getTime();
 
-      const labelCount = 5;
-      const labels: Date[] = Array.from({ length: labelCount }, (_, i) =>
-        addMilliseconds(
-          adjustedStart,
-          (adjustedDuration * i) / (labelCount - 1)
-        )
-      );
+    const labelCount = 5;
+    const labels: Date[] = Array.from({ length: labelCount }, (_, i) =>
+      addMilliseconds(adjustedStart, (adjustedDuration * i) / (labelCount - 1))
+    );
 
-      return {
-        timelineStart: adjustedStart,
-        timelineEnd: adjustedEnd,
-        totalDuration: adjustedDuration,
-        timeLabels: labels,
-      };
-    }, [tasks]);
+    return {
+      timelineStart: adjustedStart,
+      timelineEnd: adjustedEnd,
+      totalDuration: adjustedDuration,
+      timeLabels: labels,
+    };
+  }, [tasks]);
 
   // calculates where in the timeline axis something should be relative to the total duration
   const getPositionPercentage = (time: Date) => {
@@ -115,7 +111,7 @@ export default function RunTimeline(props: Props): ReactElement {
   console.log('tasks', tasks);
   console.log('isError', isError);
 
-  // TODO: only show
+  // TODO: only show th eerror ones
   return (
     <div
       className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden  max-h-[800px]"
@@ -166,14 +162,15 @@ export default function RunTimeline(props: Props): ReactElement {
             const width = getPositionPercentage(endTime) - left;
             const errorTask = task.tasks.find((item) => item.error);
 
+            console.log('error', errorTask);
+
             // TODO: only highlight in red the task that failed
             return (
-              <div className="flex flex-row">
+              <div className="flex flex-row" key={task.id}>
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div
-                        key={task.id}
                         className={cn(
                           isError ? 'bg-red-400' : 'bg-blue-500',
                           'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
