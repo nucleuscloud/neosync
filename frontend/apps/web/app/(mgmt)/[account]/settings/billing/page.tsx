@@ -103,6 +103,7 @@ export default function Billing(): ReactElement {
         account={account}
         upgradeHref={systemAppConfigData.calendlyUpgradeLink}
         plans={ALL_PLANS}
+        isStripeEnabled={systemAppConfigData.isStripeEnabled}
       />
     </div>
   );
@@ -228,9 +229,15 @@ interface PlansProps {
   account: UserAccount;
   plans: Plan[];
   upgradeHref: string;
+  isStripeEnabled: boolean;
 }
 
-function Plans({ account, upgradeHref, plans }: PlansProps): ReactElement {
+function Plans({
+  account,
+  upgradeHref,
+  plans,
+  isStripeEnabled,
+}: PlansProps): ReactElement {
   return (
     <div className="border border-gray-200 rounded-xl">
       <div className="flex flex-col gap-3">
@@ -240,9 +247,11 @@ function Plans({ account, upgradeHref, plans }: PlansProps): ReactElement {
               <p className="font-semibold">Current Plan:</p>
               <Badge>{toTitleCase(UserAccountType[account.type])} Plan</Badge>
             </div>
-            <div className="">
-              <ManageSubscription account={account} />
-            </div>
+            {isStripeEnabled && (
+              <div>
+                <ManageSubscription account={account} />
+              </div>
+            )}
           </div>
           <Separator className="dark:bg-gray-600" />
         </div>
@@ -253,6 +262,7 @@ function Plans({ account, upgradeHref, plans }: PlansProps): ReactElement {
               plan={plan}
               activePlan={account.type}
               upgradeHref={upgradeHref}
+              accountSlug={account.name}
             />
           ))}
         </div>
@@ -265,9 +275,10 @@ interface PlanInfoProps {
   plan: Plan;
   activePlan: UserAccountType;
   upgradeHref: string;
+  accountSlug: string;
 }
 function PlanInfo(props: PlanInfoProps): ReactElement {
-  const { plan, activePlan, upgradeHref } = props;
+  const { plan, activePlan, upgradeHref, accountSlug } = props;
   const isCurrentPlan = activePlan === plan.planType;
   return (
     <div>
@@ -298,6 +309,7 @@ function PlanInfo(props: PlanInfoProps): ReactElement {
             plan={plan.name}
             planType={activePlan}
             upgradeHref={upgradeHref}
+            accountSlug={accountSlug}
           />
         </div>
       </div>
@@ -317,16 +329,21 @@ interface PlanButtonProps {
   plan: PlanName;
   planType: UserAccountType;
   upgradeHref: string;
+  accountSlug: string;
 }
 
 function PlanButton(props: PlanButtonProps): ReactElement {
-  const { plan, planType, upgradeHref } = props;
+  const { plan, planType, upgradeHref, accountSlug } = props;
   switch (plan) {
     case 'Personal':
       if (planType == UserAccountType.PERSONAL) {
-        return <div></div>;
+        return (
+          <Button type="button">
+            <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
+          </Button>
+        );
       } else {
-        return <Button type="button">Get Started</Button>;
+        return <div></div>;
       }
     case 'Team':
       if (planType == UserAccountType.TEAM) {

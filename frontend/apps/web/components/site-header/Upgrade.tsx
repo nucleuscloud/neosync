@@ -2,7 +2,7 @@
 import { useQuery } from '@connectrpc/connect-query';
 import { isAccountStatusValid } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import {
@@ -58,8 +58,9 @@ interface UpgradeInfoDialogProps {
 
 function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
   const { upgradeHref, reason } = props;
+  const [open, onOpenChange] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" variant="ghost">
           <ExclamationTriangleIcon className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
@@ -82,7 +83,10 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
               Close
             </Button>
           </DialogClose>
-          <UpgradeButton href={upgradeHref} />
+          <UpgradeButton
+            href={upgradeHref}
+            onClick={() => onOpenChange(false)}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

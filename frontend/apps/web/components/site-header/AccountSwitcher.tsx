@@ -2,6 +2,7 @@
 import {
   CaretSortIcon,
   CheckIcon,
+  ExternalLinkIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode } from 'react';
@@ -14,6 +15,7 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -97,13 +99,13 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
           accounts={accounts}
           onAccountSelect={(a) => setAccount(a)}
           onNewAccount={() => {
-            if (systemAppConfigData?.isNeosyncCloud) {
-              router.push(`/${account?.name}/settings/billing`);
-              return;
-            }
             setShowNewTeamDialog(true);
           }}
         />
+      }
+      showSubscriptionInfo={
+        (systemAppConfigData?.isNeosyncCloud ?? false) &&
+        (systemAppConfigData?.isStripeEnabled ?? false)
       }
     />
   );
@@ -248,10 +250,18 @@ interface CreateNewTeamDialogProps {
 
   onSubmit(values: CreateTeamFormValues): Promise<void>;
   onCancel(): void;
+  showSubscriptionInfo: boolean;
 }
 
 function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
-  const { open, onOpenChange, trigger, onCancel, onSubmit } = props;
+  const {
+    open,
+    onOpenChange,
+    trigger,
+    onCancel,
+    onSubmit,
+    showSubscriptionInfo,
+  } = props;
   const form = useForm<CreateTeamFormValues>({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),
@@ -270,7 +280,7 @@ function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
             Create a new team account to collaborate with your co-workers.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+        <div className="space-y-2 py-2">
           <Form {...form}>
             <FormField
               control={form.control}
@@ -290,9 +300,10 @@ function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
               )}
             />
           </Form>
+          {showSubscriptionInfo && <ShowSubscriptionInfo />}
         </div>
         <DialogFooter>
-          <div className="flex flex-row justify-between w-full pt-6">
+          <div className="flex flex-row justify-between w-full">
             <Button variant="outline" onClick={() => onCancel()}>
               Cancel
             </Button>
@@ -309,5 +320,28 @@ function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface ShowSubscriptionInfoProps {}
+function ShowSubscriptionInfo(props: ShowSubscriptionInfoProps): ReactElement {
+  const {} = props;
+
+  return (
+    <div>
+      <div className="flex flex-row gap-2">
+        <p className="text-sm tracking-tight">
+          Continuing will start a monthly Team plan subscription.
+        </p>
+        <Link
+          href="https://neosync.dev/pricing"
+          target="_blank"
+          className="hover:underline inline-flex gap-1 flex-row items-center text-sm tracking-tight"
+        >
+          Learn More
+          <ExternalLinkIcon className="w-3 h-3" />
+        </Link>
+      </div>
+    </div>
   );
 }
