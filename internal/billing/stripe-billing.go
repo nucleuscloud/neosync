@@ -3,6 +3,7 @@ package billing
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/stripe/stripe-go/v79"
 	stripeapiclient "github.com/stripe/stripe-go/v79/client"
@@ -101,7 +102,20 @@ func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logg
 		CancelURL:  stripe.String(fmt.Sprintf("%s/%s/settings/billing", c.cfg.AppBaseUrl, accountSlug)),
 		Customer:   stripe.String(customerId),
 		Metadata:   map[string]string{"userId": userId},
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			BillingCycleAnchor: stripe.Int64(getNextMonthBillingCycleAnchor()),
+		},
 	})
+}
+
+func getNextMonthBillingCycleAnchor() int64 {
+	now := time.Now().UTC()
+
+	// Calculate the first day of the next month
+	nextMonth := now.AddDate(0, 1, 0)
+	firstOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, time.UTC)
+
+	return firstOfNextMonth.Unix()
 }
 
 func (c *Client) getPricesFromLookupKeys() (map[string]*stripe.Price, error) {
