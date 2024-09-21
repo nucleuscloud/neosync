@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go/v79"
@@ -443,7 +444,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("active sub", func(t *testing.T) {
 		custId := "cust_id1"
 		accountId := s.createBilledTeamAccount(userclient, "test-team", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusActive},
 		}}, nil)
@@ -459,7 +460,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("no active subscriptions", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(userclient, "test-team1", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 		}}, nil)
@@ -579,7 +580,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	t.Run("active", func(t *testing.T) {
 		custId := "cust_id1"
 		accountId := s.createBilledTeamAccount(userclient, "test1", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusActive},
 		}}, nil)
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
@@ -587,13 +588,13 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		}))
 		requireNoErrResp(s.T(), resp, err)
 
-		require.True(s.T(), resp.Msg.GetIsValid())
-		require.Empty(s.T(), resp.Msg.GetReason())
+		assert.True(s.T(), resp.Msg.GetIsValid())
+		assert.Empty(s.T(), resp.Msg.GetReason())
 	})
 	t.Run("inactive", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(userclient, "test2", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 		}}, nil)
 
@@ -602,8 +603,8 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		}))
 		requireNoErrResp(s.T(), resp, err)
 
-		require.False(s.T(), resp.Msg.GetIsValid())
-		require.NotEmpty(s.T(), resp.Msg.GetReason())
+		assert.False(s.T(), resp.Msg.GetIsValid())
+		assert.NotEmpty(s.T(), resp.Msg.GetReason())
 	})
 }
 

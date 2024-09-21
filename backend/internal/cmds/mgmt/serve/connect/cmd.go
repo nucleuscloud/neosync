@@ -354,7 +354,7 @@ func serve(ctx context.Context) error {
 	}
 
 	stripeclient := getStripeApiClient()
-	var billingClient *billing.Client
+	var billingClient billing.Interface
 	if stripeclient != nil {
 		slogger.Debug("stripe client is enabled")
 		priceLookups, err := getStripePriceLookupMap()
