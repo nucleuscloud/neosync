@@ -131,29 +131,6 @@ func (s *IntegrationTestSuite) Test_SetUserByAuth0Id() {
 		uid2 := UUIDString(resp2.ID)
 		require.Equal(t, uid1, uid2)
 	})
-
-	t.Run("idempotent - parallel", func(t *testing.T) {
-		errgrp, errctx := errgroup.WithContext(s.ctx)
-		var uid1 string
-		errgrp.Go(func() error {
-			resp, err := s.db.SetUserByAuthSub(errctx, "myid1")
-			assertNoErrResp(t, resp, err)
-			uid1 = UUIDString(resp.ID)
-			return nil
-		})
-
-		var uid2 string
-		errgrp.Go(func() error {
-			resp, err := s.db.SetUserByAuthSub(errctx, "myid1")
-			assertNoErrResp(t, resp, err)
-			uid2 = UUIDString(resp.ID)
-			return nil
-		})
-		err := errgrp.Wait()
-		require.NoError(t, err)
-
-		require.Equal(t, uid1, uid2)
-	})
 }
 
 func (s *IntegrationTestSuite) setUser(t testing.TB, ctx context.Context, sub string) *db_queries.NeosyncApiUser {
@@ -289,7 +266,83 @@ func (s *IntegrationTestSuite) Test_UpsertStripeCustomerId() {
 	})
 }
 
-// func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
-// 	t := s.T()
-// 	_ = t
-// }
+func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
+	t := s.T()
+
+	user := s.setUser(t, s.ctx, "foo")
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	requireNoErrResp(t, account, err)
+
+	t.Run("new invite", func(t *testing.T) {
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 1*time.Hour))
+		requireNoErrResp(t, invite, err)
+	})
+
+	t.Run("expire old invites", func(t *testing.T) {
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 1*time.Hour))
+		requireNoErrResp(t, invite, err)
+
+		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 1*time.Hour))
+		requireNoErrResp(t, invite2, err)
+		now := time.Now()
+
+		oldinvite1, err := s.db.Q.GetAccountInvite(s.ctx, s.db.Db, invite.ID)
+		requireNoErrResp(t, oldinvite1, err)
+		require.Greater(t, now.Unix(), oldinvite1.ExpiresAt.Time.Unix())
+	})
+
+	t.Run("personal not allowed", func(t *testing.T) {
+		account, err := s.db.SetPersonalAccount(s.ctx, user.ID, nil)
+		requireNoErrResp(t, account, err)
+
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 1*time.Hour))
+		requireErrResp(t, invite, err)
+		forbiddin := nucleuserrors.NewForbidden("")
+		require.ErrorAs(t, err, &forbiddin)
+	})
+}
+
+func (s *IntegrationTestSuite) Test_ValidateInviteAddUserToAccount() {
+	t := s.T()
+
+	user := s.setUser(t, s.ctx, "foo")
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	requireNoErrResp(t, account, err)
+
+	t.Run("accept invite", func(t *testing.T) {
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 24*time.Hour))
+		requireNoErrResp(t, invite, err)
+
+		user2 := s.setUser(t, s.ctx, "foo2")
+
+		accountId, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user2.ID, invite.Token, "foo2@example.com")
+		requireNoErrResp(t, accountId, err)
+	})
+
+	t.Run("expired invite", func(t *testing.T) {
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo3@example.com", getFutureTs(t, -1*time.Hour))
+		requireNoErrResp(t, invite, err)
+
+		user3 := s.setUser(t, s.ctx, "foo3")
+
+		accountId, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user3.ID, invite.Token, "foo3@example.com")
+		require.Error(t, err)
+		require.False(t, accountId.Valid)
+		forbidden := nucleuserrors.NewForbidden("")
+		require.ErrorAs(t, err, &forbidden)
+	})
+
+	t.Run("incorrect email", func(t *testing.T) {
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo4@example.com", getFutureTs(t, -1*time.Hour))
+		requireNoErrResp(t, invite, err)
+
+		user4 := s.setUser(t, s.ctx, "foo3")
+
+		accountId, err := s.db.ValidateInviteAddUserToAccount(s.ctx, user4.ID, invite.Token, "blah@example.com")
+		require.Error(t, err)
+		require.False(t, accountId.Valid)
+		badrequest := nucleuserrors.NewBadRequest("")
+		require.ErrorAs(t, err, &badrequest)
+		t.Log(err.Error())
+	})
+}

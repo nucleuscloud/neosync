@@ -223,8 +223,9 @@ func (d *NeosyncDb) CreateTeamAccountInvite(
 		if err != nil {
 			return err
 		}
-		if account.AccountType != 1 {
-			return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team")
+		if account.AccountType != int16(AccountType_Team) &&
+			account.AccountType != int16(AccountType_Enterprise) {
+			return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team, enterprise")
 		}
 
 		// update any active invites for user to expired before creating new invite
@@ -289,7 +290,7 @@ func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 				return nucleuserrors.NewBadRequest("account invitation already accepted")
 			}
 
-			if invite.ExpiresAt.Time.Before(time.Now()) {
+			if invite.ExpiresAt.Time.Before(time.Now().UTC()) {
 				return nucleuserrors.NewForbidden("account invitation expired")
 			}
 

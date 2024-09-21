@@ -2,7 +2,9 @@ package neosyncdb
 
 import (
 	"testing"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,4 +25,11 @@ func assertNoErrResp[T any](t testing.TB, resp T, err error) {
 	t.Helper()
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+func getFutureTs(t testing.TB, d time.Duration) pgtype.Timestamp {
+	t.Helper()
+	ts, err := ToTimestamp(time.Now().Add(d))
+	require.NoError(t, err)
+	return ts
 }
