@@ -16,6 +16,15 @@ const (
 	mockConnId = "8e34ce5b-cde8-4fc5-bd0a-7d1e50a4b14f"
 )
 
+const (
+	anonymousUserId = "00000000-0000-0000-0000-000000000000"
+	mockUserId      = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
+	mockAccountId   = "5629813e-1a35-4874-922c-9827d85f0378"
+	mockTeamName    = "team-name"
+	mockAuth0Id     = "643a8663-6b2e-4d29-a0f0-4a0700ff21ea"
+	mockEmail       = "fake@fake.com"
+)
+
 // CreateJob
 func Test_CreateJob(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
