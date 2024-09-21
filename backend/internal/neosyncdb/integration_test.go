@@ -21,6 +21,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	discardLogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
+)
+
 type IntegrationTestSuite struct {
 	suite.Suite
 
