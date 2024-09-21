@@ -104,3 +104,10 @@ packages:
   github.com/nucleuscloud/neosync/internal/billing:
     interfaces:
       Interface:
+  github.com/jackc/pgx/v5:
+    config:
+      dir: "internal/mocks/{{.PackagePath}}"
+      inpackage: False
+      outpkg: pgxmock
+    interfaces:
+      Tx:

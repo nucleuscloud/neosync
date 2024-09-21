@@ -13,6 +13,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	pgxmock "github.com/nucleuscloud/neosync/internal/mocks/github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -168,7 +169,7 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 func Test_Service_CreateAccountApiKey(t *testing.T) {
 	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
 	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)

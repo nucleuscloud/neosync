@@ -20,6 +20,7 @@ import (
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pgxmock "github.com/nucleuscloud/neosync/internal/mocks/github.com/jackc/pgx/v5"
 
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/stretchr/testify/mock"
@@ -318,7 +319,7 @@ var (
 // CreateJob
 func Test_CreateJob(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 	mockHandle := new(temporalmocks.ScheduleHandle)
 	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
@@ -481,7 +482,7 @@ func Test_CreateJob(t *testing.T) {
 // CreateJob
 func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
@@ -630,7 +631,7 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 // CreateJob
 func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 	mockScheduleClient := new(temporalmocks.ScheduleClient)
 
 	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
@@ -881,7 +882,7 @@ func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 // UpdateJobSchedule
 func Test_UpdateJobSchedule(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 
 	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	cron := pgtype.Text{}
@@ -970,7 +971,7 @@ func Test_PauseJob_UnPause(t *testing.T) {
 // UpdateJobSourceConnection
 func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	conn := getConnectionMock(mockAccountId, "test-1")
@@ -1059,7 +1060,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 
 func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
@@ -1599,7 +1600,7 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
-func mockDbTransaction(dbtxMock *neosyncdb.MockDBTX, txMock *neosyncdb.MockTx) {
+func mockDbTransaction(dbtxMock *neosyncdb.MockDBTX, txMock *pgxmock.MockTx) {
 	dbtxMock.On("Begin", mock.Anything).Return(txMock, nil)
 	txMock.On("Commit", mock.Anything).Return(nil)
 	txMock.On("Rollback", mock.Anything).Return(nil)
@@ -1701,7 +1702,7 @@ func getConnectionMock(accountId, name string) db_queries.NeosyncApiConnection {
 // SetJobWorkflowOptions
 func Test_SetJobWorkflowOptions(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	mockTx := new(neosyncdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 
 	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
