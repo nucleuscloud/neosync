@@ -1,4 +1,4 @@
-package nucleusdb
+package neosyncdb
 
 import (
 	"database/sql"

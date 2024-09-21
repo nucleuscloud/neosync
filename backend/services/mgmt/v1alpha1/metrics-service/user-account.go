@@ -9,7 +9,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 )
 
 //nolint:unparam
@@ -17,7 +17,7 @@ func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) {
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func isWorkerApiKey(ctx context.Context) bool {
 // 	if err != nil {
 // 		return nil, err
 // 	}
-// 	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+// 	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
 // 	if err != nil {
 // 		return nil, err
 // 	}

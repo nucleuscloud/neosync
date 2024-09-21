@@ -3,7 +3,7 @@ package dtomaps
 import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	temporalclient "go.temporal.io/sdk/client"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -39,20 +39,20 @@ func ToJobDto(
 	}
 
 	return &mgmtv1alpha1.Job{
-		Id:                 nucleusdb.UUIDString(inputJob.ID),
+		Id:                 neosyncdb.UUIDString(inputJob.ID),
 		Name:               inputJob.Name,
 		CreatedAt:          timestamppb.New(inputJob.CreatedAt.Time),
 		UpdatedAt:          timestamppb.New(inputJob.UpdatedAt.Time),
-		CreatedByUserId:    nucleusdb.UUIDString(inputJob.CreatedByID),
-		UpdatedByUserId:    nucleusdb.UUIDString(inputJob.UpdatedByID),
-		CronSchedule:       nucleusdb.ToNullableString(inputJob.CronSchedule),
+		CreatedByUserId:    neosyncdb.UUIDString(inputJob.CreatedByID),
+		UpdatedByUserId:    neosyncdb.UUIDString(inputJob.UpdatedByID),
+		CronSchedule:       neosyncdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:           mappings,
 		VirtualForeignKeys: virtualForeignKeys,
 		Source: &mgmtv1alpha1.JobSource{
 			Options: inputJob.ConnectionOptions.ToDto(),
 		},
 		Destinations:    destinations,
-		AccountId:       nucleusdb.UUIDString(inputJob.AccountID),
+		AccountId:       neosyncdb.UUIDString(inputJob.AccountID),
 		SyncOptions:     syncOptions,
 		WorkflowOptions: workflowOptions,
 	}
@@ -60,9 +60,9 @@ func ToJobDto(
 
 func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
 	return &mgmtv1alpha1.JobDestination{
-		ConnectionId: nucleusdb.UUIDString(input.ConnectionID),
+		ConnectionId: neosyncdb.UUIDString(input.ConnectionID),
 		Options:      input.Options.ToDto(),
-		Id:           nucleusdb.UUIDString(input.ID),
+		Id:           neosyncdb.UUIDString(input.ID),
 	}
 }
 

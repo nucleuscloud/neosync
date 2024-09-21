@@ -24,7 +24,7 @@ import (
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
@@ -139,7 +139,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	maxAllowed := int64(10000)
 	unauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false, DefaultMaxAllowedRecords: &maxAllowed},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -149,7 +149,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	authdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -159,7 +159,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -169,13 +169,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
 		&sqlconnect.SqlOpenConnector{},
 		pg_queries.New(),
@@ -186,7 +186,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	)
 	unauthdJobsService := v1alpha1_jobservice.New(
 		&v1alpha1_jobservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		unauthdConnectionsService,
 		unauthdUserService,

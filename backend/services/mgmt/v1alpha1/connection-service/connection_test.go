@@ -20,7 +20,7 @@ import (
 
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -159,7 +159,7 @@ func Test_IsConnectionNameAvailable_True(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("IsConnectionNameAvailable", context.Background(), mock.Anything, db_queries.IsConnectionNameAvailableParams{
 		AccountId:      accountUuid,
@@ -182,7 +182,7 @@ func Test_IsConnectionNameAvailable_False(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("IsConnectionNameAvailable", context.Background(), mock.Anything, db_queries.IsConnectionNameAvailableParams{
 		AccountId:      accountUuid,
@@ -206,8 +206,8 @@ func Test_GetConnections(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connections := []db_queries.NeosyncApiConnection{getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)}
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionsByAccount", context.Background(), mock.Anything, accountUuid).Return(connections, nil)
@@ -228,7 +228,7 @@ func Test_GetConnections_Error(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	var nilConnections []db_queries.NeosyncApiConnection
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionsByAccount", context.Background(), mock.Anything, accountUuid).Return(nilConnections, sql.ErrNoRows)
@@ -248,7 +248,7 @@ func Test_GetConnection(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(connection, nil)
@@ -269,7 +269,7 @@ func Test_GetConnection_Supports_WorkerApiKeys(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	ctx := context.WithValue(context.Background(), auth_apikey.TokenContextKey{}, &auth_apikey.TokenContextData{
 		ApiKeyType: apikey.WorkerApiKey,
@@ -292,7 +292,7 @@ func Test_GetConnection_Error(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	var nilConnection db_queries.NeosyncApiConnection
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(nilConnection, sql.ErrNoRows)
 
@@ -310,9 +310,9 @@ func Test_CreateConnection(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
+	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
 	mockConnectionConfig := &pg_models.ConnectionConfig{}
@@ -344,8 +344,8 @@ func Test_CreateConnection_Error(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
+	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	mockMgmtConnConfig := getPostgresConfigMock()
 	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
@@ -380,8 +380,8 @@ func Test_UpdateConnection(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
+	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
 	mockConnectionConfig := &pg_models.ConnectionConfig{}
@@ -412,8 +412,8 @@ func Test_UpdateConnection_UpdateError(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
+	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
 	mockConnectionConfig := &pg_models.ConnectionConfig{}
@@ -444,7 +444,7 @@ func Test_UpdateConnection_GetConnectionError(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	mockMgmtConnConfig := getPostgresConfigMock()
 
 	var nilConnection db_queries.NeosyncApiConnection
@@ -467,7 +467,7 @@ func Test_UpdateConnection_UnverifiedUser(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
 	mockConnectionConfig := &pg_models.ConnectionConfig{}
@@ -494,7 +494,7 @@ func Test_DeleteConnection(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 
@@ -515,7 +515,7 @@ func Test_DeleteConnection_NotFound(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	var nilConnection db_queries.NeosyncApiConnection
 
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(nilConnection, sql.ErrNoRows)
@@ -535,7 +535,7 @@ func Test_DeleteConnection_RemoveError(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 
@@ -556,7 +556,7 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, false)
 
@@ -578,7 +578,7 @@ func Test_CheckSqlQuery_Valid(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
@@ -609,7 +609,7 @@ func Test_CheckSqlQuery_Invalid(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
@@ -641,7 +641,7 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connectionUuid, _ := neosyncdb.ToUuid(mockConnectionId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
@@ -667,7 +667,7 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 
 type serviceMocks struct {
 	Service                *Service
-	DbtxMock               *nucleusdb.MockDBTX
+	DbtxMock               *neosyncdb.MockDBTX
 	QuerierMock            *db_queries.MockQuerier
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
@@ -682,7 +682,7 @@ type serviceMocks struct {
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
@@ -697,7 +697,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier),
+	service := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier),
 		mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier, mockMssqlQuerier, mockMongoConnector, mockAwsManager)
 
 	return &serviceMocks{
@@ -732,8 +732,8 @@ func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAc
 
 //nolint:all
 func getConnectionMock(accountId, name string, id pgtype.UUID, connType ConnTypeMock) db_queries.NeosyncApiConnection {
-	accountUuid, _ := nucleusdb.ToUuid(accountId)
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	accountUuid, _ := neosyncdb.ToUuid(accountId)
+	userUuid, _ := neosyncdb.ToUuid(mockUserId)
 	timestamp := pgtype.Timestamp{
 		Time: time.Now(),
 	}

@@ -19,7 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/loki"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
@@ -47,7 +47,7 @@ func (s *Service) GetJobRuns(
 	jobIds := []string{}
 	switch id := req.Msg.Id.(type) {
 	case *mgmtv1alpha1.GetJobRunsRequest_JobId:
-		jobUuid, err := nucleusdb.ToUuid(id.JobId)
+		jobUuid, err := neosyncdb.ToUuid(id.JobId)
 		if err != nil {
 			return nil, err
 		}
@@ -55,11 +55,11 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		accountId = nucleusdb.UUIDString(job.AccountID)
+		accountId = neosyncdb.UUIDString(job.AccountID)
 		jobIds = append(jobIds, id.JobId)
 	case *mgmtv1alpha1.GetJobRunsRequest_AccountId:
 		accountId = id.AccountId
-		accountPgUuid, err := nucleusdb.ToUuid(accountId)
+		accountPgUuid, err := neosyncdb.ToUuid(accountId)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func (s *Service) GetJobRuns(
 		}
 		for i := range jobs {
 			job := jobs[i]
-			jobIds = append(jobIds, nucleusdb.UUIDString(job.ID))
+			jobIds = append(jobIds, neosyncdb.UUIDString(job.ID))
 		}
 	default:
 		return nil, fmt.Errorf("must provide jobId or accountId")
@@ -255,7 +255,7 @@ func (s *Service) CreateJobRun(
 ) (*connect.Response[mgmtv1alpha1.CreateJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.JobId)
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	jobUuid, err := neosyncdb.ToUuid(req.Msg.JobId)
 	if err != nil {
 		return nil, err
 	}
@@ -263,13 +263,13 @@ func (s *Service) CreateJobRun(
 	if err != nil {
 		return nil, err
 	}
-	accountId := nucleusdb.UUIDString(job.AccountID)
+	accountId := neosyncdb.UUIDString(job.AccountID)
 	_, err = s.verifyUserInAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
+	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, neosyncdb.UUIDString(job.AccountID), neosyncdb.UUIDString(job.ID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -683,9 +683,9 @@ func (s *Service) GetRunContext(
 		ExternalId: id.GetExternalId(),
 		AccountId:  *accountUuid,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, fmt.Errorf("unable to retrieve run context by key: %w", err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("no run context exists with the provided key")
 	}
 
@@ -709,7 +709,7 @@ func (s *Service) SetRunContext(
 
 	var userId *pgtype.UUID
 	if isWorkerApiKey(ctx) {
-		uid, err := nucleusdb.ToUuid("00000000-0000-0000-0000-000000000000")
+		uid, err := neosyncdb.ToUuid("00000000-0000-0000-0000-000000000000")
 		if err != nil {
 			return nil, err
 		}
@@ -754,7 +754,7 @@ func (s *Service) SetRunContexts(
 
 		var userId *pgtype.UUID
 		if isWorkerApiKey(ctx) {
-			uid, err := nucleusdb.ToUuid("00000000-0000-0000-0000-000000000000")
+			uid, err := neosyncdb.ToUuid("00000000-0000-0000-0000-000000000000")
 			if err != nil {
 				return nil, err
 			}

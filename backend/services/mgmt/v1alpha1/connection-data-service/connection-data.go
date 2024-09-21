@@ -23,7 +23,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -104,7 +104,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		r, err := db.QueryContext(ctx, query)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 
@@ -118,7 +118,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		rows, err := db.QueryContext(ctx, selectQuery)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 
@@ -165,7 +165,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		r, err := db.Query(ctx, query)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer r.Close()
@@ -180,7 +180,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 		rows, err := db.Query(ctx, selectQuery)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer rows.Close()

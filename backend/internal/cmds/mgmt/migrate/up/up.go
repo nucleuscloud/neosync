@@ -13,7 +13,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -178,7 +178,7 @@ func getDbUrl() (string, error) {
 		dbOptions = &val
 	}
 
-	return nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
+	return neosyncdb.GetDbUrl(&neosyncdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
 		Database:              dbName,

@@ -24,7 +24,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
@@ -620,7 +620,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 
 type serviceMocks struct {
 	Service                *Service
-	DbtxMock               *nucleusdb.MockDBTX
+	DbtxMock               *neosyncdb.MockDBTX
 	QuerierMock            *db_queries.MockQuerier
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
 	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
@@ -640,7 +640,7 @@ type serviceMocks struct {
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)

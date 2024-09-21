@@ -22,7 +22,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
-  github.com/nucleuscloud/neosync/backend/internal/nucleusdb:
+  github.com/nucleuscloud/neosync/backend/internal/neosyncdb:
     # config:
     interfaces:
       DBTX:

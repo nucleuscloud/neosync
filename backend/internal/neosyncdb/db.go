@@ -1,4 +1,4 @@
-package nucleusdb
+package neosyncdb
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type BaseDBTX interface {
 	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
 }
 
-type NucleusDb struct {
+type NeosyncDb struct {
 	Db DBTX
 	Q  db_queries.Querier
 }
@@ -45,20 +45,20 @@ type ConnectConfig struct {
 	Options               *string
 }
 
-func New(db DBTX, q db_queries.Querier) *NucleusDb {
+func New(db DBTX, q db_queries.Querier) *NeosyncDb {
 	if q != nil {
-		return &NucleusDb{
+		return &NeosyncDb{
 			Db: db,
 			Q:  q,
 		}
 	}
-	return &NucleusDb{
+	return &NeosyncDb{
 		Db: db,
 		Q:  db_queries.New(),
 	}
 }
 
-func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
+func NewFromConfig(config *ConnectConfig) (*NeosyncDb, error) {
 	pgxconfig, err := pgxpool.ParseConfig(GetDbUrl(config))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse pgxpool config: %w", err)
@@ -75,7 +75,7 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 	return New(pool, nil), nil
 }
 
-func (d *NucleusDb) WithTx(
+func (d *NeosyncDb) WithTx(
 	ctx context.Context,
 	opts *pgx.TxOptions,
 	fn func(db BaseDBTX) error,
@@ -92,7 +92,7 @@ func (d *NucleusDb) WithTx(
 	return tx.Commit(ctx)
 }
 
-func (d *NucleusDb) getTx(
+func (d *NeosyncDb) getTx(
 	ctx context.Context,
 	opts *pgx.TxOptions,
 ) (pgx.Tx, error) {

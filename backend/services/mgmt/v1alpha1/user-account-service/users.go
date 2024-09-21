@@ -18,7 +18,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
@@ -36,20 +36,20 @@ func (s *Service) GetUser(
 		apiTokenCtxData, _ := auth_apikey.GetTokenDataFromCtx(ctx)
 		if apiTokenCtxData != nil {
 			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-				UserId: nucleusdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
+				UserId: neosyncdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
 			}), nil
 		}
 		user, err := s.db.Q.GetAnonymousUser(ctx, s.db.Db)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
-		} else if err != nil && nucleusdb.IsNoRows(err) {
+		} else if err != nil && neosyncdb.IsNoRows(err) {
 			user, err = s.db.Q.SetAnonymousUser(ctx, s.db.Db)
 			if err != nil {
 				return nil, err
 			}
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-			UserId: nucleusdb.UUIDString(user.ID),
+			UserId: neosyncdb.UUIDString(user.ID),
 		}), nil
 	}
 
@@ -61,20 +61,20 @@ func (s *Service) GetUser(
 	if tokenctxResp.ApiKeyContextData != nil {
 		if tokenctxResp.ApiKeyContextData.ApiKeyType == apikey.AccountApiKey && tokenctxResp.ApiKeyContextData.ApiKey != nil {
 			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-				UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+				UserId: neosyncdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
 			}), nil
 		}
 		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("invalid api key type when calling GetUser: %s", tokenctxResp.ApiKeyContextData.ApiKeyType))
 	} else if tokenctxResp.JwtContextData != nil {
 		user, err := s.db.Q.GetUserAssociationByProviderSub(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		if err != nil && !neosyncdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
-		} else if err != nil && nucleusdb.IsNoRows(err) {
+		} else if err != nil && neosyncdb.IsNoRows(err) {
 			return nil, nucleuserrors.NewNotFound("unable to find user")
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-			UserId: nucleusdb.UUIDString(user.UserID),
+			UserId: neosyncdb.UUIDString(user.UserID),
 		}), nil
 	}
 	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
@@ -90,7 +90,7 @@ func (s *Service) SetUser(
 		apiTokenCtxData, _ := auth_apikey.GetTokenDataFromCtx(ctx)
 		if apiTokenCtxData != nil {
 			return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
-				UserId: nucleusdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
+				UserId: neosyncdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
 			}), nil
 		}
 		user, err := s.db.Q.SetAnonymousUser(ctx, s.db.Db)
@@ -98,7 +98,7 @@ func (s *Service) SetUser(
 			return nil, err
 		}
 		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
-			UserId: nucleusdb.UUIDString(user.ID),
+			UserId: neosyncdb.UUIDString(user.ID),
 		}), nil
 	}
 
@@ -108,7 +108,7 @@ func (s *Service) SetUser(
 	}
 	if tokenctxResp.ApiKeyContextData != nil {
 		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
-			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+			UserId: neosyncdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
 		}), nil
 	} else if tokenctxResp.JwtContextData != nil {
 		tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
@@ -122,7 +122,7 @@ func (s *Service) SetUser(
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
-			UserId: nucleusdb.UUIDString(user.ID),
+			UserId: neosyncdb.UUIDString(user.ID),
 		}), nil
 	}
 	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
@@ -136,7 +136,7 @@ func (s *Service) GetUserAccounts(
 	if err != nil {
 		return nil, err
 	}
-	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (s *Service) SetPersonalAccount(
 		return nil, err
 	}
 
-	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (s *Service) SetPersonalAccount(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetPersonalAccountResponse{
-		AccountId: nucleusdb.UUIDString(account.ID),
+		AccountId: neosyncdb.UUIDString(account.ID),
 	}), nil
 }
 
@@ -195,11 +195,11 @@ func (s *Service) IsUserInAccount(
 		return nil, err
 	}
 
-	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
-	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountId, err := neosyncdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (s *Service) CreateTeamAccount(
 	if err != nil {
 		return nil, err
 	}
-	userId, err := nucleusdb.ToUuid(user.Msg.GetUserId())
+	userId, err := neosyncdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (s *Service) CreateTeamAccount(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
-		AccountId:          nucleusdb.UUIDString(account.ID),
+		AccountId:          neosyncdb.UUIDString(account.ID),
 		CheckoutSessionUrl: checkoutSessionUrl,
 	}), nil
 }
@@ -287,7 +287,7 @@ func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Log
 		customer, err := s.billingclient.NewCustomer(&billing.CustomerRequest{
 			Email:     *email,
 			Name:      account.AccountSlug,
-			AccountId: nucleusdb.UUIDString(account.ID),
+			AccountId: neosyncdb.UUIDString(account.ID),
 			UserId:    userId,
 		})
 		if err != nil {
@@ -348,10 +348,10 @@ func (s *Service) GetTeamAccountMembers(
 		user := userIdentities[i]
 		group.Go(func() error {
 			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-				Id: nucleusdb.UUIDString(user.UserID),
+				Id: neosyncdb.UUIDString(user.UserID),
 			}
 			if user.ProviderSub == "" {
-				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", nucleusdb.UUIDString(user.UserID)))
+				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", neosyncdb.UUIDString(user.UserID)))
 				return nil
 			}
 			if user.ProviderSub != "" {
@@ -388,7 +388,7 @@ func (s *Service) RemoveTeamAccountMember(
 	if err := s.verifyTeamAccount(ctx, *accountId); err != nil {
 		return nil, err
 	}
-	memberUserId, err := nucleusdb.ToUuid(req.Msg.UserId)
+	memberUserId, err := neosyncdb.ToUuid(req.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +396,7 @@ func (s *Service) RemoveTeamAccountMember(
 		AccountId: *accountId,
 		UserId:    memberUserId,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	}
 
@@ -411,7 +411,7 @@ func (s *Service) InviteUserToTeamAccount(
 	if err != nil {
 		return nil, err
 	}
-	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userId, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +426,7 @@ func (s *Service) InviteUserToTeamAccount(
 	}
 
 	tomorrow := time.Now().Add(24 * time.Hour)
-	expiresAt, err := nucleusdb.ToTimestamp(tomorrow)
+	expiresAt, err := neosyncdb.ToTimestamp(tomorrow)
 	if err != nil {
 		return nil, err
 	}
@@ -455,9 +455,9 @@ func (s *Service) GetTeamAccountInvites(
 	}
 
 	invites, err := s.db.Q.GetActiveAccountInvites(ctx, s.db.Db, *accountId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountInvitesResponse{
 			Invites: []*mgmtv1alpha1.AccountInvite{},
 		}), nil
@@ -477,17 +477,17 @@ func (s *Service) RemoveTeamAccountInvite(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest],
 ) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error) {
-	inviteId, err := nucleusdb.ToUuid(req.Msg.Id)
+	inviteId, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 	invite, err := s.db.Q.GetAccountInvite(ctx, s.db.Db, inviteId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
 	}
-	accountId, err := s.verifyUserInAccount(ctx, nucleusdb.UUIDString(invite.AccountID))
+	accountId, err := s.verifyUserInAccount(ctx, neosyncdb.UUIDString(invite.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -497,9 +497,9 @@ func (s *Service) RemoveTeamAccountInvite(
 	}
 
 	err = s.db.Q.RemoveAccountInvite(ctx, s.db.Db, inviteId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
 	}
 
@@ -514,7 +514,7 @@ func (s *Service) AcceptTeamAccountInvite(
 	if err != nil {
 		return nil, err
 	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -586,7 +586,7 @@ func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) {
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
 	}
