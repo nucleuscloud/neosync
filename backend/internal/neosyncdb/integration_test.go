@@ -350,3 +350,20 @@ func (s *IntegrationTestSuite) Test_ValidateInviteAddUserToAccount() {
 		t.Log(err.Error())
 	})
 }
+
+func (s *IntegrationTestSuite) Test_CreateAccountApiKey() {
+	t := s.T()
+
+	user := s.setUser(t, s.ctx, "foo")
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	requireNoErrResp(t, account, err)
+
+	key, err := s.db.CreateAccountApikey(s.ctx, &CreateAccountApiKeyRequest{
+		KeyName:           "foo",
+		KeyValue:          "bar",
+		AccountUuid:       account.ID,
+		CreatedByUserUuid: user.ID,
+		ExpiresAt:         getFutureTs(t, 24*time.Hour),
+	})
+	requireNoErrResp(t, key, err)
+}
