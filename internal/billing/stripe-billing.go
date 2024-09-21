@@ -103,18 +103,15 @@ func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logg
 		Customer:   stripe.String(customerId),
 		Metadata:   map[string]string{"userId": userId},
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			BillingCycleAnchor: stripe.Int64(getNextMonthBillingCycleAnchor()),
+			BillingCycleAnchor: stripe.Int64(getNextMonthBillingCycleAnchor(time.Now().UTC())),
 		},
 	})
 }
 
-func getNextMonthBillingCycleAnchor() int64 {
-	now := time.Now().UTC()
-
+func getNextMonthBillingCycleAnchor(date time.Time) int64 {
 	// Calculate the first day of the next month
-	nextMonth := now.AddDate(0, 1, 0)
-	firstOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, time.UTC)
-
+	nextMonth := date.AddDate(0, 1, 0)
+	firstOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, date.Location())
 	return firstOfNextMonth.Unix()
 }
 
