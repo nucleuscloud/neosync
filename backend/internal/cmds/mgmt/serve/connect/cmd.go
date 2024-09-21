@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -56,6 +57,7 @@ import (
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -66,6 +68,8 @@ import (
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	promconfig "github.com/prometheus/common/config"
+
+	stripeapiclient "github.com/stripe/stripe-go/v79/client"
 )
 
 func NewCmd() *cobra.Command {
@@ -148,6 +152,7 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
 		if err := up_cmd.Up(
 			ctx,
 			nucleusdb.GetDbUrl(dbMigConfig),
@@ -347,11 +352,26 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	stripeclient := getStripeApiClient()
+	var billingClient billing.Interface
+	if stripeclient != nil {
+		slogger.Debug("stripe client is enabled")
+		priceLookups, err := getStripePriceLookupMap()
+		if err != nil {
+			return err
+		}
+		billingClient = billing.New(stripeclient, &billing.Config{
+			AppBaseUrl:   getAppBaseUrl(),
+			PriceLookups: priceLookups,
+		})
+	}
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient))
+	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -912,4 +932,42 @@ func getDefaultMaxAllowedRecords() *int64 {
 		return nil
 	}
 	return &val
+}
+
+func getStripeApiClient() *stripeapiclient.API {
+	apiKey := getStripeApiKey()
+	if apiKey != nil {
+		return stripeapiclient.New(*apiKey, nil)
+	}
+	return nil
+}
+
+func getStripeApiKey() *string {
+	value := viper.GetString("STRIPE_API_KEY")
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func getStripePriceLookupMap() (billing.PriceQuantity, error) {
+	value := viper.GetStringMapString("STRIPE_PRICE_LOOKUPS")
+
+	output := billing.PriceQuantity{}
+	for k, v := range value {
+		if v == "" {
+			output[k] = 0
+			continue
+		}
+		quantity, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse value as int for billing quantity %q: %w", v, err)
+		}
+		output[k] = quantity
+	}
+	return output, nil
+}
+
+func getAppBaseUrl() string {
+	return viper.GetString("APP_BASEURL")
 }

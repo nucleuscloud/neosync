@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodIdempotency, MethodKind } from "@bufbuild/protobuf";
-import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
+import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountBillingCheckoutSessionRequest, GetAccountBillingCheckoutSessionResponse, GetAccountBillingPortalSessionRequest, GetAccountBillingPortalSessionResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
 
 /**
  * @generated from rpc mgmt.v1alpha1.UserAccountService.GetUser
@@ -287,6 +287,38 @@ export const isAccountStatusValid = {
   I: IsAccountStatusValidRequest,
   O: IsAccountStatusValidResponse,
       idempotency: MethodIdempotency.NoSideEffects,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Returns a new checkout session for the account to subscribe
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountBillingCheckoutSession
+ */
+export const getAccountBillingCheckoutSession = {
+  localName: "getAccountBillingCheckoutSession",
+  name: "GetAccountBillingCheckoutSession",
+  kind: MethodKind.Unary,
+  I: GetAccountBillingCheckoutSessionRequest,
+  O: GetAccountBillingCheckoutSessionResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Returns a new billing portal session if the account has a billing customer id
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession
+ */
+export const getAccountBillingPortalSession = {
+  localName: "getAccountBillingPortalSession",
+  name: "GetAccountBillingPortalSession",
+  kind: MethodKind.Unary,
+  I: GetAccountBillingPortalSessionRequest,
+  O: GetAccountBillingPortalSessionResponse,
   service: {
     typeName: "mgmt.v1alpha1.UserAccountService"
   }

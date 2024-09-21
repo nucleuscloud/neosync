@@ -705,6 +705,8 @@ func (m *UserAccount) validate(all bool) error {
 
 	// no validation rules for Type
 
+	// no validation rules for HasStripeCustomerId
+
 	if len(errors) > 0 {
 		return UserAccountMultiError(errors)
 	}
@@ -2148,6 +2150,10 @@ func (m *CreateTeamAccountResponse) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for AccountId
+
+	if m.CheckoutSessionUrl != nil {
+		// no validation rules for CheckoutSessionUrl
+	}
 
 	if len(errors) > 0 {
 		return CreateTeamAccountResponseMultiError(errors)
@@ -5208,3 +5214,434 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = IsAccountStatusValidResponseValidationError{}
+
+// Validate checks the field values on GetAccountBillingCheckoutSessionRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetAccountBillingCheckoutSessionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetAccountBillingCheckoutSessionRequest with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetAccountBillingCheckoutSessionRequestMultiError, or nil if none found.
+func (m *GetAccountBillingCheckoutSessionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountBillingCheckoutSessionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return GetAccountBillingCheckoutSessionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountBillingCheckoutSessionRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// GetAccountBillingCheckoutSessionRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountBillingCheckoutSessionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountBillingCheckoutSessionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountBillingCheckoutSessionRequestMultiError) AllErrors() []error { return m }
+
+// GetAccountBillingCheckoutSessionRequestValidationError is the validation
+// error returned by GetAccountBillingCheckoutSessionRequest.Validate if the
+// designated constraints aren't met.
+type GetAccountBillingCheckoutSessionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountBillingCheckoutSessionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountBillingCheckoutSessionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountBillingCheckoutSessionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountBillingCheckoutSessionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountBillingCheckoutSessionRequestValidationError) ErrorName() string {
+	return "GetAccountBillingCheckoutSessionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountBillingCheckoutSessionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountBillingCheckoutSessionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountBillingCheckoutSessionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountBillingCheckoutSessionRequestValidationError{}
+
+// Validate checks the field values on GetAccountBillingCheckoutSessionResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetAccountBillingCheckoutSessionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetAccountBillingCheckoutSessionResponse with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// GetAccountBillingCheckoutSessionResponseMultiError, or nil if none found.
+func (m *GetAccountBillingCheckoutSessionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountBillingCheckoutSessionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CheckoutSessionUrl
+
+	if len(errors) > 0 {
+		return GetAccountBillingCheckoutSessionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountBillingCheckoutSessionResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetAccountBillingCheckoutSessionResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountBillingCheckoutSessionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountBillingCheckoutSessionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountBillingCheckoutSessionResponseMultiError) AllErrors() []error { return m }
+
+// GetAccountBillingCheckoutSessionResponseValidationError is the validation
+// error returned by GetAccountBillingCheckoutSessionResponse.Validate if the
+// designated constraints aren't met.
+type GetAccountBillingCheckoutSessionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountBillingCheckoutSessionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountBillingCheckoutSessionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountBillingCheckoutSessionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountBillingCheckoutSessionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountBillingCheckoutSessionResponseValidationError) ErrorName() string {
+	return "GetAccountBillingCheckoutSessionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountBillingCheckoutSessionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountBillingCheckoutSessionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountBillingCheckoutSessionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountBillingCheckoutSessionResponseValidationError{}
+
+// Validate checks the field values on GetAccountBillingPortalSessionRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetAccountBillingPortalSessionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAccountBillingPortalSessionRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetAccountBillingPortalSessionRequestMultiError, or nil if none found.
+func (m *GetAccountBillingPortalSessionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountBillingPortalSessionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return GetAccountBillingPortalSessionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountBillingPortalSessionRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// GetAccountBillingPortalSessionRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountBillingPortalSessionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountBillingPortalSessionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountBillingPortalSessionRequestMultiError) AllErrors() []error { return m }
+
+// GetAccountBillingPortalSessionRequestValidationError is the validation error
+// returned by GetAccountBillingPortalSessionRequest.Validate if the
+// designated constraints aren't met.
+type GetAccountBillingPortalSessionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountBillingPortalSessionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountBillingPortalSessionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountBillingPortalSessionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountBillingPortalSessionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountBillingPortalSessionRequestValidationError) ErrorName() string {
+	return "GetAccountBillingPortalSessionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountBillingPortalSessionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountBillingPortalSessionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountBillingPortalSessionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountBillingPortalSessionRequestValidationError{}
+
+// Validate checks the field values on GetAccountBillingPortalSessionResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetAccountBillingPortalSessionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetAccountBillingPortalSessionResponse with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetAccountBillingPortalSessionResponseMultiError, or nil if none found.
+func (m *GetAccountBillingPortalSessionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountBillingPortalSessionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for PortalSessionUrl
+
+	if len(errors) > 0 {
+		return GetAccountBillingPortalSessionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountBillingPortalSessionResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetAccountBillingPortalSessionResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountBillingPortalSessionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountBillingPortalSessionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountBillingPortalSessionResponseMultiError) AllErrors() []error { return m }
+
+// GetAccountBillingPortalSessionResponseValidationError is the validation
+// error returned by GetAccountBillingPortalSessionResponse.Validate if the
+// designated constraints aren't met.
+type GetAccountBillingPortalSessionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountBillingPortalSessionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountBillingPortalSessionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountBillingPortalSessionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountBillingPortalSessionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountBillingPortalSessionResponseValidationError) ErrorName() string {
+	return "GetAccountBillingPortalSessionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountBillingPortalSessionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountBillingPortalSessionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountBillingPortalSessionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountBillingPortalSessionResponseValidationError{}

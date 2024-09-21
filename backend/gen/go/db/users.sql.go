@@ -152,7 +152,7 @@ INSERT INTO neosync_api.accounts (
 ) VALUES (
   0, $1, $2
 )
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
 type CreatePersonalAccountParams struct {
@@ -172,6 +172,7 @@ func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, arg Create
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -182,7 +183,7 @@ INSERT INTO neosync_api.accounts (
 ) VALUES (
   1, $1
 )
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
 func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
@@ -197,12 +198,13 @@ func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug st
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records from neosync_api.accounts
+SELECT id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id from neosync_api.accounts
 WHERE id = $1
 `
 
@@ -218,6 +220,7 @@ func (q *Queries) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -305,7 +308,7 @@ func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg Ge
 }
 
 const getAccountsByUser = `-- name: GetAccountsByUser :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id
 FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_api_keys aak ON aak.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aak.user_id
@@ -313,7 +316,7 @@ WHERE u.id = $1
 
 UNION
 
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id
 FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
@@ -338,6 +341,7 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID
 			&i.TemporalConfig,
 			&i.OnboardingConfig,
 			&i.MaxAllowedRecords,
+			&i.StripeCustomerID,
 		); err != nil {
 			return nil, err
 		}
@@ -402,7 +406,7 @@ func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 }
 
 const getPersonalAccountByUserId = `-- name: GetPersonalAccountByUserId :one
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 0
@@ -420,12 +424,13 @@ func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, useri
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
 
 const getTeamAccountsByUserId = `-- name: GetTeamAccountsByUserId :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 1
@@ -449,6 +454,7 @@ func (q *Queries) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid p
 			&i.TemporalConfig,
 			&i.OnboardingConfig,
 			&i.MaxAllowedRecords,
+			&i.StripeCustomerID,
 		); err != nil {
 			return nil, err
 		}
@@ -676,7 +682,7 @@ const setAccountMaxAllowedRecords = `-- name: SetAccountMaxAllowedRecords :one
 UPDATE neosync_api.accounts
 SET max_allowed_records = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
 type SetAccountMaxAllowedRecordsParams struct {
@@ -696,6 +702,7 @@ func (q *Queries) SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg 
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -720,6 +727,35 @@ func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UserType,
+	)
+	return i, err
+}
+
+const setNewAccountStripeCustomerId = `-- name: SetNewAccountStripeCustomerId :one
+UPDATE neosync_api.accounts
+SET stripe_customer_id = $1
+WHERE id = $2 AND stripe_customer_id IS NULL
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
+`
+
+type SetNewAccountStripeCustomerIdParams struct {
+	StripeCustomerID pgtype.Text
+	AccountId        pgtype.UUID
+}
+
+func (q *Queries) SetNewAccountStripeCustomerId(ctx context.Context, db DBTX, arg SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, setNewAccountStripeCustomerId, arg.StripeCustomerID, arg.AccountId)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+		&i.OnboardingConfig,
+		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -752,7 +788,7 @@ const updateAccountOnboardingConfig = `-- name: UpdateAccountOnboardingConfig :o
 UPDATE neosync_api.accounts
 SET onboarding_config = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
 type UpdateAccountOnboardingConfigParams struct {
@@ -772,6 +808,7 @@ func (q *Queries) UpdateAccountOnboardingConfig(ctx context.Context, db DBTX, ar
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -809,7 +846,7 @@ const updateTemporalConfigByAccount = `-- name: UpdateTemporalConfigByAccount :o
 UPDATE neosync_api.accounts
 SET temporal_config = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
 type UpdateTemporalConfigByAccountParams struct {
@@ -829,6 +866,7 @@ func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, ar
 		&i.TemporalConfig,
 		&i.OnboardingConfig,
 		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }

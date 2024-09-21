@@ -18,6 +18,7 @@ type NeosyncApiAccount struct {
 	TemporalConfig    *pg_models.TemporalConfig
 	OnboardingConfig  *pg_models.AccountOnboardingConfig
 	MaxAllowedRecords pgtype.Int8
+	StripeCustomerID  pgtype.Text
 }
 
 type NeosyncApiAccountApiKey struct {

@@ -13524,6 +13524,29 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "BillingStatus",
+          "longName": "BillingStatus",
+          "fullName": "mgmt.v1alpha1.BillingStatus",
+          "description": "",
+          "values": [
+            {
+              "name": "BILLING_STATUS_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "BILLING_STATUS_ACTIVE",
+              "number": "1",
+              "description": "Corresponds to a billing subscription and rolls up various states into active\nThis may be split into the future to be more granular and mirror the underlying billing system"
+            },
+            {
+              "name": "BILLING_STATUS_EXPIRED",
+              "number": "2",
+              "description": "If the system could not find any active subscriptions"
+            }
+          ]
+        },
+        {
           "name": "UserAccountType",
           "longName": "UserAccountType",
           "fullName": "mgmt.v1alpha1.UserAccountType",
@@ -13943,12 +13966,120 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "checkout_session_url",
+              "description": "If NeosyncCloud, will respond with a checkout session url so they can setup billing",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_checkout_session_url",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountBillingCheckoutSessionRequest",
+          "longName": "GetAccountBillingCheckoutSessionRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
           "hasOneofs": false,
           "extensions": [],
           "fields": [
             {
               "name": "account_id",
               "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountBillingCheckoutSessionResponse",
+          "longName": "GetAccountBillingCheckoutSessionResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "checkout_session_url",
+              "description": "The url that will be redirected to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountBillingPortalSessionRequest",
+          "longName": "GetAccountBillingPortalSessionRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountBillingPortalSessionResponse",
+          "longName": "GetAccountBillingPortalSessionResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "portal_session_url",
+              "description": "The url that will be redirected to",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14070,9 +14201,9 @@
               "name": "subscription_status",
               "description": "The current subscription status determined by the billing system.",
               "label": "",
-              "type": "int32",
-              "longType": "int32",
-              "fullType": "int32",
+              "type": "BillingStatus",
+              "longType": "BillingStatus",
+              "fullType": "mgmt.v1alpha1.BillingStatus",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -14841,7 +14972,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14853,7 +14984,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The account slug",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14865,11 +14996,23 @@
             },
             {
               "name": "type",
-              "description": "",
+              "description": "The type of account",
               "label": "",
               "type": "UserAccountType",
               "longType": "UserAccountType",
               "fullType": "mgmt.v1alpha1.UserAccountType",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_stripe_customer_id",
+              "description": "Whether or not the account has an associated stripe customer id",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -15130,6 +15273,30 @@
               "options": {
                 "idempotency_level": "NO_SIDE_EFFECTS"
               }
+            },
+            {
+              "name": "GetAccountBillingCheckoutSession",
+              "description": "Returns a new checkout session for the account to subscribe",
+              "requestType": "GetAccountBillingCheckoutSessionRequest",
+              "requestLongType": "GetAccountBillingCheckoutSessionRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountBillingCheckoutSessionResponse",
+              "responseLongType": "GetAccountBillingCheckoutSessionResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetAccountBillingPortalSession",
+              "description": "Returns a new billing portal session if the account has a billing customer id",
+              "requestType": "GetAccountBillingPortalSessionRequest",
+              "requestLongType": "GetAccountBillingPortalSessionRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountBillingPortalSessionResponse",
+              "responseLongType": "GetAccountBillingPortalSessionResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
+              "responseStreaming": false
             }
           ]
         }

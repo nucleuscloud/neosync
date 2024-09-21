@@ -1,17 +1,27 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { toTitleCase } from '@/util/util';
-import { UserAccountType } from '@neosync/sdk';
+import { getErrorMessage, toTitleCase } from '@/util/util';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { UserAccount, UserAccountType } from '@neosync/sdk';
+import {
+  getAccountBillingCheckoutSession,
+  getAccountBillingPortalSession,
+  isAccountStatusValid,
+} from '@neosync/sdk/connectquery';
 import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
-import { ReactElement } from 'react';
+import { useRouter } from 'next/navigation';
+import { ReactElement, useState } from 'react';
+import { toast } from 'sonner';
 
 type PlanName = 'Personal' | 'Team' | 'Enterprise';
 
@@ -90,10 +100,104 @@ export default function Billing(): ReactElement {
         <NeedHelp />
       </div>
       <Plans
-        accountType={account.type}
+        account={account}
         upgradeHref={systemAppConfigData.calendlyUpgradeLink}
         plans={ALL_PLANS}
+        isStripeEnabled={systemAppConfigData.isStripeEnabled}
       />
+    </div>
+  );
+}
+
+interface ManageSubscriptionProps {
+  account: UserAccount;
+}
+
+function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
+  const { account } = props;
+
+  const { data: isAccountStatusValidResp, isLoading } = useQuery(
+    isAccountStatusValid,
+    { accountId: account.id },
+    { enabled: !!account.id }
+  );
+
+  const { mutateAsync: getAccountBillingPortalSessionAsync } = useMutation(
+    getAccountBillingPortalSession
+  );
+  const { mutateAsync: getAccountBillingCheckoutSessionAsync } = useMutation(
+    getAccountBillingCheckoutSession
+  );
+  const router = useRouter();
+  const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+
+  if (account.type === UserAccountType.PERSONAL) {
+    return <div />;
+  }
+  async function onActivateSubscriptionClick(): Promise<void> {
+    if (isGeneratingUrl) {
+      return;
+    }
+    setIsGeneratingUrl(true);
+    try {
+      const resp = await getAccountBillingCheckoutSessionAsync({
+        accountId: account.id,
+      });
+      router.push(resp.checkoutSessionUrl);
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to generate billing checkout session url', {
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setIsGeneratingUrl(false);
+    }
+  }
+  if (account.hasStripeCustomerId && isLoading) {
+    return <Skeleton />;
+  }
+
+  if (!account.hasStripeCustomerId || !isAccountStatusValidResp?.isValid) {
+    return (
+      <div>
+        <Button type="button" onClick={() => onActivateSubscriptionClick()}>
+          <ButtonText
+            leftIcon={isGeneratingUrl ? <Spinner /> : null}
+            text="Activate Subscription"
+          />
+        </Button>
+      </div>
+    );
+  }
+
+  async function onManageSubscriptionClick(): Promise<void> {
+    if (isGeneratingUrl) {
+      return;
+    }
+    setIsGeneratingUrl(true);
+    try {
+      const resp = await getAccountBillingPortalSessionAsync({
+        accountId: account.id,
+      });
+      router.push(resp.portalSessionUrl);
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to generate billing portal session url', {
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setIsGeneratingUrl(false);
+    }
+  }
+
+  return (
+    <div>
+      <Button type="button" onClick={() => onManageSubscriptionClick()}>
+        <ButtonText
+          leftIcon={isGeneratingUrl ? <Spinner /> : null}
+          text="Manage Subscription"
+        />
+      </Button>
     </div>
   );
 }
@@ -122,19 +226,32 @@ function NeedHelp(): ReactElement {
 }
 
 interface PlansProps {
-  accountType: UserAccountType;
+  account: UserAccount;
   plans: Plan[];
   upgradeHref: string;
+  isStripeEnabled: boolean;
 }
 
-function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
+function Plans({
+  account,
+  upgradeHref,
+  plans,
+  isStripeEnabled,
+}: PlansProps): ReactElement {
   return (
     <div className="border border-gray-200 rounded-xl">
       <div className="flex flex-col gap-3">
         <div>
-          <div className="flex flex-row items-center gap-2 text-sm p-6">
-            <p className="font-semibold">Current Plan:</p>
-            <Badge>{toTitleCase(UserAccountType[accountType])} Plan</Badge>
+          <div className="flex flex-row gap-3 justify-between items-center px-6">
+            <div className="flex flex-row items-center gap-2 text-sm py-6">
+              <p className="font-semibold">Current Plan:</p>
+              <Badge>{toTitleCase(UserAccountType[account.type])} Plan</Badge>
+            </div>
+            {isStripeEnabled && (
+              <div>
+                <ManageSubscription account={account} />
+              </div>
+            )}
           </div>
           <Separator className="dark:bg-gray-600" />
         </div>
@@ -143,8 +260,9 @@ function Plans({ accountType, upgradeHref, plans }: PlansProps): ReactElement {
             <PlanInfo
               key={plan.name}
               plan={plan}
-              activePlan={accountType}
+              activePlan={account.type}
               upgradeHref={upgradeHref}
+              accountSlug={account.name}
             />
           ))}
         </div>
@@ -157,9 +275,10 @@ interface PlanInfoProps {
   plan: Plan;
   activePlan: UserAccountType;
   upgradeHref: string;
+  accountSlug: string;
 }
 function PlanInfo(props: PlanInfoProps): ReactElement {
-  const { plan, activePlan, upgradeHref } = props;
+  const { plan, activePlan, upgradeHref, accountSlug } = props;
   const isCurrentPlan = activePlan === plan.planType;
   return (
     <div>
@@ -190,6 +309,7 @@ function PlanInfo(props: PlanInfoProps): ReactElement {
             plan={plan.name}
             planType={activePlan}
             upgradeHref={upgradeHref}
+            accountSlug={accountSlug}
           />
         </div>
       </div>
@@ -209,24 +329,25 @@ interface PlanButtonProps {
   plan: PlanName;
   planType: UserAccountType;
   upgradeHref: string;
+  accountSlug: string;
 }
 
 function PlanButton(props: PlanButtonProps): ReactElement {
-  const { plan, planType, upgradeHref } = props;
+  const { plan, planType, upgradeHref, accountSlug } = props;
   switch (plan) {
     case 'Personal':
       if (planType == UserAccountType.PERSONAL) {
-        return <div></div>;
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
-        return <Button type="button">Get Started</Button>;
+        return <></>;
       }
     case 'Team':
       if (planType == UserAccountType.TEAM) {
-        return <div></div>;
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
         return (
           <Button type="button">
-            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+            <Link href={upgradeHref} target="_blank">
               Get in touch
             </Link>
           </Button>
@@ -234,15 +355,28 @@ function PlanButton(props: PlanButtonProps): ReactElement {
       }
     case 'Enterprise':
       if (planType == UserAccountType.ENTERPRISE) {
-        return <div></div>;
+        return <GetStartedButton accountSlug={accountSlug} />;
       } else {
         return (
           <Button type="button">
-            <Link href={upgradeHref} className="w-[242px]" target="_blank">
+            <Link href={upgradeHref} target="_blank">
               Get in touch
             </Link>
           </Button>
         );
       }
   }
+}
+
+interface GetStartedButtonProps {
+  accountSlug: string;
+}
+
+function GetStartedButton(props: GetStartedButtonProps): ReactElement {
+  const { accountSlug } = props;
+  return (
+    <Button type="button">
+      <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
+    </Button>
+  );
 }

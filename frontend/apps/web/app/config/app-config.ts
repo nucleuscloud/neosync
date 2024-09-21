@@ -4,6 +4,7 @@ export interface SystemAppConfig {
   posthog: PosthogConfig;
   koala: KoalaConfig;
   isNeosyncCloud: boolean;
+  isStripeEnabled: boolean;
   enableRunLogs: boolean;
   signInProviderId?: string;
   isMetricsServiceEnabled: boolean;

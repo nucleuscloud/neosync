@@ -5,16 +5,19 @@ import { Button } from '../ui/button';
 
 interface Props {
   href: string;
+  target?: string;
+  // Mostly used for side effects since the user click will result in the link being routed to
+  onClick?(): void;
 }
 
 export default function UpgradeButton(props: Props): ReactElement {
-  const { href } = props;
+  const { href, target, onClick } = props;
 
   return (
     <div>
-      <Button type="button" variant="outline" size="sm">
+      <Button type="button" variant="outline" size="sm" onClick={onClick}>
         <div className="flex flex-row gap-2 items-center">
-          <Link href={href} target="_blank">
+          <Link href={href} target={target}>
             <div>Upgrade</div>
           </Link>
           <ArrowUpIcon />

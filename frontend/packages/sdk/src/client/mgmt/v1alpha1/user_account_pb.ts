@@ -39,6 +39,37 @@ proto3.util.setEnumType(UserAccountType, "mgmt.v1alpha1.UserAccountType", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.BillingStatus
+ */
+export enum BillingStatus {
+  /**
+   * @generated from enum value: BILLING_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Corresponds to a billing subscription and rolls up various states into active
+   * This may be split into the future to be more granular and mirror the underlying billing system
+   *
+   * @generated from enum value: BILLING_STATUS_ACTIVE = 1;
+   */
+  ACTIVE = 1,
+
+  /**
+   * If the system could not find any active subscriptions
+   *
+   * @generated from enum value: BILLING_STATUS_EXPIRED = 2;
+   */
+  EXPIRED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(BillingStatus)
+proto3.util.setEnumType(BillingStatus, "mgmt.v1alpha1.BillingStatus", [
+  { no: 0, name: "BILLING_STATUS_UNSPECIFIED" },
+  { no: 1, name: "BILLING_STATUS_ACTIVE" },
+  { no: 2, name: "BILLING_STATUS_EXPIRED" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetUserRequest
  */
 export class GetUserRequest extends Message<GetUserRequest> {
@@ -247,19 +278,32 @@ export class GetUserAccountsResponse extends Message<GetUserAccountsResponse> {
  */
 export class UserAccount extends Message<UserAccount> {
   /**
+   * The unique identifier of the account
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * The account slug
+   *
    * @generated from field: string name = 2;
    */
   name = "";
 
   /**
+   * The type of account
+   *
    * @generated from field: mgmt.v1alpha1.UserAccountType type = 3;
    */
   type = UserAccountType.UNSPECIFIED;
+
+  /**
+   * Whether or not the account has an associated stripe customer id
+   *
+   * @generated from field: bool has_stripe_customer_id = 4;
+   */
+  hasStripeCustomerId = false;
 
   constructor(data?: PartialMessage<UserAccount>) {
     super();
@@ -272,6 +316,7 @@ export class UserAccount extends Message<UserAccount> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "type", kind: "enum", T: proto3.getEnumType(UserAccountType) },
+    { no: 4, name: "has_stripe_customer_id", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserAccount {
@@ -744,6 +789,13 @@ export class CreateTeamAccountResponse extends Message<CreateTeamAccountResponse
    */
   accountId = "";
 
+  /**
+   * If NeosyncCloud, will respond with a checkout session url so they can setup billing
+   *
+   * @generated from field: optional string checkout_session_url = 2;
+   */
+  checkoutSessionUrl?: string;
+
   constructor(data?: PartialMessage<CreateTeamAccountResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -753,6 +805,7 @@ export class CreateTeamAccountResponse extends Message<CreateTeamAccountResponse
   static readonly typeName = "mgmt.v1alpha1.CreateTeamAccountResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "checkout_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateTeamAccountResponse {
@@ -1716,9 +1769,9 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   /**
    * The current subscription status determined by the billing system.
    *
-   * @generated from field: int32 subscription_status = 3;
+   * @generated from field: mgmt.v1alpha1.BillingStatus subscription_status = 3;
    */
-  subscriptionStatus = 0;
+  subscriptionStatus = BillingStatus.UNSPECIFIED;
 
   constructor(data?: PartialMessage<GetAccountStatusResponse>) {
     super();
@@ -1730,7 +1783,7 @@ export class GetAccountStatusResponse extends Message<GetAccountStatusResponse> 
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 3, name: "subscription_status", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "subscription_status", kind: "enum", T: proto3.getEnumType(BillingStatus) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountStatusResponse {
@@ -1837,6 +1890,158 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
 
   static equals(a: IsAccountStatusValidResponse | PlainMessage<IsAccountStatusValidResponse> | undefined, b: IsAccountStatusValidResponse | PlainMessage<IsAccountStatusValidResponse> | undefined): boolean {
     return proto3.util.equals(IsAccountStatusValidResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest
+ */
+export class GetAccountBillingCheckoutSessionRequest extends Message<GetAccountBillingCheckoutSessionRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingCheckoutSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingCheckoutSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingCheckoutSessionRequest {
+    return new GetAccountBillingCheckoutSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingCheckoutSessionRequest {
+    return new GetAccountBillingCheckoutSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingCheckoutSessionRequest {
+    return new GetAccountBillingCheckoutSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingCheckoutSessionRequest | PlainMessage<GetAccountBillingCheckoutSessionRequest> | undefined, b: GetAccountBillingCheckoutSessionRequest | PlainMessage<GetAccountBillingCheckoutSessionRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingCheckoutSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse
+ */
+export class GetAccountBillingCheckoutSessionResponse extends Message<GetAccountBillingCheckoutSessionResponse> {
+  /**
+   * The url that will be redirected to
+   *
+   * @generated from field: string checkout_session_url = 1;
+   */
+  checkoutSessionUrl = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingCheckoutSessionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingCheckoutSessionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "checkout_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingCheckoutSessionResponse {
+    return new GetAccountBillingCheckoutSessionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingCheckoutSessionResponse {
+    return new GetAccountBillingCheckoutSessionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingCheckoutSessionResponse {
+    return new GetAccountBillingCheckoutSessionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingCheckoutSessionResponse | PlainMessage<GetAccountBillingCheckoutSessionResponse> | undefined, b: GetAccountBillingCheckoutSessionResponse | PlainMessage<GetAccountBillingCheckoutSessionResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingCheckoutSessionResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingPortalSessionRequest
+ */
+export class GetAccountBillingPortalSessionRequest extends Message<GetAccountBillingPortalSessionRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingPortalSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingPortalSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionRequest {
+    return new GetAccountBillingPortalSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingPortalSessionRequest | PlainMessage<GetAccountBillingPortalSessionRequest> | undefined, b: GetAccountBillingPortalSessionRequest | PlainMessage<GetAccountBillingPortalSessionRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingPortalSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountBillingPortalSessionResponse
+ */
+export class GetAccountBillingPortalSessionResponse extends Message<GetAccountBillingPortalSessionResponse> {
+  /**
+   * The url that will be redirected to
+   *
+   * @generated from field: string portal_session_url = 1;
+   */
+  portalSessionUrl = "";
+
+  constructor(data?: PartialMessage<GetAccountBillingPortalSessionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "portal_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountBillingPortalSessionResponse {
+    return new GetAccountBillingPortalSessionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountBillingPortalSessionResponse | PlainMessage<GetAccountBillingPortalSessionResponse> | undefined, b: GetAccountBillingPortalSessionResponse | PlainMessage<GetAccountBillingPortalSessionResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountBillingPortalSessionResponse, a, b);
   }
 }
 

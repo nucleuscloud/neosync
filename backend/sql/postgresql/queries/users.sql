@@ -208,3 +208,9 @@ UPDATE neosync_api.accounts
 SET max_allowed_records = $1
 WHERE id = sqlc.arg('accountId')
 RETURNING *;
+
+-- name: SetNewAccountStripeCustomerId :one
+UPDATE neosync_api.accounts
+SET stripe_customer_id = $1
+WHERE id = sqlc.arg('accountId') AND stripe_customer_id IS NULL
+RETURNING *;

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -21,6 +23,10 @@ const (
 	mockTeamName    = "team-name"
 	mockAuth0Id     = "643a8663-6b2e-4d29-a0f0-4a0700ff21ea"
 	mockEmail       = "fake@fake.com"
+)
+
+var (
+	discardLogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 )
 
 // SetUserByAuth0Id
@@ -173,7 +179,7 @@ func Test_SetPersonalAccount(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
 		AccountId: accountUuid,
@@ -201,7 +207,7 @@ func Test_SetPersonalAccount_CreateUserAssociation(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
 		AccountId: accountUuid,
@@ -237,7 +243,7 @@ func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
 	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
@@ -266,7 +272,7 @@ func Test_SetPersonalAccount_Rollback(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
 	querierMock.On("CreatePersonalAccount", ctx, mockTx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgtype.Int8{Int64: 123, Valid: true}}).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
@@ -294,7 +300,7 @@ func Test_CreateTeamAccount(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return([]db_queries.NeosyncApiAccount{{AccountSlug: "other"}}, nil)
 	querierMock.On("CreateTeamAccount", ctx, mockTx, mockTeamName).Return(db_queries.NeosyncApiAccount{ID: accountUuid, AccountSlug: mockTeamName}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
@@ -304,7 +310,7 @@ func Test_CreateTeamAccount(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName)
+	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName, discardLogger)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -322,11 +328,11 @@ func Test_CreateTeamAccount_AlreadyExists(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return([]db_queries.NeosyncApiAccount{{AccountSlug: mockTeamName}}, nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName)
+	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName, discardLogger)
 
 	querierMock.AssertNotCalled(t, "CreateTeamAccount", mock.Anything, mock.Anything, mock.Anything)
 	querierMock.AssertNotCalled(t, "CreateAccountUserAssociation", mock.Anything, mock.Anything, mock.Anything)
@@ -348,7 +354,7 @@ func Test_CreateTeamAccount_NoRows(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return(nilAccounts, sql.ErrNoRows)
 	querierMock.On("CreateTeamAccount", ctx, mockTx, mockTeamName).Return(db_queries.NeosyncApiAccount{ID: accountUuid, AccountSlug: mockTeamName}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
@@ -358,7 +364,7 @@ func Test_CreateTeamAccount_NoRows(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName)
+	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName, discardLogger)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -378,7 +384,7 @@ func Test_CreateTeamAccount_Rollback(t *testing.T) {
 
 	service := New(dbtxMock, querierMock)
 
-	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	dbtxMock.On("BeginTx", ctx, mock.Anything).Return(mockTx, nil)
 	querierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return([]db_queries.NeosyncApiAccount{{AccountSlug: "other"}}, nil)
 	querierMock.On("CreateTeamAccount", ctx, mockTx, mockTeamName).Return(db_queries.NeosyncApiAccount{ID: accountUuid, AccountSlug: mockTeamName}, nil)
 	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
@@ -387,7 +393,7 @@ func Test_CreateTeamAccount_Rollback(t *testing.T) {
 	}).Return(nilAssociation, errors.New("sad"))
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName)
+	resp, err := service.CreateTeamAccount(context.Background(), userUuid, mockTeamName, discardLogger)
 
 	mockTx.AssertCalled(t, "Rollback", ctx)
 	mockTx.AssertNotCalled(t, "Commit", mock.Anything)

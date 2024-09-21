@@ -36,6 +36,7 @@ import (
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -51,7 +52,12 @@ type unauthdClients struct {
 }
 
 type neosyncCloudClients struct {
-	users mgmtv1alpha1connect.UserAccountServiceClient
+	httpsrv  *httptest.Server
+	basepath string
+}
+
+func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+s.basepath)
 }
 
 type authdClients struct {
@@ -67,6 +73,7 @@ type mocks struct {
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
 	prometheusclient      *mockPromV1.MockAPI
+	billingclient         *billing.MockInterface
 }
 
 type IntegrationTestSuite struct {
@@ -126,6 +133,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		authclient:            auth_client.NewMockInterface(s.T()),
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
 		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
+		billingclient:         billing.NewMockInterface(s.T()),
 	}
 
 	maxAllowed := int64(10000)
@@ -136,6 +144,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
 		s.mocks.prometheusclient,
+		nil,
 	)
 
 	authdUserService := v1alpha1_useraccountservice.New(
@@ -145,15 +154,17 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
 		s.mocks.prometheusclient,
+		nil,
 	)
 
-	neoCloudUnauthdUserService := v1alpha1_useraccountservice.New(
-		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: true},
+	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
+		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true},
 		nucleusdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
 		s.mocks.prometheusclient,
+		s.mocks.billingclient,
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
@@ -204,29 +215,33 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
+	authinterceptors := connect.WithInterceptors(
+		auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+			// will need to further fill this out as the tests grow
+			authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
+			if err != nil {
+				return nil, err
+			}
+			return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
+				AuthUserId: authuserid,
+				Claims:     &auth_jwt.CustomClaims{Email: &validAuthUser.Email},
+			}), nil
+		}),
+	)
+
 	authmux := http.NewServeMux()
 	authmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
 		authdUserService,
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
-				// will need to further fill this out as the tests grow
-				authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
-				if err != nil {
-					return nil, err
-				}
-				return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
-					AuthUserId: authuserid,
-				}), nil
-			}),
-		),
+		authinterceptors,
 	))
 	rootmux.Handle("/auth/", http.StripPrefix("/auth", authmux))
 
-	ncnoauthmux := http.NewServeMux()
-	ncnoauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
-		neoCloudUnauthdUserService,
+	ncauthmux := http.NewServeMux()
+	ncauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
+		neoCloudAuthdUserService,
+		authinterceptors,
 	))
-	rootmux.Handle("/ncnoauth/", http.StripPrefix("/ncnoauth", ncnoauthmux))
+	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
 
 	s.httpsrv = startHTTPServer(s.T(), rootmux)
 
@@ -241,7 +256,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		httpsrv: s.httpsrv,
 	}
 	s.neosyncCloudClients = &neosyncCloudClients{
-		users: mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/ncnoauth"),
+		httpsrv:  s.httpsrv,
+		basepath: "/ncauth",
 	}
 }
 

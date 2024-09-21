@@ -29,7 +29,7 @@ export default function SiteHeader(): ReactElement {
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
           <Upgrade
-            buttonHref={systemAppConfig.calendlyUpgradeLink}
+            calendlyLink={systemAppConfig.calendlyUpgradeLink}
             isNeosyncCloud={systemAppConfig.isNeosyncCloud}
           />
           <SupportSheet />

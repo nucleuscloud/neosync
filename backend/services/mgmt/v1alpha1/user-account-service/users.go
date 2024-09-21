@@ -2,7 +2,9 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"connectrpc.com/connect"
@@ -18,6 +20,8 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
+	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/stripe/stripe-go/v79"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -227,29 +231,95 @@ func (s *Service) CreateTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	if !s.cfg.IsAuthEnabled {
 		return nil, nucleuserrors.NewForbidden("unable to create team account as authentication is not enabled")
 	}
-	if s.cfg.IsNeosyncCloud {
-		return nil, nucleuserrors.NewForbidden("creating team accounts in Neosync Cloud is not currently enabled. Please contact us to create a team account.")
+	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
+		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.")
 	}
+
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err
 	}
-	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	userId, err := nucleusdb.ToUuid(user.Msg.GetUserId())
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.CreateTeamAccount(ctx, userId, req.Msg.Name)
+	account, err := s.db.CreateTeamAccount(ctx, userId, req.Msg.GetName(), logger)
 	if err != nil {
 		return nil, err
+	}
+
+	var checkoutSessionUrl *string
+	if s.cfg.IsNeosyncCloud && !account.StripeCustomerID.Valid && s.billingclient != nil {
+		account, err = s.db.UpsertStripeCustomerId(
+			ctx,
+			account.ID,
+			s.getCreateStripeAccountFunction(user.Msg.GetUserId(), logger),
+			logger,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
+		}
+		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
+		}
+		logger.Debug("stripe checkout session created", "id", session.ID)
+		checkoutSessionUrl = &session.URL
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
-		AccountId: nucleusdb.UUIDString(account.ID),
+		AccountId:          nucleusdb.UUIDString(account.ID),
+		CheckoutSessionUrl: checkoutSessionUrl,
 	}), nil
+}
+
+func (s *Service) getCreateStripeAccountFunction(userId string, logger *slog.Logger) func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+	return func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error) {
+		email := s.getEmailFromToken(ctx, logger)
+		if email == nil {
+			return "", errors.New("unable to retrieve user email from auth token when creating stripe account")
+		}
+		customer, err := s.billingclient.NewCustomer(&billing.CustomerRequest{
+			Email:     *email,
+			Name:      account.AccountSlug,
+			AccountId: nucleusdb.UUIDString(account.ID),
+			UserId:    userId,
+		})
+		if err != nil {
+			return "", fmt.Errorf("unable to create new stripe customer: %w", err)
+		}
+		return customer.ID, nil
+	}
+}
+
+func (s *Service) generateCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error) {
+	if s.billingclient == nil {
+		return nil, errors.New("unable to generate checkout session as stripe client is nil")
+	}
+
+	session, err := s.billingclient.NewCheckoutSession(customerId, accountSlug, userId, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new stripe checkout session: %w", err)
+	}
+	return session, nil
+}
+
+func (s *Service) getEmailFromToken(ctx context.Context, logger *slog.Logger) *string {
+	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve token from ctx when getting email: %w", err).Error())
+		return nil
+	}
+	if tokenctxResp.JwtContextData != nil && tokenctxResp.JwtContextData.Claims != nil {
+		return tokenctxResp.JwtContextData.Claims.Email
+	}
+	logger.Error(errors.New("unable to retrieve email from token ctx").Error())
+	return nil
 }
 
 func (s *Service) GetTeamAccountMembers(

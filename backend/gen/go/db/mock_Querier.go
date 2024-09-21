@@ -3894,6 +3894,64 @@ func (_c *MockQuerier_SetJobWorkflowOptions_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// SetNewAccountStripeCustomerId provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetNewAccountStripeCustomerId(ctx context.Context, db DBTX, arg SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetNewAccountStripeCustomerId")
+	}
+
+	var r0 NeosyncApiAccount
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetNewAccountStripeCustomerIdParams) NeosyncApiAccount); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccount)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetNewAccountStripeCustomerIdParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_SetNewAccountStripeCustomerId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetNewAccountStripeCustomerId'
+type MockQuerier_SetNewAccountStripeCustomerId_Call struct {
+	*mock.Call
+}
+
+// SetNewAccountStripeCustomerId is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetNewAccountStripeCustomerIdParams
+func (_e *MockQuerier_Expecter) SetNewAccountStripeCustomerId(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetNewAccountStripeCustomerId_Call {
+	return &MockQuerier_SetNewAccountStripeCustomerId_Call{Call: _e.mock.On("SetNewAccountStripeCustomerId", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetNewAccountStripeCustomerId_Call) Run(run func(ctx context.Context, db DBTX, arg SetNewAccountStripeCustomerIdParams)) *MockQuerier_SetNewAccountStripeCustomerId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetNewAccountStripeCustomerIdParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetNewAccountStripeCustomerId_Call) Return(_a0 NeosyncApiAccount, _a1 error) *MockQuerier_SetNewAccountStripeCustomerId_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_SetNewAccountStripeCustomerId_Call) RunAndReturn(run func(context.Context, DBTX, SetNewAccountStripeCustomerIdParams) (NeosyncApiAccount, error)) *MockQuerier_SetNewAccountStripeCustomerId_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetRunContext provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) SetRunContext(ctx context.Context, db DBTX, arg SetRunContextParams) error {
 	ret := _m.Called(ctx, db, arg)

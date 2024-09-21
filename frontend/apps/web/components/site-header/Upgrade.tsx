@@ -2,7 +2,7 @@
 import { useQuery } from '@connectrpc/connect-query';
 import { isAccountStatusValid } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import {
@@ -18,12 +18,12 @@ import {
 import UpgradeButton from './UpgradeButton';
 
 interface UpgradeProps {
-  buttonHref: string;
+  calendlyLink: string;
   isNeosyncCloud: boolean;
 }
 
 export default function Upgrade(props: UpgradeProps): ReactElement | null {
-  const { buttonHref, isNeosyncCloud } = props;
+  const { calendlyLink, isNeosyncCloud } = props;
   const { account } = useAccount();
   const accountId = account?.id;
   const { data: isAccountStatusValidResp, isLoading } = useQuery(
@@ -34,19 +34,19 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
 
   // always surface the upgrade button for non-neosynccloud users
   if (!isNeosyncCloud) {
-    return <UpgradeButton href={buttonHref} />;
+    return <UpgradeButton href={calendlyLink} target="_blank" />;
   }
   if (isLoading || isAccountStatusValidResp?.isValid) {
     return null;
   }
-
+  const billingHref = `/${account?.name}/settings/billing`;
   return (
     <div className="flex flex-row gap-1 items-center">
       <UpgradeInfoDialog
-        upgradeHref={buttonHref}
+        upgradeHref={billingHref}
         reason={isAccountStatusValidResp?.reason}
       />
-      <UpgradeButton href={buttonHref} />
+      <UpgradeButton href={billingHref} />
     </div>
   );
 }
@@ -58,8 +58,9 @@ interface UpgradeInfoDialogProps {
 
 function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
   const { upgradeHref, reason } = props;
+  const [open, onOpenChange] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" variant="ghost">
           <ExclamationTriangleIcon className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
@@ -82,7 +83,10 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
               Close
             </Button>
           </DialogClose>
-          <UpgradeButton href={upgradeHref} />
+          <UpgradeButton
+            href={upgradeHref}
+            onClick={() => onOpenChange(false)}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

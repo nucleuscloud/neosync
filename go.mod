@@ -52,6 +52,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
+	github.com/stripe/stripe-go/v79 v79.11.0
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/mssql v0.33.0
