@@ -21,7 +21,6 @@ import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
-	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
@@ -37,6 +36,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -264,7 +264,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
 	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := up_cmd.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
 	if err != nil {
 		panic(err)
 	}

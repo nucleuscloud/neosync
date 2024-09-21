@@ -1,7 +1,6 @@
 package up_cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -40,7 +39,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			cmd.SilenceUsage = true
-			return Up(
+			return neomigrate.Up(
 				cmd.Context(),
 				dbUrl,
 				schemaDir,
@@ -51,15 +50,6 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().StringP("database", "d", "", "optionally set the database url, otherwise it will pull from the environment")
 	cmd.Flags().StringP("source", "s", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
 	return cmd
-}
-
-func Up(
-	ctx context.Context,
-	connStr string,
-	schemaDir string,
-	logger *slog.Logger,
-) error {
-	return neomigrate.Up(ctx, connStr, schemaDir, logger)
 }
 
 func getDbUrl() (string, error) {
