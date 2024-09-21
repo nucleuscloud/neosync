@@ -9,9 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -366,4 +369,118 @@ func (s *IntegrationTestSuite) Test_CreateAccountApiKey() {
 		ExpiresAt:         getFutureTs(t, 24*time.Hour),
 	})
 	requireNoErrResp(t, key, err)
+}
+
+func (s *IntegrationTestSuite) Test_CreateJob() {
+	t := s.T()
+
+	user := s.setUser(t, s.ctx, "foo")
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	requireNoErrResp(t, account, err)
+
+	connection, err := s.db.Q.CreateConnection(s.ctx, s.db.Db, db_queries.CreateConnectionParams{
+		Name:             "foo",
+		AccountID:        account.ID,
+		ConnectionConfig: &pg_models.ConnectionConfig{},
+		CreatedByID:      user.ID,
+		UpdatedByID:      user.ID,
+	})
+	requireNoErrResp(t, connection, err)
+
+	job, err := s.db.CreateJob(s.ctx, &db_queries.CreateJobParams{
+		Name:               "foo",
+		AccountID:          account.ID,
+		Status:             1,
+		ConnectionOptions:  &pg_models.JobSourceOptions{PostgresOptions: &pg_models.PostgresSourceOptions{HaltOnNewColumnAddition: true}},
+		Mappings:           []*pg_models.JobMapping{{Schema: "foo", Table: "bar", Column: "baz"}},
+		CronSchedule:       pgtype.Text{String: "blah", Valid: true},
+		CreatedByID:        user.ID,
+		UpdatedByID:        user.ID,
+		WorkflowOptions:    &pg_models.WorkflowOptions{},
+		SyncOptions:        &pg_models.ActivityOptions{},
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+	}, []*CreateJobConnectionDestination{
+		{
+			ConnectionId: connection.ID,
+			Options:      &pg_models.JobDestinationOptions{},
+		},
+	})
+	requireNoErrResp(t, job, err)
+}
+
+func (s *IntegrationTestSuite) Test_SetSourceSubsets() {
+	t := s.T()
+
+	user := s.setUser(t, s.ctx, "foo")
+	account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam1", discardLogger)
+	requireNoErrResp(t, account, err)
+
+	job, err := s.db.CreateJob(s.ctx, &db_queries.CreateJobParams{
+		Name:               "foo",
+		AccountID:          account.ID,
+		Status:             1,
+		ConnectionOptions:  &pg_models.JobSourceOptions{PostgresOptions: &pg_models.PostgresSourceOptions{HaltOnNewColumnAddition: true}},
+		Mappings:           []*pg_models.JobMapping{{Schema: "foo", Table: "bar", Column: "baz"}},
+		CronSchedule:       pgtype.Text{String: "blah", Valid: true},
+		CreatedByID:        user.ID,
+		UpdatedByID:        user.ID,
+		WorkflowOptions:    &pg_models.WorkflowOptions{},
+		SyncOptions:        &pg_models.ActivityOptions{},
+		VirtualForeignKeys: []*pg_models.VirtualForeignConstraint{},
+	}, []*CreateJobConnectionDestination{})
+	requireNoErrResp(t, job, err)
+
+	where := "blah"
+
+	t.Run("postgres", func(t *testing.T) {
+		err := s.db.SetSourceSubsets(s.ctx, job.ID, &mgmtv1alpha1.JobSourceSqlSubetSchemas{
+			Schemas: &mgmtv1alpha1.JobSourceSqlSubetSchemas_PostgresSubset{
+				PostgresSubset: &mgmtv1alpha1.PostgresSourceSchemaSubset{
+					PostgresSchemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
+						{Schema: "foo", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{{Table: "foo", WhereClause: &where}}},
+					},
+				},
+			},
+		}, false, user.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("mysql", func(t *testing.T) {
+		err := s.db.SetSourceSubsets(s.ctx, job.ID, &mgmtv1alpha1.JobSourceSqlSubetSchemas{
+			Schemas: &mgmtv1alpha1.JobSourceSqlSubetSchemas_MysqlSubset{
+				MysqlSubset: &mgmtv1alpha1.MysqlSourceSchemaSubset{
+					MysqlSchemas: []*mgmtv1alpha1.MysqlSourceSchemaOption{
+						{Schema: "foo", Tables: []*mgmtv1alpha1.MysqlSourceTableOption{{Table: "foo", WhereClause: &where}}},
+					},
+				},
+			},
+		}, false, user.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		err := s.db.SetSourceSubsets(s.ctx, job.ID, &mgmtv1alpha1.JobSourceSqlSubetSchemas{
+			Schemas: &mgmtv1alpha1.JobSourceSqlSubetSchemas_MssqlSubset{
+				MssqlSubset: &mgmtv1alpha1.MssqlSourceSchemaSubset{
+					MssqlSchemas: []*mgmtv1alpha1.MssqlSourceSchemaOption{
+						{Schema: "foo", Tables: []*mgmtv1alpha1.MssqlSourceTableOption{{Table: "foo", WhereClause: &where}}},
+					},
+				},
+			},
+		}, false, user.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("dynamodb", func(t *testing.T) {
+		err := s.db.SetSourceSubsets(s.ctx, job.ID, &mgmtv1alpha1.JobSourceSqlSubetSchemas{
+			Schemas: &mgmtv1alpha1.JobSourceSqlSubetSchemas_DynamodbSubset{
+				DynamodbSubset: &mgmtv1alpha1.DynamoDBSourceSchemaSubset{
+					Tables: []*mgmtv1alpha1.DynamoDBSourceTableOption{
+						{Table: "foo", WhereClause: &where},
+					},
+				},
+			},
+		}, false, user.ID)
+		require.NoError(t, err)
+	})
 }
