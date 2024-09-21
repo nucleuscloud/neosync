@@ -19,7 +19,7 @@ func (d *NeosyncDb) SetUserByAuthSub(
 	authSub string,
 ) (*db_queries.NeosyncApiUser, error) {
 	var userResp *db_queries.NeosyncApiUser
-	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
 		user, err := d.Q.GetUserByProviderSub(ctx, dbtx, authSub)
 		if err != nil && !IsNoRows(err) {
 			return err
