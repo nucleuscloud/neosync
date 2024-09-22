@@ -10,6 +10,8 @@ description: Learn about SQL types in the javascript transformer
 
 This guide provides a comprehensive overview of SQL to JavaScript type mappings for PostgreSQL, MySQL, and SQL Server databases. It includes detailed tables showing how various SQL data types are represented in JavaScript, along with examples of common date and string manipulation techniques in JavaScript for working with database data.
 
+/_ cspell:disable _/
+
 ## PostgreSQL
 
 | SQL Type         | JavaScript Type | Example Value                                         |
@@ -127,6 +129,8 @@ This guide provides a comprehensive overview of SQL to JavaScript type mappings 
 | xml              | string          | `<root><element>XML Data</element></root>` |
 | uniqueidentifier | string          | "2405c0f1-61fa-ce4f-b49f-df6414d3b502"     |
 | sql_variant      | string          | "SQL_VARIANT"                              |
+
+/_ cspell:enable _/
 
 ## Manipulating Dates in JavaScript
 
