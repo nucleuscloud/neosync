@@ -8,6 +8,8 @@ description: Learn about SQL types in the javascript transformer
 
 # SQL to JavaScript Type Mapping
 
+This guide provides a comprehensive overview of SQL to JavaScript type mappings for PostgreSQL, MySQL, and SQL Server databases. It includes detailed tables showing how various SQL data types are represented in JavaScript, along with examples of common date and string manipulation techniques in JavaScript for working with database data.
+
 ## PostgreSQL
 
 | SQL Type         | JavaScript Type | Example Value                                         |
@@ -393,3 +395,4 @@ let hasApple = fruits.includes('apple');
 let bananaIndex = fruits.indexOf('banana');
 let fruit = fruits.find((f) => f.startsWith('o'));
 ```
+**
