@@ -83,6 +83,9 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 					jObj[col] = jmap
 					continue
 				}
+			} else if isXmlPgDataType(ctype.DatabaseTypeName()) {
+				jObj[col] = string(t)
+				continue
 			}
 			jObj[col] = t
 		case *PgxArray[any]:
@@ -93,6 +96,10 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 	}
 
 	return jObj, nil
+}
+
+func isXmlPgDataType(dataType string) bool {
+	return strings.EqualFold(dataType, "xml")
 }
 
 func isJsonPgDataType(dataType string) bool {
