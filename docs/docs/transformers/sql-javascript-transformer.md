@@ -395,4 +395,5 @@ let hasApple = fruits.includes('apple');
 let bananaIndex = fruits.indexOf('banana');
 let fruit = fruits.find((f) => f.startsWith('o'));
 ```
-**
+
+\*\*
