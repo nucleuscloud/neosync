@@ -39,7 +39,7 @@ The full image can be docker pulled via: `docker pull ghcr.io/nucleuscloud/neosy
 The APP Helm chart can be used to deploy just the frontend APP.
 The chart itself can be found [here](https://github.com/nucleuscloud/neosync/tree/main/frontend/charts/app).
 
-The local dev edition can be found in the [helmfile](https://github.com/nucleuscloud/neosync/blob/main/frontend/dev/helm/app/helmfile.yaml) that is used by our dev Tilt instance.
+The local dev edition can be found in the [helmfile](https://github.com/nucleuscloud/neosync/blob/main/frontend/apps/web/dev/helm/app/helmfile.yaml) that is used by our dev Tilt instance.
 
 The full image can be docker pulled via: `docker pull ghcr.io/nucleuscloud/neosync/helm/app:latest`
 
