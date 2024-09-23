@@ -313,7 +313,7 @@ func (s *Service) GetBillingAccounts(
 	req *connect.Request[mgmtv1alpha1.GetBillingAccountsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetBillingAccountsResponse], error) {
 	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
 	}
 
 	accountIdsToFilter := []pgtype.UUID{}
@@ -343,7 +343,7 @@ func (s *Service) SetBillingMeterEvent(
 	req *connect.Request[mgmtv1alpha1.SetBillingMeterEventRequest],
 ) (*connect.Response[mgmtv1alpha1.SetBillingMeterEventResponse], error) {
 	if s.billingclient == nil {
-		return nil, nucleuserrors.NewUnauthenticated("billing is not currently enabled")
+		return nil, nucleuserrors.NewUnauthorized("billing is not currently enabled")
 	}
 	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
 		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")

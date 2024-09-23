@@ -15,10 +15,11 @@ import (
 )
 
 func (s *IntegrationTestSuite) createPersonalAccount(
+	ctx context.Context,
 	userclient mgmtv1alpha1connect.UserAccountServiceClient,
 ) string {
 	s.T().Helper()
-	resp, err := userclient.SetPersonalAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
+	resp, err := userclient.SetPersonalAccount(ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 	return resp.Msg.AccountId
 }
