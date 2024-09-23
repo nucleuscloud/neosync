@@ -9,12 +9,19 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"connectrpc.com/otelconnect"
+	"github.com/go-logr/logr"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
+	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 )
 
 func NewCmd() *cobra.Command {
@@ -58,8 +65,24 @@ func run(ctx context.Context) error {
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
 
-	usersclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl)
-	metricsclient := mgmtv1alpha1connect.NewMetricsServiceClient(httpclient, neosyncurl)
+	clientInterceptors := []connect.Interceptor{}
+
+	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
+	if otelconfig.IsEnabled {
+		otelinterceptors, otelshutdown, err := getOtelConfig(ctx, otelconfig, slogger)
+		if err != nil {
+			return err
+		}
+		clientInterceptors = append(clientInterceptors, otelinterceptors...)
+		defer func() {
+			if err := otelshutdown(context.Background()); err != nil {
+				slogger.ErrorContext(ctx, fmt.Errorf("unable to gracefully shutdown otel providers: %w", err).Error())
+			}
+		}()
+	}
+
+	usersclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connect.WithInterceptors(clientInterceptors...))
+	metricsclient := mgmtv1alpha1connect.NewMetricsServiceClient(httpclient, neosyncurl, connect.WithInterceptors(clientInterceptors...))
 
 	if len(accountIds) > 0 {
 		slogger.DebugContext(ctx, fmt.Sprintf("%d accounts provided as input", len(accountIds)))
@@ -90,6 +113,58 @@ func run(ctx context.Context) error {
 
 	slogger.InfoContext(ctx, "processing completed successfully")
 	return nil
+}
+
+func getOtelConfig(ctx context.Context, otelconfig neosyncotel.OtelEnvConfig, logger *slog.Logger) (interceptors []connect.Interceptor, shutdown func(context.Context) error, err error) {
+	logger.DebugContext(ctx, "otel is enabled")
+	otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+
+	meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+		Exporter:   otelconfig.MeterExporter,
+		AppVersion: otelconfig.ServiceVersion,
+		Opts: neosyncotel.MeterExporterOpts{
+			Otlp:    []otlpmetricgrpc.Option{},
+			Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if meterprovider != nil {
+		logger.DebugContext(ctx, "otel metering has been configured")
+		otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(meterprovider))
+	} else {
+		otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
+	}
+
+	traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
+		Exporter: otelconfig.TraceExporter,
+		Opts: neosyncotel.TraceExporterOpts{
+			Otlp:    []otlptracegrpc.Option{},
+			Console: []stdouttrace.Option{stdouttrace.WithPrettyPrint()},
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if traceprovider != nil {
+		logger.DebugContext(ctx, "otel tracing has been configured")
+		otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(traceprovider))
+	} else {
+		otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())
+	}
+
+	otelInterceptor, err := otelconnect.NewInterceptor(otelconnopts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
+		TraceProviders: []neosyncotel.TracerProvider{traceprovider},
+		MeterProviders: []neosyncotel.MeterProvider{meterprovider},
+		Logger:         logr.FromSlogHandler(logger.Handler()),
+	})
+	return []connect.Interceptor{otelInterceptor}, otelshutdown, nil
 }
 
 func processAccount(
