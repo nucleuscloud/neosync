@@ -331,7 +331,7 @@ var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the p
 var _ = registerVMRunnerFunction("patchMessage", `Update multiple fields in the structured data of the processed message.`).
 	Namespace(neosyncFnCtxName).
 	Param("updates", "object", "A map of field names to their new values.").
-	Example(`benthos.v0_msg_update_fields({"user_id": 12345, "timestamp": "2024-09-23T12:34:56Z"});`).
+	Example(`neosync.patchMessage({"user_id": 12345, "timestamp": "2024-09-23T12:34:56Z"});`).
 	FnCtor(func(r *vmRunner) jsFunction {
 		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {
 			var updates map[string]any
