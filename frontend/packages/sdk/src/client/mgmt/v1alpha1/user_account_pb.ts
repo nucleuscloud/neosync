@@ -2045,3 +2045,181 @@ export class GetAccountBillingPortalSessionResponse extends Message<GetAccountBi
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetBillingAccountsRequest
+ */
+export class GetBillingAccountsRequest extends Message<GetBillingAccountsRequest> {
+  /**
+   * Optional list of account identifiers to filter the response by
+   *
+   * @generated from field: repeated string account_ids = 1;
+   */
+  accountIds: string[] = [];
+
+  constructor(data?: PartialMessage<GetBillingAccountsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetBillingAccountsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetBillingAccountsRequest {
+    return new GetBillingAccountsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetBillingAccountsRequest {
+    return new GetBillingAccountsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetBillingAccountsRequest {
+    return new GetBillingAccountsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetBillingAccountsRequest | PlainMessage<GetBillingAccountsRequest> | undefined, b: GetBillingAccountsRequest | PlainMessage<GetBillingAccountsRequest> | undefined): boolean {
+    return proto3.util.equals(GetBillingAccountsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetBillingAccountsResponse
+ */
+export class GetBillingAccountsResponse extends Message<GetBillingAccountsResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.UserAccount accounts = 1;
+   */
+  accounts: UserAccount[] = [];
+
+  constructor(data?: PartialMessage<GetBillingAccountsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetBillingAccountsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "accounts", kind: "message", T: UserAccount, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetBillingAccountsResponse {
+    return new GetBillingAccountsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetBillingAccountsResponse {
+    return new GetBillingAccountsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetBillingAccountsResponse {
+    return new GetBillingAccountsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetBillingAccountsResponse | PlainMessage<GetBillingAccountsResponse> | undefined, b: GetBillingAccountsResponse | PlainMessage<GetBillingAccountsResponse> | undefined): boolean {
+    return proto3.util.equals(GetBillingAccountsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetBillingMeterEventRequest
+ */
+export class SetBillingMeterEventRequest extends Message<SetBillingMeterEventRequest> {
+  /**
+   * The account id to apply this metered event to
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * The metered event name
+   *
+   * @generated from field: string event_name = 2;
+   */
+  eventName = "";
+
+  /**
+   * The value of the meter for the given time
+   *
+   * @generated from field: string value = 3;
+   */
+  value = "";
+
+  /**
+   * The unique identifier of this metered event
+   *
+   * @generated from field: string event_id = 4;
+   */
+  eventId = "";
+
+  /**
+   * The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
+   *
+   * @generated from field: optional uint64 timestamp = 5;
+   */
+  timestamp?: bigint;
+
+  constructor(data?: PartialMessage<SetBillingMeterEventRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetBillingMeterEventRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "event_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "event_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "timestamp", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetBillingMeterEventRequest {
+    return new SetBillingMeterEventRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetBillingMeterEventRequest {
+    return new SetBillingMeterEventRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetBillingMeterEventRequest {
+    return new SetBillingMeterEventRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetBillingMeterEventRequest | PlainMessage<SetBillingMeterEventRequest> | undefined, b: SetBillingMeterEventRequest | PlainMessage<SetBillingMeterEventRequest> | undefined): boolean {
+    return proto3.util.equals(SetBillingMeterEventRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetBillingMeterEventResponse
+ */
+export class SetBillingMeterEventResponse extends Message<SetBillingMeterEventResponse> {
+  constructor(data?: PartialMessage<SetBillingMeterEventResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetBillingMeterEventResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetBillingMeterEventResponse {
+    return new SetBillingMeterEventResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetBillingMeterEventResponse {
+    return new SetBillingMeterEventResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetBillingMeterEventResponse {
+    return new SetBillingMeterEventResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetBillingMeterEventResponse | PlainMessage<SetBillingMeterEventResponse> | undefined, b: SetBillingMeterEventResponse | PlainMessage<SetBillingMeterEventResponse> | undefined): boolean {
+    return proto3.util.equals(SetBillingMeterEventResponse, a, b);
+  }
+}
+

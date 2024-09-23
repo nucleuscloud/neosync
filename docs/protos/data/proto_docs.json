@@ -14260,6 +14260,54 @@
           ]
         },
         {
+          "name": "GetBillingAccountsRequest",
+          "longName": "GetBillingAccountsRequest",
+          "fullName": "mgmt.v1alpha1.GetBillingAccountsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_ids",
+              "description": "Optional list of account identifiers to filter the response by",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetBillingAccountsResponse",
+          "longName": "GetBillingAccountsResponse",
+          "fullName": "mgmt.v1alpha1.GetBillingAccountsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "accounts",
+              "description": "",
+              "label": "repeated",
+              "type": "UserAccount",
+              "longType": "UserAccount",
+              "fullType": "mgmt.v1alpha1.UserAccount",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetSystemInformationRequest",
           "longName": "GetSystemInformationRequest",
           "fullName": "mgmt.v1alpha1.GetSystemInformationRequest",
@@ -14891,6 +14939,89 @@
           ]
         },
         {
+          "name": "SetBillingMeterEventRequest",
+          "longName": "SetBillingMeterEventRequest",
+          "fullName": "mgmt.v1alpha1.SetBillingMeterEventRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account id to apply this metered event to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event_name",
+              "description": "The metered event name",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "The value of the meter for the given time",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "event_id",
+              "description": "The unique identifier of this metered event",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timestamp",
+              "description": "The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.",
+              "label": "optional",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_timestamp",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetBillingMeterEventResponse",
+          "longName": "SetBillingMeterEventResponse",
+          "fullName": "mgmt.v1alpha1.SetBillingMeterEventResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "SetPersonalAccountRequest",
           "longName": "SetPersonalAccountRequest",
           "fullName": "mgmt.v1alpha1.SetPersonalAccountRequest",
@@ -15296,6 +15427,33 @@
               "responseType": "GetAccountBillingPortalSessionResponse",
               "responseLongType": "GetAccountBillingPortalSessionResponse",
               "responseFullType": "mgmt.v1alpha1.GetAccountBillingPortalSessionResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetBillingAccounts",
+              "description": "Returns user accounts that have a billing id.",
+              "requestType": "GetBillingAccountsRequest",
+              "requestLongType": "GetBillingAccountsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetBillingAccountsRequest",
+              "requestStreaming": false,
+              "responseType": "GetBillingAccountsResponse",
+              "responseLongType": "GetBillingAccountsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetBillingAccountsResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
+            },
+            {
+              "name": "SetBillingMeterEvent",
+              "description": "Sends a new metered event to the billing system",
+              "requestType": "SetBillingMeterEventRequest",
+              "requestLongType": "SetBillingMeterEventRequest",
+              "requestFullType": "mgmt.v1alpha1.SetBillingMeterEventRequest",
+              "requestStreaming": false,
+              "responseType": "SetBillingMeterEventResponse",
+              "responseLongType": "SetBillingMeterEventResponse",
+              "responseFullType": "mgmt.v1alpha1.SetBillingMeterEventResponse",
               "responseStreaming": false
             }
           ]

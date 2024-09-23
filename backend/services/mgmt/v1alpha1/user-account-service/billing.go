@@ -13,6 +13,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -303,4 +304,45 @@ func (s *Service) GetAccountBillingPortalSession(
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountBillingPortalSessionResponse{
 		PortalSessionUrl: session.URL,
 	}), nil
+}
+
+func (s *Service) GetBillingAccounts(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetBillingAccountsRequest],
+) (*connect.Response[mgmtv1alpha1.GetBillingAccountsResponse], error) {
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+
+	accountIdsToFilter := []pgtype.UUID{}
+	for _, accountId := range req.Msg.GetAccountIds() {
+		accountUuid, err := neosyncdb.ToUuid(accountId)
+		if err != nil {
+			return nil, fmt.Errorf("input did not contain entirely valid uuids: %w", err)
+		}
+		accountIdsToFilter = append(accountIdsToFilter, accountUuid)
+	}
+
+	accounts, err := s.db.Q.GetBilledAccounts(ctx, s.db.Db, accountIdsToFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*mgmtv1alpha1.UserAccount, 0, len(accounts))
+	for idx := range accounts {
+		account := accounts[idx]
+		dtos = append(dtos, dtomaps.ToUserAccount(&account))
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetBillingAccountsResponse{Accounts: dtos}), nil
+}
+
+func (s *Service) SetBillingMeterEvent(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetBillingMeterEventRequest],
+) (*connect.Response[mgmtv1alpha1.SetBillingMeterEventResponse], error) {
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+	}
+	// todo: send to stripe
+	return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
 }
