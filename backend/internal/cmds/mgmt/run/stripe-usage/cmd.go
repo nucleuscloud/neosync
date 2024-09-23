@@ -208,7 +208,7 @@ func processAccount(
 				}
 			}
 		} else {
-			logger.Warn("response returned date outside of range")
+			logger.WarnContext(ctx, "response returned date outside of range")
 		}
 	}
 	return nil
@@ -264,6 +264,11 @@ func getIngestDate(
 	}, nil
 }
 
+// Returns:
+//
+//	-1 if date1 is before date2
+//	 0 if date1 is equal to date2
+//	 1 if date1 is after date2
 func compareDates(date1, date2 *mgmtv1alpha1.Date) int {
 	// Compare years
 	if date1.Year < date2.Year {
