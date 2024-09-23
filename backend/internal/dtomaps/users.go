@@ -4,11 +4,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToAccountTypeDto(aType nucleusdb.AccountType) mgmtv1alpha1.UserAccountType {
+func ToAccountTypeDto(aType neosyncdb.AccountType) mgmtv1alpha1.UserAccountType {
 	switch aType {
 	case 0:
 		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL
@@ -23,9 +23,9 @@ func ToAccountTypeDto(aType nucleusdb.AccountType) mgmtv1alpha1.UserAccountType 
 
 func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1.AccountInvite {
 	return &mgmtv1alpha1.AccountInvite{
-		Id:           nucleusdb.UUIDString(input.ID),
-		AccountId:    nucleusdb.UUIDString(input.AccountID),
-		SenderUserId: nucleusdb.UUIDString(input.SenderUserID),
+		Id:           neosyncdb.UUIDString(input.ID),
+		AccountId:    neosyncdb.UUIDString(input.AccountID),
+		SenderUserId: neosyncdb.UUIDString(input.SenderUserID),
 		Email:        input.Email,
 		Token:        input.Token,
 		Accepted:     input.Accepted.Bool,
@@ -37,9 +37,9 @@ func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1
 
 func ToUserAccount(input *db_queries.NeosyncApiAccount) *mgmtv1alpha1.UserAccount {
 	return &mgmtv1alpha1.UserAccount{
-		Id:                  nucleusdb.UUIDString(input.ID),
+		Id:                  neosyncdb.UUIDString(input.ID),
 		Name:                input.AccountSlug,
-		Type:                ToAccountTypeDto(nucleusdb.AccountType(input.AccountType)),
+		Type:                ToAccountTypeDto(neosyncdb.AccountType(input.AccountType)),
 		HasStripeCustomerId: hasStripeCustomerId(input.StripeCustomerID),
 	}
 }

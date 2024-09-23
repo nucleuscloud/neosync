@@ -22,7 +22,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
-  github.com/nucleuscloud/neosync/backend/internal/nucleusdb:
+  github.com/nucleuscloud/neosync/backend/internal/neosyncdb:
     # config:
     interfaces:
       DBTX:
@@ -104,3 +104,10 @@ packages:
   github.com/nucleuscloud/neosync/internal/billing:
     interfaces:
       Interface:
+  github.com/jackc/pgx/v5:
+    config:
+      dir: "internal/mocks/{{.PackagePath}}"
+      inpackage: False
+      outpkg: pgxmock
+    interfaces:
+      Tx:

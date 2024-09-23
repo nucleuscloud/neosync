@@ -16,7 +16,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"golang.org/x/sync/errgroup"
 
@@ -315,19 +315,19 @@ func (s *Service) GetConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	idUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, idUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -382,18 +382,18 @@ func (s *Service) UpdateConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	connectionUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, connectionUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -430,19 +430,19 @@ func (s *Service) DeleteConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
-	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	idUuid, err := neosyncdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, idUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(connection.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -483,7 +483,7 @@ func (s *Service) CheckSqlQuery(
 	if err != nil {
 		return nil, err
 	}
-	defer nucleusdb.HandleSqlRollback(tx, logger)
+	defer neosyncdb.HandleSqlRollback(tx, logger)
 
 	_, err = tx.PrepareContext(ctx, req.Msg.Query)
 	var errorMsg *string

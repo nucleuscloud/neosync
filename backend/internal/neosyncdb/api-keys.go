@@ -1,4 +1,4 @@
-package nucleusdb
+package neosyncdb
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type CreateAccountApiKeyRequest struct {
 	ExpiresAt         pgtype.Timestamp
 }
 
-func (d *NucleusDb) CreateAccountApikey(
+func (d *NeosyncDb) CreateAccountApikey(
 	ctx context.Context,
 	req *CreateAccountApiKeyRequest,
 ) (*db_queries.NeosyncApiAccountApiKey, error) {

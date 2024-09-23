@@ -13,7 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -237,7 +237,7 @@ func (t *TemporalClientManager) GetTemporalConfigByAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pg_models.TemporalConfig, error) {
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
 	}

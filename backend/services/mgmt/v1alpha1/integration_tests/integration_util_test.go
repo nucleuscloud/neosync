@@ -10,7 +10,7 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +47,7 @@ func (s *IntegrationTestSuite) setMaxAllowedRecords(
 	accountId string,
 	maxAllowed uint64, //nolint:unparam // want to leave it here to allow other options in the future
 ) error {
-	accountUuid, err := nucleusdb.ToUuid(accountId)
+	accountUuid, err := neosyncdb.ToUuid(accountId)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"golang.org/x/sync/errgroup"
 )
@@ -26,9 +26,9 @@ func NewManager(querier pg_queries.Querier, pool pg_queries.DBTX, closer func())
 
 func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := p.querier.GetDatabaseSchema(ctx, p.pool)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
@@ -77,9 +77,9 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
@@ -124,9 +124,9 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 
 func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
 	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return map[string][]string{}, nil
 	}
 
@@ -187,9 +187,9 @@ func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*
 	}
 
 	rows, err := p.querier.GetCustomTriggersBySchemaAndTables(ctx, p.pool, combined)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.TableTrigger{}, nil
 	}
 
@@ -271,9 +271,9 @@ func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema strin
 		Schema: schema,
 		Tables: tables,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DataType{}, nil
 	}
 
@@ -293,9 +293,9 @@ func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema strin
 		Schema: schema,
 		Tables: tables,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DataType{}, nil
 	}
 
@@ -321,9 +321,9 @@ func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema strin
 		Schema: schema,
 		Tables: tables,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return &datatypes{}, nil
 	}
 

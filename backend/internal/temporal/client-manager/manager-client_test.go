@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	temporalmocks "go.temporal.io/sdk/mocks"
 
@@ -27,11 +27,11 @@ var (
 )
 
 func Test_ManagerClient_New(t *testing.T) {
-	assert.NotNil(t, New(&Config{}, NewMockDB(t), nucleusdb.NewMockDBTX(t)))
+	assert.NotNil(t, New(&Config{}, NewMockDB(t), neosyncdb.NewMockDBTX(t)))
 }
 
 func Test_ManagerClient_ClearWorkflowClientByAccount_Idempotent(t *testing.T) {
-	mgr := New(&Config{}, NewMockDB(t), nucleusdb.NewMockDBTX(t))
+	mgr := New(&Config{}, NewMockDB(t), neosyncdb.NewMockDBTX(t))
 
 	mgr.ClearWorkflowClientByAccount(context.Background(), "123")
 	mgr.ClearWorkflowClientByAccount(context.Background(), "123")
@@ -39,7 +39,7 @@ func Test_ManagerClient_ClearWorkflowClientByAccount_Idempotent(t *testing.T) {
 
 func Test_ClearWorkflowClientByAccount_SucceedsIfEvicting(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -58,7 +58,7 @@ func Test_ClearWorkflowClientByAccount_SucceedsIfEvicting(t *testing.T) {
 
 func Test_ManagerClient_GetWorkflowClientByAccount(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -75,7 +75,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount(t *testing.T) {
 
 func Test_ManagerClient_GetWorkflowClientByAccount_NoNamespace(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -91,7 +91,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_NoNamespace(t *testing.T) {
 
 func Test_ManagerClient_GetWorkflowClientByAccount_CacheClient(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -113,7 +113,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_CacheClient(t *testing.T) {
 
 func Test_ManagerClient_GetWorkflowClientByAccount_ConcurrentRequests(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -139,7 +139,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_ConcurrentRequests(t *testing
 }
 
 func Test_ManagerClient_ClearNamespaceClientByAccount_Idempotent(t *testing.T) {
-	mgr := New(&Config{}, NewMockDB(t), nucleusdb.NewMockDBTX(t))
+	mgr := New(&Config{}, NewMockDB(t), neosyncdb.NewMockDBTX(t))
 
 	mgr.ClearNamespaceClientByAccount(context.Background(), "123")
 	mgr.ClearNamespaceClientByAccount(context.Background(), "123")
@@ -147,7 +147,7 @@ func Test_ManagerClient_ClearNamespaceClientByAccount_Idempotent(t *testing.T) {
 
 func Test_ClearNamespaceClientByAccount_SucceedsIfEvicting(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -166,7 +166,7 @@ func Test_ClearNamespaceClientByAccount_SucceedsIfEvicting(t *testing.T) {
 
 func Test_ManagerClient_GetNamespaceClientByAccount(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -183,7 +183,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount(t *testing.T) {
 
 func Test_ManagerClient_GetNamespaceClientByAccount_NoNamespace(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -199,7 +199,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_NoNamespace(t *testing.T) {
 
 func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -212,7 +212,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig(t *testi
 
 func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig_EmptyDefaults(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -225,7 +225,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig_EmptyDef
 
 func Test_ManagerClient_GetNamespaceClientByAccount_CacheClient(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -247,7 +247,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_CacheClient(t *testing.T) {
 
 func Test_ManagerClient_GetNamespaceClientByAccount_ConcurrentRequests(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -274,7 +274,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_ConcurrentRequests(t *testin
 
 func Test_ManagerClient_GetTemporalConfigByAccount_Db(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
@@ -296,7 +296,7 @@ func Test_ManagerClient_GetTemporalConfigByAccount_Db(t *testing.T) {
 
 func Test_ManagerClient_GetTemporalConfigByAccount_Default(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -314,7 +314,7 @@ func Test_ManagerClient_GetTemporalConfigByAccount_Default(t *testing.T) {
 
 func Test_ManagerClient_GetTemporalConfigByAccount_Empty(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
 
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
@@ -332,7 +332,7 @@ func Test_ManagerClient_GetTemporalConfigByAccount_Empty(t *testing.T) {
 
 func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Err(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()
@@ -346,7 +346,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Err(t *t
 
 func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Empty_Namespace(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()
@@ -360,7 +360,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Empty_Na
 
 func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Temporal_Namespace(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()
@@ -378,7 +378,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Temporal_Namespace(
 
 func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Not_Temporal_Namespace(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()
@@ -395,7 +395,7 @@ func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Not_Temporal_Namesp
 
 func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Describe_Error(t *testing.T) {
 	mockdb := NewMockDB(t)
-	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mockdbtx := neosyncdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
 
 	accountUuid := uuid.New().String()

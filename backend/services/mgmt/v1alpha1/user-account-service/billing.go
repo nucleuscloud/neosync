@@ -14,7 +14,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/stripe/stripe-go/v79"
 )
@@ -37,7 +37,7 @@ func (s *Service) GetAccountStatus(
 	}
 
 	if s.cfg.IsNeosyncCloud {
-		if account.AccountType == int16(nucleusdb.AccountType_Personal) {
+		if account.AccountType == int16(neosyncdb.AccountType_Personal) {
 			allowedRecordCount := getAllowedRecordCount(account.MaxAllowedRecords)
 			var usedRecordCount uint64
 			if allowedRecordCount != nil && *allowedRecordCount > 0 {
@@ -147,7 +147,7 @@ func (s *Service) IsAccountStatusValid(
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.GetAccountId())
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (s *Service) IsAccountStatusValid(
 		return nil, fmt.Errorf("unable to retrieve account: %w", err)
 	}
 
-	if account.AccountType == int16(nucleusdb.AccountType_Personal) {
+	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
 		if accountStatusResp.Msg.AllowedRecordCount == nil {
 			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 		}

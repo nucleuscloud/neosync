@@ -12,18 +12,19 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	pgxmock "github.com/nucleuscloud/neosync/internal/mocks/github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func Test_Service_GetAccountApiKeys(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := []db_queries.NeosyncApiAccountApiKey{
 		{
@@ -66,18 +67,18 @@ func Test_Service_GetAccountApiKeys(t *testing.T) {
 	)
 	for idx, apiKey := range resp.Msg.ApiKeys {
 		dbApikey := rawData[idx]
-		assert.Equal(t, apiKey.Id, nucleusdb.UUIDString(dbApikey.ID))
+		assert.Equal(t, apiKey.Id, neosyncdb.UUIDString(dbApikey.ID))
 		assert.Nil(t, apiKey.KeyValue)
 		assert.Equal(t, apiKey.Name, dbApikey.KeyName)
 	}
 }
 
 func Test_Service_GetAccountApiKeys_ForbiddenAccount(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, false)
 
@@ -89,11 +90,11 @@ func Test_Service_GetAccountApiKeys_ForbiddenAccount(t *testing.T) {
 }
 
 func Test_Service_GetAccountApiKey_Found(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -115,16 +116,16 @@ func Test_Service_GetAccountApiKey_Found(t *testing.T) {
 	}))
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, resp.Msg.ApiKey.Id, nucleusdb.UUIDString(rawData.ID))
+	assert.Equal(t, resp.Msg.ApiKey.Id, neosyncdb.UUIDString(rawData.ID))
 	assert.Nil(t, resp.Msg.ApiKey.KeyValue)
 }
 
 func Test_Service_GetAccountApiKey_NotFound(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -137,11 +138,11 @@ func Test_Service_GetAccountApiKey_NotFound(t *testing.T) {
 }
 
 func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -166,12 +167,12 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 }
 
 func Test_Service_CreateAccountApiKey(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockTx := new(nucleusdb.MockTx)
+	mockTx := pgxmock.NewMockTx(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, true)
 	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
@@ -211,11 +212,11 @@ func Test_Service_CreateAccountApiKey(t *testing.T) {
 }
 
 func Test_Service_RegenerateAccountApiKey(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, true)
 	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
@@ -246,11 +247,11 @@ func Test_Service_RegenerateAccountApiKey(t *testing.T) {
 }
 
 func Test_Service_RegenerateAccountApiKey_ForbiddenAccount(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, false)
 	rawData := db_queries.NeosyncApiAccountApiKey{
@@ -276,11 +277,11 @@ func Test_Service_RegenerateAccountApiKey_ForbiddenAccount(t *testing.T) {
 }
 
 func Test_Service_RegenerateAccountApiKey_NotFound(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -294,11 +295,11 @@ func Test_Service_RegenerateAccountApiKey_NotFound(t *testing.T) {
 }
 
 func Test_Service_CreateAccountApiKey_ForbiddenAccount(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, false)
 
@@ -312,11 +313,11 @@ func Test_Service_CreateAccountApiKey_ForbiddenAccount(t *testing.T) {
 }
 
 func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -342,11 +343,11 @@ func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
 }
 
 func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -371,11 +372,11 @@ func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
 }
 
 func Test_Service_DeleteAccountApiKey_NotFound(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
@@ -388,11 +389,11 @@ func Test_Service_DeleteAccountApiKey_NotFound(t *testing.T) {
 }
 
 func Test_Service_DeleteAccountApiKey_Existing_DeleteRace(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockDbtx := neosyncdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+	svc := New(&Config{}, neosyncdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
@@ -420,7 +421,7 @@ func Test_Service_DeleteAccountApiKey_Existing_DeleteRace(t *testing.T) {
 func newPgUuid(t *testing.T) pgtype.UUID {
 	t.Helper()
 	newuuid := uuid.NewString()
-	val, err := nucleusdb.ToUuid(newuuid)
+	val, err := neosyncdb.ToUuid(newuuid)
 	assert.NoError(t, err)
 	return val
 }

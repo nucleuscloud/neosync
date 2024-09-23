@@ -1,19 +1,13 @@
 package up_cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -45,7 +39,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			cmd.SilenceUsage = true
-			return Up(
+			return neomigrate.Up(
 				cmd.Context(),
 				dbUrl,
 				schemaDir,
@@ -56,72 +50,6 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().StringP("database", "d", "", "optionally set the database url, otherwise it will pull from the environment")
 	cmd.Flags().StringP("source", "s", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
 	return cmd
-}
-
-func getSourceUrl(schemaDir string) (string, error) {
-	var absSchemaDir string
-	if filepath.IsAbs(schemaDir) {
-		absSchemaDir = schemaDir
-	} else {
-		a, err := filepath.Abs(schemaDir)
-		if err != nil {
-			return "", err
-		}
-		absSchemaDir = a
-	}
-
-	return fmt.Sprintf("file://%s", strings.TrimPrefix(absSchemaDir, "file://")), nil
-}
-
-type migrateLogger struct {
-	logger  *slog.Logger
-	verbose bool
-}
-
-func newMigrateLogger(logger *slog.Logger, verbose bool) *migrateLogger {
-	return &migrateLogger{logger: logger, verbose: verbose}
-}
-
-func (m *migrateLogger) Verbose() bool {
-	return m.verbose
-}
-func (m *migrateLogger) Printf(format string, v ...any) {
-	m.logger.Info(fmt.Sprintf("migrate: %s", fmt.Sprintf(format, v...)))
-}
-
-func Up(
-	ctx context.Context,
-	connStr string,
-	schemaDir string,
-	logger *slog.Logger,
-) error {
-	sourceUrl, err := getSourceUrl(schemaDir)
-	if err != nil {
-		return err
-	}
-
-	m, err := migrate.New(
-		sourceUrl,
-		connStr,
-	)
-	if err != nil {
-		return err
-	}
-	m.Log = newMigrateLogger(logger, false)
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
-	}
-
-	serr, derr := m.Close()
-	if serr != nil {
-		return serr
-	}
-	if derr != nil {
-		return derr
-	}
-
-	return nil
 }
 
 func getDbUrl() (string, error) {
@@ -178,7 +106,7 @@ func getDbUrl() (string, error) {
 		dbOptions = &val
 	}
 
-	return nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
+	return neosyncdb.GetDbUrl(&neosyncdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
 		Database:              dbName,

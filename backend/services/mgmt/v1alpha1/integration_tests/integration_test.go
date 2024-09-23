@@ -21,10 +21,9 @@ import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
-	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
@@ -37,6 +36,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -139,7 +139,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	maxAllowed := int64(10000)
 	unauthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: false, IsNeosyncCloud: false, DefaultMaxAllowedRecords: &maxAllowed},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -149,7 +149,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	authdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: false},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -159,7 +159,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
@@ -169,13 +169,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(
 		&v1alpha1_connectionservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
 		&sqlconnect.SqlOpenConnector{},
 		pg_queries.New(),
@@ -186,7 +186,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	)
 	unauthdJobsService := v1alpha1_jobservice.New(
 		&v1alpha1_jobservice.Config{},
-		nucleusdb.New(pool, db_queries.New()),
+		neosyncdb.New(pool, db_queries.New()),
 		s.mocks.temporalClientManager,
 		unauthdConnectionsService,
 		unauthdUserService,
@@ -264,7 +264,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
 	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := up_cmd.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
 	if err != nil {
 		panic(err)
 	}

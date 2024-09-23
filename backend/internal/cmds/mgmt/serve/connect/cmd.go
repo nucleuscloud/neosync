@@ -35,13 +35,12 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
-	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/mongoconnect"
@@ -58,6 +57,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
 	"github.com/spf13/cobra"
@@ -138,7 +138,7 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	db, err := nucleusdb.NewFromConfig(dbconfig)
+	db, err := neosyncdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
 	}
@@ -153,9 +153,9 @@ func serve(ctx context.Context) error {
 			return err
 		}
 		slogger.Debug("DB_AUTO_MIGRATE is enabled, running migrations...", "migrationDir", schemaDir)
-		if err := up_cmd.Up(
+		if err := neomigrate.Up(
 			ctx,
-			nucleusdb.GetDbUrl(dbMigConfig),
+			neosyncdb.GetDbUrl(dbMigConfig),
 			schemaDir,
 			slogger,
 		); err != nil {
@@ -519,7 +519,7 @@ func getPromClientFromEnvironment() (promapi.Client, error) {
 	})
 }
 
-func getDbConfig() (*nucleusdb.ConnectConfig, error) {
+func getDbConfig() (*neosyncdb.ConnectConfig, error) {
 	dbHost := viper.GetString("DB_HOST")
 	if dbHost == "" {
 		return nil, fmt.Errorf("must provide DB_HOST in environment")
@@ -556,7 +556,7 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		dbOptions = &val
 	}
 
-	return &nucleusdb.ConnectConfig{
+	return &neosyncdb.ConnectConfig{
 		Host:     dbHost,
 		Port:     dbPort,
 		Database: dbName,
@@ -567,7 +567,7 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
+func getDbMigrationConfig() (*neosyncdb.ConnectConfig, error) {
 	dbHost := viper.GetString("DB_HOST")
 	if dbHost == "" {
 		return nil, fmt.Errorf("must provide DB_HOST in environment")
@@ -616,7 +616,7 @@ func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 		dbOptions = &val
 	}
 
-	return &nucleusdb.ConnectConfig{
+	return &neosyncdb.ConnectConfig{
 		Host:                  dbHost,
 		Port:                  dbPort,
 		Database:              dbName,

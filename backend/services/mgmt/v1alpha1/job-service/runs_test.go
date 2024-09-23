@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +31,7 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(temporalmocks.Client)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
-	jobId := nucleusdb.UUIDString(job.ID)
+	jobId := neosyncdb.UUIDString(job.ID)
 	workflowId := uuid.NewString()
 	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
 
@@ -65,9 +65,9 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 func Test_GetJobRuns_ByAccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(temporalmocks.Client)
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
-	jobId := nucleusdb.UUIDString(job.ID)
+	jobId := neosyncdb.UUIDString(job.ID)
 	workflowId := uuid.NewString()
 	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
 
@@ -98,9 +98,9 @@ func Test_GetJobRuns_ByAccountId(t *testing.T) {
 func Test_GetJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(temporalmocks.Client)
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
-	jobId := nucleusdb.UUIDString(job.ID)
+	jobId := neosyncdb.UUIDString(job.ID)
 	runId := uuid.NewString()
 	workflowId := uuid.NewString()
 	workflowExecutionMock := getDescribeWorkflowExecutionResponseMock(jobId, workflowId)
@@ -136,12 +136,12 @@ func Test_CreateJobRun(t *testing.T) {
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
-	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, nucleusdb.UUIDString(job.ID), mock.Anything).Return(mockHandle, nil)
+	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, neosyncdb.UUIDString(job.ID), mock.Anything).Return(mockHandle, nil)
 	mockHandle.On("Trigger", mock.Anything, temporalclient.ScheduleTriggerOptions{}).Return(nil)
 
 	resp, err := m.Service.CreateJobRun(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobRunRequest]{
 		Msg: &mgmtv1alpha1.CreateJobRunRequest{
-			JobId: nucleusdb.UUIDString(job.ID),
+			JobId: neosyncdb.UUIDString(job.ID),
 		},
 	})
 
@@ -153,7 +153,7 @@ func Test_CreateJobRun(t *testing.T) {
 func Test_CancelJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(temporalmocks.Client)
-	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	accountUuid, _ := neosyncdb.ToUuid(mockAccountId)
 	runId := uuid.NewString()
 	workflowId := uuid.NewString()
 	workflows := []*workflowpb.WorkflowExecutionInfo{{
@@ -184,13 +184,13 @@ func mockGetVerifiedJobRun(
 	temporalClientMock *temporalmocks.Client,
 	workflowsMock []*workflowpb.WorkflowExecutionInfo,
 ) {
-	temporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, nucleusdb.UUIDString(accountUuid), mock.Anything).Return(true, nil)
-	temporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, nucleusdb.UUIDString(accountUuid)).Return(&pg_models.TemporalConfig{
+	temporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, neosyncdb.UUIDString(accountUuid), mock.Anything).Return(true, nil)
+	temporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, neosyncdb.UUIDString(accountUuid)).Return(&pg_models.TemporalConfig{
 		Namespace:        "default",
 		SyncJobQueueName: "sync-job",
 		Url:              "localhost:7233",
 	}, nil)
-	temporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, nucleusdb.UUIDString(accountUuid), mock.Anything).Return(temporalClientMock, nil)
+	temporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, neosyncdb.UUIDString(accountUuid), mock.Anything).Return(temporalClientMock, nil)
 	temporalClientMock.On("ListWorkflow", mock.Anything, mock.Anything).Return(&workflowservice.ListWorkflowExecutionsResponse{
 		Executions: workflowsMock,
 	}, nil)

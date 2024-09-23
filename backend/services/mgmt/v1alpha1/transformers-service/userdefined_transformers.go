@@ -12,7 +12,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -35,7 +35,7 @@ func (s *Service) GetUserDefinedTransformers(
 		transformer := transformers[idx]
 		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(transformer.ID), transformer.Source)
+			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
 		}
 		dtoTransformers = append(dtoTransformers, dto)
 	}
@@ -49,26 +49,26 @@ func (s *Service) GetUserDefinedTransformerById(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformerByIdResponse], error) {
-	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	tId, err := neosyncdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
 	}
 
 	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find transformer by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
 	if err != nil {
 		return nil, err
 	}
 
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(transformer.ID), transformer.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
@@ -109,7 +109,7 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, systemTransformerSourceMap)
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(ct.ID), ct.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(ct.ID), ct.Source)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
@@ -121,27 +121,27 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("transformerId", req.Msg.TransformerId)
 
-	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	tId, err := neosyncdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
 	}
 
 	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
 	if err != nil {
 		return nil, err
 	}
 
 	err = s.db.Q.DeleteUserDefinedTransformerById(ctx, s.db.Db, transformer.ID)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		logger.Info("transformer not found or has already been removed")
 	}
 
@@ -149,18 +149,18 @@ func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect
 }
 
 func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error) {
-	tUuid, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	tUuid, err := neosyncdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
 	}
 	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find transformer by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	_, err = s.verifyUserInAccount(ctx, neosyncdb.UUIDString(transformer.AccountID))
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 
 	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, systemTransformerSourceMap)
 	if err != nil {
-		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source)
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateUserDefinedTransformerResponse{

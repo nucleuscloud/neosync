@@ -1,4 +1,4 @@
-package nucleusdb
+package neosyncdb
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type CreateJobConnectionDestination struct {
 	Options      *pg_models.JobDestinationOptions
 }
 
-func (d *NucleusDb) CreateJob(
+func (d *NeosyncDb) CreateJob(
 	ctx context.Context,
 	cjParams *db_queries.CreateJobParams,
 	destinations []*CreateJobConnectionDestination,
@@ -47,7 +47,7 @@ func (d *NucleusDb) CreateJob(
 	return createdJob, nil
 }
 
-func (d *NucleusDb) SetSourceSubsets(
+func (d *NeosyncDb) SetSourceSubsets(
 	ctx context.Context,
 	jobId pgtype.UUID,
 	schemas *mgmtv1alpha1.JobSourceSqlSubetSchemas,

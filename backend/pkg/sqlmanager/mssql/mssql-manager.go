@@ -10,7 +10,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 )
@@ -29,9 +29,9 @@ const defaultIdentity string = "IDENTITY(1,1)"
 
 func (m *Manager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
 	dbSchemas, err := m.querier.GetDatabaseSchema(ctx, m.db)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return []*sqlmanager_shared.DatabaseSchemaRow{}, nil
 	}
 
@@ -93,9 +93,9 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 	rows, err := m.querier.GetTableConstraintsBySchemas(ctx, m.db, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
 
@@ -154,9 +154,9 @@ func (m *Manager) GetTableConstraintsBySchema(ctx context.Context, schemas []str
 
 func (m *Manager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
 	rows, err := m.querier.GetRolePermissions(ctx, m.db)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, fmt.Errorf("unable to retrieve mssql role permissions: %w", err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	} else if err != nil && neosyncdb.IsNoRows(err) {
 		return map[string][]string{}, nil
 	}
 

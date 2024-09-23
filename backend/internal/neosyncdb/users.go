@@ -1,4 +1,4 @@
-package nucleusdb
+package neosyncdb
 
 import (
 	"context"
@@ -14,12 +14,12 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
-func (d *NucleusDb) SetUserByAuthSub(
+func (d *NeosyncDb) SetUserByAuthSub(
 	ctx context.Context,
 	authSub string,
 ) (*db_queries.NeosyncApiUser, error) {
 	var userResp *db_queries.NeosyncApiUser
-	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
 		user, err := d.Q.GetUserByProviderSub(ctx, dbtx, authSub)
 		if err != nil && !IsNoRows(err) {
 			return err
@@ -63,7 +63,7 @@ func (d *NucleusDb) SetUserByAuthSub(
 	return userResp, nil
 }
 
-func (d *NucleusDb) SetPersonalAccount(
+func (d *NeosyncDb) SetPersonalAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	maxAllowedRecords *int64, // only used when personal account is created
@@ -118,7 +118,7 @@ func (d *NucleusDb) SetPersonalAccount(
 	return personalAccount, nil
 }
 
-func (d *NucleusDb) CreateTeamAccount(
+func (d *NeosyncDb) CreateTeamAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	teamName string,
@@ -158,7 +158,7 @@ func (d *NucleusDb) CreateTeamAccount(
 	return teamAccount, nil
 }
 
-func (d *NucleusDb) UpsertStripeCustomerId(
+func (d *NeosyncDb) UpsertStripeCustomerId(
 	ctx context.Context,
 	accountId pgtype.UUID,
 	getStripeCustomerId func(ctx context.Context, account db_queries.NeosyncApiAccount) (string, error),
@@ -210,7 +210,7 @@ func (d *NucleusDb) UpsertStripeCustomerId(
 	return account, nil
 }
 
-func (d *NucleusDb) CreateTeamAccountInvite(
+func (d *NeosyncDb) CreateTeamAccountInvite(
 	ctx context.Context,
 	accountId pgtype.UUID,
 	userId pgtype.UUID,
@@ -223,8 +223,9 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 		if err != nil {
 			return err
 		}
-		if account.AccountType != 1 {
-			return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team")
+		if account.AccountType != int16(AccountType_Team) &&
+			account.AccountType != int16(AccountType_Enterprise) {
+			return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team, enterprise")
 		}
 
 		// update any active invites for user to expired before creating new invite
@@ -254,7 +255,7 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 	return accountInvite, nil
 }
 
-func (d *NucleusDb) ValidateInviteAddUserToAccount(
+func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	token string,
@@ -289,7 +290,7 @@ func (d *NucleusDb) ValidateInviteAddUserToAccount(
 				return nucleuserrors.NewBadRequest("account invitation already accepted")
 			}
 
-			if invite.ExpiresAt.Time.Before(time.Now()) {
+			if invite.ExpiresAt.Time.Before(time.Now().UTC()) {
 				return nucleuserrors.NewForbidden("account invitation expired")
 			}
 
