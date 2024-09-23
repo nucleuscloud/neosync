@@ -286,12 +286,13 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 	})
 
 	t.Run("expire old invites", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 24*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour))
 		requireNoErrResp(t, invite, err)
 
-		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 24*time.Hour))
+		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 48*time.Hour))
 		requireNoErrResp(t, invite2, err)
-		now := time.Now()
+		// Add time here as the expired invites as updated to CURRENT_TIMESTAMP, so this reduces flakiness
+		now := time.Now().Add(5 * time.Second)
 
 		oldinvite1, err := s.db.Q.GetAccountInvite(s.ctx, s.db.Db, invite.ID)
 		requireNoErrResp(t, oldinvite1, err)
