@@ -20,6 +20,7 @@ type Interface interface {
 	NewBillingPortalSession(customerId, accountSlug string) (*stripe.BillingPortalSession, error)
 	NewCheckoutSession(customerId, accountSlug, userId string, logger *slog.Logger) (*stripe.CheckoutSession, error)
 	GetSubscriptions(customerId string) SubscriptionIter
+	NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEvent, error)
 }
 
 type Client struct {
@@ -104,6 +105,26 @@ func (c *Client) NewCheckoutSession(customerId, accountSlug, userId string, logg
 		Metadata:   map[string]string{"userId": userId},
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			BillingCycleAnchor: stripe.Int64(getNextMonthBillingCycleAnchor(time.Now().UTC())),
+		},
+	})
+}
+
+type MeterEventRequest struct {
+	EventName  string
+	Identifier string
+	Timestamp  *int64
+	CustomerId string
+	Value      string
+}
+
+func (c *Client) NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEvent, error) {
+	return c.client.BillingMeterEvents.New(&stripe.BillingMeterEventParams{
+		EventName:  stripe.String(req.EventName),
+		Identifier: stripe.String(req.Identifier),
+		Timestamp:  req.Timestamp,
+		Payload: map[string]string{
+			"stripe_customer_id": req.CustomerId,
+			"value":              req.Value,
 		},
 	})
 }

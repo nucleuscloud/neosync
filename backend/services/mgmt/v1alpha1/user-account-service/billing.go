@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
 )
 
@@ -340,9 +342,53 @@ func (s *Service) SetBillingMeterEvent(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetBillingMeterEventRequest],
 ) (*connect.Response[mgmtv1alpha1.SetBillingMeterEventResponse], error) {
+	if s.billingclient == nil {
+		return nil, nucleuserrors.NewUnauthenticated("billing is not currently enabled")
+	}
 	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
 		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
 	}
-	// todo: send to stripe
+
+	accuontUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accuontUuid)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("account does not exist")
+	}
+	if !account.StripeCustomerID.Valid {
+		return nil, nucleuserrors.NewForbidden("account is not an active billed customer")
+	}
+
+	var ts *int64
+	if req.Msg.GetTimestamp() > 0 {
+		conv, err := safeUint64ToInt64(req.Msg.GetTimestamp())
+		if err != nil {
+			return nil, err
+		}
+		ts = &conv
+	}
+	_, err = s.billingclient.NewMeterEvent(&billing.MeterEventRequest{
+		EventName:  req.Msg.GetEventName(),
+		Identifier: req.Msg.GetEventId(),
+		Timestamp:  ts,
+		CustomerId: account.StripeCustomerID.String,
+		Value:      req.Msg.GetValue(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
+}
+
+func safeUint64ToInt64(value uint64) (int64, error) {
+	if value > math.MaxInt64 {
+		return 0, fmt.Errorf("uint64 value %d overflows int64", value)
+	}
+	return int64(value), nil //nolint:gosec // we are doing the check in this method
 }

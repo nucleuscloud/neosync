@@ -1575,6 +1575,66 @@ func (_c *MockQuerier_GetAnonymousUser_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetBilledAccounts provides a mock function with given fields: ctx, db, accountids
+func (_m *MockQuerier) GetBilledAccounts(ctx context.Context, db DBTX, accountids []pgtype.UUID) ([]NeosyncApiAccount, error) {
+	ret := _m.Called(ctx, db, accountids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBilledAccounts")
+	}
+
+	var r0 []NeosyncApiAccount
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiAccount, error)); ok {
+		return rf(ctx, db, accountids)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) []NeosyncApiAccount); ok {
+		r0 = rf(ctx, db, accountids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiAccount)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetBilledAccounts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBilledAccounts'
+type MockQuerier_GetBilledAccounts_Call struct {
+	*mock.Call
+}
+
+// GetBilledAccounts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountids []pgtype.UUID
+func (_e *MockQuerier_Expecter) GetBilledAccounts(ctx interface{}, db interface{}, accountids interface{}) *MockQuerier_GetBilledAccounts_Call {
+	return &MockQuerier_GetBilledAccounts_Call{Call: _e.mock.On("GetBilledAccounts", ctx, db, accountids)}
+}
+
+func (_c *MockQuerier_GetBilledAccounts_Call) Run(run func(ctx context.Context, db DBTX, accountids []pgtype.UUID)) *MockQuerier_GetBilledAccounts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetBilledAccounts_Call) Return(_a0 []NeosyncApiAccount, _a1 error) *MockQuerier_GetBilledAccounts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetBilledAccounts_Call) RunAndReturn(run func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiAccount, error)) *MockQuerier_GetBilledAccounts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetConnectionById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, id)
