@@ -366,21 +366,12 @@ func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
 
 	jsCode := fmt.Sprintf(`
 (() => {
-function setNestedProperty(obj, path, value) {
-	path.split('.').reduce((current, part, index, parts) => {
-		if (index === parts.length - 1) {
-			current[part] = value;
-		} else {
-			current[part] = current[part] ?? {};
-		}
-		return current[part];
-	}, obj);
-}
 %s
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
+const updatedValues = {}
 %s
-benthos.v0_msg_set_structured(output);
+neosync.patchMessage(updatedValues)
 })();`, jsFunctionStrings, benthosOutputString)
 	return jsCode
 }
@@ -389,14 +380,14 @@ func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.Transforme
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(
-			`setNestedProperty(output, %q, fn_%s(%s, input));`,
+			`updatedValues[%q] = fn_%s(%s, input)`,
 			col,
 			sanitizeJsFunctionName(col),
 			convertJsObjPathToOptionalChain(fmt.Sprintf("input.%s", col)),
 		)
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
 		return fmt.Sprintf(
-			`setNestedProperty(output, %q, fn_%s());`,
+			`updatedValues[%q] = fn_%s()`,
 			col,
 			sanitizeJsFunctionName(col),
 		)
