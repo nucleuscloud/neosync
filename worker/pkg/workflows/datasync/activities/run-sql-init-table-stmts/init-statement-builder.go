@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"slices"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -189,6 +188,35 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
+			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
+				// reset identity column counts
+				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+
+				identityStmts := []string{}
+				for table, cols := range schemaColMap {
+					if _, ok := uniqueTables[table]; !ok {
+						continue
+					}
+					for colName, c := range cols {
+						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
+							schema, table := sqlmanager_shared.SplitTableKey(table)
+							identityResetStatement := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, colName)
+							identityStmts = append(identityStmts, identityResetStatement)
+						}
+					}
+				}
+				if len(identityStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
+					}
+				}
+			}
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if sqlopts.InitSchema {
@@ -274,7 +302,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				identityStmts := []string{}
 				for table, cols := range schemaColMap {
-					if !slices.Contains(orderedTablesResp.OrderedTables, table) {
+					if _, ok := uniqueTables[table]; !ok {
 						continue
 					}
 					for _, c := range cols {

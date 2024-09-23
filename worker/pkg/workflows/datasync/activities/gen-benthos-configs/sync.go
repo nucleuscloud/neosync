@@ -277,7 +277,7 @@ func buildBenthosSqlSourceConfigResponses(
 			TableSchema:     mappings.Schema,
 			TableName:       mappings.Table,
 			Columns:         config.InsertColumns(),
-			IdentityColumns: getIdentityColumns(driver, config.Table(), config.InsertColumns(), groupedColumnInfo),
+			IdentityColumns: getIdentityColumns(config.Table(), config.InsertColumns(), groupedColumnInfo),
 			primaryKeys:     config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
@@ -291,7 +291,7 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
+func getIdentityColumns(table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
 	identityCols := []string{}
 	colInfo, ok := groupedColumnInfo[table]
 	if !ok {
@@ -300,10 +300,6 @@ func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo m
 	for _, c := range cols {
 		info, ok := colInfo[c]
 		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
-			if driver == sqlmanager_shared.PostgresDriver && *info.IdentityGeneration != "a" {
-				// only add generate always postgres identity columns
-				continue
-			}
 			identityCols = append(identityCols, c)
 		}
 	}
