@@ -58,3 +58,12 @@ func (s *IntegrationTestSuite) setMaxAllowedRecords(
 	})
 	return err
 }
+
+func getAccountIds(t testing.TB, accounts []*mgmtv1alpha1.UserAccount) []string {
+	t.Helper()
+	output := []string{}
+	for _, acc := range accounts {
+		output = append(output, acc.GetId())
+	}
+	return output
+}

@@ -361,7 +361,7 @@ func (s *Service) SetBillingMeterEvent(
 		return nil, nucleuserrors.NewNotFound("account does not exist")
 	}
 	if !account.StripeCustomerID.Valid {
-		return nil, nucleuserrors.NewForbidden("account is not an active billed customer")
+		return nil, nucleuserrors.NewBadRequest("account is not an active billed customer")
 	}
 
 	var ts *int64

@@ -742,11 +742,49 @@ func (s *IntegrationTestSuite) Test_GetBillingAccounts() {
 	})
 }
 
-func getAccountIds(t testing.TB, accounts []*mgmtv1alpha1.UserAccount) []string {
-	t.Helper()
-	output := []string{}
-	for _, acc := range accounts {
-		output = append(output, acc.GetId())
-	}
-	return output
+func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
+	userclient1 := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	s.setUser(s.ctx, userclient1)
+
+	workerapikey := apikey.NewV1WorkerKey()
+	workeruserclient := s.neosyncCloudClients.getUserClient(workerapikey)
+
+	t := s.T()
+
+	au1PersonalAccountId := s.createPersonalAccount(s.ctx, userclient1)
+	au1TeamAccountId1 := s.createBilledTeamAccount(s.ctx, userclient1, "test-team", "test-stripe-id")
+
+	t.Run("new event", func(t *testing.T) {
+		s.mocks.billingclient.On("NewMeterEvent", mock.Anything).Once().Return(&stripe.BillingMeterEvent{}, nil)
+		ts := uint64(1)
+		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
+			AccountId: au1TeamAccountId1,
+			EventName: "foo",
+			Value:     "10",
+			EventId:   "test-event-id",
+			Timestamp: &ts,
+		}))
+		requireNoErrResp(t, resp, err)
+	})
+
+	t.Run("needs valid stripe customer id", func(t *testing.T) {
+		ts := uint64(1)
+		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
+			AccountId: au1PersonalAccountId,
+			EventName: "foo2",
+			Value:     "10",
+			EventId:   "test-event-id",
+			Timestamp: &ts,
+		}))
+		requireErrResp(t, resp, err)
+		badreqerr := nucleuserrors.NewBadRequest("")
+		require.ErrorAs(t, err, &badreqerr)
+	})
+
+	t.Run("requires worker api key", func(t *testing.T) {
+		resp, err := userclient1.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{}))
+		requireErrResp(t, resp, err)
+		unautherr := nucleuserrors.NewUnauthorized("")
+		require.ErrorAs(t, err, &unautherr)
+	})
 }
