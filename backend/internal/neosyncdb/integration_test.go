@@ -286,10 +286,10 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccountInvite() {
 	})
 
 	t.Run("expire old invites", func(t *testing.T) {
-		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 1*time.Hour))
+		invite, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo2@example.com", getFutureTs(t, 24*time.Hour))
 		requireNoErrResp(t, invite, err)
 
-		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 1*time.Hour))
+		invite2, err := s.db.CreateTeamAccountInvite(s.ctx, account.ID, user.ID, "foo@example.com", getFutureTs(t, 24*time.Hour))
 		requireNoErrResp(t, invite2, err)
 		now := time.Now()
 
