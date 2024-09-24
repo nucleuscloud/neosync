@@ -76,12 +76,20 @@ func sortUsageDates(a, b string) int {
 	dateA, errA := time.Parse(NeosyncDateFormat, a)
 	dateB, errB := time.Parse(NeosyncDateFormat, b)
 
-	// If we can't parse either date, we consider them equal
-	// This maintains a stable sort for invalid dates
-	if errA != nil || errB != nil {
+	// If both dates are invalid, maintain their original order
+	if errA != nil && errB != nil {
 		return 0
 	}
 
+	// If only one date is invalid, consider it "greater" (sort it to the end)
+	if errA != nil {
+		return 1
+	}
+	if errB != nil {
+		return -1
+	}
+
+	// If both dates are valid, compare them
 	if dateA.Before(dateB) {
 		return -1
 	}
@@ -147,4 +155,9 @@ func timeToDate(t time.Time) mgmtv1alpha1.Date {
 		Month: uint32(t.Month()), //nolint:gosec // Ignoring for now
 		Day:   uint32(t.Day()),   //nolint:gosec // Ignoring for now
 	}
+}
+
+// Formats the day into the Neosync Date Format of YYYY-DD-MM
+func formatDate(d *mgmtv1alpha1.Date) string {
+	return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Day)
 }

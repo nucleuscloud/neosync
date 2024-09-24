@@ -80,8 +80,9 @@ packages:
       BenthosStreamManagerClient:
   github.com/prometheus/client_golang/api/prometheus/v1:
     config:
-      dir: "backend/internal/mocks/{{.PackagePath}}"
+      dir: "internal/mocks/{{.PackagePath}}"
       inpackage: False
+      outpkg: promapiv1mock
     interfaces:
       API:
   github.com/nucleuscloud/neosync/backend/internal/loki:
