@@ -25,7 +25,7 @@ func Test_getPromQueryFromMetric(t *testing.T) {
 	assert.NotEmpty(t, output)
 	assert.Equal(
 		t,
-		`sum(max_over_time(input_received_total{foo="bar",foo2="bar2"}[1d]))`,
+		`sum(max_over_time(input_received_total{foo="bar",foo2="bar2"}[1d])) by (date)`,
 		output,
 	)
 }
