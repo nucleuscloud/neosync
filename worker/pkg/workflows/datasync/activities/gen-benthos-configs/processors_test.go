@@ -83,7 +83,7 @@ const benthos = {
   v0_msg_as_structured: () => ({address: "world"}),
 };
 const neosync = {
-  patchMessage: (val) => {
+  patchStructuredMessage: (val) => {
     programOutput = val;
   }
 };
@@ -143,7 +143,7 @@ const benthos = {
   v0_msg_as_structured: () => ({}),
 };
 const neosync = {
-  patchMessage: (val) => {
+  patchStructuredMessage: (val) => {
     programOutput = val;
   }
 };
@@ -213,7 +213,7 @@ const benthos = {
   v0_msg_as_structured: () => ({"name": "world", "age": 2}),
 };
 const neosync = {
-  patchMessage: (val) => {
+  patchStructuredMessage: (val) => {
     programOutput = val;
   }
 };
@@ -284,7 +284,7 @@ const benthos = {
   v0_msg_as_structured: () => ({"name": "world"}),
 };
 const neosync = {
-  patchMessage: (val) => {
+  patchStructuredMessage: (val) => {
     programOutput = val;
   }
 };
@@ -345,7 +345,7 @@ const benthos = {
   v0_msg_as_structured: () => ({foo: {bar: {baz: "world"}}}),
 };
 const neosync = {
-  patchMessage: (val) => {
+  patchStructuredMessage: (val) => {
     programOutput = val;
   }
 };
