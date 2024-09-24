@@ -65,6 +65,7 @@
     "react-icons": "^5.2.1",
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
+    "sql-formatter": "^15.4.2",
     "tailwind-merge": "^2.5.1",
     "tailwindcss-animate": "^1.0.7",
     "use-resize-observer": "^9.1.0",

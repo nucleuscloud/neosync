@@ -46,8 +46,9 @@ import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
@@ -406,6 +407,10 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
   const { isDialogOpen, setIsDialogOpen, query } = props;
   const { resolvedTheme } = useTheme();
 
+  const formattedQuery = useMemo(() => {
+    return formatSql(query.select);
+  }, [query.schema, query.table, query.select]);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="lg:max-w-4xl">
@@ -423,7 +428,7 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
             height="50vh"
             width="100%"
             language="sql"
-            value={query.select}
+            value={formattedQuery}
             theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
             options={{
               minimap: { enabled: false },
