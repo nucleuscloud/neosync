@@ -33,6 +33,11 @@ func NewNotEqLabel(key, value string) MetricLabel {
 	return MetricLabel{Key: key, Value: value, Sign: "!="}
 }
 
+// This is used when querying Prometheus and is not supported when using with Benthos
+func NewRegexMatchLabel(key, value string) MetricLabel {
+	return MetricLabel{Key: key, Value: value, Sign: "=~"}
+}
+
 type MetricLabel struct {
 	Key   string
 	Value string
