@@ -346,7 +346,7 @@ func (s *Service) SetBillingMeterEvent(
 		return nil, nucleuserrors.NewUnauthorized("billing is not currently enabled")
 	}
 	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
+		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
 	}
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx).
