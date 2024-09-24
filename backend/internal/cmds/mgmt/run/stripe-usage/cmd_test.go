@@ -9,12 +9,24 @@ import (
 )
 
 func Test_getEventTimestamp(t *testing.T) {
-	actual := getEventTimestamp(&mgmtv1alpha1.Date{
-		Year:  2024,
-		Month: 9,
-		Day:   23,
+	t.Run("past date", func(t *testing.T) {
+		actual := getEventTimestamp(&mgmtv1alpha1.Date{
+			Year:  2024,
+			Month: 9,
+			Day:   23,
+		})
+		t.Log(uint64(1727135999), actual)
+		require.Equal(t, uint64(1727092800), actual)
 	})
-	require.Equal(t, uint64(1727135999), actual)
+	t.Run("future date", func(t *testing.T) {
+		now := time.Now().UTC()
+		actual := getEventTimestamp(&mgmtv1alpha1.Date{
+			Year:  uint32(now.Year()),
+			Month: uint32(now.Month()),
+			Day:   uint32(now.Day()),
+		})
+		require.GreaterOrEqual(t, uint64(now.Unix()), actual)
+	})
 }
 
 func Test_getEventId(t *testing.T) {

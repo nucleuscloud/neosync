@@ -223,11 +223,11 @@ func getEventTimestamp(date *mgmtv1alpha1.Date) uint64 {
 
 	if inputDate.Year() == now.Year() && inputDate.Month() == now.Month() && inputDate.Day() == now.Day() {
 		// If the input date is today, use the current time as Stripe does not allow timestamps more than 5min into the future
-		return uint64(now.Unix())
+		return uint64(now.Unix()) //nolint:gosec
 	}
 
 	// For any other day, return the timestamp for noon of that day
-	return uint64(inputDate.Unix())
+	return uint64(inputDate.Unix()) //nolint:gosec
 }
 
 func getEventId(accountId string, ingestDate *mgmtv1alpha1.Date) string {
