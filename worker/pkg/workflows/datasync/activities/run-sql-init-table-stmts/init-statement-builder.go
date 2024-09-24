@@ -2,6 +2,7 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -201,6 +202,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					if _, ok := uniqueTables[table]; !ok {
 						continue
 					}
+					jsonF, _ := json.MarshalIndent(cols, "", " ")
+					fmt.Printf("%s \n", string(jsonF))
 					for colName, c := range cols {
 						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
 							schema, table := sqlmanager_shared.SplitTableKey(table)
