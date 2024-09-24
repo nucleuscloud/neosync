@@ -241,11 +241,11 @@ message SetBillingMeterEventRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 
   // The metered event name
-  string event_name = 2;
+  string event_name = 2 [(buf.validate.field).string.min_len = 1];
   // The value of the meter for the given time
-  string value = 3;
+  string value = 3 [(buf.validate.field).string.min_len = 1];
   // The unique identifier of this metered event
-  string event_id = 4;
+  string event_id = 4 [(buf.validate.field).string.min_len = 1];
   // The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
   optional uint64 timestamp = 5;
 }

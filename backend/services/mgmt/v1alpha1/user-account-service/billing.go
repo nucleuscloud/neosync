@@ -349,12 +349,19 @@ func (s *Service) SetBillingMeterEvent(
 		return nil, nucleuserrors.NewUnauthenticated("must provide valid authentication credentials for this endpoint")
 	}
 
-	accuontUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx).
+		With(
+			"accountId", req.Msg.GetAccountId(),
+			"eventId", req.Msg.GetEventId(),
+			"eventName", req.Msg.GetEventName(),
+		)
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accuontUuid)
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -380,6 +387,13 @@ func (s *Service) SetBillingMeterEvent(
 		Value:      req.Msg.GetValue(),
 	})
 	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			if stripeErr.Type == stripe.ErrorTypeInvalidRequest && strings.Contains(stripeErr.Msg, "An event already exists with identifier") {
+				logger.Warn("unable to create new meter event, identifier already exists")
+				return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
+			}
+			// todo: handle rate limits from stripe
+		}
 		return nil, err
 	}
 

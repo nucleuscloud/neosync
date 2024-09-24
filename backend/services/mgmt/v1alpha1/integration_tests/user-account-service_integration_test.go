@@ -2,6 +2,7 @@ package integrationtests_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -770,7 +771,7 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 	t.Run("needs valid stripe customer id", func(t *testing.T) {
 		ts := uint64(1)
 		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
-			AccountId: au1PersonalAccountId,
+			AccountId: au1PersonalAccountId, // personal accounts don't have a stripe customer id
 			EventName: "foo2",
 			Value:     "10",
 			EventId:   "test-event-id",
@@ -786,5 +787,20 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 		requireErrResp(t, resp, err)
 		unautherr := nucleuserrors.NewUnauthorized("")
 		require.ErrorAs(t, err, &unautherr)
+	})
+
+	t.Run("squashes meter already existing", func(t *testing.T) {
+		eventId := "test-event-id"
+		stripeerr := &stripe.Error{Type: stripe.ErrorTypeInvalidRequest, Msg: fmt.Sprintf("An event already exists with identifier %s", eventId)}
+		s.mocks.billingclient.On("NewMeterEvent", mock.Anything).Once().Return(nil, stripeerr)
+		ts := uint64(1)
+		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
+			AccountId: au1TeamAccountId1,
+			EventName: "foo",
+			Value:     "10",
+			EventId:   eventId,
+			Timestamp: &ts,
+		}))
+		requireNoErrResp(t, resp, err)
 	})
 }

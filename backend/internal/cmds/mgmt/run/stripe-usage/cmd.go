@@ -56,6 +56,7 @@ func run(ctx context.Context) error {
 	if meterName == "" {
 		return errors.New("must provide valid meter name")
 	}
+	eventIdSuffix := viper.GetString("EVENT_ID_SUFFIX") // optionally add an event id suffix to allow reprocessing
 
 	ingestDate, err := getIngestDate(ingestDateStr, ingestDateOffset)
 	if err != nil {
@@ -103,11 +104,12 @@ func run(ctx context.Context) error {
 			ctx,
 			metricsclient, usersclient,
 			account,
-			ingestDate, meterName,
+			ingestDate, meterName, eventIdSuffix,
 			slogger.With("accountId", account.GetId()),
 		)
 		if err != nil {
-			return err
+			slogger.ErrorContext(ctx, fmt.Errorf("unable to process account: %w", err).Error(), "accountId", account.GetId())
+			return fmt.Errorf("unable to process account: %w", err)
 		}
 	}
 
@@ -174,6 +176,7 @@ func processAccount(
 	account *mgmtv1alpha1.UserAccount,
 	ingestdate *mgmtv1alpha1.Date,
 	meterName string,
+	eventIdSuffix string,
 	logger *slog.Logger,
 ) error {
 	logger.DebugContext(ctx, "retrieving daily metric count")
@@ -186,7 +189,7 @@ func processAccount(
 		},
 	}))
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to get daily metric count: %w", err)
 	}
 	results := resp.Msg.GetResults()
 	for _, result := range results {
@@ -200,11 +203,11 @@ func processAccount(
 					AccountId: account.GetId(),
 					EventName: meterName,
 					Value:     strconv.FormatUint(recordCount, 10),
-					EventId:   getEventId(account.GetId(), ingestdate),
+					EventId:   withSuffix(getEventId(account.GetId(), ingestdate), eventIdSuffix),
 					Timestamp: &ts,
 				}))
 				if err != nil {
-					return err
+					return fmt.Errorf("unable to set billing meter event: %w", err)
 				}
 			}
 		} else {
@@ -215,14 +218,27 @@ func processAccount(
 }
 
 func getEventTimestamp(date *mgmtv1alpha1.Date) uint64 {
-	t := time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 23, 59, 59, 0, time.UTC)
-	return uint64(t.Unix())
+	now := time.Now().UTC()
+	inputDate := time.Date(int(date.GetYear()), time.Month(date.GetMonth()), int(date.GetDay()), 12, 0, 0, 0, time.UTC)
+
+	if inputDate.Year() == now.Year() && inputDate.Month() == now.Month() && inputDate.Day() == now.Day() {
+		// If the input date is today, use the current time as Stripe does not allow timestamps more than 5min into the future
+		return uint64(now.Unix())
+	}
+
+	// For any other day, return the timestamp for noon of that day
+	return uint64(inputDate.Unix())
 }
 
 func getEventId(accountId string, ingestDate *mgmtv1alpha1.Date) string {
 	return fmt.Sprintf("%s-%s", accountId, formatDate(ingestDate))
 }
 
+func withSuffix(input, suffix string) string {
+	return input + suffix
+}
+
+// Formats the day into the ingest date format of YYYY-DD-MM
 func formatDate(d *mgmtv1alpha1.Date) string {
 	return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Day)
 }
