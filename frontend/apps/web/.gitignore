@@ -41,3 +41,5 @@ charts/**/*.tgz
 .env.development
 .env.staging
 .env.production
+
+*storybook.log
