@@ -327,3 +327,51 @@ var _ = registerVMRunnerFunction("v0_msg_set_meta", `Set a metadata key on the p
 			return nil, nil
 		}
 	})
+
+var _ = registerVMRunnerFunction("patchStructuredMessage", `Update multiple fields in the structured data of the processed message.`).
+	Namespace(neosyncFnCtxName).
+	Param("updates", "object", "A map of field names to their new values.").
+	Example(`neosync.patchStructuredMessage({"user_id": 12345, "timestamp": "2024-09-23T12:34:56Z"});`).
+	FnCtor(func(r *vmRunner) jsFunction {
+		return func(call goja.FunctionCall, rt *goja.Runtime, l *service.Logger) (any, error) {
+			var updates map[string]any
+			if err := parseArgs(call, &updates); err != nil {
+				return nil, err
+			}
+
+			// original structured data
+			originalData, err := r.targetMessage.AsStructuredMut()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get structured data: %w", err)
+			}
+
+			originalMap, ok := originalData.(map[string]any)
+			if !ok {
+				return nil, fmt.Errorf("structured data is not a map")
+			}
+
+			for key, value := range updates {
+				setNestedProperty(originalMap, key, value)
+			}
+
+			r.targetMessage.SetStructured(originalMap)
+
+			return nil, nil
+		}
+	})
+
+func setNestedProperty(obj map[string]any, path string, value any) {
+	parts := strings.Split(path, ".")
+	current := obj
+
+	for i, part := range parts {
+		if i == len(parts)-1 {
+			current[part] = value
+		} else {
+			if _, ok := current[part]; !ok {
+				current[part] = make(map[string]any)
+			}
+			current = current[part].(map[string]any)
+		}
+	}
+}
