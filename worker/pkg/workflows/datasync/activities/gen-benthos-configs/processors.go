@@ -368,10 +368,9 @@ func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
 (() => {
 %s
 const input = benthos.v0_msg_as_structured();
-const output = { ...input };
 const updatedValues = {}
 %s
-neosync.patchMessage(updatedValues)
+neosync.patchStructuredMessage(updatedValues)
 })();`, jsFunctionStrings, benthosOutputString)
 	return jsCode
 }
