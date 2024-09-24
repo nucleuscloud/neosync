@@ -186,7 +186,7 @@ export function SchemaTableToolbar<TData>({
                   const identityType =
                     constraintHandler.getIdentityType(colkey);
                   const newJm =
-                    isGenerated || identityType
+                    isGenerated && !identityType
                       ? new JobMappingTransformer({
                           source: TransformerSource.GENERATE_DEFAULT,
                           config: new TransformerConfig({
