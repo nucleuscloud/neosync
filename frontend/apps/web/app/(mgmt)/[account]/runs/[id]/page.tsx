@@ -408,6 +408,7 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
   const { resolvedTheme } = useTheme();
 
   const formattedQuery = useMemo(() => {
+    // todo: maybe update this to explicitly pass in the driver type so it formats it according to the correct connection
     return formatSql(query.select);
   }, [query.schema, query.table, query.select]);
 
