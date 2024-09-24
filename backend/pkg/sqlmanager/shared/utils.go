@@ -32,6 +32,7 @@ func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
 		NumericPrecision:       Ptr(row.NumericPrecision),
 		NumericScale:           Ptr(row.NumericScale),
 		IdentityGeneration:     row.IdentityGeneration,
+		GeneratedType:          row.GeneratedType,
 	}
 }
 

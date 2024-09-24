@@ -96,7 +96,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(slogger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -185,6 +185,7 @@ func mergeVirtualForeignKeys(
 }
 
 func buildBenthosSqlSourceConfigResponses(
+	slogger *slog.Logger,
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	groupedTableMapping map[string]*tableMapping,
@@ -265,6 +266,11 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
+		columnDefaultTypes, err := getColumnDefaultTypes(slogger, driver, config.Table(), config.InsertColumns(), groupedColumnInfo, colTransformerMap)
+		if err != nil {
+			return nil, err
+		}
+
 		responses = append(responses, &BenthosConfigResponse{
 			Name:           fmt.Sprintf("%s.%s", config.Table(), config.RunType()),
 			Config:         bc,
@@ -274,11 +280,11 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema:     mappings.Schema,
-			TableName:       mappings.Table,
-			Columns:         config.InsertColumns(),
-			IdentityColumns: getIdentityColumns(driver, config.Table(), config.InsertColumns(), groupedColumnInfo),
-			primaryKeys:     config.PrimaryKeys(),
+			TableSchema:        mappings.Schema,
+			TableName:          mappings.Table,
+			Columns:            config.InsertColumns(),
+			ColumnDefaultTypes: columnDefaultTypes,
+			primaryKeys:        config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -291,24 +297,116 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
-	identityCols := []string{}
+type ColumnDefault struct {
+	DefaultType string
+	Transformer string
+}
+
+func getColumnDefaultTypes(
+	slogger *slog.Logger,
+	driver,
+	table string,
+	cols []string,
+	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
+	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+) (map[string]string, error) {
+	colDefaults := map[string]string{}
 	colInfo, ok := groupedColumnInfo[table]
-	if !ok {
-		return []string{}
+	colTransformers, transformersOk := colTransformerMap[table]
+	if !ok || !transformersOk {
+		return colDefaults, nil
 	}
-	for _, c := range cols {
-		info, ok := colInfo[c]
-		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
-			if driver == sqlmanager_shared.PostgresDriver && *info.IdentityGeneration != "a" {
-				// only add generate always postgres identity columns
-				continue
-			}
-			identityCols = append(identityCols, c)
+	for _, cName := range cols {
+		transformer, ok := colTransformers[cName]
+		if !ok || transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
+			continue
+		}
+		info, ok := colInfo[cName]
+		if !ok {
+			return nil, fmt.Errorf("column default type missing. table: %s column: %s", table, cName)
+		}
+		defaultType, err := getSqlDefaultType(driver, info)
+		if err != nil {
+			slogger.Error("unable to determine SQL column default type", "error", err, "table", table, "column", cName)
+			return nil, err
+		}
+		colDefaults[cName] = defaultType
+	}
+	return colDefaults, nil
+}
+
+func getSqlDefaultType(driver string, cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver:
+		return postgresDefaultTypes(cInfo)
+	case sqlmanager_shared.MysqlDriver:
+		return mysqlDefaultTypes(cInfo)
+	case sqlmanager_shared.MssqlDriver:
+		return mssqlDefaultTypes(cInfo)
+	default:
+		return "", fmt.Errorf("unsupported sql driver: %s", driver)
+	}
+}
+
+func postgresDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
+	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
+		if *cInfo.IdentityGeneration == "a" {
+			return "IDENTITY GENERATED ALWAYS", nil
+		}
+		if *cInfo.IdentityGeneration == "d" {
+			return "IDENTITY GENERATED DEFAULT", nil
 		}
 	}
-	return identityCols
+	if cInfo.ColumnDefault != "" || (cInfo.GeneratedType != nil && *cInfo.GeneratedType != "") {
+		return "DEFAULT", nil
+	}
+	return "", fmt.Errorf("unsupported postgres default type")
 }
+
+func mysqlDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
+	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
+		return "IDENTITY GENERATED DEFAULT", nil
+	}
+	if cInfo.GeneratedType != nil && *cInfo.GeneratedType != "" {
+		return "DEFAULT", nil
+	}
+	if cInfo.ColumnDefault != "" {
+		return "DEFAULT", nil
+	}
+	return "", nil
+}
+
+func mssqlDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
+	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
+		return "IDENTITY GENERATED ALWAYS", nil
+	}
+	if cInfo.GeneratedType != nil && *cInfo.GeneratedType != "" {
+		return "DEFAULT", nil
+	}
+	if cInfo.ColumnDefault != "" {
+		return "DEFAULT", nil
+	}
+	return "", nil
+}
+
+// func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
+// 	identityCols := []string{}
+// 	colInfo, ok := groupedColumnInfo[table]
+// 	if !ok {
+// 		return []string{}
+// 	}
+// 	for _, c := range cols {
+// 		info, ok := colInfo[c]
+// 		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
+// 			if driver == sqlmanager_shared.PostgresDriver && *info.IdentityGeneration != "a" {
+// 				// only add generate always postgres identity columns
+// 				continue
+// 			}
+// 			identityCols = append(identityCols, c)
+// 		}
+// 	}
+// 	return identityCols
+// }
 
 func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
@@ -484,7 +582,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 			}
 		}
 
-		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.IdentityColumns, colTransformerMap)
+		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultTypes, colTransformerMap)
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -496,7 +594,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
 						ColumnsDataTypes:         columnTypes,
-						IdentityColumns:          benthosConfig.IdentityColumns,
+						ColumnDefaultTypes:       benthosConfig.ColumnDefaultTypes,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
 						TruncateOnRetry:          destOpts.Truncate,
@@ -527,7 +625,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 
 func getInsertPrefixAndSuffix(
 	driver, schema, table string,
-	identityColumns []string,
+	identityColumns map[string]string,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) (prefix, suffix *string) {
 	var pre, suff *string

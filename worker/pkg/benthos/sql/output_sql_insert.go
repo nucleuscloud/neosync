@@ -29,6 +29,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
 		Field(service.NewStringListField("column_data_types")).
+		Field(service.NewStringMapField("column_default_types")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -36,8 +37,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional()).
-		Field(service.NewStringListField("identity_columns").Optional())
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -104,6 +104,7 @@ type pooledInsertOutput struct {
 	table                    string
 	columns                  []string
 	columnDataTypes          []string
+	columnDefaultTypes       map[string]string
 	identityColumns          []string
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
@@ -146,6 +147,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	columnDefaultTypes, err := conf.FieldStringMap("column_default_types")
+	if err != nil {
+		return nil, err
+	}
+
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -179,14 +185,14 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		suffix = &suffixStr
 	}
 
-	var identityColumns []string
-	if conf.Contains("identity_columns") {
-		identityCols, err := conf.FieldStringList("identity_columns")
-		if err != nil {
-			return nil, err
-		}
-		identityColumns = identityCols
-	}
+	// var identityColumns []string
+	// if conf.Contains("identity_columns") {
+	// 	identityCols, err := conf.FieldStringList("identity_columns")
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	identityColumns = identityCols
+	// }
 
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
@@ -196,18 +202,19 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	output := &pooledInsertOutput{
-		driver:                   driver,
-		dsn:                      dsn,
-		logger:                   mgr.Logger(),
-		slogger:                  logger,
-		shutSig:                  shutdown.NewSignaller(),
-		argsMapping:              argsMapping,
-		provider:                 provider,
-		schema:                   schema,
-		table:                    table,
-		columns:                  columns,
-		columnDataTypes:          columnDataTypes,
-		identityColumns:          identityColumns,
+		driver:             driver,
+		dsn:                dsn,
+		logger:             mgr.Logger(),
+		slogger:            logger,
+		shutSig:            shutdown.NewSignaller(),
+		argsMapping:        argsMapping,
+		provider:           provider,
+		schema:             schema,
+		table:              table,
+		columns:            columns,
+		columnDataTypes:    columnDataTypes,
+		columnDefaultTypes: columnDefaultTypes,
+		// identityColumns:          identityColumns,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
 		truncateOnRetry:          truncateOnRetry,
