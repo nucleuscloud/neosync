@@ -168,7 +168,8 @@ func serve(ctx context.Context) error {
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
-		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+		tmPropagator := neosyncotel.NewDefaultPropagator()
+		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
 		traceProviders := []neosyncotel.TracerProvider{}
 		meterProviders := []neosyncotel.MeterProvider{}
 
@@ -216,9 +217,10 @@ func serve(ctx context.Context) error {
 		stdInterceptors = append(stdInterceptors, otelInterceptor)
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProviders: traceProviders,
-			MeterProviders: meterProviders,
-			Logger:         logr.FromSlogHandler(slogger.Handler()),
+			TraceProviders:    traceProviders,
+			MeterProviders:    meterProviders,
+			Logger:            logr.FromSlogHandler(slogger.Handler()),
+			TextMapPropagator: tmPropagator,
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {

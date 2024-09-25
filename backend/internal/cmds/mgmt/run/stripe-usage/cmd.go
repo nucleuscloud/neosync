@@ -119,7 +119,8 @@ func run(ctx context.Context) error {
 
 func getOtelConfig(ctx context.Context, otelconfig neosyncotel.OtelEnvConfig, logger *slog.Logger) (interceptors []connect.Interceptor, shutdown func(context.Context) error, err error) {
 	logger.DebugContext(ctx, "otel is enabled")
-	otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+	tmPropagator := neosyncotel.NewDefaultPropagator()
+	otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
 
 	meterProviders := []neosyncotel.MeterProvider{}
 	traceProviders := []neosyncotel.TracerProvider{}
@@ -167,9 +168,10 @@ func getOtelConfig(ctx context.Context, otelconfig neosyncotel.OtelEnvConfig, lo
 	}
 
 	otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-		TraceProviders: traceProviders,
-		MeterProviders: meterProviders,
-		Logger:         logr.FromSlogHandler(logger.Handler()),
+		TraceProviders:    traceProviders,
+		MeterProviders:    meterProviders,
+		Logger:            logr.FromSlogHandler(logger.Handler()),
+		TextMapPropagator: tmPropagator,
 	})
 	return []connect.Interceptor{otelInterceptor}, otelshutdown, nil
 }

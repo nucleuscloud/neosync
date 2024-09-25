@@ -12,8 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
+	"connectrpc.com/otelconnect"
 	"github.com/go-logr/logr"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -69,9 +71,14 @@ func serve(ctx context.Context) error {
 	temporalClientInterceptors := []interceptor.ClientInterceptor{}
 	var temopralMeterHandler client.MetricsHandler
 
+	connectInterceptors := []connect.Interceptor{}
+
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
 		logger.Debug("otel is enabled")
+		tmPropagator := neosyncotel.NewDefaultPropagator()
+		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
+
 		meterProviders := []neosyncotel.MeterProvider{}
 		traceProviders := []neosyncotel.TracerProvider{}
 		// Meter Provider that uses delta temporality for use with Benthos metrics
@@ -115,7 +122,26 @@ func serve(ctx context.Context) error {
 			})
 		}
 
-		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
+		neosyncMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if neosyncMeterProvider != nil {
+			logger.Debug("otel metering for neosync clients has been configured")
+			meterProviders = append(meterProviders, neosyncMeterProvider)
+			otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(neosyncMeterProvider))
+		} else {
+			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
+		}
+
+		temporalTraceProvider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
 			Exporter: otelconfig.TraceExporter,
 			Opts: neosyncotel.TraceExporterOpts{
 				Otlp:    []otlptracegrpc.Option{},
@@ -125,22 +151,46 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if traceprovider != nil {
+		if temporalTraceProvider != nil {
 			logger.Debug("otel tracing for temporal has been configured")
-			traceInterceptor, err := temporalotel.NewTracingInterceptor(temporalotel.TracerOptions{
-				Tracer: traceprovider.Tracer("neosync-temporal-sdk"),
+			temporalTraceInterceptor, err := temporalotel.NewTracingInterceptor(temporalotel.TracerOptions{
+				Tracer: temporalTraceProvider.Tracer("neosync-temporal-sdk"),
 			})
 			if err != nil {
 				return err
 			}
-			temporalClientInterceptors = append(temporalClientInterceptors, traceInterceptor)
-			traceProviders = append(traceProviders, traceprovider)
+			temporalClientInterceptors = append(temporalClientInterceptors, temporalTraceInterceptor)
+			traceProviders = append(traceProviders, temporalTraceProvider)
 		}
 
+		neosyncTraceProvider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
+			Exporter: otelconfig.TraceExporter,
+			Opts: neosyncotel.TraceExporterOpts{
+				Otlp:    []otlptracegrpc.Option{},
+				Console: []stdouttrace.Option{stdouttrace.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if neosyncTraceProvider != nil {
+			logger.Debug("otel tracing for neosync clients has been configured")
+			otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(neosyncTraceProvider))
+		} else {
+			otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())
+		}
+
+		otelConnectInterceptor, err := otelconnect.NewInterceptor(otelconnopts...)
+		if err != nil {
+			return err
+		}
+		connectInterceptors = append(connectInterceptors, otelConnectInterceptor)
+
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProviders: traceProviders,
-			MeterProviders: meterProviders,
-			Logger:         logr.FromSlogHandler(logger.Handler()),
+			TraceProviders:    traceProviders,
+			MeterProviders:    meterProviders,
+			Logger:            logr.FromSlogHandler(logger.Handler()),
+			TextMapPropagator: tmPropagator,
 		})
 		defer func() {
 			if err := otelshutdown(context.Background()); err != nil {
@@ -205,10 +255,11 @@ func serve(ctx context.Context) error {
 
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
-	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl)
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl)
-	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl)
+	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 	sqlconnector := &sqlconnect.SqlOpenConnector{}
 	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlconnector)
 	redisconfig := shared.GetRedisConfig()
