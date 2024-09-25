@@ -560,15 +560,15 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 
 func getInsertPrefixAndSuffix(
 	driver, schema, table string,
-	colDefaultTypes map[string]*neosync_benthos.ColumnDefaultProperties,
+	columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties,
 ) (prefix, suffix *string) {
 	var pre, suff *string
-	if len(colDefaultTypes) == 0 {
+	if len(columnDefaultProperties) == 0 {
 		return pre, suff
 	}
 	switch driver {
 	case sqlmanager_shared.MssqlDriver:
-		if hasPassthroughIdentityColumn(colDefaultTypes) {
+		if hasPassthroughIdentityColumn(columnDefaultProperties) {
 			enableIdentityInsert := true
 			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
 			pre = &p
@@ -580,7 +580,7 @@ func getInsertPrefixAndSuffix(
 		return pre, suff
 	case sqlmanager_shared.PostgresDriver:
 		var idResetSql string
-		for cName, d := range colDefaultTypes {
+		for cName, d := range columnDefaultProperties {
 			if !d.HasDefaultTransformer && d.NeedsReset {
 				idResetSql += sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, cName)
 			}
@@ -591,8 +591,8 @@ func getInsertPrefixAndSuffix(
 	}
 }
 
-func hasPassthroughIdentityColumn(colDefaultTypes map[string]*neosync_benthos.ColumnDefaultProperties) bool {
-	for _, d := range colDefaultTypes {
+func hasPassthroughIdentityColumn(columnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+	for _, d := range columnDefaultProperties {
 		if d.NeedsOverride && d.NeedsReset && !d.HasDefaultTransformer {
 			return true
 		}
