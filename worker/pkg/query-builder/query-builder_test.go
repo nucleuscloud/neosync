@@ -9,6 +9,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/stretchr/testify/require"
 )
 
@@ -103,27 +104,28 @@ func Test_BuildUpdateQuery(t *testing.T) {
 func Test_BuildInsertQuery(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	tests := []struct {
-		name                string
-		driver              string
-		schema              string
-		table               string
-		columns             []string
-		columnDataTypes     []string
-		values              [][]any
-		onConflictDoNothing bool
-		expected            string
-		expectedArgs        []any
+		name                    string
+		driver                  string
+		schema                  string
+		table                   string
+		columns                 []string
+		columnDataTypes         []string
+		values                  [][]any
+		onConflictDoNothing     bool
+		columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties
+		expected                string
+		expectedArgs            []any
 	}{
-		{"Single Column mysql", "mysql", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users` (`name`) VALUES (?), (?)", []any{"Alice", "Bob"}},
-		{"Special characters mysql", "mysql", "public", "users.stage$dev", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, "INSERT INTO `public`.`users.stage$dev` (`name`) VALUES (?), (?)", []any{"Alice", "Bob"}},
-		{"Multiple Columns mysql", "mysql", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES (?, ?), (?, ?)", []any{"Alice", "alice@fake.com", "Bob", "bob@fake.com"}},
-		{"Single Column postgres", "postgres", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, `INSERT INTO "public"."users" ("name") VALUES ($1), ($2)`, []any{"Alice", "Bob"}},
-		{"Multiple Columns postgres", "postgres", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, `INSERT INTO "public"."users" ("name", "email") VALUES ($1, $2), ($3, $4) ON CONFLICT DO NOTHING`, []any{"Alice", "alice@fake.com", "Bob", "bob@fake.com"}},
+		{"Single Column mysql", "mysql", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, []*neosync_benthos.ColumnDefaultProperties{}, "INSERT INTO `public`.`users` (`name`) VALUES (?), (?)", []any{"Alice", "Bob"}},
+		{"Special characters mysql", "mysql", "public", "users.stage$dev", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, []*neosync_benthos.ColumnDefaultProperties{}, "INSERT INTO `public`.`users.stage$dev` (`name`) VALUES (?), (?)", []any{"Alice", "Bob"}},
+		{"Multiple Columns mysql", "mysql", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, []*neosync_benthos.ColumnDefaultProperties{}, "INSERT IGNORE INTO `public`.`users` (`name`, `email`) VALUES (?, ?), (?, ?)", []any{"Alice", "alice@fake.com", "Bob", "bob@fake.com"}},
+		{"Single Column postgres", "postgres", "public", "users", []string{"name"}, []string{}, [][]any{{"Alice"}, {"Bob"}}, false, []*neosync_benthos.ColumnDefaultProperties{}, `INSERT INTO "public"."users" ("name") VALUES ($1), ($2)`, []any{"Alice", "Bob"}},
+		{"Multiple Columns postgres", "postgres", "public", "users", []string{"name", "email"}, []string{}, [][]any{{"Alice", "alice@fake.com"}, {"Bob", "bob@fake.com"}}, true, []*neosync_benthos.ColumnDefaultProperties{}, `INSERT INTO "public"."users" ("name", "email") VALUES ($1, $2), ($3, $4) ON CONFLICT DO NOTHING`, []any{"Alice", "alice@fake.com", "Bob", "bob@fake.com"}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, args, err := BuildInsertQuery(logger, tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing)
+			actual, args, err := BuildInsertQuery(logger, tt.driver, tt.schema, tt.table, tt.columns, tt.columnDataTypes, tt.values, &tt.onConflictDoNothing, tt.columnDefaultProperties)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, actual)
 			require.Equal(t, tt.expectedArgs, args)
@@ -138,13 +140,14 @@ func Test_BuildInsertQuery_JsonArray(t *testing.T) {
 	table := "test_table"
 	columns := []string{"id", "name", "tags"}
 	columnDataTypes := []string{"int", "text", "jsonb[]"}
+	columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil}
 	values := [][]any{
 		{1, "John", []map[string]any{{"tag": "cool"}, {"tag": "awesome"}}},
 		{2, "Jane", []map[string]any{{"tag": "smart"}, {"tag": "clever"}}},
 	}
 	onConflictDoNothing := false
 
-	query, _, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, _, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing, columnDefaultProperties)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, ARRAY['{"tag":"cool"}','{"tag":"awesome"}']::jsonb[]), ($3, $4, ARRAY['{"tag":"smart"}','{"tag":"clever"}']::jsonb[])`
 	require.Equal(t, expectedQuery, query)
@@ -157,13 +160,14 @@ func Test_BuildInsertQuery_Json(t *testing.T) {
 	table := "test_table"
 	columns := []string{"id", "name", "tags"}
 	columnDataTypes := []string{"int", "text", "json"}
+	columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{}
 	values := [][]any{
 		{1, "John", map[string]any{"tag": "cool"}},
 		{2, "Jane", map[string]any{"tag": "smart"}},
 	}
 	onConflictDoNothing := false
 
-	query, args, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing)
+	query, args, err := BuildInsertQuery(logger, driver, schema, table, columns, columnDataTypes, values, &onConflictDoNothing, columnDefaultProperties)
 	require.NoError(t, err)
 	expectedQuery := `INSERT INTO "public"."test_table" ("id", "name", "tags") VALUES ($1, $2, $3), ($4, $5, $6)`
 	require.Equal(t, expectedQuery, query)
@@ -176,8 +180,9 @@ func TestGetGoquVals(t *testing.T) {
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
 		columnDataTypes := []string{"text", "integer", "boolean", "jsonb", "integer[]"}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, nil, nil}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 
 		require.Len(t, result, 5)
 		require.Equal(t, "value1", result[0])
@@ -192,8 +197,9 @@ func TestGetGoquVals(t *testing.T) {
 		driver := sqlmanager_shared.MysqlDriver
 		row := []any{"value1", 42, true, "DEFAULT"}
 		columnDataTypes := []string{}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, {HasDefaultTransformer: true}}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 
 		require.Len(t, result, 4)
 		require.Equal(t, "value1", result[0])
@@ -207,8 +213,9 @@ func TestGetGoquVals(t *testing.T) {
 		driver := sqlmanager_shared.MysqlDriver
 		row := []any{"value1", 42, true, "DEFAULT"}
 		columnDataTypes := []string{}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, {HasDefaultTransformer: true}}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 
 		require.Len(t, result, 4)
 		require.Equal(t, "value1", result[0])
@@ -222,8 +229,9 @@ func TestGetGoquVals(t *testing.T) {
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{}
 		columnDataTypes := []string{}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 
 		require.Empty(t, result)
 	})
@@ -233,8 +241,9 @@ func TestGetGoquVals(t *testing.T) {
 		driver := sqlmanager_shared.PostgresDriver
 		row := []any{"text", 42, true}
 		columnDataTypes := []string{"text"}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{}
 
-		result := getGoquVals(logger, driver, row, columnDataTypes)
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 
 		require.Len(t, result, 3)
 		require.Equal(t, "text", result[0])

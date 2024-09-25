@@ -18,11 +18,12 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
-	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
@@ -37,6 +38,7 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -57,7 +59,7 @@ type neosyncCloudClients struct {
 }
 
 func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+s.basepath)
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
 type authdClients struct {
@@ -65,14 +67,14 @@ type authdClients struct {
 }
 
 func (s *authdClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(s.httpsrv.Client(), &authUserId), s.httpsrv.URL+"/auth")
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
 type mocks struct {
 	temporalClientManager *clientmanager.MockTemporalClientManagerClient
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
-	prometheusclient      *mockPromV1.MockAPI
+	prometheusclient      *promapiv1mock.MockAPI
 	billingclient         *billing.MockInterface
 }
 
@@ -132,7 +134,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(s.T()),
 		authclient:            auth_client.NewMockInterface(s.T()),
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
-		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
+		prometheusclient:      promapiv1mock.NewMockAPI(s.T()),
 		billingclient:         billing.NewMockInterface(s.T()),
 	}
 
@@ -221,6 +223,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 			authuserid, err := utils.GetBearerTokenFromHeader(header, "Authorization")
 			if err != nil {
 				return nil, err
+			}
+			if apikey.IsValidV1WorkerKey(authuserid) {
+				return auth_apikey.SetTokenData(ctx, &auth_apikey.TokenContextData{
+					RawToken:   authuserid,
+					ApiKey:     nil,
+					ApiKeyType: apikey.WorkerApiKey,
+				}), nil
 			}
 			return auth_jwt.SetTokenData(ctx, &auth_jwt.TokenContextData{
 				AuthUserId: authuserid,

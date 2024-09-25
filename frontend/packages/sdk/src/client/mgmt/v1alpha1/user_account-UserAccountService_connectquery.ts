@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodIdempotency, MethodKind } from "@bufbuild/protobuf";
-import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountBillingCheckoutSessionRequest, GetAccountBillingCheckoutSessionResponse, GetAccountBillingPortalSessionRequest, GetAccountBillingPortalSessionResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
+import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountBillingCheckoutSessionRequest, GetAccountBillingCheckoutSessionResponse, GetAccountBillingPortalSessionRequest, GetAccountBillingPortalSessionResponse, GetAccountOnboardingConfigRequest, GetAccountOnboardingConfigResponse, GetAccountStatusRequest, GetAccountStatusResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetBillingAccountsRequest, GetBillingAccountsResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsAccountStatusValidRequest, IsAccountStatusValidResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountOnboardingConfigRequest, SetAccountOnboardingConfigResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetBillingMeterEventRequest, SetBillingMeterEventResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
 
 /**
  * @generated from rpc mgmt.v1alpha1.UserAccountService.GetUser
@@ -319,6 +319,39 @@ export const getAccountBillingPortalSession = {
   kind: MethodKind.Unary,
   I: GetAccountBillingPortalSessionRequest,
   O: GetAccountBillingPortalSessionResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Returns user accounts that have a billing id.
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.GetBillingAccounts
+ */
+export const getBillingAccounts = {
+  localName: "getBillingAccounts",
+  name: "GetBillingAccounts",
+  kind: MethodKind.Unary,
+  I: GetBillingAccountsRequest,
+  O: GetBillingAccountsResponse,
+      idempotency: MethodIdempotency.NoSideEffects,
+  service: {
+    typeName: "mgmt.v1alpha1.UserAccountService"
+  }
+} as const;
+
+/**
+ * Sends a new metered event to the billing system
+ *
+ * @generated from rpc mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent
+ */
+export const setBillingMeterEvent = {
+  localName: "setBillingMeterEvent",
+  name: "SetBillingMeterEvent",
+  kind: MethodKind.Unary,
+  I: SetBillingMeterEventRequest,
+  O: SetBillingMeterEventResponse,
   service: {
     typeName: "mgmt.v1alpha1.UserAccountService"
   }

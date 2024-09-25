@@ -81,6 +81,8 @@ func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 
 			"sqlmanagermssql2.TableA": {"IdA1", "IdA2"},
 			"sqlmanagermssql2.TableB": {"IdB1", "IdB2"},
+
+			"sqlmanagermssql2.defaults_table": {"id"},
 		},
 	}
 
@@ -299,5 +301,40 @@ func containsSubset[T any](t testing.TB, array, subset []T) {
 	t.Helper()
 	for _, elem := range subset {
 		require.Contains(t, array, elem)
+	}
+}
+
+type testColumnProperties struct {
+	needsOverride bool
+	needsReset    bool
+}
+
+func (s *IntegrationTestSuite) Test_GetMssqlColumnOverrideAndResetProperties() {
+	manager := NewManager(s.source.querier, s.source.testDb, func() {})
+
+	colInfoMap, err := manager.GetSchemaColumnMap(context.Background())
+	require.NoError(s.T(), err)
+
+	testDefaultTable := colInfoMap["testdb.sqlmanagermssql2.defaults_table"]
+
+	var expectedProperties = map[string]testColumnProperties{
+		"description":       {needsOverride: false, needsReset: false},
+		"registration_date": {needsOverride: false, needsReset: false},
+		"score":             {needsOverride: false, needsReset: false},
+		"status":            {needsOverride: false, needsReset: false},
+		"id":                {needsOverride: true, needsReset: true},
+		"last_login":        {needsOverride: false, needsReset: false},
+		"age":               {needsOverride: false, needsReset: false},
+		"is_active":         {needsOverride: false, needsReset: false},
+		"created_at":        {needsOverride: false, needsReset: false},
+		"uuid":              {needsOverride: false, needsReset: false},
+	}
+
+	for col, colInfo := range testDefaultTable {
+		needsOverride, needsReset := GetMssqlColumnOverrideAndResetProperties(colInfo)
+		expected, ok := expectedProperties[col]
+		require.Truef(s.T(), ok, "Missing expected column %q", col)
+		require.Equalf(s.T(), expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
+		require.Equalf(s.T(), expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
 	}
 }

@@ -99,6 +99,12 @@ const (
 	// UserAccountServiceGetAccountBillingPortalSessionProcedure is the fully-qualified name of the
 	// UserAccountService's GetAccountBillingPortalSession RPC.
 	UserAccountServiceGetAccountBillingPortalSessionProcedure = "/mgmt.v1alpha1.UserAccountService/GetAccountBillingPortalSession"
+	// UserAccountServiceGetBillingAccountsProcedure is the fully-qualified name of the
+	// UserAccountService's GetBillingAccounts RPC.
+	UserAccountServiceGetBillingAccountsProcedure = "/mgmt.v1alpha1.UserAccountService/GetBillingAccounts"
+	// UserAccountServiceSetBillingMeterEventProcedure is the fully-qualified name of the
+	// UserAccountService's SetBillingMeterEvent RPC.
+	UserAccountServiceSetBillingMeterEventProcedure = "/mgmt.v1alpha1.UserAccountService/SetBillingMeterEvent"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -126,6 +132,8 @@ var (
 	userAccountServiceIsAccountStatusValidMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("IsAccountStatusValid")
 	userAccountServiceGetAccountBillingCheckoutSessionMethodDescriptor = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountBillingCheckoutSession")
 	userAccountServiceGetAccountBillingPortalSessionMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountBillingPortalSession")
+	userAccountServiceGetBillingAccountsMethodDescriptor               = userAccountServiceServiceDescriptor.Methods().ByName("GetBillingAccounts")
+	userAccountServiceSetBillingMeterEventMethodDescriptor             = userAccountServiceServiceDescriptor.Methods().ByName("SetBillingMeterEvent")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -156,6 +164,10 @@ type UserAccountServiceClient interface {
 	GetAccountBillingCheckoutSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error)
 	// Returns a new billing portal session if the account has a billing customer id
 	GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error)
+	// Returns user accounts that have a billing id.
+	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
+	// Sends a new metered event to the billing system
+	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -302,6 +314,19 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getBillingAccounts: connect.NewClient[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetBillingAccountsProcedure,
+			connect.WithSchema(userAccountServiceGetBillingAccountsMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+			connect.WithClientOptions(opts...),
+		),
+		setBillingMeterEvent: connect.NewClient[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse](
+			httpClient,
+			baseURL+UserAccountServiceSetBillingMeterEventProcedure,
+			connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -329,6 +354,8 @@ type userAccountServiceClient struct {
 	isAccountStatusValid             *connect.Client[v1alpha1.IsAccountStatusValidRequest, v1alpha1.IsAccountStatusValidResponse]
 	getAccountBillingCheckoutSession *connect.Client[v1alpha1.GetAccountBillingCheckoutSessionRequest, v1alpha1.GetAccountBillingCheckoutSessionResponse]
 	getAccountBillingPortalSession   *connect.Client[v1alpha1.GetAccountBillingPortalSessionRequest, v1alpha1.GetAccountBillingPortalSessionResponse]
+	getBillingAccounts               *connect.Client[v1alpha1.GetBillingAccountsRequest, v1alpha1.GetBillingAccountsResponse]
+	setBillingMeterEvent             *connect.Client[v1alpha1.SetBillingMeterEventRequest, v1alpha1.SetBillingMeterEventResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -443,6 +470,16 @@ func (c *userAccountServiceClient) GetAccountBillingPortalSession(ctx context.Co
 	return c.getAccountBillingPortalSession.CallUnary(ctx, req)
 }
 
+// GetBillingAccounts calls mgmt.v1alpha1.UserAccountService.GetBillingAccounts.
+func (c *userAccountServiceClient) GetBillingAccounts(ctx context.Context, req *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error) {
+	return c.getBillingAccounts.CallUnary(ctx, req)
+}
+
+// SetBillingMeterEvent calls mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent.
+func (c *userAccountServiceClient) SetBillingMeterEvent(ctx context.Context, req *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error) {
+	return c.setBillingMeterEvent.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -471,6 +508,10 @@ type UserAccountServiceHandler interface {
 	GetAccountBillingCheckoutSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingCheckoutSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingCheckoutSessionResponse], error)
 	// Returns a new billing portal session if the account has a billing customer id
 	GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error)
+	// Returns user accounts that have a billing id.
+	GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error)
+	// Sends a new metered event to the billing system
+	SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -613,6 +654,19 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		connect.WithSchema(userAccountServiceGetAccountBillingPortalSessionMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	userAccountServiceGetBillingAccountsHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetBillingAccountsProcedure,
+		svc.GetBillingAccounts,
+		connect.WithSchema(userAccountServiceGetBillingAccountsMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceSetBillingMeterEventHandler := connect.NewUnaryHandler(
+		UserAccountServiceSetBillingMeterEventProcedure,
+		svc.SetBillingMeterEvent,
+		connect.WithSchema(userAccountServiceSetBillingMeterEventMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -659,6 +713,10 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceGetAccountBillingCheckoutSessionHandler.ServeHTTP(w, r)
 		case UserAccountServiceGetAccountBillingPortalSessionProcedure:
 			userAccountServiceGetAccountBillingPortalSessionHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetBillingAccountsProcedure:
+			userAccountServiceGetBillingAccountsHandler.ServeHTTP(w, r)
+		case UserAccountServiceSetBillingMeterEventProcedure:
+			userAccountServiceSetBillingMeterEventHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -754,4 +812,12 @@ func (UnimplementedUserAccountServiceHandler) GetAccountBillingCheckoutSession(c
 
 func (UnimplementedUserAccountServiceHandler) GetAccountBillingPortalSession(context.Context, *connect.Request[v1alpha1.GetAccountBillingPortalSessionRequest]) (*connect.Response[v1alpha1.GetAccountBillingPortalSessionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetAccountBillingPortalSession is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetBillingAccounts(context.Context, *connect.Request[v1alpha1.GetBillingAccountsRequest]) (*connect.Response[v1alpha1.GetBillingAccountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetBillingAccounts is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) SetBillingMeterEvent(context.Context, *connect.Request[v1alpha1.SetBillingMeterEventRequest]) (*connect.Response[v1alpha1.SetBillingMeterEventResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetBillingMeterEvent is not implemented"))
 }

@@ -3,11 +3,11 @@ package querybuilder
 import (
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -80,13 +80,17 @@ func BuildSelectLimitQuery(
 	return sql, nil
 }
 
-func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes []string) goqu.Vals {
+func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
 	if driver == sqlmanager_shared.PostgresDriver {
-		return getPgGoquVals(logger, row, columnDataTypes)
+		return getPgGoquVals(logger, row, columnDataTypes, columnDefaultProperties)
 	}
 	gval := goqu.Vals{}
-	for _, a := range row {
-		if isDefault(a) {
+	for idx, a := range row {
+		var colDefaults *neosync_benthos.ColumnDefaultProperties
+		if idx < len(columnDefaultProperties) {
+			colDefaults = columnDefaultProperties[idx]
+		}
+		if colDefaults != nil && colDefaults.HasDefaultTransformer {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
@@ -103,12 +107,16 @@ func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes 
 	return gval
 }
 
-func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string) goqu.Vals {
+func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
 	gval := goqu.Vals{}
 	for i, a := range row {
 		var colDataType string
 		if i < len(columnDataTypes) {
 			colDataType = columnDataTypes[i]
+		}
+		var colDefaults *neosync_benthos.ColumnDefaultProperties
+		if i < len(columnDefaultProperties) {
+			colDefaults = columnDefaultProperties[i]
 		}
 		if gotypeutil.IsMap(a) {
 			bits, err := gotypeutil.MapToJson(a)
@@ -128,21 +136,13 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string) goq
 				continue
 			}
 			gval = append(gval, pq.Array(s))
-		} else if isDefault(a) {
+		} else if colDefaults != nil && colDefaults.HasDefaultTransformer {
 			gval = append(gval, goqu.Literal(defaultStr))
 		} else {
 			gval = append(gval, a)
 		}
 	}
 	return gval
-}
-
-func isDefault(val any) bool {
-	valStr, isString := val.(string)
-	if !isString {
-		return false
-	}
-	return strings.EqualFold(valStr, defaultStr)
 }
 
 func BuildInsertQuery(
@@ -152,6 +152,7 @@ func BuildInsertQuery(
 	columnDataTypes []string,
 	values [][]any,
 	onConflictDoNothing *bool,
+	columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties,
 ) (sql string, args []any, err error) {
 	builder := getGoquDialect(driver)
 	sqltable := goqu.S(schema).Table(table)
@@ -161,7 +162,7 @@ func BuildInsertQuery(
 	}
 	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
 	for _, row := range values {
-		gval := getGoquVals(logger, driver, row, columnDataTypes)
+		gval := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
 		insert = insert.Vals(gval)
 	}
 	// adds on conflict do nothing to insert query
@@ -188,11 +189,7 @@ func BuildUpdateQuery(
 	updateRecord := goqu.Record{}
 	for _, col := range insertColumns {
 		val := columnValueMap[col]
-		if isDefault(val) {
-			updateRecord[col] = goqu.L(defaultStr)
-		} else {
-			updateRecord[col] = val
-		}
+		updateRecord[col] = val
 	}
 
 	where := []exp.Expression{}

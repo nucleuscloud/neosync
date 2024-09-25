@@ -3,6 +3,8 @@ package genbenthosconfigs_activity
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -27,7 +29,7 @@ const (
 )
 
 var dsn = "dsn"
-var driver = "driver"
+var driver = sqlmanager_shared.PostgresDriver
 
 func Test_ProcessorConfigEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -66,6 +68,21 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 				NumericPrecision:       nil,
 				NumericScale:           nil,
 			},
+			"name": &sqlmanager_shared.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             false,
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+	groupedTransformers := map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{
+		"public.users": {
+			"id":   &mgmtv1alpha1.JobMappingTransformer{},
+			"name": &mgmtv1alpha1.JobMappingTransformer{},
 		},
 	}
 	queryMap := map[string]map[tabledependency.RunType]string{
@@ -74,8 +91,10 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	runconfigs := []*tabledependency.RunConfig{
 		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
 	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	res, err := buildBenthosSqlSourceConfigResponses(
+		logger,
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
@@ -85,7 +104,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		queryMap,
 		groupedSchemas,
 		map[string][]*sqlmanager_shared.ForeignConstraint{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		groupedTransformers,
 		mockJobId,
 		mockRunId,
 		nil,
@@ -138,6 +157,22 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 				NumericPrecision:       nil,
 				NumericScale:           nil,
 			},
+			"name": &sqlmanager_shared.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             false,
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	groupedTransformers := map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{
+		"public.users": {
+			"id":   &mgmtv1alpha1.JobMappingTransformer{},
+			"name": &mgmtv1alpha1.JobMappingTransformer{},
 		},
 	}
 
@@ -148,8 +183,10 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	queryMap := map[string]map[tabledependency.RunType]string{
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	res, err := buildBenthosSqlSourceConfigResponses(
+		logger,
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
@@ -159,7 +196,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		queryMap,
 		groupedSchemas,
 		map[string][]*sqlmanager_shared.ForeignConstraint{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		groupedTransformers,
 		mockJobId,
 		mockRunId,
 		nil,

@@ -172,7 +172,7 @@ export function SchemaTableToolbar<TData>({
                 </Button>
               }
               headerText="Apply Default Transformers?"
-              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated columns."
+              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated (non-Identity) columns."
               buttonText="Apply"
               onConfirm={() => {
                 const formMappings = form.getValues('mappings');
@@ -186,7 +186,7 @@ export function SchemaTableToolbar<TData>({
                   const identityType =
                     constraintHandler.getIdentityType(colkey);
                   const newJm =
-                    isGenerated || identityType
+                    isGenerated && !identityType
                       ? new JobMappingTransformer({
                           source: TransformerSource.GENERATE_DEFAULT,
                           config: new TransformerConfig({

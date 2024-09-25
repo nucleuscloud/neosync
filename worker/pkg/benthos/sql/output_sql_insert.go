@@ -2,6 +2,7 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -29,6 +30,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
 		Field(service.NewStringListField("column_data_types")).
+		Field(service.NewAnyMapField("column_default_properties")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewBoolField("skip_foreign_key_violations").Optional().Default(false)).
@@ -36,8 +38,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional()).
-		Field(service.NewStringListField("identity_columns").Optional())
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -104,7 +105,7 @@ type pooledInsertOutput struct {
 	table                    string
 	columns                  []string
 	columnDataTypes          []string
-	identityColumns          []string
+	columnDefaultProperties  map[string]*neosync_benthos.ColumnDefaultProperties
 	onConflictDoNothing      bool
 	skipForeignKeyViolations bool
 	truncateOnRetry          bool
@@ -146,6 +147,30 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	columnDefaultPropertiesConfig, err := conf.FieldAnyMap("column_default_properties")
+	if err != nil {
+		return nil, err
+	}
+
+	columnDefaultProperties := map[string]*neosync_benthos.ColumnDefaultProperties{}
+	for key, properties := range columnDefaultPropertiesConfig {
+		props, err := properties.FieldAny()
+		if err != nil {
+			return nil, err
+		}
+		jsonData, err := json.Marshal(props)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal properties for key %s: %w", key, err)
+		}
+
+		var colDefaults neosync_benthos.ColumnDefaultProperties
+		if err := json.Unmarshal(jsonData, &colDefaults); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal properties for key %s: %w", key, err)
+		}
+
+		columnDefaultProperties[key] = &colDefaults
+	}
+
 	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
 	if err != nil {
 		return nil, err
@@ -179,15 +204,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		suffix = &suffixStr
 	}
 
-	var identityColumns []string
-	if conf.Contains("identity_columns") {
-		identityCols, err := conf.FieldStringList("identity_columns")
-		if err != nil {
-			return nil, err
-		}
-		identityColumns = identityCols
-	}
-
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -207,7 +223,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		table:                    table,
 		columns:                  columns,
 		columnDataTypes:          columnDataTypes,
-		identityColumns:          identityColumns,
+		columnDefaultProperties:  columnDefaultProperties,
 		onConflictDoNothing:      onConflictDoNothing,
 		skipForeignKeyViolations: skipForeignKeyViolations,
 		truncateOnRetry:          truncateOnRetry,
@@ -296,7 +312,16 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 	processedCols, processedRows := s.processRows(s.columns, rows)
 
-	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing)
+	// keep same index and order of columns slice
+	columnDefaults := make([]*neosync_benthos.ColumnDefaultProperties, len(processedCols))
+	for idx, cName := range processedCols {
+		defaults, ok := s.columnDefaultProperties[cName]
+		if ok {
+			columnDefaults[idx] = defaults
+		}
+	}
+
+	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
 	if err != nil {
 		return err
 	}
@@ -305,7 +330,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertQuery = sqlserverutil.GeSqlServerDefaultValuesInsertSql(s.schema, s.table, len(rows))
 	}
 
-	if s.driver == sqlmanager_shared.PostgresDriver && len(s.identityColumns) > 0 {
+	if s.driver == sqlmanager_shared.PostgresDriver && shouldOverrideColumnDefault(s.columnDefaultProperties) {
 		insertQuery = sqlmanager_postgres.BuildPgInsertIdentityAlwaysSql(insertQuery)
 	}
 
@@ -317,7 +342,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			return err
 		}
-		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows)
+		err = s.RetryInsertRowByRow(ctx, processedCols, processedRows, columnDefaults)
 		if err != nil {
 			return err
 		}
@@ -332,20 +357,32 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	return nil
 }
 
+func shouldOverrideColumnDefault(columnDefaults map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+	for _, d := range columnDefaults {
+		if !d.HasDefaultTransformer && d.NeedsOverride {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *pooledInsertOutput) RetryInsertRowByRow(
 	ctx context.Context,
 	columns []string,
 	rows [][]any,
+	columnDefaults []*neosync_benthos.ColumnDefaultProperties,
 ) error {
 	errorCount := 0
 	insertCount := 0
 	for _, row := range rows {
-		insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing)
+		insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, columns, s.columnDataTypes, [][]any{row}, &s.onConflictDoNothing, columnDefaults)
 		if err != nil {
 			return err
 		}
-		query := s.buildQuery(insertQuery)
-		_, err = s.db.ExecContext(ctx, query, args...)
+		if s.driver != sqlmanager_shared.PostgresDriver {
+			insertQuery = s.buildQuery(insertQuery)
+		}
+		_, err = s.db.ExecContext(ctx, insertQuery, args...)
 		if err != nil && neosync_benthos.IsForeignKeyViolationError(err.Error()) {
 			errorCount++
 		} else if err != nil && !neosync_benthos.IsForeignKeyViolationError(err.Error()) {
@@ -362,8 +399,14 @@ func (s *pooledInsertOutput) RetryInsertRowByRow(
 func (s *pooledInsertOutput) processRows(columnNames []string, dataRows [][]any) (columns []string, rows [][]any) {
 	switch s.driver {
 	case sqlmanager_shared.MssqlDriver:
+		defaultIdentityCols := []string{}
+		for cName, d := range s.columnDefaultProperties {
+			if d.HasDefaultTransformer && d.NeedsOverride && d.NeedsReset {
+				defaultIdentityCols = append(defaultIdentityCols, cName)
+			}
+		}
 		newDataRows := sqlserverutil.GoTypeToSqlServerType(dataRows)
-		return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(s.driver, s.identityColumns, s.columns, newDataRows)
+		return sqlserverutil.FilterOutSqlServerDefaultIdentityColumns(s.driver, defaultIdentityCols, s.columns, newDataRows)
 	default:
 		return columnNames, dataRows
 	}
