@@ -39,17 +39,19 @@ type MeterProvider interface {
 }
 
 type SetupConfig struct {
-	TraceProviders    []TracerProvider
-	MeterProviders    []MeterProvider
+	TraceProviders []TracerProvider
+	MeterProviders []MeterProvider
+	// If provided, configures the global text map propagator
 	TextMapPropagator propagation.TextMapPropagator
-	Logger            logr.Logger
+	// Configures the global otel logger
+	Logger logr.Logger
 }
 
 func SetupOtelSdk(config *SetupConfig) func(context.Context) error {
 	otel.SetLogger(config.Logger)
-	// todo: Should probably move this out of here as it registers this globally
+
 	if config.TextMapPropagator != nil {
-		otel.SetTextMapPropagator(NewDefaultPropagator())
+		otel.SetTextMapPropagator(config.TextMapPropagator)
 	}
 
 	var shutdownFuncs []func(context.Context) error
