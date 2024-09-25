@@ -24,7 +24,6 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
 ) (*dynamoSyncResp, error) {
-	_ = slogger
 	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
@@ -33,6 +32,7 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	slogger = slogger.With(
 		"sourceConnectionType", sourceConnectionType,
 	)
+	_ = slogger
 
 	dynamoSourceConfig := sourceConnection.GetConnectionConfig().GetDynamodbConfig()
 	if dynamoSourceConfig == nil {
