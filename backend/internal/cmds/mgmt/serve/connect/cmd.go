@@ -267,6 +267,9 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 			mgmtv1alpha1connect.ConnectionDataServiceGetConnectionInitStatementsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceIsAccountStatusValidProcedure,
+			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
+			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
+			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,

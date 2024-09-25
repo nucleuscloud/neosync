@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 
 	migrate_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate"
+	run_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/run"
 	serve "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/serve"
 )
 
@@ -27,6 +28,7 @@ func Execute() {
 	// Wire up subcommands here
 	rootCmd.AddCommand(serve.NewCmd())
 	rootCmd.AddCommand(migrate_cmd.NewCmd())
+	rootCmd.AddCommand(run_cmd.NewCmd())
 
 	cobra.CheckErr(rootCmd.Execute())
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"strings"
 	"time"
 
@@ -13,9 +14,11 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
 )
 
@@ -303,4 +306,103 @@ func (s *Service) GetAccountBillingPortalSession(
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountBillingPortalSessionResponse{
 		PortalSessionUrl: session.URL,
 	}), nil
+}
+
+func (s *Service) GetBillingAccounts(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetBillingAccountsRequest],
+) (*connect.Response[mgmtv1alpha1.GetBillingAccountsResponse], error) {
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
+	}
+
+	accountIdsToFilter := []pgtype.UUID{}
+	for _, accountId := range req.Msg.GetAccountIds() {
+		accountUuid, err := neosyncdb.ToUuid(accountId)
+		if err != nil {
+			return nil, fmt.Errorf("input did not contain entirely valid uuids: %w", err)
+		}
+		accountIdsToFilter = append(accountIdsToFilter, accountUuid)
+	}
+
+	accounts, err := s.db.Q.GetBilledAccounts(ctx, s.db.Db, accountIdsToFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*mgmtv1alpha1.UserAccount, 0, len(accounts))
+	for idx := range accounts {
+		account := accounts[idx]
+		dtos = append(dtos, dtomaps.ToUserAccount(&account))
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetBillingAccountsResponse{Accounts: dtos}), nil
+}
+
+func (s *Service) SetBillingMeterEvent(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetBillingMeterEventRequest],
+) (*connect.Response[mgmtv1alpha1.SetBillingMeterEventResponse], error) {
+	if s.billingclient == nil {
+		return nil, nucleuserrors.NewUnauthorized("billing is not currently enabled")
+	}
+	if s.cfg.IsNeosyncCloud && !isWorkerApiKey(ctx) {
+		return nil, nucleuserrors.NewUnauthorized("must provide valid authentication credentials for this endpoint")
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx).
+		With(
+			"accountId", req.Msg.GetAccountId(),
+			"eventId", req.Msg.GetEventId(),
+			"eventName", req.Msg.GetEventName(),
+		)
+
+	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
+	if err != nil && !neosyncdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && neosyncdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("account does not exist")
+	}
+	if !account.StripeCustomerID.Valid {
+		return nil, nucleuserrors.NewBadRequest("account is not an active billed customer")
+	}
+
+	var ts *int64
+	if req.Msg.GetTimestamp() > 0 {
+		conv, err := safeUint64ToInt64(req.Msg.GetTimestamp())
+		if err != nil {
+			return nil, err
+		}
+		ts = &conv
+	}
+	_, err = s.billingclient.NewMeterEvent(&billing.MeterEventRequest{
+		EventName:  req.Msg.GetEventName(),
+		Identifier: req.Msg.GetEventId(),
+		Timestamp:  ts,
+		CustomerId: account.StripeCustomerID.String,
+		Value:      req.Msg.GetValue(),
+	})
+	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			if stripeErr.Type == stripe.ErrorTypeInvalidRequest && strings.Contains(stripeErr.Msg, "An event already exists with identifier") {
+				logger.Warn("unable to create new meter event, identifier already exists")
+				return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
+			}
+			// todo: handle rate limits from stripe
+		}
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.SetBillingMeterEventResponse{}), nil
+}
+
+func safeUint64ToInt64(value uint64) (int64, error) {
+	if value > math.MaxInt64 {
+		return 0, fmt.Errorf("uint64 value %d overflows int64", value)
+	}
+	return int64(value), nil
 }

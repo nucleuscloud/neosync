@@ -7,7 +7,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_Available() {
-	accountId := s.createPersonalAccount(s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 
 	resp, err := s.unauthdClients.connections.IsConnectionNameAvailable(
 		s.ctx,
@@ -21,7 +21,7 @@ func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_
 }
 
 func (s *IntegrationTestSuite) Test_ConnectionService_IsConnectionNameAvailable_NotAvailable() {
-	accountId := s.createPersonalAccount(s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 	s.createPostgresConnection(s.unauthdClients.connections, accountId, "foo", "test-url")
 
 	resp, err := s.unauthdClients.connections.IsConnectionNameAvailable(

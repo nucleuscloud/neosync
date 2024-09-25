@@ -405,6 +405,42 @@ func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 	return i, err
 }
 
+const getBilledAccounts = `-- name: GetBilledAccounts :many
+SELECT id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
+FROM neosync_api.accounts
+WHERE stripe_customer_id IS NOT NULL AND ($1::uuid[] = '{}' OR id = ANY($1::uuid[]))
+`
+
+func (q *Queries) GetBilledAccounts(ctx context.Context, db DBTX, accountids []pgtype.UUID) ([]NeosyncApiAccount, error) {
+	rows, err := db.Query(ctx, getBilledAccounts, accountids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiAccount
+	for rows.Next() {
+		var i NeosyncApiAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AccountType,
+			&i.AccountSlug,
+			&i.TemporalConfig,
+			&i.OnboardingConfig,
+			&i.MaxAllowedRecords,
+			&i.StripeCustomerID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPersonalAccountByUserId = `-- name: GetPersonalAccountByUserId :one
 SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config, a.max_allowed_records, a.stripe_customer_id from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id

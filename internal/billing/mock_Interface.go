@@ -249,6 +249,64 @@ func (_c *MockInterface_NewCustomer_Call) RunAndReturn(run func(*CustomerRequest
 	return _c
 }
 
+// NewMeterEvent provides a mock function with given fields: req
+func (_m *MockInterface) NewMeterEvent(req *MeterEventRequest) (*stripe.BillingMeterEvent, error) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewMeterEvent")
+	}
+
+	var r0 *stripe.BillingMeterEvent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*MeterEventRequest) (*stripe.BillingMeterEvent, error)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*MeterEventRequest) *stripe.BillingMeterEvent); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*stripe.BillingMeterEvent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*MeterEventRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockInterface_NewMeterEvent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewMeterEvent'
+type MockInterface_NewMeterEvent_Call struct {
+	*mock.Call
+}
+
+// NewMeterEvent is a helper method to define mock.On call
+//   - req *MeterEventRequest
+func (_e *MockInterface_Expecter) NewMeterEvent(req interface{}) *MockInterface_NewMeterEvent_Call {
+	return &MockInterface_NewMeterEvent_Call{Call: _e.mock.On("NewMeterEvent", req)}
+}
+
+func (_c *MockInterface_NewMeterEvent_Call) Run(run func(req *MeterEventRequest)) *MockInterface_NewMeterEvent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*MeterEventRequest))
+	})
+	return _c
+}
+
+func (_c *MockInterface_NewMeterEvent_Call) Return(_a0 *stripe.BillingMeterEvent, _a1 error) *MockInterface_NewMeterEvent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockInterface_NewMeterEvent_Call) RunAndReturn(run func(*MeterEventRequest) (*stripe.BillingMeterEvent, error)) *MockInterface_NewMeterEvent_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockInterface creates a new instance of MockInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockInterface(t interface {

@@ -15,10 +15,11 @@ import (
 )
 
 func (s *IntegrationTestSuite) createPersonalAccount(
+	ctx context.Context,
 	userclient mgmtv1alpha1connect.UserAccountServiceClient,
 ) string {
 	s.T().Helper()
-	resp, err := userclient.SetPersonalAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
+	resp, err := userclient.SetPersonalAccount(ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 	return resp.Msg.AccountId
 }
@@ -56,4 +57,13 @@ func (s *IntegrationTestSuite) setMaxAllowedRecords(
 		AccountId:         accountUuid,
 	})
 	return err
+}
+
+func getAccountIds(t testing.TB, accounts []*mgmtv1alpha1.UserAccount) []string {
+	t.Helper()
+	output := []string{}
+	for _, acc := range accounts {
+		output = append(output, acc.GetId())
+	}
+	return output
 }

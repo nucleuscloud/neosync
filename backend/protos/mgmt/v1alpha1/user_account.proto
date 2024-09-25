@@ -227,6 +227,31 @@ message GetAccountBillingPortalSessionResponse {
   string portal_session_url = 1;
 }
 
+message GetBillingAccountsRequest {
+  // Optional list of account identifiers to filter the response by
+  repeated string account_ids = 1;
+}
+
+message GetBillingAccountsResponse {
+  repeated UserAccount accounts = 1;
+}
+
+message SetBillingMeterEventRequest {
+  // The account id to apply this metered event to
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+
+  // The metered event name
+  string event_name = 2 [(buf.validate.field).string.min_len = 1];
+  // The value of the meter for the given time
+  string value = 3 [(buf.validate.field).string.min_len = 1];
+  // The unique identifier of this metered event
+  string event_id = 4 [(buf.validate.field).string.min_len = 1];
+  // The time of the event in Unix Epoch format. Defaults to the current timestamp if not specified.
+  optional uint64 timestamp = 5;
+}
+
+message SetBillingMeterEventResponse {}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -269,4 +294,12 @@ service UserAccountService {
 
   // Returns a new billing portal session if the account has a billing customer id
   rpc GetAccountBillingPortalSession(GetAccountBillingPortalSessionRequest) returns (GetAccountBillingPortalSessionResponse) {}
+
+  // Returns user accounts that have a billing id.
+  rpc GetBillingAccounts(GetBillingAccountsRequest) returns (GetBillingAccountsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Sends a new metered event to the billing system
+  rpc SetBillingMeterEvent(SetBillingMeterEventRequest) returns (SetBillingMeterEventResponse) {}
 }

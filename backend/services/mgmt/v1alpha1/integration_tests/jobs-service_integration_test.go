@@ -11,7 +11,7 @@ import (
 )
 
 func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
-	accountId := s.createPersonalAccount(s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 
 	resp, err := s.unauthdClients.jobs.GetJobs(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetJobsRequest{
 		AccountId: accountId,
@@ -22,7 +22,7 @@ func (s *IntegrationTestSuite) Test_GetJobs_Empty() {
 }
 
 func (s *IntegrationTestSuite) Test_CreateJob_Ok() {
-	accountId := s.createPersonalAccount(s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 	srcconn := s.createPostgresConnection(s.unauthdClients.connections, accountId, "source", "test")
 	destconn := s.createPostgresConnection(s.unauthdClients.connections, accountId, "dest", "test2")
 

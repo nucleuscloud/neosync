@@ -214,3 +214,8 @@ UPDATE neosync_api.accounts
 SET stripe_customer_id = $1
 WHERE id = sqlc.arg('accountId') AND stripe_customer_id IS NULL
 RETURNING *;
+
+-- name: GetBilledAccounts :many
+SELECT *
+FROM neosync_api.accounts
+WHERE stripe_customer_id IS NOT NULL AND (sqlc.arg('accountIds')::uuid[] = '{}' OR id = ANY(sqlc.arg('accountIds')::uuid[]));
