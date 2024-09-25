@@ -169,6 +169,8 @@ func serve(ctx context.Context) error {
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
 		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes()}
+		traceProviders := []neosyncotel.TracerProvider{}
+		meterProviders := []neosyncotel.MeterProvider{}
 
 		meterprovider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
 			Exporter:   otelconfig.MeterExporter,
@@ -184,6 +186,7 @@ func serve(ctx context.Context) error {
 		if meterprovider != nil {
 			slogger.Debug("otel metering has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithMeterProvider(meterprovider))
+			meterProviders = append(meterProviders, meterprovider)
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
 		}
@@ -201,6 +204,7 @@ func serve(ctx context.Context) error {
 		if traceprovider != nil {
 			slogger.Debug("otel tracing has been configured")
 			otelconnopts = append(otelconnopts, otelconnect.WithTracerProvider(traceprovider))
+			traceProviders = append(traceProviders, traceprovider)
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutTracing(), otelconnect.WithoutTraceEvents())
 		}
@@ -212,8 +216,8 @@ func serve(ctx context.Context) error {
 		stdInterceptors = append(stdInterceptors, otelInterceptor)
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
-			MeterProviders: []neosyncotel.MeterProvider{meterprovider},
+			TraceProviders: traceProviders,
+			MeterProviders: meterProviders,
 			Logger:         logr.FromSlogHandler(slogger.Handler()),
 		})
 		defer func() {

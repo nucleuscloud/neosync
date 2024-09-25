@@ -73,6 +73,7 @@ func serve(ctx context.Context) error {
 	if otelconfig.IsEnabled {
 		logger.Debug("otel is enabled")
 		meterProviders := []neosyncotel.MeterProvider{}
+		traceProviders := []neosyncotel.TracerProvider{}
 		// Meter Provider that uses delta temporality for use with Benthos metrics
 		// This meter provider is setup expire metrics after a specified time period for easy computation
 		benthosMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
@@ -133,10 +134,11 @@ func serve(ctx context.Context) error {
 				return err
 			}
 			temporalClientInterceptors = append(temporalClientInterceptors, traceInterceptor)
+			traceProviders = append(traceProviders, traceprovider)
 		}
 
 		otelshutdown := neosyncotel.SetupOtelSdk(&neosyncotel.SetupConfig{
-			TraceProviders: []neosyncotel.TracerProvider{traceprovider},
+			TraceProviders: traceProviders,
 			MeterProviders: meterProviders,
 			Logger:         logr.FromSlogHandler(logger.Handler()),
 		})
