@@ -81,6 +81,8 @@ func (s *IntegrationTestSuite) Test_GetTableConstraintsBySchema() {
 
 			"sqlmanagermssql2.TableA": {"IdA1", "IdA2"},
 			"sqlmanagermssql2.TableB": {"IdB1", "IdB2"},
+
+			"sqlmanagermssql2.defaults_table": {"id"},
 		},
 	}
 
