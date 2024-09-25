@@ -33,6 +33,7 @@ import {
 } from '@/libs/utils';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { Editor } from '@monaco-editor/react';
 import {
   cancelJobRun,
   deleteJobRun,
@@ -43,9 +44,11 @@ import {
 } from '@neosync/sdk/connectquery';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { formatDuration, intervalToDuration } from 'date-fns';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
@@ -402,9 +405,16 @@ interface ViewSelectDialogProps {
 
 function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
   const { isDialogOpen, setIsDialogOpen, query } = props;
+  const { resolvedTheme } = useTheme();
+
+  const formattedQuery = useMemo(() => {
+    // todo: maybe update this to explicitly pass in the driver type so it formats it according to the correct connection
+    return formatSql(query.select);
+  }, [query.schema, query.table, query.select]);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogContent>
+      <DialogContent className="lg:max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             SQL Select Query - {query.schema}.{query.table}
@@ -414,7 +424,20 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
             run
           </DialogDescription>
         </DialogHeader>
-        <div>{query.select}</div>
+        <div>
+          <Editor
+            height="50vh"
+            width="100%"
+            language="sql"
+            value={formattedQuery}
+            theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
+            options={{
+              minimap: { enabled: false },
+              readOnly: true,
+              wordWrap: 'on',
+            }}
+          />
+        </div>
         <DialogFooter className="md:justify-between">
           <Button
             type="button"
