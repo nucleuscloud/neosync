@@ -125,7 +125,6 @@ type ColumnInfo struct {
 	NumericPrecision       *int    // Specifies the precision for numeric data types. It represents the TOTAL count of significant digits in the whole number, that is, the number of digits to BOTH sides of the decimal point. Null for non-numeric data types.
 	NumericScale           *int    // Specifies the scale of the column for numeric data types, specifically non-integers. It represents the number of digits to the RIGHT of the decimal point. Null for non-numeric data types and integers.
 	IdentityGeneration     *string // Specifies the identity generation strategy for the column, if applicable.
-	GeneratedType          *string // Specifies the default generation strategy for the column, if applicable.
 }
 
 type DataType struct {
