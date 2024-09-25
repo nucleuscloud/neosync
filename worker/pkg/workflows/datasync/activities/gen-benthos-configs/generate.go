@@ -28,6 +28,10 @@ func (b *benthosBuilder) getGenerateBenthosConfigResponses(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
 
 	db, err := b.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
@@ -44,7 +48,7 @@ func (b *benthosBuilder) getGenerateBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosGenerateSourceConfigResponses(slogger, ctx, b.transformerclient, groupedMappings, sourceTableOpts, groupedSchemas, colTransformerMap, db.Driver)
+	sourceResponses, err := buildBenthosGenerateSourceConfigResponses(slogger, ctx, b.transformerclient, groupedMappings, sourceTableOpts, groupedSchemas, colTransformerMap, db.Driver, sourceConnectionType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 	}
@@ -65,6 +69,7 @@ func buildBenthosGenerateSourceConfigResponses(
 	groupedcolumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	groupedColTransformers map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	driver string,
+	sourceConnectionType string,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -158,6 +163,7 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			Processors: processors,
 
+			SourceConnectionType: sourceConnectionType,
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),

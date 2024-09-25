@@ -40,6 +40,10 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	if err != nil {
 		return nil, nil, err
 	}
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
 	openaiConfig := sourceConnection.GetConnectionConfig().GetOpenaiConfig()
 	if openaiConfig == nil {
 		return nil, nil, errors.New("configured source connection is not an openai configuration")
@@ -103,6 +107,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		sourceOptions.GetModelName(),
 		userPrompt,
 		userBatchSize,
+		sourceConnectionType,
 	)
 
 	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
@@ -123,6 +128,7 @@ func buildBenthosAiGenerateSourceConfigResponses(
 	model string,
 	userPrompt *string,
 	userBatchSize *int,
+	sourceConnectionType string,
 ) []*BenthosConfigResponse {
 	responses := []*BenthosConfigResponse{}
 
@@ -179,6 +185,7 @@ func buildBenthosAiGenerateSourceConfigResponses(
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
 
+			SourceConnectionType: sourceConnectionType,
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),

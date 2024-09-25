@@ -22,11 +22,15 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
 ) (*mongoSyncResp, error) {
-	_ = slogger
 	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
 	}
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
+	_ = slogger
 
 	groupedMappings := groupMappingsByTable(job.GetMappings())
 
@@ -91,6 +95,7 @@ func (b *benthosBuilder) getMongoDbSyncBenthosConfigResponses(
 			Columns:     columns,
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: sourceConnection.GetId(), EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
+			SourceConnectionType: sourceConnectionType,
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
