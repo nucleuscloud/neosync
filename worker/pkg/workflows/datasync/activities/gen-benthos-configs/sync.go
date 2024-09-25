@@ -245,6 +245,7 @@ func buildBenthosSqlSourceConfigResponses(
 		columnForeignKeysMap := primaryKeyToForeignKeysMap[config.Table()]
 		transformedFktoPkMap := transformedForeignKeyToSourceMap[config.Table()]
 		colInfoMap := groupedColumnInfo[config.Table()]
+		tableColTransformers := colTransformerMap[config.Table()]
 
 		processorConfigs, err := buildProcessorConfigsByRunType(
 			ctx,
@@ -267,7 +268,7 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		columnDefaultProperties, err := getColumnDefaultProperties(slogger, driver, config.Table(), config.InsertColumns(), groupedColumnInfo, colTransformerMap)
+		columnDefaultProperties, err := getColumnDefaultProperties(slogger, driver, config.InsertColumns(), colInfoMap, tableColTransformers)
 		if err != nil {
 			return nil, err
 		}
@@ -300,32 +301,26 @@ func buildBenthosSqlSourceConfigResponses(
 
 func getColumnDefaultProperties(
 	slogger *slog.Logger,
-	driver,
-	table string,
+	driver string,
 	cols []string,
-	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
-	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	colInfo map[string]*sqlmanager_shared.ColumnInfo,
+	colTransformers map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
 	colDefaults := map[string]*neosync_benthos.ColumnDefaultProperties{}
-	colInfo, ok := groupedColumnInfo[table]
-	colTransformers, transformersOk := colTransformerMap[table]
-	if !ok || !transformersOk {
-		return colDefaults, nil
-	}
 	for _, cName := range cols {
 		info, ok := colInfo[cName]
 		if !ok {
-			return nil, fmt.Errorf("column default type missing. table: %s column: %s", table, cName)
+			return nil, fmt.Errorf("column default type missing. column: %s", cName)
 		}
 		needsOverride, needsReset, err := sqlmanager.GetColumnOverrideAndResetProperties(driver, info)
 		if err != nil {
-			slogger.Error("unable to determine SQL column default flags", "error", err, "table", table, "column", cName)
+			slogger.Error("unable to determine SQL column default flags", "error", err, "column", cName)
 			return nil, err
 		}
 
 		transformer, ok := colTransformers[cName]
 		if !ok {
-			return nil, fmt.Errorf("transformer missing for table: %s column: %s", table, cName)
+			return nil, fmt.Errorf("transformer missing for column: %s", cName)
 		}
 		var hasDefaultTransformer bool
 		if transformer != nil && transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {

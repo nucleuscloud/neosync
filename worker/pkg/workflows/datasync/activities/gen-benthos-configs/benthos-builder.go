@@ -98,7 +98,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		aiGroupedTableCols = aimappings
 		responses = append(responses, sourceResponses...)
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		sourceResponses, err := b.getGenerateBenthosConfigResponses(ctx, job)
+		sourceResponses, err := b.getGenerateBenthosConfigResponses(ctx, job, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos Generate source config responses: %w", err)
 		}
