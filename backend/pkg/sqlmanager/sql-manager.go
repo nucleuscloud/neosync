@@ -367,3 +367,19 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		Driver: driver,
 	}, nil
 }
+
+func GetColumnOverrideAndResetProperties(driver string, cInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool, err error) {
+	switch driver {
+	case sqlmanager_shared.PostgresDriver:
+		needsOverride, needsReset := sqlmanager_postgres.GetPostgresColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	case sqlmanager_shared.MysqlDriver:
+		needsOverride, needsReset := sqlmanager_mysql.GetMysqlColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	case sqlmanager_shared.MssqlDriver:
+		needsOverride, needsReset := sqlmanager_mssql.GetMssqlColumnOverrideAndResetProperties(cInfo)
+		return needsOverride, needsReset, nil
+	default:
+		return false, false, fmt.Errorf("unsupported sql driver: %s", driver)
+	}
+}

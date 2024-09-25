@@ -11,6 +11,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
@@ -266,7 +267,7 @@ func buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
-		columnDefaultTypes, err := getColumnDefaultTypes(slogger, driver, config.Table(), config.InsertColumns(), groupedColumnInfo, colTransformerMap)
+		columnDefaultProperties, err := getColumnDefaultProperties(slogger, driver, config.Table(), config.InsertColumns(), groupedColumnInfo, colTransformerMap)
 		if err != nil {
 			return nil, err
 		}
@@ -280,11 +281,11 @@ func buildBenthosSqlSourceConfigResponses(
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema:        mappings.Schema,
-			TableName:          mappings.Table,
-			Columns:            config.InsertColumns(),
-			ColumnDefaultTypes: columnDefaultTypes,
-			primaryKeys:        config.PrimaryKeys(),
+			TableSchema:             mappings.Schema,
+			TableName:               mappings.Table,
+			Columns:                 config.InsertColumns(),
+			ColumnDefaultProperties: columnDefaultProperties,
+			primaryKeys:             config.PrimaryKeys(),
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
@@ -297,116 +298,50 @@ func buildBenthosSqlSourceConfigResponses(
 	return responses, nil
 }
 
-type ColumnDefault struct {
-	DefaultType string
-	Transformer string
-}
-
-func getColumnDefaultTypes(
+func getColumnDefaultProperties(
 	slogger *slog.Logger,
 	driver,
 	table string,
 	cols []string,
 	groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
-) (map[string]string, error) {
-	colDefaults := map[string]string{}
+) (map[string]*neosync_benthos.ColumnDefaultProperties, error) {
+	colDefaults := map[string]*neosync_benthos.ColumnDefaultProperties{}
 	colInfo, ok := groupedColumnInfo[table]
 	colTransformers, transformersOk := colTransformerMap[table]
 	if !ok || !transformersOk {
 		return colDefaults, nil
 	}
 	for _, cName := range cols {
-		transformer, ok := colTransformers[cName]
-		if !ok || transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
-			continue
-		}
 		info, ok := colInfo[cName]
 		if !ok {
 			return nil, fmt.Errorf("column default type missing. table: %s column: %s", table, cName)
 		}
-		defaultType, err := getSqlDefaultType(driver, info)
+		needsOverride, needsReset, err := sqlmanager.GetColumnOverrideAndResetProperties(driver, info)
 		if err != nil {
-			slogger.Error("unable to determine SQL column default type", "error", err, "table", table, "column", cName)
+			slogger.Error("unable to determine SQL column default flags", "error", err, "table", table, "column", cName)
 			return nil, err
 		}
-		colDefaults[cName] = defaultType
+
+		transformer, ok := colTransformers[cName]
+		if !ok {
+			return nil, fmt.Errorf("transformer missing for table: %s column: %s", table, cName)
+		}
+		var hasDefaultTransformer bool
+		if transformer != nil && transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
+			hasDefaultTransformer = true
+		}
+		if !needsReset && !needsOverride && !hasDefaultTransformer {
+			continue
+		}
+		colDefaults[cName] = &neosync_benthos.ColumnDefaultProperties{
+			NeedsReset:            needsReset,
+			NeedsOverride:         needsOverride,
+			HasDefaultTransformer: hasDefaultTransformer,
+		}
 	}
 	return colDefaults, nil
 }
-
-func getSqlDefaultType(driver string, cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
-	switch driver {
-	case sqlmanager_shared.PostgresDriver:
-		return postgresDefaultTypes(cInfo)
-	case sqlmanager_shared.MysqlDriver:
-		return mysqlDefaultTypes(cInfo)
-	case sqlmanager_shared.MssqlDriver:
-		return mssqlDefaultTypes(cInfo)
-	default:
-		return "", fmt.Errorf("unsupported sql driver: %s", driver)
-	}
-}
-
-func postgresDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
-	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
-		if *cInfo.IdentityGeneration == "a" {
-			return "IDENTITY GENERATED ALWAYS", nil
-		}
-		if *cInfo.IdentityGeneration == "d" {
-			return "IDENTITY GENERATED DEFAULT", nil
-		}
-	}
-	if cInfo.ColumnDefault != "" || (cInfo.GeneratedType != nil && *cInfo.GeneratedType != "") {
-		return "DEFAULT", nil
-	}
-	return "", fmt.Errorf("unsupported postgres default type")
-}
-
-func mysqlDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
-	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
-		return "IDENTITY GENERATED DEFAULT", nil
-	}
-	if cInfo.GeneratedType != nil && *cInfo.GeneratedType != "" {
-		return "DEFAULT", nil
-	}
-	if cInfo.ColumnDefault != "" {
-		return "DEFAULT", nil
-	}
-	return "", nil
-}
-
-func mssqlDefaultTypes(cInfo *sqlmanager_shared.ColumnInfo) (string, error) {
-	if cInfo.IdentityGeneration != nil && *cInfo.IdentityGeneration != "" {
-		return "IDENTITY GENERATED ALWAYS", nil
-	}
-	if cInfo.GeneratedType != nil && *cInfo.GeneratedType != "" {
-		return "DEFAULT", nil
-	}
-	if cInfo.ColumnDefault != "" {
-		return "DEFAULT", nil
-	}
-	return "", nil
-}
-
-// func getIdentityColumns(driver, table string, cols []string, groupedColumnInfo map[string]map[string]*sqlmanager_shared.ColumnInfo) []string {
-// 	identityCols := []string{}
-// 	colInfo, ok := groupedColumnInfo[table]
-// 	if !ok {
-// 		return []string{}
-// 	}
-// 	for _, c := range cols {
-// 		info, ok := colInfo[c]
-// 		if ok && info.IdentityGeneration != nil && *info.IdentityGeneration != "" {
-// 			if driver == sqlmanager_shared.PostgresDriver && *info.IdentityGeneration != "a" {
-// 				// only add generate always postgres identity columns
-// 				continue
-// 			}
-// 			identityCols = append(identityCols, c)
-// 		}
-// 	}
-// 	return identityCols
-// }
 
 func buildRedisDependsOnMap(transformedForeignKeyToSourceMap map[string][]*referenceKey, runconfig *tabledependency.RunConfig) map[string][]string {
 	redisDependsOnMap := map[string][]string{}
@@ -582,7 +517,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 			}
 		}
 
-		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultTypes, colTransformerMap)
+		prefix, suffix := getInsertPrefixAndSuffix(driver, benthosConfig.TableSchema, benthosConfig.TableName, benthosConfig.ColumnDefaultProperties)
 		outputs = append(outputs, neosync_benthos.Outputs{
 			Fallback: []neosync_benthos.Outputs{
 				{
@@ -594,7 +529,7 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 						Table:                    benthosConfig.TableName,
 						Columns:                  benthosConfig.Columns,
 						ColumnsDataTypes:         columnTypes,
-						ColumnDefaultTypes:       benthosConfig.ColumnDefaultTypes,
+						ColumnDefaultProperties:  benthosConfig.ColumnDefaultProperties,
 						OnConflictDoNothing:      destOpts.OnConflictDoNothing,
 						SkipForeignKeyViolations: destOpts.SkipForeignKeyViolations,
 						TruncateOnRetry:          destOpts.Truncate,
@@ -625,17 +560,15 @@ func (b *benthosBuilder) getSqlSyncBenthosOutput(
 
 func getInsertPrefixAndSuffix(
 	driver, schema, table string,
-	identityColumns map[string]string,
-	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	colDefaultTypes map[string]*neosync_benthos.ColumnDefaultProperties,
 ) (prefix, suffix *string) {
 	var pre, suff *string
-	if len(identityColumns) == 0 {
+	if len(colDefaultTypes) == 0 {
 		return pre, suff
 	}
-	tableName := neosync_benthos.BuildBenthosTable(schema, table)
 	switch driver {
 	case sqlmanager_shared.MssqlDriver:
-		if hasPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap) {
+		if hasPassthroughIdentityColumn(colDefaultTypes) {
 			enableIdentityInsert := true
 			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
 			pre = &p
@@ -643,12 +576,14 @@ func getInsertPrefixAndSuffix(
 			s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
 			suff = &s
 		}
+		// TODO update this to handle sequences
 		return pre, suff
 	case sqlmanager_shared.PostgresDriver:
-		passIdCols := getPassthroughIdentityColumn(tableName, identityColumns, colTransformerMap)
 		var idResetSql string
-		for _, c := range passIdCols {
-			idResetSql += sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, c)
+		for cName, d := range colDefaultTypes {
+			if !d.HasDefaultTransformer && d.NeedsReset {
+				idResetSql += sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, cName)
+			}
 		}
 		return pre, &idResetSql
 	default:
@@ -656,39 +591,13 @@ func getInsertPrefixAndSuffix(
 	}
 }
 
-func hasPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) bool {
-	for _, c := range identityColumns {
-		colTMap, ok := colTransformerMap[table]
-		if !ok {
-			return false
-		}
-		transformer, ok := colTMap[c]
-		if !ok {
-			return false
-		}
-		if transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH {
+func hasPassthroughIdentityColumn(colDefaultTypes map[string]*neosync_benthos.ColumnDefaultProperties) bool {
+	for _, d := range colDefaultTypes {
+		if d.NeedsOverride && d.NeedsReset && !d.HasDefaultTransformer {
 			return true
 		}
 	}
 	return false
-}
-
-func getPassthroughIdentityColumn(table string, identityColumns []string, colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer) []string {
-	passthroughIdCols := []string{}
-	for _, c := range identityColumns {
-		colTMap, ok := colTransformerMap[table]
-		if !ok {
-			continue
-		}
-		transformer, ok := colTMap[c]
-		if !ok {
-			continue
-		}
-		if transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH {
-			passthroughIdCols = append(passthroughIdCols, c)
-		}
-	}
-	return passthroughIdCols
 }
 
 func (b *benthosBuilder) getAwsS3SyncBenthosOutput(

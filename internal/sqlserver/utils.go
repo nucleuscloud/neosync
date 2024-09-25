@@ -105,17 +105,17 @@ func toBit(v bool) int {
 
 func FilterOutSqlServerDefaultIdentityColumns(
 	driver string,
-	identityCols, columnNames []string,
+	defaultIdentityCols, columnNames []string,
 	argRows [][]any,
 ) (columns []string, rows [][]any) {
-	if len(identityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
+	if len(defaultIdentityCols) == 0 || driver != sqlmanager_shared.MssqlDriver {
 		return columnNames, argRows
 	}
 
 	// build map of identity columns
-	identityColMap := map[string]bool{}
-	for _, id := range identityCols {
-		identityColMap[id] = true
+	defaultIdentityColMap := map[string]bool{}
+	for _, id := range defaultIdentityCols {
+		defaultIdentityColMap[id] = true
 	}
 
 	nonIdentityColumnMap := map[string]struct{}{} // map of non identity columns
@@ -125,7 +125,7 @@ func FilterOutSqlServerDefaultIdentityColumns(
 		newRow := []any{}
 		for idx, arg := range row {
 			col := columnNames[idx]
-			if identityColMap[col] && arg == "DEFAULT" {
+			if defaultIdentityColMap[col] {
 				// pass on identity columns with a default
 				continue
 			}

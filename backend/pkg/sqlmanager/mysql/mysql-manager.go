@@ -792,3 +792,9 @@ func EscapeMysqlColumns(cols []string) []string {
 func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
 }
+
+func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+	return
+}

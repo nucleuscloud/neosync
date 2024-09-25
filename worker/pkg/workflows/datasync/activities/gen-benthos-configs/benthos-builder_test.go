@@ -3,6 +3,8 @@ package genbenthosconfigs_activity
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -74,8 +76,10 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	runconfigs := []*tabledependency.RunConfig{
 		tabledependency.NewRunConfig("public.users", tabledependency.RunTypeInsert, []string{"id"}, nil, []string{"id", "name"}, []string{"id", "name"}, []*tabledependency.DependsOn{}, false),
 	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	res, err := buildBenthosSqlSourceConfigResponses(
+		logger,
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
@@ -148,8 +152,10 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	queryMap := map[string]map[tabledependency.RunType]string{
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	res, err := buildBenthosSqlSourceConfigResponses(
+		logger,
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,

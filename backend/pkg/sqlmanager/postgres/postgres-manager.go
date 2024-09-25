@@ -11,6 +11,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -913,4 +914,29 @@ func BuildPgInsertIdentityAlwaysSql(
 ) string {
 	sqlSplit := strings.Split(insertQuery, ") VALUES (")
 	return sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+}
+
+func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+
+	// check if the column is an idenitity type
+	if columnInfo.IdentityGeneration != nil && *columnInfo.IdentityGeneration != "" {
+		switch *columnInfo.IdentityGeneration {
+		case "a": // ALWAYS
+			needsOverride = true
+			needsReset = true
+		case "d": // DEFAULT
+			needsReset = true
+		}
+		return
+	}
+
+	// check if column default is sequence
+	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "nextVal") {
+		needsReset = true
+		return
+	}
+
+	return
 }

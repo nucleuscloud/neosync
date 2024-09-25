@@ -55,3 +55,17 @@ FOREIGN KEY (IdB1, IdB2) REFERENCES testdb.sqlmanagermssql2.TableB(IdB1, IdB2);
 ALTER TABLE testdb.sqlmanagermssql2.TableB
 ADD CONSTRAINT FK_TableB_TableA
 FOREIGN KEY (IdA1, IdA2) REFERENCES testdb.sqlmanagermssql2.TableA(IdA1, IdA2);
+
+
+CREATE TABLE testdb.sqlmanagermssql2.defaults_table (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    description NVARCHAR(MAX),
+    age INT DEFAULT 18,
+    is_active BIT DEFAULT 1,
+    registration_date DATE DEFAULT GETDATE(),
+    last_login DATETIME2,
+    score DECIMAL(10,2) DEFAULT 0.00,
+    status NVARCHAR(20) DEFAULT 'pending',
+    created_at DATETIME2 DEFAULT SYSDATETIME(),
+    uuid UNIQUEIDENTIFIER DEFAULT NEWID()
+);
