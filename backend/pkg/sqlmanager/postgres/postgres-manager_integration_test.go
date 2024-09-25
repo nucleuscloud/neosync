@@ -371,3 +371,40 @@ func containsSubset[T any](t testing.TB, array, subset []T) {
 		require.Contains(t, array, elem)
 	}
 }
+
+type testColumnProperties struct {
+	needsOverride bool
+	needsReset    bool
+}
+
+func (s *IntegrationTestSuite) Test_GetPostgresColumnOverrideAndResetProperties() {
+	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+
+	colInfoMap, err := manager.GetSchemaColumnMap(context.Background())
+	require.NoError(s.T(), err)
+
+	testDefaultTable := colInfoMap["sqlmanagerpostgres@special.defaults_table"]
+
+	var expectedProperties = map[string]testColumnProperties{
+		"description":       {needsOverride: false, needsReset: false},
+		"registration_date": {needsOverride: false, needsReset: false},
+		"score":             {needsOverride: false, needsReset: false},
+		"status":            {needsOverride: false, needsReset: false},
+		"id":                {needsOverride: true, needsReset: true},
+		"sequence_number":   {needsOverride: false, needsReset: true},
+		"last_login":        {needsOverride: false, needsReset: false},
+		"age":               {needsOverride: false, needsReset: false},
+		"is_active":         {needsOverride: false, needsReset: false},
+		"created_at":        {needsOverride: false, needsReset: false},
+		"uuid":              {needsOverride: false, needsReset: false},
+		"serial_number":     {needsOverride: false, needsReset: true},
+	}
+
+	for col, colInfo := range testDefaultTable {
+		needsOverride, needsReset := GetPostgresColumnOverrideAndResetProperties(colInfo)
+		expected, ok := expectedProperties[col]
+		require.Truef(s.T(), ok, "Missing expected column %q", col)
+		require.Equalf(s.T(), expected.needsOverride, needsOverride, "Incorrect needsOverride value for column %q", col)
+		require.Equalf(s.T(), expected.needsReset, needsReset, "Incorrect needsReset value for column %q", col)
+	}
+}

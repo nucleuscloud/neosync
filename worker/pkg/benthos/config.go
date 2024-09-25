@@ -367,21 +367,27 @@ type PooledSqlUpdate struct {
 	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
+type ColumnDefaultProperties struct {
+	NeedsReset            bool `json:"needs_reset" yaml:"needs_reset"`
+	NeedsOverride         bool `json:"needs_override" yaml:"needs_override"`
+	HasDefaultTransformer bool `json:"has_default_transformer" yaml:"has_default_transformer"`
+}
+
 type PooledSqlInsert struct {
-	Driver                   string    `json:"driver" yaml:"driver"`
-	Dsn                      string    `json:"dsn" yaml:"dsn"`
-	Schema                   string    `json:"schema" yaml:"schema"`
-	Table                    string    `json:"table" yaml:"table"`
-	Columns                  []string  `json:"columns" yaml:"columns"`
-	ColumnsDataTypes         []string  `json:"column_data_types" yaml:"column_data_types"`
-	IdentityColumns          []string  `json:"identity_columns" yaml:"identity_columns"`
-	OnConflictDoNothing      bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
-	TruncateOnRetry          bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
-	SkipForeignKeyViolations bool      `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
-	ArgsMapping              string    `json:"args_mapping" yaml:"args_mapping"`
-	Batching                 *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
-	Prefix                   *string   `json:"prefix,omitempty" yaml:"prefix,omitempty"`
-	Suffix                   *string   `json:"suffix,omitempty" yaml:"suffix,omitempty"`
+	Driver                   string                              `json:"driver" yaml:"driver"`
+	Dsn                      string                              `json:"dsn" yaml:"dsn"`
+	Schema                   string                              `json:"schema" yaml:"schema"`
+	Table                    string                              `json:"table" yaml:"table"`
+	Columns                  []string                            `json:"columns" yaml:"columns"`
+	ColumnsDataTypes         []string                            `json:"column_data_types" yaml:"column_data_types"`
+	ColumnDefaultProperties  map[string]*ColumnDefaultProperties `json:"column_default_properties" yaml:"column_default_properties"`
+	OnConflictDoNothing      bool                                `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
+	TruncateOnRetry          bool                                `json:"truncate_on_retry" yaml:"truncate_on_retry"`
+	SkipForeignKeyViolations bool                                `json:"skip_foreign_key_violations" yaml:"skip_foreign_key_violations"`
+	ArgsMapping              string                              `json:"args_mapping" yaml:"args_mapping"`
+	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
+	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
+	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
 }
 
 type SqlInsert struct {

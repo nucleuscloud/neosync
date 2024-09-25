@@ -316,8 +316,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	return output, nil
 }
 
-//nolint:gofmt
-func convertUInt8ToString(value interface{}) (string, error) {
+func convertUInt8ToString(value any) (string, error) {
 	convertedType, ok := value.([]uint8)
 	if !ok {
 		return "", fmt.Errorf("failed to convert []uint8 to string")
@@ -792,4 +791,10 @@ func EscapeMysqlColumns(cols []string) []string {
 
 func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
+}
+
+func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+	return
 }

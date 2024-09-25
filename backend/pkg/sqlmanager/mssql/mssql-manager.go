@@ -13,6 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
 type Manager struct {
@@ -296,4 +297,24 @@ func BuildMssqlSetIdentityInsertStatement(
 		enabledKeyword = "ON"
 	}
 	return fmt.Sprintf("SET IDENTITY_INSERT %q.%q %s;", schema, table, enabledKeyword)
+}
+
+func GetMssqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
+	needsOverride = false
+	needsReset = false
+
+	// check if the column is an idenitity type
+	if columnInfo.IdentityGeneration != nil && *columnInfo.IdentityGeneration != "" {
+		needsOverride = true
+		needsReset = true
+		return
+	}
+
+	// check if column default is sequence
+	if columnInfo.ColumnDefault != "" && gotypeutil.CaseInsensitiveContains(columnInfo.ColumnDefault, "NEXT VALUE") {
+		needsReset = true
+		return
+	}
+
+	return
 }

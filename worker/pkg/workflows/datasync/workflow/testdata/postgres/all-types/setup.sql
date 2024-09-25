@@ -144,8 +144,8 @@ INSERT INTO alltypes.all_postgres_types (
     1,  -- bigserial_col (auto-incremented, will be generated)
     '$100.00',  -- money_col
     'A',  -- char_col
-    'Example varchar',  -- varchar_col
-    'Example text',  -- text_col
+    'DEFAULT',  -- varchar_col
+    'default',  -- text_col
     decode('DEADBEEF', 'hex'),  -- bytea_col
     '2024-01-01 12:34:56',  -- timestamp_col
     '2024-01-01 12:34:56+00',  -- timestamptz_col

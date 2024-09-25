@@ -28,8 +28,8 @@ func Test_filterIdentityColumns(t *testing.T) {
 
 		gotCols, gotRows := FilterOutSqlServerDefaultIdentityColumns(driver, identityCols, columnNames, argRows)
 
-		require.Equal(t, []string{"id", "name", "age"}, gotCols, "Identity column should be removed")
-		require.Equal(t, [][]any{{1, "Alice", 30}, {2, "Bob", 25}}, gotRows, "Identity column values should be removed")
+		require.Equal(t, []string{"name", "age"}, gotCols, "Identity column should be removed")
+		require.Equal(t, [][]any{{"Alice", 30}, {"Bob", 25}}, gotRows, "Identity column values should be removed")
 	})
 
 	t.Run("MSSQL driver with DEFAULT value", func(t *testing.T) {
