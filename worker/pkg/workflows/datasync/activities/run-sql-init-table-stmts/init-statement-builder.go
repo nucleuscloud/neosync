@@ -2,7 +2,6 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -189,36 +188,46 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
-			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
-				// reset identity column counts
-				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+			if sqlopts.TruncateCascade {
+				// reset serial counts
+				// identity counts are automatically reset with truncate identity restart clause
+
+				dbSchemas, err := sourcedb.Db.GetDatabaseSchema(ctx)
 				if err != nil {
 					destdb.Db.Close()
 					return nil, err
 				}
+				groupedTableColumns := sqlmanager_shared.GetGroupedSchemaColumns(dbSchemas)
 
-				identityStmts := []string{}
-				for table, cols := range schemaColMap {
-					if _, ok := uniqueTables[table]; !ok {
-						continue
-					}
-					jsonF, _ := json.MarshalIndent(cols, "", " ")
-					fmt.Printf("%s \n", string(jsonF))
-					for colName, c := range cols {
-						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
-							schema, table := sqlmanager_shared.SplitTableKey(table)
-							identityResetStatement := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, colName)
-							identityStmts = append(identityStmts, identityResetStatement)
-						}
-					}
-				}
-				if len(identityStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
-					}
-				}
+				// 	// reset identity column counts
+				// 	schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+				// 	if err != nil {
+				// 		destdb.Db.Close()
+				// 		return nil, err
+				// 	}
+
+				// 	identityStmts := []string{}
+				// 	for table, cols := range schemaColMap {
+				// 		if _, ok := uniqueTables[table]; !ok {
+				// 			continue
+				// 		}
+				// 		jsonF, _ := json.MarshalIndent(cols, "", " ")
+				// 		fmt.Printf("%s \n", string(jsonF))
+				// 		for colName, c := range cols {
+				// 			if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
+				// 				schema, table := sqlmanager_shared.SplitTableKey(table)
+				// 				identityResetStatement := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, colName)
+				// 				identityStmts = append(identityStmts, identityResetStatement)
+				// 			}
+				// 		}
+				// 	}
+				// 	if len(identityStmts) > 0 {
+				// 		err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
+				// 		if err != nil {
+				// 			destdb.Db.Close()
+				// 			return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
+				// 		}
+				// 	}
 			}
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
@@ -295,33 +304,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err != nil {
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
-				}
-				// reset identity column counts
-				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
-				if err != nil {
-					destdb.Db.Close()
-					return nil, err
-				}
-
-				identityStmts := []string{}
-				for table, cols := range schemaColMap {
-					if _, ok := uniqueTables[table]; !ok {
-						continue
-					}
-					for _, c := range cols {
-						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
-							schema, table := sqlmanager_shared.SplitTableKey(table)
-							identityResetStatement := sqlmanager_mssql.BuildMssqlIdentityColumnResetStatement(schema, table, *c.IdentityGeneration)
-							identityStmts = append(identityStmts, identityResetStatement)
-						}
-					}
-				}
-				if len(identityStmts) > 0 {
-					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
-					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
-					}
 				}
 			}
 			destdb.Db.Close()

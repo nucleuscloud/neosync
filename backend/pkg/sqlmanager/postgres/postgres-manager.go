@@ -875,7 +875,7 @@ func (p *PostgresManager) GetTableRowCount(
 func BuildPgTruncateStatement(
 	tables []string,
 ) string {
-	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
+	return fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY;", strings.Join(tables, ", "))
 }
 
 func BuildPgTruncateCascadeStatement(
@@ -884,7 +884,7 @@ func BuildPgTruncateCascadeStatement(
 ) (string, error) {
 	builder := goqu.Dialect("postgres")
 	sqltable := goqu.S(schema).Table(table)
-	stmt, _, err := builder.From(sqltable).Truncate().Cascade().ToSQL()
+	stmt, _, err := builder.From(sqltable).Truncate().Cascade().Identity("RESTART").ToSQL()
 	if err != nil {
 		return "", err
 	}
