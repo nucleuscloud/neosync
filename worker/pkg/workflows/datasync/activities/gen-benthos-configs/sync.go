@@ -37,6 +37,10 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
 
 	sqlSourceOpts, err := getSqlJobSourceOpts(job.Source)
 	if err != nil {
@@ -97,7 +101,7 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to build select queries: %w", err)
 	}
 
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(slogger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap)
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(slogger, ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, filteredForeignKeysMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, primaryKeyToForeignKeysMap, sourceConnectionType)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
@@ -200,6 +204,7 @@ func buildBenthosSqlSourceConfigResponses(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 	primaryKeyToForeignKeysMap map[string]map[string][]*referenceKey,
+	sourceConnectionType string,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -288,6 +293,7 @@ func buildBenthosSqlSourceConfigResponses(
 			ColumnDefaultProperties: columnDefaultProperties,
 			primaryKeys:             config.PrimaryKeys(),
 
+			SourceConnectionType: sourceConnectionType,
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, mappings.Table),

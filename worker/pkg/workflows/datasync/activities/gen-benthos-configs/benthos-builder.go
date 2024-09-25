@@ -133,6 +133,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
+		destinationConnectionType := shared.GetConnectionType(destinationConnection)
+		slogger = slogger.With(
+			"destinationConnectionType", destinationConnectionType,
+		)
 		sqlSchemaColMap := b.GetSqlSchemaColumnMap(ctx, destination, destinationConnection, sqlSourceSchemaColumnInfoMap, slogger)
 		for _, resp := range responses {
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)

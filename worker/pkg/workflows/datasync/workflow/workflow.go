@@ -362,6 +362,7 @@ func isReadyForCleanUp(table, col string, dependsOnMap map[string]map[string][]s
 }
 
 func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosConfigResponse) []any {
+	fmt.Println("bc.SourceConnectionType", bc.SourceConnectionType)
 	keyvals := []any{}
 
 	if bc.Name != "" {
@@ -372,6 +373,9 @@ func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosC
 	}
 	if bc.TableName != "" {
 		keyvals = append(keyvals, "table", bc.TableName)
+	}
+	if bc.SourceConnectionType != "" {
+		keyvals = append(keyvals, "sourceConnectionType", bc.SourceConnectionType)
 	}
 
 	return keyvals

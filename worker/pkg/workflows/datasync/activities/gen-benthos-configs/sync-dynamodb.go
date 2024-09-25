@@ -29,6 +29,10 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get source connection by id: %w", err)
 	}
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
 
 	dynamoSourceConfig := sourceConnection.GetConnectionConfig().GetDynamodbConfig()
 	if dynamoSourceConfig == nil {
@@ -124,6 +128,7 @@ func (b *benthosBuilder) getDynamoDbSyncBenthosConfigResponses(
 			DependsOn:   []*tabledependency.DependsOn{},
 			Columns:     columns,
 
+			SourceConnectionType: sourceConnectionType,
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
 				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
