@@ -87,7 +87,7 @@ func serve(ctx context.Context) error {
 			Exporter:   otelconfig.MeterExporter,
 			AppVersion: otelconfig.ServiceVersion,
 			Opts: neosyncotel.MeterExporterOpts{
-				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
+				Otlp:    []otlpmetricgrpc.Option{neosyncotel.GetBenthosMetricTemporalityOption()},
 				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
 			},
 		})

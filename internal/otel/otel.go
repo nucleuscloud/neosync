@@ -170,12 +170,17 @@ func getMeterExporter(ctx context.Context, exporter string, opts MeterExporterOp
 }
 
 func WithDefaultDeltaTemporalitySelector() otlpmetricgrpc.Option {
-	return otlpmetricgrpc.WithTemporalitySelector(temporalitySelector)
+	return otlpmetricgrpc.WithTemporalitySelector(func(ik metricsdk.InstrumentKind) metricdata.Temporality {
+		// Delta Temporality causes metrics to be reset after some time.
+		// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
+		return metricdata.DeltaTemporality
+	})
 }
-func temporalitySelector(ik metricsdk.InstrumentKind) metricdata.Temporality {
-	// Delta Temporality causes metrics to be reset after some time.
-	// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
-	return metricdata.DeltaTemporality
+
+func withCumulativeTemporalitySelector() otlpmetricgrpc.Option {
+	return otlpmetricgrpc.WithTemporalitySelector(func(ik metricsdk.InstrumentKind) metricdata.Temporality {
+		return metricdata.CumulativeTemporality
+	})
 }
 
 type OtelEnvConfig struct {
@@ -221,4 +226,13 @@ func getMetricsExporter() string {
 		return otlpExporter
 	}
 	return exporter
+}
+
+// This will be used to test sending benthos metrics with cumulative temporality instead of delta for better prometheus compatibility
+func GetBenthosMetricTemporalityOption() otlpmetricgrpc.Option {
+	temporality := viper.GetString("BENTHOS_METER_TEMPORALITY")
+	if temporality == "" || temporality == "delta" {
+		return WithDefaultDeltaTemporalitySelector()
+	}
+	return withCumulativeTemporalitySelector()
 }
