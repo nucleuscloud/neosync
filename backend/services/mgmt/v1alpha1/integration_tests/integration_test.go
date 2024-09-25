@@ -22,7 +22,6 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
-	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
@@ -37,6 +36,7 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
+	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -72,7 +72,7 @@ type mocks struct {
 	temporalClientManager *clientmanager.MockTemporalClientManagerClient
 	authclient            *auth_client.MockInterface
 	authmanagerclient     *authmgmt.MockInterface
-	prometheusclient      *mockPromV1.MockAPI
+	prometheusclient      *promapiv1mock.MockAPI
 	billingclient         *billing.MockInterface
 }
 
@@ -132,7 +132,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(s.T()),
 		authclient:            auth_client.NewMockInterface(s.T()),
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
-		prometheusclient:      mockPromV1.NewMockAPI(s.T()),
+		prometheusclient:      promapiv1mock.NewMockAPI(s.T()),
 		billingclient:         billing.NewMockInterface(s.T()),
 	}
 

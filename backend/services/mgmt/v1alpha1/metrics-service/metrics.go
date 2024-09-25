@@ -3,6 +3,7 @@ package v1alpha1_metricsservice
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -10,6 +11,11 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+)
+
+const (
+	// When querying by multiple dates in PromQL, this is used in the regex to allow doing an OR search on the various dates being queried
+	metricDateSeparator = "|"
 )
 
 func (s *Service) GetDailyMetricCount(
@@ -24,8 +30,8 @@ func (s *Service) GetDailyMetricCount(
 	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
 		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
 	}
-	start := dateToTime(req.Msg.GetStart())
-	end := toEndOfDay(dateToTime(req.Msg.GetEnd()))
+	start := metrics.DateToTime(req.Msg.GetStart())
+	end := metrics.ToEndOfDay(metrics.DateToTime(req.Msg.GetEnd()))
 
 	if start.After(end) {
 		return nil, nucleuserrors.NewBadRequest("start must not be before end")
@@ -38,6 +44,7 @@ func (s *Service) GetDailyMetricCount(
 
 	queryLabels := metrics.MetricLabels{
 		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
+		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStart(), req.Msg.GetEnd()), metricDateSeparator)),
 	}
 
 	switch identifier := req.Msg.Identifier.(type) {
@@ -71,11 +78,15 @@ func (s *Service) GetDailyMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query, err := metrics.GetPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, "1d")
+	query, err := metrics.GetPromQueryFromMetric(
+		req.Msg.GetMetric(),
+		queryLabels,
+		metrics.CalculatePromLookbackDuration(req.Msg.GetStart(), req.Msg.GetEnd()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
-	results, _, err := metrics.GetDailyUsageFromProm(ctx, s.prometheusclient, query, start, end, logger)
+	results, _, err := metrics.GetDailyUsageFromProm(ctx, s.prometheusclient, query, end, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +111,8 @@ func (s *Service) GetMetricCount(
 	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
 		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
 	}
-	start := dateToTime(req.Msg.GetStartDay())
-	end := toEndOfDay(dateToTime(req.Msg.GetEndDay()))
+	start := metrics.DateToTime(req.Msg.GetStartDay())
+	end := metrics.ToEndOfDay(metrics.DateToTime(req.Msg.GetEndDay()))
 
 	if start.After(end) {
 		return nil, nucleuserrors.NewBadRequest("start must not be before end")
@@ -114,6 +125,7 @@ func (s *Service) GetMetricCount(
 
 	queryLabels := metrics.MetricLabels{
 		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
+		metrics.NewRegexMatchLabel(metrics.NeosyncDateLabel, strings.Join(metrics.GenerateMonthRegexRange(req.Msg.GetStartDay(), req.Msg.GetEndDay()), metricDateSeparator)),
 	}
 
 	switch identifier := req.Msg.Identifier.(type) {
@@ -147,8 +159,11 @@ func (s *Service) GetMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	dayWindow := daysBetween(start, end)
-	query, err := metrics.GetPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, fmt.Sprintf("%dd", dayWindow))
+	query, err := metrics.GetPromQueryFromMetric(
+		req.Msg.GetMetric(),
+		queryLabels,
+		metrics.CalculatePromLookbackDuration(req.Msg.GetStartDay(), req.Msg.GetEndDay()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
@@ -158,35 +173,4 @@ func (s *Service) GetMetricCount(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: uint64(totalCount)}), nil
-}
-
-func daysBetween(start, end time.Time) int {
-	// Ensure the times are in UTC to avoid timezone issues
-	start = start.UTC()
-	end = end.UTC()
-
-	// Calculate the difference in days
-	duration := end.Sub(start)
-	days := int(duration.Hours()/24) + 1
-	// Convert the number of days to a string and return
-	return days
-}
-
-func dateToTime(d *mgmtv1alpha1.Date) time.Time {
-	year := int(d.Year)
-	if year == 0 {
-		year = 1 // default to year 1 if unspecified
-	}
-	month := time.Month(d.Month)
-	if month == 0 {
-		month = time.January // default to January if unspecified
-	}
-	day := int(d.Day)
-	if day == 0 {
-		day = 1 // default to first of the month if unspecified
-	}
-	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-}
-func toEndOfDay(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, time.UTC)
 }
