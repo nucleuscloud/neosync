@@ -165,6 +165,7 @@ export default function RunTimeline(props: Props): ReactElement {
             console.log('error', errorTask);
 
             // TODO: only highlight in red the task that failed
+            // map to the index that we're iterating over
             return (
               <div className="flex flex-row" key={task.id}>
                 <TooltipProvider delayDuration={100}>
