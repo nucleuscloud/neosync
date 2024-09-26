@@ -191,43 +191,30 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if sqlopts.TruncateCascade {
 				// reset serial counts
 				// identity counts are automatically reset with truncate identity restart clause
-
-				dbSchemas, err := sourcedb.Db.GetDatabaseSchema(ctx)
-				if err != nil {
-					destdb.Db.Close()
-					return nil, err
+				schemaTableMap := map[string][]string{}
+				for schemaTable, _ := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(schemaTable)
+					schemaTableMap[schema] = append(schemaTableMap[schema], table)
 				}
-				groupedTableColumns := sqlmanager_shared.GetGroupedSchemaColumns(dbSchemas)
 
-				// 	// reset identity column counts
-				// 	schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
-				// 	if err != nil {
-				// 		destdb.Db.Close()
-				// 		return nil, err
-				// 	}
-
-				// 	identityStmts := []string{}
-				// 	for table, cols := range schemaColMap {
-				// 		if _, ok := uniqueTables[table]; !ok {
-				// 			continue
-				// 		}
-				// 		jsonF, _ := json.MarshalIndent(cols, "", " ")
-				// 		fmt.Printf("%s \n", string(jsonF))
-				// 		for colName, c := range cols {
-				// 			if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
-				// 				schema, table := sqlmanager_shared.SplitTableKey(table)
-				// 				identityResetStatement := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, colName)
-				// 				identityStmts = append(identityStmts, identityResetStatement)
-				// 			}
-				// 		}
-				// 	}
-				// 	if len(identityStmts) > 0 {
-				// 		err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
-				// 		if err != nil {
-				// 			destdb.Db.Close()
-				// 			return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
-				// 		}
-				// 	}
+				resetSeqStmts := []string{}
+				for schema, tables := range schemaTableMap {
+					sequences, err := sourcedb.Db.GetSequencesByTables(ctx, schema, tables)
+					if err != nil {
+						destdb.Db.Close()
+						return nil, err
+					}
+					for _, seq := range sequences {
+						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Name))
+					}
+				}
+				if len(resetSeqStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+					}
+				}
 			}
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:

@@ -5,23 +5,6 @@ import (
 	"strings"
 )
 
-func GetGroupedSchemaColumns(
-	schemas []*DatabaseSchemaRow,
-) map[string]map[string]*DatabaseSchemaRow {
-	groupedSchemas := map[string]map[string]*DatabaseSchemaRow{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-	for _, record := range schemas {
-		key := BuildTable(record.TableSchema, record.TableName)
-		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = record
-		} else {
-			groupedSchemas[key] = map[string]*DatabaseSchemaRow{
-				record.ColumnName: record,
-			}
-		}
-	}
-	return groupedSchemas
-}
-
 func GetUniqueSchemaColMappings(
 	schemas []*DatabaseSchemaRow,
 ) map[string]map[string]*ColumnInfo {

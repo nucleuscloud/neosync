@@ -267,7 +267,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 	return output, nil
 }
 
-func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
@@ -914,6 +914,10 @@ func BuildPgInsertIdentityAlwaysSql(
 ) string {
 	sqlSplit := strings.Split(insertQuery, ") VALUES (")
 	return sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+}
+
+func BuildPgResetSequenceSql(sequenceName string) string {
+	return fmt.Sprintf("ALTER SEQUENCE %s RESTART;", sequenceName)
 }
 
 func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
