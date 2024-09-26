@@ -77,37 +77,48 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		ctype := cTypes[i]
 		switch t := v.(type) {
 		case []byte:
-			if isJsonPgDataType(ctype.DatabaseTypeName()) {
-				jmap, err := gotypeutil.JsonToMap(t)
-				if err == nil {
-					jObj[col] = jmap
+			if IsJsonPgDataType(ctype.DatabaseTypeName()) {
+				var js any
+				if err := json.Unmarshal(t, &js); err == nil {
+					jObj[col] = js
 					continue
 				}
-			} else if isXmlPgDataType(ctype.DatabaseTypeName()) {
-				jObj[col] = string(t)
+			} else if isBinaryDataType(ctype.DatabaseTypeName()) {
+				jObj[col] = t
 				continue
 			}
-			jObj[col] = t
+			jObj[col] = string(t)
 		case *PgxArray[any]:
 			jObj[col] = pgArrayToGoSlice(t)
 		default:
 			jObj[col] = t
 		}
 	}
-
 	return jObj, nil
 }
 
-func isXmlPgDataType(dataType string) bool {
-	return strings.EqualFold(dataType, "xml")
+func isBinaryDataType(colDataType string) bool {
+	return strings.EqualFold(colDataType, "bytea")
 }
 
-func isJsonPgDataType(dataType string) bool {
+func IsJsonPgDataType(dataType string) bool {
 	return strings.EqualFold(dataType, "json") || strings.EqualFold(dataType, "jsonb")
 }
 
 func isJsonArrayPgDataType(dataType string) bool {
 	return strings.EqualFold(dataType, "_json") || strings.EqualFold(dataType, "_jsonb")
+}
+
+func isPgUuidArray(colDataType string) bool {
+	return strings.EqualFold(colDataType, "_uuid")
+}
+
+func IsPgArrayType(dbTypeName string) bool {
+	return strings.HasPrefix(dbTypeName, "_")
+}
+
+func IsPgArrayColumnDataType(colDataType string) bool {
+	return strings.Contains(colDataType, "[]")
 }
 
 func pgArrayToGoSlice(array *PgxArray[any]) any {
@@ -149,10 +160,6 @@ func convertArrayToGoType(array *PgxArray[any]) []any {
 	}
 
 	return newArray
-}
-
-func isPgUuidArray(colDataType string) bool {
-	return strings.EqualFold(colDataType, "_uuid")
 }
 
 func convertBytesToUuidSlice(uuids []any) []any {
@@ -241,12 +248,4 @@ func formatMapLiteral(m map[string]any) string {
 	}
 
 	return fmt.Sprintf("'%s'", string(jsonBytes))
-}
-
-func IsPgArrayType(dbTypeName string) bool {
-	return strings.HasPrefix(dbTypeName, "_")
-}
-
-func IsPgArrayColumnDataType(colDataType string) bool {
-	return strings.Contains(colDataType, "[]")
 }

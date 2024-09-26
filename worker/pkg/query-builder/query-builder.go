@@ -1,6 +1,7 @@
 package querybuilder
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -118,13 +119,19 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, col
 		if i < len(columnDefaultProperties) {
 			colDefaults = columnDefaultProperties[i]
 		}
-		if gotypeutil.IsMap(a) {
-			bits, err := gotypeutil.MapToJson(a)
+		if pgutil.IsJsonPgDataType(colDataType) {
+			bits, err := json.Marshal(a)
 			if err != nil {
-				logger.Error("to marshal map to JSON", "error", err.Error())
+				logger.Error("to marshal JSON", "error", err.Error())
 				gval = append(gval, a)
 				continue
 			}
+			// bits, err := gotypeutil.MapToJson(a)
+			// if err != nil {
+			// 	logger.Error("to marshal map to JSON", "error", err.Error())
+			// 	gval = append(gval, a)
+			// 	continue
+			// }
 			gval = append(gval, bits)
 		} else if gotypeutil.IsMultiDimensionalSlice(a) || gotypeutil.IsSliceOfMaps(a) {
 			gval = append(gval, goqu.Literal(pgutil.FormatPgArrayLiteral(a, colDataType)))
