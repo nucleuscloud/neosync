@@ -192,6 +192,24 @@ func TestGetGoquVals(t *testing.T) {
 		require.Equal(t, pq.Array([]any{1, 2, 3}), result[4])
 	})
 
+	t.Run("Postgres JSON", func(t *testing.T) {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+		driver := sqlmanager_shared.PostgresDriver
+		row := []any{"value1", 42, true, map[string]any{"key": "value"}, []int{1, 2, 3}}
+		columnDataTypes := []string{"jsonb", "jsonb", "jsonb", "jsonb", "json"}
+		columnDefaultProperties := []*neosync_benthos.ColumnDefaultProperties{nil, nil, nil, nil, nil}
+
+		result := getGoquVals(logger, driver, row, columnDataTypes, columnDefaultProperties)
+
+		require.Equal(t, goqu.Vals{
+			[]byte(`"value1"`),
+			[]byte(`42`),
+			[]byte(`true`),
+			[]byte(`{"key":"value"}`),
+			[]byte(`[1,2,3]`),
+		}, result)
+	})
+
 	t.Run("Postgres Empty Column DataTypes", func(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 		driver := sqlmanager_shared.MysqlDriver

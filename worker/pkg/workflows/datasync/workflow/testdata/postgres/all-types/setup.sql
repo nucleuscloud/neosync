@@ -303,3 +303,46 @@ INSERT INTO alltypes.array_types (
     ARRAY['<root>value1</root>'::xml, '<root>value2</root>'::xml],
     ARRAY[[1, 2], [3, 4]] 
 );
+
+
+CREATE TABLE alltypes.json_data (
+    id SERIAL PRIMARY KEY,
+    data JSONB
+);
+
+
+INSERT INTO alltypes.json_data (data) VALUES ('"Hello, world!"');
+INSERT INTO alltypes.json_data (data) VALUES ('42');
+INSERT INTO alltypes.json_data (data) VALUES ('3.14');
+INSERT INTO alltypes.json_data (data) VALUES ('true');
+INSERT INTO alltypes.json_data (data) VALUES ('false');
+INSERT INTO alltypes.json_data (data) VALUES ('null');
+
+INSERT INTO alltypes.json_data (data) VALUES ('{"name": "John", "age": 30}');
+INSERT INTO alltypes.json_data (data) VALUES ('{"coords": {"x": 10, "y": 20}}');
+
+INSERT INTO alltypes.json_data (data) VALUES ('[1, 2, 3, 4]');
+INSERT INTO alltypes.json_data (data) VALUES ('["apple", "banana", "cherry"]');
+
+INSERT INTO alltypes.json_data (data) VALUES ('{"items": ["book", "pen"], "count": 2, "in_stock": true}');
+
+INSERT INTO alltypes.json_data (data) VALUES (
+    '{
+        "user": {
+            "name": "Alice",
+            "age": 28,
+            "contacts": [
+                {"type": "email", "value": "alice@example.com"},
+                {"type": "phone", "value": "123-456-7890"}
+            ]
+        },
+        "orders": [
+            {"id": 1001, "total": 59.99},
+            {"id": 1002, "total": 24.50}
+        ],
+        "preferences": {
+            "notifications": true,
+            "theme": "dark"
+        }
+    }'
+);

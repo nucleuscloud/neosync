@@ -1,6 +1,7 @@
 package querybuilder
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -15,6 +16,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlserver"
 	"github.com/doug-martin/goqu/v9/exp"
 	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
+	mysqlutil "github.com/nucleuscloud/neosync/internal/mysql"
 	pgutil "github.com/nucleuscloud/neosync/internal/postgres"
 )
 
@@ -84,6 +86,9 @@ func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes 
 	if driver == sqlmanager_shared.PostgresDriver {
 		return getPgGoquVals(logger, row, columnDataTypes, columnDefaultProperties)
 	}
+	if driver == sqlmanager_shared.MysqlDriver {
+		return getMysqlGoquVals(logger, row, columnDataTypes, columnDefaultProperties)
+	}
 	gval := goqu.Vals{}
 	for idx, a := range row {
 		var colDefaults *neosync_benthos.ColumnDefaultProperties
@@ -107,6 +112,34 @@ func getGoquVals(logger *slog.Logger, driver string, row []any, columnDataTypes 
 	return gval
 }
 
+func getMysqlGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
+	gval := goqu.Vals{}
+	for idx, a := range row {
+		var colDataType string
+		if idx < len(columnDataTypes) {
+			colDataType = columnDataTypes[idx]
+		}
+		var colDefaults *neosync_benthos.ColumnDefaultProperties
+		if idx < len(columnDefaultProperties) {
+			colDefaults = columnDefaultProperties[idx]
+		}
+		if colDefaults != nil && colDefaults.HasDefaultTransformer {
+			gval = append(gval, goqu.Literal(defaultStr))
+		} else if mysqlutil.IsJsonDataType(colDataType) {
+			bits, err := json.Marshal(a)
+			if err != nil {
+				logger.Error("unable to marshal JSON", "error", err.Error())
+				gval = append(gval, a)
+				continue
+			}
+			gval = append(gval, bits)
+		} else {
+			gval = append(gval, a)
+		}
+	}
+	return gval
+}
+
 func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, columnDefaultProperties []*neosync_benthos.ColumnDefaultProperties) goqu.Vals {
 	gval := goqu.Vals{}
 	for i, a := range row {
@@ -118,10 +151,10 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, col
 		if i < len(columnDefaultProperties) {
 			colDefaults = columnDefaultProperties[i]
 		}
-		if gotypeutil.IsMap(a) {
-			bits, err := gotypeutil.MapToJson(a)
+		if pgutil.IsJsonPgDataType(colDataType) {
+			bits, err := json.Marshal(a)
 			if err != nil {
-				logger.Error("to marshal map to JSON", "error", err.Error())
+				logger.Error("unable to marshal JSON", "error", err.Error())
 				gval = append(gval, a)
 				continue
 			}
