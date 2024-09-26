@@ -1,5 +1,5 @@
 ---
-title: 9/12 - Revamped Bulk Transformer Support
+title: 9/26 - Revamped Bulk Transformer Support
 hide_table_of_contents: false
 slug: /revamped-bulk-transformer-support
 authors:
