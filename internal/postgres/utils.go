@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	gotypeutil "github.com/nucleuscloud/neosync/internal/gotypeutil"
 )
 
 type PgxArray[T any] struct {
@@ -53,6 +52,11 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
+	columnDbTypes := []string{}
+	for _, c := range cTypes {
+		columnDbTypes = append(columnDbTypes, c.DatabaseTypeName())
+	}
+
 	values := make([]any, len(columnNames))
 	valuesWrapped := make([]any, 0, len(columnNames))
 	for i := range values {
@@ -71,19 +75,24 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 		return nil, err
 	}
 
+	jObj := parsePgRowValues(values, columnNames, columnDbTypes)
+	return jObj, nil
+}
+
+func parsePgRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		ctype := cTypes[i]
+		ctype := columnDbTypes[i]
 		switch t := v.(type) {
 		case []byte:
-			if IsJsonPgDataType(ctype.DatabaseTypeName()) {
+			if IsJsonPgDataType(ctype) {
 				var js any
 				if err := json.Unmarshal(t, &js); err == nil {
 					jObj[col] = js
 					continue
 				}
-			} else if isBinaryDataType(ctype.DatabaseTypeName()) {
+			} else if isBinaryDataType(ctype) {
 				jObj[col] = t
 				continue
 			}
@@ -94,7 +103,7 @@ func SqlRowToPgTypesMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
-	return jObj, nil
+	return jObj
 }
 
 func isBinaryDataType(colDataType string) bool {
@@ -111,6 +120,10 @@ func isJsonArrayPgDataType(dataType string) bool {
 
 func isPgUuidArray(colDataType string) bool {
 	return strings.EqualFold(colDataType, "_uuid")
+}
+
+func isPgXmlArray(colDataType string) bool {
+	return strings.EqualFold(colDataType, "_xml")
 }
 
 func IsPgArrayType(dbTypeName string) bool {
@@ -140,6 +153,9 @@ func convertArrayToGoType(array *PgxArray[any]) []any {
 		if isPgUuidArray(array.colDataType) {
 			return convertBytesToUuidSlice(array.Elements)
 		}
+		if isPgXmlArray(array.colDataType) {
+			return convertBytesToStringSlice(array.Elements)
+		}
 		return array.Elements
 	}
 
@@ -151,15 +167,26 @@ func convertArrayToGoType(array *PgxArray[any]) []any {
 			continue
 		}
 
-		jmap, err := gotypeutil.JsonToMap(jsonBits)
+		var js any
+		err := json.Unmarshal(jsonBits, &js)
 		if err != nil {
 			newArray = append(newArray, e)
 		} else {
-			newArray = append(newArray, jmap)
+			newArray = append(newArray, js)
 		}
 	}
 
 	return newArray
+}
+
+func convertBytesToStringSlice(bytes []any) []any {
+	stringSlice := []any{}
+	for _, el := range bytes {
+		if bits, ok := el.([]byte); ok {
+			stringSlice = append(stringSlice, string(bits))
+		}
+	}
+	return stringSlice
 }
 
 func convertBytesToUuidSlice(uuids []any) []any {
