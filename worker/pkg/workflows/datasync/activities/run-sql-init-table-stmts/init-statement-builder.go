@@ -188,7 +188,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
-			if sqlopts.TruncateCascade {
+			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
 				// reset serial counts
 				// identity counts are automatically reset with truncate identity restart clause
 				schemaTableMap := map[string][]string{}
