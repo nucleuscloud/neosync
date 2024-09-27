@@ -1,5 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,13 @@ import { DataTable } from './components/ApiKeysTable/data-table';
 
 export default function ApiKeys(): ReactElement {
   return (
-    <div>
-      <div className="flex justify-between">
-        <h1 className="text-xl font-bold tracking-tight">API Keys</h1>
-        <NewApiKeyButton />
-      </div>
-      <div className="mt-10">
+    <div className="flex flex-col gap-5">
+      <SubPageHeader
+        header="API Keys"
+        description="Create and manage API keys"
+        extraHeading={<NewApiKeyButton />}
+      />
+      <div>
         <ApiKeyTable />
       </div>
     </div>
