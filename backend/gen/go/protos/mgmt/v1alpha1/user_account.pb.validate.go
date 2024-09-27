@@ -5130,6 +5130,8 @@ func (m *IsAccountStatusValidResponse) validate(all bool) error {
 
 	// no validation rules for IsValid
 
+	// no validation rules for ShouldPoll
+
 	if m.Reason != nil {
 		// no validation rules for Reason
 	}

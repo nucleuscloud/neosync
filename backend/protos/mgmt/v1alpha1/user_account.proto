@@ -211,6 +211,8 @@ message IsAccountStatusValidResponse {
   bool is_valid = 1;
   // If the account is not valid, a reason for why may be provided.
   optional string reason = 2;
+  // Whether or not the process should decide to continue polling for validitiy updates
+  bool should_poll = 3;
 }
 
 message GetAccountBillingCheckoutSessionRequest {

@@ -14685,6 +14685,18 @@
               "isoneof": true,
               "oneofdecl": "_reason",
               "defaultValue": ""
+            },
+            {
+              "name": "should_poll",
+              "description": "Whether or not the process should decide to continue polling for validitiy updates",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
