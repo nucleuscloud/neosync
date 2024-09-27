@@ -31,8 +31,9 @@ type CheckAccountStatusRequest struct {
 }
 
 type CheckAccountStatusResponse struct {
-	IsValid bool
-	Reason  *string
+	IsValid    bool
+	Reason     *string
+	ShouldPoll bool
 }
 
 func (a *Activity) CheckAccountStatus(
@@ -73,7 +74,7 @@ func (a *Activity) CheckAccountStatus(
 		"reason", withReasonOrDefault(resp.Msg.GetReason()),
 	)
 
-	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason}, nil
+	return &CheckAccountStatusResponse{IsValid: resp.Msg.GetIsValid(), Reason: resp.Msg.Reason, ShouldPoll: resp.Msg.GetShouldPoll()}, nil
 }
 
 const defaultReason = "no reason provided"
