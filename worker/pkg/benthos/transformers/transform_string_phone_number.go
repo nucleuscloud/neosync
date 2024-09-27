@@ -77,8 +77,8 @@ func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
 
 // Generates a random phone number and returns it as a string
 func transformPhoneNumber(randomizer rng.Rand, value *string, preserveLength bool, maxLength int64) (*string, error) {
-	if value == nil {
-		return nil, nil
+	if value == nil || *value == "" {
+		return value, nil
 	}
 
 	minL := int64(9)
