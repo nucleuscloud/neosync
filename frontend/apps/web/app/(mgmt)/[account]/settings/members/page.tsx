@@ -45,7 +45,7 @@ export default function MemberManagementSettings(_: Props): ReactElement {
         header="Member Management"
         description={`Manage your account's members and invites`}
         extraHeading={
-          <ExtraRowHeadings accountId={accountId} onInvited={() => refetch()} />
+          <InviteUserForm accountId={accountId} onInvited={() => refetch()} />
         }
       />
       <Tabs defaultValue="members">
@@ -62,13 +62,4 @@ export default function MemberManagementSettings(_: Props): ReactElement {
       </Tabs>
     </div>
   );
-}
-
-interface ExtraRowHeadingsProps {
-  accountId: string;
-  onInvited(): void;
-}
-function ExtraRowHeadings(props: ExtraRowHeadingsProps): ReactElement {
-  const { accountId, onInvited } = props;
-  return <InviteUserForm accountId={accountId} onInvited={onInvited} />;
 }
