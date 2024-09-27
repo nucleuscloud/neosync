@@ -39,6 +39,7 @@ type BenthosConfigResponse struct {
 	Columns                 []string
 	RedisDependsOn          map[string][]string
 	ColumnDefaultProperties map[string]*neosync_benthos.ColumnDefaultProperties
+	SourceConnectionType    string // used for logging
 
 	Processors  []*neosync_benthos.ProcessorConfig
 	BenthosDsns []*shared.BenthosDsn

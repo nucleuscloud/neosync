@@ -109,6 +109,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		mockRunId,
 		nil,
 		nil,
+		"postgres",
 	)
 	require.Nil(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
@@ -201,6 +202,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		mockRunId,
 		nil,
 		nil,
+		"postgres",
 	)
 	require.Nil(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)

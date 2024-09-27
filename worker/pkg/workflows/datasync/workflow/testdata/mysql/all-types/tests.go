@@ -18,6 +18,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 			},
 			Expected: map[string]*workflow_testdata.ExpectedOutput{
 				"all_types.all_data_types": &workflow_testdata.ExpectedOutput{RowCount: 2},
+				"all_types.json_data":      &workflow_testdata.ExpectedOutput{RowCount: 12},
 			},
 		},
 	}

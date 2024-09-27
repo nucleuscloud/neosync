@@ -53,6 +53,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
+
+	sourceConnectionType := shared.GetConnectionType(sourceConnection)
+	slogger = slogger.With(
+		"sourceConnectionType", sourceConnectionType,
+	)
+
 	if job.GetSource().GetOptions().GetAiGenerate() != nil {
 		sourceConnection, err = shared.GetConnectionById(ctx, b.connclient, *job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId)
 		if err != nil {
@@ -78,6 +84,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
 		}
+		destinationConnectionType := shared.GetConnectionType(destinationConnection)
+		slogger = slogger.With(
+			"destinationConnectionType", destinationConnectionType,
+		)
 		if destinationConnection.GetConnectionConfig().GetAwsS3Config() != nil || destinationConnection.GetConnectionConfig().GetGcpCloudstorageConfig() != nil {
 			// nothing to do for Bucket destinations
 			continue

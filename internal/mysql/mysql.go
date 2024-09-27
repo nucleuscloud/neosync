@@ -2,9 +2,9 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 	"strings"
 
-	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/internal/sqlscanners"
 )
 
@@ -16,6 +16,10 @@ func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	cTypes, err := rows.ColumnTypes()
 	if err != nil {
 		return nil, err
+	}
+	columnDbTypes := []string{}
+	for _, c := range cTypes {
+		columnDbTypes = append(columnDbTypes, c.DatabaseTypeName())
 	}
 
 	values := make([]any, len(columnNames))
@@ -32,20 +36,26 @@ func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 	if err := rows.Scan(valuesWrapped...); err != nil {
 		return nil, err
 	}
+	jObj := parseMysqlRowValues(values, columnNames, columnDbTypes)
+
+	return jObj, nil
+}
+
+func parseMysqlRowValues(values []any, columnNames, columnDbTypes []string) map[string]any {
 	jObj := map[string]any{}
 	for i, v := range values {
 		col := columnNames[i]
-		colDataType := cTypes[i].DatabaseTypeName()
+		colDataType := columnDbTypes[i]
 		switch t := v.(type) {
 		case string:
 			jObj[col] = t
 		case []byte:
-			if isJsonDataType(colDataType) {
-				jmap, err := gotypeutil.JsonToMap(t)
-				if err == nil {
-					jObj[col] = jmap
+			if IsJsonDataType(colDataType) {
+				var js any
+				if err := json.Unmarshal(t, &js); err == nil {
+					jObj[col] = js
+					continue
 				}
-				continue
 			}
 			if isBinaryDataType(colDataType) {
 				jObj[col] = t
@@ -62,8 +72,7 @@ func MysqlSqlRowToMap(rows *sql.Rows) (map[string]any, error) {
 			jObj[col] = t
 		}
 	}
-
-	return jObj, nil
+	return jObj
 }
 
 func isBitDataType(colDataType string) bool {
@@ -74,6 +83,6 @@ func isBinaryDataType(colDataType string) bool {
 	return strings.EqualFold(colDataType, "binary")
 }
 
-func isJsonDataType(colDataType string) bool {
+func IsJsonDataType(colDataType string) bool {
 	return strings.EqualFold(colDataType, "json")
 }
