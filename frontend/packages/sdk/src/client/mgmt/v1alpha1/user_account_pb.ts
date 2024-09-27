@@ -1872,6 +1872,13 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
    */
   reason?: string;
 
+  /**
+   * Whether or not the process should decide to continue polling for validitiy updates
+   *
+   * @generated from field: bool should_poll = 3;
+   */
+  shouldPoll = false;
+
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1882,6 +1889,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "should_poll", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {

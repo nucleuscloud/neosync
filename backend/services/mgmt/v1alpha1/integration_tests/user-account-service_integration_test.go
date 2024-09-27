@@ -513,6 +513,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.True(s.T(), resp.Msg.GetIsValid())
 	require.Empty(s.T(), resp.Msg.GetReason())
+	require.True(s.T(), resp.Msg.GetShouldPoll())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
@@ -537,6 +538,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.False(s.T(), resp.Msg.GetIsValid())
 	require.NotEmpty(s.T(), resp.Msg.GetReason())
+	require.False(s.T(), resp.Msg.GetShouldPoll())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
@@ -564,6 +566,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.False(s.T(), resp.Msg.GetIsValid())
 		require.NotEmpty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("under the limit", func(t *testing.T) {
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
@@ -574,6 +577,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.True(s.T(), resp.Msg.GetIsValid())
 		require.Empty(s.T(), resp.Msg.GetReason())
+		require.True(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
 
@@ -595,6 +599,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		assert.True(s.T(), resp.Msg.GetIsValid())
 		assert.Empty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("inactive", func(t *testing.T) {
 		custId := "cust_id2"
@@ -610,6 +615,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		assert.False(s.T(), resp.Msg.GetIsValid())
 		assert.NotEmpty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
 

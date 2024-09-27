@@ -650,7 +650,7 @@ func Test_Workflow_Halts_Activities_On_InvalidAccountStatus(t *testing.T) {
 
 	var accStatsActivity *accountstatus_activity.Activity
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
-		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true}, nil).Once()
+		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: true, ShouldPoll: true}, nil).Once()
 	env.OnActivity(accStatsActivity.CheckAccountStatus, mock.Anything, mock.Anything).
 		Return(&accountstatus_activity.CheckAccountStatusResponse{IsValid: false}, nil).Once()
 
