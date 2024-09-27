@@ -177,18 +177,16 @@ func (s *Service) IsAccountStatusValid(
 			}), nil
 		}
 
-		if req.Msg.RequestedRecordCount == nil {
-			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
-		}
-
-		requested := req.Msg.GetRequestedRecordCount()
-		totalUsed := currentUsed + requested
-		if totalUsed > allowed {
-			reason := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
-			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-				IsValid: false,
-				Reason:  &reason,
-			}), nil
+		if req.Msg.GetRequestedRecordCount() > 0 {
+			requested := req.Msg.GetRequestedRecordCount()
+			totalUsed := currentUsed + requested
+			if totalUsed > allowed {
+				reason := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
+				return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
+					IsValid: false,
+					Reason:  &reason,
+				}), nil
+			}
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
