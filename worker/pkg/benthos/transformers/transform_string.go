@@ -83,8 +83,8 @@ func (t *TransformString) Transform(value, opts any) (any, error) {
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
 func transformString(randomizer rng.Rand, value *string, preserveLength bool, minLength, maxLength int64) (*string, error) {
-	if value == nil {
-		return nil, nil
+	if value == nil || *value == "" {
+		return value, nil
 	}
 
 	minL := minLength

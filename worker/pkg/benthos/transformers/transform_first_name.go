@@ -83,7 +83,7 @@ func (t *TransformFirstName) Transform(value, opts any) (any, error) {
 // Generates a random first name which can be of either random length or as long as the input name
 func transformFirstName(randomizer rng.Rand, value string, preserveLength bool, maxLength int64) (*string, error) {
 	if value == "" {
-		return nil, nil
+		return &value, nil
 	}
 
 	maxValue := maxLength
