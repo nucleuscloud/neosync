@@ -16,7 +16,7 @@ require (
 	github.com/Jeffail/gabs/v2 v2.7.0
 	github.com/Jeffail/shutdown v1.0.0
 	github.com/antlr4-go/antlr/v4 v4.13.1
-	github.com/auth0/go-auth0 v1.10.0
+	github.com/auth0/go-auth0 v1.11.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.2
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.38
