@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -301,6 +302,34 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err != nil {
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
+				}
+
+				// reset identity column counts
+				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
+				if err != nil {
+					destdb.Db.Close()
+					return nil, err
+				}
+
+				identityStmts := []string{}
+				for table, cols := range schemaColMap {
+					if !slices.Contains(orderedTablesResp.OrderedTables, table) {
+						continue
+					}
+					for _, c := range cols {
+						if c.IdentityGeneration != nil && *c.IdentityGeneration != "" {
+							schema, table := sqlmanager_shared.SplitTableKey(table)
+							identityResetStatement := sqlmanager_mssql.BuildMssqlIdentityColumnResetStatement(schema, table, *c.IdentityGeneration)
+							identityStmts = append(identityStmts, identityResetStatement)
+						}
+					}
+				}
+				if len(identityStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, identityStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						destdb.Db.Close()
+						return nil, fmt.Errorf("unable to exec identity reset statements: %w", err)
+					}
 				}
 			}
 			destdb.Db.Close()
