@@ -788,8 +788,8 @@ github.com/ardielle/ardielle-go v1.5.2 h1:TilHTpHIQJ27R1Tl/iITBzMwiUGSlVfiVhwDNG
 github.com/ardielle/ardielle-go v1.5.2/go.mod h1:I4hy1n795cUhaVt/ojz83SNVCYIGsAFAONtv2Dr7HUI=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
-github.com/auth0/go-auth0 v1.10.0 h1:7fjcuVjtTET5NEg8RPl3uYadGto7WZnBl31LcnXANWc=
-github.com/auth0/go-auth0 v1.10.0/go.mod h1:VMTiemb4rn2TUPiH9obD2FoHS2FoTALTsnKU0NUXLxk=
+github.com/auth0/go-auth0 v1.11.0 h1:gFBVhJCQUW1cET+f/fSH+aXiUebvH2IaaXhMiSaPclw=
+github.com/auth0/go-auth0 v1.11.0/go.mod h1:VyYseHsdB4s9jmfBqoxnzJTvZr0w17ZJ5kjNdA+ag9Y=
 github.com/auth0/go-jwt-middleware/v2 v2.2.2 h1:vrvkFZf72r3Qbt45KLjBG3/6Xq2r3NTixWKu2e8de9I=
 github.com/auth0/go-jwt-middleware/v2 v2.2.2/go.mod h1:4vwxpVtu/Kl4c4HskT+gFLjq0dra8F1joxzamrje6J0=
 github.com/aws/aws-lambda-go v1.46.0 h1:UWVnvh2h2gecOlFhHQfIPQcD8pL/f7pVCutmFl+oXU8=
