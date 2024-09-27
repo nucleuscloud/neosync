@@ -145,9 +145,13 @@ message AcceptTeamAccountInviteResponse {
 
 message GetSystemInformationRequest {}
 message GetSystemInformationResponse {
+  // The Git tagged version
   string version = 1;
+  // The Git commit
   string commit = 2;
+  // The Go compiler flag that was used to build this version of Neosync
   string compiler = 3;
+  // The Go platform flag that was used to build this version of Neosync
   string platform = 4;
   google.protobuf.Timestamp build_date = 5;
 }
@@ -275,7 +279,9 @@ service UserAccountService {
   rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
 
-  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {}
+  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}

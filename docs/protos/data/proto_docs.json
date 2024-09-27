@@ -14330,7 +14330,7 @@
           "fields": [
             {
               "name": "version",
-              "description": "",
+              "description": "The Git tagged version",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14342,7 +14342,7 @@
             },
             {
               "name": "commit",
-              "description": "",
+              "description": "The Git commit",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14354,7 +14354,7 @@
             },
             {
               "name": "compiler",
-              "description": "",
+              "description": "The Go compiler flag that was used to build this version of Neosync",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14366,7 +14366,7 @@
             },
             {
               "name": "platform",
-              "description": "",
+              "description": "The Go platform flag that was used to build this version of Neosync",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15349,7 +15349,10 @@
               "responseType": "GetSystemInformationResponse",
               "responseLongType": "GetSystemInformationResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemInformationResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetAccountOnboardingConfig",

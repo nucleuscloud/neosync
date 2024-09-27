@@ -274,6 +274,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetSystemInformationProcedure,
 			connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAccountOnboardingConfig: connect.NewClient[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse](
@@ -614,6 +615,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetSystemInformationProcedure,
 		svc.GetSystemInformation,
 		connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetAccountOnboardingConfigHandler := connect.NewUnaryHandler(
