@@ -33,6 +33,10 @@ jobs:
         with:
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
+      - name: Get current time
+        id: current-time
+        run: echo "CURRENT_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -66,9 +70,9 @@ jobs:
           context: .
           file: docker/Dockerfile.backend
           build-args: |
-            buildDate: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
-            gitCommit: ${{ github.sha }}
-            gitVersion: ${{ github.ref_name }}
+            buildDate=${{ steps.current-time.outputs.CURRENT_TIME }}
+            gitCommit=${{ github.sha }}
+            gitVersion=${{ github.ref_name }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
