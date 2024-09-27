@@ -146,6 +146,7 @@ func (s *Service) IsAccountStatusValid(
 	if err != nil {
 		return nil, err
 	}
+
 	if !s.cfg.IsNeosyncCloud {
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
@@ -191,7 +192,8 @@ func (s *Service) IsAccountStatusValid(
 		}
 
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-			IsValid: true,
+			IsValid:    true,
+			ShouldPoll: true, // Is active free account that is currently under their usage limit
 		}), nil
 	}
 
