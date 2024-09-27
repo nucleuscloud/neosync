@@ -225,6 +225,7 @@ export const getSystemInformation = {
   kind: MethodKind.Unary,
   I: GetSystemInformationRequest,
   O: GetSystemInformationResponse,
+      idempotency: MethodIdempotency.NoSideEffects,
   service: {
     typeName: "mgmt.v1alpha1.UserAccountService"
   }

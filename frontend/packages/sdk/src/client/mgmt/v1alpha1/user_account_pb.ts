@@ -1445,21 +1445,29 @@ export class GetSystemInformationRequest extends Message<GetSystemInformationReq
  */
 export class GetSystemInformationResponse extends Message<GetSystemInformationResponse> {
   /**
+   * The Git tagged version
+   *
    * @generated from field: string version = 1;
    */
   version = "";
 
   /**
+   * The Git commit
+   *
    * @generated from field: string commit = 2;
    */
   commit = "";
 
   /**
+   * The Go compiler flag that was used to build this version of Neosync
+   *
    * @generated from field: string compiler = 3;
    */
   compiler = "";
 
   /**
+   * The Go platform flag that was used to build this version of Neosync
+   *
    * @generated from field: string platform = 4;
    */
   platform = "";

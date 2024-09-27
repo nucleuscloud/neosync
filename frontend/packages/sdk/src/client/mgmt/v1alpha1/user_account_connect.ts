@@ -155,6 +155,7 @@ export const UserAccountService = {
       I: GetSystemInformationRequest,
       O: GetSystemInformationResponse,
       kind: MethodKind.Unary,
+      idempotency: MethodIdempotency.NoSideEffects,
     },
     /**
      * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig
