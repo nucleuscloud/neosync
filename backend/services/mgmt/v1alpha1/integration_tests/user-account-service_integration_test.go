@@ -749,6 +749,65 @@ func (s *IntegrationTestSuite) Test_GetBillingAccounts() {
 	})
 }
 
+func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
+	t := s.T()
+
+	t.Run("OSS unauth", func(t *testing.T) {
+		s.setUser(s.ctx, s.unauthdClients.users)
+		resp, err := s.unauthdClients.users.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name: "unauthteamname",
+		}))
+		requireErrResp(t, resp, err)
+		requireConnectError(t, err, connect.CodePermissionDenied)
+	})
+
+	t.Run("OSS auth success", func(t *testing.T) {
+		userclient := s.authdClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+		accountId := s.createPersonalAccount(s.ctx, userclient)
+
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name:      "newname",
+			AccountId: &accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.Empty(t, resp.Msg.GetCheckoutSessionUrl())
+	})
+
+	t.Run("cloud billing success", func(t *testing.T) {
+		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+		accountId := s.createPersonalAccount(s.ctx, userclient)
+
+		stripeCustomerId := "foo"
+		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
+		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name:      "newname2",
+			AccountId: &accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.NotEmpty(t, resp.Msg.GetCheckoutSessionUrl())
+	})
+
+	t.Run("cloud success unspecified account", func(t *testing.T) {
+		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+
+		stripeCustomerId := "foo"
+		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
+		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name: "newname3",
+		}))
+		requireNoErrResp(t, resp, err)
+	})
+}
+
 func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 	userclient1 := s.neosyncCloudClients.getUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient1)
