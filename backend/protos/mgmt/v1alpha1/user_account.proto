@@ -43,7 +43,7 @@ message ConvertPersonalToTeamAccountRequest {
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
   // Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
   // And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
-  optional string account_id = 2;
+  optional string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message ConvertPersonalToTeamAccountResponse {
   // The id of the team account (will be the same identifier as the personal account)
