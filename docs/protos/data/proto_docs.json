@@ -13920,7 +13920,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -13933,6 +13933,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts\nAnd we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_account_id",
               "defaultValue": ""
             }
           ]

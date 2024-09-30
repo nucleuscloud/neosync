@@ -159,7 +159,77 @@ func (s *Service) ConvertPersonalToTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.ConvertPersonalToTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.ConvertPersonalToTeamAccountResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.ConvertPersonalToTeamAccountResponse{}), nil
+	if !s.cfg.IsAuthEnabled {
+		return nil, nucleuserrors.NewForbidden("unable to convert personal account to team account as authentication is not enabled")
+	}
+	if s.cfg.IsNeosyncCloud && s.billingclient == nil {
+		return nil, nucleuserrors.NewForbidden("creating team accounts via the API is currently forbidden in Neosync Cloud environments. Please contact us to create a team account.")
+	}
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userId, err := neosyncdb.ToUuid(user.Msg.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	personalAccountId := req.Msg.GetAccountId()
+	if personalAccountId == "" {
+		logger.Debug("account id was not provided during personal->team conversion. Attempting to find personal account")
+		accounts, err := s.db.Q.GetAccountsByUser(ctx, s.db.Db, userId)
+		if err != nil && !neosyncdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && neosyncdb.IsNoRows(err) {
+			return nil, nucleuserrors.NewNotFound("user has no accounts")
+		}
+
+		for idx := range accounts {
+			if accounts[idx].AccountType == int16(neosyncdb.AccountType_Personal) {
+				personalAccountId = neosyncdb.UUIDString(accounts[idx].ID)
+				logger.Debug("found personal account to convert to team account", "personalAccountId", personalAccountId)
+				break
+			}
+		}
+	}
+
+	resp, err := s.db.ConvertPersonalToTeamAccount(ctx, &neosyncdb.ConvertPersonalToTeamAccountRequest{
+		UserId:            userId,
+		PersonalAccountId: personalAccountId,
+		TeamName:          req.Msg.GetName(),
+	}, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	var checkoutSessionUrl *string
+	if s.cfg.IsNeosyncCloud && !resp.TeamAccount.StripeCustomerID.Valid && s.billingclient != nil {
+		account, err := s.db.UpsertStripeCustomerId(
+			ctx,
+			resp.TeamAccount.ID,
+			s.getCreateStripeAccountFunction(user.Msg.GetUserId(), logger),
+			logger,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to upsert stripe customer id after account creation: %w", err)
+		}
+		session, err := s.generateCheckoutSession(account.StripeCustomerID.String, account.AccountSlug, user.Msg.GetUserId(), logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate checkout session: %w", err)
+		}
+		logger.Debug("stripe checkout session created", "id", session.ID)
+		checkoutSessionUrl = &session.URL
+		resp.TeamAccount = account // update the team account that now includes a stripe customer id
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.ConvertPersonalToTeamAccountResponse{
+		AccountId:            neosyncdb.UUIDString(resp.TeamAccount.ID),
+		NewPersonalAccountId: neosyncdb.UUIDString(resp.PersonalAccount.ID),
+		CheckoutSessionUrl:   checkoutSessionUrl,
+	}), nil
 }
 
 func (s *Service) SetPersonalAccount(

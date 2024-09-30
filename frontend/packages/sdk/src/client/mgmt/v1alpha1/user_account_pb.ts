@@ -347,6 +347,14 @@ export class ConvertPersonalToTeamAccountRequest extends Message<ConvertPersonal
    */
   name = "";
 
+  /**
+   * Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
+   * And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
+   *
+   * @generated from field: optional string account_id = 2;
+   */
+  accountId?: string;
+
   constructor(data?: PartialMessage<ConvertPersonalToTeamAccountRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -356,6 +364,7 @@ export class ConvertPersonalToTeamAccountRequest extends Message<ConvertPersonal
   static readonly typeName = "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConvertPersonalToTeamAccountRequest {

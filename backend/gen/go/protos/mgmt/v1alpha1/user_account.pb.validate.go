@@ -809,6 +809,10 @@ func (m *ConvertPersonalToTeamAccountRequest) validate(all bool) error {
 
 	// no validation rules for Name
 
+	if m.AccountId != nil {
+		// no validation rules for AccountId
+	}
+
 	if len(errors) > 0 {
 		return ConvertPersonalToTeamAccountRequestMultiError(errors)
 	}
