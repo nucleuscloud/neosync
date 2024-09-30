@@ -118,7 +118,7 @@ func Test_BuildPgTruncateStatement(t *testing.T) {
 	require.Equal(
 		t,
 		BuildPgTruncateStatement([]string{"foo", "bar", "baz"}),
-		"TRUNCATE TABLE foo, bar, baz;",
+		"TRUNCATE TABLE foo, bar, baz RESTART IDENTITY;",
 	)
 }
 
@@ -127,7 +127,7 @@ func Test_BuildPgTruncateCascadeStatement(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"TRUNCATE \"public\".\"users\" CASCADE;",
+		"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;",
 		actual,
 	)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -199,11 +200,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
-			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
+			if !sqlopts.InitSchema && (sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade) {
 				// reset serial counts
 				// identity counts are automatically reset with truncate identity restart clause
 				schemaTableMap := map[string][]string{}
-				for schemaTable, _ := range uniqueTables {
+				for schemaTable := range uniqueTables {
 					schema, table := sqlmanager_shared.SplitTableKey(schemaTable)
 					schemaTableMap[schema] = append(schemaTableMap[schema], table)
 				}
@@ -222,8 +223,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if len(resetSeqStmts) > 0 {
 					err = destdb.Db.BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
 					if err != nil {
-						destdb.Db.Close()
-						return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+						// handle not found errors
+						if !strings.Contains(err.Error(), `does not exist`) {
+							destdb.Db.Close()
+							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+						}
 					}
 				}
 			}

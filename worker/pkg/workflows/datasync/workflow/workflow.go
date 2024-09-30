@@ -11,6 +11,7 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
@@ -219,13 +220,18 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				activityErr = err
 				cancelHandler()
 
-				redisErr := runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
+				// empty depends on map will clean up all redis inserts
+				redisErr := runRedisCleanUpActivity(ctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
 				return
 			}
 			logger.Info("config sync completed", "name", bc.Name)
+			err = runPostTableSyncActivity(ctx, logger, actOptResp, req.JobId, bc.Name)
+			if err != nil {
+				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
+			}
 			delete(redisDependsOn, bc.Name)
 			err = runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
@@ -317,6 +323,30 @@ func retrieveActivityOptions(
 	}
 	logger.Info("completed RetrieveActivityOptions.")
 	return actOptResp, nil
+}
+
+func runPostTableSyncActivity(
+	ctx workflow.Context,
+	logger log.Logger,
+	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
+	jobId string,
+	name string,
+) error {
+	logger.Debug("executing post table sync activity")
+	var resp *posttablesync_activity.RunPostTableSyncResponse
+	var postTableSyncActivity *posttablesync_activity.Activity
+	err := workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+		postTableSyncActivity.RunPostTableSync,
+		&posttablesync_activity.RunPostTableSyncRequest{
+			JobId:     jobId,
+			Name:      name,
+			AccountId: actOptResp.AccountId,
+		}).Get(ctx, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func runRedisCleanUpActivity(

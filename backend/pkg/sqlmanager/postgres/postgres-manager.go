@@ -228,7 +228,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 		tables := tables
 
 		errgrp.Go(func() error {
-			seqs, err := p.getSequencesByTables(errctx, schema, tables)
+			seqs, err := p.GetSequencesByTables(errctx, schema, tables)
 			if err != nil {
 				return fmt.Errorf("unable to get postgres custom sequences by tables: %w", err)
 			}
@@ -906,7 +906,7 @@ func EscapePgColumn(col string) string {
 func BuildPgIdentityColumnResetCurrentSql(
 	schema, table, column string,
 ) string {
-	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 0));", schema, table, column, column, schema, table)
+	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
 }
 
 func BuildPgInsertIdentityAlwaysSql(

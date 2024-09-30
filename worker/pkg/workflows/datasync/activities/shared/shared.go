@@ -19,11 +19,20 @@ const (
 	// The benthos value for null
 	NullString = "null"
 
-	runContext_ExternalId_BenthosConfig = "benthosconfig"
+	runContext_ExternalId_BenthosConfig       = "benthosconfig"
+	runContext_ExternalId_PostTableSyncConfig = "posttablesyncconfig"
 )
 
 func GetBenthosConfigExternalId(identifier string) string {
 	return fmt.Sprintf("%s-%s", runContext_ExternalId_BenthosConfig, identifier)
+}
+
+func GetPostTableSyncConfigExternalId(identifier string) string {
+	return fmt.Sprintf("%s-%s", runContext_ExternalId_PostTableSyncConfig, identifier)
+}
+
+type SqlPostTableSyncConfig struct {
+	DestinationStatements []string `json:"destinationStatements"` // statements to run on each destination
 }
 
 // General workflow metadata struct that is intended to be common across activities
