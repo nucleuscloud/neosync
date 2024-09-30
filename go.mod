@@ -19,11 +19,11 @@ require (
 	github.com/auth0/go-auth0 v1.11.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.2
 	github.com/aws/aws-sdk-go-v2 v1.31.0
-	github.com/aws/aws-sdk-go-v2/config v1.27.38
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.36
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.35.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.31.2
+	github.com/aws/aws-sdk-go-v2/config v1.27.39
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.37
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.35.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.3
+	github.com/aws/aws-sdk-go-v2/service/sts v1.31.3
 	github.com/aws/smithy-go v1.21.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/charmbracelet/bubbles v0.20.0
@@ -163,8 +163,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.50.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sns v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.29.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.23.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.27.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.23.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.27.3 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/benhoyt/goawk v1.25.0 // indirect
