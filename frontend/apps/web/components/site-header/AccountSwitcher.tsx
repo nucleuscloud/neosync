@@ -83,24 +83,45 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
           accountId: account.id,
         });
         setShowNewTeamDialog(false);
-        mutate();
+        const mutatedResp = await mutate();
+        console.log('mutated resp!', mutatedResp);
         toast.success('Successfully converted personal to team!');
         if (resp.checkoutSessionUrl) {
           router.push(resp.checkoutSessionUrl);
         } else {
-          router.push(`/${values.name}`);
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
         }
       } else {
         const resp = await createTeamAccountAsync({
           name: values.name,
         });
         setShowNewTeamDialog(false);
-        mutate();
+        const mutatedResp = await mutate();
+        console.log('mutated resp!', mutatedResp);
+
         toast.success('Successfully created team!');
         if (resp.checkoutSessionUrl) {
           router.push(resp.checkoutSessionUrl);
         } else {
-          router.push(`/${values.name}`);
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
         }
       }
     } catch (err) {
