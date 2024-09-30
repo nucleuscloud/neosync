@@ -138,7 +138,6 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sqlmanager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
 	mockSqlDb.On("GetSchemaInitStatements", mock.Anything, []*sqlmanager_shared.SchemaTable{{Schema: "public", Table: "users"}}).Return([]*sqlmanager_shared.InitSchemaStatements{
 		{Label: "data types", Statements: []string{}},
 		{Label: "create table", Statements: []string{"test-create-statement"}},
