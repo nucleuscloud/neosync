@@ -84,7 +84,6 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
         });
         setShowNewTeamDialog(false);
         const mutatedResp = await mutate();
-        console.log('mutated resp!', mutatedResp);
         toast.success('Successfully converted personal to team!');
         if (resp.checkoutSessionUrl) {
           router.push(resp.checkoutSessionUrl);
@@ -106,8 +105,6 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
         });
         setShowNewTeamDialog(false);
         const mutatedResp = await mutate();
-        console.log('mutated resp!', mutatedResp);
-
         toast.success('Successfully created team!');
         if (resp.checkoutSessionUrl) {
           router.push(resp.checkoutSessionUrl);
