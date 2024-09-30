@@ -186,7 +186,7 @@ func getAccountById(accounts []db_queries.NeosyncApiAccount, id pgtype.UUID) (*d
 			return &accounts[idx], nil
 		}
 	}
-	return nil, errors.New("could not find id in list of neosync accounts")
+	return nil, nucleuserrors.NewNotFound("could not find id in list of neosync accounts")
 }
 
 type ConvertPersonalToTeamAccountRequest struct {
@@ -225,7 +225,7 @@ func (d *NeosyncDb) ConvertPersonalToTeamAccount(
 		}
 		logger.DebugContext(ctx, "verified that requested personal account id is owned by the user")
 		if personalAccount.AccountType != int16(AccountType_Personal) {
-			return errors.New("requested account conversion is not a personal account and thus cannot be converted")
+			return nucleuserrors.NewBadRequest("requested account conversion is not a personal account and thus cannot be converted")
 		}
 
 		// update personal account to be team account.

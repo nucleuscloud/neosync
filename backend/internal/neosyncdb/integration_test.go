@@ -225,25 +225,38 @@ func (s *IntegrationTestSuite) Test_CreateTeamAccount() {
 func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	t := s.T()
 
-	user := s.setUser(t, s.ctx, "convertPtoT1")
-	maxAllowedRecords := int64(100)
-	account, err := s.db.SetPersonalAccount(s.ctx, user.ID, &maxAllowedRecords)
-	requireNoErrResp(t, account, err)
+	t.Run("success", func(t *testing.T) {
+		user := s.setUser(t, s.ctx, "convertPtoT1")
+		maxAllowedRecords := int64(100)
+		account, err := s.db.SetPersonalAccount(s.ctx, user.ID, &maxAllowedRecords)
+		requireNoErrResp(t, account, err)
 
-	newTeamName := "newteam"
-	resp, err := s.db.ConvertPersonalToTeamAccount(s.ctx, &ConvertPersonalToTeamAccountRequest{
-		UserId:            user.ID,
-		PersonalAccountId: account.ID,
-		TeamName:          newTeamName,
-	}, discardLogger)
-	requireNoErrResp(t, resp, err)
+		newTeamName := "newteam"
+		resp, err := s.db.ConvertPersonalToTeamAccount(s.ctx, &ConvertPersonalToTeamAccountRequest{
+			UserId:            user.ID,
+			PersonalAccountId: account.ID,
+			TeamName:          newTeamName,
+		}, discardLogger)
+		requireNoErrResp(t, resp, err)
 
-	require.Equal(t, UUIDString(account.ID), UUIDString(resp.TeamAccount.ID), "the new team account must be the same id as the old account")
-	require.Equal(t, AccountType_Team, AccountType(resp.TeamAccount.AccountType))
-	require.Equal(t, newTeamName, resp.TeamAccount.AccountSlug)
-	require.NotEqual(t, UUIDString(account.ID), UUIDString(resp.PersonalAccount.ID), "the new personal account must not have the same id as the old one")
-	require.False(t, resp.TeamAccount.MaxAllowedRecords.Valid, "team account must not have any max allowed records set")
-	require.Equal(t, maxAllowedRecords, resp.PersonalAccount.MaxAllowedRecords.Int64, "max allowed records must persist on new personal account")
+		require.Equal(t, UUIDString(account.ID), UUIDString(resp.TeamAccount.ID), "the new team account must be the same id as the old account")
+		require.Equal(t, AccountType_Team, AccountType(resp.TeamAccount.AccountType))
+		require.Equal(t, newTeamName, resp.TeamAccount.AccountSlug)
+		require.NotEqual(t, UUIDString(account.ID), UUIDString(resp.PersonalAccount.ID), "the new personal account must not have the same id as the old one")
+		require.False(t, resp.TeamAccount.MaxAllowedRecords.Valid, "team account must not have any max allowed records set")
+		require.Equal(t, maxAllowedRecords, resp.PersonalAccount.MaxAllowedRecords.Int64, "max allowed records must persist on new personal account")
+	})
+
+	t.Run("invalid account type", func(t *testing.T) {
+		user := s.setUser(t, s.ctx, "convertPtoT2")
+		account, err := s.db.CreateTeamAccount(s.ctx, user.ID, "myteam", discardLogger)
+		requireNoErrResp(t, account, err)
+
+		resp, err := s.db.ConvertPersonalToTeamAccount(s.ctx, &ConvertPersonalToTeamAccountRequest{UserId: user.ID, PersonalAccountId: account.ID, TeamName: "myteam2"}, discardLogger)
+		requireErrResp(t, resp, err)
+		badreqerror := nucleuserrors.NewBadRequest("")
+		require.ErrorAs(t, err, &badreqerror)
+	})
 }
 
 func (s *IntegrationTestSuite) Test_UpsertStripeCustomerId() {
