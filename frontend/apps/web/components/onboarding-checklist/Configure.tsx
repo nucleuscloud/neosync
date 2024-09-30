@@ -15,7 +15,7 @@ export default function Config(props: Props): ReactElement {
     <div className="flex flex-col gap-12 justify-center items-center text-center">
       <h1 className="font-semibold text-2xl">Configure</h1>
       <p className="text-sm px-10">
-        Configure your schema, transformers and subsetting rules in order to
+        Configure your Schema, Transformers and Subsetting rules in order to
         anonymize and generate data to sync to lower level environments.
       </p>
       <div className=" flex flex-col gap-4 p-4 border border-gray-300 dark:dark:border-[#0D47F0] rounded-lg text-xs shadow-lg">

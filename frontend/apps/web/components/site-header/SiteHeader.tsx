@@ -1,3 +1,4 @@
+'use client';
 import { getSystemAppConfig } from '@/app/api/config/config';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,31 +11,42 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { UserAccountType } from '@neosync/sdk';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
+import { useAccount } from '../providers/account-provider';
 import SupportDrawer from '../SupportDrawer';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
 import NeosyncVersion from './NeosyncVersion';
+import RecordsProgressBar from './RecordsProgressBar';
 import Upgrade from './Upgrade';
 import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
+  const { account } = useAccount();
+
   return (
     <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur">
       <div className="container flex h-14 items-center">
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          <Upgrade
-            calendlyLink={systemAppConfig.calendlyUpgradeLink}
-            isNeosyncCloud={systemAppConfig.isNeosyncCloud}
-          />
+          {!systemAppConfig.isNeosyncCloud &&
+            account?.type == UserAccountType.PERSONAL && (
+              <RecordsProgressBar identifier={account?.id ?? ''} />
+            )}
+          {systemAppConfig.isAuthEnabled && (
+            <Upgrade
+              calendlyLink={systemAppConfig.calendlyUpgradeLink}
+              isNeosyncCloud={systemAppConfig.isNeosyncCloud}
+            />
+          )}
+          {!systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <SupportSheet />
-          {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <ModeToggle />
           <UserNav />
         </div>
