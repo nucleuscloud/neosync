@@ -26,7 +26,7 @@ type SSHDialer struct {
 	clientmu *sync.RWMutex
 }
 
-func NewDialer(addr string, cfg *ssh.ClientConfig) *SSHDialer {
+func NewLazyDialer(addr string, cfg *ssh.ClientConfig) *SSHDialer {
 
 	return &SSHDialer{addr: addr, cfg: cfg, clientmu: &sync.RWMutex{}}
 }
