@@ -180,9 +180,9 @@ func verifyAccountNameUnique(accounts []db_queries.NeosyncApiAccount, name strin
 	return nil
 }
 
-func getAccountById(accounts []db_queries.NeosyncApiAccount, id string) (*db_queries.NeosyncApiAccount, error) {
+func getAccountById(accounts []db_queries.NeosyncApiAccount, id pgtype.UUID) (*db_queries.NeosyncApiAccount, error) {
 	for idx := range accounts {
-		if accounts[idx].ID.Valid && UUIDString(accounts[idx].ID) == id {
+		if accounts[idx].ID.Valid && id.Valid && UUIDString(accounts[idx].ID) == UUIDString(id) {
 			return &accounts[idx], nil
 		}
 	}
@@ -193,7 +193,7 @@ type ConvertPersonalToTeamAccountRequest struct {
 	// The id of the user
 	UserId pgtype.UUID
 	// The personal account id that will be converted to a team account
-	PersonalAccountId string
+	PersonalAccountId pgtype.UUID
 	// The name that the account slug will be updated to
 	TeamName string
 }

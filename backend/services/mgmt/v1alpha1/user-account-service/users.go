@@ -196,9 +196,13 @@ func (s *Service) ConvertPersonalToTeamAccount(
 		}
 	}
 
+	personalAccountUuid, err := neosyncdb.ToUuid(personalAccountId)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := s.db.ConvertPersonalToTeamAccount(ctx, &neosyncdb.ConvertPersonalToTeamAccountRequest{
 		UserId:            userId,
-		PersonalAccountId: personalAccountId,
+		PersonalAccountId: personalAccountUuid,
 		TeamName:          req.Msg.GetName(),
 	}, logger)
 	if err != nil {
