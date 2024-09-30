@@ -11,6 +11,7 @@ import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import {
   convertPersonalToTeamAccount,
@@ -19,6 +20,7 @@ import {
 } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -46,6 +48,14 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
   const { data: systemAppConfigData } = useGetSystemAppConfig();
   const accounts = data?.accounts ?? [];
   const router = useRouter();
+  const createNewTeamForm = useForm<CreateTeamFormValues>({
+    mode: 'onChange',
+    resolver: yupResolver(CreateTeamFormValues),
+    defaultValues: {
+      name: '',
+      convertPersonalToTeam: false,
+    },
+  });
 
   const { mutateAsync: createTeamAccountAsync } =
     useMutation(createTeamAccount);
@@ -106,6 +116,7 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
 
   return (
     <CreateNewTeamDialog
+      form={createNewTeamForm}
       open={showNewTeamDialog}
       onOpenChange={setShowNewTeamDialog}
       onSubmit={onSubmit}
@@ -114,7 +125,11 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
         <AccountSwitcherPopover
           activeAccount={account}
           accounts={accounts}
-          onAccountSelect={(a) => setAccount(a)}
+          onAccountSelect={(a) => {
+            setAccount(a);
+            // the user has changed the active account, reset the create new team form
+            createNewTeamForm.reset();
+          }}
           onNewAccount={() => {
             setShowNewTeamDialog(true);
           }}

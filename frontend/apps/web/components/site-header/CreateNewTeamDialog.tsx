@@ -4,9 +4,8 @@ import { ReactElement, ReactNode } from 'react';
 
 import { cn } from '@/libs/utils';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
-import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -37,6 +36,7 @@ interface Props {
   onCancel(): void;
   showSubscriptionInfo: boolean;
   showConvertPersonalToTeamOption: boolean;
+  form: UseFormReturn<CreateTeamFormValues>;
 }
 
 export function CreateNewTeamDialog(props: Props): ReactElement {
@@ -48,15 +48,8 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
     onSubmit,
     showSubscriptionInfo,
     showConvertPersonalToTeamOption,
+    form,
   } = props;
-  const form = useForm<CreateTeamFormValues>({
-    mode: 'onChange',
-    resolver: yupResolver(CreateTeamFormValues),
-    defaultValues: {
-      name: '',
-      convertPersonalToTeam: false,
-    },
-  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
