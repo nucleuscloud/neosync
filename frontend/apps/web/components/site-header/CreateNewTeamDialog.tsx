@@ -2,6 +2,7 @@
 import { ExternalLinkIcon } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode } from 'react';
 
+import { cn } from '@/libs/utils';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
@@ -18,11 +19,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '../ui/form';
 import { Input } from '../ui/input';
+import { Switch } from '../ui/switch';
 
 interface Props {
   open: boolean;
@@ -32,6 +36,7 @@ interface Props {
   onSubmit(values: CreateTeamFormValues): Promise<void>;
   onCancel(): void;
   showSubscriptionInfo: boolean;
+  showConvertPersonalToTeamOption: boolean;
 }
 
 export function CreateNewTeamDialog(props: Props): ReactElement {
@@ -42,12 +47,14 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
     onCancel,
     onSubmit,
     showSubscriptionInfo,
+    showConvertPersonalToTeamOption,
   } = props;
   const form = useForm<CreateTeamFormValues>({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),
     defaultValues: {
       name: '',
+      convertPersonalToTeam: false,
     },
   });
 
@@ -61,13 +68,14 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
             Create a new team account to collaborate with your co-workers.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2 py-2">
+        <div className="space-y-0 py-2">
           <Form {...form}>
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Team Name</FormLabel>
                   <FormControl>
                     <Input
                       autoCapitalize="off" // we don't allow capitals in team names
@@ -76,7 +84,33 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="mt-0" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="convertPersonalToTeam"
+              render={({ field }) => (
+                <FormItem
+                  className={cn(
+                    showConvertPersonalToTeamOption ? undefined : 'hidden'
+                  )}
+                >
+                  <FormLabel>Personal Account Conversion</FormLabel>
+                  <FormDescription>
+                    Move all settings from personal to team account.
+                  </FormDescription>
+                  <FormControl className="m-0">
+                    <Switch
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      onCheckedChange={(newval) => field.onChange(newval)}
+                      checked={field.value}
+                      disabled={field.disabled}
+                      name={field.name}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />

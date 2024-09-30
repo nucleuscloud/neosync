@@ -12,7 +12,11 @@ import { getErrorMessage } from '@/util/util';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
-import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
+import {
+  convertPersonalToTeamAccount,
+  createTeamAccount,
+  getUserAccounts,
+} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -45,17 +49,49 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
 
   const { mutateAsync: createTeamAccountAsync } =
     useMutation(createTeamAccount);
+  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
+    convertPersonalToTeamAccount
+  );
 
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
+    if (!account) {
+      return;
+    }
+    if (
+      values.convertPersonalToTeam &&
+      account?.type !== UserAccountType.PERSONAL
+    ) {
+      toast.error(
+        'Selected account must be personal account to issue account conversion.'
+      );
+      return;
+    }
     try {
-      const resp = await createTeamAccountAsync({
-        name: values.name,
-      });
-      setShowNewTeamDialog(false);
-      mutate();
-      toast.success('Successfully created team!');
-      if (resp.checkoutSessionUrl) {
-        router.push(resp.checkoutSessionUrl);
+      if (values.convertPersonalToTeam) {
+        const resp = await convertPersonalToTeamAccountAsync({
+          name: values.name,
+          accountId: account.id,
+        });
+        setShowNewTeamDialog(false);
+        mutate();
+        toast.success('Successfully converted personal to team!');
+        if (resp.checkoutSessionUrl) {
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          router.push(`/${values.name}`);
+        }
+      } else {
+        const resp = await createTeamAccountAsync({
+          name: values.name,
+        });
+        setShowNewTeamDialog(false);
+        mutate();
+        toast.success('Successfully created team!');
+        if (resp.checkoutSessionUrl) {
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          router.push(`/${values.name}`);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -92,6 +128,9 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
       showSubscriptionInfo={
         (systemAppConfigData?.isNeosyncCloud ?? false) &&
         (systemAppConfigData?.isStripeEnabled ?? false)
+      }
+      showConvertPersonalToTeamOption={
+        account?.type === UserAccountType.PERSONAL
       }
     />
   );
