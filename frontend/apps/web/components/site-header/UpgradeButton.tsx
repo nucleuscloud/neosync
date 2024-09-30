@@ -16,12 +16,14 @@ export default function UpgradeButton(props: Props): ReactElement {
   return (
     <div>
       <Button type="button" variant="outline" size="sm" onClick={onClick}>
-        <div className="flex flex-row gap-2 items-center">
-          <Link href={href} target={target}>
-            <div>Upgrade</div>
-          </Link>
+        <Link
+          href={href}
+          target={target}
+          className="flex flex-row gap-2 items-center"
+        >
+          <span>Upgrade</span>
           <ArrowUpIcon />
-        </div>
+        </Link>
       </Button>
     </div>
   );
