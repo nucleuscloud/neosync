@@ -340,6 +340,13 @@ export class UserAccount extends Message<UserAccount> {
  * @generated from message mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest
  */
 export class ConvertPersonalToTeamAccountRequest extends Message<ConvertPersonalToTeamAccountRequest> {
+  /**
+   * The name of the team account
+   *
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
   constructor(data?: PartialMessage<ConvertPersonalToTeamAccountRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -348,6 +355,7 @@ export class ConvertPersonalToTeamAccountRequest extends Message<ConvertPersonal
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConvertPersonalToTeamAccountRequest {
@@ -371,6 +379,27 @@ export class ConvertPersonalToTeamAccountRequest extends Message<ConvertPersonal
  * @generated from message mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse
  */
 export class ConvertPersonalToTeamAccountResponse extends Message<ConvertPersonalToTeamAccountResponse> {
+  /**
+   * The id of the team account (will be the same identifier as the personal account)
+   *
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * If NeosyncCloud, will respond with a checkout session url so they can setup billing
+   *
+   * @generated from field: optional string checkout_session_url = 2;
+   */
+  checkoutSessionUrl?: string;
+
+  /**
+   * The identifier of the newly created personal account
+   *
+   * @generated from field: string new_personal_account_id = 3;
+   */
+  newPersonalAccountId = "";
+
   constructor(data?: PartialMessage<ConvertPersonalToTeamAccountResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -379,6 +408,9 @@ export class ConvertPersonalToTeamAccountResponse extends Message<ConvertPersona
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "checkout_session_url", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "new_personal_account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConvertPersonalToTeamAccountResponse {
@@ -748,6 +780,8 @@ export class AccountTemporalConfig extends Message<AccountTemporalConfig> {
  */
 export class CreateTeamAccountRequest extends Message<CreateTeamAccountRequest> {
   /**
+   * The name of the team account
+   *
    * @generated from field: string name = 1;
    */
   name = "";

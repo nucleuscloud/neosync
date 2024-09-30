@@ -13919,10 +13919,23 @@
           "fullName": "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
+          "hasFields": true,
           "hasOneofs": false,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "name",
+              "description": "The name of the team account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "ConvertPersonalToTeamAccountResponse",
@@ -13930,10 +13943,47 @@
           "fullName": "mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
+          "hasFields": true,
+          "hasOneofs": true,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The id of the team account (will be the same identifier as the personal account)",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "checkout_session_url",
+              "description": "If NeosyncCloud, will respond with a checkout session url so they can setup billing",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_checkout_session_url",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_personal_account_id",
+              "description": "The identifier of the newly created personal account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "CreateTeamAccountRequest",
@@ -13947,7 +13997,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the team account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -15221,7 +15271,7 @@
             },
             {
               "name": "ConvertPersonalToTeamAccount",
-              "description": "",
+              "description": "Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.",
               "requestType": "ConvertPersonalToTeamAccountRequest",
               "requestLongType": "ConvertPersonalToTeamAccountRequest",
               "requestFullType": "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest",
@@ -15233,7 +15283,7 @@
             },
             {
               "name": "CreateTeamAccount",
-              "description": "",
+              "description": "Creates a new team account",
               "requestType": "CreateTeamAccountRequest",
               "requestLongType": "CreateTeamAccountRequest",
               "requestFullType": "mgmt.v1alpha1.CreateTeamAccountRequest",
