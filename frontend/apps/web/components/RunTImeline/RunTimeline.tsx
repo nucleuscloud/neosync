@@ -1,4 +1,10 @@
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -6,7 +12,15 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { Timestamp } from '@bufbuild/protobuf';
-import { JobRunEvent } from '@neosync/sdk';
+import { JobRunEvent, JobRunStatus } from '@neosync/sdk';
+
+import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
+import {
+  CheckCircledIcon,
+  CrossCircledIcon,
+  MinusCircledIcon,
+  MixerHorizontalIcon,
+} from '@radix-ui/react-icons';
 import {
   addMilliseconds,
   format,
@@ -14,19 +28,28 @@ import {
   intervalToDuration,
 } from 'date-fns';
 import { ReactElement, useMemo, useState } from 'react';
+import Spinner from '../Spinner';
+import TruncatedText from '../TruncatedText';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 
 interface Props {
-  isError: boolean;
   tasks: JobRunEvent[];
-  onTaskClick?: (task: JobRunEvent) => void;
+  jobStatus?: JobRunStatusEnum;
 }
 
 export default function RunTimeline(props: Props): ReactElement {
-  const { isError, tasks, onTaskClick } = props;
+  const { tasks, jobStatus } = props;
 
-  const [hoveredTask, setHoveredTask] = useState<string | null>(null);
-
+  // this should probably be better typed and using the ActivityStatus types
+  // but those aren't currenlty sent to the FE as a status but are represented in the
+  // type field
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
+    'running',
+    'completed',
+    'failed',
+    'canceled',
+  ]);
   const formatFullDate = (date: Timestamp | Date | undefined) => {
     if (!date) return 'N/A';
 
@@ -52,7 +75,7 @@ export default function RunTimeline(props: Props): ReactElement {
     const milliseconds = end.getTime() - start.getTime();
     const millis = milliseconds % 1000;
 
-    // Format the duration string without empty components
+    // format the duration string
     const formattedDuration = formatDuration(duration, {
       format: ['hours', 'minutes', 'seconds'],
       delimiter: ', ',
@@ -64,33 +87,39 @@ export default function RunTimeline(props: Props): ReactElement {
 
     return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
   };
+
   const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
-    const start = new Date(
-      Math.min(
-        ...tasks.map((t) => convertTimestampToDate(t.startTime).getTime())
-      )
-    );
-    const end = new Date(
-      Math.max(
-        ...tasks.map((t) => {
-          const errorDate = getCloseOrErrorDate(t);
-          return Math.max(
-            errorDate.getTime(),
-            convertTimestampToDate(t.closeTime || t.startTime).getTime()
-          );
-        })
-      )
-    );
+    // find earliest start date out of all of the activities
+    let startTime = Infinity;
+    let endTime = -Infinity;
+
+    tasks.map((t) => {
+      startTime = Math.min(
+        startTime,
+        convertTimestampToDate(t.startTime).getTime()
+      );
+
+      const errorDate = getCloseOrErrorDate(t);
+      endTime = Math.max(
+        endTime,
+        errorDate.getTime(),
+        convertTimestampToDate(t.closeTime || t.startTime).getTime()
+      );
+    });
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
 
     let duration = end.getTime() - start.getTime();
 
-    // Add padding, but limit it to a maximum of 100ms on each side
-    const padding = Math.min(duration * 0.1, 100);
+    // add padding, but limit it to a maximum of 100ms on each side so we can see the entire timeline in view in the graph
+    const padding = Math.min(duration * 0.1, 300);
     const adjustedStart = new Date(start.getTime() - padding);
     const adjustedEnd = new Date(end.getTime() + padding);
     const adjustedDuration = adjustedEnd.getTime() - adjustedStart.getTime();
 
     const labelCount = 5;
+
     const labels: Date[] = Array.from({ length: labelCount }, (_, i) =>
       addMilliseconds(adjustedStart, (adjustedDuration * i) / (labelCount - 1))
     );
@@ -104,112 +133,201 @@ export default function RunTimeline(props: Props): ReactElement {
   }, [tasks]);
 
   // calculates where in the timeline axis something should be relative to the total duration
+  // also dictates how far right the timeline goes, reduce if you want the timeline shorter or length otherwise
   const getPositionPercentage = (time: Date) => {
-    return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 100;
+    return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 92;
   };
 
-  console.log('tasks', tasks);
-  console.log('isError', isError);
+  // handles getting the activity statuses by remaping the ActivityStatuses since (i think) we don't want to show all of them per activity
+  // prob want to update with actual types instead of using strings here
+  // the event types in the types field are just the stringified Temporal types
+  const getTaskStatus = (task: JobRunEvent): string => {
+    const hasCompleted = task.tasks.some(
+      (item) => item.type === 'ActivityTaskCompleted'
+    );
+    const hasFailed = task.tasks.some(
+      (item) => item.type === 'ActivityTaskFailed' || item.error
+    );
+    const isCanceled = task.tasks.some(
+      (item) => item.type === 'ActivityTaskCancelRequested'
+    );
 
-  // TODO: only show th eerror ones
+    const isJobTerminated = jobStatus && jobStatus == JobRunStatus.TERMINATED;
+
+    if (hasCompleted) return 'completed';
+    if (hasFailed) return 'failed';
+    if (isCanceled || (isJobTerminated && !hasCompleted)) return 'canceled';
+    if (!hasCompleted && !hasFailed && !isCanceled) return 'running';
+    return 'unknown';
+  };
+
+  // handles filtering the tasks when the tasks or filters change
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const status = getTaskStatus(task);
+      return selectedStatuses.includes(status);
+    });
+  }, [tasks, selectedStatuses, jobStatus]);
+
+  const handleStatusFilterChange = (status: string, checked: boolean) => {
+    setSelectedStatuses((prev) =>
+      checked ? [...prev, status] : prev.filter((s) => s !== status)
+    );
+  };
+
+  // handles giving canceled tasks a closeTime since temporal doesn't give them one,
+  // we need this otherwise the graph doens't have a close time to map the actiivty and it keeps increasing as time goes on
+  // might want to refactor this at some point to check if the closeTIme is avialable first and if not then fall back to the cancel time instead of the other way around?
+
+  //If an activity fails, some recors don't have end times, so we need to stop the graph from updating the time since it will contineu to do so, so if the job fails or is canceled or whatever, then we need to cap it
+
+  //check to see the status of the job and then if it's failed/canceled/terminated, then either add in a close time to every row that doesn't have one or get the table to stop updated
+
+  // we'll also see a log in the job run event called: ActivityTaskCancelRequested
+
+  // made some updates here, when its just a failure and complete activiites, then it doesn't run, but if there is a running or canceled then it's still running it looks  like, this might be a backend thing though
+
+  const getTaskEndTime = (task: JobRunEvent): Date => {
+    const status = getTaskStatus(task);
+    if (status === 'canceled') {
+      // using the time it was requested to be canceled as the end time
+      // its not super exact but does it really matter if it's canceled anyways?
+      const cancelTime = task.tasks.find(
+        (t) => t.type === 'ActivityTaskCancelRequested'
+      )?.eventTime;
+      return cancelTime
+        ? convertTimestampToDate(cancelTime)
+        : convertTimestampToDate(task.closeTime || task.startTime);
+    }
+    return getCloseOrErrorDate(task);
+  };
+
+  console.log('task', tasks);
+
   return (
-    <div
-      className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-hidden  max-h-[800px]"
-      // style={{ height: `${tasks.length * 40 + 200}px` }}
-    >
-      <div className="flex flex-row h-full w-full">
-        <div className="w-1/6">
-          <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-300 dark:border-gray-700" />
-          <div className="border-r border-gray-300 dark:border-gray-700 flex flex-col h-full text-sm ">
-            {tasks.map((task, index) => {
-              const isLastItem = index === tasks.length - 1;
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-end w-full">
+        <StatusFilter
+          selectedStatuses={selectedStatuses}
+          onStatusChange={handleStatusFilterChange}
+        />
+      </div>
+      <div className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-y-scroll max-h-[400px]">
+        <div className="flex flex-row h-full w-full">
+          {/* the left activity bar */}
+          <div className="w-1/6">
+            <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-300 dark:border-gray-700" />
+            <div className="border-r border-gray-300 dark:border-gray-700 flex flex-col text-sm ">
+              {filteredTasks.map((task, index) => {
+                const isLastItem = index === tasks.length - 1;
+                return (
+                  <div
+                    key={task.id}
+                    className={cn(
+                      'px-2 h-10 items-center flex',
+                      !isLastItem &&
+                        'border-b border-gray-300 dark:border-gray-700'
+                    )}
+                  >
+                    <ActivityLabel task={task} getTaskStatus={getTaskStatus} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="relative w-5/6">
+            <TableHeader
+              getPositionPercentage={getPositionPercentage}
+              formatDate={formatDate}
+              timeLabels={timeLabels}
+            />
+
+            {filteredTasks.map((_, index) => (
+              <div
+                key={`grid-line-${index}`}
+                className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
+                style={{ top: `${index * 40 + 55}px` }}
+                id="grid-lines"
+              />
+            ))}
+            {filteredTasks.map((task, index) => {
+              const failedTask = task.tasks.find((item) => item.error);
+
+              const left = getPositionPercentage(
+                convertTimestampToDate(task.startTime)
+              );
+              const endTime = getTaskEndTime(task);
+              const width = getPositionPercentage(endTime) - left;
+              const status = getTaskStatus(task);
+
+              const notComplete =
+                status == 'failed' ||
+                status == 'terminated' ||
+                status == 'canceled';
+
               return (
-                <div
-                  key={task.id}
-                  className={cn(
-                    'px-2 h-10 items-center flex',
-                    !isLastItem &&
-                      'border-b border-gray-300 dark:border-gray-700'
-                  )}
-                >
-                  <div>{task.type}</div>
+                <div className="flex flex-row" key={task.id}>
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            status === 'failed'
+                              ? 'bg-red-400 dark:bg-red-700'
+                              : status === 'canceled'
+                                ? 'bg-yellow-400 dark:bg-yellow-700'
+                                : 'bg-blue-500',
+                            'absolute h-8 rounded hover:bg-opacity-80 cursor-pointer mx-6 flex items-center'
+                          )}
+                          style={{
+                            left: `${left}%`,
+                            width: `${width}%`,
+                            top: `${index * 40 + 60}px`,
+                          }}
+                        >
+                          <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
+                            <SyncLabel task={task} />
+                            <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
+                              {formatTaskDuration(task.startTime, endTime)}
+                            </span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        align="start"
+                        className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
+                      >
+                        <div className="flex flex-row gap-2 justify-between w-full">
+                          <strong>Start:</strong>{' '}
+                          <Badge variant="default" className="w-[180px]">
+                            {formatFullDate(task.startTime)}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-row gap-2 justify-between w-full">
+                          <strong>Finish:</strong>{' '}
+                          <Badge variant="default" className="w-[180px]">
+                            {status == 'failed' ||
+                            status == 'terminated' ||
+                            status == 'canceled'
+                              ? 'N/A'
+                              : formatFullDate(endTime)}
+                          </Badge>
+                        </div>
+                        {failedTask && (
+                          <div className="flex flex-row gap-2 justify-between w-full">
+                            <strong>Error:</strong>{' '}
+                            <Badge variant="destructive" className="w-[180px]">
+                              {failedTask.error?.message || 'Unknown error'}
+                            </Badge>
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               );
             })}
           </div>
-        </div>
-        <div className="relative w-5/6">
-          <TableHeader
-            getPositionPercentage={getPositionPercentage}
-            formatDate={formatDate}
-            timeLabels={timeLabels}
-          />
-
-          {tasks.map((_, index) => (
-            <div
-              key={`grid-line-${index}`}
-              className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
-              style={{ top: `${index * 40 + 55}px` }}
-              id="grid-lines"
-            />
-          ))}
-          {tasks.map((task, index) => {
-            const left = getPositionPercentage(
-              convertTimestampToDate(task.startTime)
-            );
-
-            const endTime = getCloseOrErrorDate(task);
-            const width = getPositionPercentage(endTime) - left;
-            const errorTask = task.tasks.find((item) => item.error);
-
-            console.log('error', errorTask);
-
-            // TODO: only highlight in red the task that failed
-            // map to the index that we're iterating over
-            return (
-              <div className="flex flex-row" key={task.id}>
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          isError ? 'bg-red-400' : 'bg-blue-500',
-                          'absolute h-8 rounded hover:bg-blue-600 cursor-pointer mx-6 flex items-center'
-                        )}
-                        style={{
-                          left: `${left}%`,
-                          width: `${width}%`,
-                          top: `${index * 40 + 60}px`,
-                        }}
-                        // onClick={() => onTaskClick?.(task)}
-                      >
-                        <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
-                          <p>{task.type}</p>
-                          <span className="text-xs bg-black text-white px-1 py-0.5 rounded text-nowrap">
-                            {formatTaskDuration(task.startTime, endTime)}
-                          </span>
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent align="start">
-                      <div>
-                        <strong>Start:</strong>{' '}
-                        <Badge variant="default">
-                          {formatFullDate(task.startTime)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <strong>Finish:</strong>{' '}
-                        <Badge variant="default">
-                          {formatFullDate(endTime)}
-                        </Badge>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>
@@ -263,4 +381,100 @@ function getCloseOrErrorDate(task: JobRunEvent): Date {
   return errorTime
     ? convertTimestampToDate(errorTime)
     : convertTimestampToDate(task.closeTime);
+}
+
+interface SyncLabelProps {
+  task: JobRunEvent;
+}
+
+function SyncLabel(props: SyncLabelProps) {
+  const { task } = props;
+
+  const schemaTable = `${task.metadata?.metadata.value?.schema}.${task.metadata?.metadata.value?.table} `;
+
+  return (
+    <div className="flex flex-row gap-2">
+      <div>{task.type}</div>
+      <div>{task.metadata?.metadata.case == 'syncMetadata' && schemaTable}</div>
+    </div>
+  );
+}
+
+interface ActivityLabelProps {
+  task: JobRunEvent;
+  getTaskStatus: (task: JobRunEvent) => string;
+}
+
+function ActivityLabel({ task, getTaskStatus }: ActivityLabelProps) {
+  const status = getTaskStatus(task);
+
+  const handleStatus = () => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircledIcon className="text-green-500" />;
+      case 'failed':
+        return <CrossCircledIcon className="text-red-500" />;
+      case 'canceled':
+        return <MinusCircledIcon className="text-yellow-500" />;
+      case 'running':
+        return <Spinner />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex flex-row items-center gap-2">
+      {task.id.toString()}.
+      <TruncatedText text={task.type} />
+      {handleStatus()}
+    </div>
+  );
+}
+
+interface StatusFilterProps {
+  selectedStatuses: string[];
+  onStatusChange: (status: string, checked: boolean) => void;
+}
+
+// would be nice to replace with a multi-select so you don't have to open/close it everytime you want to make a change
+
+function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          {' '}
+          <MixerHorizontalIcon className="mr-2 h-4 w-4" />
+          Status
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuCheckboxItem
+          checked={selectedStatuses.includes('running')}
+          onCheckedChange={(checked) => onStatusChange('running', checked)}
+        >
+          Running
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={selectedStatuses.includes('completed')}
+          onCheckedChange={(checked) => onStatusChange('completed', checked)}
+        >
+          Completed
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={selectedStatuses.includes('failed')}
+          onCheckedChange={(checked) => onStatusChange('failed', checked)}
+        >
+          Failed
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={selectedStatuses.includes('canceled')}
+          onCheckedChange={(checked) => onStatusChange('canceled', checked)}
+        >
+          Canceled
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
