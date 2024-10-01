@@ -1,3 +1,5 @@
+name: Repo Stats
+
 on:
   schedule:
     # Run this once per day, towards the end of the day for keeping the most
@@ -21,4 +23,4 @@ jobs:
           # and that can push commits to the data repository
           # (which this workflow file lives in, to store data
           # and the report files).
-          ghtoken: ${{ secrets.GITUHB_TOKEN }}
+          ghtoken: ${{ secrets.GITHUB_TOKEN }}
