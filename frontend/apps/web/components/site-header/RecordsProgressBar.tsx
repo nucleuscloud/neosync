@@ -1,7 +1,7 @@
 'use client';
 import { cn } from '@/libs/utils';
 import { useQuery } from '@connectrpc/connect-query';
-import { RangedMetricName } from '@neosync/sdk';
+import { GetMetricCountRequest, RangedMetricName } from '@neosync/sdk';
 import { getMetricCount } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
@@ -12,7 +12,7 @@ import { dateToNeoDate, periodToDateRange, UsagePeriod } from '../usage/util';
 
 interface Props {
   identifier: string;
-  idtype: string;
+  idtype: MetricsIdentifierCase;
 }
 
 export default function RecordsProgressBar(props: Props): ReactElement {
@@ -80,3 +80,12 @@ export default function RecordsProgressBar(props: Props): ReactElement {
     </Button>
   );
 }
+
+// helper fund to extract case types for metric identifiers
+
+type ExtractCase<T> = T extends { case: infer U } ? U : never;
+
+// Extraction type that pulls out all of the connection config cases
+export type MetricsIdentifierCase = NonNullable<
+  ExtractCase<GetMetricCountRequest['identifier']>
+>;
