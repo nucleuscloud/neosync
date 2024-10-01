@@ -6,7 +6,6 @@ on:
     # recent data point most meaningful (hours are interpreted in UTC).
     - cron: "0 23 * * *"
   workflow_dispatch: # Allow for running this manually.
-  pull_request:
 
 jobs:
   repostats:
@@ -18,9 +17,4 @@ jobs:
       - name: run-ghrs
         uses: jgehrcke/github-repo-stats@RELEASE
         with:
-          # Set a GitHub API token that can read the GitHub
-          # repository traffic API for the stats repository,
-          # and that can push commits to the data repository
-          # (which this workflow file lives in, to store data
-          # and the report files).
           ghtoken: ${{ secrets.REPO_STATS_PAT }}
