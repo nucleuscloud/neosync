@@ -46,7 +46,7 @@ require (
 	github.com/nucleuscloud/go-antlrv4-parser v0.0.0-20240830015744-041b46c70aa5
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/prometheus/client_golang v1.20.4
-	github.com/prometheus/common v0.59.1
+	github.com/prometheus/common v0.60.0
 	github.com/redis/go-redis/v9 v9.6.1
 	github.com/rodaine/table v1.3.0
 	github.com/spf13/cobra v1.8.1
@@ -82,7 +82,7 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
 	google.golang.org/api v0.199.0
-	google.golang.org/grpc v1.67.0
+	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
