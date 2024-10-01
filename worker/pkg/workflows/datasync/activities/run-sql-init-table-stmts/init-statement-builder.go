@@ -186,10 +186,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 
-				orderedTableTruncate := []string{}
+				orderedTableTruncate := []*sqlmanager_shared.SchemaTable{}
 				for _, table := range orderedTablesResp.OrderedTables {
 					schema, table := sqlmanager_shared.SplitTableKey(table)
-					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, schema, table))
+					orderedTableTruncate = append(orderedTableTruncate, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
 				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
