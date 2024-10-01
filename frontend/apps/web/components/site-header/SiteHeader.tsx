@@ -11,23 +11,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { UserAccountType } from '@neosync/sdk';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
-import { useAccount } from '../providers/account-provider';
 import SupportDrawer from '../SupportDrawer';
+import AccountsRecordProgress from './AccountsRecordProgress';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
 import NeosyncVersion from './NeosyncVersion';
-import RecordsProgressBar from './RecordsProgressBar';
 import Upgrade from './Upgrade';
 import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
-  const { account } = useAccount();
 
   return (
     <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur">
@@ -35,17 +32,14 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {!systemAppConfig.isNeosyncCloud &&
-            account?.type == UserAccountType.PERSONAL && (
-              <RecordsProgressBar identifier={account?.id ?? ''} />
-            )}
-          {systemAppConfig.isAuthEnabled && (
+          {systemAppConfig.isNeosyncCloud && <AccountsRecordProgress />}
+          {systemAppConfig.isNeosyncCloud && (
             <Upgrade
               calendlyLink={systemAppConfig.calendlyUpgradeLink}
               isNeosyncCloud={systemAppConfig.isNeosyncCloud}
             />
           )}
-          {!systemAppConfig.isAuthEnabled && <AccountSwitcher />}
+          {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <SupportSheet />
           <ModeToggle />
           <UserNav />

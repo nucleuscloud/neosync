@@ -12,13 +12,13 @@ import { dateToNeoDate, periodToDateRange, UsagePeriod } from '../usage/util';
 
 interface Props {
   identifier: string;
+  idtype: string;
 }
 
 export default function RecordsProgressBar(props: Props): ReactElement {
-  const { identifier } = props;
+  const { identifier, idtype } = props;
   const [period, _] = useState<UsagePeriod>('current');
   const metric = RangedMetricName.INPUT_RECEIVED;
-  const idtype = 'accountId';
 
   const router = useRouter();
 
