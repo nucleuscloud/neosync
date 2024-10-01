@@ -11,8 +11,6 @@ jobs:
   repostats:
     name: Generate Report
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: run-ghrs
         uses: jgehrcke/github-repo-stats@RELEASE
