@@ -20,5 +20,6 @@ export const CreateTeamFormValues = Yup.object({
         return true;
       }
     ),
+  convertPersonalToTeam: Yup.boolean().default(false),
 });
 export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;

@@ -38,8 +38,21 @@ enum UserAccountType {
   USER_ACCOUNT_TYPE_ENTERPRISE = 3;
 }
 
-message ConvertPersonalToTeamAccountRequest {}
-message ConvertPersonalToTeamAccountResponse {}
+message ConvertPersonalToTeamAccountRequest {
+  // The name of the team account
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
+  // And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
+  optional string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message ConvertPersonalToTeamAccountResponse {
+  // The id of the team account (will be the same identifier as the personal account)
+  string account_id = 1;
+  // If NeosyncCloud, will respond with a checkout session url so they can setup billing
+  optional string checkout_session_url = 2;
+  // The identifier of the newly created personal account
+  string new_personal_account_id = 3;
+}
 
 message SetPersonalAccountRequest {}
 message SetPersonalAccountResponse {
@@ -75,6 +88,7 @@ message AccountTemporalConfig {
 }
 
 message CreateTeamAccountRequest {
+  // The name of the team account
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 message CreateTeamAccountResponse {
@@ -266,7 +280,10 @@ service UserAccountService {
 
   rpc SetPersonalAccount(SetPersonalAccountRequest) returns (SetPersonalAccountResponse) {}
 
+  // Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
   rpc ConvertPersonalToTeamAccount(ConvertPersonalToTeamAccountRequest) returns (ConvertPersonalToTeamAccountResponse) {}
+
+  // Creates a new team account
   rpc CreateTeamAccount(CreateTeamAccountRequest) returns (CreateTeamAccountResponse) {}
 
   rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}

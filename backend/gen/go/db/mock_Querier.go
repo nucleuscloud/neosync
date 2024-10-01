@@ -82,6 +82,64 @@ func (_c *MockQuerier_AreConnectionsInAccount_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// ConvertPersonalAccountToTeam provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) ConvertPersonalAccountToTeam(ctx context.Context, db DBTX, arg ConvertPersonalAccountToTeamParams) (NeosyncApiAccount, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConvertPersonalAccountToTeam")
+	}
+
+	var r0 NeosyncApiAccount
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, ConvertPersonalAccountToTeamParams) (NeosyncApiAccount, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, ConvertPersonalAccountToTeamParams) NeosyncApiAccount); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccount)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, ConvertPersonalAccountToTeamParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_ConvertPersonalAccountToTeam_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConvertPersonalAccountToTeam'
+type MockQuerier_ConvertPersonalAccountToTeam_Call struct {
+	*mock.Call
+}
+
+// ConvertPersonalAccountToTeam is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg ConvertPersonalAccountToTeamParams
+func (_e *MockQuerier_Expecter) ConvertPersonalAccountToTeam(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_ConvertPersonalAccountToTeam_Call {
+	return &MockQuerier_ConvertPersonalAccountToTeam_Call{Call: _e.mock.On("ConvertPersonalAccountToTeam", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_ConvertPersonalAccountToTeam_Call) Run(run func(ctx context.Context, db DBTX, arg ConvertPersonalAccountToTeamParams)) *MockQuerier_ConvertPersonalAccountToTeam_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(ConvertPersonalAccountToTeamParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_ConvertPersonalAccountToTeam_Call) Return(_a0 NeosyncApiAccount, _a1 error) *MockQuerier_ConvertPersonalAccountToTeam_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_ConvertPersonalAccountToTeam_Call) RunAndReturn(run func(context.Context, DBTX, ConvertPersonalAccountToTeamParams) (NeosyncApiAccount, error)) *MockQuerier_ConvertPersonalAccountToTeam_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccountApiKey provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -199,31 +257,21 @@ func (_c *MockQuerier_CreateAccountInvite_Call) RunAndReturn(run func(context.Co
 }
 
 // CreateAccountUserAssociation provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
+func (_m *MockQuerier) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) error {
 	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAccountUserAssociation")
 	}
 
-	var r0 NeosyncApiAccountUserAssociation
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)); ok {
-		return rf(ctx, db, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountUserAssociationParams) NeosyncApiAccountUserAssociation); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountUserAssociationParams) error); ok {
 		r0 = rf(ctx, db, arg)
 	} else {
-		r0 = ret.Get(0).(NeosyncApiAccountUserAssociation)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateAccountUserAssociationParams) error); ok {
-		r1 = rf(ctx, db, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockQuerier_CreateAccountUserAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccountUserAssociation'
@@ -246,12 +294,12 @@ func (_c *MockQuerier_CreateAccountUserAssociation_Call) Run(run func(ctx contex
 	return _c
 }
 
-func (_c *MockQuerier_CreateAccountUserAssociation_Call) Return(_a0 NeosyncApiAccountUserAssociation, _a1 error) *MockQuerier_CreateAccountUserAssociation_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockQuerier_CreateAccountUserAssociation_Call) Return(_a0 error) *MockQuerier_CreateAccountUserAssociation_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockQuerier_CreateAccountUserAssociation_Call) RunAndReturn(run func(context.Context, DBTX, CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)) *MockQuerier_CreateAccountUserAssociation_Call {
+func (_c *MockQuerier_CreateAccountUserAssociation_Call) RunAndReturn(run func(context.Context, DBTX, CreateAccountUserAssociationParams) error) *MockQuerier_CreateAccountUserAssociation_Call {
 	_c.Call.Return(run)
 	return _c
 }

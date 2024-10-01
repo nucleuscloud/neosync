@@ -49,6 +49,8 @@ export const UserAccountService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
+     *
      * @generated from rpc mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount
      */
     convertPersonalToTeamAccount: {
@@ -58,6 +60,8 @@ export const UserAccountService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Creates a new team account
+     *
      * @generated from rpc mgmt.v1alpha1.UserAccountService.CreateTeamAccount
      */
     createTeamAccount: {

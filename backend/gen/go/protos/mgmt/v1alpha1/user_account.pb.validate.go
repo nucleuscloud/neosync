@@ -807,6 +807,12 @@ func (m *ConvertPersonalToTeamAccountRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Name
+
+	if m.AccountId != nil {
+		// no validation rules for AccountId
+	}
+
 	if len(errors) > 0 {
 		return ConvertPersonalToTeamAccountRequestMultiError(errors)
 	}
@@ -911,6 +917,14 @@ func (m *ConvertPersonalToTeamAccountResponse) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for AccountId
+
+	// no validation rules for NewPersonalAccountId
+
+	if m.CheckoutSessionUrl != nil {
+		// no validation rules for CheckoutSessionUrl
+	}
 
 	if len(errors) > 0 {
 		return ConvertPersonalToTeamAccountResponseMultiError(errors)

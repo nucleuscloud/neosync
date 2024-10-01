@@ -70,52 +70,67 @@ func (d *NeosyncDb) SetPersonalAccount(
 ) (*db_queries.NeosyncApiAccount, error) {
 	var personalAccount *db_queries.NeosyncApiAccount
 	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
-		account, err := d.Q.GetPersonalAccountByUserId(ctx, dbtx, userId)
-		if err != nil && !IsNoRows(err) {
+		resp, err := upsertPersonalAccount(ctx, d.Q, dbtx, &upsertPersonalAccountRequest{
+			UserId:            userId,
+			MaxAllowedRecords: maxAllowedRecords,
+		})
+		if err != nil {
 			return err
-		} else if err != nil && IsNoRows(err) {
-			pgMaxAllowedRecords := pgtype.Int8{}
-			if maxAllowedRecords != nil && *maxAllowedRecords > 0 {
-				err := pgMaxAllowedRecords.Scan(*maxAllowedRecords)
-				if err != nil {
-					return fmt.Errorf("maxAllowedRecords was not scannable to pgtype.Int8: %w", err)
-				}
-			}
-			account, err = d.Q.CreatePersonalAccount(ctx, dbtx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgMaxAllowedRecords})
-			if err != nil {
-				return err
-			}
-			personalAccount = &account
-			_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
-				AccountID: account.ID,
-				UserID:    userId,
-			})
-			if err != nil {
-				return err
-			}
-		} else {
-			personalAccount = &account
-			_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
-				AccountId: account.ID,
-				UserId:    userId,
-			})
-			if err != nil && !IsNoRows(err) {
-				return err
-			} else if err != nil && IsNoRows(err) {
-				_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
-					AccountID: account.ID,
-					UserID:    userId,
-				})
-				if err != nil {
-					return err
-				}
-			}
 		}
+		personalAccount = resp.Account
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 	return personalAccount, nil
+}
+
+type upsertPersonalAccountRequest struct {
+	UserId            pgtype.UUID
+	MaxAllowedRecords *int64
+}
+
+type upsertPersonalAccountResponse struct {
+	Account *db_queries.NeosyncApiAccount
+}
+
+func upsertPersonalAccount(ctx context.Context, q db_queries.Querier, dbtx BaseDBTX, req *upsertPersonalAccountRequest) (*upsertPersonalAccountResponse, error) {
+	resp := &upsertPersonalAccountResponse{}
+	account, err := q.GetPersonalAccountByUserId(ctx, dbtx, req.UserId)
+	if err != nil && !IsNoRows(err) {
+		return nil, err
+	} else if err != nil && IsNoRows(err) {
+		pgMaxAllowedRecords, err := int64ToPgInt8(req.MaxAllowedRecords)
+		if err != nil {
+			return nil, err
+		}
+		account, err = q.CreatePersonalAccount(ctx, dbtx, db_queries.CreatePersonalAccountParams{AccountSlug: "personal", MaxAllowedRecords: pgMaxAllowedRecords})
+		if err != nil {
+			return nil, err
+		}
+		resp.Account = &account
+	} else {
+		resp.Account = &account
+	}
+	err = q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: account.ID,
+		UserID:    req.UserId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func int64ToPgInt8(val *int64) (pgtype.Int8, error) {
+	output := pgtype.Int8{}
+	if val != nil && *val > 0 {
+		err := output.Scan(*val)
+		if err != nil {
+			return pgtype.Int8{}, fmt.Errorf("value was not scannable to pgtype.Int8: %w", err)
+		}
+	}
+	return output, nil
 }
 
 func (d *NeosyncDb) CreateTeamAccount(
@@ -133,10 +148,8 @@ func (d *NeosyncDb) CreateTeamAccount(
 			accounts = []db_queries.NeosyncApiAccount{}
 		}
 		logger.Debug(fmt.Sprintf("found %d accounts for user during team account creation", len(accounts)))
-		for idx := range accounts {
-			if strings.EqualFold(accounts[idx].AccountSlug, teamName) {
-				return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", teamName))
-			}
+		if err := verifyAccountNameUnique(accounts, teamName); err != nil {
+			return err
 		}
 
 		account, err := d.Q.CreateTeamAccount(ctx, dbtx, teamName)
@@ -144,7 +157,7 @@ func (d *NeosyncDb) CreateTeamAccount(
 			return fmt.Errorf("unable to create team account: %w", err)
 		}
 		teamAccount = &account
-		_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+		err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
 			AccountID: account.ID,
 			UserID:    userId,
 		})
@@ -156,6 +169,92 @@ func (d *NeosyncDb) CreateTeamAccount(
 		return nil, err
 	}
 	return teamAccount, nil
+}
+
+func verifyAccountNameUnique(accounts []db_queries.NeosyncApiAccount, name string) error {
+	for idx := range accounts {
+		if strings.EqualFold(accounts[idx].AccountSlug, name) {
+			return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", name))
+		}
+	}
+	return nil
+}
+
+func getAccountById(accounts []db_queries.NeosyncApiAccount, id pgtype.UUID) (*db_queries.NeosyncApiAccount, error) {
+	for idx := range accounts {
+		if accounts[idx].ID.Valid && id.Valid && UUIDString(accounts[idx].ID) == UUIDString(id) {
+			return &accounts[idx], nil
+		}
+	}
+	return nil, nucleuserrors.NewNotFound("could not find id in list of neosync accounts")
+}
+
+type ConvertPersonalToTeamAccountRequest struct {
+	// The id of the user
+	UserId pgtype.UUID
+	// The personal account id that will be converted to a team account
+	PersonalAccountId pgtype.UUID
+	// The name that the account slug will be updated to
+	TeamName string
+}
+
+type ConvertPersonalToTeamAccountResponse struct {
+	PersonalAccount *db_queries.NeosyncApiAccount
+	TeamAccount     *db_queries.NeosyncApiAccount
+}
+
+func (d *NeosyncDb) ConvertPersonalToTeamAccount(
+	ctx context.Context,
+	req *ConvertPersonalToTeamAccountRequest,
+	logger *slog.Logger,
+) (*ConvertPersonalToTeamAccountResponse, error) {
+	var resp *ConvertPersonalToTeamAccountResponse
+	if err := d.WithTx(ctx, &pgx.TxOptions{IsoLevel: pgx.Serializable}, func(dbtx BaseDBTX) error {
+		accounts, err := d.Q.GetAccountsByUser(ctx, dbtx, req.UserId)
+		if err != nil {
+			return err
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("found %d accounts for user during personal account conversion", len(accounts)))
+		if err := verifyAccountNameUnique(accounts, req.TeamName); err != nil {
+			return err
+		}
+		logger.DebugContext(ctx, "verified that new team name is unique within the users current account list")
+		personalAccount, err := getAccountById(accounts, req.PersonalAccountId)
+		if err != nil {
+			return err
+		}
+		logger.DebugContext(ctx, "verified that requested personal account id is owned by the user")
+		if personalAccount.AccountType != int16(AccountType_Personal) {
+			return nucleuserrors.NewBadRequest("requested account conversion is not a personal account and thus cannot be converted")
+		}
+
+		// update personal account to be team account.
+		// set max allowed records to nil, update slug, update account type
+		updatedAccount, err := d.Q.ConvertPersonalAccountToTeam(ctx, dbtx, db_queries.ConvertPersonalAccountToTeamParams{
+			TeamName:  req.TeamName,
+			AccountId: personalAccount.ID,
+		})
+		if err != nil {
+			return err
+		}
+
+		// create new personal account
+		newPersonalAccountResp, err := upsertPersonalAccount(ctx, d.Q, dbtx, &upsertPersonalAccountRequest{
+			UserId:            req.UserId,
+			MaxAllowedRecords: &personalAccount.MaxAllowedRecords.Int64,
+		})
+		if err != nil {
+			return err
+		}
+		resp = &ConvertPersonalToTeamAccountResponse{
+			PersonalAccount: newPersonalAccountResp.Account,
+			TeamAccount:     &updatedAccount,
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (d *NeosyncDb) UpsertStripeCustomerId(
@@ -294,7 +393,7 @@ func (d *NeosyncDb) ValidateInviteAddUserToAccount(
 				return nucleuserrors.NewForbidden("account invitation expired")
 			}
 
-			_, err := d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+			err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
 				AccountID: invite.AccountID,
 				UserID:    userId,
 			})
