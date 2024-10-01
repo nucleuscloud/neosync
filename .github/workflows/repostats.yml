@@ -10,7 +10,7 @@ on:
 
 jobs:
   repostats:
-    name: repostats
+    name: Generate Report
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,4 +23,4 @@ jobs:
           # and that can push commits to the data repository
           # (which this workflow file lives in, to store data
           # and the report files).
-          ghtoken: ${{ secrets.GITHUB_TOKEN }}
+          ghtoken: ${{ secrets.REPO_STATS_PAT }}
