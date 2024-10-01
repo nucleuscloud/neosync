@@ -194,7 +194,6 @@ message AccountOnboardingConfig {
   bool has_created_job = 3;
   // @deprecated - use has_completed_onboarding
   bool has_invited_members = 4;
-  // @deprecated - use has_completed_onboarding
   bool has_completed_onboarding = 5;
 }
 

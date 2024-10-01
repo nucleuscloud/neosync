@@ -13805,7 +13805,7 @@
             },
             {
               "name": "has_completed_onboarding",
-              "description": "@deprecated - use has_completed_onboarding",
+              "description": "",
               "label": "",
               "type": "bool",
               "longType": "bool",

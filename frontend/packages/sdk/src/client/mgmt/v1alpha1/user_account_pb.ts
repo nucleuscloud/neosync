@@ -1739,8 +1739,6 @@ export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
   hasInvitedMembers = false;
 
   /**
-   * @deprecated - use has_completed_onboarding
-   *
    * @generated from field: bool has_completed_onboarding = 5;
    */
   hasCompletedOnboarding = false;
