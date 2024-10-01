@@ -4,6 +4,7 @@ on:
     # recent data point most meaningful (hours are interpreted in UTC).
     - cron: "0 23 * * *"
   workflow_dispatch: # Allow for running this manually.
+  pull_request:
 
 jobs:
   repostats:
