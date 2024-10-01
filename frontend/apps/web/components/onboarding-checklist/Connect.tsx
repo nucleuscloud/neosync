@@ -24,8 +24,6 @@ export default function Connect(props: Props): ReactElement {
 
   const theme = useTheme();
 
-  console.log('themne', theme);
-
   const integrations = [
     { name: 'Postgres', icon: <SiPostgresql className="w-8 h-8" /> },
     { name: 'Mysql', icon: <MysqlIcon theme={theme.resolvedTheme} /> },
