@@ -167,7 +167,7 @@ function verifySignature(
   untrustedSignature: string
 ): boolean {
   const signature = createHmac('sha256', secret).update(body).digest('hex');
-  const trusted = Buffer.from(signature, 'ascii');
-  const untrusted = Buffer.from(untrustedSignature, 'ascii');
+  const trusted = new Uint8Array(Buffer.from(signature, 'ascii'));
+  const untrusted = new Uint8Array(Buffer.from(untrustedSignature, 'ascii'));
   return timingSafeEqual(trusted, untrusted);
 }
