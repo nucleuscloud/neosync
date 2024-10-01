@@ -42,12 +42,11 @@
   "author": "nickzelei",
   "license": "MIT",
   "devDependencies": {
-    "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
+    "tsup": "^8.3.0"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
-    "@connectrpc/connect": "^1.4.0"
+    "@connectrpc/connect": "^1.5.0"
   },
   "repository": {
     "type": "git",
