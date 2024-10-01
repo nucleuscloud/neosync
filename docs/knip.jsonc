@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
+  "ignore": [
+    "babel.config.js",
+    "docusaurus.config.ts",
+    "sidebars.ts",
+    "proto-sidebars.ts",
+    "protos/**",
+    "static/sync-dark-mode.js",
+    "src/**",
+    "src/theme/**",
+  ],
+  "ignoreDependencies": [
+    "@docusaurus/preset-classic",
+    "@radix-ui/react-icons",
+    "autoprefixer",
+    "postcss",
+    "prism-react-renderer",
+    "react-icons",
+    "tailwindcss",
+    "class-variance-authority",
+    "tailwind-merge",
+    "docusaurus-protobuffet",
+    "posthog-docusaurus",
+  ],
+  "ignoreBinaries": [],
+}
