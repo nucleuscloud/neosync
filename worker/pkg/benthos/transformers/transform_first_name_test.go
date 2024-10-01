@@ -20,7 +20,7 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 
 	res, err := transformFirstName(randomizer, emptyName, false, maxCharacterLimit)
 	assert.NoError(t, err)
-	assert.Nil(t, res, "The response should be nil")
+	assert.Empty(t, res, "The response should be empty")
 }
 
 func Test_TranformFirstName_Random(t *testing.T) {

@@ -38,8 +38,21 @@ enum UserAccountType {
   USER_ACCOUNT_TYPE_ENTERPRISE = 3;
 }
 
-message ConvertPersonalToTeamAccountRequest {}
-message ConvertPersonalToTeamAccountResponse {}
+message ConvertPersonalToTeamAccountRequest {
+  // The name of the team account
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
+  // Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts
+  // And we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.
+  optional string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message ConvertPersonalToTeamAccountResponse {
+  // The id of the team account (will be the same identifier as the personal account)
+  string account_id = 1;
+  // If NeosyncCloud, will respond with a checkout session url so they can setup billing
+  optional string checkout_session_url = 2;
+  // The identifier of the newly created personal account
+  string new_personal_account_id = 3;
+}
 
 message SetPersonalAccountRequest {}
 message SetPersonalAccountResponse {
@@ -75,6 +88,7 @@ message AccountTemporalConfig {
 }
 
 message CreateTeamAccountRequest {
+  // The name of the team account
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,100}$"];
 }
 message CreateTeamAccountResponse {
@@ -145,9 +159,13 @@ message AcceptTeamAccountInviteResponse {
 
 message GetSystemInformationRequest {}
 message GetSystemInformationResponse {
+  // The Git tagged version
   string version = 1;
+  // The Git commit
   string commit = 2;
+  // The Go compiler flag that was used to build this version of Neosync
   string compiler = 3;
+  // The Go platform flag that was used to build this version of Neosync
   string platform = 4;
   google.protobuf.Timestamp build_date = 5;
 }
@@ -207,6 +225,8 @@ message IsAccountStatusValidResponse {
   bool is_valid = 1;
   // If the account is not valid, a reason for why may be provided.
   optional string reason = 2;
+  // Whether or not the process should decide to continue polling for validitiy updates
+  bool should_poll = 3;
 }
 
 message GetAccountBillingCheckoutSessionRequest {
@@ -260,7 +280,10 @@ service UserAccountService {
 
   rpc SetPersonalAccount(SetPersonalAccountRequest) returns (SetPersonalAccountResponse) {}
 
+  // Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
   rpc ConvertPersonalToTeamAccount(ConvertPersonalToTeamAccountRequest) returns (ConvertPersonalToTeamAccountResponse) {}
+
+  // Creates a new team account
   rpc CreateTeamAccount(CreateTeamAccountRequest) returns (CreateTeamAccountResponse) {}
 
   rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}
@@ -275,7 +298,9 @@ service UserAccountService {
   rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
 
-  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {}
+  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 
   rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
   rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}

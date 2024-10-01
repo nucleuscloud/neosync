@@ -513,6 +513,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.True(s.T(), resp.Msg.GetIsValid())
 	require.Empty(s.T(), resp.Msg.GetReason())
+	require.True(s.T(), resp.Msg.GetShouldPoll())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
@@ -537,6 +538,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.False(s.T(), resp.Msg.GetIsValid())
 	require.NotEmpty(s.T(), resp.Msg.GetReason())
+	require.False(s.T(), resp.Msg.GetShouldPoll())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
@@ -564,6 +566,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.False(s.T(), resp.Msg.GetIsValid())
 		require.NotEmpty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("under the limit", func(t *testing.T) {
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
@@ -574,6 +577,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.True(s.T(), resp.Msg.GetIsValid())
 		require.Empty(s.T(), resp.Msg.GetReason())
+		require.True(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
 
@@ -595,6 +599,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		assert.True(s.T(), resp.Msg.GetIsValid())
 		assert.Empty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("inactive", func(t *testing.T) {
 		custId := "cust_id2"
@@ -610,6 +615,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		assert.False(s.T(), resp.Msg.GetIsValid())
 		assert.NotEmpty(s.T(), resp.Msg.GetReason())
+		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
 
@@ -740,6 +746,65 @@ func (s *IntegrationTestSuite) Test_GetBillingAccounts() {
 		requireErrResp(t, resp, err)
 		unautherr := nucleuserrors.NewUnauthorized("")
 		require.ErrorAs(t, err, &unautherr)
+	})
+}
+
+func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
+	t := s.T()
+
+	t.Run("OSS unauth", func(t *testing.T) {
+		s.setUser(s.ctx, s.unauthdClients.users)
+		resp, err := s.unauthdClients.users.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name: "unauthteamname",
+		}))
+		requireErrResp(t, resp, err)
+		requireConnectError(t, err, connect.CodePermissionDenied)
+	})
+
+	t.Run("OSS auth success", func(t *testing.T) {
+		userclient := s.authdClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+		accountId := s.createPersonalAccount(s.ctx, userclient)
+
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name:      "newname",
+			AccountId: &accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.Empty(t, resp.Msg.GetCheckoutSessionUrl())
+	})
+
+	t.Run("cloud billing success", func(t *testing.T) {
+		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+		accountId := s.createPersonalAccount(s.ctx, userclient)
+
+		stripeCustomerId := "foo"
+		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
+		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name:      "newname2",
+			AccountId: &accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		require.NotEmpty(t, resp.Msg.GetCheckoutSessionUrl())
+	})
+
+	t.Run("cloud success unspecified account", func(t *testing.T) {
+		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		s.setUser(s.ctx, userclient)
+
+		stripeCustomerId := "foo"
+		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
+		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
+		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+			Name: "newname3",
+		}))
+		requireNoErrResp(t, resp, err)
 	})
 }
 

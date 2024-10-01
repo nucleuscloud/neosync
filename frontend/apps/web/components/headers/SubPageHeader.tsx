@@ -6,10 +6,19 @@ interface Props {
   header: string;
   description: string;
   extraHeading?: ReactNode;
+  subHeadings?: ReactNode | ReactNode[];
 }
 
 export default function SubPageHeader(props: Props) {
-  const { header, description, extraHeading } = props;
+  const {
+    header,
+    description,
+    extraHeading,
+    subHeadings: subHeadingsOrSingle,
+  } = props;
+  const subHeadings = Array.isArray(subHeadingsOrSingle)
+    ? subHeadingsOrSingle
+    : [subHeadingsOrSingle];
   return (
     <div className={cn('page-subheader-container flex flex-col gap-2')}>
       <div className="flex flex-col md:flex-row flex-wrap justify-between gap-4 md:gap-0">
@@ -19,6 +28,11 @@ export default function SubPageHeader(props: Props) {
         </div>
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
+      {subHeadings.map((subheading, ind) => (
+        <div key={ind} className="text-sm">
+          {subheading}
+        </div>
+      ))}
       <Separator className="dark:bg-gray-600" />
     </div>
   );

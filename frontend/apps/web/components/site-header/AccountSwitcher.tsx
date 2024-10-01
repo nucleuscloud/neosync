@@ -2,10 +2,9 @@
 import {
   CaretSortIcon,
   CheckIcon,
-  ExternalLinkIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement } from 'react';
 
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
@@ -14,8 +13,11 @@ import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
-import { createTeamAccount, getUserAccounts } from '@neosync/sdk/connectquery';
-import Link from 'next/link';
+import {
+  convertPersonalToTeamAccount,
+  createTeamAccount,
+  getUserAccounts,
+} from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,63 +34,41 @@ import {
   CommandList,
   CommandSeparator,
 } from '../ui/command';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '../ui/form';
-import { Input } from '../ui/input';
+import { DialogTrigger } from '../ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
+import { CreateNewTeamDialog } from './CreateNewTeamDialog';
 
 interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement | null {
   const { account, setAccount } = useAccount();
-  const { data, refetch: mutate, isLoading } = useQuery(getUserAccounts);
+  const { data, isLoading } = useQuery(getUserAccounts);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
   const accounts = data?.accounts ?? [];
-  const router = useRouter();
+  const createNewTeamForm = useForm<CreateTeamFormValues>({
+    mode: 'onChange',
+    resolver: yupResolver(CreateTeamFormValues),
+    defaultValues: {
+      name: '',
+      convertPersonalToTeam: false,
+    },
+  });
 
-  const { mutateAsync: createTeamAccountAsync } =
-    useMutation(createTeamAccount);
-
-  async function onSubmit(values: CreateTeamFormValues): Promise<void> {
-    try {
-      const resp = await createTeamAccountAsync({
-        name: values.name,
-      });
+  const onSubmit = useGetOnCreateTeamSubmit({
+    onDone() {
       setShowNewTeamDialog(false);
-      mutate();
-      toast.success('Successfully created team!');
-      if (resp.checkoutSessionUrl) {
-        router.push(resp.checkoutSessionUrl);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Unable to create team', {
-        description: getErrorMessage(err),
-      });
-    }
-  }
+    },
+  });
+
   if (isLoading) {
     return <Skeleton className=" h-full w-[200px]" />;
   }
 
   return (
     <CreateNewTeamDialog
+      form={createNewTeamForm}
       open={showNewTeamDialog}
       onOpenChange={setShowNewTeamDialog}
       onSubmit={onSubmit}
@@ -97,7 +77,11 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
         <AccountSwitcherPopover
           activeAccount={account}
           accounts={accounts}
-          onAccountSelect={(a) => setAccount(a)}
+          onAccountSelect={(a) => {
+            setAccount(a);
+            // the user has changed the active account, reset the create new team form
+            createNewTeamForm.reset();
+          }}
           onNewAccount={() => {
             setShowNewTeamDialog(true);
           }}
@@ -111,6 +95,9 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
       showSubscriptionInfo={
         (systemAppConfigData?.isNeosyncCloud ?? false) &&
         (systemAppConfigData?.isStripeEnabled ?? false)
+      }
+      showConvertPersonalToTeamOption={
+        account?.type === UserAccountType.PERSONAL
       }
     />
   );
@@ -255,105 +242,91 @@ function AccountSwitcherPopover(
   );
 }
 
-interface CreateNewTeamDialogProps {
-  open: boolean;
-  onOpenChange(val: boolean): void;
-  trigger?: ReactNode;
-
-  onSubmit(values: CreateTeamFormValues): Promise<void>;
-  onCancel(): void;
-  showSubscriptionInfo: boolean;
+interface UseGetOnCreateTeamSubmitProps {
+  onDone?(): void;
 }
 
-function CreateNewTeamDialog(props: CreateNewTeamDialogProps): ReactElement {
-  const {
-    open,
-    onOpenChange,
-    trigger,
-    onCancel,
-    onSubmit,
-    showSubscriptionInfo,
-  } = props;
-  const form = useForm<CreateTeamFormValues>({
-    mode: 'onChange',
-    resolver: yupResolver(CreateTeamFormValues),
-    defaultValues: {
-      name: '',
-    },
-  });
+export function useGetOnCreateTeamSubmit(
+  props: UseGetOnCreateTeamSubmitProps
+): (values: CreateTeamFormValues) => Promise<void> {
+  const { onDone = () => undefined } = props;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {trigger}
-      <DialogContent className="flex flex-col gap-3">
-        <DialogHeader>
-          <DialogTitle>Create team</DialogTitle>
-          <DialogDescription>
-            Create a new team account to collaborate with your co-workers.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2 py-2">
-          <Form {...form}>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      autoCapitalize="off" // we don't allow capitals in team names
-                      data-1p-ignore // tells 1password extension to not autofill this field
-                      placeholder="acme"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Form>
-          {showSubscriptionInfo && <ShowSubscriptionInfo />}
-        </div>
-        <DialogFooter>
-          <div className="flex flex-row justify-between w-full">
-            <Button variant="outline" onClick={() => onCancel()}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={(e) =>
-                form.handleSubmit((values) => onSubmit(values))(e)
-              }
-              disabled={!form.formState.isValid}
-            >
-              Continue
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+  const { account, setAccount } = useAccount();
+
+  const { mutateAsync: createTeamAccountAsync } =
+    useMutation(createTeamAccount);
+  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
+    convertPersonalToTeamAccount
   );
-}
+  const { refetch: refreshUserAccountsAsync } = useQuery(getUserAccounts);
+  const router = useRouter();
 
-interface ShowSubscriptionInfoProps {}
-function ShowSubscriptionInfo(props: ShowSubscriptionInfoProps): ReactElement {
-  const {} = props;
+  return async (values) => {
+    if (!account) {
+      return;
+    }
+    if (
+      values.convertPersonalToTeam &&
+      account?.type !== UserAccountType.PERSONAL
+    ) {
+      toast.error(
+        'Selected account must be personal account to issue account conversion.'
+      );
+      return;
+    }
+    try {
+      if (values.convertPersonalToTeam) {
+        const resp = await convertPersonalToTeamAccountAsync({
+          name: values.name,
+          accountId: account.id,
+        });
+        const mutatedResp = await refreshUserAccountsAsync();
+        toast.success('Successfully converted personal to team!');
 
-  return (
-    <div>
-      <div className="flex flex-row gap-2">
-        <p className="text-sm tracking-tight">
-          Continuing will start a monthly Team plan subscription.
-        </p>
-        <Link
-          href="https://neosync.dev/pricing"
-          target="_blank"
-          className="hover:underline inline-flex gap-1 flex-row items-center text-sm tracking-tight"
-        >
-          Learn More
-          <ExternalLinkIcon className="w-3 h-3" />
-        </Link>
-      </div>
-    </div>
-  );
+        if (resp.checkoutSessionUrl) {
+          onDone();
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
+          onDone();
+        }
+      } else {
+        const resp = await createTeamAccountAsync({
+          name: values.name,
+        });
+        const mutatedResp = await refreshUserAccountsAsync();
+        toast.success('Successfully created team!');
+        if (resp.checkoutSessionUrl) {
+          onDone();
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
+          onDone();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to create team', {
+        description: getErrorMessage(err),
+      });
+    }
+  };
 }

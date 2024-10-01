@@ -12,6 +12,37 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
+const convertPersonalAccountToTeam = `-- name: ConvertPersonalAccountToTeam :one
+UPDATE neosync_api.accounts
+SET account_slug = $1,
+    account_type = 1,
+    max_allowed_records = NULL
+WHERE id = $2
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
+`
+
+type ConvertPersonalAccountToTeamParams struct {
+	TeamName  string
+	AccountId pgtype.UUID
+}
+
+func (q *Queries) ConvertPersonalAccountToTeam(ctx context.Context, db DBTX, arg ConvertPersonalAccountToTeamParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, convertPersonalAccountToTeam, arg.TeamName, arg.AccountId)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+		&i.OnboardingConfig,
+		&i.MaxAllowedRecords,
+		&i.StripeCustomerID,
+	)
+	return i, err
+}
+
 const createAccountInvite = `-- name: CreateAccountInvite :one
 INSERT INTO neosync_api.account_invites (
   account_id, sender_user_id, email, expires_at
@@ -50,13 +81,13 @@ func (q *Queries) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAc
 	return i, err
 }
 
-const createAccountUserAssociation = `-- name: CreateAccountUserAssociation :one
+const createAccountUserAssociation = `-- name: CreateAccountUserAssociation :exec
 INSERT INTO neosync_api.account_user_associations (
   account_id, user_id
 ) VALUES (
   $1, $2
 )
-RETURNING id, account_id, user_id, created_at, updated_at
+ON CONFLICT (account_id, user_id) DO NOTHING
 `
 
 type CreateAccountUserAssociationParams struct {
@@ -64,17 +95,9 @@ type CreateAccountUserAssociationParams struct {
 	UserID    pgtype.UUID
 }
 
-func (q *Queries) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
-	row := db.QueryRow(ctx, createAccountUserAssociation, arg.AccountID, arg.UserID)
-	var i NeosyncApiAccountUserAssociation
-	err := row.Scan(
-		&i.ID,
-		&i.AccountID,
-		&i.UserID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) error {
+	_, err := db.Exec(ctx, createAccountUserAssociation, arg.AccountID, arg.UserID)
+	return err
 }
 
 const createIdentityProviderAssociation = `-- name: CreateIdentityProviderAssociation :one

@@ -142,7 +142,9 @@ type UserAccountServiceClient interface {
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
+	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
@@ -274,6 +276,7 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			httpClient,
 			baseURL+UserAccountServiceGetSystemInformationProcedure,
 			connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 			connect.WithClientOptions(opts...),
 		),
 		getAccountOnboardingConfig: connect.NewClient[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse](
@@ -486,7 +489,9 @@ type UserAccountServiceHandler interface {
 	SetUser(context.Context, *connect.Request[v1alpha1.SetUserRequest]) (*connect.Response[v1alpha1.SetUserResponse], error)
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
+	// Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	// Creates a new team account
 	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
@@ -614,6 +619,7 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		UserAccountServiceGetSystemInformationProcedure,
 		svc.GetSystemInformation,
 		connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
 		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetAccountOnboardingConfigHandler := connect.NewUnaryHandler(

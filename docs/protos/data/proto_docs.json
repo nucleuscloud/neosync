@@ -13919,10 +13919,35 @@
           "fullName": "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
+          "hasFields": true,
+          "hasOneofs": true,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "name",
+              "description": "The name of the team account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "Optionally provide the personal account to convert. This may be used in break-glass scenarios where there are multiple personal accounts\nAnd we want to convert one of them. If not provided, it will find the first one and convert it, leaving the other.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_account_id",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "ConvertPersonalToTeamAccountResponse",
@@ -13930,10 +13955,47 @@
           "fullName": "mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
+          "hasFields": true,
+          "hasOneofs": true,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The id of the team account (will be the same identifier as the personal account)",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "checkout_session_url",
+              "description": "If NeosyncCloud, will respond with a checkout session url so they can setup billing",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_checkout_session_url",
+              "defaultValue": ""
+            },
+            {
+              "name": "new_personal_account_id",
+              "description": "The identifier of the newly created personal account",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "CreateTeamAccountRequest",
@@ -13947,7 +14009,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the team account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14330,7 +14392,7 @@
           "fields": [
             {
               "name": "version",
-              "description": "",
+              "description": "The Git tagged version",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14342,7 +14404,7 @@
             },
             {
               "name": "commit",
-              "description": "",
+              "description": "The Git commit",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14354,7 +14416,7 @@
             },
             {
               "name": "compiler",
-              "description": "",
+              "description": "The Go compiler flag that was used to build this version of Neosync",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14366,7 +14428,7 @@
             },
             {
               "name": "platform",
-              "description": "",
+              "description": "The Go platform flag that was used to build this version of Neosync",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -14684,6 +14746,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_reason",
+              "defaultValue": ""
+            },
+            {
+              "name": "should_poll",
+              "description": "Whether or not the process should decide to continue polling for validitiy updates",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -15209,7 +15283,7 @@
             },
             {
               "name": "ConvertPersonalToTeamAccount",
-              "description": "",
+              "description": "Convert a personal account to a team account retaining all of the jobs and connections. This will also create a new empty personal account.",
               "requestType": "ConvertPersonalToTeamAccountRequest",
               "requestLongType": "ConvertPersonalToTeamAccountRequest",
               "requestFullType": "mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest",
@@ -15221,7 +15295,7 @@
             },
             {
               "name": "CreateTeamAccount",
-              "description": "",
+              "description": "Creates a new team account",
               "requestType": "CreateTeamAccountRequest",
               "requestLongType": "CreateTeamAccountRequest",
               "requestFullType": "mgmt.v1alpha1.CreateTeamAccountRequest",
@@ -15349,7 +15423,10 @@
               "responseType": "GetSystemInformationResponse",
               "responseLongType": "GetSystemInformationResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemInformationResponse",
-              "responseStreaming": false
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             },
             {
               "name": "GetAccountOnboardingConfig",
