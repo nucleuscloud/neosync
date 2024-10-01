@@ -16,7 +16,6 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 )
 
@@ -288,26 +287,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 
 	postTableSyncRunCtx := buildPostTableSyncRunCtx(outputConfigs, job.Destinations)
+	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set all run contexts for post table sync configs: %w", err)
+	}
 
-	errgrp := errgroup.Group{}
-	errgrp.Go(func() error {
-		outputConfigs, err = b.setRunContexts(ctx, outputConfigs, job.GetAccountId())
-		if err != nil {
-			return fmt.Errorf("unable to set all run contexts for benthos configs: %w", err)
-		}
-		return nil
-	})
-
-	errgrp.Go(func() error {
-		err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
-		if err != nil {
-			return fmt.Errorf("unable to set all run contexts for post table sync configs: %w", err)
-		}
-		return nil
-	})
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, fmt.Errorf("unable to set run contexts: %w", err)
+	outputConfigs, err = b.setRunContexts(ctx, outputConfigs, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set all run contexts for benthos configs: %w", err)
 	}
 
 	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(outputConfigs)))
