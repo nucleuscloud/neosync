@@ -4,12 +4,12 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
 interface Props {
-  currentStep: number;
-  setCurrentStep: (val: number) => void;
+  onNextStep: () => void;
+  onPreviousStep: () => void;
 }
 
 export default function Config(props: Props): ReactElement {
-  const { currentStep, setCurrentStep } = props;
+  const { onNextStep, onPreviousStep } = props;
 
   return (
     <div className="flex flex-col gap-12 justify-center items-center text-center">
@@ -64,14 +64,10 @@ export default function Config(props: Props): ReactElement {
         </div>
       </div>
       <div className="flex flex-row justify-between w-full py-6">
-        <Button
-          variant="outline"
-          type="reset"
-          onClick={() => setCurrentStep(currentStep - 1)}
-        >
+        <Button variant="outline" type="reset" onClick={onPreviousStep}>
           Back
         </Button>
-        <Button onClick={() => setCurrentStep(currentStep + 1)}>
+        <Button onClick={onNextStep}>
           <div className="flex flex-row items-center gap-2">
             <div>Next</div> <ArrowRightIcon />
           </div>

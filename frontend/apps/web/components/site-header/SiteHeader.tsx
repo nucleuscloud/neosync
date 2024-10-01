@@ -1,4 +1,3 @@
-'use client';
 import { getSystemAppConfig } from '@/app/api/config/config';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,12 +32,10 @@ export default function SiteHeader(): ReactElement {
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
           {systemAppConfig.isNeosyncCloud && <AccountsRecordProgress />}
-          {systemAppConfig.isNeosyncCloud && (
-            <Upgrade
-              calendlyLink={systemAppConfig.calendlyUpgradeLink}
-              isNeosyncCloud={systemAppConfig.isNeosyncCloud}
-            />
-          )}
+          <Upgrade
+            calendlyLink={systemAppConfig.calendlyUpgradeLink}
+            isNeosyncCloud={systemAppConfig.isNeosyncCloud}
+          />
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <SupportSheet />
           <ModeToggle />

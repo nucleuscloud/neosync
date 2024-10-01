@@ -6,14 +6,13 @@ import { ConnectDarkMode } from './ConnectDarkMode';
 import { ConnectLightMode } from './ConnectLightMode';
 
 interface Props {
-  currentStep: number;
-  setCurrentStep: (val: number) => void;
+  onNextStep: () => void;
   setIsDialogOpen: (val: boolean) => void;
   completeForm: () => Promise<void>;
 }
 
 export default function WelcomeOverview(props: Props): ReactElement {
-  const { currentStep, setCurrentStep, setIsDialogOpen, completeForm } = props;
+  const { onNextStep, setIsDialogOpen, completeForm } = props;
   const theme = useTheme();
 
   return (
@@ -40,7 +39,7 @@ export default function WelcomeOverview(props: Props): ReactElement {
         >
           Skip
         </Button>
-        <Button onClick={() => setCurrentStep(currentStep + 1)}>
+        <Button onClick={onNextStep}>
           <div className="flex flex-row items-center gap-2">
             <div>Next</div> <ArrowRightIcon />
           </div>

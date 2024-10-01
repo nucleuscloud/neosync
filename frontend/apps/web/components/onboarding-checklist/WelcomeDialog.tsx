@@ -1,5 +1,10 @@
 'use client';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { getErrorMessage } from '@/util/util';
 import {
   createConnectQueryKey,
@@ -11,7 +16,6 @@ import {
   getAccountOnboardingConfig,
   setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
-import { DialogDescription } from '@radix-ui/react-dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,8 +28,15 @@ import Sync from './Sync';
 import WelcomeOverview from './WelcomeOverview';
 import WelcomeRouter from './WelcomeRouter';
 
+export type FormStepName =
+  | 'welcome'
+  | 'connect'
+  | 'configure'
+  | 'execute'
+  | 'router';
+
 export interface FormStep {
-  name: string;
+  name: FormStepName;
   component: JSX.Element;
 }
 
@@ -46,17 +57,52 @@ export default function WelcomeDialog(): ReactElement {
     setAccountOnboardingConfig
   );
 
-  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [currentStep, setCurrentStep] = useState<FormStepName>('welcome');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showGuide, setShowGuide] = useState<boolean>(false);
+
+  const handleNextStep = () => {
+    setCurrentStep((prev) => {
+      switch (prev) {
+        case 'welcome':
+          return 'connect';
+        case 'connect':
+          return 'configure';
+        case 'configure':
+          return 'execute';
+        case 'execute':
+          return 'router';
+        case 'router':
+        default:
+          return prev;
+      }
+    });
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep((prev) => {
+      switch (prev) {
+        case 'connect':
+          return 'welcome';
+        case 'configure':
+          return 'connect';
+        case 'execute':
+          return 'configure';
+        case 'router':
+          return 'execute';
+        case 'welcome':
+        default:
+          return prev;
+      }
+    });
+  };
 
   const multiStepForm: FormStep[] = [
     {
       name: 'welcome',
       component: (
         <WelcomeOverview
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
+          onNextStep={handleNextStep}
           setIsDialogOpen={setShowGuide}
           completeForm={completeForm}
         />
@@ -65,27 +111,32 @@ export default function WelcomeDialog(): ReactElement {
     {
       name: 'connect',
       component: (
-        <Connect currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Connect
+          onNextStep={handleNextStep}
+          onPreviousStep={handlePreviousStep}
+        />
       ),
     },
     {
       name: 'configure',
       component: (
-        <Configure currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Configure
+          onNextStep={handleNextStep}
+          onPreviousStep={handlePreviousStep}
+        />
       ),
     },
     {
       name: 'execute',
       component: (
-        <Sync currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Sync onNextStep={handleNextStep} onPreviousStep={handlePreviousStep} />
       ),
     },
     {
       name: 'router',
       component: (
         <WelcomeRouter
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
+          onPreviousStep={handlePreviousStep}
           setIsDialogOpen={setShowGuide}
           completeForm={completeForm}
         />
@@ -138,24 +189,26 @@ export default function WelcomeDialog(): ReactElement {
     return <></>;
   }
 
+  const stepOrder: FormStepName[] = multiStepForm.map((item) => {
+    return item.name;
+  });
+
   return (
-    <Dialog open={showGuide} onOpenChange={setShowGuide}>
-      <DialogContent
-        className="max-w-2xl"
-        onInteractOutside={(e) => {
-          e.preventDefault();
-        }}
-      >
-        <DialogTitle />
-        <DialogDescription />
+    <AlertDialog open={showGuide} onOpenChange={setShowGuide}>
+      <AlertDialogContent className="max-w-2xl">
+        <AlertDialogTitle />
+        <AlertDialogDescription />
         <div className="flex flex-col gap-8 pt-6">
           <StepProgress
             steps={multiStepForm.map((step) => step)}
             currentStep={currentStep}
+            stepOrder={stepOrder}
           />
-          <div className="px-8">{multiStepForm[currentStep].component}</div>
+          <div className="px-8">
+            {multiStepForm.find((step) => step.name === currentStep)?.component}
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

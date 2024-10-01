@@ -15,12 +15,12 @@ import { MysqlIcon } from '../../public/icons/Mysql';
 import { Button } from '../ui/button';
 
 interface Props {
-  currentStep: number;
-  setCurrentStep: (val: number) => void;
+  onNextStep: () => void;
+  onPreviousStep: () => void;
 }
 
 export default function Connect(props: Props): ReactElement {
-  const { currentStep, setCurrentStep } = props;
+  const { onPreviousStep, onNextStep } = props;
 
   const theme = useTheme();
 
@@ -57,14 +57,10 @@ export default function Connect(props: Props): ReactElement {
       </div>
 
       <div className="flex flex-row justify-between w-full py-6">
-        <Button
-          variant="outline"
-          type="reset"
-          onClick={() => setCurrentStep(currentStep - 1)}
-        >
+        <Button variant="outline" type="reset" onClick={onPreviousStep}>
           Back
         </Button>
-        <Button onClick={() => setCurrentStep(currentStep + 1)}>
+        <Button onClick={onNextStep}>
           <div className="flex flex-row items-center gap-2">
             <div>Next</div> <ArrowRightIcon />
           </div>

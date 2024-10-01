@@ -1,3 +1,4 @@
+'use client';
 import { UserAccountType } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useAccount } from '../providers/account-provider';

@@ -9,7 +9,11 @@ import {
 } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/libs/utils';
-import { MagicWandIcon, SymbolIcon } from '@radix-ui/react-icons';
+import {
+  ArrowRightIcon,
+  MagicWandIcon,
+  SymbolIcon,
+} from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -19,17 +23,15 @@ import { PageProps } from '../types';
 import { Button } from '../ui/button';
 
 interface Props {
-  currentStep: number;
-  setCurrentStep: (val: number) => void;
+  onPreviousStep: () => void;
   setIsDialogOpen: (val: boolean) => void;
   completeForm: () => Promise<void>;
 }
 
 export default function WelcomeRouter({
   params,
-  currentStep,
   setIsDialogOpen,
-  setCurrentStep,
+  onPreviousStep,
   completeForm,
 }: Props & PageProps): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
@@ -144,11 +146,7 @@ export default function WelcomeRouter({
         </RadioGroup>
       </div>
       <div className="flex flex-row justify-between w-full py-6">
-        <Button
-          variant="outline"
-          type="reset"
-          onClick={() => setCurrentStep(currentStep - 1)}
-        >
+        <Button variant="outline" type="reset" onClick={onPreviousStep}>
           Back
         </Button>
         <Button
@@ -157,7 +155,7 @@ export default function WelcomeRouter({
           onClick={() => {
             setIsDialogOpen(false);
             completeForm();
-            setCurrentStep(currentStep - 1);
+            onPreviousStep;
             router.push(
               href ??
                 `/${account?.name}/new/job/define?${dataSyncParams.toString()}`
@@ -167,7 +165,9 @@ export default function WelcomeRouter({
             });
           }}
         >
-          Next
+          <div className="flex flex-row items-center gap-2">
+            <div>Next</div> <ArrowRightIcon />
+          </div>
         </Button>
       </div>
     </div>
