@@ -2,7 +2,6 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -107,11 +106,6 @@ func (b *benthosBuilder) getSqlSyncBenthosConfigResponses(
 		return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 	}
 
-	err = b.buildAndSetSqlPostTableSyncConfigs(ctx, job.AccountId, db.Driver, sourceResponses)
-	if err != nil {
-		return nil, err
-	}
-
 	return &sqlSyncResp{
 		BenthosConfigs:             sourceResponses,
 		primaryKeyToForeignKeysMap: primaryKeyToForeignKeysMap,
@@ -195,87 +189,36 @@ func mergeVirtualForeignKeys(
 	return fks, nil
 }
 
-func (b *benthosBuilder) buildAndSetSqlPostTableSyncConfigs(
-	ctx context.Context,
-	accountId, driver string,
-	benthosConfigs []*BenthosConfigResponse,
-) error {
-	postSyncConfigs, err := buildSqlPostTableSyncStatements(benthosConfigs, driver)
-	if err != nil {
-		return err
+func buildPgPostTableSyncStatement(bc *BenthosConfigResponse) []string {
+	statements := []string{}
+	if bc.RunType == tabledependency.RunTypeUpdate {
+		return statements
 	}
-	err = b.setSqlPostTableSyncRunContexts(ctx, postSyncConfigs, accountId)
-	if err != nil {
-		return err
+	colDefaultProps := bc.ColumnDefaultProperties
+	for colName, p := range colDefaultProps {
+		if p.NeedsReset && !p.HasDefaultTransformer {
+			// resets sequences and identities
+			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(bc.TableSchema, bc.TableName, colName)
+			statements = append(statements, resetSql)
+		}
 	}
-	return nil
+	return statements
 }
 
-func (b *benthosBuilder) setSqlPostTableSyncRunContexts(
-	ctx context.Context,
-	postSyncConfigs map[string]*shared.SqlPostTableSyncConfig,
-	accountId string,
-) error {
-	rcstream := b.jobclient.SetRunContexts(ctx)
-
-	for name, config := range postSyncConfigs {
-		bits, err := json.Marshal(config)
-		if err != nil {
-			return fmt.Errorf("failed to marshal sql post sync config: %w", err)
-		}
-		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
-			Id: &mgmtv1alpha1.RunContextKey{
-				JobRunId:   b.workflowId,
-				ExternalId: shared.GetPostTableSyncConfigExternalId(name),
-				AccountId:  accountId,
-			},
-			Value: bits,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to send run context: %w", err)
+func buildMssqlPostTableSyncStatement(bc *BenthosConfigResponse) []string {
+	statements := []string{}
+	if bc.RunType == tabledependency.RunTypeUpdate {
+		return statements
+	}
+	colDefaultProps := bc.ColumnDefaultProperties
+	for _, p := range colDefaultProps {
+		if p.NeedsOverride {
+			// reset identity
+			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(bc.TableSchema, bc.TableName)
+			statements = append(statements, resetSql)
 		}
 	}
-
-	_, err := rcstream.CloseAndReceive()
-	if err != nil {
-		return fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
-	}
-	return nil
-}
-
-func buildSqlPostTableSyncStatements(benthosConfigs []*BenthosConfigResponse, driver string) (map[string]*shared.SqlPostTableSyncConfig, error) {
-	postSyncConfigs := map[string]*shared.SqlPostTableSyncConfig{}
-	if driver == sqlmanager_shared.MysqlDriver {
-		// mysql handles resetting counts when inserting
-		return postSyncConfigs, nil
-	}
-	for _, bc := range benthosConfigs {
-		if bc.RunType == tabledependency.RunTypeUpdate {
-			continue
-		}
-		psConfig := &shared.SqlPostTableSyncConfig{}
-		colDefaultProps := bc.ColumnDefaultProperties
-		for colName, p := range colDefaultProps {
-			if p.NeedsReset && !p.HasDefaultTransformer {
-				switch driver {
-				case sqlmanager_shared.PostgresDriver:
-					// resets sequences and identities
-					resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(bc.TableSchema, bc.TableName, colName)
-					psConfig.DestinationStatements = append(psConfig.DestinationStatements, resetSql)
-				case sqlmanager_shared.MssqlDriver:
-					if p.NeedsOverride {
-						// reset identity
-						resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(bc.TableSchema, bc.TableName)
-						psConfig.DestinationStatements = append(psConfig.DestinationStatements, resetSql)
-					}
-				default:
-					return nil, fmt.Errorf("unsupported driver %s", driver)
-				}
-			}
-		}
-		postSyncConfigs[bc.Name] = psConfig
-	}
-	return postSyncConfigs, nil
+	return statements
 }
 
 func buildBenthosSqlSourceConfigResponses(

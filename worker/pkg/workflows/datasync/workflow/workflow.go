@@ -228,7 +228,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				return
 			}
 			logger.Info("config sync completed", "name", bc.Name)
-			err = runPostTableSyncActivity(ctx, logger, actOptResp, req.JobId, bc.Name)
+			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
 			if err != nil {
 				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
 			}
@@ -329,19 +329,23 @@ func runPostTableSyncActivity(
 	ctx workflow.Context,
 	logger log.Logger,
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
-	jobId string,
 	name string,
 ) error {
 	logger.Debug("executing post table sync activity")
 	var resp *posttablesync_activity.RunPostTableSyncResponse
 	var postTableSyncActivity *posttablesync_activity.Activity
 	err := workflow.ExecuteActivity(
-		workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: 2 * time.Minute,
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 2,
+			},
+			HeartbeatTimeout: 1 * time.Minute,
+		}),
 		postTableSyncActivity.RunPostTableSync,
 		&posttablesync_activity.RunPostTableSyncRequest{
-			JobId:     jobId,
-			Name:      name,
 			AccountId: actOptResp.AccountId,
+			Name:      name,
 		}).Get(ctx, &resp)
 	if err != nil {
 		return err
@@ -365,7 +369,13 @@ func runRedisCleanUpActivity(
 			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			err := workflow.ExecuteActivity(
-				workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+				workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+					StartToCloseTimeout: 2 * time.Minute,
+					RetryPolicy: &temporal.RetryPolicy{
+						MaximumAttempts: 2,
+					},
+					HeartbeatTimeout: 1 * time.Minute,
+				}),
 				syncrediscleanup_activity.DeleteRedisHash,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,

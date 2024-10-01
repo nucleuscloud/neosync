@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -35,7 +35,6 @@ func New(
 }
 
 type RunPostTableSyncRequest struct {
-	JobId string
 	// Identifier that is used in combination with the AccountId to retrieve the post table run config
 	Name      string
 	AccountId string
@@ -49,7 +48,7 @@ func (a *Activity) RunPostTableSync(
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
 	loggerKeyVals := []any{
-		"jobId", req.JobId,
+		"accountId", req.AccountId,
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
 		"RunID", activityInfo.WorkflowExecution.RunID,
 	}
@@ -60,74 +59,57 @@ func (a *Activity) RunPostTableSync(
 	logger.Debug("running post table sync activity")
 	slogger := neosynclogger.NewJsonSLogger().With(loggerKeyVals...)
 
-	jobResp, err := a.jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
-	if err != nil {
-		return nil, fmt.Errorf("unable to get job by id: %w", err)
-	}
-	job := jobResp.Msg.GetJob()
-
-	switch job.Source.Options.Config.(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql, *mgmtv1alpha1.JobSourceOptions_Mssql:
-		err = a.runSqlPostTableSync(ctx, req, slogger, job, activityInfo.WorkflowExecution.ID)
-		if err != nil {
-			return nil, err
-		}
-	default:
-	}
-
-	return &RunPostTableSyncResponse{}, nil
-}
-
-func (a *Activity) runSqlPostTableSync(
-	ctx context.Context,
-	req *RunPostTableSyncRequest,
-	slogger *slog.Logger,
-	job *mgmtv1alpha1.Job,
-	workflowId string,
-) error {
 	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
-			JobRunId:   workflowId,
+			JobRunId:   activityInfo.WorkflowExecution.ID,
 			ExternalId: shared.GetPostTableSyncConfigExternalId(req.Name),
 			AccountId:  req.AccountId,
 		},
 	}))
 	if err != nil {
-		return fmt.Errorf("unable to retrieve posttablesync runcontext for %s: %w", req.Name, err)
+		return nil, fmt.Errorf("unable to retrieve posttablesync runcontext for %s: %w", req.Name, err)
 	}
 
 	configBits := rcResp.Msg.GetValue()
 	if len(configBits) == 0 {
-		return nil
+		return &RunPostTableSyncResponse{}, nil
 	}
 
-	var config *shared.SqlPostTableSyncConfig
+	var config *shared.PostTableSyncConfig
 	err = json.Unmarshal(configBits, &config)
 	if err != nil {
-		return err
-	}
-	if len(config.DestinationStatements) == 0 {
-		return nil
+		return nil, fmt.Errorf("unable to unmarshal posttablesync runcontext for %s: %w", req.Name, err)
 	}
 
-	for _, destination := range job.Destinations {
-		destinationConnection, err := shared.GetConnectionById(ctx, a.connclient, destination.ConnectionId)
-		if err != nil {
-			return fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
-		}
-		destDb, err := a.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
-		if err != nil {
-			destDb.Db.Close()
-			slogger.Error("unable to connection to destination", "connectionId", destination.ConnectionId)
+	if len(config.DestinationConfigs) == 0 {
+		return &RunPostTableSyncResponse{}, nil
+	}
+
+	for destConnectionId, destCfg := range config.DestinationConfigs {
+		if len(destCfg.Statements) == 0 {
 			continue
 		}
-		for _, stmt := range config.DestinationStatements {
-			err := destDb.Db.Exec(ctx, stmt)
+		destinationConnection, err := shared.GetConnectionById(ctx, a.connclient, destConnectionId)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destConnectionId, err)
+		}
+		switch destinationConnection.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+			destDb, err := a.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
 			if err != nil {
-				slogger.Error("unable to exec destination statement", "connectionId", destination.ConnectionId, "error", err.Error())
+				destDb.Db.Close()
+				slogger.Error("unable to connection to destination", "connectionId", destConnectionId)
 				continue
 			}
+			err = destDb.Db.BatchExec(ctx, 5, destCfg.Statements, &sqlmanager_shared.BatchExecOpts{})
+			if err != nil {
+				slogger.Error("unable to exec destination statement", "connectionId", destConnectionId, "error", err.Error())
+				continue
+			}
+		default:
+			slogger.Error("unsupported destination type", "connectionId", destConnectionId)
 		}
 	}
-	return nil
+
+	return &RunPostTableSyncResponse{}, nil
 }

@@ -20,7 +20,7 @@ const (
 	NullString = "null"
 
 	runContext_ExternalId_BenthosConfig       = "benthosconfig"
-	runContext_ExternalId_PostTableSyncConfig = "posttablesyncconfig"
+	runContext_ExternalId_PostTableSyncConfig = "posttablesync"
 )
 
 func GetBenthosConfigExternalId(identifier string) string {
@@ -31,8 +31,12 @@ func GetPostTableSyncConfigExternalId(identifier string) string {
 	return fmt.Sprintf("%s-%s", runContext_ExternalId_PostTableSyncConfig, identifier)
 }
 
-type SqlPostTableSyncConfig struct {
-	DestinationStatements []string `json:"destinationStatements"` // statements to run on each destination
+type PostTableSyncConfig struct {
+	DestinationConfigs map[string]*PostTableSyncDestConfig `json:"destinationConfigs"`
+}
+
+type PostTableSyncDestConfig struct {
+	Statements []string `json:"statements"` // statements to run
 }
 
 // General workflow metadata struct that is intended to be common across activities
