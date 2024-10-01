@@ -1776,24 +1776,15 @@ func (r *RetryPolicy) FromDto(dto *mgmtv1alpha1.RetryPolicy) {
 }
 
 type AccountOnboardingConfig struct {
-	HasCreatedSourceConnection      bool `json:"hasCreatedSourceConnection"`
-	HasCreatedDestinationConnection bool `json:"hasCreatedDestinationConnection"`
-	HasCreatedJob                   bool `json:"hasCreatedJob"`
-	HasInvitedMembers               bool `json:"hasInvitedMembers"`
+	HasCompletedOnboarding bool `json:"hasCompletedOnboarding"`
 }
 
 func (t *AccountOnboardingConfig) ToDto() *mgmtv1alpha1.AccountOnboardingConfig {
 	return &mgmtv1alpha1.AccountOnboardingConfig{
-		HasCreatedSourceConnection:      t.HasCreatedSourceConnection,
-		HasCreatedDestinationConnection: t.HasCreatedDestinationConnection,
-		HasCreatedJob:                   t.HasCreatedJob,
-		HasInvitedMembers:               t.HasInvitedMembers,
+		HasCompletedOnboarding: t.HasCompletedOnboarding,
 	}
 }
 
 func (t *AccountOnboardingConfig) FromDto(dto *mgmtv1alpha1.AccountOnboardingConfig) {
-	t.HasCreatedSourceConnection = dto.GetHasCreatedSourceConnection()
-	t.HasCreatedDestinationConnection = dto.GetHasCreatedDestinationConnection()
-	t.HasCreatedJob = dto.GetHasCreatedJob()
-	t.HasInvitedMembers = dto.GetHasInvitedMembers()
+	t.HasCompletedOnboarding = dto.GetHasCompletedOnboarding()
 }
