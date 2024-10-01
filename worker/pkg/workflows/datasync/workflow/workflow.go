@@ -221,7 +221,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				cancelHandler()
 
 				// empty depends on map will clean up all redis inserts
-				redisErr := runRedisCleanUpActivity(ctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, redisConfigs)
+				redisErr := runRedisCleanUpActivity(ctx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -233,7 +233,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
 			}
 			delete(redisDependsOn, bc.Name)
-			err = runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
+			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
 				logger.Error("redis clean up activity did not complete")
 			}
@@ -356,7 +356,6 @@ func runPostTableSyncActivity(
 func runRedisCleanUpActivity(
 	ctx workflow.Context,
 	logger log.Logger,
-	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
 	dependsOnMap map[string]map[string][]string,
 	jobId string,
 	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,

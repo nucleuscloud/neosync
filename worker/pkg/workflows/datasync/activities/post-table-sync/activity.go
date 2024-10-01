@@ -47,10 +47,12 @@ func (a *Activity) RunPostTableSync(
 	req *RunPostTableSyncRequest,
 ) (*RunPostTableSyncResponse, error) {
 	activityInfo := activity.GetInfo(ctx)
+	externalId := shared.GetPostTableSyncConfigExternalId(req.Name)
 	loggerKeyVals := []any{
 		"accountId", req.AccountId,
 		"WorkflowID", activityInfo.WorkflowExecution.ID,
 		"RunID", activityInfo.WorkflowExecution.RunID,
+		"RunContextExternalId", externalId,
 	}
 	logger := log.With(
 		activity.GetLogger(ctx),
@@ -62,7 +64,7 @@ func (a *Activity) RunPostTableSync(
 	rcResp, err := a.jobclient.GetRunContext(ctx, connect.NewRequest(&mgmtv1alpha1.GetRunContextRequest{
 		Id: &mgmtv1alpha1.RunContextKey{
 			JobRunId:   activityInfo.WorkflowExecution.ID,
-			ExternalId: shared.GetPostTableSyncConfigExternalId(req.Name),
+			ExternalId: externalId,
 			AccountId:  req.AccountId,
 		},
 	}))
@@ -72,6 +74,7 @@ func (a *Activity) RunPostTableSync(
 
 	configBits := rcResp.Msg.GetValue()
 	if len(configBits) == 0 {
+		slogger.Warn("post table sync value is empty")
 		return &RunPostTableSyncResponse{}, nil
 	}
 
@@ -82,10 +85,12 @@ func (a *Activity) RunPostTableSync(
 	}
 
 	if len(config.DestinationConfigs) == 0 {
+		slogger.Debug("post table sync destination configs empty")
 		return &RunPostTableSyncResponse{}, nil
 	}
 
 	for destConnectionId, destCfg := range config.DestinationConfigs {
+		slogger.Debug(fmt.Sprintf("found %d post table sync statements", len(destCfg.Statements)), "destinationConnectionId", destConnectionId)
 		if len(destCfg.Statements) == 0 {
 			continue
 		}
@@ -93,7 +98,7 @@ func (a *Activity) RunPostTableSync(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destConnectionId, err)
 		}
-		switch destinationConnection.ConnectionConfig.Config.(type) {
+		switch destinationConnection.GetConnectionConfig().GetConfig().(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 			destDb, err := a.sqlmanagerclient.NewPooledSqlDb(ctx, slogger, destinationConnection)
 			if err != nil {

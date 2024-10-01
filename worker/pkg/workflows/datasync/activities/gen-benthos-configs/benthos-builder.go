@@ -399,7 +399,7 @@ func buildPostTableSyncRunCtx(benthosConfigs []*BenthosConfigResponse, destinati
 		destConfigs := map[string]*shared.PostTableSyncDestConfig{}
 		for _, destination := range destinations {
 			var stmts []string
-			switch destination.Options.Config.(type) {
+			switch destination.GetOptions().GetConfig().(type) {
 			case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 				stmts = buildPgPostTableSyncStatement(bc)
 			case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
