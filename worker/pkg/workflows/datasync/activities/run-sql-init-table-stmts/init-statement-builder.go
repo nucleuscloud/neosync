@@ -192,7 +192,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					orderedTableTruncate = append(orderedTableTruncate, &sqlmanager_shared.SchemaTable{Schema: schema, Table: table})
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
+				truncateStmt, err := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
+				if err != nil {
+					slogger.Error(fmt.Sprint("unable to build postgres truncate statement: %w", err))
+					return nil, err
+				}
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
 					destdb.Db.Close()
