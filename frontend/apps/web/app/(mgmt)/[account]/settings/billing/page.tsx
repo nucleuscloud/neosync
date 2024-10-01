@@ -2,6 +2,8 @@
 import ButtonText from '@/components/ButtonText';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import { useGetOnCreateTeamSubmit } from '@/components/site-header/AccountSwitcher';
+import { CreateNewTeamDialog } from '@/components/site-header/CreateNewTeamDialog';
 import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +11,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage, toTitleCase } from '@/util/util';
+import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { UserAccount, UserAccountType } from '@neosync/sdk';
 import {
   getAccountBillingCheckoutSession,
@@ -21,6 +25,7 @@ import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 type PlanName = 'Personal' | 'Team' | 'Enterprise';
@@ -41,7 +46,7 @@ const ALL_PLANS: Plan[] = [
       '1 user',
       'US Region',
       'Social Login',
-      'Shared Infrastructure',
+      'Neosync Infrastructure',
       'Community Discord',
     ],
     price: 'Free',
@@ -50,15 +55,15 @@ const ALL_PLANS: Plan[] = [
   {
     name: 'Team',
     features: [
-      'Unlimited record',
+      'Volume-based pricing',
       'Unlimited Jobs',
-      'Unlimited users',
+      'Unlimited Users',
       'US and EU Regions',
-      'Social Login, SSO',
-      'Shared Infrastructure',
+      'Social, SSO',
+      'Neosync Infrastructure',
       'Private Discord/Slack',
     ],
-    price: 'Contact us',
+    price: 'Pay as you go',
     planType: UserAccountType.TEAM,
   },
   {
@@ -69,7 +74,7 @@ const ALL_PLANS: Plan[] = [
       'Unlimited Users',
       'Dedicated Infrastructure',
       'Hybrid Deployment',
-      'Social Login, SSO',
+      'Social, SSO',
       'Private Discord/Slack',
     ],
     price: 'Contact Us',
@@ -101,9 +106,9 @@ export default function Billing(): ReactElement {
       </div>
       <Plans
         account={account}
-        upgradeHref={systemAppConfigData.calendlyUpgradeLink}
+        upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
         plans={ALL_PLANS}
-        isStripeEnabled={systemAppConfigData.isStripeEnabled}
+        isStripeEnabled={systemAppConfigData?.isStripeEnabled ?? false}
       />
     </div>
   );
@@ -292,7 +297,7 @@ function PlanInfo(props: PlanInfoProps): ReactElement {
       >
         <div className="flex flex-col gap-6">
           <div className="flex justify-center">
-            <Badge variant="outline">{plan.name} Plan</Badge>
+            <Badge variant="outline">{plan.name}</Badge>
           </div>
           <div className="flex justify-center flex-row gap-2">
             <div className="text-3xl">{plan.price}</div>
@@ -345,13 +350,7 @@ function PlanButton(props: PlanButtonProps): ReactElement {
       if (planType == UserAccountType.TEAM) {
         return <GetStartedButton accountSlug={accountSlug} />;
       } else {
-        return (
-          <Button type="button">
-            <Link href={upgradeHref} target="_blank">
-              Get in touch
-            </Link>
-          </Button>
-        );
+        return <CreateNewTeamButton />;
       }
     case 'Enterprise':
       if (planType == UserAccountType.ENTERPRISE) {
@@ -378,5 +377,47 @@ function GetStartedButton(props: GetStartedButtonProps): ReactElement {
     <Button type="button">
       <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
     </Button>
+  );
+}
+
+function CreateNewTeamButton(): ReactElement {
+  const form = useForm<CreateTeamFormValues>({
+    mode: 'onChange',
+    resolver: yupResolver(CreateTeamFormValues),
+    defaultValues: {
+      name: '',
+      convertPersonalToTeam: false,
+    },
+  });
+  const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
+  const { account } = useAccount();
+
+  const onSubmit = useGetOnCreateTeamSubmit({
+    onDone() {
+      setShowNewTeamDialog(false);
+    },
+  });
+
+  return (
+    <CreateNewTeamDialog
+      form={form}
+      open={showNewTeamDialog}
+      onOpenChange={(val) => {
+        setShowNewTeamDialog(val);
+        form.reset();
+      }}
+      onSubmit={onSubmit}
+      onCancel={() => {
+        setShowNewTeamDialog(false);
+        form.reset();
+      }}
+      trigger={
+        <Button onClick={() => setShowNewTeamDialog(true)}>Create Team</Button>
+      }
+      showSubscriptionInfo={true} // This is only rendered in neosync cloud
+      showConvertPersonalToTeamOption={
+        account?.type === UserAccountType.PERSONAL
+      }
+    />
   );
 }

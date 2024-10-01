@@ -61,7 +61,7 @@ export function CreateNewTeamDialog(props: Props): ReactElement {
             Create a new team account to collaborate with your co-workers.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-0 py-2">
+        <div className="space-y-2 py-2">
           <Form {...form}>
             <FormField
               control={form.control}
