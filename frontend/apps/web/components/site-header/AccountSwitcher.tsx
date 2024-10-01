@@ -43,11 +43,10 @@ interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement | null {
   const { account, setAccount } = useAccount();
-  const { data, refetch: mutate, isLoading } = useQuery(getUserAccounts);
+  const { data, isLoading } = useQuery(getUserAccounts);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const { data: systemAppConfigData } = useGetSystemAppConfig();
   const accounts = data?.accounts ?? [];
-  const router = useRouter();
   const createNewTeamForm = useForm<CreateTeamFormValues>({
     mode: 'onChange',
     resolver: yupResolver(CreateTeamFormValues),
@@ -57,77 +56,12 @@ export default function AccountSwitcher(_: Props): ReactElement | null {
     },
   });
 
-  const { mutateAsync: createTeamAccountAsync } =
-    useMutation(createTeamAccount);
-  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
-    convertPersonalToTeamAccount
-  );
+  const onSubmit = useGetOnCreateTeamSubmit({
+    onDone() {
+      setShowNewTeamDialog(false);
+    },
+  });
 
-  async function onSubmit(values: CreateTeamFormValues): Promise<void> {
-    if (!account) {
-      return;
-    }
-    if (
-      values.convertPersonalToTeam &&
-      account?.type !== UserAccountType.PERSONAL
-    ) {
-      toast.error(
-        'Selected account must be personal account to issue account conversion.'
-      );
-      return;
-    }
-    try {
-      if (values.convertPersonalToTeam) {
-        const resp = await convertPersonalToTeamAccountAsync({
-          name: values.name,
-          accountId: account.id,
-        });
-        setShowNewTeamDialog(false);
-        const mutatedResp = await mutate();
-        toast.success('Successfully converted personal to team!');
-        if (resp.checkoutSessionUrl) {
-          router.push(resp.checkoutSessionUrl);
-        } else {
-          const newAcc = mutatedResp.data?.accounts.find(
-            (a) => a.name === values.name
-          );
-          if (newAcc) {
-            setAccount(newAcc);
-          } else {
-            toast.error(
-              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
-            );
-          }
-        }
-      } else {
-        const resp = await createTeamAccountAsync({
-          name: values.name,
-        });
-        setShowNewTeamDialog(false);
-        const mutatedResp = await mutate();
-        toast.success('Successfully created team!');
-        if (resp.checkoutSessionUrl) {
-          router.push(resp.checkoutSessionUrl);
-        } else {
-          const newAcc = mutatedResp.data?.accounts.find(
-            (a) => a.name === values.name
-          );
-          if (newAcc) {
-            setAccount(newAcc);
-          } else {
-            toast.error(
-              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
-            );
-          }
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Unable to create team', {
-        description: getErrorMessage(err),
-      });
-    }
-  }
   if (isLoading) {
     return <Skeleton className=" h-full w-[200px]" />;
   }
@@ -306,4 +240,93 @@ function AccountSwitcherPopover(
       </PopoverContent>
     </Popover>
   );
+}
+
+interface UseGetOnCreateTeamSubmitProps {
+  onDone?(): void;
+}
+
+export function useGetOnCreateTeamSubmit(
+  props: UseGetOnCreateTeamSubmitProps
+): (values: CreateTeamFormValues) => Promise<void> {
+  const { onDone = () => undefined } = props;
+
+  const { account, setAccount } = useAccount();
+
+  const { mutateAsync: createTeamAccountAsync } =
+    useMutation(createTeamAccount);
+  const { mutateAsync: convertPersonalToTeamAccountAsync } = useMutation(
+    convertPersonalToTeamAccount
+  );
+  const { refetch: refreshUserAccountsAsync } = useQuery(getUserAccounts);
+  const router = useRouter();
+
+  return async (values) => {
+    if (!account) {
+      return;
+    }
+    if (
+      values.convertPersonalToTeam &&
+      account?.type !== UserAccountType.PERSONAL
+    ) {
+      toast.error(
+        'Selected account must be personal account to issue account conversion.'
+      );
+      return;
+    }
+    try {
+      if (values.convertPersonalToTeam) {
+        const resp = await convertPersonalToTeamAccountAsync({
+          name: values.name,
+          accountId: account.id,
+        });
+        const mutatedResp = await refreshUserAccountsAsync();
+        toast.success('Successfully converted personal to team!');
+
+        if (resp.checkoutSessionUrl) {
+          onDone();
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
+          onDone();
+        }
+      } else {
+        const resp = await createTeamAccountAsync({
+          name: values.name,
+        });
+        const mutatedResp = await refreshUserAccountsAsync();
+        toast.success('Successfully created team!');
+        if (resp.checkoutSessionUrl) {
+          onDone();
+          router.push(resp.checkoutSessionUrl);
+        } else {
+          const newAcc = mutatedResp.data?.accounts.find(
+            (a) => a.name === values.name
+          );
+          if (newAcc) {
+            setAccount(newAcc);
+          } else {
+            toast.error(
+              'Team was created but was unable to navigate to new team. Please try refreshing the page.'
+            );
+          }
+          onDone();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to create team', {
+        description: getErrorMessage(err),
+      });
+    }
+  };
 }
