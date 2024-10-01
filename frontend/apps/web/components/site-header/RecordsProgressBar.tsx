@@ -82,10 +82,8 @@ export default function RecordsProgressBar(props: Props): ReactElement {
 }
 
 // helper fund to extract case types for metric identifiers
-
 type ExtractCase<T> = T extends { case: infer U } ? U : never;
 
-// Extraction type that pulls out all of the connection config cases
-export type MetricsIdentifierCase = NonNullable<
+type MetricsIdentifierCase = NonNullable<
   ExtractCase<GetMetricCountRequest['identifier']>
 >;
