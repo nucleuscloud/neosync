@@ -26,9 +26,12 @@ type SSHDialer struct {
 	clientmu *sync.RWMutex
 }
 
-func NewLazyDialer(addr string, cfg *ssh.ClientConfig) *SSHDialer {
-
+func NewLazySSHDialer(addr string, cfg *ssh.ClientConfig) *SSHDialer {
 	return &SSHDialer{addr: addr, cfg: cfg, clientmu: &sync.RWMutex{}}
+}
+
+func NewSSHDialer(client *ssh.Client) *SSHDialer {
+	return &SSHDialer{client: client, clientmu: &sync.RWMutex{}}
 }
 
 func (s *SSHDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
