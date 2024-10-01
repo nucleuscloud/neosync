@@ -11,6 +11,8 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	sqlmanager_mssql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mssql"
+	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
@@ -1409,4 +1411,92 @@ func Test_getPrimaryKeyDependencyMap_compositekeys(t *testing.T) {
 
 	actual := getPrimaryKeyDependencyMap(tableDependencies)
 	require.Equal(t, expected, actual)
+}
+
+func Test_buildPostTableSyncRunCtx(t *testing.T) {
+	t.Run("Empty input", func(t *testing.T) {
+		result := buildPostTableSyncRunCtx(nil, nil)
+		require.Empty(t, result, "Expected empty map for empty input")
+	})
+
+	t.Run("No statements generated", func(t *testing.T) {
+		benthosConfigs := []*BenthosConfigResponse{
+			{
+				Name:    "config1",
+				RunType: tabledependency.RunTypeUpdate,
+			},
+		}
+		destinations := []*mgmtv1alpha1.JobDestination{
+			{
+				ConnectionId: "dest1",
+				Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{},
+				},
+			},
+		}
+		result := buildPostTableSyncRunCtx(benthosConfigs, destinations)
+		require.Empty(t, result, "Expected empty map when no statements are generated")
+	})
+
+	t.Run("Statements generated for Postgres and MSSQL", func(t *testing.T) {
+		benthosConfigs := []*BenthosConfigResponse{
+			{
+				Name:    "config1",
+				RunType: tabledependency.RunTypeInsert,
+				ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
+					"col1": {NeedsReset: true, HasDefaultTransformer: false},
+				},
+				TableSchema: "public",
+				TableName:   "table1",
+			},
+			{
+				Name:    "config2",
+				RunType: tabledependency.RunTypeInsert,
+				ColumnDefaultProperties: map[string]*neosync_benthos.ColumnDefaultProperties{
+					"col1": {NeedsOverride: true},
+				},
+				TableSchema: "dbo",
+				TableName:   "table2",
+			},
+		}
+		destinations := []*mgmtv1alpha1.JobDestination{
+			{
+				ConnectionId: "pg_dest",
+				Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{},
+				},
+			},
+			{
+				ConnectionId: "mssql_dest",
+				Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_MssqlOptions{},
+				},
+			},
+		}
+
+		result := buildPostTableSyncRunCtx(benthosConfigs, destinations)
+
+		expected := map[string]*shared.PostTableSyncConfig{
+			"config1": {
+				DestinationConfigs: map[string]*shared.PostTableSyncDestConfig{
+					"pg_dest": {
+						Statements: []string{
+							sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql("public", "table1", "col1"),
+						},
+					},
+				},
+			},
+			"config2": {
+				DestinationConfigs: map[string]*shared.PostTableSyncDestConfig{
+					"mssql_dest": {
+						Statements: []string{
+							sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent("dbo", "table2"),
+						},
+					},
+				},
+			},
+		}
+
+		require.Equal(t, expected, result, "Unexpected result when statements are generated")
+	})
 }
