@@ -112,7 +112,7 @@ func (a *Activity) RunPostTableSync(
 				continue
 			}
 		default:
-			slogger.Error("unsupported destination type", "connectionId", destConnectionId)
+			slogger.Warn("unsupported destination type", "connectionId", destConnectionId)
 		}
 	}
 
