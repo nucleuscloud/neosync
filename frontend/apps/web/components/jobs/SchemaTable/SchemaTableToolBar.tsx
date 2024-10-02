@@ -82,8 +82,6 @@ export function SchemaTableToolbar<TData>({
     !hasSelectedRows ||
     !isTransformerAllowed(allowedTransformers, transformer);
 
-  console.log('form mappings,', form.getValues('mappings'));
-
   return (
     <div className="flex flex-col items-start w-full gap-2">
       <div className="flex flex-col md:flex-row justify-between pb-2 md:items-center w-full gap-3">
