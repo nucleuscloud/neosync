@@ -525,7 +525,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 		},
 	}, nil)
 	mockSqlDb.On("GetSequencesByTables", mock.Anything, mock.Anything, mock.Anything).Return([]*sqlmanager_shared.DataType{}, nil)
-	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\" RESTART IDENTITY;").Return(nil)
+	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE \"public\".\"accounts\", \"public\".\"users\" RESTART IDENTITY;").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)

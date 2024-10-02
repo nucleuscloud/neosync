@@ -120,7 +120,7 @@ func Test_BuildPgTruncateStatement(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"TRUNCATE \"public\".\"users\", \"bad name\".\"C$@111\" RESTART IDENTITY CASCADE;",
+		"TRUNCATE \"public\".\"users\", \"bad name\".\"C$@111\" RESTART IDENTITY;",
 		stmt,
 	)
 }

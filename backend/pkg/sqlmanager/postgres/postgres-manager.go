@@ -884,7 +884,7 @@ func BuildPgTruncateStatement(
 	for _, t := range tables {
 		gTables = append(gTables, goqu.S(t.Schema).Table(t.Table))
 	}
-	stmt, _, err := builder.From(gTables...).Truncate().Cascade().Identity("RESTART").ToSQL()
+	stmt, _, err := builder.From(gTables...).Truncate().Identity("RESTART").ToSQL()
 	if err != nil {
 		return "", err
 	}

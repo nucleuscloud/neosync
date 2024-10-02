@@ -642,7 +642,7 @@ func runDestinationInitStatements(
 			}
 			orderedInitStatements := []string{}
 			for _, t := range orderedTablesResp.OrderedTables {
-				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t.String()])
 			}
 
 			err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
@@ -671,7 +671,10 @@ func runDestinationInitStatements(
 			if err != nil {
 				return err
 			}
-			orderedTruncateStatement := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
+			orderedTruncateStatement, err := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
+			if err != nil {
+				return err
+			}
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
 				logger.Error("Error truncating tables:", err)
@@ -685,7 +688,7 @@ func runDestinationInitStatements(
 		}
 		orderedTableTruncateStatements := []string{}
 		for _, t := range orderedTablesResp.OrderedTables {
-			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t])
+			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t.String()])
 		}
 		disableFkChecks := sql_manager.DisableForeignKeyChecks
 		err = db.Db.BatchExec(ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
