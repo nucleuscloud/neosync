@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "mgmt/v1alpha1/transformer.proto";
+
+message AnonymizeManyRequest {
+  // Array of stringified JSON data to be transformed (up to 25 items)
+  repeated string input_data = 1 [(buf.validate.field).repeated = {
+    max_items: 25,
+  }];
+  
+  // Transformer mappings using dot notation for field paths
+  map<string, TransformerConfig> transformer_mappings = 2;
+  
+  // Optional default transformers config
+  optional map<string, DefaultTransformersConfig> default_transformers = 3;
+  
+  // Flag to indicate whether to stop processing when an error occurs
+  // true: stops on first error encounter
+  bool halt_on_failure = 4;
+}
+
+message AnonymizeManyResponse {
+  // Array of anonymized JSON data
+  repeated string output_data = 1;
+  // Array of errors that occured during anonymization
+  repeated AnonymizeManyErrors errors = 2;
+}
+
+
+message DefaultTransformersConfig {
+  // Byte
+  TransformerConfig b = 1;
+  // Boolean
+  TransformerConfig boolean = 2;
+  // Number
+  TransformerConfig n = 3;
+  // String
+  TransformerConfig s = 4;
+}
+
+message AnonymizeManyErrors {
+  // Index of input data that caused error
+  int64 input_index = 1;
+  // Field path where error occured
+  string field_path = 2;
+  // Error message
+  string error_message = 3;
+}
+
+service AnonymizationService {
+  rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}
+}
