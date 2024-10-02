@@ -97,9 +97,10 @@ export function SchemaTableToolbar<TData>({
     return (
       <div>
         <p>
-          This setting will apply the 'Passthrough' Transformer to every column
-          that is not Generated, while applying the 'Use Column Default'
-          Transformer to all Generated (non-Identity) columns.
+          This setting will apply the &apos;Passthrough&apos; Transformer to
+          every column that is not Generated, while applying the &apos;Use
+          Column Default&apos; Transformer to all Generated (non-Identity)
+          columns.
         </p>
         {hasTransformerSet && (
           <div className="mt-8">
