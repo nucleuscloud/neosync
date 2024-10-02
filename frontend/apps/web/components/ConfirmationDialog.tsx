@@ -18,7 +18,7 @@ import { Button, ButtonProps, buttonVariants } from './ui/button';
 export interface Props {
   trigger?: ReactNode;
   headerText?: string;
-  description?: string;
+  description?: string | JSX.Element;
   buttonText?: string;
   buttonVariant?: ButtonProps['variant'] | null | undefined;
   buttonIcon?: ReactNode;
