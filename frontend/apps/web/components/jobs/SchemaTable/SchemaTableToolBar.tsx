@@ -25,7 +25,6 @@ import {
 } from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
-  DEFAULT_TRANSFORMER_FORM_VALUES,
   DefaultTransformerFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
@@ -94,7 +93,7 @@ export function SchemaTableToolbar<TData>({
     !isTransformerAllowed(allowedTransformers, transformer);
 
   const defaultTransformerForm = useForm<DefaultTransformerFormValues>({
-    resolver: yupResolver(DEFAULT_TRANSFORMER_FORM_VALUES),
+    resolver: yupResolver(DefaultTransformerFormValues),
     defaultValues: {
       overrideTransformers: false,
     },
