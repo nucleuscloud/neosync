@@ -68,11 +68,6 @@ export function SchemaTableToolbar<TData>({
     (value) => value
   );
 
-  const [
-    confirmTransformerOverwriteWithDefault,
-    setConfirmTransformerOverwriteWithDefault,
-  ] = useState<boolean>(false);
-
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>(
       convertJobMappingTransformerToForm(new JobMappingTransformer())

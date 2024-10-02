@@ -19,7 +19,7 @@ export interface Props {
   trigger?: ReactNode;
   headerText?: string;
   description?: string;
-  body: JSX.Element;
+  body?: JSX.Element;
   buttonText?: string;
   buttonVariant?: ButtonProps['variant'] | null | undefined;
   buttonIcon?: ReactNode;
