@@ -260,8 +260,14 @@ func (m *Manager) Close() {
 
 func BuildMssqlDeleteStatement(
 	schema, table string,
-) string {
-	return fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table)
+) (string, error) {
+	dialect := goqu.Dialect("sqlserver")
+	ds := dialect.Delete(goqu.S(schema).Table(table))
+	sql, _, err := ds.ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return sql + ";", nil
 }
 
 // Resets current identity value back to the initial count

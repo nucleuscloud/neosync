@@ -872,17 +872,30 @@ func (p *PostgresManager) GetTableRowCount(
 	return count, err
 }
 
+func getGoquDialect() goqu.DialectWrapper {
+	return goqu.Dialect("postgres")
+}
+
 func BuildPgTruncateStatement(
-	tables []string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY;", strings.Join(tables, ", "))
+	tables []*sqlmanager_shared.SchemaTable,
+) (string, error) {
+	builder := getGoquDialect()
+	gTables := []any{}
+	for _, t := range tables {
+		gTables = append(gTables, goqu.S(t.Schema).Table(t.Table))
+	}
+	stmt, _, err := builder.From(gTables...).Truncate().Identity("RESTART").ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s;", stmt), nil
 }
 
 func BuildPgTruncateCascadeStatement(
 	schema string,
 	table string,
 ) (string, error) {
-	builder := goqu.Dialect("postgres")
+	builder := getGoquDialect()
 	sqltable := goqu.S(schema).Table(table)
 	stmt, _, err := builder.From(sqltable).Truncate().Cascade().Identity("RESTART").ToSQL()
 	if err != nil {

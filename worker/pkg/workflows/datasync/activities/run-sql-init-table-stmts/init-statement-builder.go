@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -187,13 +186,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 
-				orderedTableTruncate := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					schema, table := sqlmanager_shared.SplitTableKey(table)
-					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, schema, table))
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTablesResp.OrderedTables)))
+				truncateStmt, err := sqlmanager_postgres.BuildPgTruncateStatement(orderedTablesResp.OrderedTables)
+				if err != nil {
+					slogger.Error(fmt.Sprint("unable to build postgres truncate statement: %w", err))
+					return nil, err
 				}
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-				truncateStmt := sqlmanager_postgres.BuildPgTruncateStatement(orderedTableTruncate)
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
 					destdb.Db.Close()
@@ -297,9 +295,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				orderedTableDelete := []string{}
-				for _, table := range orderedTablesResp.OrderedTables {
-					schema, table := sqlmanager_shared.SplitTableKey(table)
-					orderedTableDelete = append(orderedTableDelete, sqlmanager_mssql.BuildMssqlDeleteStatement(schema, table))
+				for _, st := range orderedTablesResp.OrderedTables {
+					stmt, err := sqlmanager_mssql.BuildMssqlDeleteStatement(st.Schema, st.Table)
+					if err != nil {
+						return nil, err
+					}
+					orderedTableDelete = append(orderedTableDelete, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will delete from tables", len(orderedTableDelete)))
 				err = destdb.Db.BatchExec(ctx, 10, orderedTableDelete, &sqlmanager_shared.BatchExecOpts{})
@@ -317,7 +318,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				identityStmts := []string{}
 				for table, cols := range schemaColMap {
-					if !slices.Contains(orderedTablesResp.OrderedTables, table) {
+					if _, ok := uniqueTables[table]; !ok {
 						continue
 					}
 					for _, c := range cols {

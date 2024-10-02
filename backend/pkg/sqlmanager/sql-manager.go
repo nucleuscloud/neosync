@@ -311,7 +311,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 ) (*SqlConnection, error) {
 	var db SqlDatabase
 	switch driver {
-	case sqlmanager_shared.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver, "postgres":
 		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
 		if err != nil {
 			return nil, err
