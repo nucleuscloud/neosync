@@ -12,6 +12,8 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
@@ -63,7 +65,16 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						return nil, nil, err
 					}
 					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					return postgrestunconnector.New(dialer, dsn)
+					connector, cleanup, err := postgrestunconnector.New(dialer, dsn)
+					if err != nil {
+						return nil, nil, err
+					}
+					return connector, func() {
+						cleanup()
+						if err := dialer.Close(); err != nil {
+							logger.Error(err.Error())
+						}
+					}, nil
 				},
 			), nil
 		} else {
@@ -84,7 +95,16 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						return nil, nil, err
 					}
 					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					return mysqltunconnector.New(dialer, dsn)
+					connector, cleanup, err := mysqltunconnector.New(dialer, dsn)
+					if err != nil {
+						return nil, nil, err
+					}
+					return connector, func() {
+						cleanup()
+						if err := dialer.Close(); err != nil {
+							logger.Error(err.Error())
+						}
+					}, nil
 				},
 			), nil
 		}
@@ -104,7 +124,16 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						return nil, nil, err
 					}
 					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					return mssqltunconnector.New(dialer, dsn)
+					connector, cleanup, err := mssqltunconnector.New(dialer, dsn)
+					if err != nil {
+						return nil, nil, err
+					}
+					return connector, func() {
+						cleanup()
+						if err := dialer.Close(); err != nil {
+							logger.Error(err.Error())
+						}
+					}, nil
 				},
 			), nil
 		}
@@ -246,64 +275,64 @@ type ClientCertConfig struct {
 
 // Method for retrieving connection details, including tunneling information.
 // // Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
-// func getConnectionDetails(
-// 	c *mgmtv1alpha1.ConnectionConfig,
-// 	connectionTimeout *uint32,
-// 	handleClientTlsConfig clienttls.ClientTlsFileHandler,
-// 	logger *slog.Logger,
-// ) (*ConnectionDetails, error) {
-// 	if c == nil {
-// 		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
-// 	}
-// 	switch config := c.Config.(type) {
-// 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-// 		var maxConnLimit *int32
-// 		if config.PgConfig.ConnectionOptions != nil {
-// 			maxConnLimit = config.PgConfig.ConnectionOptions.MaxConnectionLimit
-// 		}
-// 		if config.PgConfig.GetClientTls() != nil {
-// 			_, err := handleClientTlsConfig(config.PgConfig.GetClientTls())
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 		}
+func GetConnectionDetails(
+	c *mgmtv1alpha1.ConnectionConfig,
+	connectionTimeout *uint32,
+	handleClientTlsConfig clienttls.ClientTlsFileHandler,
+	logger *slog.Logger,
+) (*ConnectionDetails, error) {
+	if c == nil {
+		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
+	switch config := c.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		var maxConnLimit *int32
+		if config.PgConfig.ConnectionOptions != nil {
+			maxConnLimit = config.PgConfig.ConnectionOptions.MaxConnectionLimit
+		}
+		if config.PgConfig.GetClientTls() != nil {
+			_, err := handleClientTlsConfig(config.PgConfig.GetClientTls())
+			if err != nil {
+				return nil, err
+			}
+		}
 
-// 		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return &ConnectionDetails{
-// 			GeneralDbConnectConfig: *connDetails,
-// 			MaxConnectionLimit:     maxConnLimit,
-// 		}, nil
-// 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-// 		var maxConnLimit *int32
-// 		if config.MysqlConfig.ConnectionOptions != nil {
-// 			maxConnLimit = config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
-// 		}
+		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
+		return &ConnectionDetails{
+			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		var maxConnLimit *int32
+		if config.MysqlConfig.ConnectionOptions != nil {
+			maxConnLimit = config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
+		}
 
-// 		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return &ConnectionDetails{
-// 			GeneralDbConnectConfig: *connDetails,
-// 			MaxConnectionLimit:     maxConnLimit,
-// 		}, nil
-// 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-// 		var maxConnLimit *int32
-// 		if config.MssqlConfig.GetConnectionOptions() != nil {
-// 			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
-// 		}
-// 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("unable to compile connection details for mssql connection: %w", err)
-// 		}
-// 		return &ConnectionDetails{
-// 			GeneralDbConnectConfig: *connDetails,
-// 			MaxConnectionLimit:     maxConnLimit,
-// 		}, nil
-// 	default:
-// 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config (%T) is not currently supported", config))
-// 	}
-// }
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
+		return &ConnectionDetails{
+			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
+		}, nil
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		var maxConnLimit *int32
+		if config.MssqlConfig.GetConnectionOptions() != nil {
+			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
+		}
+		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
+		if err != nil {
+			return nil, fmt.Errorf("unable to compile connection details for mssql connection: %w", err)
+		}
+		return &ConnectionDetails{
+			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
+		}, nil
+	default:
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config (%T) is not currently supported", config))
+	}
+}
