@@ -2,6 +2,7 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -285,6 +286,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		outputConfigs = responses
 	}
 
+	postTableSyncRunCtx := buildPostTableSyncRunCtx(outputConfigs, job.Destinations)
+	err = b.setPostTableSyncRunCtx(ctx, postTableSyncRunCtx, job.GetAccountId())
+	if err != nil {
+		return nil, fmt.Errorf("unable to set all run contexts for post table sync configs: %w", err)
+	}
+
 	outputConfigs, err = b.setRunContexts(ctx, outputConfigs, job.GetAccountId())
 	if err != nil {
 		return nil, fmt.Errorf("unable to set all run contexts for benthos configs: %w", err)
@@ -371,6 +378,65 @@ func (b *benthosBuilder) setRunContexts(
 		return nil, fmt.Errorf("unable to receive response from benthos runcontext request: %w", err)
 	}
 	return responses, nil
+}
+
+func buildPostTableSyncRunCtx(benthosConfigs []*BenthosConfigResponse, destinations []*mgmtv1alpha1.JobDestination) map[string]*shared.PostTableSyncConfig {
+	postTableSyncRunCtx := map[string]*shared.PostTableSyncConfig{} // benthos_config_name -> config
+	for _, bc := range benthosConfigs {
+		destConfigs := map[string]*shared.PostTableSyncDestConfig{}
+		for _, destination := range destinations {
+			var stmts []string
+			switch destination.GetOptions().GetConfig().(type) {
+			case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+				stmts = buildPgPostTableSyncStatement(bc)
+			case *mgmtv1alpha1.JobDestinationOptions_MssqlOptions:
+				stmts = buildMssqlPostTableSyncStatement(bc)
+			}
+			if len(stmts) != 0 {
+				destConfigs[destination.GetConnectionId()] = &shared.PostTableSyncDestConfig{
+					Statements: stmts,
+				}
+			}
+		}
+		if len(destConfigs) != 0 {
+			postTableSyncRunCtx[bc.Name] = &shared.PostTableSyncConfig{
+				DestinationConfigs: destConfigs,
+			}
+		}
+	}
+	return postTableSyncRunCtx
+}
+
+func (b *benthosBuilder) setPostTableSyncRunCtx(
+	ctx context.Context,
+	postSyncConfigs map[string]*shared.PostTableSyncConfig,
+	accountId string,
+) error {
+	rcstream := b.jobclient.SetRunContexts(ctx)
+
+	for name, config := range postSyncConfigs {
+		bits, err := json.Marshal(config)
+		if err != nil {
+			return fmt.Errorf("failed to marshal post table sync config: %w", err)
+		}
+		err = rcstream.Send(&mgmtv1alpha1.SetRunContextsRequest{
+			Id: &mgmtv1alpha1.RunContextKey{
+				JobRunId:   b.workflowId,
+				ExternalId: shared.GetPostTableSyncConfigExternalId(name),
+				AccountId:  accountId,
+			},
+			Value: bits,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to send post table sync run context: %w", err)
+		}
+	}
+
+	_, err := rcstream.CloseAndReceive()
+	if err != nil {
+		return fmt.Errorf("unable to receive response from post table sync runcontext request: %w", err)
+	}
+	return nil
 }
 
 func isOnlyBucketDestinations(destinations []*mgmtv1alpha1.JobDestination) bool {

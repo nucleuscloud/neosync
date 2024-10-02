@@ -130,7 +130,7 @@ func Test_BuildPgTruncateCascadeStatement(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		"TRUNCATE \"public\".\"users\" CASCADE;",
+		"TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;",
 		actual,
 	)
 }

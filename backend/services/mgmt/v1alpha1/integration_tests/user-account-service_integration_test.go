@@ -36,10 +36,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfi
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
 
-	require.False(s.T(), onboardingConfig.GetHasCreatedSourceConnection())
-	require.False(s.T(), onboardingConfig.GetHasCreatedDestinationConnection())
-	require.False(s.T(), onboardingConfig.GetHasCreatedJob())
-	require.False(s.T(), onboardingConfig.GetHasInvitedMembers())
+	require.False(s.T(), onboardingConfig.GetHasCompletedOnboarding())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig_NoAccount() {
@@ -62,10 +59,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
 
-	require.False(s.T(), onboardingConfig.GetHasCreatedSourceConnection())
-	require.False(s.T(), onboardingConfig.GetHasCreatedDestinationConnection())
-	require.False(s.T(), onboardingConfig.GetHasCreatedJob())
-	require.False(s.T(), onboardingConfig.GetHasInvitedMembers())
+	require.False(s.T(), onboardingConfig.GetHasCompletedOnboarding())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig() {
@@ -73,10 +67,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 
 	resp, err := s.unauthdClients.users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountOnboardingConfig{
-			HasCreatedSourceConnection:      true,
-			HasCreatedDestinationConnection: true,
-			HasCreatedJob:                   true,
-			HasInvitedMembers:               true,
+			HasCompletedOnboarding: true,
 		}},
 	))
 	requireNoErrResp(s.T(), resp, err)
@@ -84,10 +75,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
 
-	require.True(s.T(), onboardingConfig.GetHasCreatedSourceConnection())
-	require.True(s.T(), onboardingConfig.GetHasCreatedDestinationConnection())
-	require.True(s.T(), onboardingConfig.GetHasCreatedJob())
-	require.True(s.T(), onboardingConfig.GetHasInvitedMembers())
+	require.True(s.T(), onboardingConfig.GetHasCompletedOnboarding())
 }
 
 var (

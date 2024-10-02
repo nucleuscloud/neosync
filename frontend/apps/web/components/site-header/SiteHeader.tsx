@@ -13,6 +13,7 @@ import {
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import SupportDrawer from '../SupportDrawer';
+import AccountsRecordProgress from './AccountsRecordProgress';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
@@ -23,18 +24,20 @@ import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
+
   return (
     <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur">
       <div className="container flex h-14 items-center">
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
+          {systemAppConfig.isNeosyncCloud && <AccountsRecordProgress />}
           <Upgrade
             calendlyLink={systemAppConfig.calendlyUpgradeLink}
             isNeosyncCloud={systemAppConfig.isNeosyncCloud}
           />
-          <SupportSheet />
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
+          <SupportSheet />
           <ModeToggle />
           <UserNav />
         </div>

@@ -1711,24 +1711,37 @@ export class SetAccountOnboardingConfigResponse extends Message<SetAccountOnboar
  */
 export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
   /**
+   * @deprecated - use has_completed_onboarding
+   *
    * @generated from field: bool has_created_source_connection = 1;
    */
   hasCreatedSourceConnection = false;
 
   /**
+   * @deprecated - use has_completed_onboarding
+   *
    * @generated from field: bool has_created_destination_connection = 2;
    */
   hasCreatedDestinationConnection = false;
 
   /**
+   * @deprecated - use has_completed_onboarding
+   *
    * @generated from field: bool has_created_job = 3;
    */
   hasCreatedJob = false;
 
   /**
+   * @deprecated - use has_completed_onboarding
+   *
    * @generated from field: bool has_invited_members = 4;
    */
   hasInvitedMembers = false;
+
+  /**
+   * @generated from field: bool has_completed_onboarding = 5;
+   */
+  hasCompletedOnboarding = false;
 
   constructor(data?: PartialMessage<AccountOnboardingConfig>) {
     super();
@@ -1742,6 +1755,7 @@ export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
     { no: 2, name: "has_created_destination_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "has_created_job", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 4, name: "has_invited_members", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "has_completed_onboarding", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountOnboardingConfig {
