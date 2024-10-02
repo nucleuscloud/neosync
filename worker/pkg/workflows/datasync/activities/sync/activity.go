@@ -16,7 +16,6 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
 	_ "github.com/warpstreamlabs/bento/public/components/redis"
-	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
