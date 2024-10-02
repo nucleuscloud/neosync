@@ -1,20 +1,49 @@
 package sqlprovider
 
 import (
+	"log/slog"
+
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
-type Provider struct{}
+type Provider struct {
+	connector sqlconnect.SqlConnector
+}
 
-func NewProvider() *Provider {
-	return &Provider{}
+func NewProvider(
+	sqlconnector sqlconnect.SqlConnector,
+) *Provider {
+	return &Provider{connector: sqlconnector}
 }
 
 var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
 
-func (p *Provider) GetConnectionClient(c *mgmtv1alpha1.ConnectionConfig) (neosync_benthos_sql.SqlDbtx, error) {
+type sqlDbtxWrapper struct {
+	sqlconnect.SqlDBTX
+	close func() error
+}
+
+func (s *sqlDbtxWrapper) Close() error {
+	return s.close()
+}
+
+func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig) (neosync_benthos_sql.SqlDbtx, error) {
+	container, err := p.connector.NewDbFromConnectionConfig(cc, nil, slog.Default())
+	if err != nil {
+		return nil, err
+	}
+	dbtx, err := container.Open()
+	if err != nil {
+		return nil, err
+	}
+	return &sqlDbtxWrapper{SqlDBTX: dbtx, close: func() error {
+		return container.Close()
+	}}, nil
+
+	// todo: set max open connections
 	// todo: this needs to now open the tunnel
 	// db, err := sql.Open(driver, connectionString)
 	// if err != nil {

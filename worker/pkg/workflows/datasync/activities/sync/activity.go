@@ -20,6 +20,7 @@ import (
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
@@ -65,6 +66,7 @@ type SyncResponse struct {
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
+	sqlconnector sqlconnect.SqlConnector,
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
 	meter metric.Meter,
@@ -74,6 +76,7 @@ func New(
 	return &Activity{
 		connclient:           connclient,
 		jobclient:            jobclient,
+		sqlconnector:         sqlconnector,
 		tunnelmanagermap:     tunnelmanagermap,
 		temporalclient:       temporalclient,
 		meter:                meter,
@@ -83,6 +86,7 @@ func New(
 }
 
 type Activity struct {
+	sqlconnector         sqlconnect.SqlConnector
 	connclient           mgmtv1alpha1connect.ConnectionServiceClient
 	jobclient            mgmtv1alpha1connect.JobServiceClient
 	tunnelmanagermap     *sync.Map
@@ -95,7 +99,7 @@ type Activity struct {
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
 		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(),
+		sqlprovider.NewProvider(a.sqlconnector),
 	)
 	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any](connectionProvider))
 	manager, ok := val.(connectiontunnelmanager.Interface[any])
