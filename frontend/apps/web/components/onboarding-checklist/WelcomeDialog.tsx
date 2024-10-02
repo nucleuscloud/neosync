@@ -174,10 +174,10 @@ export default function WelcomeDialog(): ReactElement {
   }
 
   useEffect(() => {
-    if (!isLoading && !error && data) {
+    if (!isLoading && !error && !isValidating && data) {
       setShowGuide(!data.config?.hasCompletedOnboarding);
     }
-  }, [isLoading, error, data]);
+  }, [isLoading, isValidating, error, data]);
 
   if (!showGuide) {
     return <></>;
