@@ -9,6 +9,13 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 import FormErrorMessage from '@/components/FormErrorMessage';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
 import { cn } from '@/libs/utils';
 import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
@@ -18,9 +25,12 @@ import {
 } from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
+  DEFAULT_TRANSFORMER_FORM_VALUES,
+  DefaultTransformerFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GenerateDefault,
   JobMappingTransformer,
@@ -32,7 +42,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useForm, useFormContext } from 'react-hook-form';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -88,37 +98,42 @@ export function SchemaTableToolbar<TData>({
     !hasSelectedRows ||
     !isTransformerAllowed(allowedTransformers, transformer);
 
-  const handleAlertDescriptionBody = (): JSX.Element => {
-    const mappings = form.getValues('mappings');
-    const hasTransformerSet = mappings.some(
-      (item) => item.transformer.source !== TransformerSource.UNSPECIFIED
-    );
+  const defaultTransformerForm = useForm<DefaultTransformerFormValues>({
+    resolver: yupResolver(DEFAULT_TRANSFORMER_FORM_VALUES),
+    defaultValues: {
+      overrideTransformers: false,
+    },
+  });
 
+  const handleAlertDescriptionBody = (): JSX.Element => {
     return (
       <div>
-        <p>
-          This setting will apply the &apos;Passthrough&apos; Transformer to
-          every column that is not Generated, while applying the &apos;Use
-          Column Default&apos; Transformer to all Generated (non-Identity)
-          columns.
-        </p>
-        {hasTransformerSet && (
-          <div className="mt-8">
-            <SwitchCard
-              isChecked={confirmTransformerOverwriteWithDefault}
-              onCheckedChange={() =>
-                setConfirmTransformerOverwriteWithDefault((prev) => !prev)
-              }
-              containerClassName="border-orange-500 dark:border-orange-500"
-              titleClassName="text-orange-500"
-              title={'Heads up!'}
-              description="Do you want to overwrite the Transformers you have already mapped."
+        <Form {...form}>
+          <form className="space-y-8">
+            <FormField
+              control={defaultTransformerForm.control}
+              name="overrideTransformers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value}
+                      onCheckedChange={field.onChange}
+                      title="Override Mapped Transformers"
+                      description="Do you want to overwrite the Transformers you have already mapped."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        )}
+          </form>
+        </Form>
       </div>
     );
   };
+
+  console.log('defaultTranformerMapping', defaultTransformerForm.getValues());
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -210,14 +225,18 @@ export function SchemaTableToolbar<TData>({
                 </Button>
               }
               headerText="Apply Default Transformers?"
-              description={handleAlertDescriptionBody()}
+              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated (non-Identity)columns."
+              body={handleAlertDescriptionBody()}
+              containerClassName="max-w-xl"
               onConfirm={() => {
                 const formMappings = form.getValues('mappings');
+                const defaultTransformerValues =
+                  defaultTransformerForm.getValues();
                 formMappings.forEach((fm, idx) => {
                   // skips setting the default transformer if the user has already set the transformer
                   if (
                     fm.transformer.source != 0 &&
-                    !confirmTransformerOverwriteWithDefault
+                    !defaultTransformerValues.overrideTransformers
                   ) {
                     return;
                   } else {

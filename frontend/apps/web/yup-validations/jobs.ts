@@ -274,3 +274,11 @@ export const DataSyncSourceFormValues = SourceFormValues.concat(
 export type DataSyncSourceFormValues = Yup.InferType<
   typeof DataSyncSourceFormValues
 >;
+
+export const DEFAULT_TRANSFORMER_FORM_VALUES = Yup.object({
+  overrideTransformers: Yup.boolean().default(false),
+});
+
+export type DefaultTransformerFormValues = Yup.InferType<
+  typeof DEFAULT_TRANSFORMER_FORM_VALUES
+>;
