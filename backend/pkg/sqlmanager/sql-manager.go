@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -119,15 +120,11 @@ func (s *SqlManager) NewPooledSqlDb(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var closer func()
 		if _, ok := s.pgpool.Load(connection.Id); !ok {
-			pgconfig := connection.ConnectionConfig.GetPgConfig()
-			if pgconfig == nil {
-				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
-			}
-			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
+			pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
-			pool, err := pgconn.Open(ctx)
+			pool, err := pgconn.Open()
 			if err != nil {
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
@@ -245,11 +242,11 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection is not a postgres config")
 		}
-		pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, connTimeout, slogger)
+		pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 		}
-		pool, err := pgconn.Open(ctx)
+		pool, err := pgconn.Open()
 		if err != nil {
 			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 		}
@@ -325,7 +322,8 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		if err != nil {
 			return nil, err
 		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pgconn, func() {
+		pgpool := stdlib.OpenDBFromPool(pgconn)
+		db = sqlmanager_postgres.NewManager(s.pgquerier, pgpool, func() {
 			if pgconn != nil {
 				pgconn.Close()
 			}

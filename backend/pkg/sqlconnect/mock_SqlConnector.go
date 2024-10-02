@@ -82,66 +82,6 @@ func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) RunAndReturn(run func
 	return _c
 }
 
-// NewPgPoolFromConnectionConfig provides a mock function with given fields: pgconfig, connectionTimeout, logger
-func (_m *MockSqlConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
-	ret := _m.Called(pgconfig, connectionTimeout, logger)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NewPgPoolFromConnectionConfig")
-	}
-
-	var r0 PgPoolContainer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (PgPoolContainer, error)); ok {
-		return rf(pgconfig, connectionTimeout, logger)
-	}
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) PgPoolContainer); ok {
-		r0 = rf(pgconfig, connectionTimeout, logger)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(PgPoolContainer)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) error); ok {
-		r1 = rf(pgconfig, connectionTimeout, logger)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockSqlConnector_NewPgPoolFromConnectionConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewPgPoolFromConnectionConfig'
-type MockSqlConnector_NewPgPoolFromConnectionConfig_Call struct {
-	*mock.Call
-}
-
-// NewPgPoolFromConnectionConfig is a helper method to define mock.On call
-//   - pgconfig *mgmtv1alpha1.PostgresConnectionConfig
-//   - connectionTimeout *uint32
-//   - logger *slog.Logger
-func (_e *MockSqlConnector_Expecter) NewPgPoolFromConnectionConfig(pgconfig interface{}, connectionTimeout interface{}, logger interface{}) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
-	return &MockSqlConnector_NewPgPoolFromConnectionConfig_Call{Call: _e.mock.On("NewPgPoolFromConnectionConfig", pgconfig, connectionTimeout, logger)}
-}
-
-func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) Run(run func(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger)) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*mgmtv1alpha1.PostgresConnectionConfig), args[1].(*uint32), args[2].(*slog.Logger))
-	})
-	return _c
-}
-
-func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) Return(_a0 PgPoolContainer, _a1 error) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (PgPoolContainer, error)) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewMockSqlConnector creates a new instance of MockSqlConnector. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockSqlConnector(t interface {

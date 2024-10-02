@@ -51,9 +51,9 @@ func Test_CheckConnectionConfig_Postgres(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	pool, _ := pgxpool.New(context.Background(), "")
-	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
-	m.PgPoolContainerMock.On("Close")
-	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+	m.SqlDbContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.SqlDbContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	m.PgQuerierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetPostgresRolePermissionsRow{
@@ -674,7 +674,6 @@ type serviceMocks struct {
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
-	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQuerierMock          *pg_queries.MockQuerier
 	MssqlQuerierMock       *mssql_queries.MockQuerier
 	MysqlQuerierMock       *mysql_queries.MockQuerier
@@ -709,7 +708,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
-		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 		PgQuerierMock:          mockPgquerier,
 		MysqlQuerierMock:       mockMysqlquerier,
 		MongoConnectorMock:     mockMongoConnector,

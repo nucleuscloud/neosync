@@ -30,7 +30,7 @@ sql:
               package: pg_models
               type: VirtualForeignConstraint
               pointer: true
-              slice: true 
+              slice: true
           - column: neosync_api.jobs.connection_options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
@@ -93,7 +93,7 @@ sql:
       go:
         package: "pg_queries"
         out: "gen/go/db/dbschemas/postgresql"
-        sql_package: "pgx/v5"
+        # sql_package: "pgx/v5"
         emit_interface: true
         emit_methods_with_db_argument: true
         emit_result_struct_pointers: true

@@ -17,16 +17,16 @@ import (
 
 type PostgresManager struct {
 	querier pg_queries.Querier
-	pool    pg_queries.DBTX
+	db      pg_queries.DBTX
 	close   func()
 }
 
-func NewManager(querier pg_queries.Querier, pool pg_queries.DBTX, closer func()) *PostgresManager {
-	return &PostgresManager{querier: querier, pool: pool, close: closer}
+func NewManager(querier pg_queries.Querier, db pg_queries.DBTX, closer func()) *PostgresManager {
+	return &PostgresManager{querier: querier, db: db, close: closer}
 }
 
 func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_shared.DatabaseSchemaRow, error) {
-	dbSchemas, err := p.querier.GetDatabaseSchema(ctx, p.pool)
+	dbSchemas, err := p.querier.GetDatabaseSchema(ctx, p.db)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -77,7 +77,7 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 	if len(schemas) == 0 {
 		return &sqlmanager_shared.TableConstraints{}, nil
 	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
+	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.db, schemas)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -124,7 +124,7 @@ func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schem
 }
 
 func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context) (map[string][]string, error) {
-	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.pool)
+	rows, err := p.querier.GetPostgresRolePermissions(ctx, p.db)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -146,7 +146,7 @@ func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, t
 
 	var tableSchemas []*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow
 	errgrp.Go(func() error {
-		result, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.pool, []string{schematable.String()})
+		result, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.db, []string{schematable.String()})
 		if err != nil {
 			return fmt.Errorf("unable to generate database table schema: %w", err)
 		}
@@ -155,7 +155,7 @@ func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, t
 	})
 	var tableConstraints []*pg_queries.GetTableConstraintsRow
 	errgrp.Go(func() error {
-		result, err := p.querier.GetTableConstraints(errctx, p.pool, &pg_queries.GetTableConstraintsParams{
+		result, err := p.querier.GetTableConstraints(errctx, p.db, &pg_queries.GetTableConstraintsParams{
 			Schema: schema,
 			Table:  table,
 		})
@@ -187,7 +187,7 @@ func (p *PostgresManager) GetSchemaTableTriggers(ctx context.Context, tables []*
 		combined = append(combined, t.String())
 	}
 
-	rows, err := p.querier.GetCustomTriggersBySchemaAndTables(ctx, p.pool, combined)
+	rows, err := p.querier.GetCustomTriggersBySchemaAndTables(ctx, p.db, combined)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
@@ -267,8 +267,8 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 	return output, nil
 }
 
-func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
-	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
+func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
 	})
@@ -290,7 +290,7 @@ func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema strin
 }
 
 func (p *PostgresManager) getFunctionsByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
-	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
+	rows, err := p.querier.GetCustomFunctionsBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomFunctionsBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
 	})
@@ -318,7 +318,7 @@ type datatypes struct {
 }
 
 func (p *PostgresManager) getDataTypesByTables(ctx context.Context, schema string, tables []string) (*datatypes, error) {
-	rows, err := p.querier.GetDataTypesBySchemaAndTables(ctx, p.pool, &pg_queries.GetDataTypesBySchemaAndTablesParams{
+	rows, err := p.querier.GetDataTypesBySchemaAndTables(ctx, p.db, &pg_queries.GetDataTypesBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
 	})
@@ -368,7 +368,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 
 	colDefMap := map[string][]*pg_queries.GetDatabaseTableSchemasBySchemasAndTablesRow{}
 	errgrp.Go(func() error {
-		columnDefs, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.pool, combined)
+		columnDefs, err := p.querier.GetDatabaseTableSchemasBySchemasAndTables(errctx, p.db, combined)
 		if err != nil {
 			return err
 		}
@@ -381,7 +381,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 
 	constraintmap := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
 	errgrp.Go(func() error {
-		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.pool, schemas) // todo: update this to only grab what is necessary instead of entire schema
+		constraints, err := p.querier.GetTableConstraintsBySchema(errctx, p.db, schemas) // todo: update this to only grab what is necessary instead of entire schema
 		if err != nil {
 			return err
 		}
@@ -394,7 +394,7 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 
 	indexmap := map[string][]string{}
 	errgrp.Go(func() error {
-		idxrecords, err := p.querier.GetIndicesBySchemasAndTables(errctx, p.pool, combined)
+		idxrecords, err := p.querier.GetIndicesBySchemasAndTables(errctx, p.db, combined)
 		if err != nil {
 			return err
 		}
@@ -421,15 +421,15 @@ func (p *PostgresManager) GetTableInitStatements(ctx context.Context, tables []*
 		for _, record := range tableData {
 			record := record
 			var seqConfig *SequenceConfiguration
-			if record.IdentityGeneration != "" && record.SeqStartValue != nil && record.SeqMinValue != nil &&
-				record.SeqMaxValue != nil && record.SeqIncrementBy != nil && record.SeqCycleOption != nil && record.SeqCacheValue != nil {
+			if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
+				record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
 				seqConfig = &SequenceConfiguration{
-					StartValue:  *record.SeqStartValue,
-					MinValue:    *record.SeqMinValue,
-					MaxValue:    *record.SeqMaxValue,
-					IncrementBy: *record.SeqIncrementBy,
-					CycleOption: *record.SeqCycleOption,
-					CacheValue:  *record.SeqCacheValue,
+					StartValue:  record.SeqStartValue.Int64,
+					MinValue:    record.SeqMinValue.Int64,
+					MaxValue:    record.SeqMaxValue.Int64,
+					IncrementBy: record.SeqIncrementBy.Int64,
+					CycleOption: record.SeqCycleOption.Bool,
+					CacheValue:  record.SeqCacheValue.Int64,
 				}
 			}
 			columns = append(columns, buildTableCol(&buildTableColRequest{
@@ -707,15 +707,15 @@ func generateCreateTableStatement(
 	for idx := range tableSchemas {
 		record := tableSchemas[idx]
 		var seqConfig *SequenceConfiguration
-		if record.IdentityGeneration != "" && record.SeqStartValue != nil && record.SeqMinValue != nil &&
-			record.SeqMaxValue != nil && record.SeqIncrementBy != nil && record.SeqCycleOption != nil && record.SeqCacheValue != nil {
+		if record.IdentityGeneration != "" && record.SeqStartValue.Valid && record.SeqMinValue.Valid &&
+			record.SeqMaxValue.Valid && record.SeqIncrementBy.Valid && record.SeqCycleOption.Valid && record.SeqCacheValue.Valid {
 			seqConfig = &SequenceConfiguration{
-				StartValue:  *record.SeqStartValue,
-				MinValue:    *record.SeqMinValue,
-				MaxValue:    *record.SeqMaxValue,
-				IncrementBy: *record.SeqIncrementBy,
-				CycleOption: *record.SeqCycleOption,
-				CacheValue:  *record.SeqCacheValue,
+				StartValue:  record.SeqStartValue.Int64,
+				MinValue:    record.SeqMinValue.Int64,
+				MaxValue:    record.SeqMaxValue.Int64,
+				IncrementBy: record.SeqIncrementBy.Int64,
+				CycleOption: record.SeqCycleOption.Bool,
+				CacheValue:  record.SeqCacheValue.Int64,
 			}
 		}
 		columns[idx] = buildTableCol(&buildTableColRequest{
@@ -825,7 +825,7 @@ func (p *PostgresManager) BatchExec(ctx context.Context, batchSize int, statemen
 			batchCmd = fmt.Sprintf("%s %s", *opts.Prefix, batchCmd)
 		}
 
-		_, err := p.pool.Exec(ctx, batchCmd)
+		_, err := p.db.ExecContext(ctx, batchCmd)
 		if err != nil {
 			return err
 		}
@@ -834,7 +834,7 @@ func (p *PostgresManager) BatchExec(ctx context.Context, batchSize int, statemen
 }
 
 func (p *PostgresManager) Exec(ctx context.Context, statement string) error {
-	_, err := p.pool.Exec(ctx, statement)
+	_, err := p.db.ExecContext(ctx, statement)
 	if err != nil {
 		return err
 	}
@@ -842,7 +842,7 @@ func (p *PostgresManager) Exec(ctx context.Context, statement string) error {
 }
 
 func (p *PostgresManager) Close() {
-	if p.pool != nil && p.close != nil {
+	if p.db != nil && p.close != nil {
 		p.close()
 	}
 }
@@ -865,7 +865,7 @@ func (p *PostgresManager) GetTableRowCount(
 		return 0, err
 	}
 	var count int64
-	err = p.pool.QueryRow(ctx, sql).Scan(&count)
+	err = p.db.QueryRowContext(ctx, sql).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

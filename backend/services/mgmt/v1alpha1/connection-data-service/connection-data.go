@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	dynamotypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -148,11 +147,11 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &connectionTimeout, logger)
 		if err != nil {
 			return err
 		}
-		db, err := conn.Open(ctx)
+		db, err := conn.Open()
 		if err != nil {
 			return err
 		}
@@ -164,65 +163,41 @@ func (s *Service) GetConnectionDataStream(
 		if err != nil {
 			return err
 		}
-		r, err := db.Query(ctx, query)
+		r, err := db.QueryContext(ctx, query)
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer r.Close()
 
-		columnNames := []string{}
-		for _, col := range r.FieldDescriptions() {
-			columnNames = append(columnNames, col.Name)
+		columnNames, err := r.Columns()
+		if err != nil {
+			return err
 		}
 
 		selectQuery, err := querybuilder.BuildSelectQuery("postgres", table, columnNames, nil)
 		if err != nil {
 			return err
 		}
-		rows, err := db.Query(ctx, selectQuery)
+		rows, err := db.QueryContext(ctx, selectQuery)
 		if err != nil && !neosyncdb.IsNoRows(err) {
 			return err
 		}
 		defer rows.Close()
 
+		// todo: this is probably way fucking broken now
 		for rows.Next() {
 			values := make([][]byte, len(columnNames))
 			valuesWrapped := make([]any, 0, len(columnNames))
-
-			for i, col := range r.FieldDescriptions() {
-				if col.DataTypeOID == 1082 { // OID for date
-					var t time.Time
-					ds := DateScanner{val: &t}
-					valuesWrapped = append(valuesWrapped, &ds)
-				} else {
-					valuesWrapped = append(valuesWrapped, &values[i])
-				}
+			for i := range values {
+				valuesWrapped = append(valuesWrapped, &values[i])
 			}
-
 			if err := rows.Scan(valuesWrapped...); err != nil {
 				return err
 			}
 			row := map[string][]byte{}
 			for i, v := range values {
 				col := columnNames[i]
-				if r.FieldDescriptions()[i].DataTypeOID == 1082 { // OID for date
-					// Convert time.Time value to []byte
-					if ds, ok := valuesWrapped[i].(*DateScanner); ok && ds.val != nil {
-						row[col] = []byte(ds.val.Format(time.RFC3339))
-					} else {
-						row[col] = v
-					}
-				} else if r.FieldDescriptions()[i].DataTypeOID == 2950 { // OID for UUID
-					// Convert the byte slice to a uuid.UUID type
-					uuidValue, err := uuid.FromBytes(v)
-					if err == nil {
-						row[col] = []byte(uuidValue.String())
-					} else {
-						row[col] = v
-					}
-				} else {
-					row[col] = v
-				}
+				row[col] = v
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -1049,14 +1024,14 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 
 func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string, logger *slog.Logger) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	conntimeout := uint32(5)
-	switch cconfig := connection.ConnectionConfig.Config.(type) {
+	switch connection.GetConnectionConfig().Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(cconfig.PgConfig, &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
 		if err != nil {
 			return nil, err
 		}
 		defer conn.Close()
-		db, err := conn.Open(ctx)
+		db, err := conn.Open()
 		if err != nil {
 			return nil, err
 		}
@@ -1077,7 +1052,7 @@ func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmt
 		}
 		return schemas, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &conntimeout, logger)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), &conntimeout, logger)
 		if err != nil {
 			return nil, err
 		}

@@ -14,9 +14,7 @@ type Dialer interface {
 	Dial(network, addr string) (net.Conn, error)
 }
 
-type SSHClientDialer interface {
-	Dial(network, addr string, cfg *ssh.ClientConfig) (*ssh.Client, error)
-}
+var _ Dialer = (*SSHDialer)(nil)
 
 type SSHDialer struct {
 	addr string
@@ -60,7 +58,7 @@ func (s *SSHDialer) Close() error {
 func (s *SSHDialer) getClient() (*ssh.Client, error) {
 	s.clientmu.RLock()
 	client := s.client
-	s.clientmu.Unlock()
+	s.clientmu.RUnlock()
 	if client != nil {
 		return client, nil
 	}
