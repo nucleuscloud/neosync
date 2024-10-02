@@ -47,6 +47,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha1_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
@@ -112,6 +113,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.TransformersServiceName,
 		mgmtv1alpha1connect.ApiKeyServiceName,
 		mgmtv1alpha1connect.ConnectionDataServiceName,
+		mgmtv1alpha1connect.AnonymizationServiceName,
 	}
 
 	if shouldEnableMetricsService() {
@@ -276,6 +278,7 @@ func serve(ctx context.Context) error {
 			mgmtv1alpha1connect.UserAccountServiceGetBillingAccountsProcedure,
 			mgmtv1alpha1connect.UserAccountServiceSetBillingMeterEventProcedure,
 			mgmtv1alpha1connect.MetricsServiceGetDailyMetricCountProcedure,
+			mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure,
 		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
@@ -454,6 +457,16 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
+		),
+	)
+
+	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
+			anonymizationService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
 			connect.WithRecover(recoverHandler),
