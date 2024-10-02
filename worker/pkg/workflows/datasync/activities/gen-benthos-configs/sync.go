@@ -189,6 +189,38 @@ func mergeVirtualForeignKeys(
 	return fks, nil
 }
 
+func buildPgPostTableSyncStatement(bc *BenthosConfigResponse) []string {
+	statements := []string{}
+	if bc.RunType == tabledependency.RunTypeUpdate {
+		return statements
+	}
+	colDefaultProps := bc.ColumnDefaultProperties
+	for colName, p := range colDefaultProps {
+		if p.NeedsReset && !p.HasDefaultTransformer {
+			// resets sequences and identities
+			resetSql := sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(bc.TableSchema, bc.TableName, colName)
+			statements = append(statements, resetSql)
+		}
+	}
+	return statements
+}
+
+func buildMssqlPostTableSyncStatement(bc *BenthosConfigResponse) []string {
+	statements := []string{}
+	if bc.RunType == tabledependency.RunTypeUpdate {
+		return statements
+	}
+	colDefaultProps := bc.ColumnDefaultProperties
+	for _, p := range colDefaultProps {
+		if p.NeedsOverride {
+			// reset identity
+			resetSql := sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(bc.TableSchema, bc.TableName)
+			statements = append(statements, resetSql)
+		}
+	}
+	return statements
+}
+
 func buildBenthosSqlSourceConfigResponses(
 	slogger *slog.Logger,
 	ctx context.Context,
@@ -574,19 +606,9 @@ func getInsertPrefixAndSuffix(
 			p := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, enableIdentityInsert)
 			pre = &p
 			s := sqlmanager_mssql.BuildMssqlSetIdentityInsertStatement(schema, table, !enableIdentityInsert)
-			s += sqlmanager_mssql.BuildMssqlIdentityColumnResetCurrent(schema, table)
 			suff = &s
 		}
-		// TODO update this to handle sequences
 		return pre, suff
-	case sqlmanager_shared.PostgresDriver:
-		var idResetSql string
-		for cName, d := range columnDefaultProperties {
-			if !d.HasDefaultTransformer && d.NeedsReset {
-				idResetSql += sqlmanager_postgres.BuildPgIdentityColumnResetCurrentSql(schema, table, cName)
-			}
-		}
-		return pre, &idResetSql
 	default:
 		return pre, suff
 	}

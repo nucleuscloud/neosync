@@ -316,6 +316,10 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 	return output, nil
 }
 
+func (m *MysqlManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func convertUInt8ToString(value any) (string, error) {
 	convertedType, ok := value.([]uint8)
 	if !ok {

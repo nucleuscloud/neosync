@@ -11,6 +11,7 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
+	posttablesync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/post-table-sync"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
@@ -221,15 +222,20 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				activityErr = err
 				cancelHandler()
 
-				redisErr := runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
+				// empty depends on map will clean up all redis inserts
+				redisErr := runRedisCleanUpActivity(ctx, logger, map[string]map[string][]string{}, req.JobId, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
 				return
 			}
 			logger.Info("config sync completed", "name", bc.Name)
+			err = runPostTableSyncActivity(ctx, logger, actOptResp, bc.Name)
+			if err != nil {
+				logger.Error("post table sync activity did not complete", "schema", bc.TableSchema, "table", bc.TableName)
+			}
 			delete(redisDependsOn, bc.Name)
-			err = runRedisCleanUpActivity(ctx, logger, actOptResp, redisDependsOn, req.JobId, redisConfigs)
+			err = runRedisCleanUpActivity(ctx, logger, redisDependsOn, req.JobId, redisConfigs)
 			if err != nil {
 				logger.Error("redis clean up activity did not complete")
 			}
@@ -321,10 +327,37 @@ func retrieveActivityOptions(
 	return actOptResp, nil
 }
 
-func runRedisCleanUpActivity(
+func runPostTableSyncActivity(
 	ctx workflow.Context,
 	logger log.Logger,
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
+	name string,
+) error {
+	logger.Debug("executing post table sync activity")
+	var resp *posttablesync_activity.RunPostTableSyncResponse
+	var postTableSyncActivity *posttablesync_activity.Activity
+	err := workflow.ExecuteActivity(
+		workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			StartToCloseTimeout: 2 * time.Minute,
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 2,
+			},
+			HeartbeatTimeout: 1 * time.Minute,
+		}),
+		postTableSyncActivity.RunPostTableSync,
+		&posttablesync_activity.RunPostTableSyncRequest{
+			AccountId: actOptResp.AccountId,
+			Name:      name,
+		}).Get(ctx, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func runRedisCleanUpActivity(
+	ctx workflow.Context,
+	logger log.Logger,
 	dependsOnMap map[string]map[string][]string,
 	jobId string,
 	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
@@ -337,7 +370,13 @@ func runRedisCleanUpActivity(
 			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			err := workflow.ExecuteActivity(
-				workflow.WithActivityOptions(ctx, *actOptResp.SyncActivityOptions),
+				workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+					StartToCloseTimeout: 2 * time.Minute,
+					RetryPolicy: &temporal.RetryPolicy{
+						MaximumAttempts: 2,
+					},
+					HeartbeatTimeout: 1 * time.Minute,
+				}),
 				syncrediscleanup_activity.DeleteRedisHash,
 				&syncrediscleanup_activity.DeleteRedisHashRequest{
 					JobId:   jobId,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -199,6 +200,37 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
+			if sqlopts.TruncateBeforeInsert || sqlopts.TruncateCascade {
+				// reset serial counts
+				// identity counts are automatically reset with truncate identity restart clause
+				schemaTableMap := map[string][]string{}
+				for schemaTable := range uniqueTables {
+					schema, table := sqlmanager_shared.SplitTableKey(schemaTable)
+					schemaTableMap[schema] = append(schemaTableMap[schema], table)
+				}
+
+				resetSeqStmts := []string{}
+				for schema, tables := range schemaTableMap {
+					sequences, err := sourcedb.Db.GetSequencesByTables(ctx, schema, tables)
+					if err != nil {
+						destdb.Db.Close()
+						return nil, err
+					}
+					for _, seq := range sequences {
+						resetSeqStmts = append(resetSeqStmts, sqlmanager_postgres.BuildPgResetSequenceSql(seq.Name))
+					}
+				}
+				if len(resetSeqStmts) > 0 {
+					err = destdb.Db.BatchExec(ctx, 10, resetSeqStmts, &sqlmanager_shared.BatchExecOpts{})
+					if err != nil {
+						// handle not found errors
+						if !strings.Contains(err.Error(), `does not exist`) {
+							destdb.Db.Close()
+							return nil, fmt.Errorf("unable to exec postgres sequence reset statements: %w", err)
+						}
+					}
+				}
+			}
 			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if sqlopts.InitSchema {
@@ -275,6 +307,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered delete from statements: %w", err)
 				}
+
 				// reset identity column counts
 				schemaColMap, err := sourcedb.Db.GetSchemaColumnMap(ctx)
 				if err != nil {

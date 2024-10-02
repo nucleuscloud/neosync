@@ -228,7 +228,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 		tables := tables
 
 		errgrp.Go(func() error {
-			seqs, err := p.getSequencesByTables(errctx, schema, tables)
+			seqs, err := p.GetSequencesByTables(errctx, schema, tables)
 			if err != nil {
 				return fmt.Errorf("unable to get postgres custom sequences by tables: %w", err)
 			}
@@ -267,7 +267,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 	return output, nil
 }
 
-func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.pool, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
@@ -875,7 +875,7 @@ func (p *PostgresManager) GetTableRowCount(
 func BuildPgTruncateStatement(
 	tables []string,
 ) string {
-	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
+	return fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY;", strings.Join(tables, ", "))
 }
 
 func BuildPgTruncateCascadeStatement(
@@ -884,7 +884,7 @@ func BuildPgTruncateCascadeStatement(
 ) (string, error) {
 	builder := goqu.Dialect("postgres")
 	sqltable := goqu.S(schema).Table(table)
-	stmt, _, err := builder.From(sqltable).Truncate().Cascade().ToSQL()
+	stmt, _, err := builder.From(sqltable).Truncate().Cascade().Identity("RESTART").ToSQL()
 	if err != nil {
 		return "", err
 	}
@@ -906,7 +906,7 @@ func EscapePgColumn(col string) string {
 func BuildPgIdentityColumnResetCurrentSql(
 	schema, table, column string,
 ) string {
-	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 0));", schema, table, column, column, schema, table)
+	return fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s.%s', '%s'), COALESCE((SELECT MAX(%q) FROM %q.%q), 1));", schema, table, column, column, schema, table)
 }
 
 func BuildPgInsertIdentityAlwaysSql(
@@ -914,6 +914,10 @@ func BuildPgInsertIdentityAlwaysSql(
 ) string {
 	sqlSplit := strings.Split(insertQuery, ") VALUES (")
 	return sqlSplit[0] + ") OVERRIDING SYSTEM VALUE VALUES(" + sqlSplit[1]
+}
+
+func BuildPgResetSequenceSql(sequenceName string) string {
+	return fmt.Sprintf("ALTER SEQUENCE %s RESTART;", sequenceName)
 }
 
 func GetPostgresColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
