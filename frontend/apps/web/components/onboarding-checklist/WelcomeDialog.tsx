@@ -20,7 +20,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAccount } from '../providers/account-provider';
-import { Skeleton } from '../ui/skeleton';
 import Configure from './Configure';
 import Connect from './Connect';
 import StepProgress from './StepProgress';
@@ -59,7 +58,7 @@ export default function WelcomeDialog(): ReactElement {
 
   const [currentStep, setCurrentStep] = useState<FormStepName>('welcome');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showGuide, setShowGuide] = useState<boolean>(false);
+  const [showGuide, setShowGuide] = useState<boolean | null>(null);
 
   const handleNextStep = () => {
     setCurrentStep((prev) => {
@@ -175,20 +174,14 @@ export default function WelcomeDialog(): ReactElement {
   }
 
   useEffect(() => {
-    if (error || isLoading) {
-      return;
+    if (!isLoading && !error && !isValidating && data) {
+      setShowGuide(!data.config?.hasCompletedOnboarding);
     }
+  }, [isLoading, isValidating, error, data]);
 
-    setShowGuide(!data?.config?.hasCompletedOnboarding);
-  }, [isLoading, isValidating, error, data?.config?.hasCompletedOnboarding]);
-
-  if (isLoading) {
-    return <Skeleton />;
-  }
   if (!showGuide) {
     return <></>;
   }
-
   const stepOrder: FormStepName[] = multiStepForm.map((item) => {
     return item.name;
   });
