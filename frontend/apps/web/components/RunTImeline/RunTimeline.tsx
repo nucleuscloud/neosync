@@ -50,6 +50,7 @@ export default function RunTimeline(props: Props): ReactElement {
     'failed',
     'canceled',
   ]);
+
   const formatFullDate = (date: Timestamp | Date | undefined) => {
     if (!date) return 'N/A';
 
@@ -99,7 +100,7 @@ export default function RunTimeline(props: Props): ReactElement {
         convertTimestampToDate(t.startTime).getTime()
       );
 
-      const errorDate = getCloseOrErrorDate(t);
+      const errorDate = getCloseOrErrorOrCancelDate(t);
       endTime = Math.max(
         endTime,
         errorDate.getTime(),
@@ -175,44 +176,16 @@ export default function RunTimeline(props: Props): ReactElement {
     );
   };
 
-  // handles giving canceled tasks a closeTime since temporal doesn't give them one,
-  // we need this otherwise the graph doens't have a close time to map the actiivty and it keeps increasing as time goes on
-  // might want to refactor this at some point to check if the closeTIme is avialable first and if not then fall back to the cancel time instead of the other way around?
-
-  //If an activity fails, some recors don't have end times, so we need to stop the graph from updating the time since it will contineu to do so, so if the job fails or is canceled or whatever, then we need to cap it
-
-  //check to see the status of the job and then if it's failed/canceled/terminated, then either add in a close time to every row that doesn't have one or get the table to stop updated
-
-  // we'll also see a log in the job run event called: ActivityTaskCancelRequested
-
-  // made some updates here, when its just a failure and complete activiites, then it doesn't run, but if there is a running or canceled then it's still running it looks  like, this might be a backend thing though
-
-  const getTaskEndTime = (task: JobRunEvent): Date => {
-    const status = getTaskStatus(task);
-    if (status === 'canceled') {
-      // using the time it was requested to be canceled as the end time
-      // its not super exact but does it really matter if it's canceled anyways?
-      const cancelTime = task.tasks.find(
-        (t) => t.type === 'ActivityTaskCancelRequested'
-      )?.eventTime;
-      return cancelTime
-        ? convertTimestampToDate(cancelTime)
-        : convertTimestampToDate(task.closeTime || task.startTime);
-    }
-    return getCloseOrErrorDate(task);
-  };
-
-  console.log('task', tasks);
-
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-end w-full">
+      <div className="flex justify-between w-full">
+        <div className="text-xl font-semibold">Activity Timeline</div>
         <StatusFilter
           selectedStatuses={selectedStatuses}
           onStatusChange={handleStatusFilterChange}
         />
       </div>
-      <div className="w-full relative border border-gray-400 dark:border-gray-700 rounded overflow-y-scroll max-h-[400px]">
+      <div className="w-full relative border border-gray-300 dark:border-gray-700 rounded overflow-y-auto max-h-[400px]">
         <div className="flex flex-row h-full w-full">
           {/* the left activity bar */}
           <div className="w-1/6">
@@ -256,14 +229,14 @@ export default function RunTimeline(props: Props): ReactElement {
               const left = getPositionPercentage(
                 convertTimestampToDate(task.startTime)
               );
-              const endTime = getTaskEndTime(task);
+              const endTime = getCloseOrErrorOrCancelDate(task);
               const width = getPositionPercentage(endTime) - left;
               const status = getTaskStatus(task);
 
-              const notComplete =
-                status == 'failed' ||
-                status == 'terminated' ||
-                status == 'canceled';
+              const cancelTime = task.tasks.find(
+                (t) => t.type === 'ActivityTaskCancelRequested'
+              )?.eventTime;
+              console.log('cancel Time', cancelTime, task);
 
               return (
                 <div className="flex flex-row" key={task.id}>
@@ -286,10 +259,10 @@ export default function RunTimeline(props: Props): ReactElement {
                           }}
                         >
                           <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
-                            <SyncLabel task={task} />
                             <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
                               {formatTaskDuration(task.startTime, endTime)}
                             </span>
+                            <SyncLabel task={task} />
                           </div>
                         </div>
                       </TooltipTrigger>
@@ -297,13 +270,13 @@ export default function RunTimeline(props: Props): ReactElement {
                         align="start"
                         className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
                       >
-                        <div className="flex flex-row gap-2 justify-between w-full">
+                        <div className="flex flex-row gap-2 items-center justify-between w-full">
                           <strong>Start:</strong>{' '}
                           <Badge variant="default" className="w-[180px]">
                             {formatFullDate(task.startTime)}
                           </Badge>
                         </div>
-                        <div className="flex flex-row gap-2 justify-between w-full">
+                        <div className="flex flex-row gap-2 items-center justify-between w-full">
                           <strong>Finish:</strong>{' '}
                           <Badge variant="default" className="w-[180px]">
                             {status == 'failed' ||
@@ -375,12 +348,17 @@ function convertTimestampToDate(
   return new Date(totalMilliseconds);
 }
 
-function getCloseOrErrorDate(task: JobRunEvent): Date {
+function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
   const errorTask = task.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
+  const cancelTime = task.tasks.find(
+    (t) => t.type === 'ActivityTaskCancelRequested'
+  )?.eventTime;
   return errorTime
     ? convertTimestampToDate(errorTime)
-    : convertTimestampToDate(task.closeTime);
+    : cancelTime
+      ? convertTimestampToDate(cancelTime)
+      : convertTimestampToDate(task.closeTime);
 }
 
 interface SyncLabelProps {
@@ -393,9 +371,8 @@ function SyncLabel(props: SyncLabelProps) {
   const schemaTable = `${task.metadata?.metadata.value?.schema}.${task.metadata?.metadata.value?.table} `;
 
   return (
-    <div className="flex flex-row gap-2">
-      <div>{task.type}</div>
-      <div>{task.metadata?.metadata.case == 'syncMetadata' && schemaTable}</div>
+    <div className="text-white">
+      {task.metadata?.metadata.case == 'syncMetadata' && schemaTable}
     </div>
   );
 }
@@ -438,7 +415,6 @@ interface StatusFilterProps {
 }
 
 // would be nice to replace with a multi-select so you don't have to open/close it everytime you want to make a change
-
 function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
   return (
     <DropdownMenu>

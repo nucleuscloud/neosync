@@ -337,8 +337,7 @@ export default function Page({ params }: PageProps): ReactElement {
               </div>
             )}
           <div className="space-y-4">
-            <div className="flex flex-row items-center space-x-2">
-              <h2 className="text-2xl font-bold tracking-tight">Activity</h2>
+            <div className="flex flex-row items-center justify-end space-x-2">
               {isValidating && <Spinner />}
             </div>
             {eventsIsLoading ? (
