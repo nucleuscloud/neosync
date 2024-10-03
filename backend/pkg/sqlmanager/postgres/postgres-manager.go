@@ -267,7 +267,7 @@ func (p *PostgresManager) GetSchemaTableDataTypes(ctx context.Context, tables []
 	return output, nil
 }
 
-func (p *PostgresManager) getSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+func (p *PostgresManager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
 	rows, err := p.querier.GetCustomSequencesBySchemaAndTables(ctx, p.db, &pg_queries.GetCustomSequencesBySchemaAndTablesParams{
 		Schema: schema,
 		Tables: tables,
