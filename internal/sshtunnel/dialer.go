@@ -77,6 +77,7 @@ func (s *SSHDialer) getClient() (*ssh.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to dial ssh server: %w", err)
 	}
+	s.client = client
 	return client, nil
 }
 

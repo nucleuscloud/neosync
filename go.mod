@@ -35,6 +35,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20231122114759-e84d9a924c5c
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fatih/color v1.17.0
+	github.com/gliderlabs/ssh v0.3.7
 	github.com/go-logr/logr v1.4.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -134,6 +135,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/apache/arrow/go/arrow v0.0.0-20211112161151-bc219186db40 // indirect
 	github.com/apache/arrow/go/v14 v14.0.2 // indirect
