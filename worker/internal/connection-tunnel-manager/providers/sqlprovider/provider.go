@@ -42,45 +42,8 @@ func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig) (neosy
 	return &sqlDbtxWrapper{SqlDBTX: dbtx, close: func() error {
 		return container.Close()
 	}}, nil
-
-	// todo: set max open connections
-	// todo: this needs to now open the tunnel
-	// db, err := sql.Open(driver, connectionString)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if opts != nil && opts.MaxConnectionLimit != nil {
-	// 	db.SetMaxOpenConns(int(*opts.MaxConnectionLimit))
-	// }
-	// return db, nil
-	// todo
-	return nil, nil
 }
 
 func (p *Provider) CloseClientConnection(client neosync_benthos_sql.SqlDbtx) error {
 	return client.Close()
 }
-
-// func getMaxConnectionLimitFromConnection(cc *mgmtv1alpha1.ConnectionConfig) *int32 {
-// 	if cc == nil {
-// 		return nil
-// 	}
-// 	switch config := cc.GetConfig().(type) {
-// 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-// 		if config.MysqlConfig != nil && config.MysqlConfig.ConnectionOptions != nil {
-// 			return config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
-// 		}
-// 		return nil
-// 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-// 		if config.PgConfig != nil && config.PgConfig.ConnectionOptions != nil {
-// 			return config.PgConfig.ConnectionOptions.MaxConnectionLimit
-// 		}
-// 		return nil
-// 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-// 		if config.MssqlConfig != nil && config.MssqlConfig.GetConnectionOptions() != nil {
-// 			return config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
-// 		}
-// 		return nil
-// 	}
-// 	return nil
-// }

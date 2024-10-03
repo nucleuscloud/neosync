@@ -47,10 +47,16 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	// todo: need to handle client tls with new setup
+	dbconnopts := getConnectionOptsFromConnectionConfig(cc)
 
 	switch config := cc.GetConfig().(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if config.PgConfig.GetClientTls() != nil {
+			_, err := clienttls.UpsertCLientTlsFiles(config.PgConfig.GetClientTls())
+			if err != nil {
+				return nil, fmt.Errorf("unable to upsert client tls files: %w", err)
+			}
+		}
 		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
 		if err != nil {
 			return nil, err
@@ -76,9 +82,10 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						}
 					}, nil
 				},
+				dbconnopts,
 			), nil
 		} else {
-			return newStdlibContainer("pgx", dsn), nil
+			return newStdlibContainer("pgx", dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
@@ -106,9 +113,10 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						}
 					}, nil
 				},
+				dbconnopts,
 			), nil
 		}
-		return newStdlibContainer("mysql", dsn), nil
+		return newStdlibContainer("mysql", dsn, dbconnopts), nil
 	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
 		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
 		if err != nil {
@@ -135,12 +143,40 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 						}
 					}, nil
 				},
+				dbconnopts,
 			), nil
 		}
-		return newStdlibContainer("sqlserver", dsn), nil
+		return newStdlibContainer("sqlserver", dsn, dbconnopts), nil
 	default:
 		return nil, fmt.Errorf("unsupported connection: %T", config)
 	}
+}
+
+func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) *DbConnectionOptions {
+	switch config := cc.GetConfig().(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return sqlConnOptsToDbConnOpts(config.MysqlConfig.GetConnectionOptions())
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return sqlConnOptsToDbConnOpts(config.PgConfig.GetConnectionOptions())
+	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
+		return sqlConnOptsToDbConnOpts(config.MssqlConfig.GetConnectionOptions())
+	default:
+		return sqlConnOptsToDbConnOpts(&mgmtv1alpha1.SqlConnectionOptions{})
+	}
+}
+
+func sqlConnOptsToDbConnOpts(co *mgmtv1alpha1.SqlConnectionOptions) *DbConnectionOptions {
+	return &DbConnectionOptions{
+		MaxOpenConns: convertInt32PtrToIntPtr(co.MaxConnectionLimit),
+	}
+}
+
+func convertInt32PtrToIntPtr(input *int32) *int {
+	if input == nil {
+		return nil
+	}
+	value := int(*input)
+	return &value
 }
 
 type tunnelConfig struct {
@@ -184,8 +220,8 @@ func getSshAddr(tunnel *mgmtv1alpha1.SSHTunnel) string {
 	return host
 }
 
-func newStdlibConnectorContainer(getter func() (driver.Connector, func(), error)) *stdlibConnectorContainer {
-	return &stdlibConnectorContainer{getter: getter}
+func newStdlibConnectorContainer(getter func() (driver.Connector, func(), error), connopts *DbConnectionOptions) *stdlibConnectorContainer {
+	return &stdlibConnectorContainer{getter: getter, connopts: connopts}
 }
 
 type stdlibConnectorContainer struct {
@@ -193,7 +229,8 @@ type stdlibConnectorContainer struct {
 	mu      sync.Mutex
 	cleanup func()
 
-	getter func() (driver.Connector, func(), error)
+	getter   func() (driver.Connector, func(), error)
+	connopts *DbConnectionOptions
 }
 
 func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
@@ -205,6 +242,7 @@ func (s *stdlibConnectorContainer) Open() (SqlDBTX, error) {
 	}
 	s.cleanup = cleanup
 	db := sql.OpenDB(connector)
+	setConnectionOpts(db, s.connopts)
 	s.db = db
 	return s.db, err
 }
@@ -224,16 +262,25 @@ func (s *stdlibConnectorContainer) Close() error {
 	return db.Close()
 }
 
-func newStdlibContainer(drvr, dsn string) *stdlibContainer {
-	return &stdlibContainer{driver: drvr, dsn: dsn}
+type DbConnectionOptions struct {
+	MaxOpenConns *int
+	MaxIdleConns *int
+
+	ConnMaxIdleTime *time.Duration
+	ConnMaxLifetime *time.Duration
+}
+
+func newStdlibContainer(drvr, dsn string, connOpts *DbConnectionOptions) *stdlibContainer {
+	return &stdlibContainer{driver: drvr, dsn: dsn, connopts: connOpts}
 }
 
 type stdlibContainer struct {
 	db *sql.DB
 	mu sync.Mutex
 
-	driver string
-	dsn    string
+	driver   string
+	dsn      string
+	connopts *DbConnectionOptions
 }
 
 func (s *stdlibContainer) Open() (SqlDBTX, error) {
@@ -243,9 +290,28 @@ func (s *stdlibContainer) Open() (SqlDBTX, error) {
 	if err != nil {
 		return nil, err
 	}
+	setConnectionOpts(db, s.connopts)
 	s.db = db
 	return db, nil
 }
+
+func setConnectionOpts(db *sql.DB, connopts *DbConnectionOptions) {
+	if connopts != nil {
+		if connopts.ConnMaxIdleTime != nil {
+			db.SetConnMaxIdleTime(*connopts.ConnMaxIdleTime)
+		}
+		if connopts.ConnMaxLifetime != nil {
+			db.SetConnMaxLifetime(*connopts.ConnMaxLifetime)
+		}
+		if connopts.MaxIdleConns != nil {
+			db.SetMaxIdleConns(*connopts.MaxIdleConns)
+		}
+		if connopts.MaxOpenConns != nil {
+			db.SetMaxOpenConns(*connopts.MaxOpenConns)
+		}
+	}
+}
+
 func (s *stdlibContainer) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -275,7 +341,7 @@ type ClientCertConfig struct {
 
 // Method for retrieving connection details, including tunneling information.
 // // Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
-func GetConnectionDetails(
+func getConnectionDetails(
 	c *mgmtv1alpha1.ConnectionConfig,
 	connectionTimeout *uint32,
 	handleClientTlsConfig clienttls.ClientTlsFileHandler,
