@@ -81,9 +81,9 @@ export default function RecordsProgressBar(props: Props): ReactElement {
       variant="outline"
       className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-500')}
     >
-      <div className="flex flex-row items-center gap-2 w-60">
-        <span className="text-sm text-nowrap">Records used </span>
-        <Progress value={percentageUsed} className="w-[60%]" />
+      <div className="flex flex-row items-center gap-2 sm:w-60">
+        <span className="text-sm text-nowrap">Records used</span>
+        <Progress value={percentageUsed} className="w-[60%] hidden sm:flex" />
         <span className="text-sm">
           {formatNumber(count)}/{formatNumber(totalRecords)}
         </span>
