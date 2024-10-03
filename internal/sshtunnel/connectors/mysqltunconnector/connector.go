@@ -25,7 +25,7 @@ func New(dialer sshtunnel.Dialer, dsn string) (*Connector, func(), error) {
 	}
 
 	ogNetwork := cfg.Net
-	newNetwork := fmt.Sprintf("%s_%s", ogNetwork, getUniqueIdentifier())
+	newNetwork := buildUniqueNetwork(ogNetwork)
 
 	cfg.Net = newNetwork
 	mysql.RegisterDialContext(cfg.Net, func(ctx context.Context, addr string) (net.Conn, error) {
@@ -42,6 +42,10 @@ func New(dialer sshtunnel.Dialer, dsn string) (*Connector, func(), error) {
 	}
 
 	return &Connector{Connector: conn}, cleanup, nil
+}
+
+func buildUniqueNetwork(network string) string {
+	return fmt.Sprintf("%s_%s", network, getUniqueIdentifier())
 }
 
 func getUniqueIdentifier() string {
