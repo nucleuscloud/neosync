@@ -31,7 +31,8 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {systemAppConfig.isNeosyncCloud && <AccountsRecordProgress />}
+          {systemAppConfig.isNeosyncCloud &&
+            systemAppConfig.isStripeEnabled && <AccountsRecordProgress />}
           <Upgrade
             calendlyLink={systemAppConfig.calendlyUpgradeLink}
             isNeosyncCloud={systemAppConfig.isNeosyncCloud}
