@@ -93,7 +93,6 @@ sql:
       go:
         package: "pg_queries"
         out: "gen/go/db/dbschemas/postgresql"
-        # sql_package: "pgx/v5"
         emit_interface: true
         emit_methods_with_db_argument: true
         emit_result_struct_pointers: true
