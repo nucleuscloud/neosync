@@ -14,7 +14,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
-	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	tun "github.com/nucleuscloud/neosync/internal/sshtunnel"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
@@ -22,7 +21,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunneling
+// interface used by SqlConnector to abstract away the opening and closing of a sqldb that includes tunnelingff
 type SqlDbContainer interface {
 	Open() (SqlDBTX, error)
 	Close() error
@@ -189,7 +188,7 @@ type tunnelConfig struct {
 func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
 	var hostcallback ssh.HostKeyCallback
 	if tunnel.GetKnownHostPublicKey() != "" {
-		publickey, err := sshtunnel.ParseSshKey(tunnel.GetKnownHostPublicKey())
+		publickey, err := tun.ParseSshKey(tunnel.GetKnownHostPublicKey())
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse ssh known host public key: %w", err)
 		}
@@ -197,7 +196,7 @@ func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
 	} else {
 		hostcallback = ssh.InsecureIgnoreHostKey() //nolint:gosec // the user has chosen to not provide a known host public key
 	}
-	authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(tunnel.GetAuthentication())
+	authmethod, err := tun.GetTunnelAuthMethodFromSshConfig(tunnel.GetAuthentication())
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse ssh auth method: %w", err)
 	}
