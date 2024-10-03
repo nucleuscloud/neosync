@@ -5,6 +5,7 @@ import { GetMetricCountRequest, RangedMetricName } from '@neosync/sdk';
 import { getMetricCount } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
+import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Skeleton } from '../ui/skeleton';
@@ -19,6 +20,7 @@ export default function RecordsProgressBar(props: Props): ReactElement {
   const { identifier, idtype } = props;
   const [period, _] = useState<UsagePeriod>('current');
   const metric = RangedMetricName.INPUT_RECEIVED;
+  const { account } = useAccount();
 
   const router = useRouter();
 
@@ -66,19 +68,45 @@ export default function RecordsProgressBar(props: Props): ReactElement {
 
   return (
     <Button
-      onClick={() => router.push('/settings/usage')}
+      onClick={() => {
+        const link = getUsageLink(
+          `/${account?.name ?? ''}`,
+          idtype,
+          identifier
+        );
+        if (link) {
+          return router.push(link);
+        }
+      }}
       variant="outline"
       className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-500')}
     >
-      <div className="flex flex-row items-center gap-2 w-60">
-        <span className="text-sm text-nowrap">Records used </span>
-        <Progress value={percentageUsed} className="w-[60%]" />
+      <div className="flex flex-row items-center gap-2 sm:w-60">
+        <span className="text-sm text-nowrap">Records used</span>
+        <Progress value={percentageUsed} className="w-[60%] hidden sm:flex" />
         <span className="text-sm">
           {formatNumber(count)}/{formatNumber(totalRecords)}
         </span>
       </div>
     </Button>
   );
+}
+
+function getUsageLink(
+  basePath: string,
+  idtype: MetricsIdentifierCase,
+  identifier: string
+): string | null {
+  if (idtype === 'accountId') {
+    return `${basePath}/settings/usage`;
+  }
+  if (idtype === 'jobId') {
+    return `${basePath}/jobs/${identifier}/usage`;
+  }
+  if (idtype === 'runId') {
+    return `${basePath}/runs/${identifier}/usage`;
+  }
+  return null;
 }
 
 // helper fund to extract case types for metric identifiers

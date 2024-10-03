@@ -31,7 +31,9 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {systemAppConfig.isNeosyncCloud && <AccountsRecordProgress />}
+          {/* This should really pull from the account status as it has the inforamtion needed to know the overall account progress and whether or not the account even has a record limit */}
+          {systemAppConfig.isNeosyncCloud &&
+            systemAppConfig.isStripeEnabled && <AccountsRecordProgress />}
           <Upgrade
             calendlyLink={systemAppConfig.calendlyUpgradeLink}
             isNeosyncCloud={systemAppConfig.isNeosyncCloud}
