@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -37,7 +38,11 @@ func (s *SSHDialer) DialContext(ctx context.Context, network, addr string) (net.
 	if err != nil {
 		return nil, err
 	}
-	return client.DialContext(ctx, network, addr)
+	conn, err := client.DialContext(ctx, network, addr)
+	if err != nil {
+		return nil, err
+	}
+	return &wrappedSshConn{Conn: conn}, nil
 }
 
 func (s *SSHDialer) Dial(network, addr string) (net.Conn, error) {
@@ -73,4 +78,25 @@ func (s *SSHDialer) getClient() (*ssh.Client, error) {
 		return nil, fmt.Errorf("unable to dial ssh server: %w", err)
 	}
 	return client, nil
+}
+
+type wrappedSshConn struct {
+	net.Conn
+}
+
+func (w *wrappedSshConn) SetDeadline(deadline time.Time) error {
+	if err := w.SetReadDeadline(deadline); err != nil {
+		return err
+	}
+	return w.SetWriteDeadline(deadline)
+}
+
+// SSH net.Conn does not implement this, so we're overriding it to not return an error
+func (w *wrappedSshConn) SetReadDeadline(deadline time.Time) error {
+	return nil
+}
+
+// SSH net.Conn does not implement this, so we're overriding it to not return an error
+func (w *wrappedSshConn) SetWriteDeadline(deadline time.Time) error {
+	return nil
 }
