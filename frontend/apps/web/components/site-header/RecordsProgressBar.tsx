@@ -101,10 +101,10 @@ function getUsageLink(
     return `${basePath}/settings/usage`;
   }
   if (idtype === 'jobId') {
-    return `${basePath}/jobs/${identifier}`;
+    return `${basePath}/jobs/${identifier}/usage`;
   }
   if (idtype === 'runId') {
-    return `${basePath}/runs/${identifier}`;
+    return `${basePath}/runs/${identifier}/usage`;
   }
   return null;
 }
