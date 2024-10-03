@@ -5,6 +5,7 @@ import { GetMetricCountRequest, RangedMetricName } from '@neosync/sdk';
 import { getMetricCount } from '@neosync/sdk/connectquery';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
+import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Skeleton } from '../ui/skeleton';
@@ -19,6 +20,7 @@ export default function RecordsProgressBar(props: Props): ReactElement {
   const { identifier, idtype } = props;
   const [period, _] = useState<UsagePeriod>('current');
   const metric = RangedMetricName.INPUT_RECEIVED;
+  const { account } = useAccount();
 
   const router = useRouter();
 
@@ -66,7 +68,12 @@ export default function RecordsProgressBar(props: Props): ReactElement {
 
   return (
     <Button
-      onClick={() => router.push('/settings/usage')}
+      onClick={() => {
+        const link = getUsageLink(account?.name ?? '', idtype, identifier);
+        if (link) {
+          return router.push(link);
+        }
+      }}
       variant="outline"
       className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-500')}
     >
@@ -79,6 +86,23 @@ export default function RecordsProgressBar(props: Props): ReactElement {
       </div>
     </Button>
   );
+}
+
+function getUsageLink(
+  accountSlug: string,
+  idtype: MetricsIdentifierCase,
+  identifier: string
+): string | null {
+  if (idtype === 'accountId') {
+    return `/${accountSlug}/settings/usage`;
+  }
+  if (idtype === 'jobId') {
+    return `/${accountSlug}/jobs/${identifier}`;
+  }
+  if (idtype === 'runId') {
+    return `/${accountSlug}/runs/${identifier}`;
+  }
+  return null;
 }
 
 // helper fund to extract case types for metric identifiers
