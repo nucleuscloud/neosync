@@ -176,6 +176,7 @@ export default function RunTimeline(props: Props): ReactElement {
     );
   };
 
+  console.log('tasks', tasks);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between w-full">
@@ -185,12 +186,12 @@ export default function RunTimeline(props: Props): ReactElement {
           onStatusChange={handleStatusFilterChange}
         />
       </div>
-      <div className="w-full relative border border-gray-300 dark:border-gray-700 rounded overflow-y-auto max-h-[400px]">
+      <div className="w-full relative border border-gray-200 dark:border-gray-700 rounded overflow-y-auto max-h-[400px]">
         <div className="flex flex-row h-full w-full">
           {/* the left activity bar */}
           <div className="w-1/6">
-            <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-300 dark:border-gray-700" />
-            <div className="border-r border-gray-300 dark:border-gray-700 flex flex-col text-sm ">
+            <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-200 dark:border-gray-700" />
+            <div className="border-r border-gray-200 dark:border-gray-700 flex flex-col text-sm ">
               {filteredTasks.map((task, index) => {
                 const isLastItem = index === tasks.length - 1;
                 return (
@@ -199,7 +200,7 @@ export default function RunTimeline(props: Props): ReactElement {
                     className={cn(
                       'px-2 h-10 items-center flex',
                       !isLastItem &&
-                        'border-b border-gray-300 dark:border-gray-700'
+                        'border-b border-gray-200 dark:border-gray-700'
                     )}
                   >
                     <ActivityLabel task={task} getTaskStatus={getTaskStatus} />
@@ -218,7 +219,7 @@ export default function RunTimeline(props: Props): ReactElement {
             {filteredTasks.map((_, index) => (
               <div
                 key={`grid-line-${index}`}
-                className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700"
+                className="absolute left-0 right-0 border-t border-gray-200 dark:border-gray-700"
                 style={{ top: `${index * 40 + 55}px` }}
                 id="grid-lines"
               />
@@ -316,7 +317,7 @@ export default function RunTimeline(props: Props): ReactElement {
     const { formatDate, getPositionPercentage, timeLabels } = props;
 
     return (
-      <div className="w-full sticky top-0 h-14 border-b border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 z-10 ">
+      <div className="w-full sticky top-0 h-14 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 z-10 ">
         <div className="relative w-full h-full">
           {timeLabels.map((label, index) => (
             <div

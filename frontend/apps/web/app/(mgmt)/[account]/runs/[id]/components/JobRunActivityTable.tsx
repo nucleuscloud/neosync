@@ -16,7 +16,7 @@ export default function JobRunActivityTable(
 ): ReactElement {
   const { jobRunEvents, onViewSelectClicked, jobStatus } = props;
 
-  const columns = useMemo(() => getColumns({}), []);
+  const columns = useMemo(() => getColumns({ onViewSelectClicked }), []);
 
   if (!jobRunEvents) {
     return <SkeletonTable />;
@@ -31,6 +31,7 @@ export default function JobRunActivityTable(
         )}
         jobStatus={jobStatus}
       />
+      <div className="text-xl font-semibold">Activity Table</div>
       <DataTable
         columns={columns}
         data={jobRunEvents}

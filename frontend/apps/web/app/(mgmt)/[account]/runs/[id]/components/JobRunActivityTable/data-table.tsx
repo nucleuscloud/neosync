@@ -7,7 +7,6 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getPaginationRowModel,
@@ -73,85 +72,67 @@ export function DataTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    getExpandedRowModel: getExpandedRowModel(),
   });
 
   return (
-    <div className="space-y-2 rounded-md border overflow-hidden dark:border-gray-700">
-      <div>
-        <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
-          <Table>
-            <TableHeader className="bg-gray-100 dark:bg-gray-800">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => {
+    <>
+      <div className="space-y-2 rounded-md border overflow-hidden dark:border-gray-700">
+        <Table>
+          <TableHeader className="bg-gray-100 dark:bg-gray-800">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
                   return (
-                    <React.Fragment key={row.id}>
-                      <TableRow
-                        data-state={row.getIsSelected() && 'selected'}
-                        onClick={row.getToggleExpandedHandler()}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                      {row.getIsExpanded() && (
-                        <TableRow>
-                          <TableCell colSpan={row.getVisibleCells().length}>
-                            <RunEventSubTable
-                              row={row}
-                              onViewSelectClicked={onViewSelectClicked}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
+                    <TableHead key={header.id} className="pl-2">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No active runs found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <React.Fragment key={row.id}>
+                    <TableRow data-state={row.getIsSelected() && 'selected'}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No active runs found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-      <div className="pb-2">
-        <DataTablePagination
-          table={table}
-          setPagination={setPagination}
-          setPageSize={setPageSize}
-        />
-      </div>
-    </div>
+      <DataTablePagination
+        table={table}
+        setPagination={setPagination}
+        setPageSize={setPageSize}
+      />
+    </>
   );
 }
 
@@ -183,14 +164,14 @@ function RunEventSubTable(props: RunEventSubTableProps): React.ReactElement {
         </div>
       )}
       <div className="flex flex-col gap-2">
-        <h2 className="tracking-tight">Event History</h2>
-        <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
+        <h2 className="tracking-tight font-semibold">Event History</h2>
+        <div className="rounded-md border overflow-hidden dark:border-gray-700">
           <Table>
             <TableHeader className="border-b dark:border-b-gray-700 bg-gray-100 dark:bg-gray-800">
               <TableRow>
-                <TableHead>Id</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Time</TableHead>
+                <TableHead className="pl-2">Id</TableHead>
+                <TableHead className="pl-2">Type</TableHead>
+                <TableHead className="pl-2">Time</TableHead>
                 {isError && <TableHead>Error</TableHead>}
               </TableRow>
             </TableHeader>
@@ -242,7 +223,7 @@ function RunEventSubTable(props: RunEventSubTableProps): React.ReactElement {
   );
 }
 
-function getJobSyncMetadata(
+export function getJobSyncMetadata(
   metadata?: JobRunEventMetadata
 ): JobRunSyncMetadata | null {
   if (metadata?.metadata.case === 'syncMetadata') {
