@@ -69,7 +69,11 @@ export default function RecordsProgressBar(props: Props): ReactElement {
   return (
     <Button
       onClick={() => {
-        const link = getUsageLink(account?.name ?? '', idtype, identifier);
+        const link = getUsageLink(
+          `/${account?.name ?? ''}`,
+          idtype,
+          identifier
+        );
         if (link) {
           return router.push(link);
         }
@@ -89,18 +93,18 @@ export default function RecordsProgressBar(props: Props): ReactElement {
 }
 
 function getUsageLink(
-  accountSlug: string,
+  basePath: string,
   idtype: MetricsIdentifierCase,
   identifier: string
 ): string | null {
   if (idtype === 'accountId') {
-    return `/${accountSlug}/settings/usage`;
+    return `${basePath}/settings/usage`;
   }
   if (idtype === 'jobId') {
-    return `/${accountSlug}/jobs/${identifier}`;
+    return `${basePath}/jobs/${identifier}`;
   }
   if (idtype === 'runId') {
-    return `/${accountSlug}/runs/${identifier}`;
+    return `${basePath}/runs/${identifier}`;
   }
   return null;
 }
