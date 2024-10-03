@@ -12,7 +12,6 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	dbconnectconfig "github.com/nucleuscloud/neosync/backend/pkg/dbconnect-config"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
@@ -65,23 +64,13 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 		if config.PgConfig.GetTunnel() != nil {
 			return newStdlibConnectorContainer(
-				func() (driver.Connector, func(), error) {
-					tunnelcfg, err := getTunnelConfig(config.PgConfig.GetTunnel())
-					if err != nil {
-						return nil, nil, err
-					}
-					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					connector, cleanup, err := postgrestunconnector.New(dialer, dsn)
-					if err != nil {
-						return nil, nil, err
-					}
-					return connector, func() {
-						cleanup()
-						if err := dialer.Close(); err != nil {
-							logger.Error(err.Error())
-						}
-					}, nil
-				},
+				getTunnelConnectorFn(
+					config.PgConfig.GetTunnel(),
+					func(dialer tun.Dialer) (driver.Connector, func(), error) {
+						return postgrestunconnector.New(dialer, dsn)
+					},
+					logger,
+				),
 				dbconnopts,
 			), nil
 		} else {
@@ -96,23 +85,13 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 		if config.MysqlConfig.GetTunnel() != nil {
 			return newStdlibConnectorContainer(
-				func() (driver.Connector, func(), error) {
-					tunnelcfg, err := getTunnelConfig(config.MysqlConfig.GetTunnel())
-					if err != nil {
-						return nil, nil, err
-					}
-					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					connector, cleanup, err := mysqltunconnector.New(dialer, dsn)
-					if err != nil {
-						return nil, nil, err
-					}
-					return connector, func() {
-						cleanup()
-						if err := dialer.Close(); err != nil {
-							logger.Error(err.Error())
-						}
-					}, nil
-				},
+				getTunnelConnectorFn(
+					config.MysqlConfig.GetTunnel(),
+					func(dialer tun.Dialer) (driver.Connector, func(), error) {
+						return mysqltunconnector.New(dialer, dsn)
+					},
+					logger,
+				),
 				dbconnopts,
 			), nil
 		}
@@ -126,29 +105,49 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 
 		if config.MssqlConfig.GetTunnel() != nil {
 			return newStdlibConnectorContainer(
-				func() (driver.Connector, func(), error) {
-					tunnelcfg, err := getTunnelConfig(config.MssqlConfig.GetTunnel())
-					if err != nil {
-						return nil, nil, err
-					}
-					dialer := tun.NewLazySSHDialer(tunnelcfg.Addr, tunnelcfg.ClientConfig)
-					connector, cleanup, err := mssqltunconnector.New(dialer, dsn)
-					if err != nil {
-						return nil, nil, err
-					}
-					return connector, func() {
-						cleanup()
-						if err := dialer.Close(); err != nil {
-							logger.Error(err.Error())
-						}
-					}, nil
-				},
+				getTunnelConnectorFn(
+					config.MssqlConfig.GetTunnel(),
+					func(dialer tun.Dialer) (driver.Connector, func(), error) {
+						return mssqltunconnector.New(dialer, dsn)
+					},
+					logger,
+				),
 				dbconnopts,
 			), nil
 		}
 		return newStdlibContainer("sqlserver", dsn, dbconnopts), nil
 	default:
 		return nil, fmt.Errorf("unsupported connection: %T", config)
+	}
+}
+
+func getTunnelConnectorFn(
+	tunnel *mgmtv1alpha1.SSHTunnel,
+	getConnector func(dialer tun.Dialer) (driver.Connector, func(), error),
+	logger *slog.Logger,
+) func() (driver.Connector, func(), error) {
+	return func() (driver.Connector, func(), error) {
+		cfg, err := getTunnelConfig(tunnel)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unable to construct ssh tunnel config: %w", err)
+		}
+		logger.Debug("constructed tunnel config")
+		dialer := tun.NewLazySSHDialer(cfg.Addr, cfg.ClientConfig)
+		conn, cleanup, err := getConnector(dialer)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unable to build db connector: %w", err)
+		}
+		logger.Debug("built database connector with ssh dialer")
+		wrappedCleanup := func() {
+			logger.Debug("cleaning up tunnel connector")
+			cleanup()
+			logger.Debug("connector cleanup completed")
+			if err := dialer.Close(); err != nil {
+				logger.Error(fmt.Errorf("encountered error when closing ssh dialer: %w", err).Error())
+			}
+			logger.Debug("tunnel connector cleanup completed")
+		}
+		return conn, wrappedCleanup, nil
 	}
 }
 
@@ -166,6 +165,9 @@ func getConnectionOptsFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig) *D
 }
 
 func sqlConnOptsToDbConnOpts(co *mgmtv1alpha1.SqlConnectionOptions) *DbConnectionOptions {
+	if co == nil {
+		co = &mgmtv1alpha1.SqlConnectionOptions{}
+	}
 	return &DbConnectionOptions{
 		MaxOpenConns: convertInt32PtrToIntPtr(co.MaxConnectionLimit),
 	}
@@ -200,11 +202,16 @@ func getTunnelConfig(tunnel *mgmtv1alpha1.SSHTunnel) (*tunnelConfig, error) {
 		return nil, fmt.Errorf("unable to parse ssh auth method: %w", err)
 	}
 
+	authmethods := []ssh.AuthMethod{}
+	if authmethod != nil {
+		authmethods = append(authmethods, authmethod)
+	}
+
 	return &tunnelConfig{
 		Addr: getSshAddr(tunnel),
 		ClientConfig: &ssh.ClientConfig{
 			User:            tunnel.GetUser(),
-			Auth:            []ssh.AuthMethod{authmethod},
+			Auth:            authmethods,
 			HostKeyCallback: hostcallback,
 			Timeout:         10 * time.Second, // todo: make configurable
 		},
@@ -337,68 +344,4 @@ type ClientCertConfig struct {
 
 	ClientCert *string
 	ClientKey  *string
-}
-
-// Method for retrieving connection details, including tunneling information.
-// // Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
-func getConnectionDetails(
-	c *mgmtv1alpha1.ConnectionConfig,
-	connectionTimeout *uint32,
-	handleClientTlsConfig clienttls.ClientTlsFileHandler,
-	logger *slog.Logger,
-) (*ConnectionDetails, error) {
-	if c == nil {
-		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
-	}
-	switch config := c.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		var maxConnLimit *int32
-		if config.PgConfig.ConnectionOptions != nil {
-			maxConnLimit = config.PgConfig.ConnectionOptions.MaxConnectionLimit
-		}
-		if config.PgConfig.GetClientTls() != nil {
-			_, err := handleClientTlsConfig(config.PgConfig.GetClientTls())
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
-		if err != nil {
-			return nil, err
-		}
-		return &ConnectionDetails{
-			GeneralDbConnectConfig: *connDetails,
-			MaxConnectionLimit:     maxConnLimit,
-		}, nil
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		var maxConnLimit *int32
-		if config.MysqlConfig.ConnectionOptions != nil {
-			maxConnLimit = config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
-		}
-
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
-		if err != nil {
-			return nil, err
-		}
-		return &ConnectionDetails{
-			GeneralDbConnectConfig: *connDetails,
-			MaxConnectionLimit:     maxConnLimit,
-		}, nil
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		var maxConnLimit *int32
-		if config.MssqlConfig.GetConnectionOptions() != nil {
-			maxConnLimit = config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
-		}
-		connDetails, err := dbconnectconfig.NewFromMssqlConnection(config, connectionTimeout)
-		if err != nil {
-			return nil, fmt.Errorf("unable to compile connection details for mssql connection: %w", err)
-		}
-		return &ConnectionDetails{
-			GeneralDbConnectConfig: *connDetails,
-			MaxConnectionLimit:     maxConnLimit,
-		}, nil
-	default:
-		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("this connection config (%T) is not currently supported", config))
-	}
 }
