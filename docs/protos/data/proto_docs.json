@@ -2869,18 +2869,6 @@
               "defaultValue": ""
             },
             {
-              "name": "field_path",
-              "description": "Field path where error occured",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
               "name": "error_message",
               "description": "Error message",
               "label": "",
@@ -2906,7 +2894,7 @@
           "fields": [
             {
               "name": "input_data",
-              "description": "Array of stringified JSON data to be transformed (up to 25 items)",
+              "description": "Array of stringified JSON data to be anonymized (up to 25 items)",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -3027,6 +3015,114 @@
           ]
         },
         {
+          "name": "AnonymizeSingleRequest",
+          "longName": "AnonymizeSingleRequest",
+          "fullName": "mgmt.v1alpha1.AnonymizeSingleRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "input_data",
+              "description": "Stringified JSON data to be anonymized",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "transformer_mappings",
+              "description": "Transformer mappings using dot notation for field paths",
+              "label": "repeated",
+              "type": "TransformerMappingsEntry",
+              "longType": "AnonymizeSingleRequest.TransformerMappingsEntry",
+              "fullType": "mgmt.v1alpha1.AnonymizeSingleRequest.TransformerMappingsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "default_transformers",
+              "description": "Optional default transformations for any unmapped keys",
+              "label": "optional",
+              "type": "DefaultTransformersConfig",
+              "longType": "DefaultTransformersConfig",
+              "fullType": "mgmt.v1alpha1.DefaultTransformersConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_default_transformers",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TransformerMappingsEntry",
+          "longName": "AnonymizeSingleRequest.TransformerMappingsEntry",
+          "fullName": "mgmt.v1alpha1.AnonymizeSingleRequest.TransformerMappingsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "TransformerConfig",
+              "longType": "TransformerConfig",
+              "fullType": "mgmt.v1alpha1.TransformerConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AnonymizeSingleResponse",
+          "longName": "AnonymizeSingleResponse",
+          "fullName": "mgmt.v1alpha1.AnonymizeSingleResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "output_data",
+              "description": "Anonymized JSON data",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "DefaultTransformersConfig",
           "longName": "DefaultTransformersConfig",
           "fullName": "mgmt.v1alpha1.DefaultTransformersConfig",
@@ -3036,18 +3132,6 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": [
-            {
-              "name": "b",
-              "description": "Byte",
-              "label": "",
-              "type": "TransformerConfig",
-              "longType": "TransformerConfig",
-              "fullType": "mgmt.v1alpha1.TransformerConfig",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
             {
               "name": "boolean",
               "description": "Boolean",
@@ -3104,6 +3188,18 @@
               "responseType": "AnonymizeManyResponse",
               "responseLongType": "AnonymizeManyResponse",
               "responseFullType": "mgmt.v1alpha1.AnonymizeManyResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "AnonymizeSingle",
+              "description": "",
+              "requestType": "AnonymizeSingleRequest",
+              "requestLongType": "AnonymizeSingleRequest",
+              "requestFullType": "mgmt.v1alpha1.AnonymizeSingleRequest",
+              "requestStreaming": false,
+              "responseType": "AnonymizeSingleResponse",
+              "responseLongType": "AnonymizeSingleResponse",
+              "responseFullType": "mgmt.v1alpha1.AnonymizeSingleResponse",
               "responseStreaming": false
             }
           ]

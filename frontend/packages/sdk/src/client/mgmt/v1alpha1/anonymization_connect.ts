@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AnonymizeManyRequest, AnonymizeManyResponse } from "./anonymization_pb.js";
+import { AnonymizeManyRequest, AnonymizeManyResponse, AnonymizeSingleRequest, AnonymizeSingleResponse } from "./anonymization_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,6 +19,15 @@ export const AnonymizationService = {
       name: "AnonymizeMany",
       I: AnonymizeManyRequest,
       O: AnonymizeManyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeSingle
+     */
+    anonymizeSingle: {
+      name: "AnonymizeSingle",
+      I: AnonymizeSingleRequest,
+      O: AnonymizeSingleResponse,
       kind: MethodKind.Unary,
     },
   }

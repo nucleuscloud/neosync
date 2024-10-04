@@ -12,7 +12,7 @@ import { TransformerConfig } from "./transformer_pb.js";
  */
 export class AnonymizeManyRequest extends Message<AnonymizeManyRequest> {
   /**
-   * Array of stringified JSON data to be transformed (up to 25 items)
+   * Array of stringified JSON data to be anonymized (up to 25 items)
    *
    * @generated from field: repeated string input_data = 1;
    */
@@ -123,13 +123,6 @@ export class AnonymizeManyResponse extends Message<AnonymizeManyResponse> {
  */
 export class DefaultTransformersConfig extends Message<DefaultTransformersConfig> {
   /**
-   * Byte
-   *
-   * @generated from field: mgmt.v1alpha1.TransformerConfig b = 1;
-   */
-  b?: TransformerConfig;
-
-  /**
    * Boolean
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig boolean = 2;
@@ -158,7 +151,6 @@ export class DefaultTransformersConfig extends Message<DefaultTransformersConfig
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.DefaultTransformersConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "b", kind: "message", T: TransformerConfig },
     { no: 2, name: "boolean", kind: "message", T: TransformerConfig },
     { no: 3, name: "n", kind: "message", T: TransformerConfig },
     { no: 4, name: "s", kind: "message", T: TransformerConfig },
@@ -193,16 +185,9 @@ export class AnonymizeManyErrors extends Message<AnonymizeManyErrors> {
   inputIndex = protoInt64.zero;
 
   /**
-   * Field path where error occured
-   *
-   * @generated from field: string field_path = 2;
-   */
-  fieldPath = "";
-
-  /**
    * Error message
    *
-   * @generated from field: string error_message = 3;
+   * @generated from field: string error_message = 2;
    */
   errorMessage = "";
 
@@ -215,8 +200,7 @@ export class AnonymizeManyErrors extends Message<AnonymizeManyErrors> {
   static readonly typeName = "mgmt.v1alpha1.AnonymizeManyErrors";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "input_index", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 2, name: "field_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "error_message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "error_message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnonymizeManyErrors {
@@ -233,6 +217,100 @@ export class AnonymizeManyErrors extends Message<AnonymizeManyErrors> {
 
   static equals(a: AnonymizeManyErrors | PlainMessage<AnonymizeManyErrors> | undefined, b: AnonymizeManyErrors | PlainMessage<AnonymizeManyErrors> | undefined): boolean {
     return proto3.util.equals(AnonymizeManyErrors, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AnonymizeSingleRequest
+ */
+export class AnonymizeSingleRequest extends Message<AnonymizeSingleRequest> {
+  /**
+   * Stringified JSON data to be anonymized
+   *
+   * @generated from field: string input_data = 1;
+   */
+  inputData = "";
+
+  /**
+   * Transformer mappings using dot notation for field paths
+   *
+   * @generated from field: map<string, mgmt.v1alpha1.TransformerConfig> transformer_mappings = 2;
+   */
+  transformerMappings: { [key: string]: TransformerConfig } = {};
+
+  /**
+   * Optional default transformations for any unmapped keys
+   *
+   * @generated from field: optional mgmt.v1alpha1.DefaultTransformersConfig default_transformers = 3;
+   */
+  defaultTransformers?: DefaultTransformersConfig;
+
+  constructor(data?: PartialMessage<AnonymizeSingleRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AnonymizeSingleRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "input_data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "transformer_mappings", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: TransformerConfig} },
+    { no: 3, name: "default_transformers", kind: "message", T: DefaultTransformersConfig, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnonymizeSingleRequest {
+    return new AnonymizeSingleRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnonymizeSingleRequest {
+    return new AnonymizeSingleRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnonymizeSingleRequest {
+    return new AnonymizeSingleRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnonymizeSingleRequest | PlainMessage<AnonymizeSingleRequest> | undefined, b: AnonymizeSingleRequest | PlainMessage<AnonymizeSingleRequest> | undefined): boolean {
+    return proto3.util.equals(AnonymizeSingleRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AnonymizeSingleResponse
+ */
+export class AnonymizeSingleResponse extends Message<AnonymizeSingleResponse> {
+  /**
+   * Anonymized JSON data
+   *
+   * @generated from field: string output_data = 1;
+   */
+  outputData = "";
+
+  constructor(data?: PartialMessage<AnonymizeSingleResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AnonymizeSingleResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "output_data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnonymizeSingleResponse {
+    return new AnonymizeSingleResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AnonymizeSingleResponse {
+    return new AnonymizeSingleResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AnonymizeSingleResponse {
+    return new AnonymizeSingleResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AnonymizeSingleResponse | PlainMessage<AnonymizeSingleResponse> | undefined, b: AnonymizeSingleResponse | PlainMessage<AnonymizeSingleResponse> | undefined): boolean {
+    return proto3.util.equals(AnonymizeSingleResponse, a, b);
   }
 }
 

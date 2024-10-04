@@ -52,7 +52,6 @@ func (t *GenerateFullName) Generate(opts any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
-
 	return generateRandomFullName(parsedOpts.randomizer, parsedOpts.maxLength)
 }
 

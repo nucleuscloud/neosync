@@ -36,17 +36,22 @@ const (
 	// AnonymizationServiceAnonymizeManyProcedure is the fully-qualified name of the
 	// AnonymizationService's AnonymizeMany RPC.
 	AnonymizationServiceAnonymizeManyProcedure = "/mgmt.v1alpha1.AnonymizationService/AnonymizeMany"
+	// AnonymizationServiceAnonymizeSingleProcedure is the fully-qualified name of the
+	// AnonymizationService's AnonymizeSingle RPC.
+	AnonymizationServiceAnonymizeSingleProcedure = "/mgmt.v1alpha1.AnonymizationService/AnonymizeSingle"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	anonymizationServiceServiceDescriptor             = v1alpha1.File_mgmt_v1alpha1_anonymization_proto.Services().ByName("AnonymizationService")
-	anonymizationServiceAnonymizeManyMethodDescriptor = anonymizationServiceServiceDescriptor.Methods().ByName("AnonymizeMany")
+	anonymizationServiceServiceDescriptor               = v1alpha1.File_mgmt_v1alpha1_anonymization_proto.Services().ByName("AnonymizationService")
+	anonymizationServiceAnonymizeManyMethodDescriptor   = anonymizationServiceServiceDescriptor.Methods().ByName("AnonymizeMany")
+	anonymizationServiceAnonymizeSingleMethodDescriptor = anonymizationServiceServiceDescriptor.Methods().ByName("AnonymizeSingle")
 )
 
 // AnonymizationServiceClient is a client for the mgmt.v1alpha1.AnonymizationService service.
 type AnonymizationServiceClient interface {
 	AnonymizeMany(context.Context, *connect.Request[v1alpha1.AnonymizeManyRequest]) (*connect.Response[v1alpha1.AnonymizeManyResponse], error)
+	AnonymizeSingle(context.Context, *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error)
 }
 
 // NewAnonymizationServiceClient constructs a client for the mgmt.v1alpha1.AnonymizationService
@@ -65,12 +70,19 @@ func NewAnonymizationServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(anonymizationServiceAnonymizeManyMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		anonymizeSingle: connect.NewClient[v1alpha1.AnonymizeSingleRequest, v1alpha1.AnonymizeSingleResponse](
+			httpClient,
+			baseURL+AnonymizationServiceAnonymizeSingleProcedure,
+			connect.WithSchema(anonymizationServiceAnonymizeSingleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // anonymizationServiceClient implements AnonymizationServiceClient.
 type anonymizationServiceClient struct {
-	anonymizeMany *connect.Client[v1alpha1.AnonymizeManyRequest, v1alpha1.AnonymizeManyResponse]
+	anonymizeMany   *connect.Client[v1alpha1.AnonymizeManyRequest, v1alpha1.AnonymizeManyResponse]
+	anonymizeSingle *connect.Client[v1alpha1.AnonymizeSingleRequest, v1alpha1.AnonymizeSingleResponse]
 }
 
 // AnonymizeMany calls mgmt.v1alpha1.AnonymizationService.AnonymizeMany.
@@ -78,10 +90,16 @@ func (c *anonymizationServiceClient) AnonymizeMany(ctx context.Context, req *con
 	return c.anonymizeMany.CallUnary(ctx, req)
 }
 
+// AnonymizeSingle calls mgmt.v1alpha1.AnonymizationService.AnonymizeSingle.
+func (c *anonymizationServiceClient) AnonymizeSingle(ctx context.Context, req *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error) {
+	return c.anonymizeSingle.CallUnary(ctx, req)
+}
+
 // AnonymizationServiceHandler is an implementation of the mgmt.v1alpha1.AnonymizationService
 // service.
 type AnonymizationServiceHandler interface {
 	AnonymizeMany(context.Context, *connect.Request[v1alpha1.AnonymizeManyRequest]) (*connect.Response[v1alpha1.AnonymizeManyResponse], error)
+	AnonymizeSingle(context.Context, *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error)
 }
 
 // NewAnonymizationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -96,10 +114,18 @@ func NewAnonymizationServiceHandler(svc AnonymizationServiceHandler, opts ...con
 		connect.WithSchema(anonymizationServiceAnonymizeManyMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	anonymizationServiceAnonymizeSingleHandler := connect.NewUnaryHandler(
+		AnonymizationServiceAnonymizeSingleProcedure,
+		svc.AnonymizeSingle,
+		connect.WithSchema(anonymizationServiceAnonymizeSingleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.AnonymizationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AnonymizationServiceAnonymizeManyProcedure:
 			anonymizationServiceAnonymizeManyHandler.ServeHTTP(w, r)
+		case AnonymizationServiceAnonymizeSingleProcedure:
+			anonymizationServiceAnonymizeSingleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -111,4 +137,8 @@ type UnimplementedAnonymizationServiceHandler struct{}
 
 func (UnimplementedAnonymizationServiceHandler) AnonymizeMany(context.Context, *connect.Request[v1alpha1.AnonymizeManyRequest]) (*connect.Response[v1alpha1.AnonymizeManyResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AnonymizationService.AnonymizeMany is not implemented"))
+}
+
+func (UnimplementedAnonymizationServiceHandler) AnonymizeSingle(context.Context, *connect.Request[v1alpha1.AnonymizeSingleRequest]) (*connect.Response[v1alpha1.AnonymizeSingleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AnonymizationService.AnonymizeSingle is not implemented"))
 }

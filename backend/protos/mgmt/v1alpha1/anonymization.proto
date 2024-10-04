@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "mgmt/v1alpha1/transformer.proto";
 
 message AnonymizeManyRequest {
-  // Array of stringified JSON data to be transformed (up to 25 items)
+  // Array of stringified JSON data to be anonymized (up to 25 items)
   repeated string input_data = 1 [(buf.validate.field).repeated = {max_items: 25}];
 
   // Transformer mappings using dot notation for field paths
@@ -28,8 +28,6 @@ message AnonymizeManyResponse {
 }
 
 message DefaultTransformersConfig {
-  // Byte
-  TransformerConfig b = 1;
   // Boolean
   TransformerConfig boolean = 2;
   // Number
@@ -41,12 +39,27 @@ message DefaultTransformersConfig {
 message AnonymizeManyErrors {
   // Index of input data that caused error
   int64 input_index = 1;
-  // Field path where error occured
-  string field_path = 2;
   // Error message
-  string error_message = 3;
+  string error_message = 2;
+}
+
+message AnonymizeSingleRequest {
+  // Stringified JSON data to be anonymized
+  string input_data = 1;
+
+  // Transformer mappings using dot notation for field paths
+  map<string, TransformerConfig> transformer_mappings = 2;
+
+  // Optional default transformations for any unmapped keys
+  optional DefaultTransformersConfig default_transformers = 3;
+}
+
+message AnonymizeSingleResponse {
+  // Anonymized JSON data
+  string output_data = 1;
 }
 
 service AnonymizationService {
   rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}
+  rpc AnonymizeSingle(AnonymizeSingleRequest) returns (AnonymizeSingleResponse) {}
 }

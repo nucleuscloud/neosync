@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodKind } from "@bufbuild/protobuf";
-import { AnonymizeManyRequest, AnonymizeManyResponse } from "./anonymization_pb.js";
+import { AnonymizeManyRequest, AnonymizeManyResponse, AnonymizeSingleRequest, AnonymizeSingleResponse } from "./anonymization_pb.js";
 
 /**
  * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeMany
@@ -15,6 +15,20 @@ export const anonymizeMany = {
   kind: MethodKind.Unary,
   I: AnonymizeManyRequest,
   O: AnonymizeManyResponse,
+  service: {
+    typeName: "mgmt.v1alpha1.AnonymizationService"
+  }
+} as const;
+
+/**
+ * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeSingle
+ */
+export const anonymizeSingle = {
+  localName: "anonymizeSingle",
+  name: "AnonymizeSingle",
+  kind: MethodKind.Unary,
+  I: AnonymizeSingleRequest,
+  O: AnonymizeSingleResponse,
   service: {
     typeName: "mgmt.v1alpha1.AnonymizationService"
   }

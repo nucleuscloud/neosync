@@ -5,25 +5,30 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	anon "github.com/nucleuscloud/neosync/internal/anonymizer"
+	jsonanonymizer "github.com/nucleuscloud/neosync/internal/json-anonymizer"
 )
 
 func (s *Service) AnonymizeMany(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeManyRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeManyResponse], error) {
-	anonymizer, err := anon.NewAnonymizer(
-		anon.WithTransformerMappings(req.Msg.TransformerMappings),
-		anon.WithDefaultTransformers(req.Msg.DefaultTransformers),
-		anon.WithHaltOnFailure(req.Msg.HaltOnFailure),
+	anonymizer, err := jsonanonymizer.NewAnonymizer(
+		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
+		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
+		jsonanonymizer.WithHaltOnFailure(req.Msg.HaltOnFailure),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	outputData, errors, err := anonymizer.AnonymizeMany(req.Msg.InputData)
-	if err != nil {
-		return nil, err
+	outputData, anonymizeErrors := anonymizer.AnonymizeJSONObjects(req.Msg.InputData)
+
+	errors := []*mgmtv1alpha1.AnonymizeManyErrors{}
+	for _, e := range anonymizeErrors {
+		errors = append(errors, &mgmtv1alpha1.AnonymizeManyErrors{
+			InputIndex:   e.InputIndex,
+			ErrorMessage: e.Message,
+		})
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.AnonymizeManyResponse{
@@ -32,32 +37,26 @@ func (s *Service) AnonymizeMany(
 	}), nil
 }
 
-// // AnonymizeSingle endpoint using the Anonymizer
-// func (s *Service) AnonymizeSingle(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
-// ) (*connect.Response[mgmtv1alpha1.AnonymizeSingleResponse], error) {
+// AnonymizeSingle endpoint using the Anonymizer
+func (s *Service) AnonymizeSingle(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
+) (*connect.Response[mgmtv1alpha1.AnonymizeSingleResponse], error) {
 
-// 	anonymizer := NewAnonymizer(
-// 		WithTransformerMappings(req.Msg.TransformerMappings),
-// 		WithDefaultTransformers(req.Msg.DefaultTransformers),
-// 		WithHaltOnFailure(req.Msg.HaltOnFailure),
-// 	)
+	anonymizer, err := jsonanonymizer.NewAnonymizer(
+		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
+		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// 	outputData, err := anonymizer.AnonymizeSingle(req.Msg.InputData)
-// 	var errors []*mgmtv1alpha1.AnonymizeManyErrors
-// 	if err != nil {
-// 		errors = append(errors, &mgmtv1alpha1.AnonymizeManyErrors{
-// 			InputIndex:   0,
-// 			FieldPath:    "",
-// 			ErrorMessage: err.Error(),
-// 		})
-// 	}
+	outputData, err := anonymizer.AnonymizeJSONObject(req.Msg.InputData)
+	if err != nil {
+		return nil, err
+	}
 
-// 	resp := &mgmtv1alpha1.AnonymizeSingleResponse{
-// 		OutputData: outputData,
-// 		Errors:     errors,
-// 	}
-
-// 	return connect.NewResponse(resp), nil
-// }
+	return connect.NewResponse(&mgmtv1alpha1.AnonymizeSingleResponse{
+		OutputData: outputData,
+	}), nil
+}
