@@ -3,6 +3,7 @@ package sshtunnel_test
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,17 +12,23 @@ import (
 
 	gssh "github.com/gliderlabs/ssh"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mssqltunconnector"
+	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/mysqltunconnector"
 	"github.com/nucleuscloud/neosync/internal/sshtunnel/connectors/postgrestunconnector"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/testcontainers/testcontainers-go"
+	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
+	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
+
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func Test_NewLazySSHDialer(t *testing.T) {
+	t.Parallel()
 	evkey := "INTEGRATION_TESTS_ENABLED"
 	shouldRun := os.Getenv(evkey)
 	if shouldRun != "1" {
@@ -30,16 +37,6 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	pgcontainer, err := testpg.Run(
-		ctx,
-		"postgres:15",
-		postgres.WithDatabase("postgres"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(20*time.Second),
-		),
-	)
-	require.NoError(t, err)
 
 	addr := ":2222"
 	server := newSshForwardServer(t, addr)
@@ -59,17 +56,78 @@ func Test_NewLazySSHDialer(t *testing.T) {
 	}
 	dialer := sshtunnel.NewLazySSHDialer(addr, cconfig)
 	defer dialer.Close()
-	connstr, err := pgcontainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
 
-	connector, cleanup, err := postgrestunconnector.New(dialer, connstr)
-	require.NoError(t, err)
-	defer cleanup()
+	t.Run("postgres", func(t *testing.T) {
+		t.Parallel()
 
+		container, err := testpg.Run(
+			ctx,
+			"postgres:15",
+			postgres.WithDatabase("postgres"),
+			testcontainers.WithWaitStrategy(
+				wait.ForLog("database system is ready to accept connections").
+					WithOccurrence(2).WithStartupTimeout(20*time.Second),
+			),
+		)
+		require.NoError(t, err)
+		connstr, err := container.ConnectionString(ctx, "sslmode=disable")
+		require.NoError(t, err)
+
+		connector, cleanup, err := postgrestunconnector.New(dialer, connstr)
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+
+	t.Run("mysql", func(t *testing.T) {
+		t.Parallel()
+
+		container, err := testmysql.Run(ctx,
+			"mysql:8.0.36",
+			testmysql.WithDatabase("mydb"),
+			testmysql.WithUsername("root"),
+			testmysql.WithPassword("password"),
+			testcontainers.WithWaitStrategy(
+				wait.ForLog("port: 3306  MySQL Community Server").
+					WithOccurrence(1).WithStartupTimeout(20*time.Second),
+			),
+		)
+		require.NoError(t, err)
+		connstr, err := container.ConnectionString(ctx)
+		require.NoError(t, err)
+
+		connector, cleanup, err := mysqltunconnector.New(dialer, connstr)
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		t.Parallel()
+		container, err := testmssql.Run(ctx,
+			"mcr.microsoft.com/mssql/server:2022-latest",
+			testmssql.WithAcceptEULA(),
+			testmssql.WithPassword("mssqlPASSword1"),
+		)
+		require.NoError(t, err)
+		connstr, err := container.ConnectionString(ctx)
+		require.NoError(t, err)
+
+		connector, cleanup, err := mssqltunconnector.New(dialer, connstr)
+		require.NoError(t, err)
+		defer cleanup()
+
+		requireDbConnects(t, connector)
+	})
+}
+
+func requireDbConnects(t testing.TB, connector driver.Connector) {
 	db := sql.OpenDB(connector)
 	defer db.Close()
 
-	err = db.Ping()
+	err := db.Ping()
 	require.NoError(t, err)
 }
 
