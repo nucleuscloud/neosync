@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -22,10 +21,6 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	// _ "github.com/microsoft/go-mssqldb" // This is commented out because one of our dependencies is importing this already and it panics if called more than once.
 )
 
 type SqlDatabase interface {
@@ -309,23 +304,23 @@ func (s *SqlManager) NewSqlDbFromUrl(
 	var db SqlDatabase
 	switch driver {
 	case sqlmanager_shared.PostgresDriver, "postgres":
-		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
+		pgxconfig, err := pgx.ParseConfig(connectionUrl)
 		if err != nil {
 			return nil, err
 		}
-		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
+		pgxconfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
 			LogLevel: pgxslog.GetDatabaseLogLevel(),
 		}
-		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
-		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
+		pgxconfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+		pgconn, err := pgx.ConnectConfig(ctx, pgxconfig)
 		if err != nil {
 			return nil, err
 		}
-		pgpool := stdlib.OpenDBFromPool(pgconn)
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pgpool, func() {
+		sqldb := stdlib.OpenDB(*pgxconfig)
+		db = sqlmanager_postgres.NewManager(s.pgquerier, sqldb, func() {
 			if pgconn != nil {
-				pgconn.Close()
+				sqldb.Close()
 			}
 		})
 		driver = sqlmanager_shared.PostgresDriver

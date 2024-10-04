@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	_ "github.com/microsoft/go-mssqldb"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )

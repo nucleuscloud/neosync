@@ -13,7 +13,6 @@ import (
 	"sync"
 	"testing"
 
-	_ "github.com/microsoft/go-mssqldb"
 	"golang.org/x/sync/errgroup"
 
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"

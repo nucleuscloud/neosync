@@ -7,6 +7,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
