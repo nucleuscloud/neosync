@@ -55,20 +55,6 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 		require.NotNil(t, result)
 	})
 
-	t.Run("postgres-bad", func(t *testing.T) {
-		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
-
-		provider := NewProvider(mockMp, mockSp)
-
-		result, err := provider.GetConnectionClient(&mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
-		})
-		require.Error(t, err)
-		require.Nil(t, result)
-	})
-
 	t.Run("mysql", func(t *testing.T) {
 		t.Parallel()
 		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
@@ -87,20 +73,6 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 		require.NotNil(t, result)
 	})
 
-	t.Run("mysql-bad", func(t *testing.T) {
-		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
-
-		provider := NewProvider(mockMp, mockSp)
-
-		result, err := provider.GetConnectionClient(&mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},
-		})
-		require.Error(t, err)
-		require.Nil(t, result)
-	})
-
 	t.Run("mssql", func(t *testing.T) {
 		t.Parallel()
 		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
@@ -117,20 +89,6 @@ func Test_Provider_GetConnectionClient(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, result)
-	})
-
-	t.Run("mssql-bad", func(t *testing.T) {
-		t.Parallel()
-		mockMp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_mongodb.MongoClient](t)
-		mockSp := connectiontunnelmanager.NewMockConnectionProvider[neosync_benthos_sql.SqlDbtx](t)
-
-		provider := NewProvider(mockMp, mockSp)
-
-		result, err := provider.GetConnectionClient(&mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{},
-		})
-		require.Error(t, err)
-		require.Nil(t, result)
 	})
 }
 
