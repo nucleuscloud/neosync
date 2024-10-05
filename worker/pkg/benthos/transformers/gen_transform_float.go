@@ -51,7 +51,7 @@ func NewTransformFloat64Opts(
 func (t *TransformFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformFloat64",
-		Description: "Transforms an existing float value.",
+		Description: "Anonymizes and transforms an existing float value.",
 		Example: "",
 	}, nil
 }

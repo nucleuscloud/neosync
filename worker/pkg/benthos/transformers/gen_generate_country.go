@@ -47,7 +47,7 @@ func NewGenerateCountryOpts(
 func (t *GenerateCountry) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCountry",
-		Description: "Randomly selects a Country and either returns the two character country code or the full country name.",
+		Description: "Randomly selects a country and by default, returns it as a 2-letter country code.",
 		Example: "",
 	}, nil
 }

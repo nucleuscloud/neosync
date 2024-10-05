@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -10,6 +11,7 @@ import { getConnections } from '@neosync/sdk/connectquery';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement, useMemo } from 'react';
+import { GoWorkflow } from 'react-icons/go';
 import { getColumns } from './components/ConnectionsTable/columns';
 import { DataTable } from './components/ConnectionsTable/data-table';
 
@@ -59,7 +61,18 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable columns={columns} data={connections} />
+      {connections.length == 0 ? (
+        <EmptyState
+          title="No Connections yet"
+          description="Get started by adding your first connection. Connections help you
+          integrate and sync data across your databases."
+          buttonText="Create Your First Connection"
+          icon={<GoWorkflow className="w-8 h-8 text-primary" />}
+          href={`/${account?.name}/new/connection`}
+        />
+      ) : (
+        <DataTable columns={columns} data={connections} />
+      )}
     </div>
   );
 }

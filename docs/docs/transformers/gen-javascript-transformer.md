@@ -31,7 +31,7 @@ source: transform_character_scramble.go
 
 ### transformCharacterScramble
 
-Transforms an existing string value by scrambling the characters while maintaining the format.
+
 
 **Parameters**
 
@@ -101,7 +101,7 @@ source: transform_email.go
 
 ### transformEmail
 
-Transforms an existing email address.
+Anonymizes and transforms an existing email address.
 
 **Parameters**
 
@@ -181,7 +181,7 @@ source: transform_float.go
 
 ### transformFloat64
 
-Transforms an existing float value.
+Anonymizes and transforms an existing float value.
 
 **Parameters**
 
@@ -257,7 +257,7 @@ source: transform_int64.go
 
 ### transformInt64
 
-Transforms an existing integer value.
+Anonymizes and transforms an existing int64 value.
 
 **Parameters**
 
@@ -293,7 +293,7 @@ source: transform_int64_phone_number.go
 
 ### transformInt64PhoneNumber
 
-Transforms an existing phone number that is typed as an integer
+Anonymizes and transforms an existing int64 phone number.
 
 **Parameters**
 
@@ -327,7 +327,7 @@ source: transform_lastname.go
 
 ### transformLastName
 
-Transforms an existing last name.
+Anonymizes and transforms an existing last name.
 
 **Parameters**
 
@@ -363,7 +363,7 @@ source: transform_string.go
 
 ### transformString
 
-Transforms an existing string value.
+Anonymizes and transforms an existing string value.
 
 **Parameters**
 
@@ -401,7 +401,7 @@ source: transform_string_phone_number.go
 
 ### transformStringPhoneNumber
 
-Transforms an existing phone number that is typed as a string.
+Anonymizes and transforms an existing phone number that is typed as a string.
 
 **Parameters**
 
@@ -446,7 +446,7 @@ source: generate_bool.go
 
 ### generateBool
 
-Generates a boolean value at random.
+Generates a random boolean value.
 
 **Parameters**
 
@@ -475,7 +475,7 @@ source: generate_card_number.go
 
 ### generateCardNumber
 
-Generates a card number.
+Generates a 16 digit card number that is valid by Luhn valid by default.
 
 **Parameters**
 
@@ -568,7 +568,7 @@ source: generate_country.go
 
 ### generateCountry
 
-Randomly selects a Country and either returns the two character country code or the full country name.
+Randomly selects a country and by default, returns it as a 2-letter country code.
 
 **Parameters**
 
@@ -632,7 +632,7 @@ source: generate_first_name.go
 
 ### generateFirstName
 
-Generates a random first name.
+Generates a random first name between 2 and 12 characters long.
 
 **Parameters**
 
@@ -663,7 +663,7 @@ source: generate_float.go
 
 ### generateFloat64
 
-Generates a random float64 value.
+Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.
 
 **Parameters**
 
@@ -702,7 +702,7 @@ source: generate_full_address.go
 
 ### generateFullAddress
 
-Randomly generates a street address.
+Generates a randomly selected real full address that exists in the United States.
 
 **Parameters**
 
@@ -764,7 +764,7 @@ source: generate_gender.go
 
 ### generateGender
 
-Randomly generates one of the following genders: female, male, undefined, nonbinary.
+Randomly generates one of the following genders: female (f), male (m), undefined (u), nonbinary (n).
 
 **Parameters**
 
@@ -797,7 +797,7 @@ source: generate_int64.go
 
 ### generateInt64
 
-Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.
+Generates a random int64 value with a default length of 4.
 
 **Parameters**
 
@@ -832,7 +832,7 @@ source: generate_int64_phone_number.go
 
 ### generateInt64PhoneNumber
 
-Generates a new phone number of type int64 with a default length of 10.
+Generates a new int64 phone number with a default length of 10.
 
 **Parameters**
 
@@ -861,7 +861,7 @@ source: generate_international_phone_number.go
 
 ### generateInternationalPhoneNumber
 
-Generates a Generate phone number in e164 format.
+Generates a new random international phone number including the + sign and no hyphens.
 
 **Parameters**
 
@@ -925,7 +925,7 @@ source: generate_random_string.go
 
 ### generateRandomString
 
-Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.
+Generates a random string of alphanumeric characters..
 
 **Parameters**
 
@@ -958,7 +958,7 @@ source: generate_sha256hash.go
 
 ### generateSHA256Hash
 
-SHA256 hashes a randomly generated value.
+Generates a random SHA256 hash and returns it as a string.
 
 **Parameters**
 
@@ -984,7 +984,7 @@ source: generate_ssn.go
 
 ### generateSSN
 
-Generates a completely random social security numbers including the hyphens in the format xxx-xx-xxxx.
+Generates a random social security numbers including the hyphens in the format xxx-xx-xxxx.
 
 **Parameters**
 
@@ -1013,7 +1013,7 @@ source: generate_state.go
 
 ### generateState
 
-Randomly selects a US state and either returns the two character state code or the full state name.
+Randomly selects a US state and by default, returns it as a 2-letter state code.
 
 **Parameters**
 
@@ -1075,7 +1075,7 @@ source: generate_string_phone_number.go
 
 ### generateStringPhoneNumber
 
-Generates a Generate phone number and returns it as a string.
+Generates a random 10 digit phone number and returns it as a string with no hyphens.
 
 **Parameters**
 
@@ -1108,7 +1108,7 @@ source: generate_unix_timestamp.go
 
 ### generateUnixTimestamp
 
-Randomly generates a Unix timestamp.
+Randomly generates a Unix timestamp that is in the past.
 
 **Parameters**
 
@@ -1226,7 +1226,7 @@ source: generate_zipcode.go
 
 ### generateZipcode
 
-Randomly selects a zip code from a list of predefined US zipcodes.
+Generates a randomly selected US zipcode.
 
 **Parameters**
 
