@@ -109,7 +109,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
       <OverviewContainer Header={<PageHeader header="Select a Job type" />}>
         <RadioGroup
           value={selectedJobType}
-          className="flex flex-row justify-center items-center gap-6 pt-8"
+          className="flex flex-col lg:flex-row justify-center items-center gap-6 pt-8"
         >
           {jobData.map((jd) => (
             <Card
@@ -146,7 +146,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
                       }}
                     />
                   </div>
-                  <div className="pt-4">
+                  <div className="pt-8">
                     <CardTitle>
                       <div className="flex flex-row items-center gap-2 text-nowrap">
                         <p>{jd.name}</p>
