@@ -38,63 +38,24 @@ interface Props {
   jobStatus?: JobRunStatusEnum;
 }
 
+type RunStatus = 'running' | 'completed' | 'failed' | 'canceled';
+
 export default function RunTimeline(props: Props): ReactElement {
   const { tasks, jobStatus } = props;
 
-  // this should probably be better typed and using the ActivityStatus types
-  // but those aren't currenlty sent to the FE as a status but are represented in the
-  // type field
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
+  const [selectedStatuses, setSelectedStatuses] = useState<RunStatus[]>([
     'running',
     'completed',
     'failed',
     'canceled',
   ]);
 
-  const formatFullDate = (date: Timestamp | Date | undefined) => {
-    if (!date) return 'N/A';
-
-    if (date instanceof Timestamp) {
-      return format(convertTimestampToDate(date), 'MM/dd/yyyy HH:mm:ss:SSS');
-    }
-
-    if (date instanceof Date) {
-      return format(date, 'MM/dd/yyyy HH:mm:ss:SSS');
-    }
-  };
-
-  const formatDate = (date: Date) => format(date, 'MM/dd/yyyy');
-  const formatTime = (date: Date) => format(date, 'HH:mm:ss:SSS');
-
-  const formatTaskDuration = (
-    s: Timestamp | undefined,
-    end: Date | undefined
-  ) => {
-    if (!s || !end) return 'N/A';
-    const start = convertTimestampToDate(s);
-    const duration = intervalToDuration({ start, end });
-    const milliseconds = end.getTime() - start.getTime();
-    const millis = milliseconds % 1000;
-
-    // format the duration string
-    const formattedDuration = formatDuration(duration, {
-      format: ['hours', 'minutes', 'seconds'],
-      delimiter: ', ',
-    });
-
-    if (!formattedDuration) {
-      return `${millis} ms`;
-    }
-
-    return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
-  };
-
   const { timelineStart, totalDuration, timeLabels } = useMemo(() => {
     // find earliest start date out of all of the activities
     let startTime = Infinity;
     let endTime = -Infinity;
 
-    tasks.map((t) => {
+    tasks.forEach((t) => {
       startTime = Math.min(
         startTime,
         convertTimestampToDate(t.startTime).getTime()
@@ -133,50 +94,20 @@ export default function RunTimeline(props: Props): ReactElement {
     };
   }, [tasks]);
 
-  // calculates where in the timeline axis something should be relative to the total duration
-  // also dictates how far right the timeline goes, reduce if you want the timeline shorter or length otherwise
-  const getPositionPercentage = (time: Date) => {
-    return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 92;
-  };
-
-  // handles getting the activity statuses by remaping the ActivityStatuses since (i think) we don't want to show all of them per activity
-  // prob want to update with actual types instead of using strings here
-  // the event types in the types field are just the stringified Temporal types
-  const getTaskStatus = (task: JobRunEvent): string => {
-    const hasCompleted = task.tasks.some(
-      (item) => item.type === 'ActivityTaskCompleted'
-    );
-    const hasFailed = task.tasks.some(
-      (item) => item.type === 'ActivityTaskFailed' || item.error
-    );
-    const isCanceled = task.tasks.some(
-      (item) => item.type === 'ActivityTaskCancelRequested'
-    );
-
-    const isJobTerminated = jobStatus && jobStatus == JobRunStatus.TERMINATED;
-
-    if (hasCompleted) return 'completed';
-    if (hasFailed) return 'failed';
-    if (isCanceled || (isJobTerminated && !hasCompleted)) return 'canceled';
-    if (!hasCompleted && !hasFailed && !isCanceled) return 'running';
-    return 'unknown';
-  };
-
   // handles filtering the tasks when the tasks or filters change
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      const status = getTaskStatus(task);
+      const status = getTaskStatus(task, jobStatus);
       return selectedStatuses.includes(status);
     });
   }, [tasks, selectedStatuses, jobStatus]);
 
-  const handleStatusFilterChange = (status: string, checked: boolean) => {
+  const handleStatusFilterChange = (status: RunStatus, checked: boolean) => {
     setSelectedStatuses((prev) =>
       checked ? [...prev, status] : prev.filter((s) => s !== status)
     );
   };
 
-  console.log('tasks', tasks);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between w-full">
@@ -203,7 +134,10 @@ export default function RunTimeline(props: Props): ReactElement {
                         'border-b border-gray-200 dark:border-gray-700'
                     )}
                   >
-                    <ActivityLabel task={task} getTaskStatus={getTaskStatus} />
+                    <ActivityLabel
+                      task={task}
+                      getStatus={() => getTaskStatus(task, jobStatus)}
+                    />
                   </div>
                 );
               })}
@@ -214,6 +148,8 @@ export default function RunTimeline(props: Props): ReactElement {
               getPositionPercentage={getPositionPercentage}
               formatDate={formatDate}
               timeLabels={timeLabels}
+              timelineStart={timelineStart}
+              totalDuration={totalDuration}
             />
 
             {filteredTasks.map((_, index) => (
@@ -228,16 +164,15 @@ export default function RunTimeline(props: Props): ReactElement {
               const failedTask = task.tasks.find((item) => item.error);
 
               const left = getPositionPercentage(
-                convertTimestampToDate(task.startTime)
+                convertTimestampToDate(task.startTime),
+                timelineStart,
+                totalDuration
               );
               const endTime = getCloseOrErrorOrCancelDate(task);
-              const width = getPositionPercentage(endTime) - left;
-              const status = getTaskStatus(task);
-
-              const cancelTime = task.tasks.find(
-                (t) => t.type === 'ActivityTaskCancelRequested'
-              )?.eventTime;
-              console.log('cancel Time', cancelTime, task);
+              const width =
+                getPositionPercentage(endTime, timelineStart, totalDuration) -
+                left;
+              const status = getTaskStatus(task, jobStatus);
 
               return (
                 <div className="flex flex-row" key={task.id}>
@@ -280,9 +215,7 @@ export default function RunTimeline(props: Props): ReactElement {
                         <div className="flex flex-row gap-2 items-center justify-between w-full">
                           <strong>Finish:</strong>{' '}
                           <Badge variant="default" className="w-[180px]">
-                            {status == 'failed' ||
-                            status == 'terminated' ||
-                            status == 'canceled'
+                            {status == 'failed' || status == 'canceled'
                               ? 'N/A'
                               : formatFullDate(endTime)}
                           </Badge>
@@ -309,8 +242,14 @@ export default function RunTimeline(props: Props): ReactElement {
 
   interface TableHeaderProps {
     formatDate: (date: Date) => string;
-    getPositionPercentage: (time: Date) => number;
+    getPositionPercentage: (
+      time: Date,
+      timelineStart: Date,
+      totalDuration: number
+    ) => number;
     timeLabels: Date[];
+    timelineStart: Date;
+    totalDuration: number;
   }
 
   function TableHeader(props: TableHeaderProps): ReactElement {
@@ -323,7 +262,9 @@ export default function RunTimeline(props: Props): ReactElement {
             <div
               key={index}
               className="absolute top-0 text-xs text-gray-700 dark:text-gray-300"
-              style={{ left: `${getPositionPercentage(label)}%` }}
+              style={{
+                left: `${getPositionPercentage(label, timelineStart, totalDuration)}%`,
+              }}
             >
               <div className="whitespace-nowrap py-1">{formatDate(label)}</div>
               <div className="whitespace-nowrap">{formatTime(label)}</div>
@@ -380,43 +321,46 @@ function SyncLabel(props: SyncLabelProps) {
 
 interface ActivityLabelProps {
   task: JobRunEvent;
-  getTaskStatus: (task: JobRunEvent) => string;
+  getStatus: () => RunStatus;
 }
 
-function ActivityLabel({ task, getTaskStatus }: ActivityLabelProps) {
-  const status = getTaskStatus(task);
-
-  const handleStatus = () => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircledIcon className="text-green-500" />;
-      case 'failed':
-        return <CrossCircledIcon className="text-red-500" />;
-      case 'canceled':
-        return <MinusCircledIcon className="text-yellow-500" />;
-      case 'running':
-        return <Spinner />;
-      default:
-        return null;
-    }
-  };
+// Update the ActivityLabel component
+function ActivityLabel({ task, getStatus }: ActivityLabelProps) {
+  const status = getStatus();
 
   return (
     <div className="flex flex-row items-center gap-2">
       {task.id.toString()}.
       <TruncatedText text={task.type} />
-      {handleStatus()}
+      <ActivityStatus status={status} />
     </div>
   );
 }
 
+function ActivityStatus({ status }: { status: RunStatus }) {
+  switch (status) {
+    case 'completed':
+      return <CheckCircledIcon className="text-green-500" />;
+    case 'failed':
+      return <CrossCircledIcon className="text-red-500" />;
+    case 'canceled':
+      return <MinusCircledIcon className="text-yellow-500" />;
+    case 'running':
+      return <Spinner />;
+    default:
+      return null;
+  }
+}
+
 interface StatusFilterProps {
-  selectedStatuses: string[];
-  onStatusChange: (status: string, checked: boolean) => void;
+  selectedStatuses: RunStatus[];
+  onStatusChange: (status: RunStatus, checked: boolean) => void;
 }
 
 // would be nice to replace with a multi-select so you don't have to open/close it everytime you want to make a change
 function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
+  const uniqueSelectedStatuses = new Set(selectedStatuses);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -428,25 +372,25 @@ function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuCheckboxItem
-          checked={selectedStatuses.includes('running')}
+          checked={uniqueSelectedStatuses.has('running')}
           onCheckedChange={(checked) => onStatusChange('running', checked)}
         >
           Running
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          checked={selectedStatuses.includes('completed')}
+          checked={uniqueSelectedStatuses.has('completed')}
           onCheckedChange={(checked) => onStatusChange('completed', checked)}
         >
           Completed
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          checked={selectedStatuses.includes('failed')}
+          checked={uniqueSelectedStatuses.has('failed')}
           onCheckedChange={(checked) => onStatusChange('failed', checked)}
         >
           Failed
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          checked={selectedStatuses.includes('canceled')}
+          checked={uniqueSelectedStatuses.has('canceled')}
           onCheckedChange={(checked) => onStatusChange('canceled', checked)}
         >
           Canceled
@@ -455,3 +399,76 @@ function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
     </DropdownMenu>
   );
 }
+
+const formatFullDate = (date: Timestamp | Date | undefined) => {
+  if (!date) return 'N/A';
+
+  if (date instanceof Timestamp) {
+    return format(convertTimestampToDate(date), 'MM/dd/yyyy HH:mm:ss:SSS');
+  }
+
+  if (date instanceof Date) {
+    return format(date, 'MM/dd/yyyy HH:mm:ss:SSS');
+  }
+};
+
+const formatDate = (date: Date) => format(date, 'MM/dd/yyyy');
+
+const formatTime = (date: Date) => format(date, 'HH:mm:ss:SSS');
+
+const formatTaskDuration = (
+  s: Timestamp | undefined,
+  end: Date | undefined
+) => {
+  if (!s || !end) return 'N/A';
+  const start = convertTimestampToDate(s);
+  const duration = intervalToDuration({ start, end });
+  const milliseconds = end.getTime() - start.getTime();
+  const millis = milliseconds % 1000;
+
+  // format the duration string
+  const formattedDuration = formatDuration(duration, {
+    format: ['hours', 'minutes', 'seconds'],
+    delimiter: ', ',
+  });
+
+  if (!formattedDuration) {
+    return `${millis} ms`;
+  }
+
+  return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
+};
+
+// handles getting the activity statuses by remaping the ActivityStatuses since (i think) we don't want to show all of them per activity
+// the event types in the types field are just the stringified Temporal types
+function getTaskStatus(
+  task: JobRunEvent,
+  jobStatus: JobRunStatus | undefined
+): RunStatus {
+  const hasCompleted = task.tasks.some(
+    (item) => item.type === 'ActivityTaskCompleted'
+  );
+  const hasFailed = task.tasks.some(
+    (item) => item.type === 'ActivityTaskFailed' || item.error
+  );
+  const isCanceled = task.tasks.some(
+    (item) => item.type === 'ActivityTaskCancelRequested'
+  );
+
+  const isJobTerminated = jobStatus && jobStatus == JobRunStatus.TERMINATED;
+
+  if (hasCompleted) return 'completed';
+  if (hasFailed) return 'failed';
+  if (isCanceled || (isJobTerminated && !hasCompleted)) return 'canceled';
+  return 'running';
+}
+
+// calculates where in the timeline axis something should be relative to the total duration
+// also dictates how far right the timeline goes, reduce if you want the timeline shorter or length otherwise
+const getPositionPercentage = (
+  time: Date,
+  timelineStart: Date,
+  totalDuration: number
+) => {
+  return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 92;
+};

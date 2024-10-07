@@ -48,7 +48,7 @@ import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-// import { format as formatSql } from 'sql-formatter';
+import { format as formatSql } from 'sql-formatter';
 import yaml from 'yaml';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
@@ -409,8 +409,7 @@ function ViewSelectDialog(props: ViewSelectDialogProps): ReactElement {
 
   const formattedQuery = useMemo(() => {
     // todo: maybe update this to explicitly pass in the driver type so it formats it according to the correct connection
-    // return formatSql(query.select);
-    return query.select;
+    return formatSql(query.select);
   }, [query.schema, query.table, query.select]);
 
   return (
