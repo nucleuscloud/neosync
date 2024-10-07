@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -68,7 +69,10 @@ func (a *Activity) RunPostTableSync(
 			AccountId:  req.AccountId,
 		},
 	}))
-	if err != nil {
+	if err != nil && runContextNotFound(err) {
+		slogger.Info("no runcontext found. continuing")
+		return nil, nil
+	} else if err != nil && !runContextNotFound(err) {
 		return nil, fmt.Errorf("unable to retrieve posttablesync runcontext for %s: %w", req.Name, err)
 	}
 
@@ -117,4 +121,8 @@ func (a *Activity) RunPostTableSync(
 	}
 
 	return &RunPostTableSyncResponse{}, nil
+}
+
+func runContextNotFound(err error) bool {
+	return strings.Contains(err.Error(), "no run context exists")
 }

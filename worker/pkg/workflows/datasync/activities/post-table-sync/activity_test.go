@@ -94,6 +94,110 @@ func Test_Activity_Success(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_Activity_RunContextNotFound(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	accountId := uuid.NewString()
+	name := "public.users.insert"
+	destConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			return nil, errors.New("no run context exists")
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == destConnId {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   destConnId,
+						Name: "source",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: "url",
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, fmt.Errorf("unknown test connection")
+		},
+	))
+	srv := startHTTPServer(t, mux)
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlmanagerMock := mockSqlManager()
+
+	activity := New(jobclient, sqlmanagerMock, connclient)
+
+	env.RegisterActivity(activity)
+
+	_, err := env.ExecuteActivity(activity.RunPostTableSync, &RunPostTableSyncRequest{Name: name, AccountId: accountId})
+	require.NoError(t, err)
+}
+
+func Test_Activity_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	accountId := uuid.NewString()
+	name := "public.users.insert"
+	destConnId := "c9b6ce58-5c8e-4dce-870d-96841b19d988"
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.JobServiceGetRunContextProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.JobServiceGetRunContextProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetRunContextRequest]) (*connect.Response[mgmtv1alpha1.GetRunContextResponse], error) {
+			return nil, errors.New("other error")
+		},
+	))
+	mux.Handle(mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+			if r.Msg.GetId() == destConnId {
+				return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+					Connection: &mgmtv1alpha1.Connection{
+						Id:   destConnId,
+						Name: "source",
+						ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+										Url: "url",
+									},
+								},
+							},
+						},
+					},
+				}), nil
+			}
+			return nil, fmt.Errorf("unknown test connection")
+		},
+	))
+	srv := startHTTPServer(t, mux)
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(srv.Client(), srv.URL)
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(srv.Client(), srv.URL)
+	sqlmanagerMock := mockSqlManager()
+
+	activity := New(jobclient, sqlmanagerMock, connclient)
+
+	env.RegisterActivity(activity)
+
+	_, err := env.ExecuteActivity(activity.RunPostTableSync, &RunPostTableSyncRequest{Name: name, AccountId: accountId})
+	require.Error(t, err)
+}
+
 func mockPostTableSyncConfigs(name, destConnId string) map[string]*shared.PostTableSyncConfig {
 	configs := map[string]*shared.PostTableSyncConfig{}
 	destConfigs := map[string]*shared.PostTableSyncDestConfig{}
