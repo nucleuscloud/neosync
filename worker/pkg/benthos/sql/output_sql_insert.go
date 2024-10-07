@@ -347,13 +347,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return err
 		}
 	}
-	if s.driver == sqlmanager_shared.PostgresDriver && s.suffix != nil && *s.suffix != "" {
-		// to prevent postgres cannot insert multiple commands into a prepared statement error
-		// must run table identity count reset separately
-		if _, err := s.db.ExecContext(ctx, *s.suffix); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

@@ -1,7 +1,7 @@
 import { siteConfig } from '@/app/config/site';
 import {
+  ArrowTopRightIcon,
   DiscordLogoIcon,
-  ExternalLinkIcon,
   GitHubLogoIcon,
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -48,7 +48,7 @@ export default function SupportDrawer(): ReactElement {
               </div>
               <div className="text-sm text-gray-500">{link.description}</div>
             </div>
-            <ExternalLinkIcon className="text-gray-400" />
+            <ArrowTopRightIcon />
           </div>
         </Link>
       ))}

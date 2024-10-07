@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
+  "ignore": ["apps/web/components/ui/**"],
+  "ignoreWorkspaces": ["packages/sdk"],
+  "ignoreDependencies": ["tailwindcss-animate"],
+  "ignoreBinaries": [],
+}

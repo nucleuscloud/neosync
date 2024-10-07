@@ -611,7 +611,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 		},
 	})
 
-	expectedTruncate := "TRUNCATE \"public\".\"users\" CASCADE;"
+	expectedTruncate := "TRUNCATE \"public\".\"users\" RESTART IDENTITY CASCADE;"
 	require.Nil(t, err)
 	require.Len(t, resp.Msg.TableInitStatements, 0)
 	require.Len(t, resp.Msg.TableTruncateStatements, 1)

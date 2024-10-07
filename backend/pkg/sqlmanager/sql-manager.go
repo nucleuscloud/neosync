@@ -38,6 +38,7 @@ type SqlDatabase interface {
 	GetSchemaTableDataTypes(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) (*sqlmanager_shared.SchemaTableDataTypeResponse, error)
 	GetSchemaTableTriggers(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.TableTrigger, error)
 	GetSchemaInitStatements(ctx context.Context, tables []*sqlmanager_shared.SchemaTable) ([]*sqlmanager_shared.InitSchemaStatements, error)
+	GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *sqlmanager_shared.BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
@@ -310,7 +311,7 @@ func (s *SqlManager) NewSqlDbFromUrl(
 ) (*SqlConnection, error) {
 	var db SqlDatabase
 	switch driver {
-	case sqlmanager_shared.PostgresDriver:
+	case sqlmanager_shared.PostgresDriver, "postgres":
 		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
 		if err != nil {
 			return nil, err

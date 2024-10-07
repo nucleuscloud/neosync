@@ -529,7 +529,7 @@ func (s *IntegrationTestSuite) RunPostgresSqlFiles(pool *pgxpool.Pool, testFolde
 		}
 		_, err = pool.Exec(s.ctx, string(sqlStr))
 		if err != nil {
-			panic(fmt.Errorf("unable to exec sql when runnin gpostgres sql files: %w", err))
+			panic(fmt.Errorf("unable to exec sql when running postgres sql files: %w", err))
 		}
 	}
 }

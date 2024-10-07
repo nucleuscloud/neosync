@@ -3,7 +3,6 @@ import ButtonText from '@/components/ButtonText';
 import { PasswordInput } from '@/components/PasswordComponent';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { buildAccountOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -41,24 +40,17 @@ import {
   MysqlCreateConnectionFormContext,
   MysqlFormValues,
 } from '@/yup-validations/connections';
-import {
-  createConnectQueryKey,
-  useMutation,
-  useQuery,
-} from '@connectrpc/connect-query';
+import { createConnectQueryKey, useMutation } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
-  GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
 } from '@neosync/sdk';
 import {
   checkConnectionConfig,
   createConnection,
-  getAccountOnboardingConfig,
   getConnection,
   isConnectionNameAvailable,
-  setAccountOnboardingConfig,
 } from '@neosync/sdk/connectquery';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -127,16 +119,7 @@ export default function MysqlForm() {
     checkConnectionConfig
   );
   const { mutateAsync: getMysqlConnection } = useMutation(getConnection);
-  const { data: onboardingData } = useQuery(
-    getAccountOnboardingConfig,
-    { accountId: account?.id ?? '' },
-    { enabled: !!account?.id }
-  );
   const queryclient = useQueryClient();
-  const { mutateAsync: setOnboardingConfigAsync } = useMutation(
-    setAccountOnboardingConfig
-  );
-
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {
       return;
@@ -153,61 +136,6 @@ export default function MysqlForm() {
       });
       posthog.capture('New Connection Created', { type: 'mysql' });
       toast.success('Successfully created connection!');
-
-      // updates the onboarding data
-      if (onboardingData?.config?.hasCreatedSourceConnection) {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection:
-                onboardingData.config.hasCreatedSourceConnection,
-              hasCreatedDestinationConnection: true,
-              hasCreatedJob: onboardingData.config.hasCreatedJob,
-              hasInvitedMembers: onboardingData.config.hasInvitedMembers,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      } else {
-        try {
-          const resp = await setOnboardingConfigAsync({
-            accountId: account.id,
-            config: buildAccountOnboardingConfig({
-              hasCreatedSourceConnection: true,
-              hasCreatedDestinationConnection:
-                onboardingData?.config?.hasCreatedSourceConnection ?? true,
-              hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
-              hasInvitedMembers:
-                onboardingData?.config?.hasInvitedMembers ?? true,
-            }),
-          });
-          queryclient.setQueryData(
-            createConnectQueryKey(getAccountOnboardingConfig, {
-              accountId: account.id,
-            }),
-            new GetAccountOnboardingConfigResponse({
-              config: resp.config,
-            })
-          );
-        } catch (e) {
-          toast.error('Unable to update onboarding status!', {
-            description: getErrorMessage(e),
-          });
-        }
-      }
-
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
         router.push(returnTo);

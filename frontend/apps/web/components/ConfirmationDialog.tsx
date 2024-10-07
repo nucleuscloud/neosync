@@ -19,9 +19,11 @@ export interface Props {
   trigger?: ReactNode;
   headerText?: string;
   description?: string;
+  body?: JSX.Element;
   buttonText?: string;
   buttonVariant?: ButtonProps['variant'] | null | undefined;
   buttonIcon?: ReactNode;
+  containerClassName?: string;
   onConfirm(): void | Promise<void>;
 }
 
@@ -30,9 +32,11 @@ export default function ConfirmationDialog(props: Props): ReactElement {
     trigger = <Button type="button">Press to Confirm</Button>,
     headerText = 'Are you sure?',
     description = 'This will confirm the action that you selected.',
+    body,
     buttonText = 'Confirm',
     buttonVariant,
     buttonIcon,
+    containerClassName,
     onConfirm,
   } = props;
   const [open, setOpen] = useState(false);
@@ -53,13 +57,14 @@ export default function ConfirmationDialog(props: Props): ReactElement {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className={cn(containerClassName)}>
         <AlertDialogHeader className="gap-2">
           <AlertDialogTitle className="text-xl">{headerText}</AlertDialogTitle>
           <AlertDialogDescription className="tracking-tight">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="pt-6">{body}</div>
         <AlertDialogFooter className="w-full flex sm:justify-between mt-4">
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction

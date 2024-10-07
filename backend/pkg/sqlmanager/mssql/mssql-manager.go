@@ -243,6 +243,10 @@ func (m *Manager) GetTableRowCount(
 	return count, err
 }
 
+func (m *Manager) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (m *Manager) Exec(ctx context.Context, statement string) error {
 	_, err := m.db.ExecContext(ctx, statement)
 	return err
@@ -256,8 +260,14 @@ func (m *Manager) Close() {
 
 func BuildMssqlDeleteStatement(
 	schema, table string,
-) string {
-	return fmt.Sprintf(`DELETE FROM %q.%q;`, schema, table)
+) (string, error) {
+	dialect := goqu.Dialect("sqlserver")
+	ds := dialect.Delete(goqu.S(schema).Table(table))
+	sql, _, err := ds.ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return sql + ";", nil
 }
 
 // Resets current identity value back to the initial count

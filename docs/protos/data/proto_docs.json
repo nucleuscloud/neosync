@@ -14128,7 +14128,7 @@
           "fields": [
             {
               "name": "has_created_source_connection",
-              "description": "",
+              "description": "@deprecated - use has_completed_onboarding",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14140,7 +14140,7 @@
             },
             {
               "name": "has_created_destination_connection",
-              "description": "",
+              "description": "@deprecated - use has_completed_onboarding",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14152,7 +14152,7 @@
             },
             {
               "name": "has_created_job",
-              "description": "",
+              "description": "@deprecated - use has_completed_onboarding",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -14164,6 +14164,18 @@
             },
             {
               "name": "has_invited_members",
+              "description": "@deprecated - use has_completed_onboarding",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_completed_onboarding",
               "description": "",
               "label": "",
               "type": "bool",

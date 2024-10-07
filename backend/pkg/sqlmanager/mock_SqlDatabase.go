@@ -559,6 +559,66 @@ func (_c *MockSqlDatabase_GetSchemaTableTriggers_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetSequencesByTables provides a mock function with given fields: ctx, schema, tables
+func (_m *MockSqlDatabase) GetSequencesByTables(ctx context.Context, schema string, tables []string) ([]*sqlmanager_shared.DataType, error) {
+	ret := _m.Called(ctx, schema, tables)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSequencesByTables")
+	}
+
+	var r0 []*sqlmanager_shared.DataType
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) ([]*sqlmanager_shared.DataType, error)); ok {
+		return rf(ctx, schema, tables)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) []*sqlmanager_shared.DataType); ok {
+		r0 = rf(ctx, schema, tables)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sqlmanager_shared.DataType)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
+		r1 = rf(ctx, schema, tables)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetSequencesByTables_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSequencesByTables'
+type MockSqlDatabase_GetSequencesByTables_Call struct {
+	*mock.Call
+}
+
+// GetSequencesByTables is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schema string
+//   - tables []string
+func (_e *MockSqlDatabase_Expecter) GetSequencesByTables(ctx interface{}, schema interface{}, tables interface{}) *MockSqlDatabase_GetSequencesByTables_Call {
+	return &MockSqlDatabase_GetSequencesByTables_Call{Call: _e.mock.On("GetSequencesByTables", ctx, schema, tables)}
+}
+
+func (_c *MockSqlDatabase_GetSequencesByTables_Call) Run(run func(ctx context.Context, schema string, tables []string)) *MockSqlDatabase_GetSequencesByTables_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSequencesByTables_Call) Return(_a0 []*sqlmanager_shared.DataType, _a1 error) *MockSqlDatabase_GetSequencesByTables_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSequencesByTables_Call) RunAndReturn(run func(context.Context, string, []string) ([]*sqlmanager_shared.DataType, error)) *MockSqlDatabase_GetSequencesByTables_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTableConstraintsBySchema provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*sqlmanager_shared.TableConstraints, error) {
 	ret := _m.Called(ctx, schemas)

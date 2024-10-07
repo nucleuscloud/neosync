@@ -7,7 +7,15 @@ import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTran
 import ButtonText from '@/components/ButtonText';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import FormErrorMessage from '@/components/FormErrorMessage';
+import SwitchCard from '@/components/switches/SwitchCard';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
 import { cn } from '@/libs/utils';
 import { isSystemTransformer, Transformer } from '@/shared/transformers';
 import {
@@ -17,9 +25,11 @@ import {
 } from '@/util/util';
 import {
   convertJobMappingTransformerToForm,
+  DefaultTransformerFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GenerateDefault,
   JobMappingTransformer,
@@ -31,7 +41,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useForm, useFormContext } from 'react-hook-form';
 import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -81,6 +91,41 @@ export function SchemaTableToolbar<TData>({
     !bulkTransformer ||
     !hasSelectedRows ||
     !isTransformerAllowed(allowedTransformers, transformer);
+
+  const defaultTransformerForm = useForm<DefaultTransformerFormValues>({
+    resolver: yupResolver(DefaultTransformerFormValues),
+    defaultValues: {
+      overrideTransformers: false,
+    },
+  });
+
+  const handleAlertDescriptionBody = (): JSX.Element => {
+    return (
+      <div>
+        <Form {...form}>
+          <form className="space-y-8">
+            <FormField
+              control={defaultTransformerForm.control}
+              name="overrideTransformers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value}
+                      onCheckedChange={field.onChange}
+                      title="Override Mapped Transformers"
+                      description="Do you want to overwrite the Transformers you have already mapped."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
@@ -172,49 +217,61 @@ export function SchemaTableToolbar<TData>({
                 </Button>
               }
               headerText="Apply Default Transformers?"
-              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated (non-Identity) columns."
-              buttonText="Apply"
+              description="This setting will apply the 'Passthrough' Transformer to every column that is not Generated, while applying the 'Use Column Default' Transformer to all Generated (non-Identity)columns."
+              body={handleAlertDescriptionBody()}
+              containerClassName="max-w-xl"
               onConfirm={() => {
                 const formMappings = form.getValues('mappings');
+                const defaultTransformerValues =
+                  defaultTransformerForm.getValues();
                 formMappings.forEach((fm, idx) => {
-                  const colkey = {
-                    schema: fm.schema,
-                    table: fm.table,
-                    column: fm.column,
-                  };
-                  const isGenerated = constraintHandler.getIsGenerated(colkey);
-                  const identityType =
-                    constraintHandler.getIdentityType(colkey);
-                  const newJm =
-                    isGenerated && !identityType
-                      ? new JobMappingTransformer({
-                          source: TransformerSource.GENERATE_DEFAULT,
-                          config: new TransformerConfig({
-                            config: {
-                              case: 'generateDefaultConfig',
-                              value: new GenerateDefault(),
-                            },
-                          }),
-                        })
-                      : new JobMappingTransformer({
-                          source: TransformerSource.PASSTHROUGH,
-                          config: new TransformerConfig({
-                            config: {
-                              case: 'passthroughConfig',
-                              value: new Passthrough(),
-                            },
-                          }),
-                        });
+                  // skips setting the default transformer if the user has already set the transformer
+                  if (
+                    fm.transformer.source != 0 &&
+                    !defaultTransformerValues.overrideTransformers
+                  ) {
+                    return;
+                  } else {
+                    const colkey = {
+                      schema: fm.schema,
+                      table: fm.table,
+                      column: fm.column,
+                    };
+                    const isGenerated =
+                      constraintHandler.getIsGenerated(colkey);
+                    const identityType =
+                      constraintHandler.getIdentityType(colkey);
+                    const newJm =
+                      isGenerated && !identityType
+                        ? new JobMappingTransformer({
+                            source: TransformerSource.GENERATE_DEFAULT,
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'generateDefaultConfig',
+                                value: new GenerateDefault(),
+                              },
+                            }),
+                          })
+                        : new JobMappingTransformer({
+                            source: TransformerSource.PASSTHROUGH,
+                            config: new TransformerConfig({
+                              config: {
+                                case: 'passthroughConfig',
+                                value: new Passthrough(),
+                              },
+                            }),
+                          });
 
-                  form.setValue(
-                    `mappings.${idx}.transformer`,
-                    convertJobMappingTransformerToForm(newJm),
-                    {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: false,
-                    }
-                  );
+                    form.setValue(
+                      `mappings.${idx}.transformer`,
+                      convertJobMappingTransformerToForm(newJm),
+                      {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: false,
+                      }
+                    );
+                  }
                 });
                 form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               }}
