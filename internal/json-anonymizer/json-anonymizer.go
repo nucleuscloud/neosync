@@ -113,6 +113,7 @@ func (a *JsonAnonymizer) initializeJq() error {
 			if err != nil {
 				return fmt.Errorf("unable to anonymize value. field_path: %s  error: %w", path, err)
 			}
+			fmt.Println("derefPointer(result)", derefPointer(result))
 			return derefPointer(result)
 		}))
 	}
@@ -178,6 +179,7 @@ func customHash(input string) string {
 	hasher.Write([]byte(input))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
+	// replace leading digit with a
 	if strings.IndexAny(hash[:1], "0123456789") != -1 {
 		hash = "a" + hash
 	}
@@ -185,7 +187,6 @@ func customHash(input string) string {
 	return hash
 }
 
-// todo this is brittle
 func generateFunctionName(fieldPath string) string {
 	return customHash(fieldPath)
 }
