@@ -15,11 +15,11 @@ func main() {
 		// 		TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
 		// 	},
 		// },
-		// `.details.name`: {
-		// 	Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-		// 		TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
-		// 	},
-		// },
+		`.details.name`: {
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+				TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+			},
+		},
 		// ".user.age": {
 		// 	Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 		// 		GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
@@ -28,23 +28,23 @@ func main() {
 		// 		},
 		// 	},
 		// },
-		// ".sports[0]": {
-		// 	Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
-		// 		GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
-		// 	},
-		// },
+		".sports[0]": {
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+				GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+			},
+		},
 	}
 
 	// Define default transformers
 	defaultTransformers := &mgmtv1alpha1.DefaultTransformersConfig{
-		N: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
-				GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-					Min: 18,
-					Max: 30,
-				},
-			},
-		},
+		// N: &mgmtv1alpha1.TransformerConfig{
+		// 	Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+		// 		GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+		// 			Min: 18,
+		// 			Max: 30,
+		// 		},
+		// 	},
+		// },
 		S: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
@@ -79,7 +79,7 @@ func main() {
       "address": "123 Main St",
       "phone": "555-1234",
       "favorites": ["dog", "cat", "bird"],
-      "name": 1
+      "name": "jake"
   },
   "active": true,
   "sports": ["soccer", "golf", "tennis"]
@@ -94,7 +94,7 @@ func main() {
       "address": "123 Other St",
       "phone": "555-1234",
       "favorites": ["lizard", "cat", "bird"],
-      "name": "1"
+      "name": "jan"
   },
   "active": false,
   "sports": ["basketball", "golf", "swimming"]
