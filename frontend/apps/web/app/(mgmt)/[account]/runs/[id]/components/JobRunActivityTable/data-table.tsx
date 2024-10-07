@@ -2,7 +2,6 @@
 
 import {
   ColumnDef,
-  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -15,8 +14,6 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
-import ButtonText from '@/components/ButtonText';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -25,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatDateTimeMilliseconds } from '@/util/util';
 import {
   JobRunEvent,
   JobRunEventMetadata,
@@ -40,12 +36,7 @@ interface DataTableProps {
   onViewSelectClicked(schema: string, table: string): void;
 }
 
-export function DataTable({
-  columns,
-  data,
-  isError,
-  onViewSelectClicked,
-}: DataTableProps) {
+export function DataTable({ columns, data, isError }: DataTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ error: isError, id: false });
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -133,93 +124,6 @@ export function DataTable({
         setPageSize={setPageSize}
       />
     </>
-  );
-}
-
-interface RunEventSubTableProps {
-  row: Row<JobRunEvent>;
-  onViewSelectClicked(schema: string, table: string): void;
-}
-
-function RunEventSubTable(props: RunEventSubTableProps): React.ReactElement {
-  const { row, onViewSelectClicked } = props;
-  const isError = row.original.tasks.some((t) => t.error);
-  const syncMd = getJobSyncMetadata(row.original.metadata);
-
-  function onSelectClicked(): void {
-    if (syncMd) {
-      onViewSelectClicked(syncMd.schema, syncMd.table);
-    }
-  }
-
-  return (
-    <div className="p-5 flex flex-col gap-2">
-      {!!syncMd && (
-        <div className="flex flex-col gap-2">
-          <div>
-            <Button type="button" onClick={() => onSelectClicked()}>
-              <ButtonText text="View SELECT Query" />
-            </Button>
-          </div>
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        <h2 className="tracking-tight font-semibold">Event History</h2>
-        <div className="rounded-md border overflow-hidden dark:border-gray-700">
-          <Table>
-            <TableHeader className="border-b dark:border-b-gray-700 bg-gray-100 dark:bg-gray-800">
-              <TableRow>
-                <TableHead className="pl-2">Id</TableHead>
-                <TableHead className="pl-2">Type</TableHead>
-                <TableHead className="pl-2">Time</TableHead>
-                {isError && <TableHead>Error</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {row.original.tasks.map((t) => {
-                return (
-                  <TableRow key={t.id}>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <span className="max-w-[500px] truncate font-medium">
-                          {t.id.toString()}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <span className="max-w-[500px] truncate font-medium">
-                          {t.type}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <span className="max-w-[500px] truncate font-medium">
-                          {t.eventTime &&
-                            formatDateTimeMilliseconds(t.eventTime?.toDate())}
-                        </span>
-                      </div>
-                    </TableCell>
-                    {isError && (
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <span className="font-medium">
-                            <pre className="whitespace-pre-wrap">
-                              {JSON.stringify(t.error, undefined, 2)}
-                            </pre>
-                          </span>
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </div>
   );
 }
 
