@@ -247,10 +247,7 @@ func (a *JsonAnonymizer) buildJqQuery() (string, map[string]string, error) {
 }
 
 func (a *JsonAnonymizer) myWalk(value any, path []string) any {
-	fmt.Println(
-		"value", value,
-		"path", path,
-	)
+
 	switch v := value.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
@@ -270,6 +267,10 @@ func (a *JsonAnonymizer) myWalk(value any, path []string) any {
 			indexStr := strconv.Itoa(i)
 			newPath := append(path, indexStr)
 			fullPath := strings.Join(newPath, ".")
+			fmt.Println(
+				"value", elem,
+				"path", newPath,
+			)
 			if a.isSkipPath(fmt.Sprintf(".%s", fullPath)) {
 				newArray[i] = elem
 			} else {
@@ -366,6 +367,8 @@ func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to parse JSON string: %v", err)
 	}
+	fmt.Println("skipPaths", a.skipPaths)
+
 	iter := a.compiledQuery.Run(data)
 	result, ok := iter.Next()
 	if !ok {
