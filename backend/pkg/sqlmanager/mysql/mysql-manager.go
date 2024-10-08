@@ -35,7 +35,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 	result := []*sqlmanager_shared.DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
 		var generatedType *string
-		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") {
+		if row.Extra.Valid && strings.Contains(row.Extra.String, "GENERATED") && !strings.Contains(row.Extra.String, "DEFAULT_GENERATED") {
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}

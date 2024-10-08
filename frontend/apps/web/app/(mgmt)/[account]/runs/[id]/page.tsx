@@ -508,7 +508,7 @@ function ButtonLink(props: ButtonProps): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
   if (!props.jobId) {
-    return <></>;
+    return <div />;
   }
   return (
     <Button
