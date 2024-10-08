@@ -42,7 +42,6 @@ func (s *Service) AnonymizeSingle(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeSingleResponse], error) {
-
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),

@@ -1,12 +1,12 @@
 package jsonanonymizer
 
 import (
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strconv"
+	"regexp"
 	"strings"
 
 	"github.com/itchyny/gojq"
@@ -91,12 +91,9 @@ func WithHaltOnFailure(halt bool) Option {
 	}
 }
 
+// Compiles JQ query and initializes transformer functions
 func (a *JsonAnonymizer) initializeJq() error {
-	queryString, functionMap, err := a.buildJqQuery()
-	if err != nil {
-		return err
-	}
-	fmt.Println(queryString)
+	queryString, functionMap := a.buildJqQuery()
 	query, err := gojq.Parse(queryString)
 	if err != nil {
 		return fmt.Errorf("failed to parse jq query: %v", err)
@@ -116,56 +113,18 @@ func (a *JsonAnonymizer) initializeJq() error {
 			if err != nil {
 				return fmt.Errorf("unable to anonymize value. field_path: %s  error: %w", path, err)
 			}
-			fmt.Println("derefPointer(result)", derefPointer(result))
 			return derefPointer(result)
 		}))
 
-		cleanPath := strings.ReplaceAll(fieldPath, "[", ".")
-		cleanPath = strings.ReplaceAll(path, "]", "")
-		a.skipPaths[cleanPath] = struct{}{}
+		sanitizedPath := strings.ReplaceAll(fieldPath, "?", "")
+		a.skipPaths[sanitizedPath] = struct{}{}
 	}
 
-	// if a.defaultTransformers != nil && a.defaultTransformerExecutor != nil {
-	// 	if a.defaultTransformerExecutor.S != nil {
-	// 		executor := a.defaultTransformerExecutor.S
-	// 		compilerOpts = append(compilerOpts, gojq.WithFunction("anonymizeString", 1, 1, func(_ any, args []any) any {
-	// 			value := args[0]
-	// 			result, err := executor.Mutate(value, executor.Opts)
-	// 			if err != nil {
-	// 				return value // what to do here need to return error
-	// 			}
-	// 			return derefPointer(result)
-	// 		}))
-	// 	}
-	// 	if a.defaultTransformerExecutor.N != nil {
-	// 		executor := a.defaultTransformerExecutor.N
-	// 		compilerOpts = append(compilerOpts, gojq.WithFunction("anonymizeNumber", 1, 1, func(_ any, args []any) any {
-	// 			value := args[0]
-	// 			result, err := executor.Mutate(value, executor.Opts)
-	// 			if err != nil {
-	// 				return value
-	// 			}
-	// 			return derefPointer(result)
-	// 		}))
-	// 	}
-	// 	if a.defaultTransformerExecutor.Boolean != nil {
-	// 		executor := a.defaultTransformerExecutor.Boolean
-	// 		compilerOpts = append(compilerOpts, gojq.WithFunction("anonymizeBoolean", 1, 1, func(_ any, args []any) any {
-	// 			value := args[0]
-	// 			result, err := executor.Mutate(value, executor.Opts)
-	// 			if err != nil {
-	// 				return value
-	// 			}
-	// 			return derefPointer(result)
-	// 		}))
-	// 	}
-	// }
-
-	myWalkFunc := func(value any, args []any) gojq.Iter {
-		result := a.myWalk(value, nil)
+	applyDefaultTransformersFunc := func(value any, args []any) gojq.Iter {
+		result := a.applyDefaultTransformers(value, "")
 		return gojq.NewIter(result)
 	}
-	compilerOpts = append(compilerOpts, gojq.WithIterFunction("myWalk", 0, 0, myWalkFunc))
+	compilerOpts = append(compilerOpts, gojq.WithIterFunction("applyDefaultTransformers", 0, 0, applyDefaultTransformersFunc))
 
 	compiledQuery, err := gojq.Compile(query, compilerOpts...)
 	if err != nil {
@@ -188,12 +147,12 @@ func derefPointer(v any) any {
 }
 
 func customHash(input string) string {
-	hasher := sha1.New()
+	hasher := sha1.New() //nolint:gosec
 	hasher.Write([]byte(input))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
 	// replace leading digit with a
-	if strings.IndexAny(hash[:1], "0123456789") != -1 {
+	if strings.ContainsAny(hash[:1], "0123456789") {
 		hash = "a" + hash
 	}
 
@@ -204,7 +163,8 @@ func generateFunctionName(fieldPath string) string {
 	return customHash(fieldPath)
 }
 
-func (a *JsonAnonymizer) buildJqQuery() (string, map[string]string, error) {
+// Build JQ query. Sets fields to transformer functions and defines default transformer function
+func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions map[string]string) {
 	queryParts := []string{}
 	functionMap := make(map[string]string) // functionName -> fieldPath
 
@@ -214,97 +174,72 @@ func (a *JsonAnonymizer) buildJqQuery() (string, map[string]string, error) {
 		queryPart := fmt.Sprintf("%s? |= %s(.)", fieldPath, functionName)
 		queryParts = append(queryParts, queryPart)
 	}
-	// // Handle default transformers
-	// if a.defaultTransformers != nil {
-	// 	walkConditions := []string{}
-
-	// 	if a.defaultTransformers.S != nil {
-	// 		walkConditions = append(walkConditions, `type == "string" then anonymizeString(.)`)
-	// 	}
-	// 	if a.defaultTransformers.N != nil {
-	// 		walkConditions = append(walkConditions, `type == "number" then anonymizeNumber(.)`)
-	// 	}
-	// 	if a.defaultTransformers.Boolean != nil {
-	// 		walkConditions = append(walkConditions, `type == "boolean" then anonymizeBoolean(.)`)
-	// 	}
-
-	// 	if len(walkConditions) > 0 {
-	// 		walkQuery := fmt.Sprintf("walk(if %s else . end)", strings.Join(walkConditions, " elif "))
-	// 		queryParts = append(queryParts, walkQuery)
-	// 	}
-	// }
 	if a.defaultTransformers != nil {
 		if a.defaultTransformers.S != nil || a.defaultTransformers.N != nil || a.defaultTransformers.Boolean != nil {
-			queryParts = append(queryParts, "myWalk")
+			queryParts = append(queryParts, "applyDefaultTransformers")
 		}
 	}
 
 	queryString := strings.Join(queryParts, " | ")
-	fmt.Println("## JQ QUERY")
-	fmt.Println(fmt.Sprintf("%s", queryString))
-	fmt.Println()
-	return queryString, functionMap, nil
+	return queryString, functionMap
 }
 
-func (a *JsonAnonymizer) myWalk(value any, path []string) any {
-
+// JQ function to apply all transformers to values that are unmapped in transformer mapping
+func (a *JsonAnonymizer) applyDefaultTransformers(value any, path string) any {
 	switch v := value.(type) {
 	case map[string]any:
 		newMap := make(map[string]any)
 		for key, val := range v {
-			newPath := append(path, key)
-			fullPath := strings.Join(newPath, ".")
-			if a.isSkipPath(fmt.Sprintf(".%s", fullPath)) {
+			newPath := fmt.Sprintf("%s.%s", path, key)
+			if a.shouldSkipPath(newPath) {
 				newMap[key] = val
 			} else {
-				newMap[key] = a.myWalk(val, newPath)
+				newMap[key] = a.applyDefaultTransformers(val, newPath)
 			}
 		}
 		return newMap
 	case []any:
 		newArray := make([]any, len(v))
 		for i, elem := range v {
-			indexStr := strconv.Itoa(i)
-			newPath := append(path, indexStr)
-			fullPath := strings.Join(newPath, ".")
-			fmt.Println(
-				"value", elem,
-				"path", newPath,
-			)
-			if a.isSkipPath(fmt.Sprintf(".%s", fullPath)) {
+			newPath := fmt.Sprintf("%s[%d]", path, i)
+			if a.shouldSkipPath(newPath) {
 				newArray[i] = elem
 			} else {
-				newArray[i] = a.myWalk(elem, newPath)
+				newArray[i] = a.applyDefaultTransformers(elem, newPath)
 			}
 		}
 		return newArray
 	default:
-		// fullPath := strings.Join(path, ".")
-		// return a.applyTransformations(value, fullPath)
-		fullPath := strings.Join(path, ".")
-		if a.isSkipPath(fmt.Sprintf(".%s", fullPath)) {
+		if a.shouldSkipPath(path) {
 			return value
 		} else {
-			return a.applyTransformations(value, fullPath)
+			return a.executeTransformation(value)
 		}
 	}
 }
 
-func (a *JsonAnonymizer) isSkipPath(path string) bool {
+// .departments[0].projects[1].name -> .departments[].projects[].name
+func removeNumbersInBrackets(input string) string {
+	// Regex pattern to match digits inside square brackets
+	re := regexp.MustCompile(`\[\d+\]`)
+	// Replace the digits with empty brackets
+	result := re.ReplaceAllString(input, "[]")
+	return result
+}
+
+func (a *JsonAnonymizer) shouldSkipPath(path string) bool {
 	_, exists := a.skipPaths[path]
+	if exists {
+		return true
+	}
+	// checks for array syntax
+	// ex: .departments[].projects[].name should match .departments[0].projects[1].name
+	_, exists = a.skipPaths[removeNumbersInBrackets(path)]
 	return exists
 }
 
-func (a *JsonAnonymizer) applyTransformations(value any, fullPath string) any {
-	// if executor, exists := a.transformerExecutors[fullPath]; exists {
-	// 	// Apply specific transformer for this path
-	// 	result, err := executor.Mutate(value, executor.Opts)
-	// 	if err != nil {
-	// 		return value // Handle error as needed
-	// 	}
-	// 	return derefPointer(result)
-	// } else {
-	// Apply default transformers
+// Transforms value based on type
+func (a *JsonAnonymizer) executeTransformation(value any) any {
 	switch v := value.(type) {
 	case string:
 		if a.defaultTransformerExecutor != nil && a.defaultTransformerExecutor.S != nil {
@@ -336,10 +271,9 @@ func (a *JsonAnonymizer) applyTransformations(value any, fullPath string) any {
 	default:
 		return v
 	}
-	// }
 }
 
-// AnonymizeJSONObjects takes a JSON string representing an array of objects
+// AnonymizeJSONObjects takes a slice of JSON strings
 // applies the configured anonymization transformations to each object, and returns the modified JSON string.
 func (a *JsonAnonymizer) AnonymizeJSONObjects(jsonStrs []string) ([]string, []*AnonymizeJsonError) {
 	anonymizeErrors := []*AnonymizeJsonError{}
@@ -361,13 +295,14 @@ func (a *JsonAnonymizer) AnonymizeJSONObjects(jsonStrs []string) ([]string, []*A
 	return anonymizedJsonStrs, anonymizeErrors
 }
 
+// AnonymizeJSONObject takes a JSON string
+// applies the configured anonymization transformations to each object, and returns the modified JSON string.
 func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 	var data any
 	err := json.Unmarshal([]byte(jsonStr), &data)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse JSON string: %v", err)
 	}
-	fmt.Println("skipPaths", a.skipPaths)
 
 	iter := a.compiledQuery.Run(data)
 	result, ok := iter.Next()

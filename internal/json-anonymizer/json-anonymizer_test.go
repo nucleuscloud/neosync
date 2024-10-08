@@ -2,6 +2,7 @@ package jsonanonymizer
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -218,4 +219,222 @@ func Test_InitDefaultTransformerExecutors(t *testing.T) {
 		require.Nil(t, executors.N)
 		require.Nil(t, executors.Boolean)
 	})
+}
+
+func Test_AnonymizeJSON_Largedata(t *testing.T) {
+	inputStrings, inputObjects, err := getTestData("./testdata/company.json")
+	require.NoError(t, err)
+
+	// Define transformer mappings
+	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
+		".companyName": {
+			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+				TransformStringConfig: &mgmtv1alpha1.TransformString{PreserveLength: true},
+			},
+		},
+		".leadership.CEO.name": {
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+			},
+		},
+		".departments[].projects[]?.teamMembers[]?.name": {
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+			},
+		},
+	}
+
+	anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings))
+	require.NoError(t, err)
+
+	outputs, anonErrors := anonymizer.AnonymizeJSONObjects(inputStrings)
+	require.Empty(t, anonErrors)
+
+	for i, output := range outputs {
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Check if company name was anonymized
+		require.NotEqual(t, inputObjects[i]["companyName"], result["companyName"])
+
+		// Check if CEO name was anonymized
+		originalCEO := inputObjects[i]["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		resultCEO := result["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		require.NotEqual(t, originalCEO, resultCEO)
+
+		// Check if team member names were anonymized
+		for j, dept := range result["departments"].([]any) {
+			projects, ok := dept.(map[string]any)["projects"].([]any)
+			if !ok {
+				continue
+			}
+			for k, project := range projects {
+				for l, member := range project.(map[string]any)["teamMembers"].([]any) {
+					originalName := inputObjects[i]["departments"].([]any)[j].(map[string]any)["projects"].([]any)[k].(map[string]any)["teamMembers"].([]any)[l].(map[string]any)["name"]
+					resultName := member.(map[string]any)["name"]
+					require.NotEqual(t, originalName, resultName)
+				}
+			}
+		}
+
+		// Check if non-anonymized fields remain unchanged
+		require.Equal(t, inputObjects[i]["foundedYear"], result["foundedYear"])
+		require.Equal(t, inputObjects[i]["headquarters"].(map[string]any)["address"].(map[string]any)["city"], result["headquarters"].(map[string]any)["address"].(map[string]any)["city"])
+	}
+}
+
+func Test_AnonymizeJSON_Largedata_WithDefaults(t *testing.T) {
+	inputStrings, inputObjects, err := getTestData("./testdata/company.json")
+	require.NoError(t, err)
+
+	// Define transformer mappings
+	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
+		".companyName": {
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		},
+		".leadership.CEO.name": {
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		},
+		".departments[].projects[]?.teamMembers[]?.name": {
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		},
+	}
+
+	// Define transformer defaults
+	defaults := &mgmtv1alpha1.DefaultTransformersConfig{
+		S: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
+				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
+			},
+		},
+		N: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+				GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{},
+			},
+		},
+	}
+
+	anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings), WithDefaultTransformers(defaults))
+	require.NoError(t, err)
+
+	outputs, anonErrors := anonymizer.AnonymizeJSONObjects(inputStrings)
+	require.Empty(t, anonErrors)
+
+	for i, output := range outputs {
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Check if company name was passed through
+		require.Equal(t, inputObjects[i]["companyName"], result["companyName"])
+
+		// Check if CEO name was passed through
+		originalCEO := inputObjects[i]["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		resultCEO := result["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		require.Equal(t, originalCEO, resultCEO)
+
+		// Check if team member names were passed through
+		for j, dept := range result["departments"].([]any) {
+			projects, ok := dept.(map[string]any)["projects"].([]any)
+			if !ok {
+				continue
+			}
+			for k, project := range projects {
+				for l, member := range project.(map[string]any)["teamMembers"].([]any) {
+					originalName := inputObjects[i]["departments"].([]any)[j].(map[string]any)["projects"].([]any)[k].(map[string]any)["teamMembers"].([]any)[l].(map[string]any)["name"]
+					resultName := member.(map[string]any)["name"]
+					require.Equal(t, originalName, resultName)
+				}
+			}
+		}
+
+		// Check if other fields where anonymized
+		require.NotEqual(t, inputObjects[i]["foundedYear"], result["foundedYear"])
+		require.NotEqual(t, inputObjects[i]["headquarters"].(map[string]any)["address"].(map[string]any)["city"], result["headquarters"].(map[string]any)["address"].(map[string]any)["city"])
+	}
+}
+
+func Test_AnonymizeJSON_Largedata_Advanced(t *testing.T) {
+	inputStrings, inputObjects, err := getTestData("./testdata/company.json")
+	require.NoError(t, err)
+
+	// Transform all name fields in objects
+	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
+		`(.. | objects | select(has("name")) | .name)`: {
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+			},
+		},
+	}
+
+	defaults := &mgmtv1alpha1.DefaultTransformersConfig{}
+
+	anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings), WithDefaultTransformers(defaults))
+	require.NoError(t, err)
+
+	outputs, anonErrors := anonymizer.AnonymizeJSONObjects(inputStrings)
+	require.Empty(t, anonErrors)
+
+	for i, output := range outputs {
+		var result map[string]any
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Check if company name was not anonymized
+		require.Equal(t, inputObjects[i]["companyName"], result["companyName"])
+
+		// Check if CEO name was anonymized
+		originalCEO := inputObjects[i]["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		resultCEO := result["leadership"].(map[string]any)["CEO"].(map[string]any)["name"]
+		require.NotEqual(t, originalCEO, resultCEO)
+
+		// Check if team member names were anonymized
+		for j, dept := range result["departments"].([]any) {
+			projects, ok := dept.(map[string]any)["projects"].([]any)
+			if !ok {
+				continue
+			}
+			for k, project := range projects {
+				for l, member := range project.(map[string]any)["teamMembers"].([]any) {
+					originalName := inputObjects[i]["departments"].([]any)[j].(map[string]any)["projects"].([]any)[k].(map[string]any)["teamMembers"].([]any)[l].(map[string]any)["name"]
+					resultName := member.(map[string]any)["name"]
+					require.NotEqual(t, originalName, resultName)
+				}
+			}
+		}
+
+		// Check if non-anonymized fields remain unchanged
+		require.Equal(t, inputObjects[i]["foundedYear"], result["foundedYear"])
+		require.Equal(t, inputObjects[i]["headquarters"].(map[string]any)["address"].(map[string]any)["city"], result["headquarters"].(map[string]any)["address"].(map[string]any)["city"])
+	}
+}
+
+func getTestData(filePath string) (jsonStrings []string, jsonObjects []map[string]any, err error) {
+	jsonData, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var inputObjects []map[string]any
+	err = json.Unmarshal(jsonData, &inputObjects)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var inputStrings []string
+	for _, obj := range inputObjects {
+		jsonStr, err := json.Marshal(obj)
+		if err != nil {
+			return nil, nil, err
+		}
+		inputStrings = append(inputStrings, string(jsonStr))
+	}
+	return inputStrings, inputObjects, nil
 }
