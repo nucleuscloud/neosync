@@ -1743,6 +1743,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
+		j.AwsS3Options.FromDto(config.AwsS3Options)
 	case *mgmtv1alpha1.JobDestinationOptions_MongodbOptions:
 		j.MongoOptions = &MongoDestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:
