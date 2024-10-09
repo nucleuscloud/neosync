@@ -241,6 +241,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/anonymization-service-endpoints',
+      label: 'Anonymization Service Endpoints',
+    },
+    {
+      type: 'doc',
       id: 'guides/viewing-job-run-logs',
       label: 'Viewing Job Run Logs',
     },
