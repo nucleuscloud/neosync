@@ -185,11 +185,27 @@ const MssqlDbDestinationOptionsFormValues = Yup.object({
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
 });
 
+const BatchFormValues = Yup.object({
+  count: Yup.number().optional(),
+  period: Yup.string().optional(),
+});
+
+const AwsS3DestinationOptionsFormValues = Yup.object({
+  storageClass: Yup.number().optional(),
+  maxInFlight: Yup.number().optional(),
+  timeout: Yup.string().optional(),
+  batch: BatchFormValues.optional(),
+});
+type AwsS3DestinationOptionsFormValues = Yup.InferType<
+  typeof AwsS3DestinationOptionsFormValues
+>;
+
 export const DestinationOptionsFormValues = Yup.object({
   postgres: PostgresDbDestinationOptionsFormValues.optional(),
   mysql: MysqlDbDestinationOptionsFormValues.optional(),
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
   mssql: MssqlDbDestinationOptionsFormValues.optional(),
+  awss3: AwsS3DestinationOptionsFormValues.optional(),
 }).required('Destination Options are required.');
 // Object that holds connection specific destination options for a job
 export type DestinationOptionsFormValues = Yup.InferType<
