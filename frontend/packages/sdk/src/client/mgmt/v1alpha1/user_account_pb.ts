@@ -70,43 +70,43 @@ proto3.util.setEnumType(BillingStatus, "mgmt.v1alpha1.BillingStatus", [
 ]);
 
 /**
- * @generated from enum mgmt.v1alpha1.AccountStatusReason
+ * @generated from enum mgmt.v1alpha1.AccountStatus
  */
-export enum AccountStatusReason {
+export enum AccountStatus {
   /**
    * Default value, should be used when no reason is specified
    *
-   * @generated from enum value: ACCOUNT_STATUS_REASON_REASON_UNSPECIFIED = 0;
+   * @generated from enum value: ACCOUNT_STATUS_REASON_UNSPECIFIED = 0;
    */
   REASON_UNSPECIFIED = 0,
 
   /**
    * Current usage exceeds allowed limit
    *
-   * @generated from enum value: ACCOUNT_STATUS_REASON_EXCEEDS_ALLOWED_LIMIT = 1;
+   * @generated from enum value: ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT = 1;
    */
   EXCEEDS_ALLOWED_LIMIT = 1,
 
   /**
    * Adding requested records exceeds the allowed limit
    *
-   * @generated from enum value: ACCOUNT_STATUS_REASON_REQUESTED_EXCEEDS_LIMIT = 2;
+   * @generated from enum value: ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
    */
   REQUESTED_EXCEEDS_LIMIT = 2,
 
   /**
    * Account is currently in an expired state
    *
-   * @generated from enum value: ACCOUNT_STATUS_REASON_ACCOUNT_IN_EXPIRED_STATE = 3;
+   * @generated from enum value: ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
    */
   ACCOUNT_IN_EXPIRED_STATE = 3,
 }
-// Retrieve enum metadata with: proto3.getEnumType(AccountStatusReason)
-proto3.util.setEnumType(AccountStatusReason, "mgmt.v1alpha1.AccountStatusReason", [
-  { no: 0, name: "ACCOUNT_STATUS_REASON_REASON_UNSPECIFIED" },
-  { no: 1, name: "ACCOUNT_STATUS_REASON_EXCEEDS_ALLOWED_LIMIT" },
-  { no: 2, name: "ACCOUNT_STATUS_REASON_REQUESTED_EXCEEDS_LIMIT" },
-  { no: 3, name: "ACCOUNT_STATUS_REASON_ACCOUNT_IN_EXPIRED_STATE" },
+// Retrieve enum metadata with: proto3.getEnumType(AccountStatus)
+proto3.util.setEnumType(AccountStatus, "mgmt.v1alpha1.AccountStatus", [
+  { no: 0, name: "ACCOUNT_STATUS_REASON_UNSPECIFIED" },
+  { no: 1, name: "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT" },
+  { no: 2, name: "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT" },
+  { no: 3, name: "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE" },
 ]);
 
 /**
@@ -1963,32 +1963,40 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   isValid = false;
 
   /**
-   * Deprecated
+   * If the account is not valid, a reason for why may be provided.
    *
    * @generated from field: optional string reason = 2;
    */
   reason?: string;
 
   /**
-   * A short error classifier for why the account is not valid
-   *
-   * @generated from field: optional mgmt.v1alpha1.AccountStatusReason invalid_reason = 3;
-   */
-  invalidReason?: AccountStatusReason;
-
-  /**
-   * A longer description explaining why account is not valid
-   *
-   * @generated from field: optional string description = 4;
-   */
-  description?: string;
-
-  /**
    * Whether or not the process should decide to continue polling for validitiy updates
    *
-   * @generated from field: bool should_poll = 5;
+   * @generated from field: bool should_poll = 3;
    */
   shouldPoll = false;
+
+  /**
+   * A count of the currently used records for the current billing period.
+   * This may go over the allowed record count depending on when the record count is polled by the metric system.
+   *
+   * @generated from field: optional uint64 used_record_count = 4;
+   */
+  usedRecordCount?: bigint;
+
+  /**
+   * The allowed record count. It will be null if there is no limit.
+   *
+   * @generated from field: optional uint64 allowed_record_count = 5;
+   */
+  allowedRecordCount?: bigint;
+
+  /**
+   * The current status of the account. Default is valid.
+   *
+   * @generated from field: optional mgmt.v1alpha1.AccountStatus account_status = 6;
+   */
+  accountStatus?: AccountStatus;
 
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
@@ -2000,9 +2008,10 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "invalid_reason", kind: "enum", T: proto3.getEnumType(AccountStatusReason), opt: true },
-    { no: 4, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 5, name: "should_poll", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "should_poll", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 5, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 6, name: "account_status", kind: "enum", T: proto3.getEnumType(AccountStatus), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {

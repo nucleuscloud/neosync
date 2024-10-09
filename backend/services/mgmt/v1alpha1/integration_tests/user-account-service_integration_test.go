@@ -525,7 +525,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	requireNoErrResp(s.T(), resp, err)
 
 	require.False(s.T(), resp.Msg.GetIsValid())
-	require.NotEmpty(s.T(), resp.Msg.GetInvalidReason())
+	require.NotEmpty(s.T(), resp.Msg.GetAccountStatus())
 	require.False(s.T(), resp.Msg.GetShouldPoll())
 }
 
@@ -553,7 +553,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		requireNoErrResp(s.T(), resp, err)
 
 		require.False(s.T(), resp.Msg.GetIsValid())
-		require.NotEmpty(s.T(), resp.Msg.GetInvalidReason())
+		require.NotEmpty(s.T(), resp.Msg.GetReason())
 		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("under the limit", func(t *testing.T) {
@@ -564,7 +564,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		requireNoErrResp(s.T(), resp, err)
 
 		require.True(s.T(), resp.Msg.GetIsValid())
-		require.Empty(s.T(), resp.Msg.GetInvalidReason())
+		require.Empty(s.T(), resp.Msg.GetAccountStatus())
 		require.True(s.T(), resp.Msg.GetShouldPoll())
 	})
 }

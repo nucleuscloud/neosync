@@ -9,25 +9,25 @@ import { Progress } from '../ui/progress';
 
 interface Props {
   count: number;
-  idtype: MetricsIdentifierCase;
+  allowedRecords: number;
   identifier: string;
+  idType: MetricsIdentifierCase;
 }
 
 export default function RecordsProgressBar(props: Props): ReactElement {
-  const { count, idtype, identifier } = props;
+  const { count, allowedRecords, identifier, idType } = props;
   const { account } = useAccount();
 
   const router = useRouter();
 
-  const totalRecords = 20000;
-  const percentageUsed = (count / totalRecords) * 100;
+  const percentageUsed = (count / allowedRecords) * 100;
 
   return (
     <Button
       onClick={() => {
         const link = getUsageLink(
           `/${account?.name ?? ''}`,
-          idtype,
+          idType,
           identifier
         );
         if (link) {
@@ -35,7 +35,9 @@ export default function RecordsProgressBar(props: Props): ReactElement {
         }
       }}
       variant="outline"
-      className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-700')}
+      className={cn(
+        count > allowedRecords && 'bg-orange-200 dark:bg-orange-700'
+      )}
     >
       <div className="flex flex-row items-center gap-2 sm:w-60">
         <span className="text-sm text-nowrap dark:text-gray-900">
@@ -43,7 +45,7 @@ export default function RecordsProgressBar(props: Props): ReactElement {
         </span>
         <Progress value={percentageUsed} className="w-[60%] hidden sm:flex" />
         <span className="text-sm">
-          {formatNumber(count)}/{formatNumber(totalRecords)}
+          {formatNumber(count)}/{formatNumber(allowedRecords)}
         </span>
       </div>
     </Button>

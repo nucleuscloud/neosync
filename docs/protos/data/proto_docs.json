@@ -13524,28 +13524,28 @@
       "hasServices": true,
       "enums": [
         {
-          "name": "AccountStatusReason",
-          "longName": "AccountStatusReason",
-          "fullName": "mgmt.v1alpha1.AccountStatusReason",
+          "name": "AccountStatus",
+          "longName": "AccountStatus",
+          "fullName": "mgmt.v1alpha1.AccountStatus",
           "description": "",
           "values": [
             {
-              "name": "ACCOUNT_STATUS_REASON_REASON_UNSPECIFIED",
+              "name": "ACCOUNT_STATUS_REASON_UNSPECIFIED",
               "number": "0",
               "description": "Default value, should be used when no reason is specified"
             },
             {
-              "name": "ACCOUNT_STATUS_REASON_EXCEEDS_ALLOWED_LIMIT",
+              "name": "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT",
               "number": "1",
               "description": "Current usage exceeds allowed limit"
             },
             {
-              "name": "ACCOUNT_STATUS_REASON_REQUESTED_EXCEEDS_LIMIT",
+              "name": "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT",
               "number": "2",
               "description": "Adding requested records exceeds the allowed limit"
             },
             {
-              "name": "ACCOUNT_STATUS_REASON_ACCOUNT_IN_EXPIRED_STATE",
+              "name": "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE",
               "number": "3",
               "description": "Account is currently in an expired state"
             }
@@ -14778,7 +14778,7 @@
             },
             {
               "name": "reason",
-              "description": "Deprecated",
+              "description": "If the account is not valid, a reason for why may be provided.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -14786,30 +14786,6 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_reason",
-              "defaultValue": ""
-            },
-            {
-              "name": "invalid_reason",
-              "description": "A short error classifier for why the account is not valid",
-              "label": "optional",
-              "type": "AccountStatusReason",
-              "longType": "AccountStatusReason",
-              "fullType": "mgmt.v1alpha1.AccountStatusReason",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_invalid_reason",
-              "defaultValue": ""
-            },
-            {
-              "name": "description",
-              "description": "A longer description explaining why account is not valid",
-              "label": "optional",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_description",
               "defaultValue": ""
             },
             {
@@ -14822,6 +14798,42 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "used_record_count",
+              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.",
+              "label": "optional",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_used_record_count",
+              "defaultValue": ""
+            },
+            {
+              "name": "allowed_record_count",
+              "description": "The allowed record count. It will be null if there is no limit.",
+              "label": "optional",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_allowed_record_count",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_status",
+              "description": "The current status of the account. Default is valid.",
+              "label": "optional",
+              "type": "AccountStatus",
+              "longType": "AccountStatus",
+              "fullType": "mgmt.v1alpha1.AccountStatus",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_account_status",
               "defaultValue": ""
             }
           ]
