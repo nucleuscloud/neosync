@@ -147,17 +147,17 @@ func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions []st
 	queryParts := []string{}
 	functionNames := []string{}
 
+	if a.defaultTransformers != nil {
+		if a.defaultTransformers.S != nil || a.defaultTransformers.N != nil || a.defaultTransformers.Boolean != nil {
+			queryParts = append(queryParts, "applyDefaultTransformers")
+		}
+	}
 	for idx, mapping := range a.transformerMappings {
 		fieldPath := mapping.GetExpression()
 		functionName := fmt.Sprintf("transformFunc_%d", idx)
 		functionNames = append(functionNames, functionName)
 		queryPart := fmt.Sprintf("%s? |= %s(.)", fieldPath, functionName)
 		queryParts = append(queryParts, queryPart)
-	}
-	if a.defaultTransformers != nil {
-		if a.defaultTransformers.S != nil || a.defaultTransformers.N != nil || a.defaultTransformers.Boolean != nil {
-			queryParts = append(queryParts, "applyDefaultTransformers")
-		}
 	}
 
 	queryString := strings.Join(queryParts, " | ")
