@@ -135,40 +135,48 @@ interface IncludedReasonProps {
 function IncludedReason(props: IncludedReasonProps): ReactElement {
   const { reason, description, count } = props;
 
-  if (reason == AccountStatusReason.EXCEEDS_ALLOWED_LIMIT) {
-    return <UsageLimitExceeded current={count} allowed={20000} />;
+  switch (reason) {
+    case AccountStatusReason.EXCEEDS_ALLOWED_LIMIT:
+      return <UsageLimitExceeded current={count} allowed={20000} />;
+    case AccountStatusReason.REQUESTED_EXCEEDS_LIMIT:
+      return (
+        <Alert>
+          <IoAlertCircleOutline className="h-4 w-4" />
+          <AlertTitle>Usage Limit Warning!</AlertTitle>
+          <AlertDescription>{description}</AlertDescription>
+        </Alert>
+      );
+    case AccountStatusReason.ACCOUNT_IN_EXPIRED_STATE:
+      return (
+        <Alert>
+          <IoAlertCircleOutline className="h-4 w-4" />
+          <AlertTitle>Account is Expired</AlertTitle>
+          <AlertDescription>{description}</AlertDescription>
+        </Alert>
+      );
+    case AccountStatusReason.REASON_UNSPECIFIED:
+      return (
+        <Alert>
+          <IoAlertCircleOutline className="h-4 w-4" />
+          <AlertTitle>Warning</AlertTitle>
+          <AlertDescription>
+            Your account is expired or you have no more records remaining for
+            this billing cycle.
+          </AlertDescription>
+        </Alert>
+      );
+    default:
+      return (
+        <Alert>
+          <IoAlertCircleOutline className="h-4 w-4" />
+          <AlertTitle>Warning</AlertTitle>
+          <AlertDescription>
+            Your account is expired or you have no more records remaining for
+            this billing cycle.
+          </AlertDescription>
+        </Alert>
+      );
   }
-
-  if (reason == AccountStatusReason.REQUESTED_EXCEEDS_LIMIT) {
-    return (
-      <Alert>
-        <IoAlertCircleOutline className="h-4 w-4" />
-        <AlertTitle>Usage Limit Warning!</AlertTitle>
-        <AlertDescription>{description}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (reason == AccountStatusReason.ACCOUNT_IN_EXPIRED_STATE) {
-    return (
-      <Alert>
-        <IoAlertCircleOutline className="h-4 w-4" />
-        <AlertTitle>Account is Expired</AlertTitle>
-        <AlertDescription>{description}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
-    <Alert>
-      <IoAlertCircleOutline className="h-4 w-4" />
-      <AlertTitle>Warning</AlertTitle>
-      <AlertDescription>
-        Your account is expired or you have no more records remaining for this
-        billing cycle.
-      </AlertDescription>
-    </Alert>
-  );
 }
 
 interface UsageLimitExceededProps {
