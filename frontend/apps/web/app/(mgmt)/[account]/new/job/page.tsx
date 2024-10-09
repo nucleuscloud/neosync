@@ -60,8 +60,10 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <SymbolIcon />,
       type: 'data-sync',
       experimental: false,
-      lightModeimage: '/images/jobsynclight.svg',
-      darkModeImage: '/images/prodsync-dark.svg',
+      lightModeimage:
+        'https://assets.nucleuscloud.com/neosync/app/jobsynclight.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/prodsync-dark.svg',
     },
     {
       name: 'Data Generation',
@@ -71,8 +73,10 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <AiOutlineExperiment />,
       type: 'generate-table',
       experimental: false,
-      lightModeimage: '/images/gen-light.svg',
-      darkModeImage: '/images/datagen-dark.svg',
+      lightModeimage:
+        'https://assets.nucleuscloud.com/neosync/app/gen-light.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/datagen-dark.svg',
     },
     {
       name: 'AI Data Generation',
@@ -81,8 +85,9 @@ export default function NewJob({ params }: PageProps): ReactElement {
       icon: <MagicWandIcon />,
       type: 'ai-generate-table',
       experimental: true,
-      lightModeimage: '/images/aigen.svg',
-      darkModeImage: '/images/aigen-dark.svg',
+      lightModeimage: 'https://assets.nucleuscloud.com/neosync/app/aigen.svg',
+      darkModeImage:
+        'https://assets.nucleuscloud.com/neosync/app/aigen-dark.svg',
     },
   ] as const;
 
@@ -122,7 +127,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
               )}
               onClick={() => handleJobSelection(jd.type, jd.href)}
             >
-              <CardHeader className=" w-[275px] relative">
+              <CardHeader className=" w-[300px] relative">
                 <div className="flex flex-col items-center text-left">
                   <div className="relative">
                     <Image
