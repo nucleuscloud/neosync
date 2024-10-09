@@ -232,14 +232,17 @@ func (s *Service) GetConnectionDataStream(
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
+			logger = logger.With("jobId", id.JobId)
 			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region, s3pathpieces)
 			if err != nil {
 				return err
 			}
+			logger.Debug(fmt.Sprintf("found run id for job in s3: %s", runId))
 			jobRunId = runId
 		default:
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
+		logger = logger.With("runId", jobRunId)
 
 		tableName := sqlmanager_shared.BuildTable(req.Msg.Schema, req.Msg.Table)
 		s3pathpieces = append(
@@ -1131,22 +1134,31 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	pieces = append(pieces, "workflows", jobId)
 	path := strings.Join(pieces, "/")
 
-	output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
-		Bucket:    aws.String(bucket),
-		Prefix:    aws.String(path),
-		Delimiter: aws.String("/"),
-	})
-	if err != nil {
-		return "", fmt.Errorf("unable to list job run directories from s3: %w", err)
+	var continuationToken *string
+	done := false
+	commonPrefixes := []string{}
+	for !done {
+		output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
+			Bucket:            aws.String(bucket),
+			Prefix:            aws.String(path),
+			Delimiter:         aws.String("/"),
+			ContinuationToken: continuationToken,
+		})
+		if err != nil {
+			return "", fmt.Errorf("unable to list job run directories from s3: %w", err)
+		}
+		continuationToken = output.NextContinuationToken
+		done = !*output.IsTruncated
+		for _, cp := range output.CommonPrefixes {
+			commonPrefixes = append(commonPrefixes, *cp.Prefix)
+		}
 	}
-	if len(output.CommonPrefixes) == 0 {
-		return "", nucleuserrors.NewNotFound(fmt.Sprintf("unable to find latest job run for job in s3: %s", jobId))
-	}
-	logger.Debug(fmt.Sprintf("found %d common prefixes for job in s3", len(output.CommonPrefixes)))
 
-	runIDs := make([]string, 0, len(output.CommonPrefixes))
-	for _, prefix := range output.CommonPrefixes {
-		parts := strings.Split(strings.TrimSuffix(*prefix.Prefix, "/"), "/")
+	logger.Debug(fmt.Sprintf("found %d common prefixes for job in s3", len(commonPrefixes)))
+
+	runIDs := make([]string, 0, len(commonPrefixes))
+	for _, prefix := range commonPrefixes {
+		parts := strings.Split(strings.TrimSuffix(prefix, "/"), "/")
 		if len(parts) >= 3 {
 			runID := parts[len(parts)-1]
 			runIDs = append(runIDs, runID)
