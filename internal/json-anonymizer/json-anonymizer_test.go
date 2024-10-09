@@ -17,9 +17,14 @@ func Test_NewAnonymizer(t *testing.T) {
 	})
 
 	t.Run("Initialize with transformer mappings", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			".field1": {
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{},
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".city",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+						GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+					},
+				},
 			},
 		}
 		anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings))
@@ -66,10 +71,13 @@ func Test_NewAnonymizer(t *testing.T) {
 
 func Test_AnonymizeJSONObjects(t *testing.T) {
 	t.Run("Anonymize with transformer mappings", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			".name": {
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".name",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+						GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+					},
 				},
 			},
 		}
@@ -126,10 +134,13 @@ func Test_AnonymizeJSONObjects(t *testing.T) {
 	})
 
 	t.Run("Anonymize error should halt", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			".name": {
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".name",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+						TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+					},
 				},
 			},
 		}
@@ -149,10 +160,13 @@ func Test_AnonymizeJSONObjects(t *testing.T) {
 		require.Equal(t, "New York", result["city"])
 	})
 	t.Run("Anonymize error should not halt", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			".name": {
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".name",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+						TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+					},
 				},
 			},
 		}
@@ -179,19 +193,6 @@ func Test_AnonymizeJSONObjects(t *testing.T) {
 	})
 }
 
-func Test_GenerateFunctionName(t *testing.T) {
-	t.Run("Generate unique function names", func(t *testing.T) {
-		name1 := generateFunctionName("field1")
-		name2 := generateFunctionName("field2")
-		require.NotEqual(t, name1, name2)
-	})
-
-	t.Run("Function name starts with a letter", func(t *testing.T) {
-		name := generateFunctionName("field")
-		require.Regexp(t, "^[a-z]", name)
-	})
-}
-
 func Test_DerefPointer(t *testing.T) {
 	t.Run("Deref string pointer", func(t *testing.T) {
 		str := "test"
@@ -215,23 +216,26 @@ func Test_DerefPointer(t *testing.T) {
 
 func Test_InitTransformerExecutors(t *testing.T) {
 	t.Run("Initialize valid transformer", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			"field1": {
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression: ".field1",
+				Transformer: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+						GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+					},
 				},
 			},
 		}
 		executors, err := initTransformerExecutors(mappings)
 		require.NoError(t, err)
 		require.Len(t, executors, 1)
-		require.NotNil(t, executors["field1"])
 	})
 
 	t.Run("Initialize invalid transformer", func(t *testing.T) {
-		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-			"field1": {
-				Config: nil,
+		mappings := []*mgmtv1alpha1.TransformerMapping{
+			{
+				Expression:  ".field1",
+				Transformer: nil,
 			},
 		}
 		_, err := initTransformerExecutors(mappings)
@@ -284,20 +288,29 @@ func Test_AnonymizeJSON_Largedata(t *testing.T) {
 	require.NoError(t, err)
 
 	// Define transformer mappings
-	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-		".companyName": {
-			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
-				TransformStringConfig: &mgmtv1alpha1.TransformString{PreserveLength: true},
+	mappings := []*mgmtv1alpha1.TransformerMapping{
+		{
+			Expression: ".companyName",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+					TransformStringConfig: &mgmtv1alpha1.TransformString{PreserveLength: true},
+				},
 			},
 		},
-		".leadership.CEO.name": {
-			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
-				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+		{
+			Expression: ".leadership.CEO.name",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+				},
 			},
 		},
-		".departments[].projects[]?.teamMembers[]?.name": {
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+		{
+			Expression: ".departments[].projects[]?.teamMembers[]?.name",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+				},
 			},
 		},
 	}
@@ -347,20 +360,29 @@ func Test_AnonymizeJSON_Largedata_WithDefaults(t *testing.T) {
 	require.NoError(t, err)
 
 	// Define transformer mappings
-	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-		".companyName": {
-			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+	mappings := []*mgmtv1alpha1.TransformerMapping{
+		{
+			Expression: ".companyName",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
 			},
 		},
-		".leadership.CEO.name": {
-			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+		{
+			Expression: ".leadership.CEO.name",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
 			},
 		},
-		".departments[].projects[]?.teamMembers[]?.name": {
-			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+		{
+			Expression: ".departments[].projects[]?.teamMembers[]?.name",
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
 			},
 		},
 	}
@@ -429,10 +451,13 @@ func Test_AnonymizeJSON_Largedata_Advanced(t *testing.T) {
 	require.NoError(t, err)
 
 	// Transform all name fields in objects
-	mappings := map[string]*mgmtv1alpha1.TransformerConfig{
-		`(.. | objects | select(has("name")) | .name)`: {
-			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
-				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+	mappings := []*mgmtv1alpha1.TransformerMapping{
+		{
+			Expression: `(.. | objects | select(has("name")) | .name)`,
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{},
+				},
 			},
 		},
 	}

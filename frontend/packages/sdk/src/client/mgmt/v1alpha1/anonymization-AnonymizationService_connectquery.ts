@@ -7,6 +7,8 @@ import { MethodKind } from "@bufbuild/protobuf";
 import { AnonymizeManyRequest, AnonymizeManyResponse, AnonymizeSingleRequest, AnonymizeSingleResponse } from "./anonymization_pb.js";
 
 /**
+ * Anonymizes many JSON strings by applying specified transformation mappings.
+ *
  * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeMany
  */
 export const anonymizeMany = {
@@ -21,6 +23,8 @@ export const anonymizeMany = {
 } as const;
 
 /**
+ * Anonymizes a single JSON strings by applying specified transformation mappings.
+ *
  * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeSingle
  */
 export const anonymizeSingle = {

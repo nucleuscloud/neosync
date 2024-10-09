@@ -13,6 +13,8 @@ export const AnonymizationService = {
   typeName: "mgmt.v1alpha1.AnonymizationService",
   methods: {
     /**
+     * Anonymizes many JSON strings by applying specified transformation mappings.
+     *
      * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeMany
      */
     anonymizeMany: {
@@ -22,6 +24,8 @@ export const AnonymizationService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Anonymizes a single JSON strings by applying specified transformation mappings.
+     *
      * @generated from rpc mgmt.v1alpha1.AnonymizationService.AnonymizeSingle
      */
     anonymizeSingle: {

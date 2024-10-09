@@ -19,11 +19,11 @@ export class AnonymizeManyRequest extends Message<AnonymizeManyRequest> {
   inputData: string[] = [];
 
   /**
-   * Transformer mappings using dot notation for field paths
+   * Array of Transformer mappings
    *
-   * @generated from field: map<string, mgmt.v1alpha1.TransformerConfig> transformer_mappings = 2;
+   * @generated from field: repeated mgmt.v1alpha1.TransformerMapping transformer_mappings = 2;
    */
-  transformerMappings: { [key: string]: TransformerConfig } = {};
+  transformerMappings: TransformerMapping[] = [];
 
   /**
    * Optional default transformations for any unmapped keys
@@ -49,7 +49,7 @@ export class AnonymizeManyRequest extends Message<AnonymizeManyRequest> {
   static readonly typeName = "mgmt.v1alpha1.AnonymizeManyRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "input_data", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 2, name: "transformer_mappings", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: TransformerConfig} },
+    { no: 2, name: "transformer_mappings", kind: "message", T: TransformerMapping, repeated: true },
     { no: 3, name: "default_transformers", kind: "message", T: DefaultTransformersConfig, opt: true },
     { no: 4, name: "halt_on_failure", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
@@ -119,11 +119,58 @@ export class AnonymizeManyResponse extends Message<AnonymizeManyResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.TransformerMapping
+ */
+export class TransformerMapping extends Message<TransformerMapping> {
+  /**
+   * JQ Expression or Field Path to apply the transformation to
+   *
+   * @generated from field: string expression = 1;
+   */
+  expression = "";
+
+  /**
+   * Configuration of Transformer to apply
+   *
+   * @generated from field: mgmt.v1alpha1.TransformerConfig transformer = 2;
+   */
+  transformer?: TransformerConfig;
+
+  constructor(data?: PartialMessage<TransformerMapping>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TransformerMapping";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "expression", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "transformer", kind: "message", T: TransformerConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerMapping {
+    return new TransformerMapping().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformerMapping {
+    return new TransformerMapping().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformerMapping {
+    return new TransformerMapping().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransformerMapping | PlainMessage<TransformerMapping> | undefined, b: TransformerMapping | PlainMessage<TransformerMapping> | undefined): boolean {
+    return proto3.util.equals(TransformerMapping, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.DefaultTransformersConfig
  */
 export class DefaultTransformersConfig extends Message<DefaultTransformersConfig> {
   /**
-   * Boolean
+   * BooleanP
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig boolean = 2;
    */
@@ -232,11 +279,11 @@ export class AnonymizeSingleRequest extends Message<AnonymizeSingleRequest> {
   inputData = "";
 
   /**
-   * Transformer mappings using dot notation for field paths
+   * Array of Transformer mappings
    *
-   * @generated from field: map<string, mgmt.v1alpha1.TransformerConfig> transformer_mappings = 2;
+   * @generated from field: repeated mgmt.v1alpha1.TransformerMapping transformer_mappings = 2;
    */
-  transformerMappings: { [key: string]: TransformerConfig } = {};
+  transformerMappings: TransformerMapping[] = [];
 
   /**
    * Optional default transformations for any unmapped keys
@@ -254,7 +301,7 @@ export class AnonymizeSingleRequest extends Message<AnonymizeSingleRequest> {
   static readonly typeName = "mgmt.v1alpha1.AnonymizeSingleRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "input_data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "transformer_mappings", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: TransformerConfig} },
+    { no: 2, name: "transformer_mappings", kind: "message", T: TransformerMapping, repeated: true },
     { no: 3, name: "default_transformers", kind: "message", T: DefaultTransformersConfig, opt: true },
   ]);
 

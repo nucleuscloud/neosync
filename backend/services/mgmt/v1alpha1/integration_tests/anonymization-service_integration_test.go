@@ -15,7 +15,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 		`{
   "user": {
       "name": "John Doe",
-      "age": 30,
+      "age": 300,
       "email": "john@example.com"
   },
   "details": {
@@ -30,7 +30,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 		`{
   "user": {
       "name": "Jane Doe",
-      "age": 42,
+      "age": 420,
       "email": "jane@example.com"
   },
   "details": {
@@ -59,15 +59,21 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 					},
 				},
 			},
-			TransformerMappings: map[string]*mgmtv1alpha1.TransformerConfig{
-				`.details.name`: {
-					Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-						TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+			TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+				{
+					Expression: ".details.name",
+					Transformer: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+							TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+						},
 					},
 				},
-				".sports[]": {
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
-						GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+				{
+					Expression: ".sports[]",
+					Transformer: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+							GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+						},
 					},
 				},
 			},
@@ -124,15 +130,21 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 					},
 				},
 			},
-			TransformerMappings: map[string]*mgmtv1alpha1.TransformerConfig{
-				`.details.name`: {
-					Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-						TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+			TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+				{
+					Expression: ".details.name",
+					Transformer: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+							TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+						},
 					},
 				},
-				".sports[]": {
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
-						GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+				{
+					Expression: ".sports[]",
+					Transformer: &mgmtv1alpha1.TransformerConfig{
+						Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+							GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+						},
 					},
 				},
 			},

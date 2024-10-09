@@ -7,10 +7,16 @@ import "mgmt/v1alpha1/transformer.proto";
 
 message AnonymizeManyRequest {
   // Array of stringified JSON data to be anonymized (up to 25 items)
-  repeated string input_data = 1 [(buf.validate.field).repeated = {max_items: 25}];
+  repeated string input_data = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 25
+    items: {
+      string: {len: 1}
+    }
+  }];
 
-  // Transformer mappings using dot notation for field paths
-  map<string, TransformerConfig> transformer_mappings = 2;
+  // Array of Transformer mappings
+  repeated TransformerMapping transformer_mappings = 2;
 
   // Optional default transformations for any unmapped keys
   optional DefaultTransformersConfig default_transformers = 3;
@@ -27,8 +33,15 @@ message AnonymizeManyResponse {
   repeated AnonymizeManyErrors errors = 2;
 }
 
+message TransformerMapping {
+  // JQ Expression or Field Path to apply the transformation to
+  string expression = 1;
+  // Configuration of Transformer to apply
+  TransformerConfig transformer = 2;
+}
+
 message DefaultTransformersConfig {
-  // Boolean
+  // BooleanP
   TransformerConfig boolean = 2;
   // Number
   TransformerConfig n = 3;
@@ -47,8 +60,8 @@ message AnonymizeSingleRequest {
   // Stringified JSON data to be anonymized
   string input_data = 1;
 
-  // Transformer mappings using dot notation for field paths
-  map<string, TransformerConfig> transformer_mappings = 2;
+  // Array of Transformer mappings
+  repeated TransformerMapping transformer_mappings = 2;
 
   // Optional default transformations for any unmapped keys
   optional DefaultTransformersConfig default_transformers = 3;
@@ -60,6 +73,8 @@ message AnonymizeSingleResponse {
 }
 
 service AnonymizationService {
+  // Anonymizes many JSON strings by applying specified transformation mappings.
   rpc AnonymizeMany(AnonymizeManyRequest) returns (AnonymizeManyResponse) {}
+  // Anonymizes a single JSON strings by applying specified transformation mappings.
   rpc AnonymizeSingle(AnonymizeSingleRequest) returns (AnonymizeSingleResponse) {}
 }

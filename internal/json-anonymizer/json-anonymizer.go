@@ -1,8 +1,6 @@
 package jsonanonymizer
 
 import (
-	"crypto/sha1" //nolint:gosec
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -20,8 +18,8 @@ type AnonymizeJsonError struct {
 }
 
 type JsonAnonymizer struct {
-	transformerMappings        map[string]*mgmtv1alpha1.TransformerConfig
-	transformerExecutors       map[string]*transformer.TransformerExecutor
+	transformerMappings        []*mgmtv1alpha1.TransformerMapping
+	transformerExecutors       []*transformer.TransformerExecutor
 	defaultTransformers        *mgmtv1alpha1.DefaultTransformersConfig
 	defaultTransformerExecutor *DefaultExecutors
 	compiledQuery              *gojq.Code
@@ -35,7 +33,7 @@ type Option func(*JsonAnonymizer)
 // NewAnonymizer initializes a new Anonymizer with functional options
 func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 	a := &JsonAnonymizer{
-		transformerMappings: make(map[string]*mgmtv1alpha1.TransformerConfig),
+		transformerMappings: make([]*mgmtv1alpha1.TransformerMapping, 0),
 	}
 	for _, opt := range opts {
 		opt(a)
@@ -68,7 +66,7 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 }
 
 // WithTransformerMappings sets the transformer mappings
-func WithTransformerMappings(mappings map[string]*mgmtv1alpha1.TransformerConfig) Option {
+func WithTransformerMappings(mappings []*mgmtv1alpha1.TransformerMapping) Option {
 	return func(a *JsonAnonymizer) {
 		if mappings != nil {
 			a.transformerMappings = mappings
@@ -92,7 +90,7 @@ func WithHaltOnFailure(halt bool) Option {
 
 // Compiles JQ query and initializes transformer functions
 func (a *JsonAnonymizer) initializeJq() error {
-	queryString, functionMap := a.buildJqQuery()
+	queryString, functionNames := a.buildJqQuery()
 	query, err := gojq.Parse(queryString)
 	if err != nil {
 		return fmt.Errorf("failed to parse jq query: %v", err)
@@ -101,11 +99,10 @@ func (a *JsonAnonymizer) initializeJq() error {
 	var compilerOpts []gojq.CompilerOption
 
 	a.skipPaths = map[string]struct{}{}
-	for functionName, fieldPath := range functionMap {
-		executor := a.transformerExecutors[fieldPath]
-		fnName := functionName
-		exec := executor
-		path := fieldPath
+	for idx, mapping := range a.transformerMappings {
+		fnName := functionNames[idx]
+		exec := a.transformerExecutors[idx]
+		path := mapping.GetExpression()
 		compilerOpts = append(compilerOpts, gojq.WithFunction(fnName, 1, 1, func(_ any, args []any) any {
 			value := args[0]
 			result, err := exec.Mutate(value, exec.Opts)
@@ -115,7 +112,7 @@ func (a *JsonAnonymizer) initializeJq() error {
 			return derefPointer(result)
 		}))
 
-		sanitizedPath := strings.ReplaceAll(fieldPath, "?", "")
+		sanitizedPath := strings.ReplaceAll(path, "?", "")
 		a.skipPaths[sanitizedPath] = struct{}{}
 	}
 
@@ -145,31 +142,15 @@ func derefPointer(v any) any {
 	return rv.Interface()
 }
 
-func customHash(input string) string {
-	hasher := sha1.New() //nolint:gosec
-	hasher.Write([]byte(input))
-	hash := hex.EncodeToString(hasher.Sum(nil))
-
-	// replace leading digit with a
-	if strings.ContainsAny(hash[:1], "0123456789") {
-		hash = "a" + hash
-	}
-
-	return hash
-}
-
-func generateFunctionName(fieldPath string) string {
-	return customHash(fieldPath)
-}
-
 // Build JQ query. Sets fields to transformer functions and defines default transformer function
-func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions map[string]string) {
+func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions []string) {
 	queryParts := []string{}
-	functionMap := make(map[string]string) // functionName -> fieldPath
+	functionNames := []string{}
 
-	for fieldPath := range a.transformerMappings {
-		functionName := generateFunctionName(fieldPath)
-		functionMap[functionName] = fieldPath
+	for idx, mapping := range a.transformerMappings {
+		fieldPath := mapping.GetExpression()
+		functionName := fmt.Sprintf("transformFunc_%d", idx)
+		functionNames = append(functionNames, functionName)
 		queryPart := fmt.Sprintf("%s? |= %s(.)", fieldPath, functionName)
 		queryParts = append(queryParts, queryPart)
 	}
@@ -180,7 +161,7 @@ func (a *JsonAnonymizer) buildJqQuery() (query string, transformerFunctions map[
 	}
 
 	queryString := strings.Join(queryParts, " | ")
-	return queryString, functionMap
+	return queryString, functionNames
 }
 
 // JQ function to apply all transformers to values that are unmapped in transformer mapping
@@ -297,6 +278,9 @@ func (a *JsonAnonymizer) AnonymizeJSONObjects(jsonStrs []string) ([]string, []*A
 // AnonymizeJSONObject takes a JSON string
 // applies the configured anonymization transformations to each object, and returns the modified JSON string.
 func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
+	if jsonStr == "" {
+		return jsonStr, nil
+	}
 	var data any
 	err := json.Unmarshal([]byte(jsonStr), &data)
 	if err != nil {
@@ -320,18 +304,18 @@ func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 	return string(processedJSON), nil
 }
 
-func initTransformerExecutors(transformerMappings map[string]*mgmtv1alpha1.TransformerConfig) (map[string]*transformer.TransformerExecutor, error) {
-	executorMap := map[string]*transformer.TransformerExecutor{}
+func initTransformerExecutors(transformerMappings []*mgmtv1alpha1.TransformerMapping) ([]*transformer.TransformerExecutor, error) {
+	executors := []*transformer.TransformerExecutor{}
 
-	for fieldPath, transformerConfig := range transformerMappings {
-		executor, err := transformer.InitializeTransformerByConfigType(transformerConfig)
+	for _, mapping := range transformerMappings {
+		executor, err := transformer.InitializeTransformerByConfigType(mapping.GetTransformer())
 		if err != nil {
-			return nil, fmt.Errorf("failed to initialize transformer for field '%s': %v", fieldPath, err)
+			return nil, fmt.Errorf("failed to initialize transformer for field '%s': %v", mapping.GetExpression(), err)
 		}
-		executorMap[fieldPath] = executor
+		executors = append(executors, executor)
 	}
 
-	return executorMap, nil
+	return executors, nil
 }
 
 type DefaultExecutors struct {

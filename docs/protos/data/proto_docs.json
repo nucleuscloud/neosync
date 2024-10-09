@@ -2906,12 +2906,12 @@
             },
             {
               "name": "transformer_mappings",
-              "description": "Transformer mappings using dot notation for field paths",
+              "description": "Array of Transformer mappings",
               "label": "repeated",
-              "type": "TransformerMappingsEntry",
-              "longType": "AnonymizeManyRequest.TransformerMappingsEntry",
-              "fullType": "mgmt.v1alpha1.AnonymizeManyRequest.TransformerMappingsEntry",
-              "ismap": true,
+              "type": "TransformerMapping",
+              "longType": "TransformerMapping",
+              "fullType": "mgmt.v1alpha1.TransformerMapping",
+              "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
@@ -2935,42 +2935,6 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "TransformerMappingsEntry",
-          "longName": "AnonymizeManyRequest.TransformerMappingsEntry",
-          "fullName": "mgmt.v1alpha1.AnonymizeManyRequest.TransformerMappingsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "TransformerConfig",
-              "longType": "TransformerConfig",
-              "fullType": "mgmt.v1alpha1.TransformerConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3038,12 +3002,12 @@
             },
             {
               "name": "transformer_mappings",
-              "description": "Transformer mappings using dot notation for field paths",
+              "description": "Array of Transformer mappings",
               "label": "repeated",
-              "type": "TransformerMappingsEntry",
-              "longType": "AnonymizeSingleRequest.TransformerMappingsEntry",
-              "fullType": "mgmt.v1alpha1.AnonymizeSingleRequest.TransformerMappingsEntry",
-              "ismap": true,
+              "type": "TransformerMapping",
+              "longType": "TransformerMapping",
+              "fullType": "mgmt.v1alpha1.TransformerMapping",
+              "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
@@ -3058,42 +3022,6 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_default_transformers",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "TransformerMappingsEntry",
-          "longName": "AnonymizeSingleRequest.TransformerMappingsEntry",
-          "fullName": "mgmt.v1alpha1.AnonymizeSingleRequest.TransformerMappingsEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "TransformerConfig",
-              "longType": "TransformerConfig",
-              "fullType": "mgmt.v1alpha1.TransformerConfig",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -3134,7 +3062,7 @@
           "fields": [
             {
               "name": "boolean",
-              "description": "Boolean",
+              "description": "BooleanP",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",
@@ -3169,6 +3097,42 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "TransformerMapping",
+          "longName": "TransformerMapping",
+          "fullName": "mgmt.v1alpha1.TransformerMapping",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "expression",
+              "description": "JQ Expression or Field Path to apply the transformation to",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "transformer",
+              "description": "Configuration of Transformer to apply",
+              "label": "",
+              "type": "TransformerConfig",
+              "longType": "TransformerConfig",
+              "fullType": "mgmt.v1alpha1.TransformerConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -3180,7 +3144,7 @@
           "methods": [
             {
               "name": "AnonymizeMany",
-              "description": "",
+              "description": "Anonymizes many JSON strings by applying specified transformation mappings.",
               "requestType": "AnonymizeManyRequest",
               "requestLongType": "AnonymizeManyRequest",
               "requestFullType": "mgmt.v1alpha1.AnonymizeManyRequest",
@@ -3192,7 +3156,7 @@
             },
             {
               "name": "AnonymizeSingle",
-              "description": "",
+              "description": "Anonymizes a single JSON strings by applying specified transformation mappings.",
               "requestType": "AnonymizeSingleRequest",
               "requestLongType": "AnonymizeSingleRequest",
               "requestFullType": "mgmt.v1alpha1.AnonymizeSingleRequest",
