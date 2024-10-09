@@ -21,5 +21,10 @@ This guide provides an overview of how to use the `AnonymizeSingle`and `Anonymiz
 Transformer mappings define specific paths in your JSON data using JQ and the transformers to apply to those paths.
 
 ### Default Mappings
-Default transformers apply to all data types not explicitly defined in the transformer mappings. Transformers are mapped by data type. 
+Default transformers provide a way to anonymize fields that are not explicitly defined in the transformer mappings. They work on a data type basis, applying to all fields of a specific type that don't have a transformer mapping configured. It supports default transformers for three data types: strings, numbers, and booleans.
 
+Specific transformer mappings always take precedence over default transformers. If a field has a transformer defined in the mappings, the default transformer for that data type will not be applied to that field.
+
+This approach allows 
+
+> If using a JQ expression (.. | objects | select(has("name")) | .name) and not a path (.path.to.field) then the default transformers will override the values that the expression finds.
