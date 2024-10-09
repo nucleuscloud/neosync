@@ -16,7 +16,6 @@ import (
 
 type AnonymizeJsonError struct {
 	InputIndex int64
-	FieldPath  string
 	Message    string
 }
 

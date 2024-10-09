@@ -36,6 +36,11 @@ func Test_NewAnonymizer(t *testing.T) {
 					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
 				},
 			},
+			Boolean: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			},
 		}
 		anonymizer, err := NewAnonymizer(WithDefaultTransformers(defaults))
 		require.NoError(t, err)
@@ -118,6 +123,59 @@ func Test_AnonymizeJSONObjects(t *testing.T) {
 		input := `invalid json`
 		_, anonErrors := anonymizer.AnonymizeJSONObjects([]string{input})
 		require.NotEmpty(t, anonErrors)
+	})
+
+	t.Run("Anonymize error should halt", func(t *testing.T) {
+		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
+			".name": {
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+				},
+			},
+		}
+		anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings), WithHaltOnFailure(true))
+		require.NoError(t, err)
+
+		inputs := []string{`{"id": 1, "name": "John Doe", "city": "New York"}`, `{"id": 2, "name": 1, "city": "New York"}`, `{"id": 3, "name": "John Doe", "city": "New York"}`}
+		outputs, anonErrors := anonymizer.AnonymizeJSONObjects(inputs)
+		require.Len(t, anonErrors, 1)
+		require.Equal(t, int64(1), anonErrors[0].InputIndex)
+
+		require.Len(t, outputs, 1)
+		var result map[string]any
+		err = json.Unmarshal([]byte(outputs[0]), &result)
+		require.NoError(t, err)
+		require.NotEqual(t, "John Doe", result["name"])
+		require.Equal(t, "New York", result["city"])
+	})
+	t.Run("Anonymize error should not halt", func(t *testing.T) {
+		mappings := map[string]*mgmtv1alpha1.TransformerConfig{
+			".name": {
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
+				},
+			},
+		}
+		anonymizer, err := NewAnonymizer(WithTransformerMappings(mappings), WithHaltOnFailure(false))
+		require.NoError(t, err)
+
+		inputs := []string{`{"id": 0, "name": "John Doe", "city": "New York"}`, `{"id": 1, "name": 1, "city": "New York"}`, `{"id": 2, "name": "John Doe", "city": "New York"}`}
+		outputs, anonErrors := anonymizer.AnonymizeJSONObjects(inputs)
+		require.Len(t, anonErrors, 1)
+		require.Equal(t, int64(1), anonErrors[0].InputIndex)
+
+		for idx, o := range outputs {
+			if idx == 1 {
+				require.Empty(t, o)
+				continue
+			}
+			var result map[string]any
+			err = json.Unmarshal([]byte(o), &result)
+			require.NoError(t, err)
+			require.NotEqual(t, "John Doe", result["name"])
+			require.Equal(t, "New York", result["city"])
+			require.Equal(t, float64(idx), result["id"])
+		}
 	})
 }
 
@@ -317,6 +375,11 @@ func Test_AnonymizeJSON_Largedata_WithDefaults(t *testing.T) {
 		N: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 				GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{},
+			},
+		},
+		Boolean: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+				GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
 			},
 		},
 	}

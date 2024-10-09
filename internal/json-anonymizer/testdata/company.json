@@ -3,6 +3,7 @@
     "companyId": "CORP001",
     "companyName": "Global Innovations Inc.",
     "foundedYear": 1995,
+    "verified": true,
     "headquarters": {
       "address": {
         "street": "123 Tech Plaza",
@@ -150,6 +151,7 @@
     "companyId": "CORP002",
     "companyName": "EcoSolutions Ltd.",
     "foundedYear": 2010,
+    "verified": false,
     "headquarters": {
       "address": {
         "street": "456 Green Avenue",
