@@ -170,7 +170,7 @@ export class TransformerMapping extends Message<TransformerMapping> {
  */
 export class DefaultTransformersConfig extends Message<DefaultTransformersConfig> {
   /**
-   * BooleanP
+   * Boolean
    *
    * @generated from field: mgmt.v1alpha1.TransformerConfig boolean = 2;
    */

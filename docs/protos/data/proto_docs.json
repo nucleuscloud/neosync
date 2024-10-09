@@ -3062,7 +3062,7 @@
           "fields": [
             {
               "name": "boolean",
-              "description": "BooleanP",
+              "description": "Boolean",
               "label": "",
               "type": "TransformerConfig",
               "longType": "TransformerConfig",

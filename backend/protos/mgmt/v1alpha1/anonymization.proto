@@ -11,7 +11,7 @@ message AnonymizeManyRequest {
     min_items: 1
     max_items: 25
     items: {
-      string: {len: 1}
+      string: {min_len: 1}
     }
   }];
 
@@ -35,13 +35,13 @@ message AnonymizeManyResponse {
 
 message TransformerMapping {
   // JQ Expression or Field Path to apply the transformation to
-  string expression = 1;
+  string expression = 1 [(buf.validate.field).required = true];
   // Configuration of Transformer to apply
-  TransformerConfig transformer = 2;
+  TransformerConfig transformer = 2 [(buf.validate.field).required = true];
 }
 
 message DefaultTransformersConfig {
-  // BooleanP
+  // Boolean
   TransformerConfig boolean = 2;
   // Number
   TransformerConfig n = 3;
