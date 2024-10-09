@@ -37,7 +37,6 @@ func (s *Service) AnonymizeMany(
 	}), nil
 }
 
-// AnonymizeSingle endpoint using the Anonymizer
 func (s *Service) AnonymizeSingle(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeSingleRequest],
