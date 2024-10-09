@@ -40,7 +40,7 @@ export function UserNav(): ReactElement | null {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         {(session.data?.user?.email || session.data?.user?.name) && (
-          <>
+          <div>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 {session.data?.user?.name && (
@@ -56,7 +56,7 @@ export function UserNav(): ReactElement | null {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-          </>
+          </div>
         )}
         <DropdownMenuGroup>
           <DropdownMenuItem disabled>Profile</DropdownMenuItem>

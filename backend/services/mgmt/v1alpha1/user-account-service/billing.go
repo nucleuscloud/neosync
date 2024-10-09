@@ -170,10 +170,11 @@ func (s *Service) IsAccountStatusValid(
 		allowed := accountStatusResp.Msg.GetAllowedRecordCount()
 
 		if currentUsed >= allowed {
-			reason := fmt.Sprintf("Current used record count (%d) exceeds the allowed limit (%d).", currentUsed, allowed)
+			description := fmt.Sprintf("Current used record count (%d) exceeds the allowed limit (%d).", currentUsed, allowed)
 			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-				IsValid: false,
-				Reason:  &reason,
+				IsValid:       false,
+				InvalidReason: mgmtv1alpha1.AccountStatusReason_ACCOUNT_STATUS_REASON_EXCEEDS_ALLOWED_LIMIT.Enum(),
+				Description:   &description,
 			}), nil
 		}
 
@@ -181,10 +182,11 @@ func (s *Service) IsAccountStatusValid(
 			requested := req.Msg.GetRequestedRecordCount()
 			totalUsed := currentUsed + requested
 			if totalUsed > allowed {
-				reason := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
+				description := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
 				return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-					IsValid: false,
-					Reason:  &reason,
+					IsValid:       false,
+					InvalidReason: mgmtv1alpha1.AccountStatusReason_ACCOUNT_STATUS_REASON_REQUESTED_EXCEEDS_LIMIT.Enum(),
+					Description:   &description,
 				}), nil
 			}
 		}
@@ -201,10 +203,11 @@ func (s *Service) IsAccountStatusValid(
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
-	reason := "Account is currently in expired state, visit the billing page to activate your subscription."
+	description := "Account is currently in expired state, visit the billing page to activate your subscription."
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-		IsValid: false,
-		Reason:  &reason,
+		IsValid:       false,
+		InvalidReason: mgmtv1alpha1.AccountStatusReason_ACCOUNT_STATUS_REASON_ACCOUNT_IN_EXPIRED_STATE.Enum(),
+		Reason:        &description,
 	}), nil
 }
 

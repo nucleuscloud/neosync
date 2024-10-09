@@ -1,67 +1,23 @@
 'use client';
 import { cn } from '@/libs/utils';
-import { useQuery } from '@connectrpc/connect-query';
-import { GetMetricCountRequest, RangedMetricName } from '@neosync/sdk';
-import { getMetricCount } from '@neosync/sdk/connectquery';
+import { GetMetricCountRequest } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement } from 'react';
 import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
-import { Skeleton } from '../ui/skeleton';
-import { dateToNeoDate, periodToDateRange, UsagePeriod } from '../usage/util';
 
 interface Props {
-  identifier: string;
+  count: number;
   idtype: MetricsIdentifierCase;
+  identifier: string;
 }
 
 export default function RecordsProgressBar(props: Props): ReactElement {
-  const { identifier, idtype } = props;
-  const [period, _] = useState<UsagePeriod>('current');
-  const metric = RangedMetricName.INPUT_RECEIVED;
+  const { count, idtype, identifier } = props;
   const { account } = useAccount();
 
   const router = useRouter();
-
-  const [start, end] = periodToDateRange(period);
-
-  const { data: metricCountData, isLoading } = useQuery(
-    getMetricCount,
-    {
-      metric,
-      startDay: dateToNeoDate(start),
-      endDay: dateToNeoDate(end),
-      identifier:
-        idtype === 'accountId'
-          ? { case: 'accountId', value: identifier }
-          : idtype === 'jobId'
-            ? { case: 'jobId', value: identifier }
-            : idtype === 'runId'
-              ? { case: 'runId', value: identifier }
-              : undefined,
-    },
-    {
-      enabled: !!metric && !!identifier && !!idtype && !!period,
-    }
-  );
-
-  const formatNumber = (num: number): string => {
-    const browserLanguages = navigator.languages;
-    const formatter = new Intl.NumberFormat(browserLanguages, {
-      notation: 'compact',
-      compactDisplay: 'short',
-      maximumFractionDigits: 1,
-    });
-    return formatter.format(num);
-  };
-
-  if (isLoading) {
-    return <Skeleton className="w-[100px] h-8" />;
-  }
-
-  const count =
-    metricCountData?.count !== undefined ? Number(metricCountData.count) : 0;
 
   const totalRecords = 20000;
   const percentageUsed = (count / totalRecords) * 100;
@@ -79,10 +35,12 @@ export default function RecordsProgressBar(props: Props): ReactElement {
         }
       }}
       variant="outline"
-      className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-500')}
+      className={cn(count > totalRecords && 'bg-orange-200 dark:bg-orange-700')}
     >
       <div className="flex flex-row items-center gap-2 sm:w-60">
-        <span className="text-sm text-nowrap">Records used</span>
+        <span className="text-sm text-nowrap dark:text-gray-900">
+          Records used
+        </span>
         <Progress value={percentageUsed} className="w-[60%] hidden sm:flex" />
         <span className="text-sm">
           {formatNumber(count)}/{formatNumber(totalRecords)}
@@ -115,3 +73,13 @@ type ExtractCase<T> = T extends { case: infer U } ? U : never;
 type MetricsIdentifierCase = NonNullable<
   ExtractCase<GetMetricCountRequest['identifier']>
 >;
+
+export function formatNumber(num: number): string {
+  const browserLanguages = navigator.languages;
+  const formatter = new Intl.NumberFormat(browserLanguages, {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1,
+  });
+  return formatter.format(num);
+}
