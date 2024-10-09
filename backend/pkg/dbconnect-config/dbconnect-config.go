@@ -26,28 +26,6 @@ type GeneralDbConnectConfig struct {
 	queryParams url.Values
 }
 
-func (g *GeneralDbConnectConfig) GetDriver() string {
-	return g.driver
-}
-
-func (g *GeneralDbConnectConfig) SetPort(port int32) {
-	g.port = &port
-}
-func (g *GeneralDbConnectConfig) SetHost(host string) {
-	g.host = host
-}
-
-func (g *GeneralDbConnectConfig) GetPort() *int32 {
-	return g.port
-}
-func (g *GeneralDbConnectConfig) GetHost() string {
-	return g.host
-}
-
-func (g *GeneralDbConnectConfig) GetUser() string {
-	return g.user
-}
-
 func (g *GeneralDbConnectConfig) String() string {
 	if g.driver == postgresDriver {
 		u := url.URL{

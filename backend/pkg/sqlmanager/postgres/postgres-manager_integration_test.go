@@ -7,12 +7,13 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/stretchr/testify/require"
 )
 
 func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -35,7 +36,7 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema() {
 }
 
 func (s *IntegrationTestSuite) Test_GetDatabaseSchema_With_Identity() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	expectedSubset := []*sqlmanager_shared.DatabaseSchemaRow{
 		{
@@ -59,7 +60,7 @@ func (s *IntegrationTestSuite) Test_GetDatabaseSchema_With_Identity() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetSchemaColumnMap(context.Background())
 	require.NoError(s.T(), err)
@@ -74,7 +75,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaColumnMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
 	require.NoError(s.T(), err)
@@ -130,7 +131,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
 	require.NoError(s.T(), err)
@@ -171,7 +172,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_BasicCircular() 
 }
 
 func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	actual, err := manager.GetTableConstraintsBySchema(s.ctx, []string{s.schema})
 	require.NoError(s.T(), err)
@@ -190,7 +191,7 @@ func (s *IntegrationTestSuite) Test_GetForeignKeyConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{s.schema})
 	require.NoError(s.T(), err)
@@ -207,7 +208,7 @@ func (s *IntegrationTestSuite) Test_GetPrimaryKeyConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{s.schema})
 	require.NoError(s.T(), err)
@@ -220,7 +221,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetTableConstraintsBySchema(context.Background(), []string{s.schema})
 	require.NoError(s.T(), err)
@@ -235,7 +236,7 @@ func (s *IntegrationTestSuite) Test_GetUniqueConstraintsMap_Composite() {
 }
 
 func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetRolePermissionsMap(context.Background())
 	require.NoError(s.T(), err)
@@ -253,7 +254,7 @@ func (s *IntegrationTestSuite) Test_GetRolePermissionsMap() {
 }
 
 func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetCreateTableStatement(context.Background(), s.schema, "users")
 	require.NoError(s.T(), err)
@@ -262,7 +263,7 @@ func (s *IntegrationTestSuite) Test_GetCreateTableStatement() {
 }
 
 func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	actual, err := manager.GetTableInitStatements(
 		context.Background(),
@@ -274,7 +275,7 @@ func (s *IntegrationTestSuite) Test_GetTableInitStatements() {
 }
 
 func (s *IntegrationTestSuite) Test_Exec() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
 	require.NoError(s.T(), err)
@@ -284,7 +285,7 @@ func (s *IntegrationTestSuite) Test_Exec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
 	require.NoError(s.T(), err)
@@ -295,7 +296,7 @@ func (s *IntegrationTestSuite) Test_BatchExec() {
 }
 
 func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 	sql, _, err := goqu.Dialect("postgres").Select("*").From(goqu.T("users").Schema(s.schema)).ToSQL()
 	require.NoError(s.T(), err)
 	sql += ";"
@@ -307,7 +308,7 @@ func (s *IntegrationTestSuite) Test_BatchExec_With_Prefix() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "parent1"}})
 	require.NoError(s.T(), err)
@@ -315,7 +316,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	statements, err := manager.GetSchemaInitStatements(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
 	require.NoError(s.T(), err)
@@ -323,7 +324,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaInitStatements_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	resp, err := manager.GetSchemaTableDataTypes(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
 	require.NoError(s.T(), err)
@@ -338,7 +339,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaTableDataTypes_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	triggers, err := manager.GetSchemaTableTriggers(context.Background(), []*sqlmanager_shared.SchemaTable{{Schema: s.schema, Table: "custom_table"}})
 	require.NoError(s.T(), err)
@@ -346,7 +347,7 @@ func (s *IntegrationTestSuite) Test_GetSchemaTableTriggers_customtable() {
 }
 
 func (s *IntegrationTestSuite) Test_GetTableRowCount() {
-	manager := NewManager(s.querier, s.pgpool, func() {})
+	manager := NewManager(s.querier, s.db, func() {})
 
 	table := "tablewithcount"
 
@@ -378,7 +379,7 @@ type testColumnProperties struct {
 }
 
 func (s *IntegrationTestSuite) Test_GetPostgresColumnOverrideAndResetProperties() {
-	manager := PostgresManager{querier: s.querier, pool: s.pgpool}
+	manager := PostgresManager{querier: s.querier, db: s.db}
 
 	colInfoMap, err := manager.GetSchemaColumnMap(context.Background())
 	require.NoError(s.T(), err)

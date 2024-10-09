@@ -10,16 +10,9 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
-	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
-	"golang.org/x/crypto/ssh"
-)
-
-const (
-	localhost  = "localhost"
-	randomPort = 0
 )
 
 type Interface interface {
@@ -36,9 +29,6 @@ type WrappedMongoClient struct {
 	clientMu sync.Mutex
 
 	details *connstring.ConnString
-	// tunnel  *sshtunnel.Sshtunnel
-
-	// logger *slog.Logger
 }
 
 var _ DbContainer = &WrappedMongoClient{}
@@ -91,7 +81,7 @@ func (c *Connector) NewFromConnectionConfig(
 		return nil, errors.New("cc was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	details, err := GetConnectionDetails(cc, clienttls.UpsertClientTlsFileSingleClient, logger)
+	details, err := getConnectionDetails(cc, clienttls.UpsertClientTlsFileSingleClient)
 	if err != nil {
 		return nil, err
 	}
@@ -100,22 +90,16 @@ func (c *Connector) NewFromConnectionConfig(
 }
 
 type ConnectionDetails struct {
-	Tunnel  *sshtunnel.Sshtunnel
 	Details *connstring.ConnString
 }
 
-func (c *ConnectionDetails) GetTunnel() *sshtunnel.Sshtunnel {
-	return c.Tunnel
-}
 func (c *ConnectionDetails) String() string {
-	// todo: add tunnel support
 	return c.Details.String()
 }
 
-func GetConnectionDetails(
+func getConnectionDetails(
 	cc *mgmtv1alpha1.ConnectionConfig,
 	handleClientTlsConfig clienttls.ClientTlsFileHandler,
-	logger *slog.Logger,
 ) (*ConnectionDetails, error) {
 	if cc == nil {
 		return nil, errors.New("cc was nil, expected *mgmtv1alpha1.ConnectionConfig")
@@ -133,44 +117,15 @@ func GetConnectionDetails(
 		}
 	}
 	tunnelCfg := mongoConfig.GetTunnel()
-	if tunnelCfg == nil {
-		connDetails, err := getGeneralDbConnectConfigFromMongo(mongoConfig)
-		if err != nil {
-			return nil, err
-		}
-		return &ConnectionDetails{
-			Details: connDetails,
-		}, nil
+	if tunnelCfg != nil {
+		return nil, fmt.Errorf("tunneling in mongodb is not currently supported: %w", errors.ErrUnsupported)
 	}
 
-	var destination *sshtunnel.Endpoint // todo
-	authmethod, err := sshtunnel.GetTunnelAuthMethodFromSshConfig(tunnelCfg.GetAuthentication())
-	if err != nil {
-		return nil, err
-	}
-	var publickey ssh.PublicKey
-	if tunnelCfg.GetKnownHostPublicKey() == "" {
-		publickey, err = sshtunnel.ParseSshKey(tunnelCfg.GetKnownHostPublicKey())
-		if err != nil {
-			return nil, err
-		}
-	}
-	tunnel := sshtunnel.New(
-		sshtunnel.NewEndpointWithUser(tunnelCfg.GetHost(), int(tunnelCfg.GetPort()), tunnelCfg.GetUser()),
-		authmethod,
-		destination,
-		sshtunnel.NewEndpoint(localhost, randomPort),
-		1,
-		publickey,
-	)
 	connDetails, err := getGeneralDbConnectConfigFromMongo(mongoConfig)
 	if err != nil {
 		return nil, err
 	}
-	_ = connDetails
-
 	return &ConnectionDetails{
-		Tunnel:  tunnel,
 		Details: connDetails,
 	}, nil
 }

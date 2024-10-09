@@ -1,7 +1,6 @@
 package sqlconnect
 
 import (
-	"log/slog"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -28,102 +27,26 @@ var (
 	}
 
 	mssqlconnection = "sqlserver://sa:YourStrong@Passw0rd@localhost:1433?database=master"
+
+	tunnel = &mgmtv1alpha1.SSHTunnel{
+		Host:               "localhost",
+		Port:               2222,
+		User:               "foo",
+		KnownHostPublicKey: nil,
+		Authentication: &mgmtv1alpha1.SSHAuthentication{
+			AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
+				Passphrase: &mgmtv1alpha1.SSHPassphrase{
+					Value: "foo",
+				},
+			},
+		},
+	}
 )
 
 func Test_NewDbFromConnectionConfig(t *testing.T) {
-	c := &SqlOpenConnector{}
-	sqldb, err := c.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-					Connection: mysqlconnection,
-				},
-			},
-		},
-	}, nil, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, sqldb)
-}
-
-func Test_NewDbFromConnectionConfig_BadConfig(t *testing.T) {
-	c := &SqlOpenConnector{}
-	sqldb, err := c.NewDbFromConnectionConfig(nil, nil, nil)
-	assert.Error(t, err)
-	assert.Nil(t, sqldb)
-}
-
-func Test_NewPgPoolFromConnectionConfig(t *testing.T) {
-	c := &SqlOpenConnector{}
-	sqldb, err := c.NewPgPoolFromConnectionConfig(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-			Connection: pgconnection,
-		},
-	}, nil, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, sqldb)
-}
-
-func Test_NewPgPoolFromConnectionConfig_BadConfig(t *testing.T) {
-	c := &SqlOpenConnector{}
-	sqldb, err := c.NewPgPoolFromConnectionConfig(nil, nil, nil)
-	assert.Error(t, err)
-	assert.Nil(t, sqldb)
-}
-
-func Test_getConnectionDetails_Pg_NoTunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-						Connection: pgconnection,
-					},
-				},
-			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.Nil(t, out.Tunnel)
-}
-
-func Test_getConnectionDetails_Pg_Tunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-						Connection: pgconnection,
-					},
-					Tunnel: &mgmtv1alpha1.SSHTunnel{
-						Host:               "bastion.neosync.dev",
-						Port:               22,
-						User:               "testuser",
-						Authentication:     nil,
-						KnownHostPublicKey: nil,
-					},
-				},
-			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
-}
-
-func Test_getConnectionDetails_Mysql_NoTunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
+	connector := &SqlOpenConnector{}
+	t.Run("mysql", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 				MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 					ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
@@ -131,50 +54,57 @@ func Test_getConnectionDetails_Mysql_NoTunnel(t *testing.T) {
 					},
 				},
 			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.Nil(t, out.Tunnel)
-}
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
 
-func Test_getConnectionDetails_Mysql_Tunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
+	t.Run("mysql tunnel", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 				MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 					ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
 						Connection: mysqlconnection,
 					},
-					Tunnel: &mgmtv1alpha1.SSHTunnel{
-						Host:               "bastion.neosync.dev",
-						Port:               22,
-						User:               "testuser",
-						Authentication:     nil,
-						KnownHostPublicKey: nil,
+					Tunnel: tunnel,
+				},
+			},
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
+
+	t.Run("pg", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+						Connection: pgconnection,
 					},
 				},
 			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
-}
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
 
-func Test_getConnectionDetails_Mssql_NoTunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
+	t.Run("pg tunnel", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+						Connection: pgconnection,
+					},
+					Tunnel: tunnel,
+				},
+			},
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
+
+	t.Run("mssql", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
 				MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
 					ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
@@ -182,47 +112,49 @@ func Test_getConnectionDetails_Mssql_NoTunnel(t *testing.T) {
 					},
 				},
 			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.Nil(t, out.Tunnel)
-}
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
 
-func Test_getConnectionDetails_Mssql_Tunnel(t *testing.T) {
-	out, err := GetConnectionDetails(
-		&mgmtv1alpha1.ConnectionConfig{
+	t.Run("mssql tunnel", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(&mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_MssqlConfig{
 				MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
 					ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 						Url: mssqlconnection,
 					},
-					Tunnel: &mgmtv1alpha1.SSHTunnel{
-						Host:               "bastion.neosync.dev",
-						Port:               22,
-						User:               "testuser",
-						Authentication:     nil,
-						KnownHostPublicKey: nil,
-					},
+					Tunnel: tunnel,
 				},
 			},
-		},
-		ptr(uint32(5)),
-		nil,
-		slog.Default(),
-	)
-	assert.NoError(t, err)
-	assert.NotNil(t, out)
-	assert.NotNil(t, out.GeneralDbConnectConfig)
-	assert.NotNil(t, out.Tunnel)
-	assert.Equal(t, out.GeneralDbConnectConfig.GetHost(), "localhost")
-	assert.Equal(t, *out.GeneralDbConnectConfig.GetPort(), 0)
+		}, nil, nil)
+		assert.NoError(t, err)
+		assert.NotNil(t, sqldb)
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		sqldb, err := connector.NewDbFromConnectionConfig(nil, nil, nil)
+		assert.Error(t, err)
+		assert.Nil(t, sqldb)
+	})
 }
 
 func ptr[T any](val T) *T {
 	return &val
+}
+
+func Test_getSshAddr(t *testing.T) {
+	t.Run("with port", func(t *testing.T) {
+		actual := getSshAddr(&mgmtv1alpha1.SSHTunnel{
+			Host: "localhost",
+			Port: 2222,
+		})
+		assert.Equal(t, "localhost:2222", actual)
+	})
+	t.Run("without port", func(t *testing.T) {
+		actual := getSshAddr(&mgmtv1alpha1.SSHTunnel{
+			Host: "localhost",
+		})
+		assert.Equal(t, "localhost", actual)
+	})
 }

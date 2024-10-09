@@ -2,13 +2,13 @@ package sqlmanager_postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -19,7 +19,7 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	pgpool  *pgxpool.Pool
+	db      *sql.DB
 	querier pg_queries.Querier
 
 	setupSql    string
@@ -69,32 +69,32 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.teardownSql = string(teardownSql)
 
-	pool, err := pgxpool.New(s.ctx, connstr)
+	db, err := sql.Open("pgx", connstr)
 	if err != nil {
 		panic(err)
 	}
-	s.pgpool = pool
+	s.db = db
 	s.querier = pg_queries.New()
 }
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.pgpool.Exec(s.ctx, s.setupSql)
+	_, err := s.db.ExecContext(s.ctx, s.setupSql)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	_, err := s.pgpool.Exec(s.ctx, s.teardownSql)
+	_, err := s.db.ExecContext(s.ctx, s.teardownSql)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	if s.pgpool != nil {
-		s.pgpool.Close()
+	if s.db != nil {
+		s.db.Close()
 	}
 	if s.pgcontainer != nil {
 		err := s.pgcontainer.Terminate(s.ctx)

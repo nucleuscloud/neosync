@@ -628,7 +628,6 @@ type serviceMocks struct {
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
-	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQueierMock           *pg_queries.MockQuerier
 	MysqlQueierMock        *mysql_queries.MockQuerier
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
@@ -671,7 +670,6 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
-		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 		PgQueierMock:           mockPgquerier,
 		MysqlQueierMock:        mockMysqlquerier,
 		SqlConnectorMock:       mockSqlConnector,

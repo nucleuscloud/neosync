@@ -16,10 +16,10 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
 	_ "github.com/warpstreamlabs/bento/public/components/redis"
-	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
 	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
@@ -65,6 +65,7 @@ type SyncResponse struct {
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	jobclient mgmtv1alpha1connect.JobServiceClient,
+	sqlconnector sqlconnect.SqlConnector,
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
 	meter metric.Meter,
@@ -74,6 +75,7 @@ func New(
 	return &Activity{
 		connclient:           connclient,
 		jobclient:            jobclient,
+		sqlconnector:         sqlconnector,
 		tunnelmanagermap:     tunnelmanagermap,
 		temporalclient:       temporalclient,
 		meter:                meter,
@@ -83,6 +85,7 @@ func New(
 }
 
 type Activity struct {
+	sqlconnector         sqlconnect.SqlConnector
 	connclient           mgmtv1alpha1connect.ConnectionServiceClient
 	jobclient            mgmtv1alpha1connect.JobServiceClient
 	tunnelmanagermap     *sync.Map
@@ -95,9 +98,9 @@ type Activity struct {
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (connectiontunnelmanager.Interface[any], error) {
 	connectionProvider := providers.NewProvider(
 		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(),
+		sqlprovider.NewProvider(a.sqlconnector),
 	)
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any, any](connectionProvider))
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, connectiontunnelmanager.NewConnectionTunnelManager[any](connectionProvider))
 	manager, ok := val.(connectiontunnelmanager.Interface[any])
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
@@ -249,14 +252,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		bdns := bdns
 		errgrp.Go(func() error {
 			connection := connections[idx]
-			// benthos raws will need to have a map of connetions due to there possibly being more than one connection per benthos run associated to the configs
-			// so the raws need to have connections that will be good for every connection string it will encounter in a single run
-			localConnStr, err := tunnelmanager.GetConnectionString(session, connection, slogger)
-			if err != nil {
-				return err
-			}
-			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
-			dsnToConnectionIdMap.Store(localConnStr, connection.Id)
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, connection.Id)
+			dsnToConnectionIdMap.Store(connection.Id, connection.Id)
 			return nil
 		})
 	}
