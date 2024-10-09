@@ -5,29 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func Test_GeneralDbConnectionConfig_Helper_Methods(t *testing.T) {
-	cfg := GeneralDbConnectConfig{
-		driver:      "postgres",
-		host:        "localhost",
-		port:        ptr(int32(5432)),
-		database:    ptr("mydb"),
-		user:        "test-user",
-		pass:        "test-pass",
-		queryParams: url.Values{"sslmode": []string{"verify"}},
-	}
-	require.Equal(t, cfg.GetDriver(), "postgres")
-	require.Equal(t, cfg.GetHost(), "localhost")
-	require.Equal(t, *cfg.GetPort(), int32(5432))
-	require.Equal(t, cfg.GetUser(), "test-user")
-
-	cfg.SetHost("foo")
-	cfg.SetPort(5433)
-	require.Equal(t, cfg.GetHost(), "foo")
-	require.Equal(t, *cfg.GetPort(), int32(5433))
-}
 
 func Test_GeneralDbConnectionConfig_String(t *testing.T) {
 	type testcase struct {

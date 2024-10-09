@@ -1,77 +1,49 @@
 package sqlprovider
 
 import (
-	"database/sql"
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/pkg/clienttls"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 )
 
-type Provider struct{}
-
-func NewProvider() *Provider {
-	return &Provider{}
+type Provider struct {
+	connector sqlconnect.SqlConnector
 }
 
-var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx, *ConnectionClientConfig] = &Provider{}
-
-func (p *Provider) GetConnectionDetails(
-	cc *mgmtv1alpha1.ConnectionConfig,
-	connectionTimeout *uint32,
-	logger *slog.Logger,
-) (connectiontunnelmanager.ConnectionDetails, error) {
-	return sqlconnect.GetConnectionDetails(cc, connectionTimeout, clienttls.UpsertCLientTlsFiles, logger)
+func NewProvider(
+	sqlconnector sqlconnect.SqlConnector,
+) *Provider {
+	return &Provider{connector: sqlconnector}
 }
 
-type ConnectionClientConfig struct {
-	MaxConnectionLimit *int32
+var _ connectiontunnelmanager.ConnectionProvider[neosync_benthos_sql.SqlDbtx] = &Provider{}
+
+type sqlDbtxWrapper struct {
+	sqlconnect.SqlDBTX
+	close func() error
 }
 
-func (p *Provider) GetConnectionClient(driver, connectionString string, opts *ConnectionClientConfig) (neosync_benthos_sql.SqlDbtx, error) {
-	db, err := sql.Open(driver, connectionString)
+func (s *sqlDbtxWrapper) Close() error {
+	return s.close()
+}
+
+func (p *Provider) GetConnectionClient(cc *mgmtv1alpha1.ConnectionConfig) (neosync_benthos_sql.SqlDbtx, error) {
+	container, err := p.connector.NewDbFromConnectionConfig(cc, nil, slog.Default())
 	if err != nil {
 		return nil, err
 	}
-	if opts != nil && opts.MaxConnectionLimit != nil {
-		db.SetMaxOpenConns(int(*opts.MaxConnectionLimit))
+	dbtx, err := container.Open()
+	if err != nil {
+		return nil, err
 	}
-	return db, nil
+	return &sqlDbtxWrapper{SqlDBTX: dbtx, close: func() error {
+		return container.Close()
+	}}, nil
 }
 
 func (p *Provider) CloseClientConnection(client neosync_benthos_sql.SqlDbtx) error {
 	return client.Close()
-}
-
-func (p *Provider) GetConnectionClientConfig(cc *mgmtv1alpha1.ConnectionConfig) (*ConnectionClientConfig, error) {
-	return &ConnectionClientConfig{
-		MaxConnectionLimit: getMaxConnectionLimitFromConnection(cc),
-	}, nil
-}
-
-func getMaxConnectionLimitFromConnection(cc *mgmtv1alpha1.ConnectionConfig) *int32 {
-	if cc == nil {
-		return nil
-	}
-	switch config := cc.GetConfig().(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if config.MysqlConfig != nil && config.MysqlConfig.ConnectionOptions != nil {
-			return config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
-		}
-		return nil
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if config.PgConfig != nil && config.PgConfig.ConnectionOptions != nil {
-			return config.PgConfig.ConnectionOptions.MaxConnectionLimit
-		}
-		return nil
-	case *mgmtv1alpha1.ConnectionConfig_MssqlConfig:
-		if config.MssqlConfig != nil && config.MssqlConfig.GetConnectionOptions() != nil {
-			return config.MssqlConfig.GetConnectionOptions().MaxConnectionLimit
-		}
-		return nil
-	}
-	return nil
 }

@@ -42,7 +42,6 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
-	_ "github.com/warpstreamlabs/bento/public/components/sql"
 
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 

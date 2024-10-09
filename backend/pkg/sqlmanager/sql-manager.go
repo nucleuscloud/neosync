@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/tracelog"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -21,10 +21,6 @@ import (
 	sqlmanager_mysql "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/mysql"
 	sqlmanager_postgres "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/postgres"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	// _ "github.com/microsoft/go-mssqldb" // This is commented out because one of our dependencies is importing this already and it panics if called more than once.
 )
 
 type SqlDatabase interface {
@@ -119,15 +115,11 @@ func (s *SqlManager) NewPooledSqlDb(
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var closer func()
 		if _, ok := s.pgpool.Load(connection.Id); !ok {
-			pgconfig := connection.ConnectionConfig.GetPgConfig()
-			if pgconfig == nil {
-				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
-			}
-			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, sqlmanager_shared.Ptr(uint32(5)), slogger)
+			pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.GetConnectionConfig(), sqlmanager_shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
-			pool, err := pgconn.Open(ctx)
+			pool, err := pgconn.Open()
 			if err != nil {
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
@@ -245,11 +237,11 @@ func (s *SqlManager) NewSqlDbFromConnectionConfig(
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection is not a postgres config")
 		}
-		pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, connTimeout, slogger)
+		pgconn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 		}
-		pool, err := pgconn.Open(ctx)
+		pool, err := pgconn.Open()
 		if err != nil {
 			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 		}
@@ -312,22 +304,23 @@ func (s *SqlManager) NewSqlDbFromUrl(
 	var db SqlDatabase
 	switch driver {
 	case sqlmanager_shared.PostgresDriver, "postgres":
-		pgxconfig, err := pgxpool.ParseConfig(connectionUrl)
+		pgxconfig, err := pgx.ParseConfig(connectionUrl)
 		if err != nil {
 			return nil, err
 		}
-		pgxconfig.ConnConfig.Tracer = &tracelog.TraceLog{
+		pgxconfig.Tracer = &tracelog.TraceLog{
 			Logger:   pgxslog.NewLogger(slog.Default(), pgxslog.GetShouldOmitArgs()),
 			LogLevel: pgxslog.GetDatabaseLogLevel(),
 		}
-		pgxconfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeExec
-		pgconn, err := pgxpool.NewWithConfig(ctx, pgxconfig)
+		pgxconfig.DefaultQueryExecMode = pgx.QueryExecModeExec
+		pgconn, err := pgx.ConnectConfig(ctx, pgxconfig)
 		if err != nil {
 			return nil, err
 		}
-		db = sqlmanager_postgres.NewManager(s.pgquerier, pgconn, func() {
+		sqldb := stdlib.OpenDB(*pgxconfig)
+		db = sqlmanager_postgres.NewManager(s.pgquerier, sqldb, func() {
 			if pgconn != nil {
-				pgconn.Close()
+				sqldb.Close()
 			}
 		})
 		driver = sqlmanager_shared.PostgresDriver
