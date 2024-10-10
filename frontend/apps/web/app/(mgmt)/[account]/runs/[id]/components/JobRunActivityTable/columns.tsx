@@ -176,13 +176,15 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
       id: 'actions',
       cell: ({ row }) => {
         const metadata = getJobSyncMetadata(row.original.metadata);
-        return (
+        return metadata?.schema && metadata.table ? (
           <DataTableRowActions
             row={row}
             onViewSelectClicked={() =>
               onViewSelectClicked(metadata?.schema ?? '', metadata?.table ?? '')
             }
           />
+        ) : (
+          <div />
         );
       },
     },

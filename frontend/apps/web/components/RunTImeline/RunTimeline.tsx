@@ -102,11 +102,13 @@ export default function RunTimeline(props: Props): ReactElement {
     });
   }, [tasks, selectedStatuses, jobStatus]);
 
-  const handleStatusFilterChange = (status: RunStatus, checked: boolean) => {
+  function handleStatusFilterChange(status: RunStatus, checked: boolean) {
     setSelectedStatuses((prev) =>
       checked ? [...prev, status] : prev.filter((s) => s !== status)
     );
-  };
+  }
+
+  console.log('tasks', tasks);
 
   return (
     <div className="flex flex-col gap-2">
@@ -206,6 +208,15 @@ export default function RunTimeline(props: Props): ReactElement {
                         align="start"
                         className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
                       >
+                        {isSyncActivity(task) && (
+                          <div className="flex flex-row gap-2 items-center justify-between w-full">
+                            <strong>Table:</strong>{' '}
+                            <Badge variant="default" className="w-[180px]">
+                              {}
+                              <SyncLabel task={task} />
+                            </Badge>
+                          </div>
+                        )}
                         <div className="flex flex-row gap-2 items-center justify-between w-full">
                           <strong>Start:</strong>{' '}
                           <Badge variant="default" className="w-[180px]">
@@ -277,19 +288,12 @@ export default function RunTimeline(props: Props): ReactElement {
   }
 }
 
-function convertTimestampToDate(
-  timestamp: { seconds: bigint; nanos: number } | undefined
-): Date {
-  if (!timestamp) return new Date();
-
-  const millisecondsFromSeconds = Number(timestamp.seconds) * 1000;
-  const millisecondsFromNanos = timestamp.nanos / 1_000_000;
-
-  const totalMilliseconds = millisecondsFromSeconds + millisecondsFromNanos;
-
-  return new Date(totalMilliseconds);
+// converts a timestamp to a date and handles undefined values
+function convertTimestampToDate(timestamp: Timestamp | undefined): Date {
+  return timestamp ? timestamp.toDate() : new Date();
 }
 
+// calculates the last time if the job is not successful so we can give the timeline an end date
 function getCloseOrErrorOrCancelDate(task: JobRunEvent): Date {
   const errorTask = task.tasks.find((item) => item.error);
   const errorTime = errorTask ? errorTask.eventTime : undefined;
@@ -309,14 +313,14 @@ interface SyncLabelProps {
 
 function SyncLabel(props: SyncLabelProps) {
   const { task } = props;
-
   const schemaTable = `${task.metadata?.metadata.value?.schema}.${task.metadata?.metadata.value?.table} `;
-
   return (
-    <div className="text-white">
-      {task.metadata?.metadata.case == 'syncMetadata' && schemaTable}
-    </div>
+    <div className="text-white">{isSyncActivity(task) && schemaTable}</div>
   );
+}
+
+function isSyncActivity(task: JobRunEvent): boolean {
+  return task.metadata?.metadata.case == 'syncMetadata';
 }
 
 interface ActivityLabelProps {
@@ -324,12 +328,12 @@ interface ActivityLabelProps {
   getStatus: () => RunStatus;
 }
 
-// Update the ActivityLabel component
+// generates the activity label that we see on the left hand activity column
 function ActivityLabel({ task, getStatus }: ActivityLabelProps) {
   const status = getStatus();
 
   return (
-    <div className="flex flex-row items-center gap-2">
+    <div className="flex flex-row items-center gap-2 overflow-hidden">
       {task.id.toString()}.
       <TruncatedText text={task.type} />
       <ActivityStatus status={status} />
@@ -337,6 +341,7 @@ function ActivityLabel({ task, getStatus }: ActivityLabelProps) {
   );
 }
 
+// generates the activity status icon that we see on the left hand activity column
 function ActivityStatus({ status }: { status: RunStatus }) {
   switch (status) {
     case 'completed':
@@ -400,7 +405,7 @@ function StatusFilter({ selectedStatuses, onStatusChange }: StatusFilterProps) {
   );
 }
 
-const formatFullDate = (date: Timestamp | Date | undefined) => {
+function formatFullDate(date: Timestamp | Date | undefined) {
   if (!date) return 'N/A';
 
   if (date instanceof Timestamp) {
@@ -410,16 +415,17 @@ const formatFullDate = (date: Timestamp | Date | undefined) => {
   if (date instanceof Date) {
     return format(date, 'MM/dd/yyyy HH:mm:ss:SSS');
   }
-};
+}
 
-const formatDate = (date: Date) => format(date, 'MM/dd/yyyy');
+function formatDate(date: Date): string {
+  return format(date, 'MM/dd/yyyy');
+}
 
-const formatTime = (date: Date) => format(date, 'HH:mm:ss:SSS');
+function formatTime(date: Date): string {
+  return format(date, 'HH:mm:ss:SSS');
+}
 
-const formatTaskDuration = (
-  s: Timestamp | undefined,
-  end: Date | undefined
-) => {
+function formatTaskDuration(s: Timestamp | undefined, end: Date | undefined) {
   if (!s || !end) return 'N/A';
   const start = convertTimestampToDate(s);
   const duration = intervalToDuration({ start, end });
@@ -437,7 +443,7 @@ const formatTaskDuration = (
   }
 
   return `${formattedDuration}${millis > 0 ? `, ${millis} ms` : ''}`;
-};
+}
 
 // handles getting the activity statuses by remaping the ActivityStatuses since (i think) we don't want to show all of them per activity
 // the event types in the types field are just the stringified Temporal types
@@ -445,30 +451,46 @@ function getTaskStatus(
   task: JobRunEvent,
   jobStatus: JobRunStatus | undefined
 ): RunStatus {
-  const hasCompleted = task.tasks.some(
-    (item) => item.type === 'ActivityTaskCompleted'
-  );
-  const hasFailed = task.tasks.some(
-    (item) => item.type === 'ActivityTaskFailed' || item.error
-  );
-  const isCanceled = task.tasks.some(
-    (item) => item.type === 'ActivityTaskCancelRequested'
-  );
+  let isCompleted = false;
+  let isFailed = false;
+  let isCanceled = false;
 
-  const isJobTerminated = jobStatus && jobStatus == JobRunStatus.TERMINATED;
+  for (const t of task.tasks) {
+    switch (t.type) {
+      case 'ActivityTaskCompleted':
+        isCompleted = true;
+        break;
+      case 'ActivityTaskFailed':
+      case 'ActivityTaskTimedOut':
+        isFailed = true;
+        break;
+      case 'ActivityTaskCancelRequested':
+        isCanceled = true;
+        break;
+    }
 
-  if (hasCompleted) return 'completed';
-  if (hasFailed) return 'failed';
-  if (isCanceled || (isJobTerminated && !hasCompleted)) return 'canceled';
+    if (t.error) {
+      isFailed = true;
+    }
+
+    if (isCompleted) break;
+  }
+
+  if (isCompleted) return 'completed';
+  if (isFailed) return 'failed';
+
+  const isJobTerminated = jobStatus === JobRunStatus.TERMINATED;
+
+  if (isCanceled || (isJobTerminated && !isCompleted)) return 'canceled';
   return 'running';
 }
 
 // calculates where in the timeline axis something should be relative to the total duration
 // also dictates how far right the timeline goes, reduce if you want the timeline shorter or length otherwise
-const getPositionPercentage = (
+function getPositionPercentage(
   time: Date,
   timelineStart: Date,
   totalDuration: number
-) => {
+) {
   return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 92;
-};
+}
