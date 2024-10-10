@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import { FieldErrors } from 'react-hook-form';
 import { DestinationDetails } from '../NosqlTable/TableMappings/Columns';
 import TableMappingsCard, {
   Props as TableMappingsCardProps,
@@ -19,6 +20,7 @@ interface DestinationOptionsProps {
   hideInitTableSchema?: boolean;
   hideDynamoDbTableMappings?: boolean;
   destinationDetailsRecord: Record<string, DestinationDetails>;
+  errors?: FieldErrors<DestinationOptionsFormValues>;
 }
 
 export default function DestinationOptionsForm(
@@ -31,6 +33,7 @@ export default function DestinationOptionsForm(
     hideInitTableSchema,
     hideDynamoDbTableMappings,
     destinationDetailsRecord,
+    errors,
   } = props;
 
   if (!connection) {
@@ -265,6 +268,7 @@ export default function DestinationOptionsForm(
         <AwsS3DestinationOptionsForm
           value={value.awss3 ?? {}}
           setValue={(val) => setValue({ ...value, awss3: { ...val } })}
+          errors={errors?.awss3}
         />
       );
     }

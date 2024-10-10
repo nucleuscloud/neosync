@@ -174,6 +174,8 @@ export default function Page({ params }: PageProps): ReactElement {
                 const destConnection = connRecord[connId] as
                   | Connection
                   | undefined;
+                const destinationsErrors =
+                  form.formState.errors.destinations ?? [];
                 return (
                   <div key={index} className="space-y-4">
                     <div className="flex flex-row space-x-8">
@@ -287,6 +289,7 @@ export default function Page({ params }: PageProps): ReactElement {
                         destinationConnectionSchemaMapsResp ??
                           new GetConnectionSchemaMapsResponse()
                       )}
+                      errors={destinationsErrors[index]?.destinationOptions}
                     />
                   </div>
                 );

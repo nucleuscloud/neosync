@@ -1,5 +1,5 @@
 import FormErrorMessage from '@/components/FormErrorMessage';
-import { FormDescription, FormLabel } from '@/components/ui/form';
+import { FormDescription } from '@/components/ui/form';
 import { Input, InputProps } from '@/components/ui/input';
 import {
   Select,
@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/libs/utils';
 import { getStorageClassString } from '@/util/util';
 import { AwsS3DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { AwsS3DestinationConnectionOptions_StorageClass } from '@neosync/sdk';
@@ -41,13 +42,14 @@ export default function AwsS3DestinationOptionsForm(
         <Header />
       </div>
       <div className="flex flex-col gap-2">
-        <FormInputContainer>
+        <FormItemContainer>
           <FormHeader
             title="Storage Class"
             description="The storage class that will be used when records are written to in
               S3"
+            isErrored={!!errors?.storageClass}
           />
-          <div>
+          <FormInputContainer>
             <Select
               onValueChange={(newVal) => {
                 setValue({ ...value, storageClass: parseInt(newVal, 10) });
@@ -73,12 +75,13 @@ export default function AwsS3DestinationOptionsForm(
               </SelectContent>
             </Select>
             <FormErrorMessage message={errors?.storageClass?.message} />
-          </div>
-        </FormInputContainer>
-        <FormInputContainer>
+          </FormInputContainer>
+        </FormItemContainer>
+        <FormItemContainer>
           <FormHeader
             title="Max in Flight"
             description="The max number of batched records to have in flight at a given time. Increase to improve throughput."
+            isErrored={!!errors?.maxInFlight}
           />
           <div>
             <NumberedInput
@@ -87,26 +90,28 @@ export default function AwsS3DestinationOptionsForm(
             />
             <FormErrorMessage message={errors?.maxInFlight?.message} />
           </div>
-        </FormInputContainer>
-        <FormInputContainer>
+        </FormItemContainer>
+        <FormItemContainer>
           <FormHeader
             title="Upload Timeout"
             description="The maximum period to wait on an upload before abandoning and re-attempting. Ex: 5s, 1m"
+            isErrored={!!errors?.timeout}
           />
-          <div>
+          <FormInputContainer>
             <Input
               value={value.timeout ?? '5s'}
               onChange={(e) => setValue({ ...value, timeout: e.target.value })}
             />
             <FormErrorMessage message={errors?.timeout?.message} />
-          </div>
-        </FormInputContainer>
-        <FormInputContainer>
+          </FormInputContainer>
+        </FormItemContainer>
+        <FormItemContainer>
           <FormHeader
             title="Batch Count"
             description="The max allowed per batch before flushing to S3. 0 to disable batching."
+            isErrored={!!errors?.batch?.count}
           />
-          <div>
+          <FormInputContainer>
             <NumberedInput
               value={value.batch?.count ?? 100}
               onChange={(val) =>
@@ -114,14 +119,15 @@ export default function AwsS3DestinationOptionsForm(
               }
             />
             <FormErrorMessage message={errors?.batch?.count?.message} />
-          </div>
-        </FormInputContainer>
-        <FormInputContainer>
+          </FormInputContainer>
+        </FormItemContainer>
+        <FormItemContainer>
           <FormHeader
             title="Batch Period"
             description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable."
+            isErrored={!!errors?.batch?.period}
           />
-          <div>
+          <FormInputContainer>
             <Input
               value={value.batch?.period ?? '5s'}
               onChange={(e) =>
@@ -132,8 +138,8 @@ export default function AwsS3DestinationOptionsForm(
               }
             />
             <FormErrorMessage message={errors?.batch?.period?.message} />
-          </div>
-        </FormInputContainer>
+          </FormInputContainer>
+        </FormItemContainer>
       </div>
     </div>
   );
@@ -150,24 +156,35 @@ function Header(): ReactElement {
   );
 }
 
+interface FormItemContainerProps {
+  children: ReactNode;
+}
+function FormItemContainer(props: FormItemContainerProps): ReactElement {
+  const { children } = props;
+  return <div className="flex flex-col gap-2">{children}</div>;
+}
+
 interface FormInputContainerProps {
   children: ReactNode;
 }
 function FormInputContainer(props: FormInputContainerProps): ReactElement {
   const { children } = props;
-  return <div className="flex flex-col gap-2">{children}</div>;
+  return <div className="flex flex-col gap-1">{children}</div>;
 }
 
 interface FormHeaderProps {
   title: string;
   description: string;
   containerClassName?: string;
+  isErrored?: boolean;
 }
 function FormHeader(props: FormHeaderProps): ReactElement {
-  const { title, description, containerClassName } = props;
+  const { title, description, containerClassName, isErrored } = props;
   return (
     <div className={containerClassName}>
-      <FormLabel>{title}</FormLabel>
+      <label className={cn(isErrored ? 'text-red-500' : undefined)}>
+        {title}
+      </label>
       <FormDescription>{description}</FormDescription>
     </div>
   );

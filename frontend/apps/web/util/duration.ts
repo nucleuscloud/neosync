@@ -10,7 +10,7 @@ const unitMap: { [key: string]: number } = {
   h: 3600000000000,
 };
 
-function parseDuration(s: string): Duration {
+export function parseDuration(s: string): Duration {
   const orig = s;
   let d = 0;
   let neg = false;
