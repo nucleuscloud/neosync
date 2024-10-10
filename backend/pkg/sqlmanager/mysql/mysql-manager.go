@@ -39,10 +39,21 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			generatedTypeCopy := row.Extra.String
 			generatedType = &generatedTypeCopy
 		}
+
 		columnDefaultStr, err := convertUInt8ToString(row.ColumnDefault)
 		if err != nil {
 			return nil, err
 		}
+
+		var columnDefaultType *string
+		if row.Extra.Valid && columnDefaultStr != "" && row.Extra.String == "" {
+			val := "String"
+			columnDefaultType = &val // With this type columnDefaultStr will be surronded by quotes when translated to SQL
+		} else if row.Extra.Valid && columnDefaultStr != "" && row.Extra.String != "" {
+			val := "Default" // With this type columnDefaultStr will be surronded by parentheses when translated to SQL
+			columnDefaultType = &val
+		}
+
 		charMaxLength := -1
 		if row.CharacterMaximumLength.Valid {
 			charMaxLength = int(row.CharacterMaximumLength.Int64)
@@ -68,6 +79,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*sqlmanager_sha
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
 			ColumnDefault:          columnDefaultStr,
+			ColumnDefaultType:      columnDefaultType,
 			IsNullable:             row.IsNullable,
 			GeneratedType:          generatedType,
 			CharacterMaximumLength: charMaxLength,
@@ -285,6 +297,19 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			if err != nil {
 				return nil, err
 			}
+			var columnDefaultType *string
+			if identityType != nil && columnDefaultStr != "" && *identityType == "" {
+				val := "String"
+				columnDefaultType = &val // With this type columnDefaultStr will be surronded by quotes when translated to SQL
+			} else if identityType != nil && columnDefaultStr != "" && *identityType != "" {
+				val := "Default" // With this type columnDefaultStr will be surronded by parentheses when translated to SQL
+				columnDefaultType = &val
+			}
+			columnDefaultStr, err = EscapeMysqlDefaultColumn(columnDefaultStr, columnDefaultType)
+			if err != nil {
+				return nil, err
+			}
+
 			genExp, err := convertUInt8ToString(record.GenerationExp)
 			if err != nil {
 				return nil, err
@@ -311,6 +336,7 @@ func (m *MysqlManager) GetTableInitStatements(ctx context.Context, tables []*sql
 			}
 			info.AlterTableStatements = append(info.AlterTableStatements, stmt)
 		}
+		fmt.Println(info.CreateTableStatement)
 		output = append(output, info)
 	}
 	return output, nil
@@ -354,7 +380,7 @@ func buildTableCol(record *buildTableColRequest) string {
 	}
 
 	if record.ColumnDefault != "" {
-		pieces = append(pieces, fmt.Sprintf("DEFAULT (%s)", record.ColumnDefault))
+		pieces = append(pieces, fmt.Sprintf("DEFAULT %s", record.ColumnDefault))
 	}
 
 	if record.IdentityType != nil && *record.IdentityType == "auto_increment" {
@@ -795,6 +821,20 @@ func EscapeMysqlColumns(cols []string) []string {
 
 func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
+}
+
+func EscapeMysqlDefaultColumn(defaultColumnValue string, defaultColumnType *string) (string, error) {
+	defaultColumnTypes := []string{"String", "Default"}
+	if defaultColumnType == nil {
+		return defaultColumnValue, nil
+	}
+	if *defaultColumnType == "String" {
+		return fmt.Sprintf("'%s'", defaultColumnValue), nil
+	}
+	if *defaultColumnType == "Default" {
+		return fmt.Sprintf("(%s)", defaultColumnValue), nil
+	}
+	return fmt.Sprintf("(%s)", defaultColumnValue), fmt.Errorf("unsupported default column type: %s, currently supported types are: %v", *defaultColumnType, defaultColumnTypes)
 }
 
 func GetMysqlColumnOverrideAndResetProperties(columnInfo *sqlmanager_shared.ColumnInfo) (needsOverride, needsReset bool) {
