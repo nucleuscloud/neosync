@@ -174,7 +174,7 @@ func (s *Service) IsAccountStatusValid(
 			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 				IsValid:            false,
 				Reason:             &description,
-				AccountStatus:      *mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT.Enum(),
+				AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT,
 				UsedRecordCount:    currentUsed,
 				AllowedRecordCount: &allowed,
 			}), nil
