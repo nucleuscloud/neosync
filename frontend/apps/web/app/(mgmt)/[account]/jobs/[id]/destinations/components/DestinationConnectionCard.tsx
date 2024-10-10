@@ -188,6 +188,7 @@ export default function DestinationConnectionCard({
                 hideInitTableSchema={shouldHideInitTableSchema}
                 hideDynamoDbTableMappings={true}
                 destinationDetailsRecord={{}} // not used because we are hiding dynamodb table mappings
+                errors={form.formState.errors?.destinationOptions}
               />
             </div>
           </CardContent>

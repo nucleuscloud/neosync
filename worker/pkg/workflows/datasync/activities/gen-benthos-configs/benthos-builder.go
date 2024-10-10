@@ -181,7 +181,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if resp.RunType == tabledependency.RunTypeUpdate {
 					continue
 				}
-				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, wfmetadata.WorkflowId)
+				destinationOpts := destination.GetOptions().GetAwsS3Options()
+				if destinationOpts == nil {
+					return nil, errors.New("destination must have configured aws destination options")
+				}
+				outputs, err := b.getAwsS3SyncBenthosOutput(connection, resp, wfmetadata.WorkflowId, destinationOpts)
+				if err != nil {
+					return nil, fmt.Errorf("unable to build s3 destination connection: %w", err)
+				}
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
 			case *mgmtv1alpha1.ConnectionConfig_GcpCloudstorageConfig:
 				if resp.RunType == tabledependency.RunTypeUpdate {

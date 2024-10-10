@@ -8214,6 +8214,54 @@
           ]
         },
         {
+          "name": "StorageClass",
+          "longName": "AwsS3DestinationConnectionOptions.StorageClass",
+          "fullName": "mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass",
+          "description": "",
+          "values": [
+            {
+              "name": "STORAGE_CLASS_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_STANDARD",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_REDUCED_REDUNDANCY",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_GLACIER",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_STANDARD_IA",
+              "number": "4",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_ONEZONE_IA",
+              "number": "5",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_INTELLIGENT_TIERING",
+              "number": "6",
+              "description": ""
+            },
+            {
+              "name": "STORAGE_CLASS_DEEP_ARCHIVE",
+              "number": "7",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "JobRunStatus",
           "longName": "JobRunStatus",
           "fullName": "mgmt.v1alpha1.JobRunStatus",
@@ -8592,10 +8640,59 @@
           "fullName": "mgmt.v1alpha1.AwsS3DestinationConnectionOptions",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
+          "hasFields": true,
+          "hasOneofs": true,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "storage_class",
+              "description": "The storage class that will be used when objects are written to S3",
+              "label": "",
+              "type": "StorageClass",
+              "longType": "AwsS3DestinationConnectionOptions.StorageClass",
+              "fullType": "mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_in_flight",
+              "description": "The maximum number of batched messages to have in flight at a given time. Increase this to improve throughput.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_in_flight",
+              "defaultValue": ""
+            },
+            {
+              "name": "timeout",
+              "description": "The maximum period (duration string) to wait on an upload before abandoning it and reattempting.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_timeout",
+              "defaultValue": ""
+            },
+            {
+              "name": "batch",
+              "description": "Configure batching options to more efficiently store records in S3",
+              "label": "",
+              "type": "BatchConfig",
+              "longType": "BatchConfig",
+              "fullType": "mgmt.v1alpha1.BatchConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "AwsS3SourceConnectionOptions",
@@ -8617,6 +8714,42 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "BatchConfig",
+          "longName": "BatchConfig",
+          "fullName": "mgmt.v1alpha1.BatchConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "count",
+              "description": "The max allowed in a batch before it is flushed. 0 to disable.",
+              "label": "optional",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_count",
+              "defaultValue": ""
+            },
+            {
+              "name": "period",
+              "description": "A duration string in which an incomplete batch should be flushed regardless of the count.\nExamples are 1s, 1m, 500ms",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_period",
               "defaultValue": ""
             }
           ]
