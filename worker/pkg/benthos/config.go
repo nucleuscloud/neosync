@@ -411,6 +411,7 @@ type AwsS3Insert struct {
 	Batching     *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Timeout      string    `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 	StorageClass string    `json:"storage_class,omitempty" yaml:"storage_class,omitempty"`
+	ContentType  string    `json:"content_type,omitempty" yaml:"content_type,omitempty"`
 
 	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
 	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`

@@ -644,7 +644,7 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 		"activities",
 		neosync_benthos.BuildBenthosTable(benthosConfig.TableSchema, benthosConfig.TableName),
 		"data",
-		`${!count("files")}.txt.gz`,
+		`records-${!count("files")}-${!timestamp_unix_nano()}.jsonl.gz`,
 	)
 
 	maxInFlight := 64
@@ -690,6 +690,7 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 					Timeout:      timeout,
 					StorageClass: storageClass,
 					Path:         strings.Join(s3pathpieces, "/"),
+					ContentType:  "application/gzip",
 					Batching: &neosync_benthos.Batching{
 						Count:  batchCount,
 						Period: batchPeriod,
