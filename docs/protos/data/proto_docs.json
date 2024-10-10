@@ -14803,13 +14803,13 @@
             {
               "name": "used_record_count",
               "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.",
-              "label": "optional",
+              "label": "",
               "type": "uint64",
               "longType": "uint64",
               "fullType": "uint64",
               "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_used_record_count",
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             },
             {
@@ -14827,13 +14827,13 @@
             {
               "name": "account_status",
               "description": "The current status of the account. Default is valid.",
-              "label": "optional",
+              "label": "",
               "type": "AccountStatus",
               "longType": "AccountStatus",
               "fullType": "mgmt.v1alpha1.AccountStatus",
               "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_account_status",
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

@@ -13,9 +13,8 @@ interface Props {
 }
 
 export function AccountStatusHandler(props: Props) {
-  const { account } = useAccount();
   const { systemAppConfig } = props;
-
+  const { account } = useAccount();
   const showRecordsUsage =
     systemAppConfig.isNeosyncCloud &&
     systemAppConfig.isStripeEnabled &&
@@ -46,6 +45,8 @@ export function AccountStatusHandler(props: Props) {
         isNeosyncCloud={systemAppConfig.isNeosyncCloud}
         count={Number(data?.usedRecordCount)}
         allowedRecords={Number(data?.allowedRecordCount)}
+        isAccountStatusValidResp={data}
+        isLoading={isLoading}
       />
     </div>
   );

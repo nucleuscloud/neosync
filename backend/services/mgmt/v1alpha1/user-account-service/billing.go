@@ -174,8 +174,8 @@ func (s *Service) IsAccountStatusValid(
 			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 				IsValid:            false,
 				Reason:             &description,
-				AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT.Enum(),
-				UsedRecordCount:    &currentUsed,
+				AccountStatus:      *mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT.Enum(),
+				UsedRecordCount:    currentUsed,
 				AllowedRecordCount: &allowed,
 			}), nil
 		}
@@ -187,9 +187,9 @@ func (s *Service) IsAccountStatusValid(
 				description := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
 				return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 					IsValid:            false,
-					AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT.Enum(),
+					AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT,
 					Reason:             &description,
-					UsedRecordCount:    &currentUsed,
+					UsedRecordCount:    currentUsed,
 					AllowedRecordCount: &allowed,
 				}), nil
 			}
@@ -210,7 +210,7 @@ func (s *Service) IsAccountStatusValid(
 	description := "Account is currently in expired state, visit the billing page to activate your subscription."
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
 		IsValid:       false,
-		AccountStatus: mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE.Enum(),
+		AccountStatus: mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE,
 		Reason:        &description,
 	}), nil
 }

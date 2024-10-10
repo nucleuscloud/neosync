@@ -1980,9 +1980,9 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
    * A count of the currently used records for the current billing period.
    * This may go over the allowed record count depending on when the record count is polled by the metric system.
    *
-   * @generated from field: optional uint64 used_record_count = 4;
+   * @generated from field: uint64 used_record_count = 4;
    */
-  usedRecordCount?: bigint;
+  usedRecordCount = protoInt64.zero;
 
   /**
    * The allowed record count. It will be null if there is no limit.
@@ -1994,9 +1994,9 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   /**
    * The current status of the account. Default is valid.
    *
-   * @generated from field: optional mgmt.v1alpha1.AccountStatus account_status = 6;
+   * @generated from field: mgmt.v1alpha1.AccountStatus account_status = 6;
    */
-  accountStatus?: AccountStatus;
+  accountStatus = AccountStatus.REASON_UNSPECIFIED;
 
   constructor(data?: PartialMessage<IsAccountStatusValidResponse>) {
     super();
@@ -2009,9 +2009,9 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
     { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "should_poll", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 4, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 4, name: "used_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 5, name: "allowed_record_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
-    { no: 6, name: "account_status", kind: "enum", T: proto3.getEnumType(AccountStatus), opt: true },
+    { no: 6, name: "account_status", kind: "enum", T: proto3.getEnumType(AccountStatus) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsAccountStatusValidResponse {

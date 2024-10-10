@@ -8,9 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useQuery } from '@connectrpc/connect-query';
-import { AccountStatus } from '@neosync/sdk';
-import { isAccountStatusValid } from '@neosync/sdk/connectquery';
+import { AccountStatus, IsAccountStatusValidResponse } from '@neosync/sdk';
 import { ArrowUpIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { IoAlertCircleOutline } from 'react-icons/io5';
@@ -35,18 +33,21 @@ interface UpgradeProps {
   isNeosyncCloud: boolean;
   count: number;
   allowedRecords: number;
+  isAccountStatusValidResp: IsAccountStatusValidResponse | undefined;
+  isLoading: boolean;
 }
 
 export default function Upgrade(props: UpgradeProps): ReactElement | null {
-  const { calendlyLink, isNeosyncCloud, count, allowedRecords } = props;
+  const {
+    calendlyLink,
+    isNeosyncCloud,
+    count,
+    allowedRecords,
+    isAccountStatusValidResp,
+    isLoading,
+  } = props;
   const { account } = useAccount();
   const accountId = account?.id;
-  const { data: isAccountStatusValidResp, isLoading } = useQuery(
-    isAccountStatusValid,
-    { accountId },
-    { enabled: !!accountId && isNeosyncCloud }
-  );
-
   // always surface the upgrade button for non-neosynccloud users
   if (!isNeosyncCloud) {
     return <UpgradeButton href={calendlyLink} target="_blank" />;
@@ -63,8 +64,8 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
       {!isAccountStatusValidResp?.isValid ? (
         <UpgradeInfoDialog
           upgradeHref={billingHref}
-          reason={isAccountStatusValidResp?.accountStatus}
-          description={isAccountStatusValidResp?.reason}
+          accountStatus={isAccountStatusValidResp?.accountStatus}
+          reason={isAccountStatusValidResp?.reason}
           count={count}
           allowedRecords={allowedRecords}
         />
@@ -79,12 +80,12 @@ interface UpgradeInfoDialogProps {
   upgradeHref: string;
   count: number;
   allowedRecords: number;
-  reason?: AccountStatus;
-  description?: string;
+  accountStatus?: AccountStatus;
+  reason?: string;
 }
 
 function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
-  const { upgradeHref, count, allowedRecords, reason, description } = props;
+  const { upgradeHref, count, allowedRecords, accountStatus, reason } = props;
   const [open, onOpenChange] = useState(false);
 
   return (
@@ -104,11 +105,11 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
             Upgrade to a Team or Enterprise plan to continue using Neosync.
           </DialogDescription>
         </DialogHeader>
-        {!!reason && !!description && (
+        {!!accountStatus && !!reason && (
           <div className="py-6">
             <IncludedReason
+              accountStatus={accountStatus}
               reason={reason}
-              description={description}
               count={count}
               allowedRecords={allowedRecords}
             />
@@ -131,23 +132,23 @@ function UpgradeInfoDialog(props: UpgradeInfoDialogProps): ReactElement {
 }
 
 interface IncludedReasonProps {
-  reason: AccountStatus;
-  description: string;
+  accountStatus: AccountStatus;
+  reason: string;
   count: number;
   allowedRecords: number;
 }
 
 function IncludedReason(props: IncludedReasonProps): ReactElement {
-  const { reason, description, count, allowedRecords } = props;
+  const { accountStatus, reason, count, allowedRecords } = props;
 
-  switch (reason) {
+  switch (accountStatus) {
     case AccountStatus.EXCEEDS_ALLOWED_LIMIT:
       return (
         <UsageLimitExceeded
           current={count}
           allowed={allowedRecords}
           title={'Usage Limit Exceeded'}
-          description={`You have used all of your allowed records for this billing cycle. `}
+          reason={`You have used all of your allowed records for this billing cycle. `}
         />
       );
     case AccountStatus.REQUESTED_EXCEEDS_LIMIT:
@@ -156,7 +157,7 @@ function IncludedReason(props: IncludedReasonProps): ReactElement {
           current={count}
           allowed={allowedRecords}
           title={'Usage Limit Warning'}
-          description={`The requested record count woudl exceed your alowed records for this billing cycle. `}
+          reason={`The requested record count woudl exceed your alowed records for this billing cycle. `}
         />
       );
     case AccountStatus.ACCOUNT_IN_EXPIRED_STATE:
@@ -164,18 +165,7 @@ function IncludedReason(props: IncludedReasonProps): ReactElement {
         <Alert>
           <IoAlertCircleOutline className="h-4 w-4" />
           <AlertTitle>Account is Expired</AlertTitle>
-          <AlertDescription>{description}</AlertDescription>
-        </Alert>
-      );
-    case AccountStatus.REASON_UNSPECIFIED:
-      return (
-        <Alert>
-          <IoAlertCircleOutline className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            Your account is expired or you have no more records remaining for
-            this billing cycle.
-          </AlertDescription>
+          <AlertDescription>{reason}</AlertDescription>
         </Alert>
       );
     default:
@@ -196,11 +186,11 @@ interface UsageLimitExceededProps {
   current: number;
   allowed: number;
   title: string;
-  description: string;
+  reason: string;
 }
 
 function UsageLimitExceeded(props: UsageLimitExceededProps) {
-  const { current, allowed, title, description } = props;
+  const { current, allowed, title, reason } = props;
   return (
     <div className="py-4">
       <Card>
@@ -217,7 +207,7 @@ function UsageLimitExceeded(props: UsageLimitExceededProps) {
           <Progress value={(current / allowed) * 100} className="h-2" />
         </CardContent>
         <CardFooter className="pt-2">
-          <CardDescription className="text-xs">{description}</CardDescription>
+          <CardDescription className="text-xs">{reason}</CardDescription>
         </CardFooter>
       </Card>
     </div>

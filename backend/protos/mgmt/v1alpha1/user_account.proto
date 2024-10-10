@@ -235,11 +235,11 @@ message IsAccountStatusValidResponse {
   bool should_poll = 3;
   // A count of the currently used records for the current billing period.
   // This may go over the allowed record count depending on when the record count is polled by the metric system.
-  optional uint64 used_record_count = 4;
+  uint64 used_record_count = 4;
   // The allowed record count. It will be null if there is no limit.
   optional uint64 allowed_record_count = 5;
   // The current status of the account. Default is valid.
-  optional AccountStatus account_status = 6;
+  AccountStatus account_status = 6;
 }
 
 enum AccountStatus {
