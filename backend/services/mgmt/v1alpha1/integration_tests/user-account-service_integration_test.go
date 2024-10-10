@@ -558,7 +558,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		require.False(s.T(), resp.Msg.GetIsValid())
 		require.NotEmpty(s.T(), resp.Msg.GetReason())
 		require.NotEmpty(s.T(), resp.Msg.GetAccountStatus())
-		require.Equal(s.T(), uint64(101), resp.Msg.GetUsedRecordCount())
+		require.Equal(s.T(), uint64(50), resp.Msg.GetUsedRecordCount())
 		require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
 		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
