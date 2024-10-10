@@ -108,7 +108,7 @@ export default function AwsS3DestinationOptionsForm(
         <FormItemContainer>
           <FormHeader
             title="Batch Count"
-            description="The max allowed per batch before flushing to S3. 0 to disable batching."
+            description="The max allowed per batch before flushing to S3. 0 to disable count-based batching."
             isErrored={!!errors?.batch?.count}
           />
           <FormInputContainer>
@@ -124,7 +124,7 @@ export default function AwsS3DestinationOptionsForm(
         <FormItemContainer>
           <FormHeader
             title="Batch Period"
-            description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable."
+            description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable time-based batching (not recommended)."
             isErrored={!!errors?.batch?.period}
           />
           <FormInputContainer>
