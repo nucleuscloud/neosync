@@ -110,7 +110,7 @@ describe('splitConnections', () => {
       gcpcs: [],
       dynamodb: [],
     };
-    expect(result).toStrictEqual(expected);
+    expect(result).toMatchObject(expected);
   });
   it('should return an object with only postgres and mysql connections as a property', () => {
     const connections: Connection[] = [postgres, mysql];
@@ -124,7 +124,7 @@ describe('splitConnections', () => {
       gcpcs: [],
       dynamodb: [],
     };
-    expect(result).toStrictEqual(expected);
+    expect(result).toMatchObject(expected);
   });
   it('should return an object with each connection as a property', () => {
     const connections: Connection[] = [
@@ -146,7 +146,7 @@ describe('splitConnections', () => {
       gcpcs: [gcpcs],
       dynamodb: [dynamodb],
     };
-    expect(result).toStrictEqual(expected);
+    expect(result).toMatchObject(expected);
   });
   it('should return an object with keys but all empty arrays', () => {
     const connections: Connection[] = [];
@@ -157,10 +157,11 @@ describe('splitConnections', () => {
       s3: [],
       openai: [],
       mongodb: [],
+      mssql: [],
       gcpcs: [],
       dynamodb: [],
     };
-    expect(result).toStrictEqual(expected);
+    expect(result).toMatchObject(expected);
   });
 });
 

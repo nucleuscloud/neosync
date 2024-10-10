@@ -61,33 +61,41 @@ export function parseDuration(s: string): Duration {
     }
 
     // Consume unit.
-    const i = s.search(/[^a-z]/);
+    const i = s.search(/[^a-zµ]/i);
     const u = i === -1 ? s : s.slice(0, i);
     s = i === -1 ? '' : s.slice(i);
     if (u === '') {
       throw new Error(`time: missing unit in duration "${orig}"`);
     }
-    const unit = unitMap[u];
+    const unit = unitMap[u.toLowerCase()];
     if (unit === undefined) {
       throw new Error(`time: unknown unit "${u}" in duration "${orig}"`);
     }
-    if (v > Number.MAX_SAFE_INTEGER / unit) {
-      // overflow
+
+    // Calculate value without causing intermediate overflow
+    let value = 0;
+    const maxBeforeOverflow = Math.floor((Number.MAX_SAFE_INTEGER - d) / unit);
+
+    if (v > maxBeforeOverflow) {
       throw new Error(`time: invalid duration "${orig}"`);
     }
-    v *= unit;
+
+    value = v * unit;
+
     if (f > 0) {
-      v += Math.floor(f * (unit / scale));
-      if (v > Number.MAX_SAFE_INTEGER) {
-        // overflow
+      const fraction = Math.floor(f * (unit / scale));
+      if (value > Number.MAX_SAFE_INTEGER - fraction) {
         throw new Error(`time: invalid duration "${orig}"`);
       }
+      value += fraction;
     }
-    d += v;
-    if (d > Number.MAX_SAFE_INTEGER) {
+
+    if (d > Number.MAX_SAFE_INTEGER - value) {
       throw new Error(`time: invalid duration "${orig}"`);
     }
+    d += value;
   }
+
   return neg ? -d : d;
 }
 

@@ -197,7 +197,7 @@ export const AwsS3DestinationOptionsFormValues = Yup.object({
   storageClass: Yup.number().optional(),
   maxInFlight: Yup.number()
     .min(1, 'Must be greater than or equal to 1')
-    .max(200, 'Must be less than or equal to 200')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
     .optional(),
   timeout: Yup.string()
     .optional()
