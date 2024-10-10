@@ -108,8 +108,6 @@ export default function RunTimeline(props: Props): ReactElement {
     );
   }
 
-  console.log('tasks', tasks);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between w-full">
