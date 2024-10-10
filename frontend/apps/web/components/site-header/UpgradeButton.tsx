@@ -15,7 +15,7 @@ export default function UpgradeButton(props: Props): ReactElement {
 
   return (
     <div>
-      <Button type="button" variant="outline" size="sm" onClick={onClick}>
+      <Button type="button" variant="default" size="sm" onClick={onClick}>
         <Link
           href={href}
           target={target}

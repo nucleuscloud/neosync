@@ -526,6 +526,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.False(s.T(), resp.Msg.GetIsValid())
 	require.NotEmpty(s.T(), resp.Msg.GetReason())
+	require.NotEmpty(s.T(), resp.Msg.GetAccountStatus())
+	require.Equal(s.T(), uint64(100), resp.Msg.GetUsedRecordCount())
+	require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
 	require.False(s.T(), resp.Msg.GetShouldPoll())
 }
 
@@ -554,6 +557,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.False(s.T(), resp.Msg.GetIsValid())
 		require.NotEmpty(s.T(), resp.Msg.GetReason())
+		require.NotEmpty(s.T(), resp.Msg.GetAccountStatus())
+		require.Equal(s.T(), uint64(50), resp.Msg.GetUsedRecordCount())
+		require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
 		require.False(s.T(), resp.Msg.GetShouldPoll())
 	})
 	t.Run("under the limit", func(t *testing.T) {
@@ -565,6 +571,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.True(s.T(), resp.Msg.GetIsValid())
 		require.Empty(s.T(), resp.Msg.GetReason())
+		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
 		require.True(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
