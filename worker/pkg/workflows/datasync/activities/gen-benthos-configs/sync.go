@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -627,7 +628,8 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 	connection *mgmtv1alpha1.ConnectionConfig_AwsS3Config,
 	benthosConfig *BenthosConfigResponse,
 	workflowId string,
-) []neosync_benthos.Outputs {
+	destinationOptions *mgmtv1alpha1.AwsS3DestinationConnectionOptions,
+) ([]neosync_benthos.Outputs, error) {
 	outputs := []neosync_benthos.Outputs{}
 
 	s3pathpieces := []string{}
@@ -645,16 +647,52 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 		`${!count("files")}.txt.gz`,
 	)
 
+	maxInFlight := 64
+	if destinationOptions.GetMaxInFlight() > 0 {
+		maxInFlight = int(destinationOptions.GetMaxInFlight())
+	}
+
+	batchCount := 100
+	batchPeriod := "5s"
+	batchConfig := destinationOptions.GetBatch()
+	if batchConfig != nil {
+		batchCount = int(batchConfig.GetCount())
+
+		if batchConfig.GetPeriod() != "" {
+			_, err := time.ParseDuration(batchConfig.GetPeriod())
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse batch period for s3 destination config: %w", err)
+			}
+		}
+		batchPeriod = batchConfig.GetPeriod()
+	}
+
+	timeout := ""
+	if destinationOptions.GetTimeout() != "" {
+		_, err := time.ParseDuration(destinationOptions.GetTimeout())
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse timeout for s3 destination config: %w", err)
+		}
+		timeout = destinationOptions.GetTimeout()
+	}
+
+	storageClass := ""
+	if destinationOptions.GetStorageClass() != mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_UNSPECIFIED {
+		storageClass = convertToS3StorageClass(destinationOptions.GetStorageClass()).String()
+	}
+
 	outputs = append(outputs, neosync_benthos.Outputs{
 		Fallback: []neosync_benthos.Outputs{
 			{
 				AwsS3: &neosync_benthos.AwsS3Insert{
-					Bucket:      connection.AwsS3Config.Bucket,
-					MaxInFlight: 64,
-					Path:        strings.Join(s3pathpieces, "/"),
+					Bucket:       connection.AwsS3Config.Bucket,
+					MaxInFlight:  maxInFlight,
+					Timeout:      timeout,
+					StorageClass: storageClass,
+					Path:         strings.Join(s3pathpieces, "/"),
 					Batching: &neosync_benthos.Batching{
-						Count:  100,
-						Period: "5s",
+						Count:  batchCount,
+						Period: batchPeriod,
 						Processors: []*neosync_benthos.BatchProcessor{
 							{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
 							{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
@@ -669,13 +707,60 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 			{Error: &neosync_benthos.ErrorOutputConfig{
 				ErrorMsg: `${! meta("fallback_error")}`,
 				Batching: &neosync_benthos.Batching{
-					Period: "5s",
-					Count:  100,
+					Period: batchPeriod,
+					Count:  batchCount,
 				},
 			}},
 		},
 	})
-	return outputs
+	return outputs, nil
+}
+
+type S3StorageClass int
+
+const (
+	S3StorageClass_UNSPECIFIED S3StorageClass = iota
+	S3StorageClass_STANDARD
+	S3StorageClass_REDUCED_REDUNDANCY
+	S3StorageClass_GLACIER
+	S3StorageClass_STANDARD_IA
+	S3StorageClass_ONEZONE_IA
+	S3StorageClass_INTELLIGENT_TIERING
+	S3StorageClass_DEEP_ARCHIVE
+)
+
+func (s S3StorageClass) String() string {
+	return [...]string{
+		"STORAGE_CLASS_UNSPECIFIED",
+		"STANDARD",
+		"REDUCED_REDUNDANCY",
+		"GLACIER",
+		"STANDARD_IA",
+		"ONEZONE_IA",
+		"INTELLIGENT_TIERING",
+		"DEEP_ARCHIVE",
+	}[s]
+}
+
+func convertToS3StorageClass(protoStorageClass mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass) S3StorageClass {
+	switch protoStorageClass {
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_STANDARD:
+		return S3StorageClass_STANDARD
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_REDUCED_REDUNDANCY:
+		return S3StorageClass_REDUCED_REDUNDANCY
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_GLACIER:
+		return S3StorageClass_GLACIER
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_STANDARD_IA:
+		return S3StorageClass_STANDARD_IA
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_ONEZONE_IA:
+		return S3StorageClass_ONEZONE_IA
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_INTELLIGENT_TIERING:
+		return S3StorageClass_INTELLIGENT_TIERING
+	case mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_DEEP_ARCHIVE:
+		return S3StorageClass_DEEP_ARCHIVE
+	default:
+		return S3StorageClass_UNSPECIFIED
+	}
 }
 
 func (b *benthosBuilder) getGcpCloudStorageSyncBenthosOutput(
