@@ -226,12 +226,31 @@ message IsAccountStatusValidRequest {
   // An optional count of records to be added to the current usage for validation.
   optional uint64 requested_record_count = 2;
 }
+
 message IsAccountStatusValidResponse {
   bool is_valid = 1;
   // If the account is not valid, a reason for why may be provided.
   optional string reason = 2;
   // Whether or not the process should decide to continue polling for validitiy updates
   bool should_poll = 3;
+  // A count of the currently used records for the current billing period.
+  // This may go over the allowed record count depending on when the record count is polled by the metric system.
+  uint64 used_record_count = 4;
+  // The allowed record count. It will be null if there is no limit.
+  optional uint64 allowed_record_count = 5;
+  // The current status of the account. Default is valid.
+  AccountStatus account_status = 6;
+}
+
+enum AccountStatus {
+  // Default value, should be used when no reason is specified
+  ACCOUNT_STATUS_REASON_UNSPECIFIED = 0;
+  // Current usage exceeds allowed limit
+  ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT = 1;
+  // Adding requested records exceeds the allowed limit
+  ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
+  // Account is currently in an expired state
+  ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
 }
 
 message GetAccountBillingCheckoutSessionRequest {

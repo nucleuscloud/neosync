@@ -13992,6 +13992,34 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "AccountStatus",
+          "longName": "AccountStatus",
+          "fullName": "mgmt.v1alpha1.AccountStatus",
+          "description": "",
+          "values": [
+            {
+              "name": "ACCOUNT_STATUS_REASON_UNSPECIFIED",
+              "number": "0",
+              "description": "Default value, should be used when no reason is specified"
+            },
+            {
+              "name": "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT",
+              "number": "1",
+              "description": "Current usage exceeds allowed limit"
+            },
+            {
+              "name": "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT",
+              "number": "2",
+              "description": "Adding requested records exceeds the allowed limit"
+            },
+            {
+              "name": "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE",
+              "number": "3",
+              "description": "Account is currently in an expired state"
+            }
+          ]
+        },
+        {
           "name": "BillingStatus",
           "longName": "BillingStatus",
           "fullName": "mgmt.v1alpha1.BillingStatus",
@@ -15235,6 +15263,42 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "used_record_count",
+              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.",
+              "label": "",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "allowed_record_count",
+              "description": "The allowed record count. It will be null if there is no limit.",
+              "label": "optional",
+              "type": "uint64",
+              "longType": "uint64",
+              "fullType": "uint64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_allowed_record_count",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_status",
+              "description": "The current status of the account. Default is valid.",
+              "label": "",
+              "type": "AccountStatus",
+              "longType": "AccountStatus",
+              "fullType": "mgmt.v1alpha1.AccountStatus",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

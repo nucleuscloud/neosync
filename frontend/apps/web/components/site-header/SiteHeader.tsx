@@ -13,13 +13,12 @@ import {
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import SupportDrawer from '../SupportDrawer';
-import AccountsRecordProgress from './AccountsRecordProgress';
+import { AccountStatusHandler } from './AccountStatusHandler';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
 import NeosyncVersion from './NeosyncVersion';
-import Upgrade from './Upgrade';
 import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
@@ -31,13 +30,7 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
-          {/* This should really pull from the account status as it has the inforamtion needed to know the overall account progress and whether or not the account even has a record limit */}
-          {systemAppConfig.isNeosyncCloud &&
-            systemAppConfig.isStripeEnabled && <AccountsRecordProgress />}
-          <Upgrade
-            calendlyLink={systemAppConfig.calendlyUpgradeLink}
-            isNeosyncCloud={systemAppConfig.isNeosyncCloud}
-          />
+          <AccountStatusHandler systemAppConfig={systemAppConfig} />
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <SupportSheet />
           <ModeToggle />
