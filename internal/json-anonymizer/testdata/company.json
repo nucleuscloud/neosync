@@ -1,0 +1,297 @@
+[
+  {
+    "companyId": "CORP001",
+    "companyName": "Global Innovations Inc.",
+    "foundedYear": 1995,
+    "verified": true,
+    "headquarters": {
+      "address": {
+        "street": "123 Tech Plaza",
+        "city": "Silicon Valley",
+        "state": "CA",
+        "zipCode": "94025",
+        "country": "USA"
+      },
+      "contact": {
+        "phone": "+1 (555) 123-4567",
+        "email": "info@globalinnovations.com"
+      }
+    },
+    "leadership": {
+      "CEO": {
+        "name": "Elena Rodriguez",
+        "age": 52,
+        "email": "elena.rodriguez@globalinnovations.com",
+        "directReports": [
+          {
+            "name": "Michael Chang",
+            "position": "CFO",
+            "email": "michael.chang@globalinnovations.com"
+          },
+          {
+            "name": "Sarah Johnson",
+            "position": "CTO",
+            "email": "sarah.johnson@globalinnovations.com"
+          }
+        ]
+      }
+    },
+    "departments": [
+      {
+        "name": "Research and Development",
+        "budget": 10000000,
+        "headCount": 150,
+        "projects": [
+          {
+            "name": "Project Phoenix",
+            "code": "RD-001",
+            "startDate": "2023-01-15",
+            "endDate": "2024-06-30",
+            "budget": 5000000,
+            "teamMembers": [
+              {
+                "id": "EMP185",
+                "name": "Dr. Alex Winters",
+                "position": "Lead Researcher",
+                "email": "alex.winters@globalinnovations.com",
+                "salary": 180000,
+                "performanceReviews": [
+                  {
+                    "year": 2022,
+                    "rating": 4.8,
+                    "comments": "Exceptional leadership in quantum computing research."
+                  }
+                ]
+              },
+              {
+                "id": "EMP186",
+                "name": "Jasmine Lee",
+                "position": "Senior Engineer",
+                "email": "jasmine.lee@globalinnovations.com",
+                "salary": 150000,
+                "performanceReviews": [
+                  {
+                    "year": 2022,
+                    "rating": 4.5,
+                    "comments": "Consistently delivers high-quality work."
+                  }
+                ]
+              }
+            ],
+            "milestones": [
+              {
+                "name": "Prototype Completion",
+                "dueDate": "2023-09-30",
+                "status": "In Progress"
+              },
+              {
+                "name": "Patent Filing",
+                "dueDate": "2023-12-31",
+                "status": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Sales and Marketing",
+        "budget": 8000000,
+        "headCount": 100,
+        "campaigns": [
+          {
+            "name": "Q4 Product Launch",
+            "budget": 2000000,
+            "startDate": "2023-10-01",
+            "endDate": "2023-12-31",
+            "targetMarkets": ["North America", "Europe", "Asia"],
+            "channels": ["Social Media", "Trade Shows", "Print Media"],
+            "performanceMetrics": {
+              "leads": 5000,
+              "conversions": 500,
+              "roi": 2.5
+            }
+          }
+        ]
+      }
+    ],
+    "financials": {
+      "fiscalYear": 2023,
+      "revenue": 500000000,
+      "expenses": 400000000,
+      "netProfit": 100000000,
+      "quarterlyResults": [
+        {
+          "quarter": "Q1",
+          "revenue": 120000000,
+          "expenses": 95000000,
+          "netProfit": 25000000
+        },
+        {
+          "quarter": "Q2",
+          "revenue": 130000000,
+          "expenses": 100000000,
+          "netProfit": 30000000
+        }
+      ],
+      "investments": [
+        {
+          "type": "R&D",
+          "amount": 50000000,
+          "description": "Investment in quantum computing research"
+        },
+        {
+          "type": "Capital Expenditure",
+          "amount": 30000000,
+          "description": "New manufacturing facility in Austin, TX"
+        }
+      ]
+    }
+  },
+  {
+    "companyId": "CORP002",
+    "companyName": "EcoSolutions Ltd.",
+    "foundedYear": 2010,
+    "verified": false,
+    "headquarters": {
+      "address": {
+        "street": "456 Green Avenue",
+        "city": "Portland",
+        "state": "OR",
+        "zipCode": "97201",
+        "country": "USA"
+      },
+      "contact": {
+        "phone": "+1 (555) 987-6543",
+        "email": "info@ecosolutions.com"
+      }
+    },
+    "leadership": {
+      "CEO": {
+        "name": "David Greene",
+        "age": 45,
+        "email": "david.greene@ecosolutions.com",
+        "directReports": [
+          {
+            "name": "Lisa Chen",
+            "position": "COO",
+            "email": "lisa.chen@ecosolutions.com"
+          },
+          {
+            "name": "Robert Taylor",
+            "position": "CFO",
+            "email": "robert.taylor@ecosolutions.com"
+          }
+        ]
+      }
+    },
+    "departments": [
+      {
+        "name": "Product Development",
+        "budget": 5000000,
+        "headCount": 75,
+        "projects": [
+          {
+            "name": "SolarFlow",
+            "code": "PD-001",
+            "startDate": "2023-03-01",
+            "endDate": "2024-02-29",
+            "budget": 3000000,
+            "teamMembers": [
+              {
+                "id": "EMP089",
+                "name": "Emma Watson",
+                "position": "Product Manager",
+                "email": "emma.watson@ecosolutions.com",
+                "salary": 140000,
+                "performanceReviews": [
+                  {
+                    "year": 2022,
+                    "rating": 4.7,
+                    "comments": "Outstanding leadership in sustainable product development."
+                  }
+                ]
+              },
+              {
+                "id": "EMP090",
+                "name": "Carlos Mendez",
+                "position": "Senior Engineer",
+                "email": "carlos.mendez@ecosolutions.com",
+                "salary": 130000,
+                "performanceReviews": [
+                  {
+                    "year": 2022,
+                    "rating": 4.6,
+                    "comments": "Innovative problem-solver with excellent technical skills."
+                  }
+                ]
+              }
+            ],
+            "milestones": [
+              {
+                "name": "Design Finalization",
+                "dueDate": "2023-06-30",
+                "status": "Completed"
+              },
+              {
+                "name": "Prototype Testing",
+                "dueDate": "2023-12-31",
+                "status": "In Progress"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Customer Relations",
+        "budget": 3000000,
+        "headCount": 50,
+        "initiatives": [
+          {
+            "name": "Customer Feedback Loop",
+            "budget": 500000,
+            "startDate": "2023-01-01",
+            "endDate": "2023-12-31",
+            "description": "Implement AI-driven customer feedback analysis",
+            "kpis": {
+              "customerSatisfaction": 4.2,
+              "responseTime": "2 hours",
+              "issueResolutionRate": 0.95
+            }
+          }
+        ]
+      }
+    ],
+    "financials": {
+      "fiscalYear": 2023,
+      "revenue": 150000000,
+      "expenses": 120000000,
+      "netProfit": 30000000,
+      "quarterlyResults": [
+        {
+          "quarter": "Q1",
+          "revenue": 35000000,
+          "expenses": 28000000,
+          "netProfit": 7000000
+        },
+        {
+          "quarter": "Q2",
+          "revenue": 40000000,
+          "expenses": 31000000,
+          "netProfit": 9000000
+        }
+      ],
+      "investments": [
+        {
+          "type": "Sustainable Technologies",
+          "amount": 10000000,
+          "description": "Research into next-gen biodegradable materials"
+        },
+        {
+          "type": "Market Expansion",
+          "amount": 5000000,
+          "description": "Entry into Southeast Asian markets"
+        }
+      ]
+    }
+  }
+]
