@@ -8,6 +8,7 @@ import { DestinationDetails } from '../NosqlTable/TableMappings/Columns';
 import TableMappingsCard, {
   Props as TableMappingsCardProps,
 } from '../NosqlTable/TableMappings/TableMappingsCard';
+import AwsS3DestinationOptionsForm from './AwsS3DestinationOptionsForm';
 
 interface DestinationOptionsProps {
   connection?: Connection;
@@ -259,8 +260,14 @@ export default function DestinationOptionsForm(
           </div>
         </div>
       );
-    case 'awsS3Config':
-      return <></>;
+    case 'awsS3Config': {
+      return (
+        <AwsS3DestinationOptionsForm
+          value={value.awss3 ?? {}}
+          setValue={(val) => setValue({ ...value, awss3: { ...val } })}
+        />
+      );
+    }
     case 'mongoConfig':
       return <></>;
     case 'gcpCloudstorageConfig':

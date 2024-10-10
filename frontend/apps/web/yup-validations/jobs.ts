@@ -190,13 +190,13 @@ const BatchFormValues = Yup.object({
   period: Yup.string().optional(),
 });
 
-const AwsS3DestinationOptionsFormValues = Yup.object({
+export const AwsS3DestinationOptionsFormValues = Yup.object({
   storageClass: Yup.number().optional(),
   maxInFlight: Yup.number().optional(),
   timeout: Yup.string().optional(),
   batch: BatchFormValues.optional(),
 });
-type AwsS3DestinationOptionsFormValues = Yup.InferType<
+export type AwsS3DestinationOptionsFormValues = Yup.InferType<
   typeof AwsS3DestinationOptionsFormValues
 >;
 
