@@ -571,7 +571,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 		require.True(s.T(), resp.Msg.GetIsValid())
 		require.Empty(s.T(), resp.Msg.GetReason())
-		require.Equal(s.T(), 0, resp.Msg.GetAccountStatus().Number())
+		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
 		require.True(s.T(), resp.Msg.GetShouldPoll())
 	})
 }
