@@ -47,7 +47,6 @@ export default function Upgrade(props: UpgradeProps): ReactElement | null {
     isLoading,
   } = props;
   const { account } = useAccount();
-  const accountId = account?.id;
   // always surface the upgrade button for non-neosynccloud users
   if (!isNeosyncCloud) {
     return <UpgradeButton href={calendlyLink} target="_blank" />;
