@@ -4,7 +4,7 @@ description: Guide to Using the Anonymization Service Endpoints
 id: anonymization-service-endpoints
 hide_title: false
 slug: /guides/anonymization-service-endpoints
-# cSpell:words Neosync
+# cSpell:words Neosync,Protos
 ---
 
 ## Introduction
@@ -46,6 +46,7 @@ This guide provides an overview of how to use the `AnonymizeSingle`and `Anonymiz
 
 ### Transformer Mappings (Required)
 Transformer mappings define specific paths in your JSON data using JQ and the transformers to apply to those paths.
+<!-- cspell:disable  -->
 ``` json
 // input
 {
@@ -107,7 +108,7 @@ transformerMappings := []*mgmtv1alpha1.TransformerMapping{
   },
 }
 ```
-
+<!-- cspell:enable  -->
 ### Default Mappings (Optional)
 Default transformers provide a way to anonymize fields that are not explicitly defined in the transformer mappings. They work on a data type basis, applying to all fields of a specific type that don't have a transformer mapping configured. It supports default transformers for three data types: strings, numbers, and booleans.
 
@@ -120,6 +121,7 @@ Specific transformer mappings always take precedence over default transformers. 
 When using a JQ expression in your transformer mappings, be aware that the default transformers will still apply to the values found by the expression. It will apply the default transformer first and then apply the JQ expression transformer second. This behavior differs from using specific JQ paths where only the transformer configured for that path will be applied.
 
 For example:
+<!-- cspell:disable  -->
 ```go
 transformerMappings := []*mgmtv1alpha1.TransformerMapping{
   {
@@ -142,6 +144,7 @@ defaultTransformers := &mgmtv1alpha1.DefaultTransformersConfig{
   },
 }
 ```
+<!-- cspell:enable  -->
 
 In this scenario:
 1. The default string transformer will be applied to all string fields including name. The name field value will now be a random string.
