@@ -1,6 +1,7 @@
 import { TransformerConfigSchema } from '@/yup-validations/transformer-validations';
 import { JobMappingTransformer, TransformerConfig } from '@neosync/sdk';
 import * as Yup from 'yup';
+import { getDurationValidateFn } from './number';
 
 // Yup schema form JobMappingTransformers
 export const JobMappingTransformerForm = Yup.object({
@@ -185,11 +186,34 @@ const MssqlDbDestinationOptionsFormValues = Yup.object({
   skipForeignKeyViolations: Yup.boolean().optional().default(false),
 });
 
+const BatchFormValues = Yup.object({
+  count: Yup.number().min(0, 'Must be greater than or equal to 0').optional(),
+  period: Yup.string()
+    .optional()
+    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+});
+
+export const AwsS3DestinationOptionsFormValues = Yup.object({
+  storageClass: Yup.number().optional(),
+  maxInFlight: Yup.number()
+    .min(1, 'Must be greater than or equal to 1')
+    .max(200, 'Must be less than or equal to 200') // arbitrarily setting this value here.
+    .optional(),
+  timeout: Yup.string()
+    .optional()
+    .test('duration', 'Must be a valid duration', getDurationValidateFn()),
+  batch: BatchFormValues.optional(),
+});
+export type AwsS3DestinationOptionsFormValues = Yup.InferType<
+  typeof AwsS3DestinationOptionsFormValues
+>;
+
 export const DestinationOptionsFormValues = Yup.object({
   postgres: PostgresDbDestinationOptionsFormValues.optional(),
   mysql: MysqlDbDestinationOptionsFormValues.optional(),
   dynamodb: DynamoDbDestinationOptionsFormValues.optional(),
   mssql: MssqlDbDestinationOptionsFormValues.optional(),
+  awss3: AwsS3DestinationOptionsFormValues.optional(),
 }).required('Destination Options are required.');
 // Object that holds connection specific destination options for a job
 export type DestinationOptionsFormValues = Yup.InferType<

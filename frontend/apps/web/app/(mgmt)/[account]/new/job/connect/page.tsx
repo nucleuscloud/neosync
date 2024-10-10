@@ -386,6 +386,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div className="space-y-12 col-span-2">
               {fields.map((val, index) => {
+                const destErrs = form.formState.errors?.destinations ?? [];
                 return (
                   <div className="space-y-4 col-span-2" key={val.id}>
                     <div className="flex flex-row gap-2">
@@ -667,6 +668,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               }}
                               hideDynamoDbTableMappings={true}
                               destinationDetailsRecord={{}} // not used beacause we are hiding dynamodb table mappings
+                              errors={destErrs[index]?.destinationOptions}
                             />
                           </FormControl>
                         </FormItem>

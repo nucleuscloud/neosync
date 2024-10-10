@@ -1427,7 +1427,18 @@ type GcpCloudStorageDestinationOptions struct{}
 
 type MongoDestinationOptions struct{}
 
-type AwsS3DestinationOptions struct{}
+type AwsS3DestinationOptions struct {
+	StorageClass *int32       `json:"storageClass,omitempty"`
+	MaxInFlight  *uint32      `json:"maxInFlight,omitempty"`
+	Timeout      *string      `json:"timeout,omitempty"`
+	Batch        *BatchConfig `json:"batch,omitempty"`
+}
+
+type BatchConfig struct {
+	Count  *uint32 `json:"count,omitempty"`
+	Period *string `json:"period,omitempty"`
+}
+
 type PostgresDestinationOptions struct {
 	TruncateTableConfig      *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
 	InitTableSchema          bool                         `json:"initTableSchema"`
@@ -1615,7 +1626,7 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.AwsS3Options != nil {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
-				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+				AwsS3Options: j.AwsS3Options.ToDto(),
 			},
 		}
 	}
@@ -1651,6 +1662,54 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	return nil
 }
 
+func (a *AwsS3DestinationOptions) ToDto() *mgmtv1alpha1.AwsS3DestinationConnectionOptions {
+	storageClass := mgmtv1alpha1.AwsS3DestinationConnectionOptions_STORAGE_CLASS_UNSPECIFIED
+	if a.StorageClass != nil {
+		if _, ok := mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass_name[*a.StorageClass]; ok {
+			storageClass = mgmtv1alpha1.AwsS3DestinationConnectionOptions_StorageClass(*a.StorageClass)
+		}
+	}
+	var batch *mgmtv1alpha1.BatchConfig
+	if a.Batch != nil {
+		batch = a.Batch.ToDto()
+	}
+	return &mgmtv1alpha1.AwsS3DestinationConnectionOptions{
+		StorageClass: storageClass,
+		MaxInFlight:  a.MaxInFlight,
+		Timeout:      a.Timeout,
+		Batch:        batch,
+	}
+}
+
+func (a *AwsS3DestinationOptions) FromDto(dto *mgmtv1alpha1.AwsS3DestinationConnectionOptions) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.AwsS3DestinationConnectionOptions{}
+	}
+	sc := dto.GetStorageClass()
+	a.StorageClass = (*int32)(&sc)
+	a.MaxInFlight = dto.MaxInFlight
+	a.Timeout = dto.Timeout
+	if dto.Batch != nil {
+		a.Batch = &BatchConfig{}
+		a.Batch.FromDto(dto.GetBatch())
+	}
+}
+
+func (b *BatchConfig) ToDto() *mgmtv1alpha1.BatchConfig {
+	return &mgmtv1alpha1.BatchConfig{
+		Count:  b.Count,
+		Period: b.Period,
+	}
+}
+
+func (b *BatchConfig) FromDto(dto *mgmtv1alpha1.BatchConfig) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.BatchConfig{}
+	}
+	b.Count = dto.Count
+	b.Period = dto.Period
+}
+
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
 	if dto == nil {
 		dto = &mgmtv1alpha1.JobDestinationOptions{}
@@ -1684,6 +1743,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
+		j.AwsS3Options.FromDto(config.AwsS3Options)
 	case *mgmtv1alpha1.JobDestinationOptions_MongodbOptions:
 		j.MongoOptions = &MongoDestinationOptions{}
 	case *mgmtv1alpha1.JobDestinationOptions_GcpCloudstorageOptions:

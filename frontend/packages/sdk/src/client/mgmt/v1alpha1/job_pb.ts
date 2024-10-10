@@ -2158,6 +2158,34 @@ export class MssqlOnConflictConfig extends Message<MssqlOnConflictConfig> {
  * @generated from message mgmt.v1alpha1.AwsS3DestinationConnectionOptions
  */
 export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationConnectionOptions> {
+  /**
+   * The storage class that will be used when objects are written to S3
+   *
+   * @generated from field: mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass storage_class = 1;
+   */
+  storageClass = AwsS3DestinationConnectionOptions_StorageClass.UNSPECIFIED;
+
+  /**
+   * The maximum number of batched messages to have in flight at a given time. Increase this to improve throughput.
+   *
+   * @generated from field: optional uint32 max_in_flight = 2;
+   */
+  maxInFlight?: number;
+
+  /**
+   * The maximum period (duration string) to wait on an upload before abandoning it and reattempting.
+   *
+   * @generated from field: optional string timeout = 3;
+   */
+  timeout?: string;
+
+  /**
+   * Configure batching options to more efficiently store records in S3
+   *
+   * @generated from field: mgmt.v1alpha1.BatchConfig batch = 4;
+   */
+  batch?: BatchConfig;
+
   constructor(data?: PartialMessage<AwsS3DestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2166,6 +2194,10 @@ export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationC
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.AwsS3DestinationConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "storage_class", kind: "enum", T: proto3.getEnumType(AwsS3DestinationConnectionOptions_StorageClass) },
+    { no: 2, name: "max_in_flight", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
+    { no: 3, name: "timeout", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "batch", kind: "message", T: BatchConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3DestinationConnectionOptions {
@@ -2182,6 +2214,110 @@ export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationC
 
   static equals(a: AwsS3DestinationConnectionOptions | PlainMessage<AwsS3DestinationConnectionOptions> | undefined, b: AwsS3DestinationConnectionOptions | PlainMessage<AwsS3DestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(AwsS3DestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from enum mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass
+ */
+export enum AwsS3DestinationConnectionOptions_StorageClass {
+  /**
+   * @generated from enum value: STORAGE_CLASS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_STANDARD = 1;
+   */
+  STANDARD = 1,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_REDUCED_REDUNDANCY = 2;
+   */
+  REDUCED_REDUNDANCY = 2,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_GLACIER = 3;
+   */
+  GLACIER = 3,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_STANDARD_IA = 4;
+   */
+  STANDARD_IA = 4,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_ONEZONE_IA = 5;
+   */
+  ONEZONE_IA = 5,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_INTELLIGENT_TIERING = 6;
+   */
+  INTELLIGENT_TIERING = 6,
+
+  /**
+   * @generated from enum value: STORAGE_CLASS_DEEP_ARCHIVE = 7;
+   */
+  DEEP_ARCHIVE = 7,
+}
+// Retrieve enum metadata with: proto3.getEnumType(AwsS3DestinationConnectionOptions_StorageClass)
+proto3.util.setEnumType(AwsS3DestinationConnectionOptions_StorageClass, "mgmt.v1alpha1.AwsS3DestinationConnectionOptions.StorageClass", [
+  { no: 0, name: "STORAGE_CLASS_UNSPECIFIED" },
+  { no: 1, name: "STORAGE_CLASS_STANDARD" },
+  { no: 2, name: "STORAGE_CLASS_REDUCED_REDUNDANCY" },
+  { no: 3, name: "STORAGE_CLASS_GLACIER" },
+  { no: 4, name: "STORAGE_CLASS_STANDARD_IA" },
+  { no: 5, name: "STORAGE_CLASS_ONEZONE_IA" },
+  { no: 6, name: "STORAGE_CLASS_INTELLIGENT_TIERING" },
+  { no: 7, name: "STORAGE_CLASS_DEEP_ARCHIVE" },
+]);
+
+/**
+ * @generated from message mgmt.v1alpha1.BatchConfig
+ */
+export class BatchConfig extends Message<BatchConfig> {
+  /**
+   * The max allowed in a batch before it is flushed. 0 to disable.
+   *
+   * @generated from field: optional uint32 count = 1;
+   */
+  count?: number;
+
+  /**
+   * A duration string in which an incomplete batch should be flushed regardless of the count.
+   * Examples are 1s, 1m, 500ms
+   *
+   * @generated from field: optional string period = 2;
+   */
+  period?: string;
+
+  constructor(data?: PartialMessage<BatchConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.BatchConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "count", kind: "scalar", T: 13 /* ScalarType.UINT32 */, opt: true },
+    { no: 2, name: "period", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BatchConfig {
+    return new BatchConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BatchConfig {
+    return new BatchConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BatchConfig {
+    return new BatchConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BatchConfig | PlainMessage<BatchConfig> | undefined, b: BatchConfig | PlainMessage<BatchConfig> | undefined): boolean {
+    return proto3.util.equals(BatchConfig, a, b);
   }
 }
 

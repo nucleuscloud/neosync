@@ -263,7 +263,35 @@ message MssqlOnConflictConfig {
   bool do_nothing = 1;
 }
 
-message AwsS3DestinationConnectionOptions {}
+message AwsS3DestinationConnectionOptions {
+  // The storage class that will be used when objects are written to S3
+  StorageClass storage_class = 1;
+  // The maximum number of batched messages to have in flight at a given time. Increase this to improve throughput.
+  optional uint32 max_in_flight = 2;
+  // The maximum period (duration string) to wait on an upload before abandoning it and reattempting.
+  optional string timeout = 3;
+  // Configure batching options to more efficiently store records in S3
+  BatchConfig batch = 4;
+
+  enum StorageClass {
+    STORAGE_CLASS_UNSPECIFIED = 0;
+    STORAGE_CLASS_STANDARD = 1;
+    STORAGE_CLASS_REDUCED_REDUNDANCY = 2;
+    STORAGE_CLASS_GLACIER = 3;
+    STORAGE_CLASS_STANDARD_IA = 4;
+    STORAGE_CLASS_ONEZONE_IA = 5;
+    STORAGE_CLASS_INTELLIGENT_TIERING = 6;
+    STORAGE_CLASS_DEEP_ARCHIVE = 7;
+  }
+}
+
+message BatchConfig {
+  // The max allowed in a batch before it is flushed. 0 to disable.
+  optional uint32 count = 1;
+  // A duration string in which an incomplete batch should be flushed regardless of the count.
+  // Examples are 1s, 1m, 500ms
+  optional string period = 2;
+}
 
 message CreateJobRequest {
   // The unique account identifier that this job will be associated with

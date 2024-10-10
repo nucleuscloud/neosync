@@ -20,6 +20,7 @@ import {
   AiGenerateSourceSchemaOption,
   AiGenerateSourceTableOption,
   AwsS3DestinationConnectionOptions,
+  BatchConfig,
   Connection,
   CreateJobRequest,
   DatabaseTable,
@@ -476,7 +477,14 @@ export function toJobDestinationOptions(
       return new JobDestinationOptions({
         config: {
           case: 'awsS3Options',
-          value: new AwsS3DestinationConnectionOptions({}),
+          value: new AwsS3DestinationConnectionOptions({
+            storageClass: values.destinationOptions.awss3?.storageClass,
+            timeout: values.destinationOptions.awss3?.timeout,
+            maxInFlight: values.destinationOptions.awss3?.maxInFlight,
+            batch: new BatchConfig({
+              ...values.destinationOptions.awss3?.batch,
+            }),
+          }),
         },
       });
     }
@@ -1430,6 +1438,22 @@ export function getDefaultDestinationFormValues(
           },
         },
       };
+    case 'awsS3Options': {
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          awss3: {
+            storageClass: d.options.config.value.storageClass,
+            maxInFlight: d.options.config.value.maxInFlight,
+            timeout: d.options.config.value.timeout,
+            batch: {
+              count: d.options.config.value.batch?.count,
+              period: d.options.config.value.batch?.period,
+            },
+          },
+        },
+      };
+    }
     default:
       return {
         connectionId: d.connectionId,

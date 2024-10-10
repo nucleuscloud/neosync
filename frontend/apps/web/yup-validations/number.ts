@@ -1,3 +1,4 @@
+import { parseDuration } from '../util/duration';
 // Ensures that the number being validated is always greater than or equal to a minimum value
 export function getNumberValidateMinFn(
   minVal: number
@@ -25,4 +26,22 @@ function numberOrDefault(
   defaultVal: number
 ): number {
   return value == null ? defaultVal : value;
+}
+
+// Allows empty duration values
+export function getDurationValidateFn(): (
+  value: string | undefined
+) => boolean {
+  return (value) => {
+    if (!value) {
+      return true;
+    }
+    try {
+      parseDuration(value);
+      return true;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  };
 }

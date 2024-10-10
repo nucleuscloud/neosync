@@ -80,223 +80,227 @@ export default function AwsS3Form(props: Props) {
     }
   }
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Alert variant="warning">
-          <div className="flex flex-row items-center gap-2">
-            <IoAlertCircleOutline className="h-6 w-6" />
-            <AlertTitle className="font-semibold">Heads up!</AlertTitle>
-          </div>
-          <AlertDescription className="pl-8">
-            Right now AWS S3 connections can only be used as a destination
-          </AlertDescription>
-        </Alert>
-        <FormField
-          control={form.control}
-          name="connectionName"
-          render={({ field: { onChange, ...field } }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Connection Name
-              </FormLabel>
-              <FormDescription>
-                The unique name of the connection
-              </FormDescription>
-              <FormControl>
-                <Input
-                  placeholder="Connection Name"
-                  {...field}
-                  onChange={async ({ target: { value } }) => {
-                    onChange(value);
-                    await form.trigger('connectionName');
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="s3.bucket"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <RequiredLabel />
-                Bucket
-              </FormLabel>
-              <FormDescription>The bucket</FormDescription>
-              <FormControl>
-                <Input placeholder="Bucket" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.pathPrefix"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Path Prefix</FormLabel>
-              <FormDescription>The path prefix of the bucket</FormDescription>
-              <FormControl>
-                <Input placeholder="/..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.region"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Region</FormLabel>
-              <FormDescription>The AWS region to target</FormDescription>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.endpoint"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Custom Endpoint</FormLabel>
-              <FormDescription>
-                Allows specifying a custom endpoint for the AWS API
-              </FormDescription>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="s3.credentials.profile"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Profile Name</FormLabel>
-              <FormDescription>AWS Profile Name</FormDescription>
-              <FormControl>
-                <Input placeholder="default" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.accessKeyId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Access Key Id</FormLabel>
-              <FormDescription>Access Key Id</FormDescription>
-              <FormControl>
-                <Input placeholder="Access Key Id" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.secretAccessKey"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Secret Access Key</FormLabel>
-              <FormDescription>AWS Secret Access Key</FormDescription>
-              <FormControl>
-                <PasswordInput placeholder="Secret Access Key" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.sessionToken"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Session Token</FormLabel>
-              <FormDescription>AWS Session Token</FormDescription>
-              <FormControl>
-                <Input placeholder="Session Token" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.fromEc2Role"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <SwitchCard
-                  isChecked={field.value || false}
-                  onCheckedChange={field.onChange}
-                  title="From EC2 Role"
-                  description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.roleArn"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Role ARN</FormLabel>
-              <FormDescription>Role ARN</FormDescription>
-              <FormControl>
-                <Input placeholder="Role Arn" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="s3.credentials.roleExternalId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AWS Role External Id</FormLabel>
-              <FormDescription>Role External Id</FormDescription>
-              <FormControl>
-                <Input placeholder="Role External Id" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex flex-row gap-3 justify-end">
-          <Button type="submit">
-            <ButtonText
-              leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="Update"
-            />
-          </Button>
+    <div className="flex flex-col gap-4">
+      <Alert variant="warning">
+        <div className="flex flex-row items-center gap-2">
+          <IoAlertCircleOutline className="h-6 w-6" />
+          <AlertTitle className="font-semibold">Heads up!</AlertTitle>
         </div>
-      </form>
-    </Form>
+        <AlertDescription className="pl-8">
+          Right now AWS S3 connections can only be used as a destination
+        </AlertDescription>
+      </Alert>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+          <FormField
+            control={form.control}
+            name="connectionName"
+            render={({ field: { onChange, ...field } }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Connection Name
+                </FormLabel>
+                <FormDescription>
+                  The unique name of the connection
+                </FormDescription>
+                <FormControl>
+                  <Input
+                    placeholder="Connection Name"
+                    {...field}
+                    onChange={async ({ target: { value } }) => {
+                      onChange(value);
+                      await form.trigger('connectionName');
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="s3.bucket"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Bucket
+                </FormLabel>
+                <FormDescription>The bucket</FormDescription>
+                <FormControl>
+                  <Input placeholder="Bucket" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.pathPrefix"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Path Prefix</FormLabel>
+                <FormDescription>The path prefix of the bucket</FormDescription>
+                <FormControl>
+                  <Input placeholder="/..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.region"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Region</FormLabel>
+                <FormDescription>The AWS region to target</FormDescription>
+                <FormControl>
+                  <Input placeholder="" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.endpoint"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Custom Endpoint</FormLabel>
+                <FormDescription>
+                  Allows specifying a custom endpoint for the AWS API
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="s3.credentials.profile"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Profile Name</FormLabel>
+                <FormDescription>AWS Profile Name</FormDescription>
+                <FormControl>
+                  <Input placeholder="default" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.accessKeyId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Access Key Id</FormLabel>
+                <FormDescription>Access Key Id</FormDescription>
+                <FormControl>
+                  <Input placeholder="Access Key Id" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.secretAccessKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Secret Access Key</FormLabel>
+                <FormDescription>AWS Secret Access Key</FormDescription>
+                <FormControl>
+                  <PasswordInput placeholder="Secret Access Key" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.sessionToken"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Session Token</FormLabel>
+                <FormDescription>AWS Session Token</FormDescription>
+                <FormControl>
+                  <Input placeholder="Session Token" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.fromEc2Role"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <SwitchCard
+                    isChecked={field.value || false}
+                    onCheckedChange={field.onChange}
+                    title="From EC2 Role"
+                    description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.roleArn"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Role ARN</FormLabel>
+                <FormDescription>Role ARN</FormDescription>
+                <FormControl>
+                  <Input placeholder="Role Arn" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="s3.credentials.roleExternalId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AWS Role External Id</FormLabel>
+                <FormDescription>Role External Id</FormDescription>
+                <FormControl>
+                  <Input placeholder="Role External Id" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex flex-row gap-3 justify-end">
+            <Button type="submit">
+              <ButtonText
+                leftIcon={
+                  form.formState.isSubmitting ? <Spinner /> : <div></div>
+                }
+                text="Update"
+              />
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

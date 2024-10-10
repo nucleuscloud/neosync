@@ -2,6 +2,7 @@ import { TransformerHandler } from '@/components/jobs/SchemaTable/transformer-ha
 import { Transformer } from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
+  AwsS3DestinationConnectionOptions_StorageClass,
   GenerateEmailType,
   InvalidEmailAction,
   SupportedJobType,
@@ -134,6 +135,13 @@ export function getInvalidEmailActionString(
   invalidEmailAction: InvalidEmailAction
 ): string {
   const value = InvalidEmailAction[invalidEmailAction];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+export function getStorageClassString(
+  storageclass: AwsS3DestinationConnectionOptions_StorageClass
+): string {
+  const value = AwsS3DestinationConnectionOptions_StorageClass[storageclass];
   return value ? value.toLowerCase() : 'unknown';
 }
 
