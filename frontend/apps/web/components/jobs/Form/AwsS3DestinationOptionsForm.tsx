@@ -11,7 +11,7 @@ import {
 import { getStorageClassString } from '@/util/util';
 import { AwsS3DestinationOptionsFormValues } from '@/yup-validations/jobs';
 import { AwsS3DestinationConnectionOptions_StorageClass } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { FieldErrors } from 'react-hook-form';
 
 interface Props {
@@ -41,10 +41,10 @@ export default function AwsS3DestinationOptionsForm(
         <Header />
       </div>
       <div className="flex flex-col gap-2">
-        <div>
+        <FormInputContainer>
           <FormHeader
             title="Storage Class"
-            description="The storage class that will be used whne objects are written to in
+            description="The storage class that will be used when records are written to in
               S3"
           />
           <div>
@@ -74,12 +74,11 @@ export default function AwsS3DestinationOptionsForm(
             </Select>
             <FormErrorMessage message={errors?.storageClass?.message} />
           </div>
-        </div>
-
-        <div>
+        </FormInputContainer>
+        <FormInputContainer>
           <FormHeader
             title="Max in Flight"
-            description="The max number of batched messages to have in flight at a given time. Increase to improve throughput."
+            description="The max number of batched records to have in flight at a given time. Increase to improve throughput."
           />
           <div>
             <NumberedInput
@@ -88,8 +87,8 @@ export default function AwsS3DestinationOptionsForm(
             />
             <FormErrorMessage message={errors?.maxInFlight?.message} />
           </div>
-        </div>
-        <div>
+        </FormInputContainer>
+        <FormInputContainer>
           <FormHeader
             title="Upload Timeout"
             description="The maximum period to wait on an upload before abandoning and re-attempting. Ex: 5s, 1m"
@@ -101,11 +100,11 @@ export default function AwsS3DestinationOptionsForm(
             />
             <FormErrorMessage message={errors?.timeout?.message} />
           </div>
-        </div>
-        <div>
+        </FormInputContainer>
+        <FormInputContainer>
           <FormHeader
             title="Batch Count"
-            description="The max allowed per batch before flush. 0 to disable batching."
+            description="The max allowed per batch before flushing to S3. 0 to disable batching."
           />
           <div>
             <NumberedInput
@@ -116,25 +115,25 @@ export default function AwsS3DestinationOptionsForm(
             />
             <FormErrorMessage message={errors?.batch?.count?.message} />
           </div>
+        </FormInputContainer>
+        <FormInputContainer>
+          <FormHeader
+            title="Batch Period"
+            description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms. Empty to disable."
+          />
           <div>
-            <FormHeader
-              title="Batch Period"
-              description="Time in which an incomplete batch should be flushed regardless of the count. Ex: 1s, 1m, 500ms"
+            <Input
+              value={value.batch?.period ?? '5s'}
+              onChange={(e) =>
+                setValue({
+                  ...value,
+                  batch: { ...value.batch, period: e.target.value },
+                })
+              }
             />
-            <div>
-              <Input
-                value={value.batch?.period ?? '5s'}
-                onChange={(e) =>
-                  setValue({
-                    ...value,
-                    batch: { ...value.batch, period: e.target.value },
-                  })
-                }
-              />
-              <FormErrorMessage message={errors?.batch?.period?.message} />
-            </div>
+            <FormErrorMessage message={errors?.batch?.period?.message} />
           </div>
-        </div>
+        </FormInputContainer>
       </div>
     </div>
   );
@@ -143,14 +142,20 @@ export default function AwsS3DestinationOptionsForm(
 function Header(): ReactElement {
   return (
     <div>
-      <h2 className="text-md font-semibold tracking-tight">
-        S3 Advanced Configuration
-      </h2>
+      <h2 className="text-md font-semibold tracking-tight">S3 Configuration</h2>
       <p className="text-sm tracking-tight">
-        Configure batching options to change how Neosync sends records to S3
+        Change how Neosync handles sending records to the bucket.
       </p>
     </div>
   );
+}
+
+interface FormInputContainerProps {
+  children: ReactNode;
+}
+function FormInputContainer(props: FormInputContainerProps): ReactElement {
+  const { children } = props;
+  return <div className="flex flex-col gap-2">{children}</div>;
 }
 
 interface FormHeaderProps {
