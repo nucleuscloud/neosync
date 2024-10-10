@@ -45,7 +45,7 @@ func NewGenerateInternationalPhoneNumberOpts(
 func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInternationalPhoneNumber",
-		Description: "Generates a Generate phone number in e164 format.",
+		Description: "Generates a new random international phone number including the + sign and no hyphens.",
 		Example: "",
 	}, nil
 }

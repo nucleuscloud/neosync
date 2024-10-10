@@ -55,7 +55,7 @@ func NewGenerateGenderOpts(
 func (t *GenerateGender) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateGender",
-		Description: "Randomly generates one of the following genders: female, male, undefined, nonbinary.",
+		Description: "Randomly generates one of the following genders: female (f), male (m), undefined (u), nonbinary (n).",
 		Example: "",
 	}, nil
 }

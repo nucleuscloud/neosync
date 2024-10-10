@@ -63,7 +63,7 @@ func NewTransformStringOpts(
 func (t *TransformString) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformString",
-		Description: "Transforms an existing string value.",
+		Description: "Anonymizes and transforms an existing string value.",
 		Example: "",
 	}, nil
 }

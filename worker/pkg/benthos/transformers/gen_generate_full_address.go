@@ -42,7 +42,7 @@ func NewGenerateFullAddressOpts(
 func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFullAddress",
-		Description: "Randomly generates a street address.",
+		Description: "Generates a randomly selected real full address that exists in the United States.",
 		Example: "",
 	}, nil
 }

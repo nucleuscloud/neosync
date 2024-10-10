@@ -42,7 +42,7 @@ func NewTransformCharacterScrambleOpts(
 func (t *TransformCharacterScramble) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformCharacterScramble",
-		Description: "Transforms an existing string value by scrambling the characters while maintaining the format.",
+		Description: "",
 		Example: "",
 	}, nil
 }

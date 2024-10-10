@@ -39,7 +39,7 @@ func NewGenerateInt64PhoneNumberOpts(
 func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64PhoneNumber",
-		Description: "Generates a new phone number of type int64 with a default length of 10.",
+		Description: "Generates a new int64 phone number with a default length of 10.",
 		Example: "",
 	}, nil
 }

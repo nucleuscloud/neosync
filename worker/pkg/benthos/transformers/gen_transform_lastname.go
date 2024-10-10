@@ -55,7 +55,7 @@ func NewTransformLastNameOpts(
 func (t *TransformLastName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformLastName",
-		Description: "Transforms an existing last name.",
+		Description: "Anonymizes and transforms an existing last name.",
 		Example: "",
 	}, nil
 }

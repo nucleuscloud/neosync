@@ -53,7 +53,7 @@ func NewGenerateInt64Opts(
 func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateInt64",
-		Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.",
+		Description: "Generates a random int64 value with a default length of 4.",
 		Example: "",
 	}, nil
 }

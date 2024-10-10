@@ -45,7 +45,7 @@ func NewGenerateStringPhoneNumberOpts(
 func (t *GenerateStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateStringPhoneNumber",
-		Description: "Generates a Generate phone number and returns it as a string.",
+		Description: "Generates a random 10 digit phone number and returns it as a string with no hyphens.",
 		Example: "",
 	}, nil
 }

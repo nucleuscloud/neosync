@@ -47,7 +47,7 @@ func NewGenerateFirstNameOpts(
 func (t *GenerateFirstName) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFirstName",
-		Description: "Generates a random first name.",
+		Description: "Generates a random first name between 2 and 12 characters long.",
 		Example: "",
 	}, nil
 }

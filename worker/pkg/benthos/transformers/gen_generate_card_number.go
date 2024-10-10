@@ -42,7 +42,7 @@ func NewGenerateCardNumberOpts(
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateCardNumber",
-		Description: "Generates a card number.",
+		Description: "Generates a 16 digit card number that is valid by Luhn valid by default.",
 		Example: "",
 	}, nil
 }
