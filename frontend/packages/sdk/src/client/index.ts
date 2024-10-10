@@ -6,6 +6,7 @@ export { MetricsService } from './mgmt/v1alpha1/metrics_connect.js';
 export { TransformersService } from './mgmt/v1alpha1/transformer_connect.js';
 export { UserAccountService } from './mgmt/v1alpha1/user_account_connect.js';
 
+export * from './mgmt/v1alpha1/anonymization_pb.js';
 export * from './mgmt/v1alpha1/api_key_pb.js';
 export * from './mgmt/v1alpha1/connection_data_pb.js';
 export * from './mgmt/v1alpha1/connection_pb.js';

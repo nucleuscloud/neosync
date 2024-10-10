@@ -31,6 +31,7 @@ import (
 	mssql_queries "github.com/nucleuscloud/neosync/backend/pkg/mssql-querier"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
@@ -51,6 +52,7 @@ type unauthdClients struct {
 	transformers mgmtv1alpha1connect.TransformersServiceClient
 	connections  mgmtv1alpha1connect.ConnectionServiceClient
 	jobs         mgmtv1alpha1connect.JobServiceClient
+	anonymize    mgmtv1alpha1connect.AnonymizationServiceClient
 }
 
 type neosyncCloudClients struct {
@@ -200,6 +202,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		),
 	)
 
+	unauthdAnonymizationService := v1alpha_anonymizationservice.New(
+		&v1alpha_anonymizationservice.Config{},
+	)
+
 	rootmux := http.NewServeMux()
 
 	unauthmux := http.NewServeMux()
@@ -214,6 +220,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	))
 	unauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(
 		unauthdJobsService,
+	))
+
+	unauthmux.Handle(mgmtv1alpha1connect.NewAnonymizationServiceHandler(
+		unauthdAnonymizationService,
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
@@ -259,6 +269,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 		connections:  mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 		jobs:         mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		anonymize:    mgmtv1alpha1connect.NewAnonymizationServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 	}
 
 	s.authdClients = &authdClients{
