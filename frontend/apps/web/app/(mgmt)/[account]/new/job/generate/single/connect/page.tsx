@@ -259,7 +259,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         !isSourceValidating && (
                           <TestConnectionBadge
                             validationResponse={sourceValidationResponse}
-                            id={form.getValues('fkSourceConnectionId')}
+                            connectionId={form.getValues(
+                              'fkSourceConnectionId'
+                            )}
                             accountName={account?.name ?? ''}
                           />
                         )}
@@ -371,7 +373,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 ? sourceValidationResponse
                                 : destinationValidationResponse
                             }
-                            id={form.getValues('destination.connectionId')}
+                            connectionId={form.getValues(
+                              'destination.connectionId'
+                            )}
                             accountName={account?.name ?? ''}
                           />
                         )}

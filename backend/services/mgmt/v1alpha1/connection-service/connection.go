@@ -159,7 +159,7 @@ func (s *Service) CheckConnectionConfig(
 			Privileges:      privs,
 		}), nil
 	default:
-		return nil, fmt.Errorf("this method does not support this connection type %T: %w", req.Msg.GetConnectionConfig().GetConfig(), errors.ErrUnsupported)
+		return nil, nucleuserrors.NewBadRequest(fmt.Errorf("this method does not support this connection type %T: %w", req.Msg.GetConnectionConfig().GetConfig(), errors.ErrUnsupported).Error())
 	}
 }
 
