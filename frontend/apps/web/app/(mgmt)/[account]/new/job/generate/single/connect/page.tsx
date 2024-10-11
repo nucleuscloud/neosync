@@ -28,7 +28,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CheckConnectionConfigResponse, ConnectionConfig } from '@neosync/sdk';
+import {
+  CheckConnectionConfigResponse,
+  Code,
+  ConnectError,
+  ConnectionConfig,
+} from '@neosync/sdk';
 import {
   checkConnectionConfigById,
   getConnections,
@@ -219,15 +224,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 });
                                 setSourceValidationResponse(res);
                               } catch (err) {
-                                setSourceValidationResponse(
-                                  new CheckConnectionConfigResponse({
-                                    isConnected: false,
-                                    connectionError:
-                                      err instanceof Error
-                                        ? err.message
-                                        : 'unknown error',
-                                  })
-                                );
+                                if (
+                                  err instanceof ConnectError &&
+                                  err.code === Code.InvalidArgument &&
+                                  err.message.includes('unsupported operation')
+                                ) {
+                                  setSourceValidationResponse(undefined);
+                                } else {
+                                  setSourceValidationResponse(
+                                    new CheckConnectionConfigResponse({
+                                      isConnected: false,
+                                      connectionError:
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'unknown error',
+                                    })
+                                  );
+                                }
                               } finally {
                                 setIsSourceValidating(false);
                               }
@@ -329,15 +342,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 });
                                 setDestinationValidationResponse(res);
                               } catch (err) {
-                                setDestinationValidationResponse(
-                                  new CheckConnectionConfigResponse({
-                                    isConnected: false,
-                                    connectionError:
-                                      err instanceof Error
-                                        ? err.message
-                                        : 'unknown error',
-                                  })
-                                );
+                                if (
+                                  err instanceof ConnectError &&
+                                  err.code === Code.InvalidArgument &&
+                                  err.message.includes('unsupported operation')
+                                ) {
+                                  setDestinationValidationResponse(undefined);
+                                } else {
+                                  setDestinationValidationResponse(
+                                    new CheckConnectionConfigResponse({
+                                      isConnected: false,
+                                      connectionError:
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'unknown error',
+                                    })
+                                  );
+                                }
                               } finally {
                                 setIsDestinationValidating(false);
                               }
