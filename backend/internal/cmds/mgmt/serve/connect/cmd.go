@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/metric"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -167,6 +168,7 @@ func serve(ctx context.Context) error {
 
 	stdInterceptors := []connect.Interceptor{}
 
+	var anonymizerMeter metric.Meter
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
 	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
@@ -192,6 +194,23 @@ func serve(ctx context.Context) error {
 			meterProviders = append(meterProviders, meterprovider)
 		} else {
 			otelconnopts = append(otelconnopts, otelconnect.WithoutMetrics())
+		}
+
+		anonymizeMeterProvider, err := neosyncotel.NewMeterProvider(ctx, &neosyncotel.MeterProviderConfig{
+			Exporter:   otelconfig.MeterExporter,
+			AppVersion: otelconfig.ServiceVersion,
+			Opts: neosyncotel.MeterExporterOpts{
+				Otlp:    []otlpmetricgrpc.Option{neosyncotel.GetBenthosMetricTemporalityOption()},
+				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if anonymizeMeterProvider != nil {
+			slogger.Debug("otel metering for anonymize service has been configured")
+			meterProviders = append(meterProviders, anonymizeMeterProvider)
+			anonymizerMeter = anonymizeMeterProvider.Meter("anonymizer")
 		}
 
 		traceprovider, err := neosyncotel.NewTraceProvider(ctx, &neosyncotel.TraceProviderConfig{
@@ -463,7 +482,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{})
+	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{}, anonymizerMeter)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
