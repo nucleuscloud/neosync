@@ -28,6 +28,8 @@ import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  Code,
+  ConnectError,
   Connection,
   ConnectionConfig,
 } from '@neosync/sdk';
@@ -223,15 +225,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 });
                                 setSourceValidationResponse(res);
                               } catch (err) {
-                                setSourceValidationResponse(
-                                  new CheckConnectionConfigResponse({
-                                    isConnected: false,
-                                    connectionError:
-                                      err instanceof Error
-                                        ? err.message
-                                        : 'unknown error',
-                                  })
-                                );
+                                if (
+                                  err instanceof ConnectError &&
+                                  err.code === Code.InvalidArgument &&
+                                  err.message.includes('unsupported operation')
+                                ) {
+                                  setSourceValidationResponse(undefined);
+                                } else {
+                                  setSourceValidationResponse(
+                                    new CheckConnectionConfigResponse({
+                                      isConnected: false,
+                                      connectionError:
+                                        err instanceof Error
+                                          ? err.message
+                                          : 'unknown error',
+                                    })
+                                  );
+                                }
                               } finally {
                                 setIsSourceValidating(false);
                               }
@@ -344,7 +354,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       {form.getValues('sourceId') && !isSourceValidating && (
                         <TestConnectionBadge
                           validationResponse={sourceValidationResponse}
-                          id={form.getValues('sourceId')}
+                          connectionId={form.getValues('sourceId')}
                           accountName={account?.name ?? ''}
                         />
                       )}
@@ -476,24 +486,42 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             })
                                           );
                                         } catch (err) {
-                                          setDestinationValidation(
-                                            (prevState) => ({
-                                              ...prevState,
-                                              [value]: {
-                                                isValidating: false,
-                                                response:
-                                                  new CheckConnectionConfigResponse(
-                                                    {
-                                                      isConnected: false,
-                                                      connectionError:
-                                                        err instanceof Error
-                                                          ? err.message
-                                                          : 'unknown error',
-                                                    }
-                                                  ),
-                                              },
-                                            })
-                                          );
+                                          if (
+                                            err instanceof ConnectError &&
+                                            err.code === Code.InvalidArgument &&
+                                            err.message.includes(
+                                              'unsupported operation'
+                                            )
+                                          ) {
+                                            setDestinationValidation(
+                                              (prevState) => ({
+                                                ...prevState,
+                                                [value]: {
+                                                  isValidating: false,
+                                                  response: undefined,
+                                                },
+                                              })
+                                            );
+                                          } else {
+                                            setDestinationValidation(
+                                              (prevState) => ({
+                                                ...prevState,
+                                                [value]: {
+                                                  isValidating: false,
+                                                  response:
+                                                    new CheckConnectionConfigResponse(
+                                                      {
+                                                        isConnected: false,
+                                                        connectionError:
+                                                          err instanceof Error
+                                                            ? err.message
+                                                            : 'unknown error',
+                                                      }
+                                                    ),
+                                                },
+                                              })
+                                            );
+                                          }
                                         } finally {
                                           setIsSourceValidating(false);
                                         }
@@ -625,7 +653,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       )
                                     ]?.response
                                   }
-                                  id={form.getValues(
+                                  connectionId={form.getValues(
                                     `destinations.${index}.connectionId`
                                   )}
                                   accountName={account?.name ?? ''}
