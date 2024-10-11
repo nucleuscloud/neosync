@@ -2,6 +2,7 @@
 import { CheckConnectionConfigResponse } from '@neosync/sdk';
 import { ArrowTopRightIcon, CheckCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { ReactElement } from 'react';
 import { MdErrorOutline } from 'react-icons/md';
 import { TiWarningOutline } from 'react-icons/ti';
 
@@ -11,7 +12,9 @@ interface TestConnectionBadgeProps {
   accountName: string;
 }
 
-export default function TestConnectionBadge(props: TestConnectionBadgeProps) {
+export default function TestConnectionBadge(
+  props: TestConnectionBadgeProps
+): ReactElement {
   const { validationResponse, connectionId, accountName } = props;
 
   return (
@@ -29,7 +32,9 @@ interface ValidationResponseBadgeProps {
   connectionId: string;
 }
 
-function ValidationResponseBadge(props: ValidationResponseBadgeProps) {
+function ValidationResponseBadge(
+  props: ValidationResponseBadgeProps
+): ReactElement | null {
   const { validationResponse, accountName, connectionId } = props;
   const url = `/${accountName}/connections/${connectionId}/permissions`;
 
