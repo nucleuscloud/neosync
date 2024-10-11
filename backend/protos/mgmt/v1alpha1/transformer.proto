@@ -136,6 +136,8 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_USER_DEFINED = 44;
   TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT = 45;
   TRANSFORMER_SOURCE_GENERATE_COUNTRY = 46;
+  // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+  TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
 }
 
 enum TransformerDataType {
@@ -213,6 +215,51 @@ message TransformerConfig {
     TransformCharacterScramble transform_character_scramble_config = 41;
     GenerateJavascript generate_javascript_config = 42;
     GenerateCountry generate_country_config = 43;
+    // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+    TransformPiiText transform_pii_text_config = 44;
+  }
+}
+
+// NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+message TransformPiiText {
+  // Minimal detection score for determining PII. 0.0-1.0
+  float score_threshold = 1;
+  // The default anonmyization config used for all instances of detected PII.
+  PiiAnonymizer default_anonymizer = 2;
+  repeated string allow_list = 3;
+  repeated string deny_list = 4;
+}
+
+message PiiAnonymizer {
+  oneof config {
+    Replace replace = 1;
+    Redact redact = 2;
+    Mask mask = 3;
+    Hash hash = 4;
+  }
+
+  message Replace {
+    // The value to replace. If not provided, a template token of the anonymizer is used.
+    optional string value = 1;
+  }
+  message Redact {}
+  message Mask {
+    // Provide a character that will be used for the replacement.
+    optional string masking_char = 1;
+    // How many characters to mask.
+    optional int32 chars_to_mask = 2;
+    // Whether to mask the PII from start or end
+    optional bool from_end = 3;
+  }
+  message Hash {
+    optional HashType algo = 1;
+
+    enum HashType {
+      HASH_TYPE_UNSPECIFIED = 0;
+      HASH_TYPE_MD5 = 1;
+      HASH_TYPE_SHA256 = 2;
+      HASH_TYPE_SHA512 = 3;
+    }
   }
 }
 

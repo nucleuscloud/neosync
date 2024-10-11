@@ -8,6 +8,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	ee_transformers "github.com/nucleuscloud/neosync/internal/ee/transformers"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -629,6 +631,10 @@ var (
 )
 
 func init() {
+	if viper.GetBool("NEOSYNC_CLOUD") {
+		systemTransformers = append(systemTransformers, ee_transformers.Transformers...)
+	}
+
 	slices.SortFunc(systemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
 		return cmp.Compare(t1.Name, t2.Name)
 	})

@@ -66,6 +66,34 @@
           ]
         },
         {
+          "name": "HashType",
+          "longName": "PiiAnonymizer.Hash.HashType",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Hash.HashType",
+          "description": "",
+          "values": [
+            {
+              "name": "HASH_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "HASH_TYPE_MD5",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "HASH_TYPE_SHA256",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "HASH_TYPE_SHA512",
+              "number": "3",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "SupportedJobType",
           "longName": "SupportedJobType",
           "fullName": "mgmt.v1alpha1.SupportedJobType",
@@ -376,6 +404,11 @@
               "name": "TRANSFORMER_SOURCE_GENERATE_COUNTRY",
               "number": "46",
               "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT",
+              "number": "47",
+              "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text"
             }
           ]
         }
@@ -1360,6 +1393,173 @@
           "fields": []
         },
         {
+          "name": "PiiAnonymizer",
+          "longName": "PiiAnonymizer",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "replace",
+              "description": "",
+              "label": "",
+              "type": "Replace",
+              "longType": "PiiAnonymizer.Replace",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Replace",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "redact",
+              "description": "",
+              "label": "",
+              "type": "Redact",
+              "longType": "PiiAnonymizer.Redact",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Redact",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "mask",
+              "description": "",
+              "label": "",
+              "type": "Mask",
+              "longType": "PiiAnonymizer.Mask",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Mask",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "hash",
+              "description": "",
+              "label": "",
+              "type": "Hash",
+              "longType": "PiiAnonymizer.Hash",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Hash",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Hash",
+          "longName": "PiiAnonymizer.Hash",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Hash",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "algo",
+              "description": "",
+              "label": "optional",
+              "type": "HashType",
+              "longType": "PiiAnonymizer.Hash.HashType",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer.Hash.HashType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_algo",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Mask",
+          "longName": "PiiAnonymizer.Mask",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Mask",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "masking_char",
+              "description": "Provide a character that will be used for the replacement.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_masking_char",
+              "defaultValue": ""
+            },
+            {
+              "name": "chars_to_mask",
+              "description": "How many characters to mask.",
+              "label": "optional",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_chars_to_mask",
+              "defaultValue": ""
+            },
+            {
+              "name": "from_end",
+              "description": "Whether to mask the PII from start or end",
+              "label": "optional",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_from_end",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Redact",
+          "longName": "PiiAnonymizer.Redact",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Redact",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "Replace",
+          "longName": "PiiAnonymizer.Replace",
+          "fullName": "mgmt.v1alpha1.PiiAnonymizer.Replace",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "value",
+              "description": "The value to replace. If not provided, a template token of the anonymizer is used.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_value",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SystemTransformer",
           "longName": "SystemTransformer",
           "fullName": "mgmt.v1alpha1.SystemTransformer",
@@ -1784,6 +1984,66 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TransformPiiText",
+          "longName": "TransformPiiText",
+          "fullName": "mgmt.v1alpha1.TransformPiiText",
+          "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "score_threshold",
+              "description": "Minimal detection score for determining PII. 0.0-1.0",
+              "label": "",
+              "type": "float",
+              "longType": "float",
+              "fullType": "float",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "default_anonymizer",
+              "description": "The default anonmyization config used for all instances of detected PII.",
+              "label": "",
+              "type": "PiiAnonymizer",
+              "longType": "PiiAnonymizer",
+              "fullType": "mgmt.v1alpha1.PiiAnonymizer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "allow_list",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "deny_list",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2336,6 +2596,18 @@
               "type": "GenerateCountry",
               "longType": "GenerateCountry",
               "fullType": "mgmt.v1alpha1.GenerateCountry",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_pii_text_config",
+              "description": "NeosyncCloud/Enterprise only transformer for anonymizing PII Text",
+              "label": "",
+              "type": "TransformPiiText",
+              "longType": "TransformPiiText",
+              "fullType": "mgmt.v1alpha1.TransformPiiText",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
