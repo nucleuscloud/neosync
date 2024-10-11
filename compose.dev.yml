@@ -4,7 +4,7 @@ include:
   - path: ./compose/temporal/compose.yml
     env_file:
       - ./compose/temporal/.env
-  - path: ./compose/compose-db.yml
+  # - path: ./compose/compose-db.yml
   # - path: ./compose/compose-db-mysql.yml
   # - path: ./compose/compose-db-mongo.yml
   # - path: ./compose/compose-db-dynamo.yml
@@ -46,7 +46,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ['CMD', 'pg_isready']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,6 +79,8 @@ services:
       - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
       - DB_MIGRATIONS_TABLE_QUOTED=false
       - LOG_LEVEL=DEBUG
+      - OTEL_SDK_DISABLED=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://neosync-otel:4317
 
       - DB_LOG_LEVEL=ERROR
 

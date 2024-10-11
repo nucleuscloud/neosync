@@ -11,6 +11,9 @@ const (
 	TemporalWorkflowId = "temporalWorkflowId"
 	TemporalRunId      = "temporalRunId"
 
+	ApiRequestId   = "apiRequestId"
+	ApiRequestName = "apiRequestName"
+
 	TableSchemaLabel    = "tableSchema"
 	TableNameLabel      = "tableName"
 	JobTypeLabel        = "jobType"
