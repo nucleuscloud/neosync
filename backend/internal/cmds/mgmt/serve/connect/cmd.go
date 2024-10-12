@@ -482,7 +482,7 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{}, anonymizerMeter)
+	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{}, anonymizerMeter, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,

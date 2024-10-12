@@ -204,6 +204,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthdAnonymizationService := v1alpha_anonymizationservice.New(
 		&v1alpha_anonymizationservice.Config{},
+		nil,
+		unauthdUserService,
 	)
 
 	rootmux := http.NewServeMux()

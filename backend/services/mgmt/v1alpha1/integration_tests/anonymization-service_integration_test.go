@@ -44,9 +44,11 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 }`,
 	}
 
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 	resp, err := s.unauthdClients.anonymize.AnonymizeMany(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
+			AccountId:     accountId,
 			InputData:     jsonStrs,
 			HaltOnFailure: false,
 			DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
@@ -116,9 +118,11 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
   "sports": ["basketball", "golf", "swimming"]
 }`
 
+	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
 	resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+			AccountId: accountId,
 			InputData: jsonStr,
 			DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
 				N: &mgmtv1alpha1.TransformerConfig{

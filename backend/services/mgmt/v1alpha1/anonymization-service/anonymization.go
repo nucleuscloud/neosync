@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -15,10 +16,10 @@ import (
 )
 
 const (
-	inputMetricStr         = "input_received"
-	outputMetricStr        = "output_sent"
-	outputBatchCounterStr  = "output_batch_sent" // stream endpint only
-	outputErrorsCounterStr = "output_error"
+	inputMetricStr        = "input_received"
+	outputMetricStr       = "output_sent"
+	outputBatchCounterStr = "output_batch_sent"
+	outputErrorCounterStr = "output_error"
 )
 
 func (s *Service) AnonymizeMany(
@@ -40,13 +41,10 @@ func (s *Service) AnonymizeMany(
 		return nil, err
 	}
 
-	var outputBatchCounter, outputCounter metric.Int64Counter
+	var outputErrorCounter, outputCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
-		labels, err = getMetricLabels(ctx, "anonymizeMany", neosyncdb.UUIDString(*accountUuid))
-		if err != nil {
-			return nil, err
-		}
+		labels = getMetricLabels(ctx, "anonymizeMany", neosyncdb.UUIDString(*accountUuid))
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {
 			return nil, err
@@ -56,7 +54,7 @@ func (s *Service) AnonymizeMany(
 		if err != nil {
 			return nil, err
 		}
-		outputBatchCounter, err = s.meter.Int64Counter(outputBatchCounterStr)
+		outputErrorCounter, err = s.meter.Int64Counter(outputErrorCounterStr)
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +62,7 @@ func (s *Service) AnonymizeMany(
 
 	outputData, anonymizeErrors := anonymizer.AnonymizeJSONObjects(req.Msg.InputData)
 
-	if outputCounter != nil && outputBatchCounter != nil {
+	if outputCounter != nil {
 		anonymizedCounter := 0
 		for _, js := range outputData {
 			if js != "" {
@@ -72,6 +70,10 @@ func (s *Service) AnonymizeMany(
 			}
 		}
 		outputCounter.Add(ctx, int64(anonymizedCounter), metric.WithAttributes(labels...))
+	}
+
+	if outputErrorCounter != nil && len(anonymizeErrors) > 0 {
+		outputErrorCounter.Add(ctx, int64(len(anonymizeErrors)), metric.WithAttributes(labels...))
 	}
 
 	errors := []*mgmtv1alpha1.AnonymizeManyErrors{}
@@ -108,10 +110,7 @@ func (s *Service) AnonymizeSingle(
 	var outputCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
-		labels, err = getMetricLabels(ctx, "anonymizeSingle", neosyncdb.UUIDString(*accountUuid))
-		if err != nil {
-			return nil, err
-		}
+		labels = getMetricLabels(ctx, "anonymizeSingle", neosyncdb.UUIDString(*accountUuid))
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {
 			return nil, err
@@ -137,14 +136,17 @@ func (s *Service) AnonymizeSingle(
 	}), nil
 }
 
-func getMetricLabels(ctx context.Context, requestName string, accountId string) ([]attribute.KeyValue, error) {
-	traceId := getTraceID(ctx)
+func getMetricLabels(ctx context.Context, requestName, accountId string) []attribute.KeyValue {
+	requestId := getTraceID(ctx)
+	if requestId == "" {
+		requestId = uuid.NewString()
+	}
 	return []attribute.KeyValue{
 		attribute.String(metrics.AccountIdLabel, accountId),
-		attribute.String(metrics.ApiRequestId, traceId),
+		attribute.String(metrics.ApiRequestId, requestId),
 		attribute.String(metrics.ApiRequestName, requestName),
 		attribute.String(metrics.NeosyncDateLabel, time.Now().UTC().Format(metrics.NeosyncDateFormat)),
-	}, nil
+	}
 }
 
 func getTraceID(ctx context.Context) string {

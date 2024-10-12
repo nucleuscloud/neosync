@@ -14,6 +14,11 @@ func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pgtype.UUID, error) {
+	accountUuid, err := neosyncdb.ToUuid(accountId)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := s.useraccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
 	if err != nil {
 		return nil, err
@@ -22,23 +27,5 @@ func (s *Service) verifyUserInAccount(
 		return nil, nucleuserrors.NewForbidden("user in not in requested account")
 	}
 
-	accountUuid, err := neosyncdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
 	return &accountUuid, nil
-}
-
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.useraccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := neosyncdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
 }
