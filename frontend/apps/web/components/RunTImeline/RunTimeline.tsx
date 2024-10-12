@@ -654,24 +654,36 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
     }
   };
 
+  const formatTimeDifference = (diff: number): string => {
+    if (diff < 1000) return `+${diff}ms`;
+    if (diff < 60000) return `+${Math.floor(diff / 1000)}s`;
+    if (diff < 3600000) return `+${Math.floor(diff / 60000)}m`;
+    return `+${Math.floor(diff / 3600000)}h`;
+  };
+
   return (
-    <div className="flex flex-col h-[124px] p-2 border-t border-gray-200 dark:border-gray-700 items-center gap-2">
-      <div className="flex flex-col w-full py-2 text-sm">
-        {task.tasks.map((subtask) => (
-          <div
-            key={subtask.id}
-            className="flex flex-row items-center py-1 gap-2"
-          >
-            <div className="font-semibold">{getLabel(subtask.type)}:</div>
-            <Badge>{formatFullDate(subtask.eventTime)}</Badge>
-            {subtask.error && (
-              <div className="text-red-500 ml-2">
-                Error: {subtask.error.message}
-              </div>
-            )}
+    <div className="flex flex-col w-full h-[124px] p-2  text-sm border-t border-gray-200 dark:border-gray-700 gap-2">
+      {task.tasks.map((subtask, index) => (
+        <div key={subtask.id} className="flex flex-row items-center py-1 gap-2">
+          <div className="font-semibold w-[90px]">
+            {getLabel(subtask.type)}:
           </div>
-        ))}
-      </div>
+          <Badge>{formatFullDate(subtask.eventTime)}</Badge>
+          <div className="text-gray-500">
+            {index > 0
+              ? `+${formatTaskDuration(
+                  task.tasks[index - 1].eventTime,
+                  convertTimestampToDate(subtask.eventTime)
+                )}`
+              : '-'}
+          </div>
+          {subtask.error && (
+            <div className="text-red-500 ml-2">
+              Error: {subtask.error.message}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
