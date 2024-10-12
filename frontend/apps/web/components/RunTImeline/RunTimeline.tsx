@@ -298,9 +298,6 @@ function TimelineBar(props: TimelineBarProps) {
               isLastItem={isLastItem}
               isExpanded={isExpanded}
               task={task}
-              totalDuration={totalDuration}
-              timelineStart={timelineStart}
-              timelineEnd={endTime}
             />
           </div>
         </TooltipTrigger>
@@ -599,21 +596,10 @@ interface ExpandedRowProps {
   isExpanded: boolean;
   isLastItem: boolean;
   task: JobRunEvent;
-  timelineStart: Date;
-  totalDuration: number;
-  timelineEnd: Date;
 }
 
 function ExpandedRow(props: ExpandedRowProps): ReactElement {
-  const {
-    toggleExpandedRowBody,
-    isExpanded,
-    isLastItem,
-    task,
-    timelineStart,
-    totalDuration,
-    timelineEnd,
-  } = props;
+  const { toggleExpandedRowBody, isExpanded, isLastItem, task } = props;
 
   return (
     <React.Fragment key={task.id}>
@@ -636,12 +622,7 @@ function ExpandedRow(props: ExpandedRowProps): ReactElement {
             isLastItem && 'border-0'
           )}
         >
-          <ExpandedRowBody
-            task={task}
-            totalDuration={totalDuration}
-            timelineStart={timelineStart}
-            timelineEnd={timelineEnd}
-          />
+          <ExpandedRowBody task={task} />
         </div>
       )}
     </React.Fragment>
@@ -650,68 +631,10 @@ function ExpandedRow(props: ExpandedRowProps): ReactElement {
 
 interface ExpandedRowBodyProps {
   task: JobRunEvent;
-  timelineStart: Date;
-  totalDuration: number;
-  timelineEnd: Date;
 }
 
-// function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
-//   const { task } = props;
-//   const getLabel = (type: string) => {
-//     switch (type) {
-//       case 'ActivityTaskScheduled':
-//         return 'Scheduled';
-//       case 'ActivityTaskStarted':
-//         return 'Started';
-//       case 'ActivityTaskCompleted':
-//         return 'Completed';
-//       case 'ActivityTaskFailed':
-//         return 'Failed';
-//       case 'ActivityTaskTimedOut':
-//         return 'Timed Out';
-//       case 'ActivityTaskCancelRequested':
-//         return 'Cancel Requested';
-//       default:
-//         return type;
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col h-[124px] p-2 border-t border-gray-200 dark:border-gray-700 items-center gap-2">
-//       <div className="flex flex-col w-full py-2 text-sm">
-//         {task.tasks.map((subtask) => (
-//           <div
-//             key={subtask.id}
-//             className="flex flex-row  gap-2 items-center py-1"
-//           >
-//             <div className="font-semibold">{getLabel(subtask.type)}:</div>
-//             <Badge>{formatFullDate(subtask.eventTime)}</Badge>
-//             {subtask.error && (
-//               <div className="text-red-500 ml-2">
-//                 Error: {subtask.error.message}
-//               </div>
-//             )}
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
 function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
-  const { task, timelineStart, totalDuration } = props;
-  const timelineWidth = 500;
-  const timelineHeight = 100;
-  const labelHeight = 20;
-  const dotRadius = 4;
-
-  const getXPosition = (time: string) => {
-    const eventTime = new Date(time).getTime();
-    return (
-      ((eventTime - timelineStart.getTime()) / totalDuration) * timelineWidth
-    );
-  };
-
+  const { task } = props;
   const getLabel = (type: string) => {
     switch (type) {
       case 'ActivityTaskScheduled':
@@ -731,61 +654,24 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
     }
   };
 
-  const sortedTasks = [...task.tasks].sort(
-    (a, b) =>
-      convertTimestampToDate(a.eventTime).getTime() -
-      convertTimestampToDate(b.eventTime).getTime()
-  );
-
   return (
-    <div className="w-full overflow-x-auto h-[124px]">
-      <svg width={timelineWidth} height={timelineHeight}>
-        <line
-          x1="0"
-          y1={timelineHeight / 2}
-          x2={timelineWidth}
-          y2={timelineHeight / 2}
-          stroke="#ccc"
-          strokeWidth="2"
-        />
-        {task.tasks.map((subtask, index) => {
-          const x = getXPosition(String(subtask.eventTime));
-          const y = timelineHeight / 2;
-          const labelY =
-            index % 2 === 0
-              ? y - labelHeight - dotRadius
-              : y + labelHeight + dotRadius;
-
-          return (
-            <g key={subtask.id}>
-              <circle
-                cx={x}
-                cy={y}
-                r={dotRadius}
-                fill={subtask.error ? 'red' : 'blue'}
-              />
-              <line
-                x1={x}
-                y1={y}
-                x2={x}
-                y2={labelY}
-                stroke="#ccc"
-                strokeWidth="1"
-              />
-              <text
-                x={x}
-                y={labelY}
-                textAnchor="middle"
-                alignmentBaseline={index % 2 === 0 ? 'baseline' : 'hanging'}
-                fontSize="12"
-                fill="currentColor"
-              >
-                {getLabel(subtask.type)}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+    <div className="flex flex-col h-[124px] p-2 border-t border-gray-200 dark:border-gray-700 items-center gap-2">
+      <div className="flex flex-col w-full py-2 text-sm">
+        {task.tasks.map((subtask) => (
+          <div
+            key={subtask.id}
+            className="flex flex-row items-center py-1 gap-2"
+          >
+            <div className="font-semibold">{getLabel(subtask.type)}:</div>
+            <Badge>{formatFullDate(subtask.eventTime)}</Badge>
+            {subtask.error && (
+              <div className="text-red-500 ml-2">
+                Error: {subtask.error.message}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
