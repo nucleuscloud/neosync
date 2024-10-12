@@ -61,9 +61,12 @@ export default function RunTimeline(props: Props): ReactElement {
     let endTime = -Infinity;
 
     tasks.forEach((t) => {
+      const scheduled = t.tasks.find(
+        (st) => st.type == 'ActivityTaskScheduled'
+      )?.eventTime;
       startTime = Math.min(
         startTime,
-        convertTimestampToDate(t.startTime).getTime()
+        convertTimestampToDate(scheduled).getTime()
       );
 
       const errorDate = getCloseOrErrorOrCancelDate(t);
@@ -252,9 +255,14 @@ function TimelineBar(props: TimelineBarProps) {
     isExpanded,
     isLastItem,
   } = props;
+
+  const scheduled = task.tasks.find(
+    (st) => st.type == 'ActivityTaskScheduled'
+  )?.eventTime;
+
   const failedTask = task.tasks.find((item) => item.error);
   const left = getPositionPercentage(
-    convertTimestampToDate(task.startTime),
+    convertTimestampToDate(scheduled),
     timelineStart,
     totalDuration
   );
@@ -288,7 +296,7 @@ function TimelineBar(props: TimelineBarProps) {
                 onClick={() => toggleExpandedRowBody(String(task.id))}
               >
                 <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
-                  {formatTaskDuration(task.startTime, endTime)}
+                  {formatTaskDuration(scheduled, endTime)}
                 </span>
                 <SyncLabel task={task} />
               </div>
@@ -317,7 +325,7 @@ function TimelineBar(props: TimelineBarProps) {
           <div className="flex flex-row gap-2 items-center justify-between w-full">
             <strong>Start:</strong>{' '}
             <Badge variant="default" className="w-[180px]">
-              {formatFullDate(task.startTime)}
+              {formatFullDate(scheduled)}
             </Badge>
           </div>
           <div className="flex flex-row gap-2 items-center justify-between w-full">
