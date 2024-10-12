@@ -31,7 +31,6 @@ func (s *Service) AnonymizeMany(
 		return nil, err
 	}
 
-	// add account id to request
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
 		jsonanonymizer.WithTransformerMappings(req.Msg.TransformerMappings),
 		jsonanonymizer.WithDefaultTransformers(req.Msg.DefaultTransformers),
