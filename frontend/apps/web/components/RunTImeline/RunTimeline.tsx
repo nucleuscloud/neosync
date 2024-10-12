@@ -662,13 +662,6 @@ function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
     }
   };
 
-  const formatTimeDifference = (diff: number): string => {
-    if (diff < 1000) return `+${diff}ms`;
-    if (diff < 60000) return `+${Math.floor(diff / 1000)}s`;
-    if (diff < 3600000) return `+${Math.floor(diff / 60000)}m`;
-    return `+${Math.floor(diff / 3600000)}h`;
-  };
-
   return (
     <div className="flex flex-col w-full h-[124px] p-2  text-sm border-t border-gray-200 dark:border-gray-700 gap-2">
       {task.tasks.map((subtask, index) => (
