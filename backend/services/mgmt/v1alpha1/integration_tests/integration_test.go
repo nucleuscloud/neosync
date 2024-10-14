@@ -38,6 +38,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
@@ -202,8 +203,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		),
 	)
 
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+
 	unauthdAnonymizationService := v1alpha_anonymizationservice.New(
-		&v1alpha_anonymizationservice.Config{},
+		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: false},
+		presAnalyzeClient, presAnonClient,
 	)
 
 	rootmux := http.NewServeMux()

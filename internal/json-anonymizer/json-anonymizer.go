@@ -9,6 +9,7 @@ import (
 
 	"github.com/itchyny/gojq"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	transformer "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
 )
 
@@ -25,6 +26,12 @@ type JsonAnonymizer struct {
 	compiledQuery              *gojq.Code
 	haltOnFailure              bool
 	skipPaths                  map[string]struct{}
+	anonymizeConfig            *anonymizeConfig
+}
+
+type anonymizeConfig struct {
+	analyze   presidioapi.AnalyzeInterface
+	anonymize presidioapi.AnonymizeInterface
 }
 
 // Option is a functional option for configuring the Anonymizer
@@ -45,14 +52,14 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 
 	// Initialize transformerExecutors
 	var err error
-	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings)
+	a.transformerExecutors, err = initTransformerExecutors(a.transformerMappings, a.anonymizeConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize defaultTransformerExecutor if needed
 	if a.defaultTransformers != nil {
-		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers)
+		a.defaultTransformerExecutor, err = initDefaultTransformerExecutors(a.defaultTransformers, a.anonymizeConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -63,6 +70,18 @@ func NewAnonymizer(opts ...Option) (*JsonAnonymizer, error) {
 		return nil, err
 	}
 	return a, nil
+}
+
+// WithAnonymizeConfig sets the analyze and anonymize clients for use by the presidio transformers only if isEnabled is true
+func WithConditionalAnonymizeConfig(isEnabled bool, analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface) Option {
+	return func(ja *JsonAnonymizer) {
+		if isEnabled && analyze != nil && anonymize != nil {
+			ja.anonymizeConfig = &anonymizeConfig{
+				analyze:   analyze,
+				anonymize: anonymize,
+			}
+		}
+	}
 }
 
 // WithTransformerMappings sets the transformer mappings
@@ -304,11 +323,18 @@ func (a *JsonAnonymizer) AnonymizeJSONObject(jsonStr string) (string, error) {
 	return string(processedJSON), nil
 }
 
-func initTransformerExecutors(transformerMappings []*mgmtv1alpha1.TransformerMapping) ([]*transformer.TransformerExecutor, error) {
+func initTransformerExecutors(
+	transformerMappings []*mgmtv1alpha1.TransformerMapping,
+	anonymizeConfig *anonymizeConfig,
+) ([]*transformer.TransformerExecutor, error) {
 	executors := []*transformer.TransformerExecutor{}
+	execOpts := []transformer.TransformerExecutorOption{}
+	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize))
+	}
 
 	for _, mapping := range transformerMappings {
-		executor, err := transformer.InitializeTransformerByConfigType(mapping.GetTransformer())
+		executor, err := transformer.InitializeTransformerByConfigType(mapping.GetTransformer(), execOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize transformer for field '%s': %v", mapping.GetExpression(), err)
 		}
@@ -324,23 +350,31 @@ type DefaultExecutors struct {
 	Boolean *transformer.TransformerExecutor
 }
 
-func initDefaultTransformerExecutors(defaultTransformer *mgmtv1alpha1.DefaultTransformersConfig) (*DefaultExecutors, error) {
+func initDefaultTransformerExecutors(
+	defaultTransformer *mgmtv1alpha1.DefaultTransformersConfig,
+	anonymizeConfig *anonymizeConfig,
+) (*DefaultExecutors, error) {
+	execOpts := []transformer.TransformerExecutorOption{}
+	if anonymizeConfig != nil && anonymizeConfig.analyze != nil && anonymizeConfig.anonymize != nil {
+		execOpts = append(execOpts, transformer.WithTransformPiiTextConfig(anonymizeConfig.analyze, anonymizeConfig.anonymize))
+	}
+
 	var stringExecutor, numberExecutor, booleanExecutor *transformer.TransformerExecutor
 	var err error
 	if defaultTransformer.S != nil {
-		stringExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.S)
+		stringExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.S, execOpts...)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if defaultTransformer.N != nil {
-		numberExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.N)
+		numberExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.N, execOpts...)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if defaultTransformer.Boolean != nil {
-		booleanExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.Boolean)
+		booleanExecutor, err = transformer.InitializeTransformerByConfigType(defaultTransformer.Boolean, execOpts...)
 		if err != nil {
 			return nil, err
 		}

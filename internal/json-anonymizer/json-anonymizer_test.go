@@ -226,7 +226,7 @@ func Test_InitTransformerExecutors(t *testing.T) {
 				},
 			},
 		}
-		executors, err := initTransformerExecutors(mappings)
+		executors, err := initTransformerExecutors(mappings, nil)
 		require.NoError(t, err)
 		require.Len(t, executors, 1)
 	})
@@ -238,7 +238,7 @@ func Test_InitTransformerExecutors(t *testing.T) {
 				Transformer: nil,
 			},
 		}
-		_, err := initTransformerExecutors(mappings)
+		_, err := initTransformerExecutors(mappings, nil)
 		require.Error(t, err)
 	})
 }
@@ -260,7 +260,7 @@ func Test_InitDefaultTransformerExecutors(t *testing.T) {
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 			},
 		}
-		executors, err := initDefaultTransformerExecutors(defaults)
+		executors, err := initDefaultTransformerExecutors(defaults, nil)
 		require.NoError(t, err)
 		require.NotNil(t, executors.S)
 		require.NotNil(t, executors.N)
@@ -275,7 +275,7 @@ func Test_InitDefaultTransformerExecutors(t *testing.T) {
 				},
 			},
 		}
-		executors, err := initDefaultTransformerExecutors(defaults)
+		executors, err := initDefaultTransformerExecutors(defaults, nil)
 		require.NoError(t, err)
 		require.NotNil(t, executors.S)
 		require.Nil(t, executors.N)

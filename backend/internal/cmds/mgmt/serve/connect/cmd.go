@@ -20,6 +20,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -58,6 +59,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
 
@@ -463,7 +465,30 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{})
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+	if getIsNeosyncCloud() {
+		analyzeClient, ok, err := getPresidioAnalyzeClient()
+		if err != nil {
+			return fmt.Errorf("unable to initialize presidio analyze client: %w", err)
+		}
+		if ok {
+			slogger.Debug("presidio analyze client is enabled")
+			presAnalyzeClient = analyzeClient
+		}
+		anonClient, ok, err := getPresidioAnonymizeClient()
+		if err != nil {
+			return fmt.Errorf("unable to initialize presidio anonymize client: %w", err)
+		}
+		if ok {
+			slogger.Debug("presidio anonymize client is enabled")
+			presAnonClient = anonClient
+		}
+	}
+
+	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
+		IsPresidioEnabled: getIsNeosyncCloud(),
+	}, presAnalyzeClient, presAnonClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
@@ -992,4 +1017,55 @@ func getStripePriceLookupMap() (billing.PriceQuantity, error) {
 
 func getAppBaseUrl() string {
 	return viper.GetString("APP_BASEURL")
+}
+
+func getPresidioAnalyzeClient() (*presidioapi.ClientWithResponses, bool, error) {
+	endpoint := getPresidioAnalyzeEndpoint()
+	if endpoint == "" {
+		return nil, false, nil
+	}
+	return getPresidioClient(endpoint)
+}
+
+func getPresidioAnonymizeClient() (*presidioapi.ClientWithResponses, bool, error) {
+	endpoint := getPresidioAnonymizeEndpoint()
+	if endpoint == "" {
+		return nil, false, nil
+	}
+	return getPresidioClient(endpoint)
+}
+
+func getPresidioClient(endpoint string) (*presidioapi.ClientWithResponses, bool, error) {
+	httpclient := http_client.WithHeaders(http.DefaultClient, getPresidioHttpHeaders())
+
+	client, err := presidioapi.NewClientWithResponses(endpoint, presidioapi.WithHTTPClient(httpclient))
+	if err != nil {
+		return nil, false, err
+	}
+
+	return client, true, nil
+}
+
+func getPresidioAnalyzeEndpoint() string {
+	return viper.GetString("PRESIDIO_ANALYZER_URL")
+}
+func getPresidioAnonymizeEndpoint() string {
+	return viper.GetString("PRESIDIO_ANONYMIZER_URL")
+}
+
+func getPresidioHttpHeaders() map[string]string {
+	output := map[string]string{}
+	authtoken := getPresidioAuthTokenHeaderValue()
+	if authtoken != nil && *authtoken != "" {
+		output["Authorization"] = *authtoken
+	}
+	return output
+}
+
+func getPresidioAuthTokenHeaderValue() *string {
+	val := viper.GetString("PRESIDIO_HEADER_AUTH_TOKEN")
+	if val == "" {
+		return nil
+	}
+	return &val
 }

@@ -2,75 +2,13 @@ package transformers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
-	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:transform:transformPiiText
-
-func NewBloblTransformPiiText(
-	env *bloblang.Environment,
-	analyzeclient presidioapi.AnalyzeInterface,
-	anonymizeclient presidioapi.AnonymizeInterface,
-	config *mgmtv1alpha1.TransformPiiText,
-) error {
-	spec := bloblang.NewPluginSpec().
-		Description("Analyzes and Anonymizes PII in text.").
-		Param(bloblang.NewStringParam("value").Optional())
-
-	// hc := http.DefaultClient
-	// if authToken != nil {
-	// 	hc = http_client.WithAuth(http.DefaultClient, *authToken)
-	// }
-
-	// analyzeclient, err := presidioapi.NewClientWithResponses(analyzeUrl, presidioapi.WithHTTPClient(hc))
-	// if err != nil {
-	// 	return err
-	// }
-	// anonymizeclient, err := presidioapi.NewClientWithResponses(anonymizeUrl, presidioapi.WithHTTPClient(hc))
-	// if err != nil {
-	// 	return err
-	// }
-
-	return env.RegisterFunctionV2("transform_pii_text", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		value, err := args.GetOptionalString("value")
-		if err != nil {
-			return nil, err
-		}
-
-		return func() (any, error) {
-			if value == nil || *value == "" {
-				return value, nil
-			}
-
-			output, err := transformPiiText(context.Background(), analyzeclient, anonymizeclient, config, *value)
-			if err != nil {
-				return nil, fmt.Errorf("unable to run transform_pii_text: %w", err)
-			}
-			return output, nil
-		}, nil
-	})
-}
-
-func (t *TransformPiiText) Transform(value, opts any) (any, error) {
-	parsedOpts, ok := opts.(*TransformPiiTextOpts)
-	if !ok {
-		return nil, fmt.Errorf("invalid parsed opts for TransformPiiText.Transform: %T", opts)
-	}
-	_ = parsedOpts
-
-	parsedVal, ok := value.(string)
-	if !ok {
-		return nil, errors.New("valid is not string")
-	}
-	return transformPiiText(context.Background(), nil, nil, &mgmtv1alpha1.TransformPiiText{}, parsedVal)
-}
-
-func transformPiiText(
+func TransformPiiText(
 	ctx context.Context,
 	analyzeClient presidioapi.AnalyzeInterface,
 	anonymizeClient presidioapi.AnonymizeInterface,
@@ -81,11 +19,11 @@ func transformPiiText(
 		return value, nil
 	}
 	threshold := float64(config.GetScoreThreshold())
-	// todo: allow/deny lists
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
 		Text:           value,
 		Language:       "en",
 		ScoreThreshold: &threshold,
+		// AdHocRecognizers: &[]presidioapi.PatternRecognizer{{}}, // todo: implement allow and deny lists
 	})
 	if err != nil {
 		return "", fmt.Errorf("unable to analyze input: %w", err)
