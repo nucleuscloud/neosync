@@ -68,7 +68,7 @@ type MongoConfig struct {
 }
 
 func NewEnvironment(logger *slog.Logger, opts ...Option) (*service.Environment, error) {
-	return NewWithEnvironment(service.NewEnvironment(), logger)
+	return NewWithEnvironment(service.NewEnvironment(), logger, opts...)
 }
 
 func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...Option) (*service.Environment, error) {

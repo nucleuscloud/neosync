@@ -19,7 +19,6 @@ func TransformPiiText(
 		return value, nil
 	}
 	threshold := float64(config.GetScoreThreshold())
-	fmt.Println(analyzeClient)
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
 		Text:           value,
 		Language:       "en",
