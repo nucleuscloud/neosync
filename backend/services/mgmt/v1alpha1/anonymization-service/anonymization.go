@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	inputMetricStr        = "input_received_total"
+	inputMetricStr        = "input_received"
 	outputMetricStr       = "output_sent"
 	outputBatchCounterStr = "output_batch_sent"
-	outputErrorCounterStr = "output_error_total"
+	outputErrorCounterStr = "output_error"
 )
 
 func (s *Service) AnonymizeMany(
@@ -30,6 +30,19 @@ func (s *Service) AnonymizeMany(
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
+	}
+
+	requestedCount := uint64(len(req.Msg.InputData))
+	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		AccountId:            neosyncdb.UUIDString(*accountUuid),
+		RequestedRecordCount: &requestedCount,
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
+	}
+
+	if !resp.Msg.IsValid {
+		return nil, fmt.Errorf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason)
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
@@ -44,7 +57,6 @@ func (s *Service) AnonymizeMany(
 	var outputErrorCounter, outputCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
-		fmt.Println("HERE")
 		labels = getMetricLabels(ctx, "anonymizeMany", neosyncdb.UUIDString(*accountUuid))
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {
@@ -98,6 +110,19 @@ func (s *Service) AnonymizeSingle(
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
+	}
+
+	requestedCount := uint64(len(req.Msg.InputData))
+	resp, err := s.useraccountService.IsAccountStatusValid(ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+		AccountId:            neosyncdb.UUIDString(*accountUuid),
+		RequestedRecordCount: &requestedCount,
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve account status: %w", err)
+	}
+
+	if !resp.Msg.IsValid {
+		return nil, fmt.Errorf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason)
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
