@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	jsonanonymizer "github.com/nucleuscloud/neosync/internal/json-anonymizer"
@@ -19,7 +20,6 @@ import (
 const (
 	inputMetricStr        = "input_received"
 	outputMetricStr       = "output_sent"
-	outputBatchCounterStr = "output_batch_sent"
 	outputErrorCounterStr = "output_error"
 )
 
@@ -42,7 +42,7 @@ func (s *Service) AnonymizeMany(
 	}
 
 	if !resp.Msg.IsValid {
-		return nil, fmt.Errorf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason)
+		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason))
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
@@ -122,7 +122,7 @@ func (s *Service) AnonymizeSingle(
 	}
 
 	if !resp.Msg.IsValid {
-		return nil, fmt.Errorf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason)
+		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("unable to anonymize due to account in invalid state. Reason: %q", *resp.Msg.Reason))
 	}
 
 	anonymizer, err := jsonanonymizer.NewAnonymizer(
@@ -133,7 +133,7 @@ func (s *Service) AnonymizeSingle(
 		return nil, err
 	}
 
-	var outputCounter metric.Int64Counter
+	var outputCounter, outputErrorCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
 		labels = getMetricLabels(ctx, "anonymizeSingle", neosyncdb.UUIDString(*accountUuid))
@@ -146,10 +146,15 @@ func (s *Service) AnonymizeSingle(
 		if err != nil {
 			return nil, err
 		}
+		outputErrorCounter, err = s.meter.Int64Counter(outputErrorCounterStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	outputData, err := anonymizer.AnonymizeJSONObject(req.Msg.InputData)
 	if err != nil {
+		outputErrorCounter.Add(ctx, int64(1), metric.WithAttributes(labels...))
 		return nil, err
 	}
 
