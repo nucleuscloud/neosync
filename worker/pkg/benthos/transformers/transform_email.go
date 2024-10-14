@@ -142,15 +142,18 @@ func (t *TransformEmail) Transform(value, opts any) (any, error) {
 
 	excludedDomains := []string{}
 	if parsedOpts.excludedDomains != nil {
-		exDomains, ok := parsedOpts.excludedDomains.([]any)
-		if !ok {
-			return nil, errors.New("excludedDomains is not a slice")
+		switch v := parsedOpts.excludedDomains.(type) {
+		case []any:
+			exDomainsStrs, err := fromAnyToStringSlice(excludedDomains)
+			if err != nil {
+				return nil, errors.New("excludedDomains is not a []string")
+			}
+			excludedDomains = exDomainsStrs
+		case []string:
+			excludedDomains = v
+		default:
+			return nil, fmt.Errorf("excludedDomains is of type %T, not []any or []string", v)
 		}
-		exDomainsStrs, err := fromAnyToStringSlice(exDomains)
-		if err != nil {
-			return nil, errors.New("excludedDomains is not a []string")
-		}
-		excludedDomains = exDomainsStrs
 	}
 
 	return transformEmail(parsedOpts.randomizer, valueStr, transformeEmailOptions{
