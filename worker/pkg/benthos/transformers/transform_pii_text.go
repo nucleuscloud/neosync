@@ -1,0 +1,150 @@
+package transformers
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
+	"github.com/warpstreamlabs/bento/public/bloblang"
+)
+
+// +neosyncTransformerBuilder:transform:transformPiiText
+
+func NewTransformPiiText(
+	env *bloblang.Environment,
+	analyzeUrl, anonymizeUrl string, authToken *string,
+	config *mgmtv1alpha1.TransformPiiText,
+) error {
+	spec := bloblang.NewPluginSpec().
+		Description("Analyzes and Anonymizes PII in text.").
+		Param(bloblang.NewStringParam("value").Optional())
+
+	hc := http.DefaultClient
+	if authToken != nil {
+		hc = http_client.WithAuth(http.DefaultClient, *authToken)
+	}
+
+	analyzeclient, err := presidioapi.NewClientWithResponses(analyzeUrl, presidioapi.WithHTTPClient(hc))
+	if err != nil {
+		return err
+	}
+	anonymizeclient, err := presidioapi.NewClientWithResponses(anonymizeUrl, presidioapi.WithHTTPClient(hc))
+	if err != nil {
+		return err
+	}
+
+	return env.RegisterFunctionV2("transform_pii_text", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+		value, err := args.GetOptionalString("value")
+		if err != nil {
+			return nil, err
+		}
+
+		return func() (any, error) {
+			if value == nil || *value == "" {
+				return value, nil
+			}
+
+			output, err := transformPiiText(context.Background(), analyzeclient, anonymizeclient, config, *value)
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_pii_text: %w", err)
+			}
+			return output, nil
+		}, nil
+	})
+}
+
+func transformPiiText(
+	ctx context.Context,
+	analyzeClient presidioapi.AnalyzeInterface,
+	anonymizeClient presidioapi.AnonymizeInterface,
+	config *mgmtv1alpha1.TransformPiiText,
+	value string,
+) (string, error) {
+	if value == "" {
+		return value, nil
+	}
+	threshold := float64(config.GetScoreThreshold())
+	// todo: allow/deny lists
+	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
+		Text:           value,
+		Language:       "en",
+		ScoreThreshold: &threshold,
+	})
+	if err != nil {
+		return "", fmt.Errorf("unable to analyze input: %w", err)
+	}
+	if analyzeResp.JSON200 == nil {
+		return "", fmt.Errorf("received non-200 response from analyzer: %s %d %s", analyzeResp.Status(), analyzeResp.StatusCode(), string(analyzeResp.Body))
+	}
+
+	defaultAnon, err := getDefaultAnonymizer(config.GetDefaultAnonymizer())
+	if err != nil {
+		return "", err
+	}
+	anonResp, err := anonymizeClient.PostAnonymizeWithResponse(ctx, presidioapi.AnonymizeRequest{
+		AnalyzerResults: presidioapi.ToAnonymizeRecognizerResults(*analyzeResp.JSON200),
+		Text:            value,
+		Anonymizers: &map[string]presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{
+			"DEFAULT": *defaultAnon,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("unable to anonymize input: %w", err)
+	}
+	err = handleAnonRespErr(anonResp)
+	if err != nil {
+		return "", err
+	}
+	return *anonResp.JSON200.Text, nil
+}
+
+func getDefaultAnonymizer(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
+	ap := &presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties{}
+	switch cfg := dto.GetConfig().(type) {
+	case *mgmtv1alpha1.PiiAnonymizer_Redact_:
+		err := ap.FromRedact(presidioapi.Redact{Type: "redact"})
+		if err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.PiiAnonymizer_Replace_:
+		err := ap.FromReplace(presidioapi.Replace{Type: "replace", NewValue: cfg.Replace.GetValue()})
+		if err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.PiiAnonymizer_Hash_:
+		err := ap.FromHash(presidioapi.Hash{Type: "hash", HashType: nil}) // todo
+		if err != nil {
+			return nil, err
+		}
+	case *mgmtv1alpha1.PiiAnonymizer_Mask_:
+		err := ap.FromMask(presidioapi.Mask{Type: "mask"}) // todo
+		if err != nil {
+			return nil, err
+		}
+	default:
+		err := ap.FromReplace(presidioapi.Replace{Type: "replace", NewValue: "<REDACTED>"})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ap, nil
+}
+
+func handleAnonRespErr(resp *presidioapi.PostAnonymizeResponse) error {
+	if resp == nil {
+		return fmt.Errorf("resp was nil")
+	}
+	if resp.JSON400 != nil {
+		return fmt.Errorf(*resp.JSON400.Error)
+	}
+	if resp.JSON422 != nil {
+		return fmt.Errorf(*resp.JSON422.Error)
+	}
+	if resp.JSON200 == nil {
+		return fmt.Errorf("received non-200 response from anonymizer: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
+	}
+	return nil
+}

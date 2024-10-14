@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/gcp"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 
@@ -271,6 +272,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			Provider: newMongoPoolProvider(getMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		},
 		StopChannel: stopActivityChan,
+		BlobEnv:     bloblang.NewEnvironment(),
 	}, slogger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)

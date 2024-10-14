@@ -12,6 +12,7 @@ import (
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/warpstreamlabs/bento/public/bloblang"
 	"github.com/warpstreamlabs/bento/public/service"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -24,6 +25,8 @@ type RegisterConfig struct {
 	MongoConfig *MongoConfig // nil to disable
 
 	StopChannel chan<- error
+
+	BlobEnv *bloblang.Environment
 }
 
 type SqlConfig struct {
@@ -111,6 +114,10 @@ func NewWithEnvironment(env *service.Environment, config *RegisterConfig, logger
 	err = neosync_benthos_defaulttransform.ReisterDefaultTransformerProcessor(env)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register default mapping processor to benthos instance: %w", err)
+	}
+
+	if config.BlobEnv != nil {
+		env.UseBloblangEnvironment(config.BlobEnv)
 	}
 
 	return env, nil

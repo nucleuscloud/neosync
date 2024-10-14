@@ -1,20 +1,32 @@
 package http_client
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 )
 
 // Returns an http client that includes an auth header if the token is not empty or nil
-func NewWithAuth(token *string) *http.Client {
+func NewWithBearerAuth(token *string) *http.Client {
 	if token == nil || *token == "" {
 		return http.DefaultClient
 	}
-	return NewWithHeaders(GetAuthHeaders(token))
+	return NewWithHeaders(GetBearerAuthHeaders(token))
 }
 
-func WithAuth(client *http.Client, token *string) *http.Client {
-	return WithHeaders(client, GetAuthHeaders(token))
+// Creates an Authorization Bearer Auth header on the http client
+func WithBearerAuth(client *http.Client, token *string) *http.Client {
+	return WithHeaders(client, GetBearerAuthHeaders(token))
+}
+
+// Creates an Authorization Basic Auth header on the http Client
+func WithBasicAuth(client *http.Client, username, password string) *http.Client {
+	return WithHeaders(client, GetBasicAuthHeaders(username, password))
+}
+
+// Treats value as the opaque value for the Authorization header
+func WithAuth(client *http.Client, value string) *http.Client {
+	return WithHeaders(client, GetAuthHeaders(value))
 }
 
 // Returns a new http client that will send headers along with the request
@@ -53,11 +65,19 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.Transport.RoundTrip(req)
 }
 
-func GetAuthHeaders(token *string) map[string]string {
+func GetBearerAuthHeaders(token *string) map[string]string {
 	if token == nil || *token == "" {
 		return map[string]string{}
 	}
-	return map[string]string{"Authorization": fmt.Sprintf("Bearer %s", *token)}
+	return GetAuthHeaders(fmt.Sprintf("Bearer %s", *token))
+}
+
+func GetBasicAuthHeaders(username, password string) map[string]string {
+	return GetAuthHeaders(fmt.Sprintf("Basic %s", getBasicAuthValue(username, password)))
+}
+
+func GetAuthHeaders(value string) map[string]string {
+	return map[string]string{"Authorization": value}
 }
 
 func MergeMaps(maps ...map[string]string) map[string]string {
@@ -70,4 +90,9 @@ func MergeMaps(maps ...map[string]string) map[string]string {
 	}
 
 	return output
+}
+
+func getBasicAuthValue(username, password string) string {
+	auth := fmt.Sprintf("%s:%s", username, password)
+	return base64.StdEncoding.EncodeToString([]byte(auth))
 }

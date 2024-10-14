@@ -61,7 +61,7 @@ type neosyncCloudClients struct {
 }
 
 func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
 type authdClients struct {
@@ -69,7 +69,7 @@ type authdClients struct {
 }
 
 func (s *authdClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
 type mocks struct {
