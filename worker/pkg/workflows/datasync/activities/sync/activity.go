@@ -262,18 +262,19 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	benthosenv, err := benthos_environment.New(&benthos_environment.RegisterConfig{
-		Meter: a.meter,
-		SqlConfig: &benthos_environment.SqlConfig{
+	benenv, err := benthos_environment.NewEnvironment(
+		slogger,
+		benthos_environment.WithMeter(a.meter),
+		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
 			Provider: newSqlPoolProvider(getSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 			IsRetry:  isRetry,
-		},
-		MongoConfig: &benthos_environment.MongoConfig{
+		}),
+		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
 			Provider: newMongoPoolProvider(getMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
-		},
-		StopChannel: stopActivityChan,
-		BlobEnv:     bloblang.NewEnvironment(),
-	}, slogger)
+		}),
+		benthos_environment.WithStopChannel(stopActivityChan),
+		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to instantiate benthos environment: %w", err)
 	}
@@ -284,7 +285,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	envKeyMap[metrics.NeosyncDateEnvKey] = time.Now().UTC().Format(metrics.NeosyncDateFormat)
 
 	streamBuilderMu.Lock()
-	streambldr := benthosenv.NewStreamBuilder()
+	streambldr := benenv.NewStreamBuilder()
 	// would ideally use the activity logger here but can't convert it into a slog.
 	streambldr.SetLogger(slogger.With(
 		"benthos", "true",

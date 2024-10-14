@@ -14,7 +14,7 @@ func Test_TransformPiiText(t *testing.T) {
 	env := bloblang.NewEmptyEnvironment()
 	mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
 	mockanon := presidioapi.NewMockAnonymizeInterface(t)
-	err := NewTransformPiiText(env, mockanalyze, mockanon, &mgmtv1alpha1.TransformPiiText{})
+	err := NewBloblTransformPiiText(env, mockanalyze, mockanon, &mgmtv1alpha1.TransformPiiText{})
 	require.NoError(t, err)
 
 	mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).

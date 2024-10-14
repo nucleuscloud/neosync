@@ -578,6 +578,21 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			},
 		}, nil
 
+	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
+		config := transformerConfig.GetTransformPiiTextConfig()
+		_ = config
+		opts, err := NewTransformPiiTextOpts()
+		if err != nil {
+			return nil, err
+		}
+		transform := NewTransformPiiText().Transform
+		return &TransformerExecutor{
+			Opts: opts,
+			Mutate: func(value, opts any) (any, error) {
+				return transform(value, opts)
+			},
+		}, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
 	}

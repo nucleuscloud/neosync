@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -11,7 +12,7 @@ import (
 
 // +neosyncTransformerBuilder:transform:transformPiiText
 
-func NewTransformPiiText(
+func NewBloblTransformPiiText(
 	env *bloblang.Environment,
 	analyzeclient presidioapi.AnalyzeInterface,
 	anonymizeclient presidioapi.AnonymizeInterface,
@@ -53,6 +54,20 @@ func NewTransformPiiText(
 			return output, nil
 		}, nil
 	})
+}
+
+func (t *TransformPiiText) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformPiiTextOpts)
+	if !ok {
+		return nil, fmt.Errorf("invalid parsed opts for TransformPiiText.Transform: %T", opts)
+	}
+	_ = parsedOpts
+
+	parsedVal, ok := value.(string)
+	if !ok {
+		return nil, errors.New("valid is not string")
+	}
+	return transformPiiText(context.Background(), nil, nil, &mgmtv1alpha1.TransformPiiText{}, parsedVal)
 }
 
 func transformPiiText(
