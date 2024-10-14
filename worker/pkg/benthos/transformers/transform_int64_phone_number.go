@@ -88,6 +88,10 @@ func transformInt64PhoneNumber(randomizer rng.Rand, value any, preserveLength bo
 		return nil, err
 	}
 
+	if number == 0 {
+		return nil, nil
+	}
+
 	if preserveLength {
 		res, err := generateIntPhoneNumberPreserveLength(randomizer, number)
 		if err != nil {
