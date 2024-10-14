@@ -2,6 +2,7 @@ package v1alpha_anonymizationservice
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -16,10 +17,10 @@ import (
 )
 
 const (
-	inputMetricStr        = "input_received"
+	inputMetricStr        = "input_received_total"
 	outputMetricStr       = "output_sent"
 	outputBatchCounterStr = "output_batch_sent"
-	outputErrorCounterStr = "output_error"
+	outputErrorCounterStr = "output_error_total"
 )
 
 func (s *Service) AnonymizeMany(
@@ -43,6 +44,7 @@ func (s *Service) AnonymizeMany(
 	var outputErrorCounter, outputCounter metric.Int64Counter
 	var labels []attribute.KeyValue
 	if s.meter != nil {
+		fmt.Println("HERE")
 		labels = getMetricLabels(ctx, "anonymizeMany", neosyncdb.UUIDString(*accountUuid))
 		counter, err := s.meter.Int64Counter(inputMetricStr)
 		if err != nil {

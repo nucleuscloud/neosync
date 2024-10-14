@@ -170,7 +170,7 @@ func serve(ctx context.Context) error {
 
 	var anonymizerMeter metric.Meter
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
-	if otelconfig.IsEnabled {
+	if true {
 		slogger.Debug("otel is enabled")
 		tmPropagator := neosyncotel.NewDefaultPropagator()
 		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
@@ -200,7 +200,7 @@ func serve(ctx context.Context) error {
 			Exporter:   otelconfig.MeterExporter,
 			AppVersion: otelconfig.ServiceVersion,
 			Opts: neosyncotel.MeterExporterOpts{
-				Otlp:    []otlpmetricgrpc.Option{neosyncotel.WithDefaultDeltaTemporalitySelector()},
+				Otlp:    []otlpmetricgrpc.Option{neosyncotel.GetBenthosMetricTemporalityOption()},
 				Console: []stdoutmetric.Option{stdoutmetric.WithPrettyPrint()},
 			},
 		})
