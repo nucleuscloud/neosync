@@ -226,8 +226,6 @@ message TransformPiiText {
   float score_threshold = 1;
   // The default anonmyization config used for all instances of detected PII.
   PiiAnonymizer default_anonymizer = 2;
-  repeated string allow_list = 3;
-  repeated string deny_list = 4;
 }
 
 message PiiAnonymizer {
