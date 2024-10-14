@@ -59,7 +59,7 @@ func NewGenerateFloat64Opts(
 func (t *GenerateFloat64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateFloat64",
-		Description: "Generates a random float64 value.",
+		Description: "Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.",
 		Example: "",
 	}, nil
 }

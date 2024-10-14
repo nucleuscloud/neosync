@@ -42,7 +42,7 @@ func NewTransformInt64PhoneNumberOpts(
 func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64PhoneNumber",
-		Description: "Transforms an existing phone number that is typed as an integer",
+		Description: "Anonymizes and transforms an existing int64 phone number.",
 		Example: "",
 	}, nil
 }

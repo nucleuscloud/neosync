@@ -39,7 +39,7 @@ func NewGenerateUnixTimestampOpts(
 func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateUnixTimestamp",
-		Description: "Randomly generates a Unix timestamp.",
+		Description: "Randomly generates a Unix timestamp that is in the past.",
 		Example: "",
 	}, nil
 }

@@ -45,7 +45,7 @@ func NewTransformInt64Opts(
 func (t *TransformInt64) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformInt64",
-		Description: "Transforms an existing integer value.",
+		Description: "Anonymizes and transforms an existing int64 value.",
 		Example: "",
 	}, nil
 }

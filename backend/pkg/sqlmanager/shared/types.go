@@ -14,6 +14,7 @@ type DatabaseSchemaRow struct {
 	ColumnName             string
 	DataType               string
 	ColumnDefault          string
+	ColumnDefaultType      *string
 	IsNullable             string
 	CharacterMaximumLength int
 	NumericPrecision       int

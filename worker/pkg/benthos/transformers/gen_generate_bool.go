@@ -39,7 +39,7 @@ func NewGenerateBoolOpts(
 func (t *GenerateBool) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "generateBool",
-		Description: "Generates a boolean value at random.",
+		Description: "Generates a random boolean value.",
 		Example: "",
 	}, nil
 }

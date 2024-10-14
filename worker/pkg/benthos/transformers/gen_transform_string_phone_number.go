@@ -45,7 +45,7 @@ func NewTransformStringPhoneNumberOpts(
 func (t *TransformStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 	return &TemplateData{
 		Name: "transformStringPhoneNumber",
-		Description: "Transforms an existing phone number that is typed as a string.",
+		Description: "Anonymizes and transforms an existing phone number that is typed as a string.",
 		Example: "",
 	}, nil
 }
