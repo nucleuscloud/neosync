@@ -1036,7 +1036,7 @@ func getPresidioAnonymizeClient() (*presidioapi.ClientWithResponses, bool, error
 }
 
 func getPresidioClient(endpoint string) (*presidioapi.ClientWithResponses, bool, error) {
-	httpclient := http_client.WithHeaders(http.DefaultClient, getPresidioHttpHeaders())
+	httpclient := http_client.WithHeaders(&http.Client{}, getPresidioHttpHeaders())
 
 	client, err := presidioapi.NewClientWithResponses(endpoint, presidioapi.WithHTTPClient(httpclient))
 	if err != nil {

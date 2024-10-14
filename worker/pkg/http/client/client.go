@@ -60,7 +60,7 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.Header = http.Header{}
 	}
 	for key, value := range t.Headers {
-		req.Header.Add(key, value)
+		req.Header.Set(key, value)
 	}
 	return t.Transport.RoundTrip(req)
 }

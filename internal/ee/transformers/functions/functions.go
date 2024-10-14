@@ -19,6 +19,7 @@ func TransformPiiText(
 		return value, nil
 	}
 	threshold := float64(config.GetScoreThreshold())
+	fmt.Println(analyzeClient)
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
 		Text:           value,
 		Language:       "en",
@@ -28,6 +29,7 @@ func TransformPiiText(
 	if err != nil {
 		return "", fmt.Errorf("unable to analyze input: %w", err)
 	}
+
 	if analyzeResp.JSON200 == nil {
 		return "", fmt.Errorf("received non-200 response from analyzer: %s %d %s", analyzeResp.Status(), analyzeResp.StatusCode(), string(analyzeResp.Body))
 	}
