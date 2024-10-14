@@ -12,7 +12,7 @@ import (
 
 func Test_WithAuth(t *testing.T) {
 	client := &http.Client{}
-	client = WithAuth(client, nil)
+	client = WithBearerAuth(client, nil)
 	require.NotNil(t, client)
 }
 
@@ -74,15 +74,15 @@ func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func Test_NewWithAuth(t *testing.T) {
-	client := NewWithAuth(nil)
+	client := NewWithBearerAuth(nil)
 	assert.NotNil(t, client)
 
 	empty := ""
-	client = NewWithAuth(&empty)
+	client = NewWithBearerAuth(&empty)
 	assert.NotNil(t, client)
 
 	token := "foo"
-	client = NewWithAuth(&token)
+	client = NewWithBearerAuth(&token)
 	assert.NotNil(t, client)
 }
 
@@ -90,7 +90,7 @@ func Test_GetAuthHeaders(t *testing.T) {
 	token := "foo"
 	assert.Equal(
 		t,
-		GetAuthHeaders(&token),
+		GetBearerAuthHeaders(&token),
 		map[string]string{"Authorization": "Bearer foo"},
 	)
 }

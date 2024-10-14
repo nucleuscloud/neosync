@@ -1,9 +1,13 @@
 package transformers
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
@@ -12,11 +16,36 @@ type TransformerExecutor struct {
 	Mutate func(value any, opts any) (any, error)
 }
 
-func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer) (*TransformerExecutor, error) {
-	return InitializeTransformerByConfigType(transformerMapping.GetConfig())
+type TransformerExecutorOption func(c *TransformerExecutorConfig)
+
+type TransformerExecutorConfig struct {
+	transformPiiText *transformPiiTextConfig
 }
 
-func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig) (*TransformerExecutor, error) {
+type transformPiiTextConfig struct {
+	analyze   presidioapi.AnalyzeInterface
+	anonymize presidioapi.AnonymizeInterface
+}
+
+func WithTransformPiiTextConfig(analyze presidioapi.AnalyzeInterface, anonymize presidioapi.AnonymizeInterface) TransformerExecutorOption {
+	return func(c *TransformerExecutorConfig) {
+		c.transformPiiText = &transformPiiTextConfig{
+			analyze:   analyze,
+			anonymize: anonymize,
+		}
+	}
+}
+
+func InitializeTransformer(transformerMapping *mgmtv1alpha1.JobMappingTransformer, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+	return InitializeTransformerByConfigType(transformerMapping.GetConfig(), opts...)
+}
+
+func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.TransformerConfig, opts ...TransformerExecutorOption) (*TransformerExecutor, error) {
+	execCfg := &TransformerExecutorConfig{}
+	for _, opt := range opts {
+		opt(execCfg)
+	}
+
 	maxLength := int64(10000) // TODO: update this based on colInfo if available
 	switch transformerConfig.GetConfig().(type) {
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
@@ -584,6 +613,27 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
 				return generate(opts)
+			},
+		}, nil
+
+	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
+		if execCfg.transformPiiText == nil {
+			return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
+		}
+		config := transformerConfig.GetTransformPiiTextConfig()
+
+		return &TransformerExecutor{
+			Opts: nil,
+			Mutate: func(value, opts any) (any, error) {
+				valueStr, ok := value.(string)
+				if !ok {
+					return nil, fmt.Errorf("expected value to be of type string. %T", value)
+				}
+				return ee_transformer_fns.TransformPiiText(
+					context.Background(),
+					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
+					config, valueStr,
+				)
 			},
 		}, nil
 

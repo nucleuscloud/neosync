@@ -46,7 +46,7 @@ func getToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 	authedAuthClient := mgmtv1alpha1connect.NewAuthServiceClient(
-		http_client.NewWithHeaders(http_client.MergeMaps(http_client.GetAuthHeaders(&accessToken), version.Get().Headers())),
+		http_client.NewWithHeaders(http_client.MergeMaps(http_client.GetBearerAuthHeaders(&accessToken), version.Get().Headers())),
 		serverconfig.GetApiBaseUrl(),
 	)
 	_, err = authedAuthClient.CheckToken(ctx, connect.NewRequest(&mgmtv1alpha1.CheckTokenRequest{}))
