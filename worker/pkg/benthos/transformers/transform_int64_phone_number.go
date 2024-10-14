@@ -1,8 +1,8 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
+	"reflect"
 
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
@@ -67,18 +67,25 @@ func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
 
-	valueInt, ok := value.(int64)
-	if !ok {
-		return nil, errors.New("value is not an int64")
-	}
-
-	return transformInt64PhoneNumber(parsedOpts.randomizer, valueInt, parsedOpts.preserveLength)
+	return transformInt64PhoneNumber(parsedOpts.randomizer, value, parsedOpts.preserveLength)
 }
 
 // generates a random phone number and returns it as an int64
-func transformInt64PhoneNumber(randomizer rng.Rand, number int64, preserveLength bool) (*int64, error) {
-	if number == 0 {
+func transformInt64PhoneNumber(randomizer rng.Rand, value any, preserveLength bool) (*int64, error) {
+	if value == nil {
 		return nil, nil
+	}
+
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil, nil
+		}
+	}
+
+	number, err := transformer_utils.AnyToInt64(value)
+	if err != nil {
+		return nil, err
 	}
 
 	if preserveLength {
