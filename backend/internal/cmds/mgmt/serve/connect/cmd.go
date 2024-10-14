@@ -170,7 +170,7 @@ func serve(ctx context.Context) error {
 
 	var anonymizerMeter metric.Meter
 	otelconfig := neosyncotel.GetOtelConfigFromViperEnv()
-	if true {
+	if otelconfig.IsEnabled {
 		slogger.Debug("otel is enabled")
 		tmPropagator := neosyncotel.NewDefaultPropagator()
 		otelconnopts := []otelconnect.Option{otelconnect.WithoutServerPeerAttributes(), otelconnect.WithPropagator(tmPropagator)}
