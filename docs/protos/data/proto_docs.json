@@ -74,22 +74,22 @@
             {
               "name": "HASH_TYPE_UNSPECIFIED",
               "number": "0",
-              "description": ""
+              "description": "If unspecified, defaults to md5"
             },
             {
               "name": "HASH_TYPE_MD5",
               "number": "1",
-              "description": ""
+              "description": "The MD5 Hash Algorithm"
             },
             {
               "name": "HASH_TYPE_SHA256",
               "number": "2",
-              "description": ""
+              "description": "The SHA256 Hash Algorithm"
             },
             {
               "name": "HASH_TYPE_SHA512",
               "number": "3",
-              "description": ""
+              "description": "The SHA512 Hash Algorithm"
             }
           ]
         },
@@ -1404,7 +1404,7 @@
           "fields": [
             {
               "name": "replace",
-              "description": "",
+              "description": "Configures the anonymizer to replace the identified PII with a specific value",
               "label": "",
               "type": "Replace",
               "longType": "PiiAnonymizer.Replace",
@@ -1416,7 +1416,7 @@
             },
             {
               "name": "redact",
-              "description": "",
+              "description": "Configures the anonymizer to completely remove the identified PII",
               "label": "",
               "type": "Redact",
               "longType": "PiiAnonymizer.Redact",
@@ -1428,7 +1428,7 @@
             },
             {
               "name": "mask",
-              "description": "",
+              "description": "Configures the anonymizer to mask the identified PII",
               "label": "",
               "type": "Mask",
               "longType": "PiiAnonymizer.Mask",
@@ -1440,7 +1440,7 @@
             },
             {
               "name": "hash",
-              "description": "",
+              "description": "Configures the anonymizer to hash the identified PII",
               "label": "",
               "type": "Hash",
               "longType": "PiiAnonymizer.Hash",
@@ -1464,7 +1464,7 @@
           "fields": [
             {
               "name": "algo",
-              "description": "",
+              "description": "The hashing algorithm to use.",
               "label": "optional",
               "type": "HashType",
               "longType": "PiiAnonymizer.Hash.HashType",

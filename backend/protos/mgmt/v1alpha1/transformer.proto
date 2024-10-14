@@ -223,16 +223,23 @@ message TransformerConfig {
 // NeosyncCloud/Enterprise only transformer for anonymizing PII Text
 message TransformPiiText {
   // Minimal detection score for determining PII. 0.0-1.0
-  float score_threshold = 1;
+  float score_threshold = 1 [
+    (buf.validate.field).float.gte = 0.0,
+    (buf.validate.field).float.lte = 1.0
+  ];
   // The default anonmyization config used for all instances of detected PII.
   PiiAnonymizer default_anonymizer = 2;
 }
 
 message PiiAnonymizer {
   oneof config {
+    // Configures the anonymizer to replace the identified PII with a specific value
     Replace replace = 1;
+    // Configures the anonymizer to completely remove the identified PII
     Redact redact = 2;
+    // Configures the anonymizer to mask the identified PII
     Mask mask = 3;
+    // Configures the anonymizer to hash the identified PII
     Hash hash = 4;
   }
 
@@ -250,12 +257,17 @@ message PiiAnonymizer {
     optional bool from_end = 3;
   }
   message Hash {
+    // The hashing algorithm to use.
     optional HashType algo = 1;
 
     enum HashType {
+      // If unspecified, defaults to md5
       HASH_TYPE_UNSPECIFIED = 0;
+      // The MD5 Hash Algorithm
       HASH_TYPE_MD5 = 1;
+      // The SHA256 Hash Algorithm
       HASH_TYPE_SHA256 = 2;
+      // The SHA512 Hash Algorithm
       HASH_TYPE_SHA512 = 3;
     }
   }

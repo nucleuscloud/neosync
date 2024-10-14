@@ -1674,24 +1674,32 @@ export class PiiAnonymizer extends Message<PiiAnonymizer> {
    */
   config: {
     /**
+     * Configures the anonymizer to replace the identified PII with a specific value
+     *
      * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Replace replace = 1;
      */
     value: PiiAnonymizer_Replace;
     case: "replace";
   } | {
     /**
+     * Configures the anonymizer to completely remove the identified PII
+     *
      * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Redact redact = 2;
      */
     value: PiiAnonymizer_Redact;
     case: "redact";
   } | {
     /**
+     * Configures the anonymizer to mask the identified PII
+     *
      * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Mask mask = 3;
      */
     value: PiiAnonymizer_Mask;
     case: "mask";
   } | {
     /**
+     * Configures the anonymizer to hash the identified PII
+     *
      * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Hash hash = 4;
      */
     value: PiiAnonymizer_Hash;
@@ -1859,6 +1867,8 @@ export class PiiAnonymizer_Mask extends Message<PiiAnonymizer_Mask> {
  */
 export class PiiAnonymizer_Hash extends Message<PiiAnonymizer_Hash> {
   /**
+   * The hashing algorithm to use.
+   *
    * @generated from field: optional mgmt.v1alpha1.PiiAnonymizer.Hash.HashType algo = 1;
    */
   algo?: PiiAnonymizer_Hash_HashType;
@@ -1896,21 +1906,29 @@ export class PiiAnonymizer_Hash extends Message<PiiAnonymizer_Hash> {
  */
 export enum PiiAnonymizer_Hash_HashType {
   /**
+   * If unspecified, defaults to md5
+   *
    * @generated from enum value: HASH_TYPE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * The MD5 Hash Algorithm
+   *
    * @generated from enum value: HASH_TYPE_MD5 = 1;
    */
   MD5 = 1,
 
   /**
+   * The SHA256 Hash Algorithm
+   *
    * @generated from enum value: HASH_TYPE_SHA256 = 2;
    */
   SHA256 = 2,
 
   /**
+   * The SHA512 Hash Algorithm
+   *
    * @generated from enum value: HASH_TYPE_SHA512 = 3;
    */
   SHA512 = 3,
