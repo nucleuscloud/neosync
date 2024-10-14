@@ -3,11 +3,9 @@ package transformers
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -15,26 +13,27 @@ import (
 
 func NewTransformPiiText(
 	env *bloblang.Environment,
-	analyzeUrl, anonymizeUrl string, authToken *string,
+	analyzeclient presidioapi.AnalyzeInterface,
+	anonymizeclient presidioapi.AnonymizeInterface,
 	config *mgmtv1alpha1.TransformPiiText,
 ) error {
 	spec := bloblang.NewPluginSpec().
 		Description("Analyzes and Anonymizes PII in text.").
 		Param(bloblang.NewStringParam("value").Optional())
 
-	hc := http.DefaultClient
-	if authToken != nil {
-		hc = http_client.WithAuth(http.DefaultClient, *authToken)
-	}
+	// hc := http.DefaultClient
+	// if authToken != nil {
+	// 	hc = http_client.WithAuth(http.DefaultClient, *authToken)
+	// }
 
-	analyzeclient, err := presidioapi.NewClientWithResponses(analyzeUrl, presidioapi.WithHTTPClient(hc))
-	if err != nil {
-		return err
-	}
-	anonymizeclient, err := presidioapi.NewClientWithResponses(anonymizeUrl, presidioapi.WithHTTPClient(hc))
-	if err != nil {
-		return err
-	}
+	// analyzeclient, err := presidioapi.NewClientWithResponses(analyzeUrl, presidioapi.WithHTTPClient(hc))
+	// if err != nil {
+	// 	return err
+	// }
+	// anonymizeclient, err := presidioapi.NewClientWithResponses(anonymizeUrl, presidioapi.WithHTTPClient(hc))
+	// if err != nil {
+	// 	return err
+	// }
 
 	return env.RegisterFunctionV2("transform_pii_text", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.GetOptionalString("value")
@@ -82,7 +81,7 @@ func transformPiiText(
 
 	defaultAnon, err := getDefaultAnonymizer(config.GetDefaultAnonymizer())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to build default anonymizer: %w", err)
 	}
 	anonResp, err := anonymizeClient.PostAnonymizeWithResponse(ctx, presidioapi.AnonymizeRequest{
 		AnalyzerResults: presidioapi.ToAnonymizeRecognizerResults(*analyzeResp.JSON200),
@@ -115,12 +114,19 @@ func getDefaultAnonymizer(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.Anonymi
 			return nil, err
 		}
 	case *mgmtv1alpha1.PiiAnonymizer_Hash_:
-		err := ap.FromHash(presidioapi.Hash{Type: "hash", HashType: nil}) // todo
+		hashtype := toPresidioHashType(cfg.Hash.GetAlgo())
+		err := ap.FromHash(presidioapi.Hash{Type: "hash", HashType: &hashtype})
 		if err != nil {
 			return nil, err
 		}
 	case *mgmtv1alpha1.PiiAnonymizer_Mask_:
-		err := ap.FromMask(presidioapi.Mask{Type: "mask"}) // todo
+		fromend := cfg.Mask.GetFromEnd()
+		err := ap.FromMask(presidioapi.Mask{
+			Type:        "mask",
+			CharsToMask: int(cfg.Mask.GetCharsToMask()),
+			FromEnd:     &fromend,
+			MaskingChar: cfg.Mask.GetMaskingChar(),
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -133,15 +139,28 @@ func getDefaultAnonymizer(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.Anonymi
 	return ap, nil
 }
 
+func toPresidioHashType(dto mgmtv1alpha1.PiiAnonymizer_Hash_HashType) presidioapi.HashHashType {
+	switch dto {
+	case mgmtv1alpha1.PiiAnonymizer_Hash_HASH_TYPE_MD5:
+		return presidioapi.Md5
+	case mgmtv1alpha1.PiiAnonymizer_Hash_HASH_TYPE_SHA256:
+		return presidioapi.Sha256
+	case mgmtv1alpha1.PiiAnonymizer_Hash_HASH_TYPE_SHA512:
+		return presidioapi.Sha512
+	default:
+		return presidioapi.Md5
+	}
+}
+
 func handleAnonRespErr(resp *presidioapi.PostAnonymizeResponse) error {
 	if resp == nil {
 		return fmt.Errorf("resp was nil")
 	}
 	if resp.JSON400 != nil {
-		return fmt.Errorf(*resp.JSON400.Error)
+		return fmt.Errorf("%s", *resp.JSON400.Error)
 	}
 	if resp.JSON422 != nil {
-		return fmt.Errorf(*resp.JSON422.Error)
+		return fmt.Errorf("%s", *resp.JSON422.Error)
 	}
 	if resp.JSON200 == nil {
 		return fmt.Errorf("received non-200 response from anonymizer: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
