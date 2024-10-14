@@ -7,6 +7,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	ee_transformer_fns "github.com/nucleuscloud/neosync/internal/ee/transformers/functions"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
@@ -619,7 +620,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 				if !ok {
 					return nil, fmt.Errorf("expected value to be of type string. %T", value)
 				}
-				return TransformPiiText(
+				return ee_transformer_fns.TransformPiiText(
 					context.Background(),
 					execCfg.transformPiiText.analyze, execCfg.transformPiiText.anonymize,
 					config, valueStr,

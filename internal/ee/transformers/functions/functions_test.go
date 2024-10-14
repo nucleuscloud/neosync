@@ -1,4 +1,4 @@
-package transformers
+package ee_transformer_fns
 
 import (
 	"testing"
