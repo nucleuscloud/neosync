@@ -23,7 +23,8 @@ This guide provides an overview of how to use the `AnonymizeSingle`and `Anonymiz
 
 - Example: `.path.to.field`
 - These are specific paths to fields in the JSON structure.
-- They always begin with a .
+- They always begin with .
+- Use ? (optional operator) for optional fields. It suppresses errors that would otherwise be raised if a certain key, field, or expression doesn't exist. Example .departments[]?.projects[]?.name
 - Transformer mappings using JQ paths take precedence over default transformers.
 
 **JSON Array Support in JQ Paths**:
