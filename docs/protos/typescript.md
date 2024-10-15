@@ -33,7 +33,6 @@ There are a few inputs that the SDK needs in order to be properly configured.
 1. API URL
 2. Account ID
 3. API Key (required for Neosync Cloud or self-hosted authenticated environments)
-4. Transports
 
 ### API Url
 
@@ -75,7 +74,7 @@ const neosyncClient = getNeosyncClient({
 
 ## Making your first API call
 
-In this section, we're going to walk through two examples that show you how to make an API call using Neosync's TS SDK.
+In this section, we're going to walk through two examples that show you how to make an API call using Neosync's TS SDK. For a complete list of the APIs, check out the APIs in the `Services` section of our [protos](/api/mgmt/v1alpha1/job.proto#jobservice).
 
 ### Anonymizing Structured Data
 
