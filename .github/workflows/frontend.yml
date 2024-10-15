@@ -89,4 +89,4 @@ jobs:
       - name: Test
         run: npm run test
         env:
-          NODE_ENV: production
+          NODE_ENV: development
