@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend/apps/web
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,5 +88,3 @@ jobs:
       - run: npm ci
       - name: Test
         run: npm run test
-        env:
-          NODE_ENV: production
