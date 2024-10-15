@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type GenerateInt64 struct{}
@@ -28,13 +28,23 @@ func NewGenerateInt64() *GenerateInt64 {
 
 func NewGenerateInt64Opts(
 	randomizeSignArg *bool,
-	min int64,
-	max int64,
+	minArg *int64,
+	maxArg *int64,
   seedArg *int64,
 ) (*GenerateInt64Opts, error) {
 	randomizeSign := bool(false) 
-	if randomizeSignArg != nil {
+	if randomizeSignArg != nil && !transformer_utils.IsZeroValue(*randomizeSignArg) {
 		randomizeSign = *randomizeSignArg
+	}
+	
+	min := int64(1) 
+	if minArg != nil && !transformer_utils.IsZeroValue(*minArg) {
+		min = *minArg
+	}
+	
+	max := int64(10000) 
+	if maxArg != nil && !transformer_utils.IsZeroValue(*maxArg) {
+		max = *maxArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -67,16 +77,16 @@ func (t *GenerateInt64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizeSign = randomizeSign
 
-	if _, ok := opts["min"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInt64", "min")
+	min, ok := opts["min"].(int64)
+	if !ok {
+		min = 1
 	}
-	min := opts["min"].(int64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInt64", "max")
+	max, ok := opts["max"].(int64)
+	if !ok {
+		max = 10000
 	}
-	max := opts["max"].(int64)
 	transformerOpts.max = max
 
 	var seedArg *int64

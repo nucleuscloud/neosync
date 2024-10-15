@@ -48,6 +48,16 @@ func Test_GenerateInternationalPhoneNumberTransformer(t *testing.T) {
 	assert.LessOrEqual(t, len(res.(string)), 15+1, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 }
 
+func Test_GenerateInternationalPhoneNumberTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_e164_phone_number()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the international phone number transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
+
 func Test_ValidateE164True(t *testing.T) {
 	val := "+6272636472"
 

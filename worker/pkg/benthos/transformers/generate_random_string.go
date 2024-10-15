@@ -13,8 +13,8 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random string of alphanumeric characters..").
-		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum length for the generated string.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum length for the generated string.")).
+		Param(bloblang.NewInt64Param("min").Default(1).Description("Specifies the minimum length for the generated string.")).
+		Param(bloblang.NewInt64Param("max").Default(100).Description("Specifies the maximum length for the generated string.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

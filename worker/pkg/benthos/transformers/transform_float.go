@@ -17,8 +17,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Anonymizes and transforms an existing float value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewFloat64Param("randomization_range_min").Description("Specifies the minimum value for the range of the float.")).
-		Param(bloblang.NewFloat64Param("randomization_range_max").Description("Specifies the maximum value for the randomization range of the float.")).
+		Param(bloblang.NewFloat64Param("randomization_range_min").Default(1).Description("Specifies the minimum value for the range of the float.")).
+		Param(bloblang.NewFloat64Param("randomization_range_max").Default(10000).Description("Specifies the maximum value for the randomization range of the float.")).
 		Param(bloblang.NewInt64Param("precision").Optional().Description("An optional parameter that defines the number of significant digits for the float.")).
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the float.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used for generating deterministic transformations."))

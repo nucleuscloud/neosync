@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type GenerateCategorical struct{}
@@ -25,9 +25,14 @@ func NewGenerateCategorical() *GenerateCategorical {
 }
 
 func NewGenerateCategoricalOpts(
-	categories string,
+	categoriesArg *string,
   seedArg *int64,
 ) (*GenerateCategoricalOpts, error) {
+	categories := string("ultimo,proximo,semper") 
+	if categoriesArg != nil && !transformer_utils.IsZeroValue(*categoriesArg) {
+		categories = *categoriesArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -50,10 +55,10 @@ func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateCategorical) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateCategoricalOpts{}
 
-	if _, ok := opts["categories"].(string); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateCategorical", "categories")
+	categories, ok := opts["categories"].(string)
+	if !ok {
+		categories = "ultimo,proximo,semper"
 	}
-	categories := opts["categories"].(string)
 	transformerOpts.categories = categories
 
 	var seedArg *int64

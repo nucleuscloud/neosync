@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type GenerateEmail struct{}
@@ -31,12 +31,12 @@ func NewGenerateEmailOpts(
   seedArg *int64,
 ) (*GenerateEmailOpts, error) {
 	maxLength := int64(100000) 
-	if maxLengthArg != nil {
+	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
 		maxLength = *maxLengthArg
 	}
 	
 	emailType := string(GenerateEmailType_UuidV4.String()) 
-	if emailTypeArg != nil {
+	if emailTypeArg != nil && !transformer_utils.IsZeroValue(*emailTypeArg) {
 		emailType = *emailTypeArg
 	}
 	

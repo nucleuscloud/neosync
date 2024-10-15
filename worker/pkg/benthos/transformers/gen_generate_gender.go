@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type GenerateGender struct{}
@@ -31,12 +31,12 @@ func NewGenerateGenderOpts(
   seedArg *int64,
 ) (*GenerateGenderOpts, error) {
 	abbreviate := bool(false) 
-	if abbreviateArg != nil {
+	if abbreviateArg != nil && !transformer_utils.IsZeroValue(*abbreviateArg) {
 		abbreviate = *abbreviateArg
 	}
 	
 	maxLength := int64(10000) 
-	if maxLengthArg != nil {
+	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
 		maxLength = *maxLengthArg
 	}
 	

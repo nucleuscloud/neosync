@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type TransformFloat64 struct{}
@@ -28,12 +28,22 @@ func NewTransformFloat64() *TransformFloat64 {
 }
 
 func NewTransformFloat64Opts(
-	randomizationRangeMin float64,
-	randomizationRangeMax float64,
+	randomizationRangeMinArg *float64,
+	randomizationRangeMaxArg *float64,
 	precision *int64,
 	scale *int64,
   seedArg *int64,
 ) (*TransformFloat64Opts, error) {
+	randomizationRangeMin := float64(1) 
+	if randomizationRangeMinArg != nil && !transformer_utils.IsZeroValue(*randomizationRangeMinArg) {
+		randomizationRangeMin = *randomizationRangeMinArg
+	}
+	
+	randomizationRangeMax := float64(10000) 
+	if randomizationRangeMaxArg != nil && !transformer_utils.IsZeroValue(*randomizationRangeMaxArg) {
+		randomizationRangeMax = *randomizationRangeMaxArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -59,16 +69,16 @@ func (t *TransformFloat64) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformFloat64) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformFloat64Opts{}
 
-	if _, ok := opts["randomizationRangeMin"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformFloat64", "randomizationRangeMin")
+	randomizationRangeMin, ok := opts["randomizationRangeMin"].(float64)
+	if !ok {
+		randomizationRangeMin = 1
 	}
-	randomizationRangeMin := opts["randomizationRangeMin"].(float64)
 	transformerOpts.randomizationRangeMin = randomizationRangeMin
 
-	if _, ok := opts["randomizationRangeMax"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformFloat64", "randomizationRangeMax")
+	randomizationRangeMax, ok := opts["randomizationRangeMax"].(float64)
+	if !ok {
+		randomizationRangeMax = 10000
 	}
-	randomizationRangeMax := opts["randomizationRangeMax"].(float64)
 	transformerOpts.randomizationRangeMax = randomizationRangeMax
 
 	var precision *int64

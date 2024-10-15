@@ -15,8 +15,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Anonymizes and transforms an existing int64 value.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewInt64Param("randomization_range_min").Description("Specifies the minimum value for the range of the int.")).
-		Param(bloblang.NewInt64Param("randomization_range_max").Description("Specifies the maximum value for the range of the int.")).
+		Param(bloblang.NewInt64Param("randomization_range_min").Default(1).Description("Specifies the minimum value for the range of the int.")).
+		Param(bloblang.NewInt64Param("randomization_range_max").Default(10000).Description("Specifies the maximum value for the range of the int.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

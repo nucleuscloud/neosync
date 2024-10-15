@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type TransformE164PhoneNumber struct{}
@@ -26,10 +26,15 @@ func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
 }
 
 func NewTransformE164PhoneNumberOpts(
-	preserveLength bool,
+	preserveLengthArg *bool,
 	maxLength *int64,
   seedArg *int64,
 ) (*TransformE164PhoneNumberOpts, error) {
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
+		preserveLength = *preserveLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -53,10 +58,10 @@ func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformE164PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformE164PhoneNumberOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformE164PhoneNumber", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
 	var maxLength *int64

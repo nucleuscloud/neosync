@@ -100,9 +100,9 @@ import (
 	"fmt"
 	{{ end }}
 	{{- if eq .HasSeedParam true}}
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	{{ end }}
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type {{.StructName}} struct{}
@@ -149,7 +149,7 @@ func New{{.StructName}}Opts(
 	}
 	{{ else if $param.HasDefault }}
 	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
-	if {{$param.Name}}Arg != nil {
+	if {{$param.Name}}Arg != nil && !transformer_utils.IsZeroValue(*{{$param.Name}}Arg) {
 		{{$param.Name}} = *{{$param.Name}}Arg
 	}
 	{{ end }}

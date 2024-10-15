@@ -105,3 +105,13 @@ func Test_TransformFirstNameTransformerWithEmptyValue(t *testing.T) {
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
 }
+
+func Test_TransformFirstNameTransformer_NoOptions(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_first_name(value:%q)`, "name")
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the first name transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

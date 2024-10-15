@@ -14,7 +14,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly selects a value from a defined set of categorical values.").
-		Param(bloblang.NewStringParam("categories").Description("A list of comma-separated string values to randomly select from.")).
+		Param(bloblang.NewStringParam("categories").Default("ultimo,proximo,semper").Description("A list of comma-separated string values to randomly select from.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_categorical", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

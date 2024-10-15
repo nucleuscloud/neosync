@@ -15,8 +15,8 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a new random international phone number including the + sign and no hyphens.").
-		Param(bloblang.NewInt64Param("min").Description("Specifies the minimum value for the generated phone number.")).
-		Param(bloblang.NewInt64Param("max").Description("Specifies the maximum value for the generated phone number.")).
+		Param(bloblang.NewInt64Param("min").Default(9).Description("Specifies the minimum value for the generated phone number.")).
+		Param(bloblang.NewInt64Param("max").Default(15).Description("Specifies the maximum value for the generated phone number.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type GenerateStreetAddress struct{}
@@ -25,9 +25,14 @@ func NewGenerateStreetAddress() *GenerateStreetAddress {
 }
 
 func NewGenerateStreetAddressOpts(
-	maxLength int64,
+	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateStreetAddressOpts, error) {
+	maxLength := int64(100) 
+	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+		maxLength = *maxLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -50,10 +55,10 @@ func (t *GenerateStreetAddress) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateStreetAddress) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateStreetAddressOpts{}
 
-	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateStreetAddress", "maxLength")
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 100
 	}
-	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
 	var seedArg *int64

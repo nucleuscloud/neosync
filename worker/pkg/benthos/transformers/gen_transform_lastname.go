@@ -7,9 +7,9 @@ package transformers
 import (
 	"fmt"
 	
-	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 type TransformLastName struct{}
@@ -30,13 +30,13 @@ func NewTransformLastNameOpts(
 	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformLastNameOpts, error) {
-	maxLength := int64(10000) 
-	if maxLengthArg != nil {
+	maxLength := int64(100) 
+	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
 		maxLength = *maxLengthArg
 	}
 	
 	preserveLength := bool(false) 
-	if preserveLengthArg != nil {
+	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
 		preserveLength = *preserveLengthArg
 	}
 	
@@ -65,7 +65,7 @@ func (t *TransformLastName) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 
