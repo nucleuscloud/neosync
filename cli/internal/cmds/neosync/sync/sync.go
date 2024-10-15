@@ -75,6 +75,7 @@ type cmdConfig struct {
 	Source                 *sourceConfig              `yaml:"source"`
 	Destination            *sqlDestinationConfig      `yaml:"destination"`
 	AwsDynamoDbDestination *dynamoDbDestinationConfig `yaml:"aws-dynamodb-destination,omitempty"`
+	Debug                  bool
 }
 
 type sourceConfig struct {
@@ -245,9 +246,17 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
+			debug, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
+			config.Debug = debug
+
 			return sync(cmd.Context(), outputType, apiKey, &accountId, config)
 		},
 	}
+
+	cmd.Flags().Bool("debug", false, "Run in debug mode")
 
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
 	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-run-id instead.")
@@ -281,8 +290,13 @@ func sync(
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
+	logLevel := charmlog.InfoLevel
+	if cmd.Debug {
+		logLevel = charmlog.DebugLevel
+	}
 	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
 		ReportTimestamp: true,
+		Level:           logLevel,
 	})
 	logger.Info("Starting sync")
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
@@ -316,6 +330,7 @@ func sync(
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
 
+	logger.Debug("Retrieving neosync connection")
 	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
 	}))
@@ -327,6 +342,7 @@ func sync(
 	if err != nil {
 		return err
 	}
+	logger.Debug(fmt.Sprintf("Source connection type: %s", connectionType))
 
 	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
 		return errors.New("S3 source connection type requires job-id or job-run-id.")
@@ -361,18 +377,23 @@ func sync(
 			return fmt.Errorf("must provide destination aws region")
 		}
 	}
+	logger.Debug("Validated config")
 
 	var token *string
 	if isAuthEnabled {
+		logger.Debug("Auth Enabled")
 		if apiKey != nil && *apiKey != "" {
+			logger.Debug("found API Key")
 			token = apiKey
 		} else {
+			logger.Debug("Retrieving Access Token")
 			accessToken, err := userconfig.GetAccessToken()
 			if err != nil {
 				logger.Error("Unable to retrieve access token. Please use neosync login command and try again.")
 				return err
 			}
 			token = &accessToken
+			logger.Debug("Setting account id")
 			var accountId = accountIdFlag
 			if accountId == nil || *accountId == "" {
 				aId, err := userconfig.GetAccountId()
@@ -393,6 +414,7 @@ func sync(
 		}
 	}
 
+	logger.Debug("Checking if source and destination are compatible")
 	err = areSourceAndDestCompatible(connection, cmd.Destination.Driver)
 	if err != nil {
 		return err
@@ -507,6 +529,7 @@ func sync(
 		return fmt.Errorf("this connection type is not currently supported")
 	}
 
+	logger.Debug("Building sync configs")
 	syncConfigs := buildSyncConfigs(schemaConfig, logger)
 	if syncConfigs == nil {
 		return nil
