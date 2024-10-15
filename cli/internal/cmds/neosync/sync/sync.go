@@ -198,7 +198,7 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if truncateBeforeInsert {
+			if truncateCascade {
 				config.Destination.TruncateCascade = truncateCascade
 			}
 
@@ -335,16 +335,16 @@ func sync(
 		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
+	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
+		return fmt.Errorf("truncate cascade is only supported in postgres")
+	}
+
 	if connectionType == mysqlConnection || connectionType == postgresConnection {
 		if cmd.Destination.Driver == "" {
 			return fmt.Errorf("must provide destination-driver")
 		}
 		if cmd.Destination.ConnectionUrl == "" {
 			return fmt.Errorf("must provide destination-connection-url")
-		}
-
-		if cmd.Destination.TruncateCascade && cmd.Destination.Driver != postgresDriver {
-			return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
 		}
 
 		if cmd.Destination.Driver != mysqlDriver && cmd.Destination.Driver != postgresDriver {
