@@ -71,7 +71,6 @@ func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi
 			SupportedLanguage: &supportedLanguage,
 		})
 	}
-
 	return output
 }
 
