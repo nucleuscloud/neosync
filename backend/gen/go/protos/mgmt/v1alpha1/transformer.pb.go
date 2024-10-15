@@ -486,7 +486,7 @@ func (x PiiAnonymizer_Hash_HashType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PiiAnonymizer_Hash_HashType.Descriptor instead.
 func (PiiAnonymizer_Hash_HashType) EnumDescriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20, 3, 0}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21, 3, 0}
 }
 
 type GetSystemTransformersRequest struct {
@@ -2153,8 +2153,8 @@ type TransformPiiText struct {
 	ScoreThreshold float32 `protobuf:"fixed32,1,opt,name=score_threshold,json=scoreThreshold,proto3" json:"score_threshold,omitempty"`
 	// The default anonmyization config used for all instances of detected PII.
 	DefaultAnonymizer *PiiAnonymizer `protobuf:"bytes,2,opt,name=default_anonymizer,json=defaultAnonymizer,proto3" json:"default_anonymizer,omitempty"`
-	// List of values that will be treated as PII and anonymized.
-	DenyWords []string `protobuf:"bytes,3,rep,name=deny_words,json=denyWords,proto3" json:"deny_words,omitempty"`
+	// Configure deny lists where each word is treated as PII.
+	DenyRecognizers []*PiiDenyRecognizer `protobuf:"bytes,3,rep,name=deny_recognizers,json=denyRecognizers,proto3" json:"deny_recognizers,omitempty"`
 }
 
 func (x *TransformPiiText) Reset() {
@@ -2201,7 +2201,62 @@ func (x *TransformPiiText) GetDefaultAnonymizer() *PiiAnonymizer {
 	return nil
 }
 
-func (x *TransformPiiText) GetDenyWords() []string {
+func (x *TransformPiiText) GetDenyRecognizers() []*PiiDenyRecognizer {
+	if x != nil {
+		return x.DenyRecognizers
+	}
+	return nil
+}
+
+type PiiDenyRecognizer struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Friendly name of this entity
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// List of words that will be treated as PII.
+	DenyWords []string `protobuf:"bytes,2,rep,name=deny_words,json=denyWords,proto3" json:"deny_words,omitempty"`
+}
+
+func (x *PiiDenyRecognizer) Reset() {
+	*x = PiiDenyRecognizer{}
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PiiDenyRecognizer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PiiDenyRecognizer) ProtoMessage() {}
+
+func (x *PiiDenyRecognizer) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PiiDenyRecognizer.ProtoReflect.Descriptor instead.
+func (*PiiDenyRecognizer) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *PiiDenyRecognizer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PiiDenyRecognizer) GetDenyWords() []string {
 	if x != nil {
 		return x.DenyWords
 	}
@@ -2224,7 +2279,7 @@ type PiiAnonymizer struct {
 
 func (x *PiiAnonymizer) Reset() {
 	*x = PiiAnonymizer{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2236,7 +2291,7 @@ func (x *PiiAnonymizer) String() string {
 func (*PiiAnonymizer) ProtoMessage() {}
 
 func (x *PiiAnonymizer) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2249,7 +2304,7 @@ func (x *PiiAnonymizer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PiiAnonymizer.ProtoReflect.Descriptor instead.
 func (*PiiAnonymizer) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21}
 }
 
 func (m *PiiAnonymizer) GetConfig() isPiiAnonymizer_Config {
@@ -2330,7 +2385,7 @@ type GenerateEmail struct {
 
 func (x *GenerateEmail) Reset() {
 	*x = GenerateEmail{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2342,7 +2397,7 @@ func (x *GenerateEmail) String() string {
 func (*GenerateEmail) ProtoMessage() {}
 
 func (x *GenerateEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2355,7 +2410,7 @@ func (x *GenerateEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateEmail.ProtoReflect.Descriptor instead.
 func (*GenerateEmail) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GenerateEmail) GetEmailType() GenerateEmailType {
@@ -2384,7 +2439,7 @@ type TransformEmail struct {
 
 func (x *TransformEmail) Reset() {
 	*x = TransformEmail{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2396,7 +2451,7 @@ func (x *TransformEmail) String() string {
 func (*TransformEmail) ProtoMessage() {}
 
 func (x *TransformEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2409,7 +2464,7 @@ func (x *TransformEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformEmail.ProtoReflect.Descriptor instead.
 func (*TransformEmail) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{22}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *TransformEmail) GetPreserveDomain() bool {
@@ -2455,7 +2510,7 @@ type GenerateBool struct {
 
 func (x *GenerateBool) Reset() {
 	*x = GenerateBool{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2467,7 +2522,7 @@ func (x *GenerateBool) String() string {
 func (*GenerateBool) ProtoMessage() {}
 
 func (x *GenerateBool) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2480,7 +2535,7 @@ func (x *GenerateBool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateBool.ProtoReflect.Descriptor instead.
 func (*GenerateBool) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{23}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{24}
 }
 
 type GenerateCardNumber struct {
@@ -2493,7 +2548,7 @@ type GenerateCardNumber struct {
 
 func (x *GenerateCardNumber) Reset() {
 	*x = GenerateCardNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2505,7 +2560,7 @@ func (x *GenerateCardNumber) String() string {
 func (*GenerateCardNumber) ProtoMessage() {}
 
 func (x *GenerateCardNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2518,7 +2573,7 @@ func (x *GenerateCardNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCardNumber.ProtoReflect.Descriptor instead.
 func (*GenerateCardNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{24}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GenerateCardNumber) GetValidLuhn() bool {
@@ -2536,7 +2591,7 @@ type GenerateCity struct {
 
 func (x *GenerateCity) Reset() {
 	*x = GenerateCity{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2548,7 +2603,7 @@ func (x *GenerateCity) String() string {
 func (*GenerateCity) ProtoMessage() {}
 
 func (x *GenerateCity) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,7 +2616,7 @@ func (x *GenerateCity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCity.ProtoReflect.Descriptor instead.
 func (*GenerateCity) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{25}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{26}
 }
 
 type GenerateDefault struct {
@@ -2572,7 +2627,7 @@ type GenerateDefault struct {
 
 func (x *GenerateDefault) Reset() {
 	*x = GenerateDefault{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2584,7 +2639,7 @@ func (x *GenerateDefault) String() string {
 func (*GenerateDefault) ProtoMessage() {}
 
 func (x *GenerateDefault) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2597,7 +2652,7 @@ func (x *GenerateDefault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateDefault.ProtoReflect.Descriptor instead.
 func (*GenerateDefault) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{26}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{27}
 }
 
 type GenerateE164PhoneNumber struct {
@@ -2611,7 +2666,7 @@ type GenerateE164PhoneNumber struct {
 
 func (x *GenerateE164PhoneNumber) Reset() {
 	*x = GenerateE164PhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2623,7 +2678,7 @@ func (x *GenerateE164PhoneNumber) String() string {
 func (*GenerateE164PhoneNumber) ProtoMessage() {}
 
 func (x *GenerateE164PhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2636,7 +2691,7 @@ func (x *GenerateE164PhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateE164PhoneNumber.ProtoReflect.Descriptor instead.
 func (*GenerateE164PhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{27}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GenerateE164PhoneNumber) GetMin() int64 {
@@ -2661,7 +2716,7 @@ type GenerateFirstName struct {
 
 func (x *GenerateFirstName) Reset() {
 	*x = GenerateFirstName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2673,7 +2728,7 @@ func (x *GenerateFirstName) String() string {
 func (*GenerateFirstName) ProtoMessage() {}
 
 func (x *GenerateFirstName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2686,7 +2741,7 @@ func (x *GenerateFirstName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFirstName.ProtoReflect.Descriptor instead.
 func (*GenerateFirstName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{28}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{29}
 }
 
 type GenerateFloat64 struct {
@@ -2702,7 +2757,7 @@ type GenerateFloat64 struct {
 
 func (x *GenerateFloat64) Reset() {
 	*x = GenerateFloat64{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2714,7 +2769,7 @@ func (x *GenerateFloat64) String() string {
 func (*GenerateFloat64) ProtoMessage() {}
 
 func (x *GenerateFloat64) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2727,7 +2782,7 @@ func (x *GenerateFloat64) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFloat64.ProtoReflect.Descriptor instead.
 func (*GenerateFloat64) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{29}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GenerateFloat64) GetRandomizeSign() bool {
@@ -2766,7 +2821,7 @@ type GenerateFullAddress struct {
 
 func (x *GenerateFullAddress) Reset() {
 	*x = GenerateFullAddress{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2778,7 +2833,7 @@ func (x *GenerateFullAddress) String() string {
 func (*GenerateFullAddress) ProtoMessage() {}
 
 func (x *GenerateFullAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2791,7 +2846,7 @@ func (x *GenerateFullAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFullAddress.ProtoReflect.Descriptor instead.
 func (*GenerateFullAddress) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{30}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{31}
 }
 
 type GenerateFullName struct {
@@ -2802,7 +2857,7 @@ type GenerateFullName struct {
 
 func (x *GenerateFullName) Reset() {
 	*x = GenerateFullName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2814,7 +2869,7 @@ func (x *GenerateFullName) String() string {
 func (*GenerateFullName) ProtoMessage() {}
 
 func (x *GenerateFullName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2827,7 +2882,7 @@ func (x *GenerateFullName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFullName.ProtoReflect.Descriptor instead.
 func (*GenerateFullName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{31}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{32}
 }
 
 type GenerateGender struct {
@@ -2840,7 +2895,7 @@ type GenerateGender struct {
 
 func (x *GenerateGender) Reset() {
 	*x = GenerateGender{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2852,7 +2907,7 @@ func (x *GenerateGender) String() string {
 func (*GenerateGender) ProtoMessage() {}
 
 func (x *GenerateGender) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2865,7 +2920,7 @@ func (x *GenerateGender) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateGender.ProtoReflect.Descriptor instead.
 func (*GenerateGender) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{32}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GenerateGender) GetAbbreviate() bool {
@@ -2883,7 +2938,7 @@ type GenerateInt64PhoneNumber struct {
 
 func (x *GenerateInt64PhoneNumber) Reset() {
 	*x = GenerateInt64PhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2895,7 +2950,7 @@ func (x *GenerateInt64PhoneNumber) String() string {
 func (*GenerateInt64PhoneNumber) ProtoMessage() {}
 
 func (x *GenerateInt64PhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2908,7 +2963,7 @@ func (x *GenerateInt64PhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateInt64PhoneNumber.ProtoReflect.Descriptor instead.
 func (*GenerateInt64PhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{33}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{34}
 }
 
 type GenerateInt64 struct {
@@ -2923,7 +2978,7 @@ type GenerateInt64 struct {
 
 func (x *GenerateInt64) Reset() {
 	*x = GenerateInt64{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2935,7 +2990,7 @@ func (x *GenerateInt64) String() string {
 func (*GenerateInt64) ProtoMessage() {}
 
 func (x *GenerateInt64) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2948,7 +3003,7 @@ func (x *GenerateInt64) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateInt64.ProtoReflect.Descriptor instead.
 func (*GenerateInt64) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{34}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GenerateInt64) GetRandomizeSign() bool {
@@ -2980,7 +3035,7 @@ type GenerateLastName struct {
 
 func (x *GenerateLastName) Reset() {
 	*x = GenerateLastName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2992,7 +3047,7 @@ func (x *GenerateLastName) String() string {
 func (*GenerateLastName) ProtoMessage() {}
 
 func (x *GenerateLastName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3005,7 +3060,7 @@ func (x *GenerateLastName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateLastName.ProtoReflect.Descriptor instead.
 func (*GenerateLastName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{35}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{36}
 }
 
 type GenerateSha256Hash struct {
@@ -3016,7 +3071,7 @@ type GenerateSha256Hash struct {
 
 func (x *GenerateSha256Hash) Reset() {
 	*x = GenerateSha256Hash{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3028,7 +3083,7 @@ func (x *GenerateSha256Hash) String() string {
 func (*GenerateSha256Hash) ProtoMessage() {}
 
 func (x *GenerateSha256Hash) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3041,7 +3096,7 @@ func (x *GenerateSha256Hash) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSha256Hash.ProtoReflect.Descriptor instead.
 func (*GenerateSha256Hash) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{36}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{37}
 }
 
 type GenerateSSN struct {
@@ -3052,7 +3107,7 @@ type GenerateSSN struct {
 
 func (x *GenerateSSN) Reset() {
 	*x = GenerateSSN{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3064,7 +3119,7 @@ func (x *GenerateSSN) String() string {
 func (*GenerateSSN) ProtoMessage() {}
 
 func (x *GenerateSSN) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3077,7 +3132,7 @@ func (x *GenerateSSN) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSSN.ProtoReflect.Descriptor instead.
 func (*GenerateSSN) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{37}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{38}
 }
 
 type GenerateState struct {
@@ -3091,7 +3146,7 @@ type GenerateState struct {
 
 func (x *GenerateState) Reset() {
 	*x = GenerateState{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3103,7 +3158,7 @@ func (x *GenerateState) String() string {
 func (*GenerateState) ProtoMessage() {}
 
 func (x *GenerateState) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3116,7 +3171,7 @@ func (x *GenerateState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateState.ProtoReflect.Descriptor instead.
 func (*GenerateState) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{38}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GenerateState) GetGenerateFullName() bool {
@@ -3134,7 +3189,7 @@ type GenerateStreetAddress struct {
 
 func (x *GenerateStreetAddress) Reset() {
 	*x = GenerateStreetAddress{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3146,7 +3201,7 @@ func (x *GenerateStreetAddress) String() string {
 func (*GenerateStreetAddress) ProtoMessage() {}
 
 func (x *GenerateStreetAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3159,7 +3214,7 @@ func (x *GenerateStreetAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateStreetAddress.ProtoReflect.Descriptor instead.
 func (*GenerateStreetAddress) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{39}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{40}
 }
 
 type GenerateStringPhoneNumber struct {
@@ -3173,7 +3228,7 @@ type GenerateStringPhoneNumber struct {
 
 func (x *GenerateStringPhoneNumber) Reset() {
 	*x = GenerateStringPhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3185,7 +3240,7 @@ func (x *GenerateStringPhoneNumber) String() string {
 func (*GenerateStringPhoneNumber) ProtoMessage() {}
 
 func (x *GenerateStringPhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3198,7 +3253,7 @@ func (x *GenerateStringPhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateStringPhoneNumber.ProtoReflect.Descriptor instead.
 func (*GenerateStringPhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{40}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GenerateStringPhoneNumber) GetMin() int64 {
@@ -3226,7 +3281,7 @@ type GenerateString struct {
 
 func (x *GenerateString) Reset() {
 	*x = GenerateString{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3238,7 +3293,7 @@ func (x *GenerateString) String() string {
 func (*GenerateString) ProtoMessage() {}
 
 func (x *GenerateString) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3251,7 +3306,7 @@ func (x *GenerateString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateString.ProtoReflect.Descriptor instead.
 func (*GenerateString) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{41}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GenerateString) GetMin() int64 {
@@ -3276,7 +3331,7 @@ type GenerateUnixTimestamp struct {
 
 func (x *GenerateUnixTimestamp) Reset() {
 	*x = GenerateUnixTimestamp{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3288,7 +3343,7 @@ func (x *GenerateUnixTimestamp) String() string {
 func (*GenerateUnixTimestamp) ProtoMessage() {}
 
 func (x *GenerateUnixTimestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3301,7 +3356,7 @@ func (x *GenerateUnixTimestamp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUnixTimestamp.ProtoReflect.Descriptor instead.
 func (*GenerateUnixTimestamp) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{42}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{43}
 }
 
 type GenerateUsername struct {
@@ -3312,7 +3367,7 @@ type GenerateUsername struct {
 
 func (x *GenerateUsername) Reset() {
 	*x = GenerateUsername{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3324,7 +3379,7 @@ func (x *GenerateUsername) String() string {
 func (*GenerateUsername) ProtoMessage() {}
 
 func (x *GenerateUsername) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3337,7 +3392,7 @@ func (x *GenerateUsername) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUsername.ProtoReflect.Descriptor instead.
 func (*GenerateUsername) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{43}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{44}
 }
 
 type GenerateUtcTimestamp struct {
@@ -3348,7 +3403,7 @@ type GenerateUtcTimestamp struct {
 
 func (x *GenerateUtcTimestamp) Reset() {
 	*x = GenerateUtcTimestamp{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3360,7 +3415,7 @@ func (x *GenerateUtcTimestamp) String() string {
 func (*GenerateUtcTimestamp) ProtoMessage() {}
 
 func (x *GenerateUtcTimestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3373,7 +3428,7 @@ func (x *GenerateUtcTimestamp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUtcTimestamp.ProtoReflect.Descriptor instead.
 func (*GenerateUtcTimestamp) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{44}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{45}
 }
 
 type GenerateUuid struct {
@@ -3386,7 +3441,7 @@ type GenerateUuid struct {
 
 func (x *GenerateUuid) Reset() {
 	*x = GenerateUuid{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3398,7 +3453,7 @@ func (x *GenerateUuid) String() string {
 func (*GenerateUuid) ProtoMessage() {}
 
 func (x *GenerateUuid) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3411,7 +3466,7 @@ func (x *GenerateUuid) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUuid.ProtoReflect.Descriptor instead.
 func (*GenerateUuid) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{45}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GenerateUuid) GetIncludeHyphens() bool {
@@ -3429,7 +3484,7 @@ type GenerateZipcode struct {
 
 func (x *GenerateZipcode) Reset() {
 	*x = GenerateZipcode{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3441,7 +3496,7 @@ func (x *GenerateZipcode) String() string {
 func (*GenerateZipcode) ProtoMessage() {}
 
 func (x *GenerateZipcode) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3454,7 +3509,7 @@ func (x *GenerateZipcode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateZipcode.ProtoReflect.Descriptor instead.
 func (*GenerateZipcode) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{46}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{47}
 }
 
 type TransformE164PhoneNumber struct {
@@ -3467,7 +3522,7 @@ type TransformE164PhoneNumber struct {
 
 func (x *TransformE164PhoneNumber) Reset() {
 	*x = TransformE164PhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3479,7 +3534,7 @@ func (x *TransformE164PhoneNumber) String() string {
 func (*TransformE164PhoneNumber) ProtoMessage() {}
 
 func (x *TransformE164PhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3492,7 +3547,7 @@ func (x *TransformE164PhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformE164PhoneNumber.ProtoReflect.Descriptor instead.
 func (*TransformE164PhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{47}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *TransformE164PhoneNumber) GetPreserveLength() bool {
@@ -3512,7 +3567,7 @@ type TransformFirstName struct {
 
 func (x *TransformFirstName) Reset() {
 	*x = TransformFirstName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3524,7 +3579,7 @@ func (x *TransformFirstName) String() string {
 func (*TransformFirstName) ProtoMessage() {}
 
 func (x *TransformFirstName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3537,7 +3592,7 @@ func (x *TransformFirstName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFirstName.ProtoReflect.Descriptor instead.
 func (*TransformFirstName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{48}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *TransformFirstName) GetPreserveLength() bool {
@@ -3558,7 +3613,7 @@ type TransformFloat64 struct {
 
 func (x *TransformFloat64) Reset() {
 	*x = TransformFloat64{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3570,7 +3625,7 @@ func (x *TransformFloat64) String() string {
 func (*TransformFloat64) ProtoMessage() {}
 
 func (x *TransformFloat64) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3583,7 +3638,7 @@ func (x *TransformFloat64) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFloat64.ProtoReflect.Descriptor instead.
 func (*TransformFloat64) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{49}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *TransformFloat64) GetRandomizationRangeMin() float64 {
@@ -3610,7 +3665,7 @@ type TransformFullName struct {
 
 func (x *TransformFullName) Reset() {
 	*x = TransformFullName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3622,7 +3677,7 @@ func (x *TransformFullName) String() string {
 func (*TransformFullName) ProtoMessage() {}
 
 func (x *TransformFullName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3635,7 +3690,7 @@ func (x *TransformFullName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFullName.ProtoReflect.Descriptor instead.
 func (*TransformFullName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{50}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *TransformFullName) GetPreserveLength() bool {
@@ -3655,7 +3710,7 @@ type TransformInt64PhoneNumber struct {
 
 func (x *TransformInt64PhoneNumber) Reset() {
 	*x = TransformInt64PhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3667,7 +3722,7 @@ func (x *TransformInt64PhoneNumber) String() string {
 func (*TransformInt64PhoneNumber) ProtoMessage() {}
 
 func (x *TransformInt64PhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3680,7 +3735,7 @@ func (x *TransformInt64PhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformInt64PhoneNumber.ProtoReflect.Descriptor instead.
 func (*TransformInt64PhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{51}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *TransformInt64PhoneNumber) GetPreserveLength() bool {
@@ -3701,7 +3756,7 @@ type TransformInt64 struct {
 
 func (x *TransformInt64) Reset() {
 	*x = TransformInt64{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3713,7 +3768,7 @@ func (x *TransformInt64) String() string {
 func (*TransformInt64) ProtoMessage() {}
 
 func (x *TransformInt64) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3726,7 +3781,7 @@ func (x *TransformInt64) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformInt64.ProtoReflect.Descriptor instead.
 func (*TransformInt64) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{52}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *TransformInt64) GetRandomizationRangeMin() int64 {
@@ -3753,7 +3808,7 @@ type TransformLastName struct {
 
 func (x *TransformLastName) Reset() {
 	*x = TransformLastName{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3765,7 +3820,7 @@ func (x *TransformLastName) String() string {
 func (*TransformLastName) ProtoMessage() {}
 
 func (x *TransformLastName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3778,7 +3833,7 @@ func (x *TransformLastName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformLastName.ProtoReflect.Descriptor instead.
 func (*TransformLastName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{53}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *TransformLastName) GetPreserveLength() bool {
@@ -3798,7 +3853,7 @@ type TransformPhoneNumber struct {
 
 func (x *TransformPhoneNumber) Reset() {
 	*x = TransformPhoneNumber{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[54]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3810,7 +3865,7 @@ func (x *TransformPhoneNumber) String() string {
 func (*TransformPhoneNumber) ProtoMessage() {}
 
 func (x *TransformPhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[54]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3823,7 +3878,7 @@ func (x *TransformPhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformPhoneNumber.ProtoReflect.Descriptor instead.
 func (*TransformPhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{54}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *TransformPhoneNumber) GetPreserveLength() bool {
@@ -3843,7 +3898,7 @@ type TransformString struct {
 
 func (x *TransformString) Reset() {
 	*x = TransformString{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[55]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3855,7 +3910,7 @@ func (x *TransformString) String() string {
 func (*TransformString) ProtoMessage() {}
 
 func (x *TransformString) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[55]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3868,7 +3923,7 @@ func (x *TransformString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformString.ProtoReflect.Descriptor instead.
 func (*TransformString) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{55}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *TransformString) GetPreserveLength() bool {
@@ -3886,7 +3941,7 @@ type Passthrough struct {
 
 func (x *Passthrough) Reset() {
 	*x = Passthrough{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[56]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3898,7 +3953,7 @@ func (x *Passthrough) String() string {
 func (*Passthrough) ProtoMessage() {}
 
 func (x *Passthrough) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[56]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3911,7 +3966,7 @@ func (x *Passthrough) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Passthrough.ProtoReflect.Descriptor instead.
 func (*Passthrough) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{56}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{57}
 }
 
 type Null struct {
@@ -3922,7 +3977,7 @@ type Null struct {
 
 func (x *Null) Reset() {
 	*x = Null{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[57]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3934,7 +3989,7 @@ func (x *Null) String() string {
 func (*Null) ProtoMessage() {}
 
 func (x *Null) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[57]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3947,7 +4002,7 @@ func (x *Null) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Null.ProtoReflect.Descriptor instead.
 func (*Null) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{57}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{58}
 }
 
 type TransformJavascript struct {
@@ -3960,7 +4015,7 @@ type TransformJavascript struct {
 
 func (x *TransformJavascript) Reset() {
 	*x = TransformJavascript{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[58]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3972,7 +4027,7 @@ func (x *TransformJavascript) String() string {
 func (*TransformJavascript) ProtoMessage() {}
 
 func (x *TransformJavascript) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[58]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3985,7 +4040,7 @@ func (x *TransformJavascript) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformJavascript.ProtoReflect.Descriptor instead.
 func (*TransformJavascript) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{58}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *TransformJavascript) GetCode() string {
@@ -4005,7 +4060,7 @@ type UserDefinedTransformerConfig struct {
 
 func (x *UserDefinedTransformerConfig) Reset() {
 	*x = UserDefinedTransformerConfig{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[59]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4017,7 +4072,7 @@ func (x *UserDefinedTransformerConfig) String() string {
 func (*UserDefinedTransformerConfig) ProtoMessage() {}
 
 func (x *UserDefinedTransformerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[59]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4030,7 +4085,7 @@ func (x *UserDefinedTransformerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDefinedTransformerConfig.ProtoReflect.Descriptor instead.
 func (*UserDefinedTransformerConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{59}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *UserDefinedTransformerConfig) GetId() string {
@@ -4052,7 +4107,7 @@ type ValidateUserJavascriptCodeRequest struct {
 
 func (x *ValidateUserJavascriptCodeRequest) Reset() {
 	*x = ValidateUserJavascriptCodeRequest{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[60]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4064,7 +4119,7 @@ func (x *ValidateUserJavascriptCodeRequest) String() string {
 func (*ValidateUserJavascriptCodeRequest) ProtoMessage() {}
 
 func (x *ValidateUserJavascriptCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[60]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4077,7 +4132,7 @@ func (x *ValidateUserJavascriptCodeRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ValidateUserJavascriptCodeRequest.ProtoReflect.Descriptor instead.
 func (*ValidateUserJavascriptCodeRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{60}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ValidateUserJavascriptCodeRequest) GetAccountId() string {
@@ -4104,7 +4159,7 @@ type ValidateUserJavascriptCodeResponse struct {
 
 func (x *ValidateUserJavascriptCodeResponse) Reset() {
 	*x = ValidateUserJavascriptCodeResponse{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[61]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4116,7 +4171,7 @@ func (x *ValidateUserJavascriptCodeResponse) String() string {
 func (*ValidateUserJavascriptCodeResponse) ProtoMessage() {}
 
 func (x *ValidateUserJavascriptCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[61]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4129,7 +4184,7 @@ func (x *ValidateUserJavascriptCodeResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ValidateUserJavascriptCodeResponse.ProtoReflect.Descriptor instead.
 func (*ValidateUserJavascriptCodeResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{61}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ValidateUserJavascriptCodeResponse) GetValid() bool {
@@ -4149,7 +4204,7 @@ type GenerateCategorical struct {
 
 func (x *GenerateCategorical) Reset() {
 	*x = GenerateCategorical{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[62]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4161,7 +4216,7 @@ func (x *GenerateCategorical) String() string {
 func (*GenerateCategorical) ProtoMessage() {}
 
 func (x *GenerateCategorical) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[62]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4174,7 +4229,7 @@ func (x *GenerateCategorical) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCategorical.ProtoReflect.Descriptor instead.
 func (*GenerateCategorical) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{62}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GenerateCategorical) GetCategories() string {
@@ -4195,7 +4250,7 @@ type TransformCharacterScramble struct {
 
 func (x *TransformCharacterScramble) Reset() {
 	*x = TransformCharacterScramble{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[63]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4207,7 +4262,7 @@ func (x *TransformCharacterScramble) String() string {
 func (*TransformCharacterScramble) ProtoMessage() {}
 
 func (x *TransformCharacterScramble) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[63]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4220,7 +4275,7 @@ func (x *TransformCharacterScramble) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformCharacterScramble.ProtoReflect.Descriptor instead.
 func (*TransformCharacterScramble) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{63}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *TransformCharacterScramble) GetUserProvidedRegex() string {
@@ -4240,7 +4295,7 @@ type GenerateJavascript struct {
 
 func (x *GenerateJavascript) Reset() {
 	*x = GenerateJavascript{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[64]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4252,7 +4307,7 @@ func (x *GenerateJavascript) String() string {
 func (*GenerateJavascript) ProtoMessage() {}
 
 func (x *GenerateJavascript) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[64]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4265,7 +4320,7 @@ func (x *GenerateJavascript) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateJavascript.ProtoReflect.Descriptor instead.
 func (*GenerateJavascript) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{64}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GenerateJavascript) GetCode() string {
@@ -4287,7 +4342,7 @@ type ValidateUserRegexCodeRequest struct {
 
 func (x *ValidateUserRegexCodeRequest) Reset() {
 	*x = ValidateUserRegexCodeRequest{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[65]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4299,7 +4354,7 @@ func (x *ValidateUserRegexCodeRequest) String() string {
 func (*ValidateUserRegexCodeRequest) ProtoMessage() {}
 
 func (x *ValidateUserRegexCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[65]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4312,7 +4367,7 @@ func (x *ValidateUserRegexCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateUserRegexCodeRequest.ProtoReflect.Descriptor instead.
 func (*ValidateUserRegexCodeRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{65}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ValidateUserRegexCodeRequest) GetAccountId() string {
@@ -4339,7 +4394,7 @@ type ValidateUserRegexCodeResponse struct {
 
 func (x *ValidateUserRegexCodeResponse) Reset() {
 	*x = ValidateUserRegexCodeResponse{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[66]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4351,7 +4406,7 @@ func (x *ValidateUserRegexCodeResponse) String() string {
 func (*ValidateUserRegexCodeResponse) ProtoMessage() {}
 
 func (x *ValidateUserRegexCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[66]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4364,7 +4419,7 @@ func (x *ValidateUserRegexCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateUserRegexCodeResponse.ProtoReflect.Descriptor instead.
 func (*ValidateUserRegexCodeResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{66}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ValidateUserRegexCodeResponse) GetValid() bool {
@@ -4385,7 +4440,7 @@ type GenerateCountry struct {
 
 func (x *GenerateCountry) Reset() {
 	*x = GenerateCountry{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[67]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4397,7 +4452,7 @@ func (x *GenerateCountry) String() string {
 func (*GenerateCountry) ProtoMessage() {}
 
 func (x *GenerateCountry) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[67]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4410,7 +4465,7 @@ func (x *GenerateCountry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCountry.ProtoReflect.Descriptor instead.
 func (*GenerateCountry) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{67}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GenerateCountry) GetGenerateFullName() bool {
@@ -4431,7 +4486,7 @@ type PiiAnonymizer_Replace struct {
 
 func (x *PiiAnonymizer_Replace) Reset() {
 	*x = PiiAnonymizer_Replace{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[68]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4443,7 +4498,7 @@ func (x *PiiAnonymizer_Replace) String() string {
 func (*PiiAnonymizer_Replace) ProtoMessage() {}
 
 func (x *PiiAnonymizer_Replace) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[68]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4456,7 +4511,7 @@ func (x *PiiAnonymizer_Replace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PiiAnonymizer_Replace.ProtoReflect.Descriptor instead.
 func (*PiiAnonymizer_Replace) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20, 0}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21, 0}
 }
 
 func (x *PiiAnonymizer_Replace) GetValue() string {
@@ -4474,7 +4529,7 @@ type PiiAnonymizer_Redact struct {
 
 func (x *PiiAnonymizer_Redact) Reset() {
 	*x = PiiAnonymizer_Redact{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[69]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4486,7 +4541,7 @@ func (x *PiiAnonymizer_Redact) String() string {
 func (*PiiAnonymizer_Redact) ProtoMessage() {}
 
 func (x *PiiAnonymizer_Redact) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[69]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4499,7 +4554,7 @@ func (x *PiiAnonymizer_Redact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PiiAnonymizer_Redact.ProtoReflect.Descriptor instead.
 func (*PiiAnonymizer_Redact) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20, 1}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21, 1}
 }
 
 type PiiAnonymizer_Mask struct {
@@ -4517,7 +4572,7 @@ type PiiAnonymizer_Mask struct {
 
 func (x *PiiAnonymizer_Mask) Reset() {
 	*x = PiiAnonymizer_Mask{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[70]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4529,7 +4584,7 @@ func (x *PiiAnonymizer_Mask) String() string {
 func (*PiiAnonymizer_Mask) ProtoMessage() {}
 
 func (x *PiiAnonymizer_Mask) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[70]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4542,7 +4597,7 @@ func (x *PiiAnonymizer_Mask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PiiAnonymizer_Mask.ProtoReflect.Descriptor instead.
 func (*PiiAnonymizer_Mask) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20, 2}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21, 2}
 }
 
 func (x *PiiAnonymizer_Mask) GetMaskingChar() string {
@@ -4577,7 +4632,7 @@ type PiiAnonymizer_Hash struct {
 
 func (x *PiiAnonymizer_Hash) Reset() {
 	*x = PiiAnonymizer_Hash{}
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[71]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4589,7 +4644,7 @@ func (x *PiiAnonymizer_Hash) String() string {
 func (*PiiAnonymizer_Hash) ProtoMessage() {}
 
 func (x *PiiAnonymizer_Hash) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[71]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4602,7 +4657,7 @@ func (x *PiiAnonymizer_Hash) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PiiAnonymizer_Hash.ProtoReflect.Descriptor instead.
 func (*PiiAnonymizer_Hash) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20, 3}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21, 3}
 }
 
 func (x *PiiAnonymizer_Hash) GetAlgo() PiiAnonymizer_Hash_HashType {
@@ -5063,7 +5118,7 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x50, 0x69, 0x69, 0x54, 0x65, 0x78, 0x74, 0x48, 0x00, 0x52, 0x16,
 	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x50, 0x69, 0x69, 0x54, 0x65, 0x78, 0x74,
 	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0xb8, 0x01, 0x0a, 0x10, 0x54, 0x72, 0x61, 0x6e,
+	0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0xe6, 0x01, 0x0a, 0x10, 0x54, 0x72, 0x61, 0x6e,
 	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x50, 0x69, 0x69, 0x54, 0x65, 0x78, 0x74, 0x12, 0x38, 0x0a, 0x0f,
 	0x73, 0x63, 0x6f, 0x72, 0x65, 0x5f, 0x74, 0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x02, 0x42, 0x0f, 0xba, 0x48, 0x0c, 0x0a, 0x0a, 0x1d, 0x00, 0x00, 0x80,
@@ -5073,8 +5128,18 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
 	0x61, 0x31, 0x2e, 0x50, 0x69, 0x69, 0x41, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x69, 0x7a, 0x65, 0x72,
 	0x52, 0x11, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x41, 0x6e, 0x6f, 0x6e, 0x79, 0x6d, 0x69,
-	0x7a, 0x65, 0x72, 0x12, 0x1d, 0x0a, 0x0a, 0x64, 0x65, 0x6e, 0x79, 0x5f, 0x77, 0x6f, 0x72, 0x64,
-	0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09, 0x64, 0x65, 0x6e, 0x79, 0x57, 0x6f, 0x72,
+	0x7a, 0x65, 0x72, 0x12, 0x4b, 0x0a, 0x10, 0x64, 0x65, 0x6e, 0x79, 0x5f, 0x72, 0x65, 0x63, 0x6f,
+	0x67, 0x6e, 0x69, 0x7a, 0x65, 0x72, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x20, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x69,
+	0x69, 0x44, 0x65, 0x6e, 0x79, 0x52, 0x65, 0x63, 0x6f, 0x67, 0x6e, 0x69, 0x7a, 0x65, 0x72, 0x52,
+	0x0f, 0x64, 0x65, 0x6e, 0x79, 0x52, 0x65, 0x63, 0x6f, 0x67, 0x6e, 0x69, 0x7a, 0x65, 0x72, 0x73,
+	0x22, 0x70, 0x0a, 0x11, 0x50, 0x69, 0x69, 0x44, 0x65, 0x6e, 0x79, 0x52, 0x65, 0x63, 0x6f, 0x67,
+	0x6e, 0x69, 0x7a, 0x65, 0x72, 0x12, 0x2e, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x42, 0x1a, 0xba, 0x48, 0x17, 0x72, 0x15, 0x32, 0x13, 0x5e, 0x5b, 0x61, 0x2d,
+	0x7a, 0x30, 0x2d, 0x39, 0x2d, 0x5f, 0x5d, 0x7b, 0x31, 0x2c, 0x31, 0x30, 0x30, 0x7d, 0x24, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x2b, 0x0a, 0x0a, 0x64, 0x65, 0x6e, 0x79, 0x5f, 0x77, 0x6f,
+	0x72, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x42, 0x0c, 0xba, 0x48, 0x09, 0x92, 0x01,
+	0x06, 0x22, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52, 0x09, 0x64, 0x65, 0x6e, 0x79, 0x57, 0x6f, 0x72,
 	0x64, 0x73, 0x22, 0xad, 0x05, 0x0a, 0x0d, 0x50, 0x69, 0x69, 0x41, 0x6e, 0x6f, 0x6e, 0x79, 0x6d,
 	0x69, 0x7a, 0x65, 0x72, 0x12, 0x40, 0x0a, 0x07, 0x72, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
@@ -5585,7 +5650,7 @@ func file_mgmt_v1alpha1_transformer_proto_rawDescGZIP() []byte {
 }
 
 var file_mgmt_v1alpha1_transformer_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_mgmt_v1alpha1_transformer_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
+var file_mgmt_v1alpha1_transformer_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
 var file_mgmt_v1alpha1_transformer_proto_goTypes = []any{
 	(TransformerSource)(0),                        // 0: mgmt.v1alpha1.TransformerSource
 	(TransformerDataType)(0),                      // 1: mgmt.v1alpha1.TransformerDataType
@@ -5613,59 +5678,60 @@ var file_mgmt_v1alpha1_transformer_proto_goTypes = []any{
 	(*SystemTransformer)(nil),                     // 23: mgmt.v1alpha1.SystemTransformer
 	(*TransformerConfig)(nil),                     // 24: mgmt.v1alpha1.TransformerConfig
 	(*TransformPiiText)(nil),                      // 25: mgmt.v1alpha1.TransformPiiText
-	(*PiiAnonymizer)(nil),                         // 26: mgmt.v1alpha1.PiiAnonymizer
-	(*GenerateEmail)(nil),                         // 27: mgmt.v1alpha1.GenerateEmail
-	(*TransformEmail)(nil),                        // 28: mgmt.v1alpha1.TransformEmail
-	(*GenerateBool)(nil),                          // 29: mgmt.v1alpha1.GenerateBool
-	(*GenerateCardNumber)(nil),                    // 30: mgmt.v1alpha1.GenerateCardNumber
-	(*GenerateCity)(nil),                          // 31: mgmt.v1alpha1.GenerateCity
-	(*GenerateDefault)(nil),                       // 32: mgmt.v1alpha1.GenerateDefault
-	(*GenerateE164PhoneNumber)(nil),               // 33: mgmt.v1alpha1.GenerateE164PhoneNumber
-	(*GenerateFirstName)(nil),                     // 34: mgmt.v1alpha1.GenerateFirstName
-	(*GenerateFloat64)(nil),                       // 35: mgmt.v1alpha1.GenerateFloat64
-	(*GenerateFullAddress)(nil),                   // 36: mgmt.v1alpha1.GenerateFullAddress
-	(*GenerateFullName)(nil),                      // 37: mgmt.v1alpha1.GenerateFullName
-	(*GenerateGender)(nil),                        // 38: mgmt.v1alpha1.GenerateGender
-	(*GenerateInt64PhoneNumber)(nil),              // 39: mgmt.v1alpha1.GenerateInt64PhoneNumber
-	(*GenerateInt64)(nil),                         // 40: mgmt.v1alpha1.GenerateInt64
-	(*GenerateLastName)(nil),                      // 41: mgmt.v1alpha1.GenerateLastName
-	(*GenerateSha256Hash)(nil),                    // 42: mgmt.v1alpha1.GenerateSha256Hash
-	(*GenerateSSN)(nil),                           // 43: mgmt.v1alpha1.GenerateSSN
-	(*GenerateState)(nil),                         // 44: mgmt.v1alpha1.GenerateState
-	(*GenerateStreetAddress)(nil),                 // 45: mgmt.v1alpha1.GenerateStreetAddress
-	(*GenerateStringPhoneNumber)(nil),             // 46: mgmt.v1alpha1.GenerateStringPhoneNumber
-	(*GenerateString)(nil),                        // 47: mgmt.v1alpha1.GenerateString
-	(*GenerateUnixTimestamp)(nil),                 // 48: mgmt.v1alpha1.GenerateUnixTimestamp
-	(*GenerateUsername)(nil),                      // 49: mgmt.v1alpha1.GenerateUsername
-	(*GenerateUtcTimestamp)(nil),                  // 50: mgmt.v1alpha1.GenerateUtcTimestamp
-	(*GenerateUuid)(nil),                          // 51: mgmt.v1alpha1.GenerateUuid
-	(*GenerateZipcode)(nil),                       // 52: mgmt.v1alpha1.GenerateZipcode
-	(*TransformE164PhoneNumber)(nil),              // 53: mgmt.v1alpha1.TransformE164PhoneNumber
-	(*TransformFirstName)(nil),                    // 54: mgmt.v1alpha1.TransformFirstName
-	(*TransformFloat64)(nil),                      // 55: mgmt.v1alpha1.TransformFloat64
-	(*TransformFullName)(nil),                     // 56: mgmt.v1alpha1.TransformFullName
-	(*TransformInt64PhoneNumber)(nil),             // 57: mgmt.v1alpha1.TransformInt64PhoneNumber
-	(*TransformInt64)(nil),                        // 58: mgmt.v1alpha1.TransformInt64
-	(*TransformLastName)(nil),                     // 59: mgmt.v1alpha1.TransformLastName
-	(*TransformPhoneNumber)(nil),                  // 60: mgmt.v1alpha1.TransformPhoneNumber
-	(*TransformString)(nil),                       // 61: mgmt.v1alpha1.TransformString
-	(*Passthrough)(nil),                           // 62: mgmt.v1alpha1.Passthrough
-	(*Null)(nil),                                  // 63: mgmt.v1alpha1.Null
-	(*TransformJavascript)(nil),                   // 64: mgmt.v1alpha1.TransformJavascript
-	(*UserDefinedTransformerConfig)(nil),          // 65: mgmt.v1alpha1.UserDefinedTransformerConfig
-	(*ValidateUserJavascriptCodeRequest)(nil),     // 66: mgmt.v1alpha1.ValidateUserJavascriptCodeRequest
-	(*ValidateUserJavascriptCodeResponse)(nil),    // 67: mgmt.v1alpha1.ValidateUserJavascriptCodeResponse
-	(*GenerateCategorical)(nil),                   // 68: mgmt.v1alpha1.GenerateCategorical
-	(*TransformCharacterScramble)(nil),            // 69: mgmt.v1alpha1.TransformCharacterScramble
-	(*GenerateJavascript)(nil),                    // 70: mgmt.v1alpha1.GenerateJavascript
-	(*ValidateUserRegexCodeRequest)(nil),          // 71: mgmt.v1alpha1.ValidateUserRegexCodeRequest
-	(*ValidateUserRegexCodeResponse)(nil),         // 72: mgmt.v1alpha1.ValidateUserRegexCodeResponse
-	(*GenerateCountry)(nil),                       // 73: mgmt.v1alpha1.GenerateCountry
-	(*PiiAnonymizer_Replace)(nil),                 // 74: mgmt.v1alpha1.PiiAnonymizer.Replace
-	(*PiiAnonymizer_Redact)(nil),                  // 75: mgmt.v1alpha1.PiiAnonymizer.Redact
-	(*PiiAnonymizer_Mask)(nil),                    // 76: mgmt.v1alpha1.PiiAnonymizer.Mask
-	(*PiiAnonymizer_Hash)(nil),                    // 77: mgmt.v1alpha1.PiiAnonymizer.Hash
-	(*timestamppb.Timestamp)(nil),                 // 78: google.protobuf.Timestamp
+	(*PiiDenyRecognizer)(nil),                     // 26: mgmt.v1alpha1.PiiDenyRecognizer
+	(*PiiAnonymizer)(nil),                         // 27: mgmt.v1alpha1.PiiAnonymizer
+	(*GenerateEmail)(nil),                         // 28: mgmt.v1alpha1.GenerateEmail
+	(*TransformEmail)(nil),                        // 29: mgmt.v1alpha1.TransformEmail
+	(*GenerateBool)(nil),                          // 30: mgmt.v1alpha1.GenerateBool
+	(*GenerateCardNumber)(nil),                    // 31: mgmt.v1alpha1.GenerateCardNumber
+	(*GenerateCity)(nil),                          // 32: mgmt.v1alpha1.GenerateCity
+	(*GenerateDefault)(nil),                       // 33: mgmt.v1alpha1.GenerateDefault
+	(*GenerateE164PhoneNumber)(nil),               // 34: mgmt.v1alpha1.GenerateE164PhoneNumber
+	(*GenerateFirstName)(nil),                     // 35: mgmt.v1alpha1.GenerateFirstName
+	(*GenerateFloat64)(nil),                       // 36: mgmt.v1alpha1.GenerateFloat64
+	(*GenerateFullAddress)(nil),                   // 37: mgmt.v1alpha1.GenerateFullAddress
+	(*GenerateFullName)(nil),                      // 38: mgmt.v1alpha1.GenerateFullName
+	(*GenerateGender)(nil),                        // 39: mgmt.v1alpha1.GenerateGender
+	(*GenerateInt64PhoneNumber)(nil),              // 40: mgmt.v1alpha1.GenerateInt64PhoneNumber
+	(*GenerateInt64)(nil),                         // 41: mgmt.v1alpha1.GenerateInt64
+	(*GenerateLastName)(nil),                      // 42: mgmt.v1alpha1.GenerateLastName
+	(*GenerateSha256Hash)(nil),                    // 43: mgmt.v1alpha1.GenerateSha256Hash
+	(*GenerateSSN)(nil),                           // 44: mgmt.v1alpha1.GenerateSSN
+	(*GenerateState)(nil),                         // 45: mgmt.v1alpha1.GenerateState
+	(*GenerateStreetAddress)(nil),                 // 46: mgmt.v1alpha1.GenerateStreetAddress
+	(*GenerateStringPhoneNumber)(nil),             // 47: mgmt.v1alpha1.GenerateStringPhoneNumber
+	(*GenerateString)(nil),                        // 48: mgmt.v1alpha1.GenerateString
+	(*GenerateUnixTimestamp)(nil),                 // 49: mgmt.v1alpha1.GenerateUnixTimestamp
+	(*GenerateUsername)(nil),                      // 50: mgmt.v1alpha1.GenerateUsername
+	(*GenerateUtcTimestamp)(nil),                  // 51: mgmt.v1alpha1.GenerateUtcTimestamp
+	(*GenerateUuid)(nil),                          // 52: mgmt.v1alpha1.GenerateUuid
+	(*GenerateZipcode)(nil),                       // 53: mgmt.v1alpha1.GenerateZipcode
+	(*TransformE164PhoneNumber)(nil),              // 54: mgmt.v1alpha1.TransformE164PhoneNumber
+	(*TransformFirstName)(nil),                    // 55: mgmt.v1alpha1.TransformFirstName
+	(*TransformFloat64)(nil),                      // 56: mgmt.v1alpha1.TransformFloat64
+	(*TransformFullName)(nil),                     // 57: mgmt.v1alpha1.TransformFullName
+	(*TransformInt64PhoneNumber)(nil),             // 58: mgmt.v1alpha1.TransformInt64PhoneNumber
+	(*TransformInt64)(nil),                        // 59: mgmt.v1alpha1.TransformInt64
+	(*TransformLastName)(nil),                     // 60: mgmt.v1alpha1.TransformLastName
+	(*TransformPhoneNumber)(nil),                  // 61: mgmt.v1alpha1.TransformPhoneNumber
+	(*TransformString)(nil),                       // 62: mgmt.v1alpha1.TransformString
+	(*Passthrough)(nil),                           // 63: mgmt.v1alpha1.Passthrough
+	(*Null)(nil),                                  // 64: mgmt.v1alpha1.Null
+	(*TransformJavascript)(nil),                   // 65: mgmt.v1alpha1.TransformJavascript
+	(*UserDefinedTransformerConfig)(nil),          // 66: mgmt.v1alpha1.UserDefinedTransformerConfig
+	(*ValidateUserJavascriptCodeRequest)(nil),     // 67: mgmt.v1alpha1.ValidateUserJavascriptCodeRequest
+	(*ValidateUserJavascriptCodeResponse)(nil),    // 68: mgmt.v1alpha1.ValidateUserJavascriptCodeResponse
+	(*GenerateCategorical)(nil),                   // 69: mgmt.v1alpha1.GenerateCategorical
+	(*TransformCharacterScramble)(nil),            // 70: mgmt.v1alpha1.TransformCharacterScramble
+	(*GenerateJavascript)(nil),                    // 71: mgmt.v1alpha1.GenerateJavascript
+	(*ValidateUserRegexCodeRequest)(nil),          // 72: mgmt.v1alpha1.ValidateUserRegexCodeRequest
+	(*ValidateUserRegexCodeResponse)(nil),         // 73: mgmt.v1alpha1.ValidateUserRegexCodeResponse
+	(*GenerateCountry)(nil),                       // 74: mgmt.v1alpha1.GenerateCountry
+	(*PiiAnonymizer_Replace)(nil),                 // 75: mgmt.v1alpha1.PiiAnonymizer.Replace
+	(*PiiAnonymizer_Redact)(nil),                  // 76: mgmt.v1alpha1.PiiAnonymizer.Redact
+	(*PiiAnonymizer_Mask)(nil),                    // 77: mgmt.v1alpha1.PiiAnonymizer.Mask
+	(*PiiAnonymizer_Hash)(nil),                    // 78: mgmt.v1alpha1.PiiAnonymizer.Hash
+	(*timestamppb.Timestamp)(nil),                 // 79: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	23, // 0: mgmt.v1alpha1.GetSystemTransformersResponse.transformers:type_name -> mgmt.v1alpha1.SystemTransformer
@@ -5681,92 +5747,93 @@ var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	1,  // 10: mgmt.v1alpha1.UserDefinedTransformer.data_type:type_name -> mgmt.v1alpha1.TransformerDataType
 	0,  // 11: mgmt.v1alpha1.UserDefinedTransformer.source:type_name -> mgmt.v1alpha1.TransformerSource
 	24, // 12: mgmt.v1alpha1.UserDefinedTransformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
-	78, // 13: mgmt.v1alpha1.UserDefinedTransformer.created_at:type_name -> google.protobuf.Timestamp
-	78, // 14: mgmt.v1alpha1.UserDefinedTransformer.updated_at:type_name -> google.protobuf.Timestamp
+	79, // 13: mgmt.v1alpha1.UserDefinedTransformer.created_at:type_name -> google.protobuf.Timestamp
+	79, // 14: mgmt.v1alpha1.UserDefinedTransformer.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 15: mgmt.v1alpha1.UserDefinedTransformer.data_types:type_name -> mgmt.v1alpha1.TransformerDataType
 	1,  // 16: mgmt.v1alpha1.SystemTransformer.data_type:type_name -> mgmt.v1alpha1.TransformerDataType
 	0,  // 17: mgmt.v1alpha1.SystemTransformer.source:type_name -> mgmt.v1alpha1.TransformerSource
 	24, // 18: mgmt.v1alpha1.SystemTransformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
 	1,  // 19: mgmt.v1alpha1.SystemTransformer.data_types:type_name -> mgmt.v1alpha1.TransformerDataType
 	2,  // 20: mgmt.v1alpha1.SystemTransformer.supported_job_types:type_name -> mgmt.v1alpha1.SupportedJobType
-	27, // 21: mgmt.v1alpha1.TransformerConfig.generate_email_config:type_name -> mgmt.v1alpha1.GenerateEmail
-	28, // 22: mgmt.v1alpha1.TransformerConfig.transform_email_config:type_name -> mgmt.v1alpha1.TransformEmail
-	29, // 23: mgmt.v1alpha1.TransformerConfig.generate_bool_config:type_name -> mgmt.v1alpha1.GenerateBool
-	30, // 24: mgmt.v1alpha1.TransformerConfig.generate_card_number_config:type_name -> mgmt.v1alpha1.GenerateCardNumber
-	31, // 25: mgmt.v1alpha1.TransformerConfig.generate_city_config:type_name -> mgmt.v1alpha1.GenerateCity
-	33, // 26: mgmt.v1alpha1.TransformerConfig.generate_e164_phone_number_config:type_name -> mgmt.v1alpha1.GenerateE164PhoneNumber
-	34, // 27: mgmt.v1alpha1.TransformerConfig.generate_first_name_config:type_name -> mgmt.v1alpha1.GenerateFirstName
-	35, // 28: mgmt.v1alpha1.TransformerConfig.generate_float64_config:type_name -> mgmt.v1alpha1.GenerateFloat64
-	36, // 29: mgmt.v1alpha1.TransformerConfig.generate_full_address_config:type_name -> mgmt.v1alpha1.GenerateFullAddress
-	37, // 30: mgmt.v1alpha1.TransformerConfig.generate_full_name_config:type_name -> mgmt.v1alpha1.GenerateFullName
-	38, // 31: mgmt.v1alpha1.TransformerConfig.generate_gender_config:type_name -> mgmt.v1alpha1.GenerateGender
-	39, // 32: mgmt.v1alpha1.TransformerConfig.generate_int64_phone_number_config:type_name -> mgmt.v1alpha1.GenerateInt64PhoneNumber
-	40, // 33: mgmt.v1alpha1.TransformerConfig.generate_int64_config:type_name -> mgmt.v1alpha1.GenerateInt64
-	41, // 34: mgmt.v1alpha1.TransformerConfig.generate_last_name_config:type_name -> mgmt.v1alpha1.GenerateLastName
-	42, // 35: mgmt.v1alpha1.TransformerConfig.generate_sha256hash_config:type_name -> mgmt.v1alpha1.GenerateSha256Hash
-	43, // 36: mgmt.v1alpha1.TransformerConfig.generate_ssn_config:type_name -> mgmt.v1alpha1.GenerateSSN
-	44, // 37: mgmt.v1alpha1.TransformerConfig.generate_state_config:type_name -> mgmt.v1alpha1.GenerateState
-	45, // 38: mgmt.v1alpha1.TransformerConfig.generate_street_address_config:type_name -> mgmt.v1alpha1.GenerateStreetAddress
-	46, // 39: mgmt.v1alpha1.TransformerConfig.generate_string_phone_number_config:type_name -> mgmt.v1alpha1.GenerateStringPhoneNumber
-	47, // 40: mgmt.v1alpha1.TransformerConfig.generate_string_config:type_name -> mgmt.v1alpha1.GenerateString
-	48, // 41: mgmt.v1alpha1.TransformerConfig.generate_unixtimestamp_config:type_name -> mgmt.v1alpha1.GenerateUnixTimestamp
-	49, // 42: mgmt.v1alpha1.TransformerConfig.generate_username_config:type_name -> mgmt.v1alpha1.GenerateUsername
-	50, // 43: mgmt.v1alpha1.TransformerConfig.generate_utctimestamp_config:type_name -> mgmt.v1alpha1.GenerateUtcTimestamp
-	51, // 44: mgmt.v1alpha1.TransformerConfig.generate_uuid_config:type_name -> mgmt.v1alpha1.GenerateUuid
-	52, // 45: mgmt.v1alpha1.TransformerConfig.generate_zipcode_config:type_name -> mgmt.v1alpha1.GenerateZipcode
-	53, // 46: mgmt.v1alpha1.TransformerConfig.transform_e164_phone_number_config:type_name -> mgmt.v1alpha1.TransformE164PhoneNumber
-	54, // 47: mgmt.v1alpha1.TransformerConfig.transform_first_name_config:type_name -> mgmt.v1alpha1.TransformFirstName
-	55, // 48: mgmt.v1alpha1.TransformerConfig.transform_float64_config:type_name -> mgmt.v1alpha1.TransformFloat64
-	56, // 49: mgmt.v1alpha1.TransformerConfig.transform_full_name_config:type_name -> mgmt.v1alpha1.TransformFullName
-	57, // 50: mgmt.v1alpha1.TransformerConfig.transform_int64_phone_number_config:type_name -> mgmt.v1alpha1.TransformInt64PhoneNumber
-	58, // 51: mgmt.v1alpha1.TransformerConfig.transform_int64_config:type_name -> mgmt.v1alpha1.TransformInt64
-	59, // 52: mgmt.v1alpha1.TransformerConfig.transform_last_name_config:type_name -> mgmt.v1alpha1.TransformLastName
-	60, // 53: mgmt.v1alpha1.TransformerConfig.transform_phone_number_config:type_name -> mgmt.v1alpha1.TransformPhoneNumber
-	61, // 54: mgmt.v1alpha1.TransformerConfig.transform_string_config:type_name -> mgmt.v1alpha1.TransformString
-	62, // 55: mgmt.v1alpha1.TransformerConfig.passthrough_config:type_name -> mgmt.v1alpha1.Passthrough
-	63, // 56: mgmt.v1alpha1.TransformerConfig.nullconfig:type_name -> mgmt.v1alpha1.Null
-	65, // 57: mgmt.v1alpha1.TransformerConfig.user_defined_transformer_config:type_name -> mgmt.v1alpha1.UserDefinedTransformerConfig
-	32, // 58: mgmt.v1alpha1.TransformerConfig.generate_default_config:type_name -> mgmt.v1alpha1.GenerateDefault
-	64, // 59: mgmt.v1alpha1.TransformerConfig.transform_javascript_config:type_name -> mgmt.v1alpha1.TransformJavascript
-	68, // 60: mgmt.v1alpha1.TransformerConfig.generate_categorical_config:type_name -> mgmt.v1alpha1.GenerateCategorical
-	69, // 61: mgmt.v1alpha1.TransformerConfig.transform_character_scramble_config:type_name -> mgmt.v1alpha1.TransformCharacterScramble
-	70, // 62: mgmt.v1alpha1.TransformerConfig.generate_javascript_config:type_name -> mgmt.v1alpha1.GenerateJavascript
-	73, // 63: mgmt.v1alpha1.TransformerConfig.generate_country_config:type_name -> mgmt.v1alpha1.GenerateCountry
+	28, // 21: mgmt.v1alpha1.TransformerConfig.generate_email_config:type_name -> mgmt.v1alpha1.GenerateEmail
+	29, // 22: mgmt.v1alpha1.TransformerConfig.transform_email_config:type_name -> mgmt.v1alpha1.TransformEmail
+	30, // 23: mgmt.v1alpha1.TransformerConfig.generate_bool_config:type_name -> mgmt.v1alpha1.GenerateBool
+	31, // 24: mgmt.v1alpha1.TransformerConfig.generate_card_number_config:type_name -> mgmt.v1alpha1.GenerateCardNumber
+	32, // 25: mgmt.v1alpha1.TransformerConfig.generate_city_config:type_name -> mgmt.v1alpha1.GenerateCity
+	34, // 26: mgmt.v1alpha1.TransformerConfig.generate_e164_phone_number_config:type_name -> mgmt.v1alpha1.GenerateE164PhoneNumber
+	35, // 27: mgmt.v1alpha1.TransformerConfig.generate_first_name_config:type_name -> mgmt.v1alpha1.GenerateFirstName
+	36, // 28: mgmt.v1alpha1.TransformerConfig.generate_float64_config:type_name -> mgmt.v1alpha1.GenerateFloat64
+	37, // 29: mgmt.v1alpha1.TransformerConfig.generate_full_address_config:type_name -> mgmt.v1alpha1.GenerateFullAddress
+	38, // 30: mgmt.v1alpha1.TransformerConfig.generate_full_name_config:type_name -> mgmt.v1alpha1.GenerateFullName
+	39, // 31: mgmt.v1alpha1.TransformerConfig.generate_gender_config:type_name -> mgmt.v1alpha1.GenerateGender
+	40, // 32: mgmt.v1alpha1.TransformerConfig.generate_int64_phone_number_config:type_name -> mgmt.v1alpha1.GenerateInt64PhoneNumber
+	41, // 33: mgmt.v1alpha1.TransformerConfig.generate_int64_config:type_name -> mgmt.v1alpha1.GenerateInt64
+	42, // 34: mgmt.v1alpha1.TransformerConfig.generate_last_name_config:type_name -> mgmt.v1alpha1.GenerateLastName
+	43, // 35: mgmt.v1alpha1.TransformerConfig.generate_sha256hash_config:type_name -> mgmt.v1alpha1.GenerateSha256Hash
+	44, // 36: mgmt.v1alpha1.TransformerConfig.generate_ssn_config:type_name -> mgmt.v1alpha1.GenerateSSN
+	45, // 37: mgmt.v1alpha1.TransformerConfig.generate_state_config:type_name -> mgmt.v1alpha1.GenerateState
+	46, // 38: mgmt.v1alpha1.TransformerConfig.generate_street_address_config:type_name -> mgmt.v1alpha1.GenerateStreetAddress
+	47, // 39: mgmt.v1alpha1.TransformerConfig.generate_string_phone_number_config:type_name -> mgmt.v1alpha1.GenerateStringPhoneNumber
+	48, // 40: mgmt.v1alpha1.TransformerConfig.generate_string_config:type_name -> mgmt.v1alpha1.GenerateString
+	49, // 41: mgmt.v1alpha1.TransformerConfig.generate_unixtimestamp_config:type_name -> mgmt.v1alpha1.GenerateUnixTimestamp
+	50, // 42: mgmt.v1alpha1.TransformerConfig.generate_username_config:type_name -> mgmt.v1alpha1.GenerateUsername
+	51, // 43: mgmt.v1alpha1.TransformerConfig.generate_utctimestamp_config:type_name -> mgmt.v1alpha1.GenerateUtcTimestamp
+	52, // 44: mgmt.v1alpha1.TransformerConfig.generate_uuid_config:type_name -> mgmt.v1alpha1.GenerateUuid
+	53, // 45: mgmt.v1alpha1.TransformerConfig.generate_zipcode_config:type_name -> mgmt.v1alpha1.GenerateZipcode
+	54, // 46: mgmt.v1alpha1.TransformerConfig.transform_e164_phone_number_config:type_name -> mgmt.v1alpha1.TransformE164PhoneNumber
+	55, // 47: mgmt.v1alpha1.TransformerConfig.transform_first_name_config:type_name -> mgmt.v1alpha1.TransformFirstName
+	56, // 48: mgmt.v1alpha1.TransformerConfig.transform_float64_config:type_name -> mgmt.v1alpha1.TransformFloat64
+	57, // 49: mgmt.v1alpha1.TransformerConfig.transform_full_name_config:type_name -> mgmt.v1alpha1.TransformFullName
+	58, // 50: mgmt.v1alpha1.TransformerConfig.transform_int64_phone_number_config:type_name -> mgmt.v1alpha1.TransformInt64PhoneNumber
+	59, // 51: mgmt.v1alpha1.TransformerConfig.transform_int64_config:type_name -> mgmt.v1alpha1.TransformInt64
+	60, // 52: mgmt.v1alpha1.TransformerConfig.transform_last_name_config:type_name -> mgmt.v1alpha1.TransformLastName
+	61, // 53: mgmt.v1alpha1.TransformerConfig.transform_phone_number_config:type_name -> mgmt.v1alpha1.TransformPhoneNumber
+	62, // 54: mgmt.v1alpha1.TransformerConfig.transform_string_config:type_name -> mgmt.v1alpha1.TransformString
+	63, // 55: mgmt.v1alpha1.TransformerConfig.passthrough_config:type_name -> mgmt.v1alpha1.Passthrough
+	64, // 56: mgmt.v1alpha1.TransformerConfig.nullconfig:type_name -> mgmt.v1alpha1.Null
+	66, // 57: mgmt.v1alpha1.TransformerConfig.user_defined_transformer_config:type_name -> mgmt.v1alpha1.UserDefinedTransformerConfig
+	33, // 58: mgmt.v1alpha1.TransformerConfig.generate_default_config:type_name -> mgmt.v1alpha1.GenerateDefault
+	65, // 59: mgmt.v1alpha1.TransformerConfig.transform_javascript_config:type_name -> mgmt.v1alpha1.TransformJavascript
+	69, // 60: mgmt.v1alpha1.TransformerConfig.generate_categorical_config:type_name -> mgmt.v1alpha1.GenerateCategorical
+	70, // 61: mgmt.v1alpha1.TransformerConfig.transform_character_scramble_config:type_name -> mgmt.v1alpha1.TransformCharacterScramble
+	71, // 62: mgmt.v1alpha1.TransformerConfig.generate_javascript_config:type_name -> mgmt.v1alpha1.GenerateJavascript
+	74, // 63: mgmt.v1alpha1.TransformerConfig.generate_country_config:type_name -> mgmt.v1alpha1.GenerateCountry
 	25, // 64: mgmt.v1alpha1.TransformerConfig.transform_pii_text_config:type_name -> mgmt.v1alpha1.TransformPiiText
-	26, // 65: mgmt.v1alpha1.TransformPiiText.default_anonymizer:type_name -> mgmt.v1alpha1.PiiAnonymizer
-	74, // 66: mgmt.v1alpha1.PiiAnonymizer.replace:type_name -> mgmt.v1alpha1.PiiAnonymizer.Replace
-	75, // 67: mgmt.v1alpha1.PiiAnonymizer.redact:type_name -> mgmt.v1alpha1.PiiAnonymizer.Redact
-	76, // 68: mgmt.v1alpha1.PiiAnonymizer.mask:type_name -> mgmt.v1alpha1.PiiAnonymizer.Mask
-	77, // 69: mgmt.v1alpha1.PiiAnonymizer.hash:type_name -> mgmt.v1alpha1.PiiAnonymizer.Hash
-	3,  // 70: mgmt.v1alpha1.GenerateEmail.email_type:type_name -> mgmt.v1alpha1.GenerateEmailType
-	3,  // 71: mgmt.v1alpha1.TransformEmail.email_type:type_name -> mgmt.v1alpha1.GenerateEmailType
-	4,  // 72: mgmt.v1alpha1.TransformEmail.invalid_email_action:type_name -> mgmt.v1alpha1.InvalidEmailAction
-	5,  // 73: mgmt.v1alpha1.PiiAnonymizer.Hash.algo:type_name -> mgmt.v1alpha1.PiiAnonymizer.Hash.HashType
-	6,  // 74: mgmt.v1alpha1.TransformersService.GetSystemTransformers:input_type -> mgmt.v1alpha1.GetSystemTransformersRequest
-	8,  // 75: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource:input_type -> mgmt.v1alpha1.GetSystemTransformerBySourceRequest
-	10, // 76: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers:input_type -> mgmt.v1alpha1.GetUserDefinedTransformersRequest
-	12, // 77: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById:input_type -> mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest
-	14, // 78: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer:input_type -> mgmt.v1alpha1.CreateUserDefinedTransformerRequest
-	16, // 79: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer:input_type -> mgmt.v1alpha1.DeleteUserDefinedTransformerRequest
-	18, // 80: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer:input_type -> mgmt.v1alpha1.UpdateUserDefinedTransformerRequest
-	20, // 81: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:input_type -> mgmt.v1alpha1.IsTransformerNameAvailableRequest
-	66, // 82: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode:input_type -> mgmt.v1alpha1.ValidateUserJavascriptCodeRequest
-	71, // 83: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode:input_type -> mgmt.v1alpha1.ValidateUserRegexCodeRequest
-	7,  // 84: mgmt.v1alpha1.TransformersService.GetSystemTransformers:output_type -> mgmt.v1alpha1.GetSystemTransformersResponse
-	9,  // 85: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource:output_type -> mgmt.v1alpha1.GetSystemTransformerBySourceResponse
-	11, // 86: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers:output_type -> mgmt.v1alpha1.GetUserDefinedTransformersResponse
-	13, // 87: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById:output_type -> mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse
-	15, // 88: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer:output_type -> mgmt.v1alpha1.CreateUserDefinedTransformerResponse
-	17, // 89: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer:output_type -> mgmt.v1alpha1.DeleteUserDefinedTransformerResponse
-	19, // 90: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer:output_type -> mgmt.v1alpha1.UpdateUserDefinedTransformerResponse
-	21, // 91: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:output_type -> mgmt.v1alpha1.IsTransformerNameAvailableResponse
-	67, // 92: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode:output_type -> mgmt.v1alpha1.ValidateUserJavascriptCodeResponse
-	72, // 93: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode:output_type -> mgmt.v1alpha1.ValidateUserRegexCodeResponse
-	84, // [84:94] is the sub-list for method output_type
-	74, // [74:84] is the sub-list for method input_type
-	74, // [74:74] is the sub-list for extension type_name
-	74, // [74:74] is the sub-list for extension extendee
-	0,  // [0:74] is the sub-list for field type_name
+	27, // 65: mgmt.v1alpha1.TransformPiiText.default_anonymizer:type_name -> mgmt.v1alpha1.PiiAnonymizer
+	26, // 66: mgmt.v1alpha1.TransformPiiText.deny_recognizers:type_name -> mgmt.v1alpha1.PiiDenyRecognizer
+	75, // 67: mgmt.v1alpha1.PiiAnonymizer.replace:type_name -> mgmt.v1alpha1.PiiAnonymizer.Replace
+	76, // 68: mgmt.v1alpha1.PiiAnonymizer.redact:type_name -> mgmt.v1alpha1.PiiAnonymizer.Redact
+	77, // 69: mgmt.v1alpha1.PiiAnonymizer.mask:type_name -> mgmt.v1alpha1.PiiAnonymizer.Mask
+	78, // 70: mgmt.v1alpha1.PiiAnonymizer.hash:type_name -> mgmt.v1alpha1.PiiAnonymizer.Hash
+	3,  // 71: mgmt.v1alpha1.GenerateEmail.email_type:type_name -> mgmt.v1alpha1.GenerateEmailType
+	3,  // 72: mgmt.v1alpha1.TransformEmail.email_type:type_name -> mgmt.v1alpha1.GenerateEmailType
+	4,  // 73: mgmt.v1alpha1.TransformEmail.invalid_email_action:type_name -> mgmt.v1alpha1.InvalidEmailAction
+	5,  // 74: mgmt.v1alpha1.PiiAnonymizer.Hash.algo:type_name -> mgmt.v1alpha1.PiiAnonymizer.Hash.HashType
+	6,  // 75: mgmt.v1alpha1.TransformersService.GetSystemTransformers:input_type -> mgmt.v1alpha1.GetSystemTransformersRequest
+	8,  // 76: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource:input_type -> mgmt.v1alpha1.GetSystemTransformerBySourceRequest
+	10, // 77: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers:input_type -> mgmt.v1alpha1.GetUserDefinedTransformersRequest
+	12, // 78: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById:input_type -> mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest
+	14, // 79: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer:input_type -> mgmt.v1alpha1.CreateUserDefinedTransformerRequest
+	16, // 80: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer:input_type -> mgmt.v1alpha1.DeleteUserDefinedTransformerRequest
+	18, // 81: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer:input_type -> mgmt.v1alpha1.UpdateUserDefinedTransformerRequest
+	20, // 82: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:input_type -> mgmt.v1alpha1.IsTransformerNameAvailableRequest
+	67, // 83: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode:input_type -> mgmt.v1alpha1.ValidateUserJavascriptCodeRequest
+	72, // 84: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode:input_type -> mgmt.v1alpha1.ValidateUserRegexCodeRequest
+	7,  // 85: mgmt.v1alpha1.TransformersService.GetSystemTransformers:output_type -> mgmt.v1alpha1.GetSystemTransformersResponse
+	9,  // 86: mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource:output_type -> mgmt.v1alpha1.GetSystemTransformerBySourceResponse
+	11, // 87: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers:output_type -> mgmt.v1alpha1.GetUserDefinedTransformersResponse
+	13, // 88: mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById:output_type -> mgmt.v1alpha1.GetUserDefinedTransformerByIdResponse
+	15, // 89: mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer:output_type -> mgmt.v1alpha1.CreateUserDefinedTransformerResponse
+	17, // 90: mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer:output_type -> mgmt.v1alpha1.DeleteUserDefinedTransformerResponse
+	19, // 91: mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer:output_type -> mgmt.v1alpha1.UpdateUserDefinedTransformerResponse
+	21, // 92: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:output_type -> mgmt.v1alpha1.IsTransformerNameAvailableResponse
+	68, // 93: mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode:output_type -> mgmt.v1alpha1.ValidateUserJavascriptCodeResponse
+	73, // 94: mgmt.v1alpha1.TransformersService.ValidateUserRegexCode:output_type -> mgmt.v1alpha1.ValidateUserRegexCodeResponse
+	85, // [85:95] is the sub-list for method output_type
+	75, // [75:85] is the sub-list for method input_type
+	75, // [75:75] is the sub-list for extension type_name
+	75, // [75:75] is the sub-list for extension extendee
+	0,  // [0:75] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_transformer_proto_init() }
@@ -5820,25 +5887,25 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 		(*TransformerConfig_GenerateCountryConfig)(nil),
 		(*TransformerConfig_TransformPiiTextConfig)(nil),
 	}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[20].OneofWrappers = []any{
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[21].OneofWrappers = []any{
 		(*PiiAnonymizer_Replace_)(nil),
 		(*PiiAnonymizer_Redact_)(nil),
 		(*PiiAnonymizer_Mask_)(nil),
 		(*PiiAnonymizer_Hash_)(nil),
 	}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[21].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_transformer_proto_msgTypes[22].OneofWrappers = []any{}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[63].OneofWrappers = []any{}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[68].OneofWrappers = []any{}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[70].OneofWrappers = []any{}
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[23].OneofWrappers = []any{}
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[64].OneofWrappers = []any{}
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[69].OneofWrappers = []any{}
 	file_mgmt_v1alpha1_transformer_proto_msgTypes[71].OneofWrappers = []any{}
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[72].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_transformer_proto_rawDesc,
 			NumEnums:      6,
-			NumMessages:   72,
+			NumMessages:   73,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

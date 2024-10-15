@@ -8,6 +8,10 @@ import (
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 )
 
+var (
+	supportedLanguage = "en"
+)
+
 func TransformPiiText(
 	ctx context.Context,
 	analyzeClient presidioapi.AnalyzeInterface,
@@ -19,11 +23,12 @@ func TransformPiiText(
 		return value, nil
 	}
 	threshold := float64(config.GetScoreThreshold())
+	adhocRecognizers := buildAdhocRecognizers(config.GetDenyRecognizers())
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
-		Text:           value,
-		Language:       "en",
-		ScoreThreshold: &threshold,
-		// AdHocRecognizers: &[]presidioapi.PatternRecognizer{{}}, // todo: implement allow and deny lists
+		Text:             value,
+		Language:         supportedLanguage,
+		ScoreThreshold:   &threshold,
+		AdHocRecognizers: &adhocRecognizers,
 	})
 	if err != nil {
 		return "", fmt.Errorf("unable to analyze input: %w", err)
@@ -52,6 +57,22 @@ func TransformPiiText(
 		return "", err
 	}
 	return *anonResp.JSON200.Text, nil
+}
+
+func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi.PatternRecognizer {
+	output := []presidioapi.PatternRecognizer{}
+	for _, dto := range dtos {
+		name := dto.GetName()
+		denywords := dto.GetDenyWords()
+		output = append(output, presidioapi.PatternRecognizer{
+			Name:              &name,
+			SupportedEntity:   &name,
+			DenyList:          &denywords,
+			SupportedLanguage: &supportedLanguage,
+		})
+	}
+
+	return output
 }
 
 func getDefaultAnonymizer(dto *mgmtv1alpha1.PiiAnonymizer) (*presidioapi.AnonymizeRequest_Anonymizers_AdditionalProperties, error) {
