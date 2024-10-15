@@ -1636,6 +1636,13 @@ export class TransformPiiText extends Message<TransformPiiText> {
    */
   defaultAnonymizer?: PiiAnonymizer;
 
+  /**
+   * List of values that will be treated as PII and anonymized.
+   *
+   * @generated from field: repeated string deny_words = 3;
+   */
+  denyWords: string[] = [];
+
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1646,6 +1653,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "score_threshold", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 2, name: "default_anonymizer", kind: "message", T: PiiAnonymizer },
+    { no: 3, name: "deny_words", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {

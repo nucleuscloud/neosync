@@ -229,6 +229,9 @@ message TransformPiiText {
   ];
   // The default anonmyization config used for all instances of detected PII.
   PiiAnonymizer default_anonymizer = 2;
+
+  // List of values that will be treated as PII and anonymized.
+  repeated string deny_words = 3;
 }
 
 message PiiAnonymizer {
