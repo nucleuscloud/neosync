@@ -18,7 +18,7 @@ The Neosync Typescript SDK is publicly available and can be added to any TS/JS-b
 
 This package supports both ES-Modules and CommonJS.
 
-The correct entrypoint will be chosen based on using `import` or `require`.
+The correct entry point will be chosen based on using `import` or `require`.
 
 The `tsup` package is used to generated the distributed code.
 
@@ -26,31 +26,11 @@ The `tsup` package is used to generated the distributed code.
 npm install @neosync/sdk
 ```
 
-## Configuration
-
-There are a few inputs that the SDK needs in order to be properly configured.
-
-1. API URL
-2. Account ID
-3. API Key (required for Neosync Cloud or self-hosted authenticated environments)
-
-### API Url
-
-If you are using Neosync Cloud, the backend api url is: `https://neosync-api.svcs.neosync.dev`
-
-The standard localhost url is: `http://localhost:8080`
-
-### Account ID
-
-The account ID is necessary for some requests that do not have an obvious identifier like retrieving a list of jobs, or a list of connections.
-You can be find your account ID by going into the Neosync app on the `/:accountName/settings` page and found in the header.
-
-### API Key
-
-An access token (API key, or user JWT) must be used to access authenticated Neosync environments.
-For an API Key, this can be created at `/:accountName/settings/api-keys`.
-
-For a prime example of how to us this SDK, view the [withNeosyncContext](https://github.com/nucleuscloud/neosync/blob/main/frontend/apps/web/api-only/neosync-context.ts#L23) method in the Neosync app's BFF layer.
+| **Properties** | **Details**                                                                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **API URL**    | Production: `https://neosync-api.svcs.neosync.dev`<br /> Local: `http://localhost:8080`                                                                                     |
+| **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App                                       |
+| **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |
 
 ## Authentication
 
@@ -72,7 +52,7 @@ const neosyncClient = getNeosyncClient({
 });
 ```
 
-## Making your first API call
+## Getting Started
 
 In this section, we're going to walk through two examples that show you how to make an API call using Neosync's TS SDK. For a complete list of the APIs, check out the APIs in the `Services` section of our [protos](/api/mgmt/v1alpha1/job.proto#jobservice).
 
@@ -200,7 +180,7 @@ That's it! The power of JQ is that you can use it to target any field of any typ
 
 ### Creating a Job
 
-Another common use case is to create resources in Neosync such as Jobs, Connections, Transformers and more. In this example, we'll create a Job. This can be used as part of a set-up script or custom workflow. Let's take a look at the code:
+Another common use case is to create resources in Neosync such as Jobs, Runs, Connections, Transformers and more. In this example, we'll create a Job. This can be used as part of a set-up script or custom workflow. Let's take a look at the code:
 
 ```ts
 // authenticates with Neosync Cloud
