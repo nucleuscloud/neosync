@@ -111,8 +111,6 @@ The second package are where the client and server structs live for use with eit
 
 A straightforward use case is to anonymize sensitive data in an API request. Let's look at an example.
 
-First, let's
-
 ```json
 // input
 {
@@ -123,46 +121,143 @@ First, let's
   "details": {
     "address": "123 Main St",
     "phone": "555-1234",
-    "favorites": ["dog", "cat", "bird"],
-    "name": "jake"
+    "favorites": ["dog", "cat", "bird"]
   }
 }
 ```
 
 Our input object is a simple user's object that we may get through a user sign up flow. In this object, we have a few sensitive fields that we want to anonymize: `name`, `email`, `address` and `phone`. We can leave the `favorites` as-is for now.
 
-In order to anonymize this object, you can use Neosync's `AnonymizeSingle` API to send in a single object with sensitive data and get back an anonymized version of that object. You have full control over how you anonymize the data or generate new synthetic data. Here's how you do it:
+In order to anonymize this object, you can use Neosync's `AnonymizeSingle` API to send in a single object with sensitive data and get back an anonymized version of that object. You have full control over how you anonymize the data or generate new synthetic data.
+
+Here's how you do it:
 
 ```go
-// transformer definitions
-transformerMappings := []*mgmtv1alpha1.TransformerMapping{
-  {
-    Expression: `(.. | objects | select(has("name")) | .name)`, // find and transform all name fields in objects
-    Transformer: &mgmtv1alpha1.TransformerConfig{
-      Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
-        TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-          PreserveLength: true,
-        },
-      },
-    },
-  },
-  {
-    Expression: `.user.email`, // transform user.email field
-    Transformer: &mgmtv1alpha1.TransformerConfig{
-      Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
-        TransformEmailConfig: &mgmtv1alpha1.TransformEmail{},
-      },
-    },
-  },
-   {
-    Expression: `.details.favorites[]`, // transform each element in details.favorite array
-    Transformer: &mgmtv1alpha1.TransformerConfig{
-      Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
-        TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
-      },
-    },
-  },
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"connectrpc.com/connect"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+)
+
+// define our User struct and use json tags to structure our json
+type User struct {
+	User    UserDefinition `json:"user"`
+	Details UserDetails    `json:"details"`
 }
+
+type UserDefinition struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type UserDetails struct {
+	Address   string   `json:"address"`
+	Phone     string   `json:"phone"`
+	Favorites []string `json:"favorites"`
+}
+
+func main() {
+	anonymizeClient := mgmtv1alpha1connect.NewAnonymizationServiceClient(
+			newHttpClient(map[string]string{ // create an instance of a newHttpClient
+			"Authorization": fmt.Sprintf("Bearer %s", os.GetEnv("API_KEY")), // pass in the API_KEY through an environment variable
+		}),
+		os.GetEnv("API_URL"), // pass in the API_URL through an environment variable
+	)
+
+	inputData := User{
+		User: UserDefinition{
+			Name:  "Bob Smith",
+			Email: "random@different.com",
+		},
+		Details: UserDetails{
+			Address: "123 Main St",
+			Phone:   "555-1234",
+			Favorites: []string{
+				"cat", "dog", "cow",
+			},
+		},
+	}
+
+	transformerMappings := []*mgmtv1alpha1.TransformerMapping{
+		{
+			Expression: `(.. | objects | select(has("name")) | .name)`, // find and transform all name fields in objects
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
+						PreserveLength: true,
+					},
+				},
+			},
+		},
+		{
+			Expression: `.user.email`, // transform user.email field
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{},
+				},
+			},
+		},
+		{
+			Expression: `.details.favorites[]`, // transform each element in details.favorite array
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
+					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
+				},
+			},
+		},
+	}
+
+	// marshal our object into bytes
+	userBytes, err := json.Marshal(inputData)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := anonymizeClient.AnonymizeSingle(context.Background(), connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+		InputData:           string(userBytes), //stringify our bytes
+		TransformerMappings: transformerMappings,
+	}))
+	if err != nil {
+		fmt.Printf("Error in AnonymizeSingle: %v\n", err)
+		panic(err)
+	}
+
+	fmt.Printf("Anonymization response: %+v\n", resp.Msg.OutputData)
+}
+
+func newHttpClient(
+	headers map[string]string,
+) *http.Client {
+	return &http.Client{
+		Transport: &headerTransport{
+			Transport: http.DefaultTransport,
+			Headers:   headers,
+		},
+	}
+}
+
+type headerTransport struct {
+	Transport http.RoundTripper
+	Headers   map[string]string
+}
+
+func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Header == nil {
+		req.Header = http.Header{}
+	}
+	for key, value := range t.Headers {
+		req.Header.Add(key, value)
+	}
+	return t.Transport.RoundTrip(req)
+}
+
 ```
 
 Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API uses [JQ](https://jqlang.github.io/jq/manual/) expressions to target field(s) in your object. This means that you don't have to parse your object before sending it to Neosync. You can pass it in as-is and just write JQ expressions to target the field(s) that you want to anonymize or generate.
@@ -171,18 +266,7 @@ Our output will look something like this:
 
 ```json
 // output
-{
-  "user": {
-    "name": "Bob Smith",
-    "email": "random@different.com"
-  },
-  "details": {
-    "address": "123 Main St",
-    "phone": "555-1234",
-    "favorites": ["sfgjr", "ljerns", "idngj"],
-    "name": "Chad Jones"
-  }
-}
+"{\"details\":{\"address\":\"123 Main St\",\"favorites\":[\"idh\",\"tyj\",\"ean\"],\"phone\":\"555-1234\"},\"user\":{\"email\":\"60ff1f2bb443484b928404164481f7f6@hootsuite.com\",\"name\":\"Nim Racic\"}}"
 ```
 
 That's it! The power of JQ is that you can use it to target any field of any type, even searching across multiple objects for similar named fields and more. It's truly the most flexible way to transform your data.
