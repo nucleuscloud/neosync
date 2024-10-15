@@ -38,5 +38,7 @@ plugins:
       - target=ts
       - import_extension=.js
 
-  - remote: buf.build/sudo-random/protoc-gen-connect-openapi
-    out: gen/openapi/spec.yml
+  - local: protoc-gen-connect-openapi
+    out: gen/openapi
+    opt:
+      - content-types=json
