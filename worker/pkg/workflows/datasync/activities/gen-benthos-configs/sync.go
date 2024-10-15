@@ -667,6 +667,10 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 		batchPeriod = batchConfig.GetPeriod()
 	}
 
+	if batchCount == 0 && batchPeriod == "" {
+		return nil, fmt.Errorf("must have at least one batch policy configured. Cannot disable both period and count")
+	}
+
 	timeout := ""
 	if destinationOptions.GetTimeout() != "" {
 		_, err := time.ParseDuration(destinationOptions.GetTimeout())
