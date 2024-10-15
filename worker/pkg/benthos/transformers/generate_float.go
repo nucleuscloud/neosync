@@ -17,8 +17,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Generates a random floating point number with a max precision of 17. Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.").
 		Param(bloblang.NewBoolParam("randomize_sign").Default(false).Description("A boolean indicating whether the sign of the float should be randomized.")).
-		Param(bloblang.NewFloat64Param("min").Description("Specifies the minimum value for the generated float.")).
-		Param(bloblang.NewFloat64Param("max").Description("Specifies the maximum value for the generated float")).
+		Param(bloblang.NewFloat64Param("min").Default(1).Description("Specifies the minimum value for the generated float.")).
+		Param(bloblang.NewFloat64Param("max").Default(10000).Description("Specifies the maximum value for the generated float")).
 		Param(bloblang.NewInt64Param("precision").Optional().Description("An optional parameter that defines the number of significant digits for the generated float.")).
 		Param(bloblang.NewInt64Param("scale").Optional().Description("An optional parameter that defines the number of decimal places for the generated float.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))

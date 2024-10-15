@@ -55,3 +55,14 @@ func Test_GenerateRandomFullNameTransformer(t *testing.T) {
 	assert.NotEmpty(t, resStr)
 	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "output should be less than or equal to max char limit")
 }
+
+func Test_GenerateRandomFullNameTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_full_name()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NotNil(t, ex)
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
