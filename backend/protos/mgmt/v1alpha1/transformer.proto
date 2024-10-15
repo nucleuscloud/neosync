@@ -229,6 +229,20 @@ message TransformPiiText {
   ];
   // The default anonmyization config used for all instances of detected PII.
   PiiAnonymizer default_anonymizer = 2;
+
+  // Configure deny lists where each word is treated as PII.
+  repeated PiiDenyRecognizer deny_recognizers = 3;
+}
+
+message PiiDenyRecognizer {
+  // Friendly name of this entity
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-_]{1,100}$"];
+  // List of words that will be treated as PII.
+  repeated string deny_words = 2 [(buf.validate.field).repeated = {
+    items: {
+      string: {min_len: 1}
+    }
+  }];
 }
 
 message PiiAnonymizer {

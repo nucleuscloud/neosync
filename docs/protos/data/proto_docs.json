@@ -1560,6 +1560,42 @@
           ]
         },
         {
+          "name": "PiiDenyRecognizer",
+          "longName": "PiiDenyRecognizer",
+          "fullName": "mgmt.v1alpha1.PiiDenyRecognizer",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "name",
+              "description": "Friendly name of this entity",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "deny_words",
+              "description": "List of words that will be treated as PII.",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SystemTransformer",
           "longName": "SystemTransformer",
           "fullName": "mgmt.v1alpha1.SystemTransformer",
@@ -2020,6 +2056,18 @@
               "type": "PiiAnonymizer",
               "longType": "PiiAnonymizer",
               "fullType": "mgmt.v1alpha1.PiiAnonymizer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "deny_recognizers",
+              "description": "Configure deny lists where each word is treated as PII.",
+              "label": "repeated",
+              "type": "PiiDenyRecognizer",
+              "longType": "PiiDenyRecognizer",
+              "fullType": "mgmt.v1alpha1.PiiDenyRecognizer",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
