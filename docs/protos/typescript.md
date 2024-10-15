@@ -32,6 +32,20 @@ npm install @neosync/sdk
 | **Account ID** | The account ID may be necessary for some requests and can be found by going into the `/:accountName/settings` page in the Neosync App                                       |
 | **API Key**    | An access token (API key, or user JWT) must be used to access authenticated Neosync environments. For an API Key, this can be created at `/:accountName/settings/api-keys`. |
 
+### Note on Transports
+
+Based on your usage, you'll have to install a different version of `connect` to provide the correct Transport based on your environment.
+
+- Node: [@connectrpc/connect-node](https://connectrpc.com/docs/node/using-clients)
+- Web: [@connectrpc/connect-web](https://connectrpc.com/docs/web/using-clients)
+
+Install whichever one makes sense for you
+
+```sh
+npm install @connectrpc/connect-node
+npm install @connectrpc/connect-web
+```
+
 ## Authentication
 
 To authenticate the TS Neosync Client, pass in a function that returns the API Key or a standard user JWT token. When the `getAccessToken` function is provided, the Neosync Client is configured with an auth interceptor that attaches the `Authorization` header to every outgoing request with the access token returned from the function. This is why the `getTransport` method receives a list of interceptors, and why it's important to hook them up to pass them through to the relevant transport being used.
@@ -166,7 +180,9 @@ async function runAnonymization() {
 }
 
 // calling our async function
-runAnonymization();
+runAnonymization()
+  .then(() => console.log('Script completed'))
+  .catch((error) => console.error('Unhandled error:', error));
 ```
 
 Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API uses [JQ](https://jqlang.github.io/jq/manual/) expressions to target field(s) in your object. This means that you don't have to parse your object before sending it to Neosync. You can pass it in as-is and just write JQ expressions to target the field(s) that you want to anonymize or generate.
@@ -287,7 +303,9 @@ async function createJob() {
 }
 
 // calling our async function
-createJob();
+createJob()
+  .then(() => console.log('Script completed'))
+  .catch((error) => console.error('Unhandled error:', error));
 ```
 
 The beauty of Typescript here is that you can use your IDE's built-in features to see exactly what is required and what is optional. And if your IDE doesn't support that then you can use the protobuf files to see how the messages are constructed.
