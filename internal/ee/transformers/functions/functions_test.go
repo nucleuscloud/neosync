@@ -1,14 +1,49 @@
 package ee_transformer_fns
 
 import (
+	"context"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-// func Test_TransformPiiText(t *testing.T) {
+func Test_TransformPiiText(t *testing.T) {
+	ctx := context.Background()
+	t.Run("empty", func(t *testing.T) {
+		actual, err := TransformPiiText(ctx, nil, nil, nil, "")
+		require.NoError(t, err)
+		require.Equal(t, "", actual)
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
+		mockanon := presidioapi.NewMockAnonymizeInterface(t)
+
+		mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).
+			Return(&presidioapi.PostAnalyzeResponse{
+				JSON200: &[]presidioapi.RecognizerResultWithAnaysisExplanation{
+					{},
+				},
+			}, nil)
+
+		mockText := "bar"
+		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
+			Return(&presidioapi.PostAnonymizeResponse{
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+			}, nil)
+
+		config := &mgmtv1alpha1.TransformPiiText{}
+
+		actual, err := TransformPiiText(ctx, mockanalyze, mockanon, config, "foo")
+		require.NoError(t, err)
+		require.Equal(t, mockText, actual)
+	})
+}
+
+// func Test_TransformBloblPiiText(t *testing.T) {
 // 	env := bloblang.NewEmptyEnvironment()
 // 	mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
 // 	mockanon := presidioapi.NewMockAnonymizeInterface(t)
