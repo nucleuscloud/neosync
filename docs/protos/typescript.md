@@ -8,16 +8,19 @@ slug: /typescript
 
 ## Introduction
 
-The Neosync Typescript SDK is publicly available and can be added to any TS/JS-based project.
+The Neosync Typescript SDK is publicly available and can be added to any TS/JS-based project. With the Neosync Typescript SDK, you can:
+
+1. Anonymize structured data and generate synthetic data
+2. Anonymize free-form text data
+3. Create resources in Neosync such as Jobs, Connections, Transformers and more
+
+## Installation
+
 This package supports both ES-Modules and CommonJS.
 
 The correct entrypoint will be chosen based on using `import` or `require`.
 
 The `tsup` package is used to generated the distributed code.
-
-Neosync's Dashboard App is the primary user of the TS SDK today, and can be used as a reference for examples of how to use the SDK.
-
-## Installation
 
 ```sh
 npm install @neosync/sdk
