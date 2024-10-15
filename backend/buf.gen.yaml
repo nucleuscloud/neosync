@@ -10,7 +10,7 @@ managed:
     - file_option: go_package_prefix
       value: github.com/nucleuscloud/neosync/backend/gen/go/protos
 plugins:
-  - remote: buf.build/protocolbuffers/go:v1.34.2
+  - remote: buf.build/protocolbuffers/go:v1.35.1
     out: gen/go/protos
     opt: paths=source_relative
   - remote: buf.build/connectrpc/go:v1.17.0

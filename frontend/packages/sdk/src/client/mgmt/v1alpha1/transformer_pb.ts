@@ -239,6 +239,13 @@ export enum TransformerSource {
    * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_COUNTRY = 46;
    */
   GENERATE_COUNTRY = 46,
+
+  /**
+   * NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+   *
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT = 47;
+   */
+  TRANSFORM_PII_TEXT = 47,
 }
 // Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
 proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
@@ -288,6 +295,7 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
   { no: 44, name: "TRANSFORMER_SOURCE_USER_DEFINED" },
   { no: 45, name: "TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT" },
   { no: 46, name: "TRANSFORMER_SOURCE_GENERATE_COUNTRY" },
+  { no: 47, name: "TRANSFORMER_SOURCE_TRANSFORM_PII_TEXT" },
 ]);
 
 /**
@@ -1527,6 +1535,14 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateCountry;
     case: "generateCountryConfig";
+  } | {
+    /**
+     * NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+     *
+     * @generated from field: mgmt.v1alpha1.TransformPiiText transform_pii_text_config = 44;
+     */
+    value: TransformPiiText;
+    case: "transformPiiTextConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1580,6 +1596,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 41, name: "transform_character_scramble_config", kind: "message", T: TransformCharacterScramble, oneof: "config" },
     { no: 42, name: "generate_javascript_config", kind: "message", T: GenerateJavascript, oneof: "config" },
     { no: 43, name: "generate_country_config", kind: "message", T: GenerateCountry, oneof: "config" },
+    { no: 44, name: "transform_pii_text_config", kind: "message", T: TransformPiiText, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1598,6 +1615,331 @@ export class TransformerConfig extends Message<TransformerConfig> {
     return proto3.util.equals(TransformerConfig, a, b);
   }
 }
+
+/**
+ * NeosyncCloud/Enterprise only transformer for anonymizing PII Text
+ *
+ * @generated from message mgmt.v1alpha1.TransformPiiText
+ */
+export class TransformPiiText extends Message<TransformPiiText> {
+  /**
+   * Minimal detection score for determining PII. 0.0-1.0
+   *
+   * @generated from field: float score_threshold = 1;
+   */
+  scoreThreshold = 0;
+
+  /**
+   * The default anonmyization config used for all instances of detected PII.
+   *
+   * @generated from field: mgmt.v1alpha1.PiiAnonymizer default_anonymizer = 2;
+   */
+  defaultAnonymizer?: PiiAnonymizer;
+
+  constructor(data?: PartialMessage<TransformPiiText>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TransformPiiText";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "score_threshold", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+    { no: 2, name: "default_anonymizer", kind: "message", T: PiiAnonymizer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
+    return new TransformPiiText().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformPiiText {
+    return new TransformPiiText().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformPiiText {
+    return new TransformPiiText().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransformPiiText | PlainMessage<TransformPiiText> | undefined, b: TransformPiiText | PlainMessage<TransformPiiText> | undefined): boolean {
+    return proto3.util.equals(TransformPiiText, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiAnonymizer
+ */
+export class PiiAnonymizer extends Message<PiiAnonymizer> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.PiiAnonymizer.config
+   */
+  config: {
+    /**
+     * Configures the anonymizer to replace the identified PII with a specific value
+     *
+     * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Replace replace = 1;
+     */
+    value: PiiAnonymizer_Replace;
+    case: "replace";
+  } | {
+    /**
+     * Configures the anonymizer to completely remove the identified PII
+     *
+     * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Redact redact = 2;
+     */
+    value: PiiAnonymizer_Redact;
+    case: "redact";
+  } | {
+    /**
+     * Configures the anonymizer to mask the identified PII
+     *
+     * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Mask mask = 3;
+     */
+    value: PiiAnonymizer_Mask;
+    case: "mask";
+  } | {
+    /**
+     * Configures the anonymizer to hash the identified PII
+     *
+     * @generated from field: mgmt.v1alpha1.PiiAnonymizer.Hash hash = 4;
+     */
+    value: PiiAnonymizer_Hash;
+    case: "hash";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<PiiAnonymizer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiAnonymizer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "replace", kind: "message", T: PiiAnonymizer_Replace, oneof: "config" },
+    { no: 2, name: "redact", kind: "message", T: PiiAnonymizer_Redact, oneof: "config" },
+    { no: 3, name: "mask", kind: "message", T: PiiAnonymizer_Mask, oneof: "config" },
+    { no: 4, name: "hash", kind: "message", T: PiiAnonymizer_Hash, oneof: "config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiAnonymizer {
+    return new PiiAnonymizer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiAnonymizer {
+    return new PiiAnonymizer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiAnonymizer {
+    return new PiiAnonymizer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiAnonymizer | PlainMessage<PiiAnonymizer> | undefined, b: PiiAnonymizer | PlainMessage<PiiAnonymizer> | undefined): boolean {
+    return proto3.util.equals(PiiAnonymizer, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiAnonymizer.Replace
+ */
+export class PiiAnonymizer_Replace extends Message<PiiAnonymizer_Replace> {
+  /**
+   * The value to replace. If not provided, a template token of the anonymizer is used.
+   *
+   * @generated from field: optional string value = 1;
+   */
+  value?: string;
+
+  constructor(data?: PartialMessage<PiiAnonymizer_Replace>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiAnonymizer.Replace";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiAnonymizer_Replace {
+    return new PiiAnonymizer_Replace().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiAnonymizer_Replace {
+    return new PiiAnonymizer_Replace().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiAnonymizer_Replace {
+    return new PiiAnonymizer_Replace().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiAnonymizer_Replace | PlainMessage<PiiAnonymizer_Replace> | undefined, b: PiiAnonymizer_Replace | PlainMessage<PiiAnonymizer_Replace> | undefined): boolean {
+    return proto3.util.equals(PiiAnonymizer_Replace, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiAnonymizer.Redact
+ */
+export class PiiAnonymizer_Redact extends Message<PiiAnonymizer_Redact> {
+  constructor(data?: PartialMessage<PiiAnonymizer_Redact>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiAnonymizer.Redact";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiAnonymizer_Redact {
+    return new PiiAnonymizer_Redact().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiAnonymizer_Redact {
+    return new PiiAnonymizer_Redact().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiAnonymizer_Redact {
+    return new PiiAnonymizer_Redact().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiAnonymizer_Redact | PlainMessage<PiiAnonymizer_Redact> | undefined, b: PiiAnonymizer_Redact | PlainMessage<PiiAnonymizer_Redact> | undefined): boolean {
+    return proto3.util.equals(PiiAnonymizer_Redact, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiAnonymizer.Mask
+ */
+export class PiiAnonymizer_Mask extends Message<PiiAnonymizer_Mask> {
+  /**
+   * Provide a character that will be used for the replacement.
+   *
+   * @generated from field: optional string masking_char = 1;
+   */
+  maskingChar?: string;
+
+  /**
+   * How many characters to mask.
+   *
+   * @generated from field: optional int32 chars_to_mask = 2;
+   */
+  charsToMask?: number;
+
+  /**
+   * Whether to mask the PII from start or end
+   *
+   * @generated from field: optional bool from_end = 3;
+   */
+  fromEnd?: boolean;
+
+  constructor(data?: PartialMessage<PiiAnonymizer_Mask>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiAnonymizer.Mask";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "masking_char", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "chars_to_mask", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+    { no: 3, name: "from_end", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiAnonymizer_Mask {
+    return new PiiAnonymizer_Mask().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiAnonymizer_Mask {
+    return new PiiAnonymizer_Mask().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiAnonymizer_Mask {
+    return new PiiAnonymizer_Mask().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiAnonymizer_Mask | PlainMessage<PiiAnonymizer_Mask> | undefined, b: PiiAnonymizer_Mask | PlainMessage<PiiAnonymizer_Mask> | undefined): boolean {
+    return proto3.util.equals(PiiAnonymizer_Mask, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiAnonymizer.Hash
+ */
+export class PiiAnonymizer_Hash extends Message<PiiAnonymizer_Hash> {
+  /**
+   * The hashing algorithm to use.
+   *
+   * @generated from field: optional mgmt.v1alpha1.PiiAnonymizer.Hash.HashType algo = 1;
+   */
+  algo?: PiiAnonymizer_Hash_HashType;
+
+  constructor(data?: PartialMessage<PiiAnonymizer_Hash>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiAnonymizer.Hash";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "algo", kind: "enum", T: proto3.getEnumType(PiiAnonymizer_Hash_HashType), opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiAnonymizer_Hash {
+    return new PiiAnonymizer_Hash().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiAnonymizer_Hash {
+    return new PiiAnonymizer_Hash().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiAnonymizer_Hash {
+    return new PiiAnonymizer_Hash().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiAnonymizer_Hash | PlainMessage<PiiAnonymizer_Hash> | undefined, b: PiiAnonymizer_Hash | PlainMessage<PiiAnonymizer_Hash> | undefined): boolean {
+    return proto3.util.equals(PiiAnonymizer_Hash, a, b);
+  }
+}
+
+/**
+ * @generated from enum mgmt.v1alpha1.PiiAnonymizer.Hash.HashType
+ */
+export enum PiiAnonymizer_Hash_HashType {
+  /**
+   * If unspecified, defaults to md5
+   *
+   * @generated from enum value: HASH_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The MD5 Hash Algorithm
+   *
+   * @generated from enum value: HASH_TYPE_MD5 = 1;
+   */
+  MD5 = 1,
+
+  /**
+   * The SHA256 Hash Algorithm
+   *
+   * @generated from enum value: HASH_TYPE_SHA256 = 2;
+   */
+  SHA256 = 2,
+
+  /**
+   * The SHA512 Hash Algorithm
+   *
+   * @generated from enum value: HASH_TYPE_SHA512 = 3;
+   */
+  SHA512 = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(PiiAnonymizer_Hash_HashType)
+proto3.util.setEnumType(PiiAnonymizer_Hash_HashType, "mgmt.v1alpha1.PiiAnonymizer.Hash.HashType", [
+  { no: 0, name: "HASH_TYPE_UNSPECIFIED" },
+  { no: 1, name: "HASH_TYPE_MD5" },
+  { no: 2, name: "HASH_TYPE_SHA256" },
+  { no: 3, name: "HASH_TYPE_SHA512" },
+]);
 
 /**
  * @generated from message mgmt.v1alpha1.GenerateEmail

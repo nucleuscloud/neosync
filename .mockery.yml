@@ -111,3 +111,7 @@ packages:
       outpkg: pgxmock
     interfaces:
       Tx:
+  github.com/nucleuscloud/neosync/internal/ee/presidio:
+    interfaces:
+      AnalyzeInterface:
+      AnonymizeInterface:

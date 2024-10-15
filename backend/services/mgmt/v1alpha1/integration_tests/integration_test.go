@@ -38,6 +38,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
@@ -61,7 +62,7 @@ type neosyncCloudClients struct {
 }
 
 func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
 type authdClients struct {
@@ -69,7 +70,7 @@ type authdClients struct {
 }
 
 func (s *authdClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
-	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
+	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
 type mocks struct {
@@ -202,10 +203,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		),
 	)
 
+	var presAnalyzeClient presidioapi.AnalyzeInterface
+	var presAnonClient presidioapi.AnonymizeInterface
+
 	unauthdAnonymizationService := v1alpha_anonymizationservice.New(
-		&v1alpha_anonymizationservice.Config{},
+		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: false},
 		nil,
 		unauthdUserService,
+		presAnalyzeClient, presAnonClient,
 	)
 
 	rootmux := http.NewServeMux()

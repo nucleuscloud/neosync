@@ -362,6 +362,14 @@ const generateCountryConfig = Yup.object().shape({
     .required('This field is required'),
 });
 
+const transformPiiTextConfig = Yup.object({
+  scoreThreshold: Yup.number()
+    .min(0, 'Must not go below 0')
+    .max(1, 'Must not go above 1')
+    .required('This field is required.'),
+  // todo: add in default anonymizer fields
+});
+
 type ConfigType = TransformerConfig['config'];
 
 // Helper function to extract the 'case' property from a config type
@@ -424,6 +432,8 @@ const TRANSFORMER_SCHEMA_CONFIGS = {
   generateJavascriptConfig: JavascriptConfig,
   generateStateConfig: generateStateConfig,
   generateCountryConfig: generateCountryConfig,
+
+  transformPiiTextConfig: transformPiiTextConfig,
 } as const;
 
 // This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase
