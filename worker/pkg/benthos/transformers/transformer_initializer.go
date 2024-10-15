@@ -113,7 +113,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
 		pl := transformerConfig.GetTransformFullNameConfig().GetPreserveLength()
-		opts, err := NewTransformFullNameOpts(nil, &pl, &maxLength)
+		opts, err := NewTransformFullNameOpts(&maxLength, &pl, nil)
 		if err != nil {
 			return nil, err
 		}
