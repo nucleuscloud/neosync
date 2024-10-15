@@ -208,6 +208,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	unauthdAnonymizationService := v1alpha_anonymizationservice.New(
 		&v1alpha_anonymizationservice.Config{IsPresidioEnabled: false},
+		nil,
+		unauthdUserService,
 		presAnalyzeClient, presAnonClient,
 	)
 

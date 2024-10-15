@@ -126,7 +126,7 @@ func (a *JsonAnonymizer) initializeJq() error {
 			value := args[0]
 			result, err := exec.Mutate(value, exec.Opts)
 			if err != nil {
-				return fmt.Errorf("unable to anonymize value. field_path: %s  error: %w", path, err)
+				return fmt.Errorf("unable to anonymize value. expression: %s  error: %w", path, err)
 			}
 			return derefPointer(result)
 		}))
@@ -336,7 +336,7 @@ func initTransformerExecutors(
 	for _, mapping := range transformerMappings {
 		executor, err := transformer.InitializeTransformerByConfigType(mapping.GetTransformer(), execOpts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to initialize transformer for field '%s': %v", mapping.GetExpression(), err)
+			return nil, fmt.Errorf("failed to initialize transformer for expression '%s': %v", mapping.GetExpression(), err)
 		}
 		executors = append(executors, executor)
 	}
