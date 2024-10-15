@@ -1636,6 +1636,13 @@ export class TransformPiiText extends Message<TransformPiiText> {
    */
   defaultAnonymizer?: PiiAnonymizer;
 
+  /**
+   * Configure deny lists where each word is treated as PII.
+   *
+   * @generated from field: repeated mgmt.v1alpha1.PiiDenyRecognizer deny_recognizers = 3;
+   */
+  denyRecognizers: PiiDenyRecognizer[] = [];
+
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1646,6 +1653,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "score_threshold", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 2, name: "default_anonymizer", kind: "message", T: PiiAnonymizer },
+    { no: 3, name: "deny_recognizers", kind: "message", T: PiiDenyRecognizer, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
@@ -1662,6 +1670,53 @@ export class TransformPiiText extends Message<TransformPiiText> {
 
   static equals(a: TransformPiiText | PlainMessage<TransformPiiText> | undefined, b: TransformPiiText | PlainMessage<TransformPiiText> | undefined): boolean {
     return proto3.util.equals(TransformPiiText, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PiiDenyRecognizer
+ */
+export class PiiDenyRecognizer extends Message<PiiDenyRecognizer> {
+  /**
+   * Friendly name of this entity
+   *
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * List of words that will be treated as PII.
+   *
+   * @generated from field: repeated string deny_words = 2;
+   */
+  denyWords: string[] = [];
+
+  constructor(data?: PartialMessage<PiiDenyRecognizer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PiiDenyRecognizer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "deny_words", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PiiDenyRecognizer {
+    return new PiiDenyRecognizer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PiiDenyRecognizer {
+    return new PiiDenyRecognizer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PiiDenyRecognizer {
+    return new PiiDenyRecognizer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PiiDenyRecognizer | PlainMessage<PiiDenyRecognizer> | undefined, b: PiiDenyRecognizer | PlainMessage<PiiDenyRecognizer> | undefined): boolean {
+    return proto3.util.equals(PiiDenyRecognizer, a, b);
   }
 }
 

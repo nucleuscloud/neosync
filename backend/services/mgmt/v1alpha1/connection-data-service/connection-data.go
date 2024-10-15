@@ -1159,7 +1159,7 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	runIDs := make([]string, 0, len(commonPrefixes))
 	for _, prefix := range commonPrefixes {
 		parts := strings.Split(strings.TrimSuffix(prefix, "/"), "/")
-		if len(parts) >= 3 {
+		if len(parts) >= 2 {
 			runID := parts[len(parts)-1]
 			runIDs = append(runIDs, runID)
 		}
