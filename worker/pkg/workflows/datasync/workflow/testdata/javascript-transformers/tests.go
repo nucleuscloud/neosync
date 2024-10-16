@@ -32,9 +32,9 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 
 func getJsGeneratorJobmappings() []*mgmtv1alpha1.JobMapping {
 	colTransformerMap := map[string]*mgmtv1alpha1.JobMappingTransformer{
-		"e164_phone_number":   getJavascriptTransformerConfig("return neosync.generateInternationalPhoneNumber({ min: 9, max: 15});"),
+		"e164_phone_number":   getJavascriptTransformerConfig("return neosync.generateE164PhoneNumber({ min: 9, max: 15});"),
 		"email":               getJavascriptTransformerConfig("return neosync.generateEmail({ maxLength: 255});"),
-		"str":                 getJavascriptTransformerConfig("return neosync.generateRandomString({ min: 1, max: 50});"),
+		"str":                 getJavascriptTransformerConfig("return neosync.generateString({ min: 1, max: 50});"),
 		"measurement":         getJavascriptTransformerConfig("return neosync.generateFloat64({ min: 3.14, max: 300.10});"),
 		"int64":               getJavascriptTransformerConfig("return neosync.generateInt64({ min: 1, max: 50});"),
 		"int64_phone_number":  getJavascriptTransformerConfig("return neosync.generateInt64PhoneNumber({});"),
@@ -49,7 +49,6 @@ func getJsGeneratorJobmappings() []*mgmtv1alpha1.JobMapping {
 		"city":                getJavascriptTransformerConfig("return neosync.generateCity({ maxLength: 100 });"),
 		"full_address":        getJavascriptTransformerConfig("return neosync.generateFullAddress({ maxLength: 100 });"),
 		"gender":              getJavascriptTransformerConfig("return neosync.generateGender({});"),
-		"international_phone": getJavascriptTransformerConfig("return neosync.generateInternationalPhoneNumber({ min: 9, max: 14});"),
 		"sha256":              getJavascriptTransformerConfig("return neosync.generateSHA256Hash({});"),
 		"ssn":                 getJavascriptTransformerConfig("return neosync.generateSSN({});"),
 		"state":               getJavascriptTransformerConfig("return neosync.generateState({});"),
@@ -85,7 +84,7 @@ func getJsTransformerJobmappings() []*mgmtv1alpha1.JobMapping {
 		"measurement":         getJavascriptTransformerConfig("return neosync.transformFloat64(value, { randomizationRangeMin: 3.14, randomizationRangeMax: 300.10});"),
 		"int64":               getJavascriptTransformerConfig("return neosync.transformInt64(value, { randomizationRangeMin: 1, randomizationRangeMax: 300});"),
 		"int64_phone_number":  getJavascriptTransformerConfig("return neosync.transformInt64PhoneNumber(value, { preserveLength: true});"),
-		"string_phone_number": getJavascriptTransformerConfig("return neosync.transformStringPhoneNumber(value, { preserveLength: true, maxLength: 200});"),
+		"string_phone_number": getJavascriptTransformerConfig("return neosync.transformPhoneNumber(value, { preserveLength: true, maxLength: 200});"),
 		"first_name":          getJavascriptTransformerConfig("return neosync.transformFirstName(value, { preserveLength: true, maxLength: 25});"),
 		"last_name":           getJavascriptTransformerConfig("return neosync.transformLastName(value, { preserveLength: true, maxLength: 25});"),
 		"full_name":           getJavascriptTransformerConfig("return neosync.transformFullName(value, { preserveLength: true, maxLength: 25});"),

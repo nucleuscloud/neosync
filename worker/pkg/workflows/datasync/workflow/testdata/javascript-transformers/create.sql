@@ -20,7 +20,6 @@ CREATE TABLE transformers (
     city VARCHAR(255),
     full_address VARCHAR(255),
     gender VARCHAR(255),
-    international_phone VARCHAR(255),
     sha256 VARCHAR(255),
     ssn VARCHAR(255),
     state VARCHAR(255),
