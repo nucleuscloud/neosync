@@ -8,7 +8,7 @@ import (
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:generate:generateRandomString
+// +neosyncTransformerBuilder:generate:generateString
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -54,8 +54,8 @@ func init() {
 	}
 }
 
-func (t *GenerateRandomString) Generate(opts any) (any, error) {
-	parsedOpts, ok := opts.(*GenerateRandomStringOpts)
+func (t *GenerateString) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateStringOpts)
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}

@@ -402,11 +402,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		config := transformerConfig.GetGenerateStringConfig()
-		opts, err := NewGenerateRandomStringOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateStringOpts(&config.Min, &config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateRandomString().Generate
+		generate := NewGenerateString().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {

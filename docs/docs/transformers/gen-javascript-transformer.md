@@ -920,39 +920,6 @@ const newValue = neosync.generateLastName({
 
 
 <!--
-source: generate_random_string.go
--->
-
-### generateRandomString
-
-Generates a random string of alphanumeric characters..
-
-**Parameters**
-
-**Config**
-
-| Field    | Type | Default | Required | Description |
-| -------- | ---- | ------- | -------- | ----------- |
-| min | int64 | 1 | false | Specifies the minimum length for the generated string.
-| max | int64 | 100 | false | Specifies the maximum length for the generated string.
-| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
-<br/>
-
-**Example**
-
-```javascript
-
-const newValue = neosync.generateRandomString({ 
-	min: 1, 
-	max: 100, 
-	seed: 1, 
-});
-
-```
-<br/>
-
-
-<!--
 source: generate_sha256hash.go
 -->
 
@@ -1062,6 +1029,39 @@ Randomly generates a street address.
 
 const newValue = neosync.generateStreetAddress({ 
 	maxLength: 100, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
+source: generate_string.go
+-->
+
+### generateString
+
+Generates a random string of alphanumeric characters..
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| min | int64 | 1 | false | Specifies the minimum length for the generated string.
+| max | int64 | 100 | false | Specifies the maximum length for the generated string.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateString({ 
+	min: 1, 
+	max: 100, 
 	seed: 1, 
 });
 

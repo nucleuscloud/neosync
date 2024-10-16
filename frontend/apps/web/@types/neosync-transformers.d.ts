@@ -402,21 +402,6 @@ declare namespace neosync {
 	declare function generateLastName(options: GenerateLastNameOptions): any;
 	
 	
-	export interface GenerateRandomStringOptions {
-		/** Specifies the minimum length for the generated string. */
-		min?: number;
-		/** Specifies the maximum length for the generated string. */
-		max?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
-
-  /**
-   * Generates a random string of alphanumeric characters..
-   */
-	declare function generateRandomString(options: GenerateRandomStringOptions): any;
-	
-	
 	export interface GenerateSHA256HashOptions {
 	}
 
@@ -461,6 +446,21 @@ declare namespace neosync {
    * Randomly generates a street address.
    */
 	declare function generateStreetAddress(options: GenerateStreetAddressOptions): any;
+	
+	
+	export interface GenerateStringOptions {
+		/** Specifies the minimum length for the generated string. */
+		min?: number;
+		/** Specifies the maximum length for the generated string. */
+		max?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+
+  /**
+   * Generates a random string of alphanumeric characters..
+   */
+	declare function generateString(options: GenerateStringOptions): any;
 	
 	
 	export interface GenerateStringPhoneNumberOptions {
