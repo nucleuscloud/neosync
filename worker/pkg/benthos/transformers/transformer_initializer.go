@@ -204,11 +204,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
 		config := transformerConfig.GetGenerateE164PhoneNumberConfig()
-		opts, err := NewGenerateE164PhoneNumberOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateInternationalPhoneNumberOpts(&config.Min, &config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateE164PhoneNumber().Generate
+		generate := NewGenerateInternationalPhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -402,11 +402,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		config := transformerConfig.GetGenerateStringConfig()
-		opts, err := NewGenerateStringOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateRandomStringOpts(&config.Min, &config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateString().Generate
+		generate := NewGenerateRandomString().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {
@@ -558,11 +558,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		config := transformerConfig.GetTransformPhoneNumberConfig()
-		opts, err := NewTransformPhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
+		opts, err := NewTransformStringPhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformPhoneNumber().Transform
+		transform := NewTransformStringPhoneNumber().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {

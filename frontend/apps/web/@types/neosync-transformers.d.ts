@@ -155,21 +155,6 @@ declare namespace neosync {
 	declare function transformLastName(value: any, options: TransformLastNameOptions): any;
 
 	
-	export interface TransformPhoneNumberOptions {
-		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
-		preserveLength?: boolean;
-		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
- 
-  /**
-   * Anonymizes and transforms an existing phone number that is typed as a string.
-   */
-	declare function transformPhoneNumber(value: any, options: TransformPhoneNumberOptions): any;
-
-	
 	export interface TransformStringOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength?: boolean;
@@ -185,6 +170,21 @@ declare namespace neosync {
    * Anonymizes and transforms an existing string value.
    */
 	declare function transformString(value: any, options: TransformStringOptions): any;
+
+	
+	export interface TransformStringPhoneNumberOptions {
+		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
+		preserveLength?: boolean;
+		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
+		maxLength?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+ 
+  /**
+   * Anonymizes and transforms an existing phone number that is typed as a string.
+   */
+	declare function transformStringPhoneNumber(value: any, options: TransformStringPhoneNumberOptions): any;
 
 	
 
@@ -254,21 +254,6 @@ declare namespace neosync {
    * Randomly selects a country and by default, returns it as a 2-letter country code.
    */
 	declare function generateCountry(options: GenerateCountryOptions): any;
-	
-	
-	export interface GenerateE164PhoneNumberOptions {
-		/** Specifies the minimum value for the generated phone number. */
-		min?: number;
-		/** Specifies the maximum value for the generated phone number. */
-		max?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
-
-  /**
-   * Generates a new random international phone number including the + sign and no hyphens.
-   */
-	declare function generateE164PhoneNumber(options: GenerateE164PhoneNumberOptions): any;
 	
 	
 	export interface GenerateEmailOptions {
@@ -389,6 +374,21 @@ declare namespace neosync {
 	declare function generateInt64PhoneNumber(options: GenerateInt64PhoneNumberOptions): any;
 	
 	
+	export interface GenerateInternationalPhoneNumberOptions {
+		/** Specifies the minimum value for the generated phone number. */
+		min?: number;
+		/** Specifies the maximum value for the generated phone number. */
+		max?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+
+  /**
+   * Generates a new random international phone number including the + sign and no hyphens.
+   */
+	declare function generateInternationalPhoneNumber(options: GenerateInternationalPhoneNumberOptions): any;
+	
+	
 	export interface GenerateLastNameOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -400,6 +400,21 @@ declare namespace neosync {
    * Generates a random last name.
    */
 	declare function generateLastName(options: GenerateLastNameOptions): any;
+	
+	
+	export interface GenerateRandomStringOptions {
+		/** Specifies the minimum length for the generated string. */
+		min?: number;
+		/** Specifies the maximum length for the generated string. */
+		max?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+
+  /**
+   * Generates a random string of alphanumeric characters..
+   */
+	declare function generateRandomString(options: GenerateRandomStringOptions): any;
 	
 	
 	export interface GenerateSHA256HashOptions {
@@ -446,21 +461,6 @@ declare namespace neosync {
    * Randomly generates a street address.
    */
 	declare function generateStreetAddress(options: GenerateStreetAddressOptions): any;
-	
-	
-	export interface GenerateStringOptions {
-		/** Specifies the minimum length for the generated string. */
-		min?: number;
-		/** Specifies the maximum length for the generated string. */
-		max?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
-
-  /**
-   * Generates a random string of alphanumeric characters..
-   */
-	declare function generateString(options: GenerateStringOptions): any;
 	
 	
 	export interface GenerateStringPhoneNumberOptions {
