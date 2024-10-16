@@ -196,6 +196,94 @@ Anonymization result: '{"user":{"email":"22fdd05dd75746728a9c2a37d3d58cf5@stacko
 
 That's it! The power of JQ is that you can use it to target any field of any type, even searching across multiple objects for similar named fields and more. It's truly the most flexible way to transform your data.
 
+### Anonymizing Unstructured Data
+
+Another common use case is to anonymize free form text or unstructured data. This is useful in a variety of use-cases from doctor's notes to legal notes to chatbots and more.
+
+The best part is that all you have to do is change a transformer, that's it! Here's how:
+
+```js
+// input
+ {
+    text: "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?",
+  },
+```
+
+Our input object is a transcription from a call from a doctor's office. In this transcript, we have PII (personally identifiable information) such as names (John Chang, Jake), social security number (246-80-1357) and dates(8/1/2024). Using Neosync's `TransformPiiText` transformer, you can easily anonymize the sensitive data in this text. See [here](https://docs.neosync.dev/api/mgmt/v1alpha1/transformer.proto#transformpiitext) for the `TransformPiiText` proto definition.
+
+```ts
+import {
+  getNeosyncClient,
+  TransformerConfig,
+  TransformerMapping,
+  AnonymizeSingleResponse,
+  TransformPiiText,
+} from '@neosync/sdk';
+import { createConnectTransport } from '@connectrpc/connect-node';
+
+const neosyncClient = getNeosyncClient({
+  getAccessToken: () => {
+    return 'neo_at_v1_xxxxx'; // Neosync API Key
+  },
+  getTransport(interceptors) {
+    return createConnectTransport({
+      baseUrl: 'https://neosync-api.svcs.neosync.dev', // Neosync API Url
+      httpVersion: '2',
+      interceptors: interceptors,
+    });
+  },
+});
+
+const data = {
+  text: 'Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?',
+};
+
+const transformers: TransformerMapping[] = [
+  new TransformerMapping({
+    expression: '.text',
+    transformer: new TransformerConfig({
+      config: {
+        case: 'transformPiiTextConfig', // set the case to transformPiiTextConfig
+        value: new TransformPiiText({
+          // use the TransformPiiText transformer
+          scoreThreshold: 0.1, // lower = more paranoid, higher chance of false positive; higher = less paranoid, higher chance of false negative
+        }),
+      },
+    }),
+  }),
+];
+
+async function runAnonymization() {
+  try {
+    const result: AnonymizeSingleResponse =
+      await neosyncClient.anonymization.anonymizeSingle({
+        inputData: JSON.stringify(data),
+        transformerMappings: transformers,
+        accountId: 'xxxx', // your accountId found in the the App settings
+      });
+    console.log('Anonymization result:', result.outputData);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// calling our async function
+runAnonymization()
+  .then(() => console.log('Script completed'))
+  .catch((error) => console.error('Unhandled error:', error));
+```
+
+Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API uses [JQ](https://jqlang.github.io/jq/manual/) expressions to target field(s) in your object. This means that you don't have to parse your object before sending it to Neosync. You can pass it in as-is and just write JQ expressions to target the field(s) that you want to anonymize or generate.
+
+Our output will look something like this:
+
+```js
+// output
+Anonymization result: '{"text":"Dear Mr. \u003cREDACTED\u003e, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist \u003cREDACTED\u003e is on \u003cREDACTED\u003e at \u003cREDACTED\u003e. Please bring a photo ID. We have your SSN on file as \u003cREDACTED\u003e. Is this correct?"}'
+```
+
+As you can see, we've identified and redacted the PII in the original message and output a string that no longer contains PII. Alternatively, you can choose to Replace, Mask or even Hash the detected PII value instead of Redacting it.
+
 ### Creating a Job
 
 Another common use case is to create resources in Neosync such as Jobs, Runs, Connections, Transformers and more. In this example, we'll create a Job. This can be used as part of a set-up script or custom workflow. Let's take a look at the code:
