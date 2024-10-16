@@ -271,6 +271,123 @@ Our output will look something like this:
 
 That's it! The power of JQ is that you can use it to target any field of any type, even searching across multiple objects for similar named fields and more. It's truly the most flexible way to transform your data.
 
+### Anonymizing Unstructured Data
+
+Another common use case is to anonymize free form text or unstructured data. This is useful in a variety of use-cases from doctor's notes to legal notes to chatbots and more.
+
+The best part is that all you have to do is change a transformer, that's it! Here's how:
+
+```js
+// input
+ {
+    text: "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?",
+  },
+```
+
+Our input object is a transcription from a call from a doctor's office. In this transcript, we have PII (personally identifiable information) such as names (John Chang, Jake), social security number (246-80-1357) and dates(8/1/2024). Using Neosync's `TransformPiiText` transformer, you can easily anonymize the sensitive data in this text. See [here](https://docs.neosync.dev/api/mgmt/v1alpha1/transformer.proto#transformpiitext) for the `TransformPiiText` proto definition.
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"connectrpc.com/connect"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+)
+
+// define our User struct and use json tags to structure our json
+type Notes struct {
+	Text   string `json:"text"`
+}
+
+func main() {
+	anonymizeClient := mgmtv1alpha1connect.NewAnonymizationServiceClient(
+			newHttpClient(map[string]string{ // create an instance of a newHttpClient
+			"Authorization": fmt.Sprintf("Bearer %s", os.GetEnv("API_KEY")), // pass in the API_KEY through an environment variable
+		}),
+		os.GetEnv("API_URL"), // pass in the API_URL through an environment variable
+	)
+
+	inputData := Notes{
+		Text: "Dear Mr. John Chang, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist Jake is on 8/1/2024 at 11 AM. Please bring a photo ID. We have your SSN on file as 246-80-1357. Is this correct?",
+	}
+
+	transformerMappings := []*mgmtv1alpha1.TransformerMapping{
+		{
+			Expression: `.notes.text`, // transform notes.text field
+			Transformer: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPiiText{
+					TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{
+						ScoreThreshold: 0.1 // lower = more paranoid, higher chance of false positive; higher = less paranoid, higher chance of false negative
+					},
+				},
+			},
+		},
+	}
+
+	// marshal our object into bytes
+	notesBytes, err := json.Marshal(inputData)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := anonymizeClient.AnonymizeSingle(context.Background(), connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+		InputData:           string(notesBytes), //stringify our bytes
+		TransformerMappings: transformerMappings,
+		AccountId: "xxxx". // your accountId found in the the App settings
+	}))
+	if err != nil {
+		fmt.Printf("Error in AnonymizeSingle: %v\n", err)
+		panic(err)
+	}
+
+	fmt.Printf("Anonymization response: %+v\n", resp.Msg.OutputData)
+}
+
+func newHttpClient(
+	headers map[string]string,
+) *http.Client {
+	return &http.Client{
+		Transport: &headerTransport{
+			Transport: http.DefaultTransport,
+			Headers:   headers,
+		},
+	}
+}
+
+type headerTransport struct {
+	Transport http.RoundTripper
+	Headers   map[string]string
+}
+
+func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Header == nil {
+		req.Header = http.Header{}
+	}
+	for key, value := range t.Headers {
+		req.Header.Add(key, value)
+	}
+	return t.Transport.RoundTrip(req)
+}
+
+```
+
+Let's take a closer look at what we're doing here. Neosync's AnonymizeSingle API uses [JQ](https://jqlang.github.io/jq/manual/) expressions to target field(s) in your object. This means that you don't have to parse your object before sending it to Neosync. You can pass it in as-is and just write JQ expressions to target the field(s) that you want to anonymize or generate.
+
+Our output will look something like this:
+
+```js
+// output
+Anonymization result: '{"text":"Dear Mr. \u003cREDACTED\u003e, your physical therapy for your rotator cuff injury is approved for 12 sessions. Your first appointment with therapist \u003cREDACTED\u003e is on \u003cREDACTED\u003e at \u003cREDACTED\u003e. Please bring a photo ID. We have your SSN on file as \u003cREDACTED\u003e. Is this correct?"}'
+```
+
+As you can see, we've identified and redacted the PII in the original message and output a string that no longer contains PII. Alternatively, you can choose to Replace, Mask or even Hash the detected PII value instead of Redacting it.
+
 ### Triggering a Job Run
 
 Another common use case is to create resources in Neosync such as Jobs, Connections, Runs, Transformers and more. In this example, we'll trigger a Job which will create a Job Run. This can be used as part of a set-up script or custom workflow. Let's take a look at the code:
