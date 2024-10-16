@@ -627,7 +627,7 @@ func (s *Service) GetConnectionSchema(
 					return nil, err
 				}
 				if out == nil {
-					break
+					continue
 				}
 				item := out.Contents[0]
 				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
@@ -636,6 +636,9 @@ func (s *Service) GetConnectionSchema(
 				})
 				if err != nil {
 					return nil, err
+				}
+				if result.ContentLength == nil || *result.ContentLength == 0 {
+					continue
 				}
 
 				gzr, err := gzip.NewReader(result.Body)
