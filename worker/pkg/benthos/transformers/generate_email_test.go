@@ -89,5 +89,4 @@ func Test_RandomEmailTransformer_NoOptions(t *testing.T) {
 	require.NotEmpty(t, resStr)
 
 	require.NotEmptyf(t, resStr, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
-
 }

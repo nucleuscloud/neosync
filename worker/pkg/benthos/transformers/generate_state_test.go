@@ -90,5 +90,4 @@ func Test_StateTransformer_NoOptions(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)
-
 }
