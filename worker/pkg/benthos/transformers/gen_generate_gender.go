@@ -8,7 +8,6 @@ import (
 	"fmt"
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
@@ -35,7 +34,7 @@ func NewGenerateGenderOpts(
 		abbreviate = *abbreviateArg
 	}
 	
-	maxLength := int64(10000) 
+	maxLength := int64(100) 
 	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
 		maxLength = *maxLengthArg
 	}
@@ -71,7 +70,7 @@ func (t *GenerateGender) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

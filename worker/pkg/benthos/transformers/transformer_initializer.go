@@ -56,13 +56,10 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
 		config := transformerConfig.GetGenerateCategoricalConfig()
-		fmt.Println(config.Categories)
-
 		opts, err := NewGenerateCategoricalOpts(&config.Categories, nil)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(opts.categories)
 		generate := NewGenerateCategorical().Generate
 		return &TransformerExecutor{
 			Opts: opts,
@@ -130,7 +127,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		config := transformerConfig.GetGenerateEmailConfig()
 		var emailType *string
 		if config.EmailType != nil {
-			emailTypeStr := config.GetEmailType().String()
+			emailTypeStr := dtoEmailTypeToTransformerEmailType(config.GetEmailType()).String()
 			emailType = &emailTypeStr
 		}
 		opts, err := NewGenerateEmailOpts(&maxLength, emailType, nil)
@@ -149,12 +146,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		config := transformerConfig.GetTransformEmailConfig()
 		var emailType *string
 		if config.EmailType != nil {
-			emailTypeStr := config.GetEmailType().String()
+			emailTypeStr := dtoEmailTypeToTransformerEmailType(config.GetEmailType()).String()
 			emailType = &emailTypeStr
 		}
 		var invalidEmailAction *string
 		if config.InvalidEmailAction != nil {
-			invalidEmailActionStr := config.GetInvalidEmailAction().String()
+			invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(config.GetInvalidEmailAction()).String()
 			invalidEmailAction = &invalidEmailActionStr
 		}
 		var excludedDomains any = config.GetExcludedDomains()
@@ -233,11 +230,15 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
 		config := transformerConfig.GetGenerateFloat64Config()
+		var precision *int64
+		if config.GetPrecision() != 0 {
+			precision = &config.Precision
+		}
 		opts, err := NewGenerateFloat64Opts(
 			&config.RandomizeSign,
 			&config.Min,
 			&config.Max,
-			&config.Precision,
+			precision,
 			nil, // TODO: update scale based on colInfo if available
 			nil,
 		)
@@ -279,8 +280,8 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
-		ab := transformerConfig.GetGenerateGenderConfig().GetAbbreviate()
-		opts, err := NewGenerateGenderOpts(&ab, &maxLength, nil)
+		config := transformerConfig.GetGenerateGenderConfig()
+		opts, err := NewGenerateGenderOpts(&config.Abbreviate, &maxLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -481,7 +482,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
 		config := transformerConfig.GetTransformE164PhoneNumberConfig()
-		opts, err := NewTransformE164PhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
+		opts, err := NewTransformE164PhoneNumberOpts(&config.PreserveLength, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -636,5 +637,27 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	default:
 		return nil, fmt.Errorf("unsupported transformer: %v", transformerConfig)
+	}
+}
+
+func dtoEmailTypeToTransformerEmailType(dto mgmtv1alpha1.GenerateEmailType) GenerateEmailType {
+	switch dto {
+	case mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME:
+		return GenerateEmailType_FullName
+	default:
+		return GenerateEmailType_UuidV4
+	}
+}
+
+func dtoInvalidEmailActionToTransformerInvalidEmailAction(dto mgmtv1alpha1.InvalidEmailAction) InvalidEmailAction {
+	switch dto {
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE:
+		return InvalidEmailAction_Generate
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_NULL:
+		return InvalidEmailAction_Null
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_PASSTHROUGH:
+		return InvalidEmailAction_Passthrough
+	default:
+		return InvalidEmailAction_Reject
 	}
 }

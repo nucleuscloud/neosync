@@ -17,7 +17,7 @@ func init() {
 		Description("Transforms an existing E164 formatted phone number.").
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
-		Param(bloblang.NewInt64Param("max_length").Optional().Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("max_length").Default(15).Description("Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -78,7 +78,7 @@ func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {
 		return nil, errors.New("value is not a string")
 	}
 
-	return transformE164PhoneNumber(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, parsedOpts.maxLength)
+	return transformE164PhoneNumber(parsedOpts.randomizer, valueStr, parsedOpts.preserveLength, &parsedOpts.maxLength)
 }
 
 // Generates a random phone number and returns it as a string

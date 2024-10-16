@@ -102,7 +102,9 @@ import (
 	{{- if eq .HasSeedParam true}}
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	{{ end }}
+	{{- if gt (len .FunctInfo.Params) 0 -}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	{{- end }}
 )
 
 type {{.StructName}} struct{}

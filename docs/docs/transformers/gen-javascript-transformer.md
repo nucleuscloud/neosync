@@ -78,7 +78,7 @@ Description: Value that will be transformed
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 |  | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 15 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
 
 **Example**
@@ -87,7 +87,7 @@ Description: Value that will be transformed
 
 const newValue = neosync.transformE164PhoneNumber(value, { 
 	preserveLength: false, 
-	maxLength: 1,  
+	maxLength: 15, 
 	seed: 1, 
 });
 
@@ -773,7 +773,7 @@ Randomly generates one of the following genders: female (f), male (m), undefined
 | Field    | Type | Default | Required | Description |
 | -------- | ---- | ------- | -------- | ----------- |
 | abbreviate | bool | false | false | Shortens length of generated value to 1.
-| maxLength | int64 | 10000 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.
 | seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
 <br/>
 
@@ -783,7 +783,7 @@ Randomly generates one of the following genders: female (f), male (m), undefined
 
 const newValue = neosync.generateGender({ 
 	abbreviate: false, 
-	maxLength: 10000, 
+	maxLength: 100, 
 	seed: 1, 
 });
 

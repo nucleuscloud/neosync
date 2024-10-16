@@ -8,7 +8,6 @@ import (
 	"fmt"
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
@@ -18,7 +17,7 @@ type TransformE164PhoneNumberOpts struct {
 	randomizer     rng.Rand
 	
 	preserveLength bool
-	maxLength *int64
+	maxLength int64
 }
 
 func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
@@ -27,12 +26,17 @@ func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
 
 func NewTransformE164PhoneNumberOpts(
 	preserveLengthArg *bool,
-	maxLength *int64,
+	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformE164PhoneNumberOpts, error) {
 	preserveLength := bool(false) 
 	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
 		preserveLength = *preserveLengthArg
+	}
+	
+	maxLength := int64(15) 
+	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+		maxLength = *maxLengthArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -64,9 +68,9 @@ func (t *TransformE164PhoneNumber) ParseOptions(opts map[string]any) (any, error
 	}
 	transformerOpts.preserveLength = preserveLength
 
-	var maxLength *int64
-	if arg, ok := opts["maxLength"].(int64); ok {
-		maxLength = &arg
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 15
 	}
 	transformerOpts.maxLength = maxLength
 
