@@ -37,3 +37,8 @@ plugins:
     opt:
       - target=ts
       - import_extension=.js
+
+  - local: protoc-gen-connect-openapi
+    out: gen/openapi
+    opt:
+      - content-types=json
