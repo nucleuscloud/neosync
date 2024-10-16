@@ -571,6 +571,7 @@ function getTaskStatus(
       case 'ActivityTaskCancelRequested':
         isCanceled = true;
         break;
+      case 'ActivityTaskStarted':
       case 'ActivityTaskScheduled':
         break;
     }
