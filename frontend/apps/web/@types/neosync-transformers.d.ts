@@ -155,6 +155,21 @@ declare namespace neosync {
 	declare function transformLastName(value: any, options: TransformLastNameOptions): any;
 
 	
+	export interface TransformPhoneNumberOptions {
+		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
+		preserveLength?: boolean;
+		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
+		maxLength?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+ 
+  /**
+   * Anonymizes and transforms an existing phone number that is typed as a string.
+   */
+	declare function transformPhoneNumber(value: any, options: TransformPhoneNumberOptions): any;
+
+	
 	export interface TransformStringOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength?: boolean;
@@ -170,21 +185,6 @@ declare namespace neosync {
    * Anonymizes and transforms an existing string value.
    */
 	declare function transformString(value: any, options: TransformStringOptions): any;
-
-	
-	export interface TransformStringPhoneNumberOptions {
-		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
-		preserveLength?: boolean;
-		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
- 
-  /**
-   * Anonymizes and transforms an existing phone number that is typed as a string.
-   */
-	declare function transformStringPhoneNumber(value: any, options: TransformStringPhoneNumberOptions): any;
 
 	
 

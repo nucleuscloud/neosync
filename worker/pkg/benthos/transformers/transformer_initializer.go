@@ -558,11 +558,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		config := transformerConfig.GetTransformPhoneNumberConfig()
-		opts, err := NewTransformStringPhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
+		opts, err := NewTransformPhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
 		if err != nil {
 			return nil, err
 		}
-		transform := NewTransformStringPhoneNumber().Transform
+		transform := NewTransformPhoneNumber().Transform
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {

@@ -358,6 +358,42 @@ const newValue = neosync.transformLastName(value, {
 
 
 <!--
+source: transform_phone_number.go
+-->
+
+### transformPhoneNumber
+
+Anonymizes and transforms an existing phone number that is typed as a string.
+
+**Parameters**
+
+**Value**  
+Type: Any  
+Description: Value that will be transformed
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
+| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.transformPhoneNumber(value, { 
+	preserveLength: false, 
+	maxLength: 100, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
 source: transform_string.go
 -->
 
@@ -387,42 +423,6 @@ Description: Value that will be transformed
 const newValue = neosync.transformString(value, { 
 	preserveLength: false, 
 	minLength: 1, 
-	maxLength: 100, 
-	seed: 1, 
-});
-
-```
-<br/>
-
-
-<!--
-source: transform_string_phone_number.go
--->
-
-### transformStringPhoneNumber
-
-Anonymizes and transforms an existing phone number that is typed as a string.
-
-**Parameters**
-
-**Value**  
-Type: Any  
-Description: Value that will be transformed
-
-**Config**
-
-| Field    | Type | Default | Required | Description |
-| -------- | ---- | ------- | -------- | ----------- |
-| preserveLength | bool | false | false | Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.
-| maxLength | int64 | 100 | false | Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters.
-| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.<br/>
-
-**Example**
-
-```javascript
-
-const newValue = neosync.transformStringPhoneNumber(value, { 
-	preserveLength: false, 
 	maxLength: 100, 
 	seed: 1, 
 });

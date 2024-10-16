@@ -9,7 +9,7 @@ import (
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:transform:transformStringPhoneNumber
+// +neosyncTransformerBuilder:transform:transformPhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -61,8 +61,8 @@ func init() {
 	}
 }
 
-func (t *TransformStringPhoneNumber) Transform(value, opts any) (any, error) {
-	parsedOpts, ok := opts.(*TransformStringPhoneNumberOpts)
+func (t *TransformPhoneNumber) Transform(value, opts any) (any, error) {
+	parsedOpts, ok := opts.(*TransformPhoneNumberOpts)
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}

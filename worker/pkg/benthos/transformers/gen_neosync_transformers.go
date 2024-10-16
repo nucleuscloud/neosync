@@ -14,8 +14,8 @@ func GetNeosyncTransformers() []NeosyncTransformer {
 		NewTransformInt64(),
 		NewTransformInt64PhoneNumber(),
 		NewTransformLastName(),
+		NewTransformPhoneNumber(),
 		NewTransformString(),
-		NewTransformStringPhoneNumber(),
 	}
 }
 
