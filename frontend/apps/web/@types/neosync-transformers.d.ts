@@ -256,6 +256,21 @@ declare namespace neosync {
 	declare function generateCountry(options: GenerateCountryOptions): any;
 	
 	
+	export interface GenerateE164PhoneNumberOptions {
+		/** Specifies the minimum value for the generated phone number. */
+		min?: number;
+		/** Specifies the maximum value for the generated phone number. */
+		max?: number;
+		/** An optional seed value used to generate deterministic outputs. */
+		seed?: number;
+	}
+
+  /**
+   * Generates a new random international phone number including the + sign and no hyphens.
+   */
+	declare function generateE164PhoneNumber(options: GenerateE164PhoneNumberOptions): any;
+	
+	
 	export interface GenerateEmailOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
@@ -372,21 +387,6 @@ declare namespace neosync {
    * Generates a new int64 phone number with a default length of 10.
    */
 	declare function generateInt64PhoneNumber(options: GenerateInt64PhoneNumberOptions): any;
-	
-	
-	export interface GenerateInternationalPhoneNumberOptions {
-		/** Specifies the minimum value for the generated phone number. */
-		min?: number;
-		/** Specifies the maximum value for the generated phone number. */
-		max?: number;
-		/** An optional seed value used to generate deterministic outputs. */
-		seed?: number;
-	}
-
-  /**
-   * Generates a new random international phone number including the + sign and no hyphens.
-   */
-	declare function generateInternationalPhoneNumber(options: GenerateInternationalPhoneNumberOptions): any;
 	
 	
 	export interface GenerateLastNameOptions {

@@ -204,11 +204,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
 		config := transformerConfig.GetGenerateE164PhoneNumberConfig()
-		opts, err := NewGenerateInternationalPhoneNumberOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateE164PhoneNumberOpts(&config.Min, &config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
-		generate := NewGenerateInternationalPhoneNumber().Generate
+		generate := NewGenerateE164PhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
 			Mutate: func(value any, opts any) (any, error) {

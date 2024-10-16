@@ -594,6 +594,39 @@ const newValue = neosync.generateCountry({
 
 
 <!--
+source: generate_e164_phone_number.go
+-->
+
+### generateE164PhoneNumber
+
+Generates a new random international phone number including the + sign and no hyphens.
+
+**Parameters**
+
+**Config**
+
+| Field    | Type | Default | Required | Description |
+| -------- | ---- | ------- | -------- | ----------- |
+| min | int64 | 9 | false | Specifies the minimum value for the generated phone number.
+| max | int64 | 15 | false | Specifies the maximum value for the generated phone number.
+| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
+<br/>
+
+**Example**
+
+```javascript
+
+const newValue = neosync.generateE164PhoneNumber({ 
+	min: 9, 
+	max: 15, 
+	seed: 1, 
+});
+
+```
+<br/>
+
+
+<!--
 source: generate_email.go
 -->
 
@@ -848,39 +881,6 @@ Generates a new int64 phone number with a default length of 10.
 ```javascript
 
 const newValue = neosync.generateInt64PhoneNumber({ 
-	seed: 1, 
-});
-
-```
-<br/>
-
-
-<!--
-source: generate_international_phone_number.go
--->
-
-### generateInternationalPhoneNumber
-
-Generates a new random international phone number including the + sign and no hyphens.
-
-**Parameters**
-
-**Config**
-
-| Field    | Type | Default | Required | Description |
-| -------- | ---- | ------- | -------- | ----------- |
-| min | int64 | 9 | false | Specifies the minimum value for the generated phone number.
-| max | int64 | 15 | false | Specifies the maximum value for the generated phone number.
-| seed | int64 |  | false | An optional seed value used to generate deterministic outputs.
-<br/>
-
-**Example**
-
-```javascript
-
-const newValue = neosync.generateInternationalPhoneNumber({ 
-	min: 9, 
-	max: 15, 
 	seed: 1, 
 });
 

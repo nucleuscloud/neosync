@@ -10,7 +10,7 @@ import (
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
-// +neosyncTransformerBuilder:generate:generateInternationalPhoneNumber
+// +neosyncTransformerBuilder:generate:generateE164PhoneNumber
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -56,8 +56,8 @@ func init() {
 	}
 }
 
-func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {
-	parsedOpts, ok := opts.(*GenerateInternationalPhoneNumberOpts)
+func (t *GenerateE164PhoneNumber) Generate(opts any) (any, error) {
+	parsedOpts, ok := opts.(*GenerateE164PhoneNumberOpts)
 	if !ok {
 		return nil, fmt.Errorf("invalid parsed opts: %T", opts)
 	}
