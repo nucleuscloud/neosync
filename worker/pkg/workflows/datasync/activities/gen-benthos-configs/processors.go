@@ -539,14 +539,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
 		return fmt.Sprintf(`generate_street_address(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER:
-		minValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
-		maxValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
+		minValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().GetMin()
+		maxValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().GetMax()
 		minValue = transformer_utils.MinInt(minValue, maxLen)
 		maxValue = transformer_utils.Ceil(maxValue, maxLen)
 		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d)", minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
-		minValue := col.Transformer.Config.GetGenerateStringConfig().Min
-		maxValue := col.Transformer.Config.GetGenerateStringConfig().Max
+		minValue := col.Transformer.Config.GetGenerateStringConfig().GetMin()
+		maxValue := col.Transformer.Config.GetGenerateStringConfig().GetMax()
 		minValue = transformer_utils.MinInt(minValue, maxLen) // ensure the min is not larger than the max allowed length
 		maxValue = transformer_utils.Ceil(maxValue, maxLen)
 		// todo: we need to pull in the min from the database schema
