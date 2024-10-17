@@ -138,9 +138,9 @@ func New{{.StructName}}OptsFromConfig(config *mgmtv1alpha1.{{.StructName}})(*{{.
 	}
 	return New{{.StructName}}Opts(
 		{{- range $index, $param := .FunctInfo.Params }}
-		{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
-		{{- if eq $param.Name "seed" }} nil, {{ continue }}{{ end }}
-			config.{{ capitalizeFirst $param.Name }},	
+		{{- if eq $param.Name "value" }}{{ continue }}{{ end -}}
+		{{ if eq $param.Name "seed" }} nil, {{ continue }}{{ end }}
+		config.{{ capitalizeFirst $param.Name }},	
 		{{- end }}
 	) 
 }
