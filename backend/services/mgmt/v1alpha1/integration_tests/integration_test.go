@@ -211,6 +211,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		nil,
 		unauthdUserService,
 		presAnalyzeClient, presAnonClient,
+		neosyncdb.New(pool, db_queries.New()),
 	)
 
 	rootmux := http.NewServeMux()
