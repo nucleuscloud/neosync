@@ -139,7 +139,8 @@ func New{{.StructName}}OptsFromConfig(config *mgmtv1alpha1.{{.StructName}})(*{{.
 	return New{{.StructName}}Opts(
 		{{- range $index, $param := .FunctInfo.Params }}
 		{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
-			config.{{$param.Name}},	
+		{{- if eq $param.Name "seed" }} nil, {{ continue }}{{ end }}
+			config.{{ capitalizeFirst $param.Name }},	
 		{{- end }}
 	) 
 }
@@ -265,7 +266,9 @@ func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, e
 			data.ImportFmt = true
 		}
 	}
-	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))
+	t := template.Must(template.New("neosyncTransformerImpl").Funcs(template.FuncMap{
+		"capitalizeFirst": capitalizeFirst,
+	}).Parse(codeTemplate))
 	var out bytes.Buffer
 	err := t.Execute(&out, data)
 	if err != nil {
