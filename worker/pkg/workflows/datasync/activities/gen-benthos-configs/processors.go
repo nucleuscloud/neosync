@@ -435,7 +435,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 
 	switch col.Transformer.Source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL:
-		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
+		categories := col.Transformer.Config.GetGenerateCategoricalConfig().GetCategories()
 		return fmt.Sprintf(`generate_categorical(categories: %q)`, categories), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL:
 		emailType := col.GetTransformer().GetConfig().GetGenerateEmailConfig().GetEmailType()
@@ -444,9 +444,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		}
 		return fmt.Sprintf(`generate_email(max_length:%d,email_type:%q)`, maxLen, dtoEmailTypeToBenthosEmailType(emailType)), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL:
-		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
-		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().ExcludedDomains
+		pd := col.Transformer.Config.GetTransformEmailConfig().GetPreserveDomain()
+		pl := col.Transformer.Config.GetTransformEmailConfig().GetPreserveLength()
+		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().GetExcludedDomains()
 
 		excludedDomainsStr, err := convertStringSliceToString(excludedDomains)
 		if err != nil {
@@ -469,20 +469,20 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
 		return "generate_bool()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER:
-		luhn := col.Transformer.Config.GetGenerateCardNumberConfig().ValidLuhn
+		luhn := col.Transformer.Config.GetGenerateCardNumberConfig().GetValidLuhn()
 		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY:
 		return fmt.Sprintf(`generate_city(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER:
-		minValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
-		maxValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
+		minValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().GetMin()
+		maxValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().GetMax()
 		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d)`, minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME:
 		return fmt.Sprintf(`generate_first_name(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64:
-		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
-		minValue := col.Transformer.Config.GetGenerateFloat64Config().Min
-		maxValue := col.Transformer.Config.GetGenerateFloat64Config().Max
+		randomSign := col.Transformer.Config.GetGenerateFloat64Config().GetRandomizeSign()
+		minValue := col.Transformer.Config.GetGenerateFloat64Config().GetMin()
+		maxValue := col.Transformer.Config.GetGenerateFloat64Config().GetMax()
 
 		var precision *int64
 		if col.GetTransformer().GetConfig().GetGenerateFloat64Config().GetPrecision() > 0 {
@@ -518,14 +518,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:
 		return fmt.Sprintf(`generate_full_name(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER:
-		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
+		ab := col.Transformer.Config.GetGenerateGenderConfig().GetAbbreviate()
 		return fmt.Sprintf(`generate_gender(abbreviate:%t,max_length:%d)`, ab, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER:
 		return "generate_int64_phone_number()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64:
-		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
-		minValue := col.Transformer.Config.GetGenerateInt64Config().Min
-		maxValue := col.Transformer.Config.GetGenerateInt64Config().Max
+		sign := col.Transformer.Config.GetGenerateInt64Config().GetRandomizeSign()
+		minValue := col.Transformer.Config.GetGenerateInt64Config().GetMin()
+		maxValue := col.Transformer.Config.GetGenerateInt64Config().GetMax()
 		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME:
 		return fmt.Sprintf(`generate_last_name(max_length:%d)`, maxLen), nil
@@ -534,7 +534,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN:
 		return "generate_ssn()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE:
-		generateFullName := col.Transformer.Config.GetGenerateStateConfig().GenerateFullName
+		generateFullName := col.Transformer.Config.GetGenerateStateConfig().GetGenerateFullName()
 		return fmt.Sprintf(`generate_state(generate_full_name:%t)`, generateFullName), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
 		return fmt.Sprintf(`generate_street_address(max_length:%d)`, maxLen), nil
@@ -558,19 +558,19 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP:
 		return "generate_utctimestamp()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID:
-		ih := col.Transformer.Config.GetGenerateUuidConfig().IncludeHyphens
+		ih := col.Transformer.Config.GetGenerateUuidConfig().GetIncludeHyphens()
 		return fmt.Sprintf("generate_uuid(include_hyphens:%t)", ih), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE:
 		return "generate_zipcode()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER:
-		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME:
-		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformFirstNameConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
-		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
-		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax
+		rMin := col.Transformer.Config.GetTransformFloat64Config().GetRandomizationRangeMin()
+		rMax := col.Transformer.Config.GetTransformFloat64Config().GetRandomizationRangeMax()
 
 		var precision *int64
 		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
@@ -598,23 +598,23 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		template := fmt.Sprintf(`transform_float64(%s)`, strings.Join(fnStr, ", "))
 		return fmt.Sprintf(template, params...), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
-		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformFullNameConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER:
-		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_int64_phone_number(value:this.%s,preserve_length:%t)", formattedColPath, pl), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64:
-		rMin := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMin
-		rMax := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMax
+		rMin := col.Transformer.Config.GetTransformInt64Config().GetRandomizationRangeMin()
+		rMax := col.Transformer.Config.GetTransformInt64Config().GetRandomizationRangeMax()
 		return fmt.Sprintf(`transform_int64(value:this.%s,randomization_range_min:%d,randomization_range_max:%d)`, formattedColPath, rMin, rMax), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME:
-		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformLastNameConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER:
-		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING:
-		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
+		pl := col.Transformer.Config.GetTransformStringConfig().GetPreserveLength()
 		minLength := int64(3) // todo: we need to pull in this value from the database schema
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,min_length:%d,max_length:%d)`, formattedColPath, pl, minLength, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL:
@@ -631,7 +631,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, formattedColPath), nil
 		}
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY:
-		generateFullName := col.Transformer.Config.GetGenerateCountryConfig().GenerateFullName
+		generateFullName := col.Transformer.Config.GetGenerateCountryConfig().GetGenerateFullName()
 		return fmt.Sprintf(`generate_country(generate_full_name:%t)`, generateFullName), nil
 
 	default:
