@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -59,6 +60,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformInt64PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformInt64PhoneNumber) (*TransformInt64PhoneNumberOpts, error) {
+	if config == nil {
+		return NewTransformInt64PhoneNumberOpts(nil, nil)
+	}
+	return NewTransformInt64PhoneNumberOpts(config.PreserveLength, nil)
 }
 
 func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {

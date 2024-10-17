@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateRandomString struct{}
@@ -30,12 +31,12 @@ func NewGenerateRandomStringOpts(
   seedArg *int64,
 ) (*GenerateRandomStringOpts, error) {
 	min := int64(1) 
-	if minArg != nil && !transformer_utils.IsZeroValue(*minArg) {
+	if minArg != nil {
 		min = *minArg
 	}
 	
 	max := int64(100) 
-	if maxArg != nil && !transformer_utils.IsZeroValue(*maxArg) {
+	if maxArg != nil {
 		max = *maxArg
 	}
 	

@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type TransformFullName struct{}
@@ -30,12 +31,12 @@ func NewTransformFullNameOpts(
   seedArg *int64,
 ) (*TransformFullNameOpts, error) {
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	
 	preserveLength := bool(false) 
-	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
+	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	

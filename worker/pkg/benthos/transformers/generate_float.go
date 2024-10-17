@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -70,6 +71,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateFloat64OptsFromConfig(config *mgmtv1alpha1.GenerateFloat64, scale *int64) (*GenerateFloat64Opts, error) {
+	if config == nil {
+		return NewGenerateFloat64Opts(nil, nil, nil, nil, nil, nil)
+	}
+	return NewGenerateFloat64Opts(
+		config.RandomizeSign,
+		config.Min,
+		config.Max,
+		config.Precision,
+		nil,
+		nil,
+	)
 }
 
 func (t *GenerateFloat64) Generate(opts any) (any, error) {

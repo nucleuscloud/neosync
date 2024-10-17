@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type TransformStringPhoneNumber struct{}
@@ -30,12 +31,12 @@ func NewTransformStringPhoneNumberOpts(
   seedArg *int64,
 ) (*TransformStringPhoneNumberOpts, error) {
 	preserveLength := bool(false) 
-	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
+	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	

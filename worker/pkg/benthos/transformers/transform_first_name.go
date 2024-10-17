@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -64,6 +65,17 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformFirstNameOptsFromConfig(config *mgmtv1alpha1.TransformFirstName, maxLength *int64) (*TransformFirstNameOpts, error) {
+	if config == nil {
+		return NewTransformFirstNameOpts(nil, nil, nil)
+	}
+	return NewTransformFirstNameOpts(
+		maxLength,
+		config.PreserveLength,
+		nil,
+	)
 }
 
 func (t *TransformFirstName) Transform(value, opts any) (any, error) {

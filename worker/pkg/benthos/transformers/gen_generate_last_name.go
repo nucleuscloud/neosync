@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateLastName struct{}
@@ -28,7 +29,7 @@ func NewGenerateLastNameOpts(
   seedArg *int64,
 ) (*GenerateLastNameOpts, error) {
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	

@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type TransformFloat64 struct{}
@@ -34,12 +35,12 @@ func NewTransformFloat64Opts(
   seedArg *int64,
 ) (*TransformFloat64Opts, error) {
 	randomizationRangeMin := float64(1) 
-	if randomizationRangeMinArg != nil && !transformer_utils.IsZeroValue(*randomizationRangeMinArg) {
+	if randomizationRangeMinArg != nil {
 		randomizationRangeMin = *randomizationRangeMinArg
 	}
 	
 	randomizationRangeMax := float64(10000) 
-	if randomizationRangeMaxArg != nil && !transformer_utils.IsZeroValue(*randomizationRangeMaxArg) {
+	if randomizationRangeMaxArg != nil {
 		randomizationRangeMax = *randomizationRangeMaxArg
 	}
 	

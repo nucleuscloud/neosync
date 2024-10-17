@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -65,6 +66,18 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformStringOptsFromConfig(config *mgmtv1alpha1.TransformString, minLength, maxLength *int64) (*TransformStringOpts, error) {
+	if config == nil {
+		return NewTransformStringOpts(nil, nil, nil, nil)
+	}
+	return NewTransformStringOpts(
+		config.PreserveLength,
+		minLength,
+		maxLength,
+		nil,
+	)
 }
 
 func (t *TransformString) Transform(value, opts any) (any, error) {

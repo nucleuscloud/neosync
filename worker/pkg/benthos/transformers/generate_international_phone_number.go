@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -54,6 +55,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateInternationalPhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateE164PhoneNumber) (*GenerateInternationalPhoneNumberOpts, error) {
+	if config == nil {
+		return NewGenerateInternationalPhoneNumberOpts(
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateInternationalPhoneNumberOpts(
+		config.Min,
+		config.Max,
+		nil,
+	)
 }
 
 func (t *GenerateInternationalPhoneNumber) Generate(opts any) (any, error) {

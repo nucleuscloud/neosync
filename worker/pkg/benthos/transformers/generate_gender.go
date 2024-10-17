@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -47,6 +48,20 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateGenderOptsFromConfig(config *mgmtv1alpha1.GenerateGender, maxLength *int64) (*GenerateGenderOpts, error) {
+	if config == nil {
+		return NewGenerateGenderOpts(
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateGenderOpts(
+		config.Abbreviate,
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateGender) Generate(opts any) (any, error) {

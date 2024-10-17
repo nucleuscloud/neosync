@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateStreetAddress struct{}
@@ -28,7 +29,7 @@ func NewGenerateStreetAddressOpts(
   seedArg *int64,
 ) (*GenerateStreetAddressOpts, error) {
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	

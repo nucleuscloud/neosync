@@ -55,7 +55,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
-	t.Run("GenerateCategoricalConfig_NilConfig", func(t *testing.T) {
+	t.Run("GenerateCategoricalConfig_Nil", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{},
 		}
@@ -68,6 +68,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateBoolConfig", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, bool(true), result)
+	})
+
+	t.Run("GenerateBoolConfig_Nil", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
 		}
@@ -110,6 +122,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("TransformStringConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate("test", executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("TransformInt64Config", func(t *testing.T) {
 		rmin, rmax := int64(1), int64(5)
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -134,6 +158,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 				TransformInt64Config: &mgmtv1alpha1.TransformInt64{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(int64(50), executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("TransformInt64Config_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -173,6 +209,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("TransformFullNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate("John Doe", executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateEmailConfig", func(t *testing.T) {
 		emailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -195,6 +243,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
 				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateEmailConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -240,6 +300,19 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, result)
 	})
+	t.Run("TransformEmailConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate("test@example.com", executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
 
 	t.Run("GenerateCardNumberConfig", func(t *testing.T) {
 		valid := true
@@ -272,11 +345,38 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.Regexp(t, `^\d{13,19}$`, result)
 	})
 
+	t.Run("GenerateCardNumber_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+				GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.Regexp(t, `^\d{13,19}$`, result)
+	})
+
 	t.Run("GenerateCityConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 				GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateCityConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -346,6 +446,19 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateFirstNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateFloat64Config", func(t *testing.T) {
 		randomizeSign := true
 		rmin, rmax := float64(-10), float64(10)
@@ -386,6 +499,19 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateFloat64Config_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, float64(0), result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateFullAddressConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
@@ -401,11 +527,37 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateFullAddressConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateFullNameConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateFullNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -450,7 +602,35 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateGenderConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateInt64PhoneNumberConfig_Empty", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
+				GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
+			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, int64(0), result)
+		require.Regexp(t, `^[1-9]\d{9}$`, strconv.FormatInt(result.(int64), 10))
+	})
+
+	t.Run("GenerateInt64PhoneNumberConfig_Nil", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
 				GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
@@ -503,11 +683,38 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateInt64Config_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, int64(0), result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateLastNameConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 				GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+		require.Regexp(t, `^[A-Z][a-z]+$`, result)
+	})
+
+	t.Run("GenerateLastNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -534,11 +741,37 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.Regexp(t, `^[a-f0-9]{64}$`, result)
 	})
 
+	t.Run("GenerateSha256HashConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.Regexp(t, `^[a-f0-9]{64}$`, result)
+	})
+
 	t.Run("GenerateSsnConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
 				GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.Regexp(t, `^\d{3}-\d{2}-\d{4}$`, result)
+	})
+
+	t.Run("GenerateSsnConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -584,11 +817,38 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.Len(t, result, 2)
 	})
 
+	t.Run("GenerateStateConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+		require.Len(t, result, 2)
+	})
+
 	t.Run("GenerateStreetAddressConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
 				GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateStreetAddressConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -623,6 +883,19 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 				GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateStringPhoneNumberConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -668,11 +941,37 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateStringConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateUnixtimestampConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 				GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, int64(0), result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateUnixtimestampConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -698,11 +997,36 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateUsernameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateUtctimestampConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
 				GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, time.Now(), result)
+	})
+
+	t.Run("GenerateUtctimestampConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -745,11 +1069,37 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateUuidConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateZipcodeConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
 				GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateZipcodeConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -795,6 +1145,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEqual(t, originalNumber, result)
 	})
 
+	t.Run("TransformE164PhoneNumberConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalNumber := "+12345678901"
+		result, err := executor.Mutate(originalNumber, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+		require.NotEqual(t, originalNumber, result)
+	})
+
 	t.Run("TransformFirstNameConfig", func(t *testing.T) {
 		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -819,6 +1183,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 				TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalName := "John"
+		result, err := executor.Mutate(originalName, executor.Opts)
+		require.NoError(t, err)
+		require.NotEqual(t, originalName, result)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("TransformFirstNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -869,6 +1247,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEqual(t, originalValue, transformedValue)
 	})
 
+	t.Run("TransformFloat64Config_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalValue := float64(5.5)
+		result, err := executor.Mutate(originalValue, executor.Opts)
+		require.NoError(t, err)
+		transformedValue := *result.(*float64)
+		require.NotEqual(t, originalValue, transformedValue)
+	})
+
 	t.Run("TransformInt64PhoneNumberConfig", func(t *testing.T) {
 		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -895,6 +1287,21 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 				TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalNumber := int64(1234567890)
+		result, err := executor.Mutate(originalNumber, executor.Opts)
+		require.NoError(t, err)
+		transformedNumber := *result.(*int64)
+		require.NotEqual(t, originalNumber, transformedNumber)
+		require.NotEmpty(t, transformedNumber)
+	})
+
+	t.Run("TransformInt64PhoneNumberConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -942,6 +1349,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEqual(t, originalName, result)
 	})
 
+	t.Run("TransformLastNameConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalName := "Smith"
+		result, err := executor.Mutate(originalName, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+		require.NotEqual(t, originalName, result)
+	})
+
 	t.Run("TransformPhoneNumberConfig", func(t *testing.T) {
 		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -966,6 +1387,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 				TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalNumber := "123-456-7890"
+		result, err := executor.Mutate(originalNumber, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+		require.NotEqual(t, originalNumber, result)
+	})
+
+	t.Run("TransformPhoneNumberConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -1040,6 +1475,20 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("TransformCharacterScrambleConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		originalString := "Hello123World"
+		result, err := executor.Mutate(originalString, executor.Opts)
+		require.NoError(t, err)
+		require.NotEqual(t, originalString, result)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateCountryConfig", func(t *testing.T) {
 		genFull := true
 		config := &mgmtv1alpha1.TransformerConfig{
@@ -1075,11 +1524,61 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.LessOrEqual(t, len(result.(string)), 2)
 	})
 
+	t.Run("GenerateCountryConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEmpty(t, result)
+		require.LessOrEqual(t, len(result.(string)), 2)
+	})
+
 	t.Run("TransformPiiTextConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{
 				TransformPiiTextConfig: &mgmtv1alpha1.TransformPiiText{},
 			},
+		}
+
+		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)
+		mockanon := presidioapi.NewMockAnonymizeInterface(t)
+
+		mockanalyze.On("PostAnalyzeWithResponse", mock.Anything, mock.Anything).
+			Return(&presidioapi.PostAnalyzeResponse{
+				JSON200: &[]presidioapi.RecognizerResultWithAnaysisExplanation{
+					{},
+				},
+			}, nil)
+
+		mockText := "bar"
+		mockanon.On("PostAnonymizeWithResponse", mock.Anything, mock.Anything).
+			Return(&presidioapi.PostAnonymizeResponse{
+				JSON200: &presidioapi.AnonymizeResponse{Text: &mockText},
+			}, nil)
+
+		execOpts := []TransformerExecutorOption{
+			WithTransformPiiTextConfig(mockanalyze, mockanon),
+		}
+		executor, err := InitializeTransformerByConfigType(config, execOpts...)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+
+		originalText := "Hello, John Doe!"
+		result, err := executor.Mutate(originalText, executor.Opts)
+		require.NoError(t, err)
+		require.IsType(t, "", result)
+		require.NotEqual(t, originalText, result)
+		require.Equal(t, mockText, result)
+	})
+
+	t.Run("TransformPiiTextConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
 		}
 
 		mockanalyze := presidioapi.NewMockAnalyzeInterface(t)

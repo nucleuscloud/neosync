@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -127,6 +128,32 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLength *int64) (*TransformEmailOpts, error) {
+	if config == nil {
+		return NewTransformEmailOpts(nil, nil, nil, nil, nil, nil, nil)
+	}
+	var emailType *string
+	if config.EmailType != nil {
+		emailTypeStr := dtoEmailTypeToTransformerEmailType(config.GetEmailType()).String()
+		emailType = &emailTypeStr
+	}
+	var invalidEmailAction *string
+	if config.InvalidEmailAction != nil {
+		invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(config.GetInvalidEmailAction()).String()
+		invalidEmailAction = &invalidEmailActionStr
+	}
+	var excludedDomains any = config.GetExcludedDomains()
+	return NewTransformEmailOpts(
+		config.PreserveLength,
+		config.PreserveDomain,
+		&excludedDomains,
+		maxLength,
+		nil,
+		emailType,
+		invalidEmailAction,
+	)
 }
 
 func (t *TransformEmail) Transform(value, opts any) (any, error) {
@@ -295,4 +322,26 @@ func transformEmail(
 
 	generatedemail := fmt.Sprintf("%s@%s", newname, newdomain)
 	return &generatedemail, nil
+}
+
+func dtoEmailTypeToTransformerEmailType(dto mgmtv1alpha1.GenerateEmailType) GenerateEmailType {
+	switch dto {
+	case mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME:
+		return GenerateEmailType_FullName
+	default:
+		return GenerateEmailType_UuidV4
+	}
+}
+
+func dtoInvalidEmailActionToTransformerInvalidEmailAction(dto mgmtv1alpha1.InvalidEmailAction) InvalidEmailAction {
+	switch dto {
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE:
+		return InvalidEmailAction_Generate
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_NULL:
+		return InvalidEmailAction_Null
+	case mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_PASSTHROUGH:
+		return InvalidEmailAction_Passthrough
+	default:
+		return InvalidEmailAction_Reject
+	}
 }

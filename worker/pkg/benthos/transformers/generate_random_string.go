@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -52,6 +53,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateRandomStringOptsFromConfig(config *mgmtv1alpha1.GenerateString) (*GenerateRandomStringOpts, error) {
+	if config == nil {
+		return NewGenerateRandomStringOpts(
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateRandomStringOpts(
+		config.Min,
+		config.Max,
+		nil,
+	)
 }
 
 func (t *GenerateRandomString) Generate(opts any) (any, error) {

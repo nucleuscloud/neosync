@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type TransformString struct{}
@@ -32,17 +33,17 @@ func NewTransformStringOpts(
   seedArg *int64,
 ) (*TransformStringOpts, error) {
 	preserveLength := bool(false) 
-	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
+	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
 	minLength := int64(1) 
-	if minLengthArg != nil && !transformer_utils.IsZeroValue(*minLengthArg) {
+	if minLengthArg != nil {
 		minLength = *minLengthArg
 	}
 	
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	

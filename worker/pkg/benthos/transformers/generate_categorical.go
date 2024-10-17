@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -44,6 +45,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateCategoricalOptsFromConfig(config *mgmtv1alpha1.GenerateCategorical) (*GenerateCategoricalOpts, error) {
+	if config == nil {
+		return NewGenerateCategoricalOpts(nil, nil)
+	}
+	return NewGenerateCategoricalOpts(config.Categories, nil)
 }
 
 func (t *GenerateCategorical) Generate(opts any) (any, error) {

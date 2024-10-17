@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -65,6 +66,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformE164PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformE164PhoneNumber, maxLength *int64) (*TransformE164PhoneNumberOpts, error) {
+	if config == nil {
+		return NewTransformE164PhoneNumberOpts(nil, nil, nil)
+	}
+	return NewTransformE164PhoneNumberOpts(config.PreserveLength, maxLength, nil)
 }
 
 func (t *TransformE164PhoneNumber) Transform(value, opts any) (any, error) {

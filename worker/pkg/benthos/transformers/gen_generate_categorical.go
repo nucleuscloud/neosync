@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateCategorical struct{}
@@ -28,7 +29,7 @@ func NewGenerateCategoricalOpts(
   seedArg *int64,
 ) (*GenerateCategoricalOpts, error) {
 	categories := string("ultimo,proximo,semper") 
-	if categoriesArg != nil && !transformer_utils.IsZeroValue(*categoriesArg) {
+	if categoriesArg != nil {
 		categories = *categoriesArg
 	}
 	

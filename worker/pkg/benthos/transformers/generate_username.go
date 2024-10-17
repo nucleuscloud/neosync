@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -45,6 +46,14 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+func NewGenerateUsernameOptsFromConfig(config *mgmtv1alpha1.GenerateUsername, maxLength *int64) (*GenerateUsernameOpts, error) {
+	if config == nil {
+		return NewGenerateUsernameOpts(nil, nil)
+	}
+	return NewGenerateUsernameOpts(
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateUsername) Generate(opts any) (any, error) {

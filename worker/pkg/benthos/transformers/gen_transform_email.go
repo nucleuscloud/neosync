@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type TransformEmail struct{}
@@ -38,22 +39,22 @@ func NewTransformEmailOpts(
 	invalidEmailActionArg *string,
 ) (*TransformEmailOpts, error) {
 	preserveLength := bool(false) 
-	if preserveLengthArg != nil && !transformer_utils.IsZeroValue(*preserveLengthArg) {
+	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
 	preserveDomain := bool(false) 
-	if preserveDomainArg != nil && !transformer_utils.IsZeroValue(*preserveDomainArg) {
+	if preserveDomainArg != nil {
 		preserveDomain = *preserveDomainArg
 	}
 	
 	excludedDomains := any([]any{}) 
-	if excludedDomainsArg != nil && !transformer_utils.IsZeroValue(*excludedDomainsArg) {
+	if excludedDomainsArg != nil {
 		excludedDomains = *excludedDomainsArg
 	}
 	
 	maxLength := int64(100) 
-	if maxLengthArg != nil && !transformer_utils.IsZeroValue(*maxLengthArg) {
+	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	
@@ -63,12 +64,12 @@ func NewTransformEmailOpts(
 	}
 	
 	emailType := string(GenerateEmailType_UuidV4.String()) 
-	if emailTypeArg != nil && !transformer_utils.IsZeroValue(*emailTypeArg) {
+	if emailTypeArg != nil {
 		emailType = *emailTypeArg
 	}
 	
 	invalidEmailAction := string(InvalidEmailAction_Reject.String()) 
-	if invalidEmailActionArg != nil && !transformer_utils.IsZeroValue(*invalidEmailActionArg) {
+	if invalidEmailActionArg != nil {
 		invalidEmailAction = *invalidEmailActionArg
 	}
 	

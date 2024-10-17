@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateInternationalPhoneNumber struct{}
@@ -30,12 +31,12 @@ func NewGenerateInternationalPhoneNumberOpts(
   seedArg *int64,
 ) (*GenerateInternationalPhoneNumberOpts, error) {
 	min := int64(9) 
-	if minArg != nil && !transformer_utils.IsZeroValue(*minArg) {
+	if minArg != nil {
 		min = *minArg
 	}
 	
 	max := int64(15) 
-	if maxArg != nil && !transformer_utils.IsZeroValue(*maxArg) {
+	if maxArg != nil {
 		max = *maxArg
 	}
 	

@@ -103,7 +103,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	{{ end }}
-	 mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
 type {{.StructName}} struct{}
@@ -125,24 +124,6 @@ type {{.StructName}}Opts struct {
 
 func New{{.StructName}}() *{{.StructName}} {
 	return &{{.StructName}}{}
-}
-
-func New{{.StructName}}OptsFromConfig(config *mgmtv1alpha1.{{.StructName}})(*{{.StructName}}Opts, error) {
-	if config == nil {
-		return New{{.StructName}}Opts(
-		{{- range $index, $param := .FunctInfo.Params }}
-		{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
-			nil,
-		{{- end }}	
-		)	
-	}
-	return New{{.StructName}}Opts(
-		{{- range $index, $param := .FunctInfo.Params }}
-		{{- if eq $param.Name "value" }}{{ continue }}{{ end -}}
-		{{ if eq $param.Name "seed" }} nil, {{ continue }}{{ end }}
-		config.{{ capitalizeFirst $param.Name }},	
-		{{- end }}
-	) 
 }
 
 func New{{.StructName}}Opts(

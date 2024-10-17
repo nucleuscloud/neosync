@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateState struct{}
@@ -28,7 +29,7 @@ func NewGenerateStateOpts(
   seedArg *int64,
 ) (*GenerateStateOpts, error) {
 	generateFullName := bool(false) 
-	if generateFullNameArg != nil && !transformer_utils.IsZeroValue(*generateFullNameArg) {
+	if generateFullNameArg != nil {
 		generateFullName = *generateFullNameArg
 	}
 	

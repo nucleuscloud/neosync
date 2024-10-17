@@ -4,7 +4,7 @@
 
 package transformers
 
-import (transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+import (
 )
 
 type GenerateUUID struct{}
@@ -21,7 +21,7 @@ func NewGenerateUUIDOpts(
 	includeHyphensArg *bool,
 ) (*GenerateUUIDOpts, error) {
 	includeHyphens := bool(true) 
-	if includeHyphensArg != nil && !transformer_utils.IsZeroValue(*includeHyphensArg) {
+	if includeHyphensArg != nil {
 		includeHyphens = *includeHyphensArg
 	}
 	

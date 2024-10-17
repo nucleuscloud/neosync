@@ -9,6 +9,7 @@ import (
 	
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	
 )
 
 type GenerateCardNumber struct{}
@@ -28,7 +29,7 @@ func NewGenerateCardNumberOpts(
   seedArg *int64,
 ) (*GenerateCardNumberOpts, error) {
 	validLuhn := bool(false) 
-	if validLuhnArg != nil && !transformer_utils.IsZeroValue(*validLuhnArg) {
+	if validLuhnArg != nil {
 		validLuhn = *validLuhnArg
 	}
 	

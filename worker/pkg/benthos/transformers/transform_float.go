@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -72,6 +73,19 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformFloat64OptsFromConfig(config *mgmtv1alpha1.TransformFloat64, scale, precision *int64) (*TransformFloat64Opts, error) {
+	if config == nil {
+		return NewTransformFloat64Opts(nil, nil, nil, nil, nil)
+	}
+	return NewTransformFloat64Opts(
+		config.RandomizationRangeMin,
+		config.RandomizationRangeMax,
+		precision,
+		scale,
+		nil,
+	)
 }
 
 func (t *TransformFloat64) Transform(value, opts any) (any, error) {

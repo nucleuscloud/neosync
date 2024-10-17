@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -59,6 +60,17 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformInt64OptsFromConfig(config *mgmtv1alpha1.TransformInt64) (*TransformInt64Opts, error) {
+	if config == nil {
+		return NewTransformInt64Opts(nil, nil, nil)
+	}
+	return NewTransformInt64Opts(
+		config.RandomizationRangeMin,
+		config.RandomizationRangeMax,
+		nil,
+	)
 }
 
 func (t *TransformInt64) Transform(value, opts any) (any, error) {
