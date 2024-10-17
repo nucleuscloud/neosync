@@ -42,7 +42,7 @@ func NewTransformStringOpts(
 		minLength = *minLengthArg
 	}
 	
-	maxLength := int64(20) 
+	maxLength := int64(100) 
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -85,7 +85,7 @@ func (t *TransformString) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 20
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

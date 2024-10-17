@@ -28,7 +28,7 @@ func NewGenerateUsernameOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateUsernameOpts, error) {
-	maxLength := int64(10000) 
+	maxLength := int64(100) 
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -57,7 +57,7 @@ func (t *GenerateUsername) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

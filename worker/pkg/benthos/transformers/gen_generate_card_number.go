@@ -25,9 +25,14 @@ func NewGenerateCardNumber() *GenerateCardNumber {
 }
 
 func NewGenerateCardNumberOpts(
-	validLuhn bool,
+	validLuhnArg *bool,
   seedArg *int64,
 ) (*GenerateCardNumberOpts, error) {
+	validLuhn := bool(false) 
+	if validLuhnArg != nil {
+		validLuhn = *validLuhnArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -50,10 +55,10 @@ func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateCardNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateCardNumberOpts{}
 
-	if _, ok := opts["validLuhn"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateCardNumber", "validLuhn")
+	validLuhn, ok := opts["validLuhn"].(bool)
+	if !ok {
+		validLuhn = false
 	}
-	validLuhn := opts["validLuhn"].(bool)
 	transformerOpts.validLuhn = validLuhn
 
 	var seedArg *int64

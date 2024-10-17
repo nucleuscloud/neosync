@@ -60,8 +60,8 @@ type GenerateEmailConfig struct {
 }
 
 type TransformEmailConfig struct {
-	PreserveLength     bool     `json:"preserveLength"`
-	PreserveDomain     bool     `json:"preserveDomain"`
+	PreserveLength     *bool    `json:"preserveLength,omitempty"`
+	PreserveDomain     *bool    `json:"preserveDomain,omitempty"`
 	ExcludedDomains    []string `json:"excludedDomains"`
 	EmailType          *int32   `json:"emailType,omitempty"`
 	InvalidEmailAction *int32   `json:"invalidEmailAction,omitempty"`
@@ -70,7 +70,7 @@ type TransformEmailConfig struct {
 type GenerateBoolConfig struct{}
 
 type GenerateCardNumberConfig struct {
-	ValidLuhn bool `json:"validLuhn"`
+	ValidLuhn *bool `json:"validLuhn,omitempty"`
 }
 
 type GenerateCityConfig struct{}
@@ -78,16 +78,16 @@ type GenerateCityConfig struct{}
 type GenerateDefaultConfig struct{}
 
 type GenerateE164PhoneNumberConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 type GenerateFirstNameConfig struct{}
 
 type GenerateFloat64Config struct {
-	RandomizeSign bool    `json:"randomizeSign"`
-	Min           float64 `json:"min"`
-	Max           float64 `json:"max"`
-	Precision     int64   `json:"precision"`
+	RandomizeSign *bool    `json:"randomizeSign,omitempty"`
+	Min           *float64 `json:"min,omitempty"`
+	Max           *float64 `json:"max,omitempty"`
+	Precision     *int64   `json:"precision,omitempty"`
 }
 
 type GenerateFullAddressConfig struct{}
@@ -95,15 +95,15 @@ type GenerateFullAddressConfig struct{}
 type GenerateFullNameConfig struct{}
 
 type GenerateGenderConfig struct {
-	Abbreviate bool `json:"abbreviate"`
+	Abbreviate *bool `json:"abbreviate,omitempty"`
 }
 
 type GenerateInt64PhoneNumberConfig struct{}
 
 type GenerateInt64Config struct {
-	RandomizeSign bool  `json:"randomizeSign"`
-	Min           int64 `json:"min"`
-	Max           int64 `json:"max"`
+	RandomizeSign *bool  `json:"randomizeSign,omitempty"`
+	Min           *int64 `json:"min,omitempty"`
+	Max           *int64 `json:"max,omitempty"`
 }
 
 type GenerateLastNameConfig struct{}
@@ -113,19 +113,19 @@ type GenerateSha256HashConfig struct{}
 type GenerateSsnConfig struct{}
 
 type GenerateStateConfig struct {
-	GenerateFullName bool `json:"generateFullName"`
+	GenerateFullName *bool `json:"generateFullName,omitempty"`
 }
 
 type GenerateStreetAddressConfig struct{}
 
 type GenerateStringPhoneNumberConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 
 type GenerateStringConfig struct {
-	Min int64 `json:"min"`
-	Max int64 `json:"max"`
+	Min *int64 `json:"min,omitempty"`
+	Max *int64 `json:"max,omitempty"`
 }
 type GenerateUnixTimestampConfig struct{}
 
@@ -134,47 +134,47 @@ type GenerateUsernameConfig struct{}
 type GenerateUtcTimestampConfig struct{}
 
 type GenerateUuidConfig struct {
-	IncludeHyphens bool `json:"includeHyphens"`
+	IncludeHyphens *bool `json:"includeHyphens,omitempty"`
 }
 
 type GenerateZipcodeConfig struct{}
 
 type TransformE164PhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformFirstNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformFloat64Config struct {
-	RandomizationRangeMin float64 `json:"randomizationRangeMin"`
-	RandomizationRangeMax float64 `json:"randomizationRangeMax"`
+	RandomizationRangeMin *float64 `json:"randomizationRangeMin,omitempty"`
+	RandomizationRangeMax *float64 `json:"randomizationRangeMax,omitempty"`
 }
 
 type TransformFullNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformInt64PhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformInt64Config struct {
-	RandomizationRangeMin int64 `json:"randomizationRangeMin"`
-	RandomizationRangeMax int64 `json:"randomizationRangeMax"`
+	RandomizationRangeMin *int64 `json:"randomizationRangeMin,omitempty"`
+	RandomizationRangeMax *int64 `json:"randomizationRangeMax,omitempty"`
 }
 
 type TransformLastNameConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformPhoneNumberConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type TransformStringConfig struct {
-	PreserveLength bool `json:"preserveLength"`
+	PreserveLength *bool `json:"preserveLength,omitempty"`
 }
 
 type PassthroughConfig struct{}
@@ -190,7 +190,7 @@ type TransformJavascriptConfig struct {
 }
 
 type GenerateCategoricalConfig struct {
-	Categories string `json:"categories"`
+	Categories *string `json:"categories,omitempty"`
 }
 
 type TransformCharacterScramble struct {
@@ -202,7 +202,7 @@ type GenerateJavascript struct {
 }
 
 type GenerateCountryConfig struct {
-	GenerateFullName bool `json:"generateFullName"`
+	GenerateFullName *bool `json:"generateFullName,omitempty"`
 }
 
 // from API -> DB

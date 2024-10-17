@@ -68,3 +68,13 @@ func Test_TransformStringTransformerWithEmptyValue(t *testing.T) {
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
 }
+
+func Test_TransformStringTransformer_NoOptions(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_string(value:%q)`, testStringValue)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

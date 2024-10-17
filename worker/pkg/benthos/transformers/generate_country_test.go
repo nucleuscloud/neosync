@@ -81,3 +81,25 @@ func Test_CountryTransformer(t *testing.T) {
 	assert.Len(t, res, 2)
 	assert.True(t, countryExists, "The generated country should exist in the countrys.go file")
 }
+
+func Test_CountryTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_country()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the country transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.IsType(t, Address{}.City, res, "The returned country should be a string")
+
+	countryExists := false
+	for _, country := range transformers_dataset.Countries {
+		if country.Code == res {
+			countryExists = true
+			break
+		}
+	}
+
+	assert.Len(t, res, 2)
+	assert.True(t, countryExists, "The generated country should exist in the countrys.go file")
+}

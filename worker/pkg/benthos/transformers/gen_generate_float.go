@@ -30,8 +30,8 @@ func NewGenerateFloat64() *GenerateFloat64 {
 
 func NewGenerateFloat64Opts(
 	randomizeSignArg *bool,
-	min float64,
-	max float64,
+	minArg *float64,
+	maxArg *float64,
 	precision *int64,
 	scale *int64,
   seedArg *int64,
@@ -39,6 +39,16 @@ func NewGenerateFloat64Opts(
 	randomizeSign := bool(false) 
 	if randomizeSignArg != nil {
 		randomizeSign = *randomizeSignArg
+	}
+	
+	min := float64(1) 
+	if minArg != nil {
+		min = *minArg
+	}
+	
+	max := float64(10000) 
+	if maxArg != nil {
+		max = *maxArg
 	}
 	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
@@ -73,16 +83,16 @@ func (t *GenerateFloat64) ParseOptions(opts map[string]any) (any, error) {
 	}
 	transformerOpts.randomizeSign = randomizeSign
 
-	if _, ok := opts["min"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "min")
+	min, ok := opts["min"].(float64)
+	if !ok {
+		min = 1
 	}
-	min := opts["min"].(float64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(float64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFloat64", "max")
+	max, ok := opts["max"].(float64)
+	if !ok {
+		max = 10000
 	}
-	max := opts["max"].(float64)
 	transformerOpts.max = max
 
 	var precision *int64

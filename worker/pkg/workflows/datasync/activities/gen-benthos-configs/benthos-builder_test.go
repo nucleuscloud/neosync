@@ -16,6 +16,7 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -371,8 +372,8 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain:  true,
-					PreserveLength:  false,
+					PreserveDomain:  gotypeutil.ToPtr(true),
+					PreserveLength:  gotypeutil.ToPtr(false),
 					ExcludedDomains: []string{},
 				},
 			},
@@ -475,8 +476,8 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain:  true,
-						PreserveLength:  false,
+						PreserveDomain:  gotypeutil.ToPtr(true),
+						PreserveLength:  gotypeutil.ToPtr(false),
 						ExcludedDomains: []string{},
 					},
 				},
@@ -500,8 +501,8 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain:  true,
-					PreserveLength:  false,
+					PreserveDomain:  gotypeutil.ToPtr(true),
+					PreserveLength:  gotypeutil.ToPtr(false),
 					ExcludedDomains: []string{},
 				},
 			},
@@ -635,8 +636,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain:  false,
-						PreserveLength:  false,
+						PreserveDomain:  gotypeutil.ToPtr(false),
+						PreserveLength:  gotypeutil.ToPtr(false),
 						ExcludedDomains: []string{},
 						EmailType:       &uuidEmailType,
 					},
@@ -656,7 +657,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
-						ValidLuhn: true,
+						ValidLuhn: gotypeutil.ToPtr(true),
 					},
 				},
 			},
@@ -674,8 +675,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
-						Min: 9,
-						Max: 15,
+						Min: gotypeutil.ToPtr(int64(9)),
+						Max: gotypeutil.ToPtr(int64(15)),
 					},
 				},
 			},
@@ -693,10 +694,10 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-						RandomizeSign: true,
-						Min:           1.00,
-						Max:           100.00,
-						Precision:     6,
+						RandomizeSign: gotypeutil.ToPtr(true),
+						Min:           gotypeutil.ToPtr(1.00),
+						Max:           gotypeutil.ToPtr(100.00),
+						Precision:     gotypeutil.ToPtr(int64(6)),
 					},
 				},
 			},
@@ -722,7 +723,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
-						Abbreviate: false,
+						Abbreviate: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -740,9 +741,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-						RandomizeSign: true,
-						Min:           1,
-						Max:           40,
+						RandomizeSign: gotypeutil.ToPtr(true),
+						Min:           gotypeutil.ToPtr(int64(1)),
+						Max:           gotypeutil.ToPtr(int64(40)),
 					},
 				},
 			},
@@ -776,7 +777,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-						GenerateFullName: false,
+						GenerateFullName: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -794,8 +795,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-						Min: 9,
-						Max: 14,
+						Min: gotypeutil.ToPtr(int64(9)),
+						Max: gotypeutil.ToPtr(int64(14)),
 					},
 				},
 			},
@@ -805,8 +806,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Min: 2,
-						Max: 7,
+						Min: gotypeutil.ToPtr(int64(2)),
+						Max: gotypeutil.ToPtr(int64(7)),
 					},
 				},
 			},
@@ -840,7 +841,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-						IncludeHyphens: true,
+						IncludeHyphens: gotypeutil.ToPtr(true),
 					},
 				},
 			},
@@ -858,7 +859,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -868,7 +869,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -878,8 +879,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 					TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
-						RandomizationRangeMin: 20.00,
-						RandomizationRangeMax: 50.00,
+						RandomizationRangeMin: gotypeutil.ToPtr(20.00),
+						RandomizationRangeMax: gotypeutil.ToPtr(50.00),
 					},
 				},
 			},
@@ -889,7 +890,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -899,7 +900,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 					TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -909,8 +910,8 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 					TransformInt64Config: &mgmtv1alpha1.TransformInt64{
-						RandomizationRangeMin: 20,
-						RandomizationRangeMax: 50,
+						RandomizationRangeMin: gotypeutil.ToPtr(int64(20)),
+						RandomizationRangeMax: gotypeutil.ToPtr(int64(50)),
 					},
 				},
 			},
@@ -920,7 +921,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -930,7 +931,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -940,7 +941,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 					TransformStringConfig: &mgmtv1alpha1.TransformString{
-						PreserveLength: false,
+						PreserveLength: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -950,7 +951,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
 					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
-						Categories: "value1,value2",
+						Categories: gotypeutil.ToPtr("value1,value2"),
 					},
 				},
 			},
@@ -986,7 +987,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
 					GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
-						GenerateFullName: false,
+						GenerateFullName: gotypeutil.ToPtr(false),
 					},
 				},
 			},
@@ -1034,8 +1035,8 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Min: 2,
-						Max: 7,
+						Min: gotypeutil.ToPtr(int64(2)),
+						Max: gotypeutil.ToPtr(int64(7)),
 					},
 				},
 			},

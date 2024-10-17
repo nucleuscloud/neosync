@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -26,6 +27,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateSHA256HashOptsFromConfig(config *mgmtv1alpha1.GenerateSha256Hash) (*GenerateSHA256HashOpts, error) {
+	return NewGenerateSHA256HashOpts()
 }
 
 func (t *GenerateSHA256Hash) Generate(opts any) (any, error) {

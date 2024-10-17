@@ -92,3 +92,13 @@ func Test_TransformLastNameTransformerWithEmptyValue(t *testing.T) {
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
 }
+
+func Test_TransformLastNameTransformer_NoOptions(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_last_name(value:%q)`, "lastname")
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the last name transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

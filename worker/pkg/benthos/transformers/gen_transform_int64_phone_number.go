@@ -25,9 +25,14 @@ func NewTransformInt64PhoneNumber() *TransformInt64PhoneNumber {
 }
 
 func NewTransformInt64PhoneNumberOpts(
-	preserveLength bool,
+	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformInt64PhoneNumberOpts, error) {
+	preserveLength := bool(false) 
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -50,10 +55,10 @@ func (t *TransformInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformInt64PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformInt64PhoneNumberOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformInt64PhoneNumber", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
 	var seedArg *int64

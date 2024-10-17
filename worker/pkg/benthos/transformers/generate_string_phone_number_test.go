@@ -57,3 +57,13 @@ func Test_GenerateStringPhoneNumberTransformer(t *testing.T) {
 	assert.GreaterOrEqual(t, len(res.(string)), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
 	assert.LessOrEqual(t, len(res.(string)), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 }
+
+func Test_GenerateStringPhoneNumberTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_string_phone_number()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the phone transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
