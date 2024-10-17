@@ -222,3 +222,163 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 		require.NotEqual(s.T(), inputObject["sports"].([]any)[j], sport)
 	}
 }
+
+func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTransformers() {
+	t := s.T()
+
+	t.Run("OSS", func(t *testing.T) {
+		accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+
+		t.Run("transformpiitext", func(t *testing.T) {
+			t.Run("mappings", func(t *testing.T) {
+				resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+					s.ctx,
+					connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+						AccountId: accountId,
+						InputData: "foo",
+						TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+							{
+								Transformer: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						},
+					}),
+				)
+				requireErrResp(t, resp, err)
+				requireConnectError(t, err, connect.CodePermissionDenied)
+			})
+
+			t.Run("defaults", func(t *testing.T) {
+				t.Run("Bool", func(t *testing.T) {
+					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								Boolean: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+				t.Run("S", func(t *testing.T) {
+					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								S: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+				t.Run("N", func(t *testing.T) {
+					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								N: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+			})
+		})
+	})
+
+	t.Run("cloud-personal", func(t *testing.T) {
+		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		anonclient := s.neosyncCloudClients.getAnonymizeClient(testAuthUserId)
+
+		s.setUser(s.ctx, userclient)
+		accountId := s.createPersonalAccount(s.ctx, userclient)
+
+		t.Run("transformpiitext", func(t *testing.T) {
+			t.Run("mappings", func(t *testing.T) {
+				resp, err := anonclient.AnonymizeSingle(
+					s.ctx,
+					connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+						AccountId: accountId,
+						InputData: "foo",
+						TransformerMappings: []*mgmtv1alpha1.TransformerMapping{
+							{
+								Transformer: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						},
+					}),
+				)
+				requireErrResp(t, resp, err)
+				requireConnectError(t, err, connect.CodePermissionDenied)
+			})
+
+			t.Run("defaults", func(t *testing.T) {
+				t.Run("Bool", func(t *testing.T) {
+					resp, err := anonclient.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								Boolean: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+				t.Run("S", func(t *testing.T) {
+					resp, err := anonclient.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								S: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+				t.Run("N", func(t *testing.T) {
+					resp, err := anonclient.AnonymizeSingle(
+						s.ctx,
+						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
+							AccountId: accountId,
+							InputData: "foo",
+							DefaultTransformers: &mgmtv1alpha1.DefaultTransformersConfig{
+								N: &mgmtv1alpha1.TransformerConfig{
+									Config: &mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig{},
+								},
+							},
+						}),
+					)
+					requireErrResp(t, resp, err)
+					requireConnectError(t, err, connect.CodePermissionDenied)
+				})
+			})
+		})
+	})
+}
