@@ -46,7 +46,7 @@ In the transformers table under the User Defined Transformer tab.
 
 In the Schema configuration page in the transformer select.
 
-![udt](https://assets.nucleuscloud.com/neosync/docs/udt-schema-page.png)
+![schema-page](/img/fifth.png)
 
 Now we can finish the rest of our job configuration and the newly created user defined transformer will be available in the transformer dropdown in the schema page.
 
