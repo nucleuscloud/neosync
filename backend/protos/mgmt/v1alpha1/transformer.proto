@@ -267,7 +267,7 @@ message PiiAnonymizer {
     optional string masking_char = 1;
     // How many characters to mask.
     optional int32 chars_to_mask = 2;
-    // Whether to mask the PII from start or enTransformEmaild
+    // Whether to mask the PII from start or end
     optional bool from_end = 3;
   }
   message Hash {

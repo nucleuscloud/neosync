@@ -1512,7 +1512,7 @@
             },
             {
               "name": "from_end",
-              "description": "Whether to mask the PII from start or enTransformEmaild",
+              "description": "Whether to mask the PII from start or end",
               "label": "optional",
               "type": "bool",
               "longType": "bool",

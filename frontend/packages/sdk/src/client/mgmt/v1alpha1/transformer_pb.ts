@@ -1881,7 +1881,7 @@ export class PiiAnonymizer_Mask extends Message<PiiAnonymizer_Mask> {
   charsToMask?: number;
 
   /**
-   * Whether to mask the PII from start or enTransformEmaild
+   * Whether to mask the PII from start or end
    *
    * @generated from field: optional bool from_end = 3;
    */

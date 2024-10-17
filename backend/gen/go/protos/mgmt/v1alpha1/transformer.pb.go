@@ -4566,7 +4566,7 @@ type PiiAnonymizer_Mask struct {
 	MaskingChar *string `protobuf:"bytes,1,opt,name=masking_char,json=maskingChar,proto3,oneof" json:"masking_char,omitempty"`
 	// How many characters to mask.
 	CharsToMask *int32 `protobuf:"varint,2,opt,name=chars_to_mask,json=charsToMask,proto3,oneof" json:"chars_to_mask,omitempty"`
-	// Whether to mask the PII from start or enTransformEmaild
+	// Whether to mask the PII from start or end
 	FromEnd *bool `protobuf:"varint,3,opt,name=from_end,json=fromEnd,proto3,oneof" json:"from_end,omitempty"`
 }
 
