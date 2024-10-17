@@ -100,8 +100,8 @@ import (
 	"fmt"
 	{{ end }}
 	{{- if eq .HasSeedParam true}}
-	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	{{ end }}
 )
 
@@ -247,9 +247,7 @@ func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, e
 			data.ImportFmt = true
 		}
 	}
-	t := template.Must(template.New("neosyncTransformerImpl").Funcs(template.FuncMap{
-		"capitalizeFirst": capitalizeFirst,
-	}).Parse(codeTemplate))
+	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))
 	var out bytes.Buffer
 	err := t.Execute(&out, data)
 	if err != nil {
