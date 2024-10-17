@@ -60,7 +60,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		// if config != nil && config.GetCategories() != "" {
 		// 	categories = &config.Categories
 		// }
-		opts, err := NewGenerateCategoricalOptsFromConfig(config)
+		opts, err := NewGenerateCategoricalOpts(config.Categories, nil)
 		if err != nil {
 			return nil, err
 		}
