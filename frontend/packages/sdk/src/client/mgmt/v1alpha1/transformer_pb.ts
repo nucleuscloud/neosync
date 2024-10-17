@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum mgmt.v1alpha1.TransformerSource
@@ -1881,7 +1881,7 @@ export class PiiAnonymizer_Mask extends Message<PiiAnonymizer_Mask> {
   charsToMask?: number;
 
   /**
-   * Whether to mask the PII from start or end
+   * Whether to mask the PII from start or enTransformEmaild
    *
    * @generated from field: optional bool from_end = 3;
    */
@@ -2042,16 +2042,16 @@ export class TransformEmail extends Message<TransformEmail> {
   /**
    * Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
    *
-   * @generated from field: bool preserve_domain = 1;
+   * @generated from field: optional bool preserve_domain = 1;
    */
-  preserveDomain = false;
+  preserveDomain?: boolean;
 
   /**
    * Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
    *
-   * @generated from field: bool preserve_length = 2;
+   * @generated from field: optional bool preserve_length = 2;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   /**
    * A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
@@ -2082,8 +2082,8 @@ export class TransformEmail extends Message<TransformEmail> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformEmail";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_domain", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_domain", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
     { no: 3, name: "excluded_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 4, name: "email_type", kind: "enum", T: proto3.getEnumType(GenerateEmailType), opt: true },
     { no: 5, name: "invalid_email_action", kind: "enum", T: proto3.getEnumType(InvalidEmailAction), opt: true },
@@ -2142,9 +2142,9 @@ export class GenerateBool extends Message<GenerateBool> {
  */
 export class GenerateCardNumber extends Message<GenerateCardNumber> {
   /**
-   * @generated from field: bool valid_luhn = 1;
+   * @generated from field: optional bool valid_luhn = 1;
    */
-  validLuhn = false;
+  validLuhn?: boolean;
 
   constructor(data?: PartialMessage<GenerateCardNumber>) {
     super();
@@ -2154,7 +2154,7 @@ export class GenerateCardNumber extends Message<GenerateCardNumber> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateCardNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "valid_luhn", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "valid_luhn", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCardNumber {
@@ -2241,14 +2241,14 @@ export class GenerateDefault extends Message<GenerateDefault> {
  */
 export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
   /**
-   * @generated from field: int64 min = 1;
+   * @generated from field: optional int64 min = 1;
    */
-  min = protoInt64.zero;
+  min?: bigint;
 
   /**
-   * @generated from field: int64 max = 2;
+   * @generated from field: optional int64 max = 2;
    */
-  max = protoInt64.zero;
+  max?: bigint;
 
   constructor(data?: PartialMessage<GenerateE164PhoneNumber>) {
     super();
@@ -2258,8 +2258,8 @@ export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateE164PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateE164PhoneNumber {
@@ -2315,24 +2315,24 @@ export class GenerateFirstName extends Message<GenerateFirstName> {
  */
 export class GenerateFloat64 extends Message<GenerateFloat64> {
   /**
-   * @generated from field: bool randomize_sign = 1;
+   * @generated from field: optional bool randomize_sign = 1;
    */
-  randomizeSign = false;
+  randomizeSign?: boolean;
 
   /**
-   * @generated from field: double min = 2;
+   * @generated from field: optional double min = 2;
    */
-  min = 0;
+  min?: number;
 
   /**
-   * @generated from field: double max = 3;
+   * @generated from field: optional double max = 3;
    */
-  max = 0;
+  max?: number;
 
   /**
-   * @generated from field: int64 precision = 4;
+   * @generated from field: optional int64 precision = 4;
    */
-  precision = protoInt64.zero;
+  precision?: bigint;
 
   constructor(data?: PartialMessage<GenerateFloat64>) {
     super();
@@ -2342,10 +2342,10 @@ export class GenerateFloat64 extends Message<GenerateFloat64> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateFloat64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 3, name: "max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 4, name: "precision", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 2, name: "min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 3, name: "max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 4, name: "precision", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateFloat64 {
@@ -2432,9 +2432,9 @@ export class GenerateFullName extends Message<GenerateFullName> {
  */
 export class GenerateGender extends Message<GenerateGender> {
   /**
-   * @generated from field: bool abbreviate = 1;
+   * @generated from field: optional bool abbreviate = 1;
    */
-  abbreviate = false;
+  abbreviate?: boolean;
 
   constructor(data?: PartialMessage<GenerateGender>) {
     super();
@@ -2444,7 +2444,7 @@ export class GenerateGender extends Message<GenerateGender> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateGender";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "abbreviate", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "abbreviate", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateGender {
@@ -2500,19 +2500,19 @@ export class GenerateInt64PhoneNumber extends Message<GenerateInt64PhoneNumber> 
  */
 export class GenerateInt64 extends Message<GenerateInt64> {
   /**
-   * @generated from field: bool randomize_sign = 1;
+   * @generated from field: optional bool randomize_sign = 1;
    */
-  randomizeSign = false;
+  randomizeSign?: boolean;
 
   /**
-   * @generated from field: int64 min = 2;
+   * @generated from field: optional int64 min = 2;
    */
-  min = protoInt64.zero;
+  min?: bigint;
 
   /**
-   * @generated from field: int64 max = 3;
+   * @generated from field: optional int64 max = 3;
    */
-  max = protoInt64.zero;
+  max?: bigint;
 
   constructor(data?: PartialMessage<GenerateInt64>) {
     super();
@@ -2522,9 +2522,9 @@ export class GenerateInt64 extends Message<GenerateInt64> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateInt64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInt64 {
@@ -2644,9 +2644,9 @@ export class GenerateState extends Message<GenerateState> {
   /**
    * An option to return the full state name of the randomly selected state or return the default of a 2-letter state code.
    *
-   * @generated from field: bool generate_full_name = 1;
+   * @generated from field: optional bool generate_full_name = 1;
    */
-  generateFullName = false;
+  generateFullName?: boolean;
 
   constructor(data?: PartialMessage<GenerateState>) {
     super();
@@ -2656,7 +2656,7 @@ export class GenerateState extends Message<GenerateState> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateState";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "generate_full_name", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "generate_full_name", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateState {
@@ -2712,14 +2712,14 @@ export class GenerateStreetAddress extends Message<GenerateStreetAddress> {
  */
 export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber> {
   /**
-   * @generated from field: int64 min = 2;
+   * @generated from field: optional int64 min = 2;
    */
-  min = protoInt64.zero;
+  min?: bigint;
 
   /**
-   * @generated from field: int64 max = 3;
+   * @generated from field: optional int64 max = 3;
    */
-  max = protoInt64.zero;
+  max?: bigint;
 
   constructor(data?: PartialMessage<GenerateStringPhoneNumber>) {
     super();
@@ -2729,8 +2729,8 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateStringPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateStringPhoneNumber {
@@ -2755,14 +2755,14 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
  */
 export class GenerateString extends Message<GenerateString> {
   /**
-   * @generated from field: int64 min = 1;
+   * @generated from field: optional int64 min = 1;
    */
-  min = protoInt64.zero;
+  min?: bigint;
 
   /**
-   * @generated from field: int64 max = 2;
+   * @generated from field: optional int64 max = 2;
    */
-  max = protoInt64.zero;
+  max?: bigint;
 
   constructor(data?: PartialMessage<GenerateString>) {
     super();
@@ -2772,8 +2772,8 @@ export class GenerateString extends Message<GenerateString> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateString";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateString {
@@ -2891,9 +2891,9 @@ export class GenerateUtcTimestamp extends Message<GenerateUtcTimestamp> {
  */
 export class GenerateUuid extends Message<GenerateUuid> {
   /**
-   * @generated from field: bool include_hyphens = 1;
+   * @generated from field: optional bool include_hyphens = 1;
    */
-  includeHyphens = false;
+  includeHyphens?: boolean;
 
   constructor(data?: PartialMessage<GenerateUuid>) {
     super();
@@ -2903,7 +2903,7 @@ export class GenerateUuid extends Message<GenerateUuid> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateUuid";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateUuid {
@@ -2959,9 +2959,9 @@ export class GenerateZipcode extends Message<GenerateZipcode> {
  */
 export class TransformE164PhoneNumber extends Message<TransformE164PhoneNumber> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformE164PhoneNumber>) {
     super();
@@ -2971,7 +2971,7 @@ export class TransformE164PhoneNumber extends Message<TransformE164PhoneNumber> 
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformE164PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformE164PhoneNumber {
@@ -2996,9 +2996,9 @@ export class TransformE164PhoneNumber extends Message<TransformE164PhoneNumber> 
  */
 export class TransformFirstName extends Message<TransformFirstName> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformFirstName>) {
     super();
@@ -3008,7 +3008,7 @@ export class TransformFirstName extends Message<TransformFirstName> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformFirstName";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformFirstName {
@@ -3033,14 +3033,14 @@ export class TransformFirstName extends Message<TransformFirstName> {
  */
 export class TransformFloat64 extends Message<TransformFloat64> {
   /**
-   * @generated from field: double randomization_range_min = 1;
+   * @generated from field: optional double randomization_range_min = 1;
    */
-  randomizationRangeMin = 0;
+  randomizationRangeMin?: number;
 
   /**
-   * @generated from field: double randomization_range_max = 2;
+   * @generated from field: optional double randomization_range_max = 2;
    */
-  randomizationRangeMax = 0;
+  randomizationRangeMax?: number;
 
   constructor(data?: PartialMessage<TransformFloat64>) {
     super();
@@ -3050,8 +3050,8 @@ export class TransformFloat64 extends Message<TransformFloat64> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformFloat64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "randomization_range_min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 2, name: "randomization_range_max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 1, name: "randomization_range_min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 2, name: "randomization_range_max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformFloat64 {
@@ -3076,9 +3076,9 @@ export class TransformFloat64 extends Message<TransformFloat64> {
  */
 export class TransformFullName extends Message<TransformFullName> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformFullName>) {
     super();
@@ -3088,7 +3088,7 @@ export class TransformFullName extends Message<TransformFullName> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformFullName";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformFullName {
@@ -3113,9 +3113,9 @@ export class TransformFullName extends Message<TransformFullName> {
  */
 export class TransformInt64PhoneNumber extends Message<TransformInt64PhoneNumber> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformInt64PhoneNumber>) {
     super();
@@ -3125,7 +3125,7 @@ export class TransformInt64PhoneNumber extends Message<TransformInt64PhoneNumber
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformInt64PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformInt64PhoneNumber {
@@ -3150,14 +3150,14 @@ export class TransformInt64PhoneNumber extends Message<TransformInt64PhoneNumber
  */
 export class TransformInt64 extends Message<TransformInt64> {
   /**
-   * @generated from field: int64 randomization_range_min = 1;
+   * @generated from field: optional int64 randomization_range_min = 1;
    */
-  randomizationRangeMin = protoInt64.zero;
+  randomizationRangeMin?: bigint;
 
   /**
-   * @generated from field: int64 randomization_range_max = 2;
+   * @generated from field: optional int64 randomization_range_max = 2;
    */
-  randomizationRangeMax = protoInt64.zero;
+  randomizationRangeMax?: bigint;
 
   constructor(data?: PartialMessage<TransformInt64>) {
     super();
@@ -3167,8 +3167,8 @@ export class TransformInt64 extends Message<TransformInt64> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformInt64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "randomization_range_min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 2, name: "randomization_range_max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "randomization_range_min", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 2, name: "randomization_range_max", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformInt64 {
@@ -3193,9 +3193,9 @@ export class TransformInt64 extends Message<TransformInt64> {
  */
 export class TransformLastName extends Message<TransformLastName> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformLastName>) {
     super();
@@ -3205,7 +3205,7 @@ export class TransformLastName extends Message<TransformLastName> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformLastName";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformLastName {
@@ -3230,9 +3230,9 @@ export class TransformLastName extends Message<TransformLastName> {
  */
 export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformPhoneNumber>) {
     super();
@@ -3242,7 +3242,7 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhoneNumber {
@@ -3267,9 +3267,9 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
  */
 export class TransformString extends Message<TransformString> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: optional bool preserve_length = 1;
    */
-  preserveLength = false;
+  preserveLength?: boolean;
 
   constructor(data?: PartialMessage<TransformString>) {
     super();
@@ -3279,7 +3279,7 @@ export class TransformString extends Message<TransformString> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformString";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformString {
@@ -3522,9 +3522,9 @@ export class ValidateUserJavascriptCodeResponse extends Message<ValidateUserJava
  */
 export class GenerateCategorical extends Message<GenerateCategorical> {
   /**
-   * @generated from field: string categories = 1;
+   * @generated from field: optional string categories = 1;
    */
-  categories = "";
+  categories?: string;
 
   constructor(data?: PartialMessage<GenerateCategorical>) {
     super();
@@ -3534,7 +3534,7 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateCategorical";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "categories", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "categories", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCategorical {
@@ -3719,9 +3719,9 @@ export class GenerateCountry extends Message<GenerateCountry> {
   /**
    * An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
    *
-   * @generated from field: bool generate_full_name = 1;
+   * @generated from field: optional bool generate_full_name = 1;
    */
-  generateFullName = false;
+  generateFullName?: boolean;
 
   constructor(data?: PartialMessage<GenerateCountry>) {
     super();
@@ -3731,7 +3731,7 @@ export class GenerateCountry extends Message<GenerateCountry> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateCountry";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "generate_full_name", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "generate_full_name", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCountry {

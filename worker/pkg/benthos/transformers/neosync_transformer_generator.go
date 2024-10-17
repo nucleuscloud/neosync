@@ -101,10 +101,9 @@ import (
 	{{ end }}
 	{{- if eq .HasSeedParam true}}
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
-	{{ end }}
-	{{- if gt (len .FunctInfo.Params) 0 -}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
-	{{- end }}
+	{{ end }}
+	 mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
 type {{.StructName}} struct{}
@@ -126,6 +125,23 @@ type {{.StructName}}Opts struct {
 
 func New{{.StructName}}() *{{.StructName}} {
 	return &{{.StructName}}{}
+}
+
+func New{{.StructName}}OptsFromConfig(config *mgmtv1alpha1.{{.StructName}})(*{{.StructName}}Opts, error) {
+	if config == nil {
+		return New{{.StructName}}Opts(
+		{{- range $index, $param := .FunctInfo.Params }}
+		{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+			nil,
+		{{- end }}	
+		)	
+	}
+	return New{{.StructName}}Opts(
+		{{- range $index, $param := .FunctInfo.Params }}
+		{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+			config.{{$param.Name}},	
+		{{- end }}
+	) 
 }
 
 func New{{.StructName}}Opts(
@@ -151,7 +167,7 @@ func New{{.StructName}}Opts(
 	}
 	{{ else if $param.HasDefault }}
 	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
-	if {{$param.Name}}Arg != nil && !transformer_utils.IsZeroValue(*{{$param.Name}}Arg) {
+	if {{$param.Name}}Arg != nil {
 		{{$param.Name}} = *{{$param.Name}}Arg
 	}
 	{{ end }}

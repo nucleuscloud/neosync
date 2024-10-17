@@ -267,7 +267,7 @@ message PiiAnonymizer {
     optional string masking_char = 1;
     // How many characters to mask.
     optional int32 chars_to_mask = 2;
-    // Whether to mask the PII from start or end
+    // Whether to mask the PII from start or enTransformEmaild
     optional bool from_end = 3;
   }
   message Hash {
@@ -317,9 +317,9 @@ enum InvalidEmailAction {
 
 message TransformEmail {
   // Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
-  bool preserve_domain = 1;
+  optional bool preserve_domain = 1;
   // Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
-  bool preserve_length = 2;
+  optional bool preserve_length = 2;
   // A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
   repeated string excluded_domains = 3;
   // Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
@@ -331,7 +331,7 @@ message TransformEmail {
 message GenerateBool {}
 
 message GenerateCardNumber {
-  bool valid_luhn = 1;
+  optional bool valid_luhn = 1;
 }
 
 message GenerateCity {}
@@ -339,17 +339,17 @@ message GenerateCity {}
 message GenerateDefault {}
 
 message GenerateE164PhoneNumber {
-  int64 min = 1;
-  int64 max = 2;
+  optional int64 min = 1;
+  optional int64 max = 2;
 }
 
 message GenerateFirstName {}
 
 message GenerateFloat64 {
-  bool randomize_sign = 1;
-  double min = 2;
-  double max = 3;
-  int64 precision = 4;
+  optional bool randomize_sign = 1;
+  optional double min = 2;
+  optional double max = 3;
+  optional int64 precision = 4;
 }
 
 message GenerateFullAddress {}
@@ -357,15 +357,15 @@ message GenerateFullAddress {}
 message GenerateFullName {}
 
 message GenerateGender {
-  bool abbreviate = 1;
+  optional bool abbreviate = 1;
 }
 
 message GenerateInt64PhoneNumber {}
 
 message GenerateInt64 {
-  bool randomize_sign = 1;
-  int64 min = 2;
-  int64 max = 3;
+  optional bool randomize_sign = 1;
+  optional int64 min = 2;
+  optional int64 max = 3;
 }
 
 message GenerateLastName {}
@@ -375,19 +375,19 @@ message GenerateSSN {}
 
 message GenerateState {
   // An option to return the full state name of the randomly selected state or return the default of a 2-letter state code.
-  bool generate_full_name = 1;
+  optional bool generate_full_name = 1;
 }
 
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
-  int64 min = 2;
-  int64 max = 3;
+  optional int64 min = 2;
+  optional int64 max = 3;
 }
 
 message GenerateString {
-  int64 min = 1;
-  int64 max = 2;
+  optional int64 min = 1;
+  optional int64 max = 2;
 }
 
 message GenerateUnixTimestamp {}
@@ -397,47 +397,47 @@ message GenerateUsername {}
 message GenerateUtcTimestamp {}
 
 message GenerateUuid {
-  bool include_hyphens = 1;
+  optional bool include_hyphens = 1;
 }
 
 message GenerateZipcode {}
 
 message TransformE164PhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformFirstName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformFloat64 {
-  double randomization_range_min = 1;
-  double randomization_range_max = 2;
+  optional double randomization_range_min = 1;
+  optional double randomization_range_max = 2;
 }
 
 message TransformFullName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformInt64PhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformInt64 {
-  int64 randomization_range_min = 1;
-  int64 randomization_range_max = 2;
+  optional int64 randomization_range_min = 1;
+  optional int64 randomization_range_max = 2;
 }
 
 message TransformLastName {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformPhoneNumber {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message TransformString {
-  bool preserve_length = 1;
+  optional bool preserve_length = 1;
 }
 
 message Passthrough {}
@@ -463,7 +463,7 @@ message ValidateUserJavascriptCodeResponse {
 }
 
 message GenerateCategorical {
-  string categories = 1;
+  optional string categories = 1;
 }
 
 message TransformCharacterScramble {
@@ -487,7 +487,7 @@ message ValidateUserRegexCodeResponse {
 
 message GenerateCountry {
   // An option to return the full country name of the randomly selected country or return the default of a 2-letter country code.
-  bool generate_full_name = 1;
+  optional bool generate_full_name = 1;
 }
 
 service TransformersService {

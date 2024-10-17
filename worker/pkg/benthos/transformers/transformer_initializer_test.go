@@ -25,10 +25,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateCategoricalConfig", func(t *testing.T) {
+		categories := "A,B,C"
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
 				GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
-					Categories: "A,B,C",
+					Categories: &categories,
 				},
 			},
 		}
@@ -54,6 +55,18 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
+	t.Run("GenerateCategoricalConfig_NilConfig", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
 	t.Run("GenerateBoolConfig", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{},
@@ -67,10 +80,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformStringConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 				TransformStringConfig: &mgmtv1alpha1.TransformString{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -101,8 +115,8 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 				TransformInt64Config: &mgmtv1alpha1.TransformInt64{
-					RandomizationRangeMin: rmin,
-					RandomizationRangeMax: rmax,
+					RandomizationRangeMin: &rmin,
+					RandomizationRangeMax: &rmax,
 				},
 			},
 		}
@@ -130,10 +144,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformFullNameConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -190,13 +205,14 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformEmailConfig", func(t *testing.T) {
+		preserve := true
 		emailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME
 		invalidEmailAction := mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_GENERATE
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain:     true,
-					PreserveLength:     true,
+					PreserveDomain:     &preserve,
+					PreserveLength:     &preserve,
 					EmailType:          &emailType,
 					InvalidEmailAction: &invalidEmailAction,
 				},
@@ -226,10 +242,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateCardNumberConfig", func(t *testing.T) {
+		valid := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 				GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
-					ValidLuhn: true,
+					ValidLuhn: &valid,
 				},
 			},
 		}
@@ -270,13 +287,13 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.NotEmpty(t, result)
 	})
 
-	t.Run("GenerateE164PhoneNumberConfig", func(t *testing.T) {
+	t.Run("GenerateInternationalPhoneNumberConfig", func(t *testing.T) {
 		rmin, rmax := int64(10), int64(10)
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 				GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
-					Min: rmin,
-					Max: rmax,
+					Min: &rmin,
+					Max: &rmax,
 				},
 			},
 		}
@@ -288,11 +305,23 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		require.Regexp(t, `^\+\d{10}$`, result)
 	})
 
-	t.Run("GenerateE164PhoneNumberConfig_Empty", func(t *testing.T) {
+	t.Run("GenerateInternationPhoneNumberConfig_Empty", func(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 				GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{},
 			},
+		}
+		executor, err := InitializeTransformerByConfigType(config)
+		require.NoError(t, err)
+		require.NotNil(t, executor)
+		result, err := executor.Mutate(nil, executor.Opts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("GenerateInternationPhoneNumberConfig_Nil", func(t *testing.T) {
+		config := &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{},
 		}
 		executor, err := InitializeTransformerByConfigType(config)
 		require.NoError(t, err)
@@ -324,10 +353,10 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 				GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-					RandomizeSign: randomizeSign,
-					Min:           rmin,
-					Max:           rmax,
-					Precision:     precision,
+					RandomizeSign: &randomizeSign,
+					Min:           &rmin,
+					Max:           &rmax,
+					Precision:     &precision,
 				},
 			},
 		}
@@ -388,10 +417,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateGenderConfig", func(t *testing.T) {
+		abb := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 				GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
-					Abbreviate: true,
+					Abbreviate: &abb,
 				},
 			},
 		}
@@ -441,9 +471,9 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 				GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-					RandomizeSign: randomizeSign,
-					Min:           rmin,
-					Max:           rmax,
+					RandomizeSign: &randomizeSign,
+					Min:           &rmin,
+					Max:           &rmax,
 				},
 			},
 		}
@@ -520,10 +550,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateStateConfig", func(t *testing.T) {
+		genFullName := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 				GenerateStateConfig: &mgmtv1alpha1.GenerateState{
-					GenerateFullName: true,
+					GenerateFullName: &genFullName,
 				},
 			},
 		}
@@ -573,8 +604,8 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 				GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-					Min: rmin,
-					Max: rmax,
+					Min: &rmin,
+					Max: &rmax,
 				},
 			},
 		}
@@ -607,8 +638,8 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 				GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-					Min: rmin,
-					Max: rmax,
+					Min: &rmin,
+					Max: &rmax,
 				},
 			},
 		}
@@ -682,10 +713,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateUuidConfig", func(t *testing.T) {
+		hyphens := false
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 				GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-					IncludeHyphens: false,
+					IncludeHyphens: &hyphens,
 				},
 			},
 		}
@@ -729,10 +761,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformE164PhoneNumberConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 				TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -763,10 +796,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformFirstNameConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 				TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -802,8 +836,8 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 				TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
-					RandomizationRangeMin: randomizationRangeMin,
-					RandomizationRangeMax: randomizationRangeMax,
+					RandomizationRangeMin: &randomizationRangeMin,
+					RandomizationRangeMax: &randomizationRangeMax,
 				},
 			},
 		}
@@ -836,10 +870,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformInt64PhoneNumberConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 				TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -873,10 +908,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformLastNameConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 				TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -907,10 +943,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("TransformPhoneNumberConfig", func(t *testing.T) {
+		preserveLength := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 				TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
-					PreserveLength: true,
+					PreserveLength: &preserveLength,
 				},
 			},
 		}
@@ -1004,10 +1041,11 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 	})
 
 	t.Run("GenerateCountryConfig", func(t *testing.T) {
+		genFull := true
 		config := &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCountryConfig{
 				GenerateCountryConfig: &mgmtv1alpha1.GenerateCountry{
-					GenerateFullName: true,
+					GenerateFullName: &genFull,
 				},
 			},
 		}

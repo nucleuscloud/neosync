@@ -56,7 +56,11 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
 		config := transformerConfig.GetGenerateCategoricalConfig()
-		opts, err := NewGenerateCategoricalOpts(&config.Categories, nil)
+		// var categories *string
+		// if config != nil && config.GetCategories() != "" {
+		// 	categories = &config.Categories
+		// }
+		opts, err := NewGenerateCategoricalOptsFromConfig(config)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +101,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
 		config := transformerConfig.GetTransformInt64Config()
-		opts, err := NewTransformInt64Opts(&config.RandomizationRangeMin, &config.RandomizationRangeMax, nil)
+		opts, err := NewTransformInt64Opts(config.RandomizationRangeMin, config.RandomizationRangeMax, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -156,8 +160,8 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}
 		var excludedDomains any = config.GetExcludedDomains()
 		opts, err := NewTransformEmailOpts(
-			&config.PreserveDomain,
-			&config.PreserveLength,
+			config.PreserveDomain,
+			config.PreserveLength,
 			&excludedDomains,
 			&maxLength,
 			nil,
@@ -177,7 +181,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig:
 		config := transformerConfig.GetGenerateCardNumberConfig()
-		opts, err := NewGenerateCardNumberOpts(&config.ValidLuhn, nil)
+		opts, err := NewGenerateCardNumberOpts(config.ValidLuhn, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -204,10 +208,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
 		config := transformerConfig.GetGenerateE164PhoneNumberConfig()
-		opts, err := NewGenerateInternationalPhoneNumberOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateInternationalPhoneNumberOpts(config.Min, config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println(opts.min)
+		fmt.Println(opts.max)
 		generate := NewGenerateInternationalPhoneNumber().Generate
 		return &TransformerExecutor{
 			Opts: opts,
@@ -232,12 +238,12 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		config := transformerConfig.GetGenerateFloat64Config()
 		var precision *int64
 		if config.GetPrecision() != 0 {
-			precision = &config.Precision
+			precision = config.Precision
 		}
 		opts, err := NewGenerateFloat64Opts(
-			&config.RandomizeSign,
-			&config.Min,
-			&config.Max,
+			config.RandomizeSign,
+			config.Min,
+			config.Max,
 			precision,
 			nil, // TODO: update scale based on colInfo if available
 			nil,
@@ -281,7 +287,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateGenderConfig:
 		config := transformerConfig.GetGenerateGenderConfig()
-		opts, err := NewGenerateGenderOpts(&config.Abbreviate, &maxLength, nil)
+		opts, err := NewGenerateGenderOpts(config.Abbreviate, &maxLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -308,7 +314,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
 		config := transformerConfig.GetGenerateInt64Config()
-		opts, err := NewGenerateInt64Opts(&config.RandomizeSign, &config.Min, &config.Max, nil)
+		opts, err := NewGenerateInt64Opts(config.RandomizeSign, config.Min, config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -388,7 +394,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
 		config := transformerConfig.GetGenerateStringPhoneNumberConfig()
-		opts, err := NewGenerateStringPhoneNumberOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateStringPhoneNumberOpts(config.Min, config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -402,7 +408,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		config := transformerConfig.GetGenerateStringConfig()
-		opts, err := NewGenerateRandomStringOpts(&config.Min, &config.Max, nil)
+		opts, err := NewGenerateRandomStringOpts(config.Min, config.Max, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -482,7 +488,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
 		config := transformerConfig.GetTransformE164PhoneNumberConfig()
-		opts, err := NewTransformE164PhoneNumberOpts(&config.PreserveLength, nil, nil)
+		opts, err := NewTransformE164PhoneNumberOpts(config.PreserveLength, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -496,7 +502,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
 		config := transformerConfig.GetTransformFirstNameConfig()
-		opts, err := NewTransformFirstNameOpts(&maxLength, &config.PreserveLength, nil)
+		opts, err := NewTransformFirstNameOpts(&maxLength, config.PreserveLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -511,8 +517,8 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
 		config := transformerConfig.GetTransformFloat64Config()
 		opts, err := NewTransformFloat64Opts(
-			&config.RandomizationRangeMin,
-			&config.RandomizationRangeMax,
+			config.RandomizationRangeMin,
+			config.RandomizationRangeMax,
 			nil, // TODO: update precision based on colInfo if available
 			nil, // TODO: update scale based on colInfo if available
 			nil,
@@ -530,7 +536,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
 		config := transformerConfig.GetTransformInt64PhoneNumberConfig()
-		opts, err := NewTransformInt64PhoneNumberOpts(&config.PreserveLength, nil)
+		opts, err := NewTransformInt64PhoneNumberOpts(config.PreserveLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -544,7 +550,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
 		config := transformerConfig.GetTransformLastNameConfig()
-		opts, err := NewTransformLastNameOpts(&maxLength, &config.PreserveLength, nil)
+		opts, err := NewTransformLastNameOpts(&maxLength, config.PreserveLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -558,7 +564,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		config := transformerConfig.GetTransformPhoneNumberConfig()
-		opts, err := NewTransformStringPhoneNumberOpts(&config.PreserveLength, &maxLength, nil)
+		opts, err := NewTransformStringPhoneNumberOpts(config.PreserveLength, &maxLength, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -602,7 +608,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateCountryConfig:
 		generateFullName := transformerConfig.GetGenerateCountryConfig().GenerateFullName
-		opts, err := NewGenerateCountryOpts(&generateFullName, nil)
+		opts, err := NewGenerateCountryOpts(generateFullName, nil)
 		if err != nil {
 			return nil, err
 		}
