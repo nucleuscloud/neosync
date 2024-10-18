@@ -2,6 +2,7 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 import type { Config } from '@docusaurus/types';
+import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs';
 import { themes } from 'prism-react-renderer';
 
 const config: Config = {
@@ -63,6 +64,28 @@ const config: Config = {
         },
       };
     },
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'api', // plugin id
+        docsPluginId: 'classic', // configured for preset-classic
+        config: {
+          docs: {
+            specPath:
+              '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+            outputDir: './docs/reference',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+            // template: 'api.mustache', // Add this line
+            // markdownGenerators: {
+            //   createApiPageMD: () => '# API Reference', // Add this line
+            // },
+            baseUrl: '/reference/', // Added leading and trailing slashes
+          } satisfies OpenApiPlugin.Options,
+        },
+      },
+    ],
   ],
 
   presets: [
@@ -70,12 +93,13 @@ const config: Config = {
       'classic',
       {
         docs: {
+          id: 'default',
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
-          // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/nucleuscloud/neosync/blob/main/docs',
         },
         blog: {
+          id: 'changelog',
           routeBasePath: '/changelog',
           editUrl: 'https://github.com/nucleuscloud/neosync/blob/main/docs',
           blogTitle: 'Neosync Changelog',
@@ -89,18 +113,34 @@ const config: Config = {
       },
     ],
     [
+      'docusaurus-plugin-openapi-docs',
+      {
+        docs: {
+          id: 'reference',
+          path: './reference',
+          routeBasePath: 'reference',
+          sidebarPath: './docs/reference/sidebar.ts',
+          docItemComponent: '@theme/ApiItem',
+        },
+        theme: {
+          customCss: './src/css/custom.css',
+        },
+      },
+    ],
+    [
       'docusaurus-protobuffet',
       {
         protobuffet: {
+          id: 'protobuffet',
           fileDescriptorsPath: './protos/data/proto_docs.json',
           protoDocsPath: 'protos',
           sidebarPath: './protos/proto-sidebars.js',
         },
         docs: {
+          id: 'proto-docs',
           routeBasePath: 'api',
           sidebarPath: './proto-sidebars.ts',
         },
-        blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -145,6 +185,7 @@ const config: Config = {
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
+        { to: '/reference', label: 'Reference' },
         { to: '/changelog', label: 'Changelog' },
       ],
     },
@@ -164,6 +205,7 @@ const config: Config = {
       searchPagePath: 'search',
     },
   },
+  themes: ['docusaurus-theme-openapi-docs'],
 };
 
 export default config;
