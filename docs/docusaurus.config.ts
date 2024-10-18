@@ -2,6 +2,7 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 import type { Config } from '@docusaurus/types';
+import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs';
 import { themes } from 'prism-react-renderer';
 
 const config: Config = {
@@ -63,6 +64,24 @@ const config: Config = {
         },
       };
     },
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'openapi-docs',
+        docsPluginId: 'classic',
+        config: {
+          neosync: {
+            specPath:
+              '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+            outputDir: 'docs/reference',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+            baseUrl: '/reference/', // Added leading and trailing slashes
+          } satisfies OpenApiPlugin.Options,
+        },
+      },
+    ],
   ],
 
   presets: [
@@ -145,6 +164,7 @@ const config: Config = {
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
+        { to: '/reference/category/neosync', label: 'Reference' },
         { to: '/changelog', label: 'Changelog' },
       ],
     },
@@ -164,6 +184,7 @@ const config: Config = {
       searchPagePath: 'search',
     },
   },
+  themes: ['docusaurus-theme-openapi-docs'],
 };
 
 export default config;

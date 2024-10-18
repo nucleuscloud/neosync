@@ -18,7 +18,8 @@
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "proto-build": "docusaurus generate-proto-docs",
-    "spellcheck": "cspell"
+    "spellcheck": "cspell",
+    "openapi-build": "docusaurus gen-api-docs all"
   },
   "dependencies": {
     "@docusaurus/core": "^3.5.2",
@@ -27,7 +28,9 @@
     "@radix-ui/react-icons": "^1.3.0",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.0",
+    "docusaurus-plugin-openapi-docs": "^4.1.0",
     "docusaurus-protobuffet": "^0.3.3",
+    "docusaurus-theme-openapi-docs": "^4.1.0",
     "postcss": "^8.4.47",
     "posthog-docusaurus": "^2.0.1",
     "prism-react-renderer": "^2.4.0",
