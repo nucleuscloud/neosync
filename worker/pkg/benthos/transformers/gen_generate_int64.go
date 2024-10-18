@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -58,6 +58,24 @@ func NewGenerateInt64Opts(
 		max: max,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateInt64Opts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"randomize_sign:%v", 
+	"min:%v", 
+	"max:%v",
+	}
+
+	params := []any{
+	 o.randomizeSign,
+	 o.min,
+	 o.max,
+	}
+
+	template := fmt.Sprintf("generate_int64(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateInt64) GetJsTemplateData() (*TemplateData, error) {

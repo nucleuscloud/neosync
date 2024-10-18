@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -50,6 +50,25 @@ func NewTransformFullNameOpts(
 		preserveLength: preserveLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *TransformFullNameOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{ 
+	"max_length:%v",
+	"value:this.%s", 
+	"preserve_length:%v",
+	}
+
+	params := []any{
+	 o.maxLength,
+	valuePath,
+	 o.preserveLength,
+	}
+
+	template := fmt.Sprintf("transform_full_name(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *TransformFullName) GetJsTemplateData() (*TemplateData, error) {

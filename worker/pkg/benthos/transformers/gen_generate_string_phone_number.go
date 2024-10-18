@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -50,6 +50,22 @@ func NewGenerateStringPhoneNumberOpts(
 		max: max,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateStringPhoneNumberOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"min:%v", 
+	"max:%v",
+	}
+
+	params := []any{
+	 o.min,
+	 o.max,
+	}
+
+	template := fmt.Sprintf("generate_string_phone_number(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateStringPhoneNumber) GetJsTemplateData() (*TemplateData, error) {

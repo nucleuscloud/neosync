@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -42,6 +42,20 @@ func NewGenerateUsernameOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateUsernameOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"max_length:%v",
+	}
+
+	params := []any{
+	 o.maxLength,
+	}
+
+	template := fmt.Sprintf("generate_username(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateUsername) GetJsTemplateData() (*TemplateData, error) {

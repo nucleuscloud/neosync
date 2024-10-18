@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -42,6 +42,20 @@ func NewGenerateFullAddressOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateFullAddressOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"max_length:%v",
+	}
+
+	params := []any{
+	 o.maxLength,
+	}
+
+	template := fmt.Sprintf("generate_full_address(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {

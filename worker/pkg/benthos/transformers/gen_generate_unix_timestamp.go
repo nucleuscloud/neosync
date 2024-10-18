@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -34,6 +34,18 @@ func NewGenerateUnixTimestampOpts(
 	return &GenerateUnixTimestampOpts{
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateUnixTimestampOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{
+	}
+
+	params := []any{
+	}
+
+	template := fmt.Sprintf("generate_unixtimestamp(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateUnixTimestamp) GetJsTemplateData() (*TemplateData, error) {

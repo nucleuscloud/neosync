@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -82,6 +82,33 @@ func NewTransformEmailOpts(
 		emailType: emailType,
 		invalidEmailAction: invalidEmailAction,	
 	}, nil
+}
+
+func (o *TransformEmailOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+	"value:this.%s", 
+	"preserve_length:%v", 
+	"preserve_domain:%v", 
+	"excluded_domains:%v", 
+	"max_length:%v", 
+	"email_type:%v", 
+	"invalid_email_action:%v",
+	}
+
+	params := []any{
+	valuePath,
+	 o.preserveLength,
+	 o.preserveDomain,
+	 o.excludedDomains,
+	 o.maxLength,
+	 o.emailType,
+	 o.invalidEmailAction,
+	}
+
+	template := fmt.Sprintf("transform_email(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *TransformEmail) GetJsTemplateData() (*TemplateData, error) {

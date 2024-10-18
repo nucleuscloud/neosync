@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -50,6 +50,25 @@ func NewTransformE164PhoneNumberOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *TransformE164PhoneNumberOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+	"value:this.%s", 
+	"preserve_length:%v", 
+	"max_length:%v",
+	}
+
+	params := []any{
+	valuePath,
+	 o.preserveLength,
+	 o.maxLength,
+	}
+
+	template := fmt.Sprintf("transform_e164_phone_number(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {

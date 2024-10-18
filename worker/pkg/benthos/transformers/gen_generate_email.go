@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -50,6 +50,22 @@ func NewGenerateEmailOpts(
 		emailType: emailType,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateEmailOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"max_length:%v", 
+	"email_type:%v",
+	}
+
+	params := []any{
+	 o.maxLength,
+	 o.emailType,
+	}
+
+	template := fmt.Sprintf("generate_email(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateEmail) GetJsTemplateData() (*TemplateData, error) {

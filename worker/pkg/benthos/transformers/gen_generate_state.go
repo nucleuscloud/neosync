@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -42,6 +42,20 @@ func NewGenerateStateOpts(
 		generateFullName: generateFullName,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateStateOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"generate_full_name:%v",
+	}
+
+	params := []any{
+	 o.generateFullName,
+	}
+
+	template := fmt.Sprintf("generate_state(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateState) GetJsTemplateData() (*TemplateData, error) {

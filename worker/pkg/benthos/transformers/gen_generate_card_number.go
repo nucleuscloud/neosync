@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -42,6 +42,20 @@ func NewGenerateCardNumberOpts(
 		validLuhn: validLuhn,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateCardNumberOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"valid_luhn:%v",
+	}
+
+	params := []any{
+	 o.validLuhn,
+	}
+
+	template := fmt.Sprintf("generate_card_number(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateCardNumber) GetJsTemplateData() (*TemplateData, error) {

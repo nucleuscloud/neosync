@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -50,6 +50,22 @@ func NewGenerateGenderOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateGenderOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"abbreviate:%v", 
+	"max_length:%v",
+	}
+
+	params := []any{
+	 o.abbreviate,
+	 o.maxLength,
+	}
+
+	template := fmt.Sprintf("generate_gender(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateGender) GetJsTemplateData() (*TemplateData, error) {

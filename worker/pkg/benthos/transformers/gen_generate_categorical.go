@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -42,6 +42,20 @@ func NewGenerateCategoricalOpts(
 		categories: categories,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateCategoricalOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+	"categories:%v",
+	}
+
+	params := []any{
+	 o.categories,
+	}
+
+	template := fmt.Sprintf("generate_categorical(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
