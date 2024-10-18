@@ -171,27 +171,24 @@ func (o *{{.StructName}}Opts) BuildBloblangString(valuePath string) string {
 	fnStr := []string{
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
-	{{- if eq $param.Name "value" }}"value:this.%s",{{ else }} "{{$param.BloblangName}}:%v", {{ end }}
+	{{- if eq $param.Name "value" }}
+	"value:this.%s",
+	{{- else }} 
+	"{{$param.BloblangName}}:%v",
+	{{- end }}
 	{{- end }}
 	}
+
 	params := []any{
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
-	{{- if eq $param.Name "value" }}valuePath,{{ else }} o.{{$param.Name}}, {{ end }}
+	{{- if eq $param.Name "value" }}
+	valuePath,
+	{{- else }}
+	 o.{{$param.Name}},
+	{{- end }}
 	{{- end }}
 	}
-
-	{{- range $index, $param := .FunctInfo.Params }}
-	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
-	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
-	{{- if $param.IsOptional }}
-		if o.{{$param.Name}} != nil {
-		fnStr = append(fnStr, "{{$param.BloblangName}}:%v")
-	}
-	{{- end }}
-
-	template := fmt.Sprintf("{{ .FunctInfo.BloblangFuncName }}(%s)", strings.Join(fnStr, ", "))
-	return fmt.Sprintf(template, params...)
 }
 
 func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
