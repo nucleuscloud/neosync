@@ -92,7 +92,7 @@ const config: Config = {
       'docusaurus-protobuffet',
       {
         protobuffet: {
-          fileDescriptorsPath: './protos/data/proto_docs.json',
+          fileDescriptorsPath: './protos/proto_docs.json',
           protoDocsPath: 'protos',
           sidebarPath: './protos/proto-sidebars.js',
         },
