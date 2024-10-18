@@ -37,6 +37,17 @@ docker run --rm -i \
   --workdir "/protos" \
   "bufbuild/buf:${BUF_VERSION}" format -d | patch -d ./protos -p0 --quiet
 
+# Detect host architecture
+HOST_ARCH=$(uname -m)
+if [ "$HOST_ARCH" = "aarch64" ] || [ "$HOST_ARCH" = "arm64" ]; then
+    PLUGIN_BINARY="protoc-gen-connect-openapi_0.13.0_linux_arm64"
+elif [ "$HOST_ARCH" = "x86_64" ]; then
+    PLUGIN_BINARY="protoc-gen-connect-openapi_0.13.0_linux_amd64"
+else
+    echo "Unsupported architecture: $HOST_ARCH"
+    exit 1
+fi
+
 ENV_FILE="./.env.dev.secrets"
 BUF_GENERATE_CMD="docker run --rm -i"
 # Check if the environment file exists and include it if it does
@@ -53,6 +64,7 @@ BUF_GENERATE_CMD="$BUF_GENERATE_CMD \
   --volume \"./buf.gen.yaml:/workspace/buf.gen.yaml\" \
   --volume \"./protos:/workspace/protos\" \
   --volume \"${BUF_CACHE_DIRECTORY}:/workspace/.cache\" \
+  --volume \"./scripts/protoc-gen-connect-openapi/${PLUGIN_BINARY}:/usr/local/bin/protoc-gen-connect-openapi\" \
   --workdir \"/workspace\" \
   \"bufbuild/buf:${BUF_VERSION}\" generate &"
 

@@ -24,6 +24,8 @@ message AnonymizeManyRequest {
   // Flag to indicate whether to stop processing when an error occurs
   // true: stops on first error encounter
   bool halt_on_failure = 4;
+  // The unique account identifier
+  string account_id = 5 [(buf.validate.field).string.uuid = true];
 }
 
 message AnonymizeManyResponse {
@@ -65,6 +67,8 @@ message AnonymizeSingleRequest {
 
   // Optional default transformations for any unmapped keys
   optional DefaultTransformersConfig default_transformers = 3;
+  // The unique account identifier
+  string account_id = 4 [(buf.validate.field).string.uuid = true];
 }
 
 message AnonymizeSingleResponse {

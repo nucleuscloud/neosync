@@ -40,6 +40,13 @@ export class AnonymizeManyRequest extends Message<AnonymizeManyRequest> {
    */
   haltOnFailure = false;
 
+  /**
+   * The unique account identifier
+   *
+   * @generated from field: string account_id = 5;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<AnonymizeManyRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -52,6 +59,7 @@ export class AnonymizeManyRequest extends Message<AnonymizeManyRequest> {
     { no: 2, name: "transformer_mappings", kind: "message", T: TransformerMapping, repeated: true },
     { no: 3, name: "default_transformers", kind: "message", T: DefaultTransformersConfig, opt: true },
     { no: 4, name: "halt_on_failure", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnonymizeManyRequest {
@@ -292,6 +300,13 @@ export class AnonymizeSingleRequest extends Message<AnonymizeSingleRequest> {
    */
   defaultTransformers?: DefaultTransformersConfig;
 
+  /**
+   * The unique account identifier
+   *
+   * @generated from field: string account_id = 4;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<AnonymizeSingleRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -303,6 +318,7 @@ export class AnonymizeSingleRequest extends Message<AnonymizeSingleRequest> {
     { no: 1, name: "input_data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "transformer_mappings", kind: "message", T: TransformerMapping, repeated: true },
     { no: 3, name: "default_transformers", kind: "message", T: DefaultTransformersConfig, opt: true },
+    { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AnonymizeSingleRequest {

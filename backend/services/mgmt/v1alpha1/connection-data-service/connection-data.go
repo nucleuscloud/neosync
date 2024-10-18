@@ -627,7 +627,8 @@ func (s *Service) GetConnectionSchema(
 					return nil, err
 				}
 				if out == nil {
-					break
+					logger.Info(fmt.Sprintf("AWS S3 table folder missing data folder: %s, continuing..", tableFolder))
+					continue
 				}
 				item := out.Contents[0]
 				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
@@ -636,6 +637,10 @@ func (s *Service) GetConnectionSchema(
 				})
 				if err != nil {
 					return nil, err
+				}
+				if result.ContentLength == nil || *result.ContentLength == 0 {
+					logger.Info(fmt.Sprintf("empty AWS S3 data folder for table: %s, continuing...", tableFolder))
+					continue
 				}
 
 				gzr, err := gzip.NewReader(result.Body)

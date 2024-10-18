@@ -3235,6 +3235,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique account identifier",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -3318,6 +3330,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_default_transformers",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "The unique account identifier",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

@@ -27,6 +27,7 @@ import { cn, getSingleOrUndefined, splitConnections } from '@/libs/utils';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  AwsS3DestinationConnectionOptions_StorageClass,
   CheckConnectionConfigResponse,
   Code,
   ConnectError,
@@ -596,6 +597,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                               shouldDirty: true,
                                               shouldTouch: true,
                                               shouldValidate: true,
+                                            }
+                                          );
+                                        } else if (
+                                          destConnType === 'awsS3Config'
+                                        ) {
+                                          form.setValue(
+                                            `destinations.${index}.destinationOptions`,
+                                            {
+                                              awss3: {
+                                                storageClass:
+                                                  AwsS3DestinationConnectionOptions_StorageClass.STANDARD,
+                                                maxInFlight: 64,
+                                                timeout: '5s',
+                                                batch: {
+                                                  count: 100,
+                                                  period: '5s',
+                                                },
+                                              },
                                             }
                                           );
                                         }

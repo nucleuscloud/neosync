@@ -36,11 +36,11 @@ func requireErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
 	require.Nil(t, resp)
 }
 
-func requireConnectError(t testing.TB, err error, code connect.Code) {
+func requireConnectError(t testing.TB, err error, expectedCode connect.Code) {
 	t.Helper()
 	connectErr, ok := err.(*connect.Error)
 	require.True(t, ok, fmt.Sprintf("error was not connect error %T", err))
-	require.Equal(t, code, connectErr.Code())
+	require.Equal(t, expectedCode, connectErr.Code(), fmt.Sprintf("%d: %s", connectErr.Code(), connectErr.Message()))
 }
 
 func (s *IntegrationTestSuite) setMaxAllowedRecords(
