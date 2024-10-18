@@ -18,13 +18,13 @@ mkdir -p ${BUF_CACHE_DIRECTORY}
 
 # `buf format -w` writes to each file, so causes tilt to loop. instead we instruct buf
 # to just output the changes in diff format and apply those.
-# docker run --rm -i \
-#   --user "${USER_ID}:${GROUP_ID}" \
-#   --env BUF_CACHE_DIR=/workspace/.cache \
-#   --volume "./backend/protos:/protos" \
-#   --volume "${BUF_CACHE_DIRECTORY}:/workspace/.cache" \
-#   --workdir "/protos" \
-#   "bufbuild/buf:${BUF_VERSION}" format -d | patch -d ./protos -p0 --quiet
+docker run --rm -i \
+  --user "${USER_ID}:${GROUP_ID}" \
+  --env BUF_CACHE_DIR=/workspace/.cache \
+  --volume "./backend/protos:/backend/protos" \
+  --volume "${BUF_CACHE_DIRECTORY}:/workspace/.cache" \
+  --workdir "/backend/protos" \
+  "bufbuild/buf:${BUF_VERSION}" format -d | patch -d ./backend/protos -p0 --quiet
 
 # Detect host architecture
 HOST_ARCH=$(uname -m)
