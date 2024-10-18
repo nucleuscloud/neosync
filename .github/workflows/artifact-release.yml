@@ -572,22 +572,17 @@ jobs:
           DISABLE_CHANGELOG: false
           NEOSYNC_BASE_URL: ${{ vars.DEFAULT_NEOSYNC_ENDPOINT }}
 
-  py-sdk:
-    name: Python SDK Release
+  py-sdk-build:
+    name: Python SDK Build
     runs-on: ubuntu-latest
     #  for now, only build when we cut a new tag
     if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: read
-      id-token: write
     defaults:
       run:
         working-directory: python
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Package Version
         id: package_version
@@ -610,12 +605,30 @@ jobs:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.package_version.outputs.PACKAGE_VERSION }}
       - uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: py-package
           path: dist/
       - name: Publish on PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+  py-sdk-publish:
+    name: Python SDK Publish
+    runs-on: ubuntu-latest
+    needs:
+      - py-sdk-build
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: py-package
+          path: dist/
+      - name: Publish release distributions to PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   ts-sdk:
     name: TypeScript SDK Release
