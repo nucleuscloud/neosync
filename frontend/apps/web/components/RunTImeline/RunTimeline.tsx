@@ -4,19 +4,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/libs/utils';
+import { Timestamp } from '@bufbuild/protobuf';
+import { JobRunEvent, JobRunStatus } from '@neosync/sdk';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/libs/utils';
-import { Timestamp } from '@bufbuild/protobuf';
-import { JobRunEvent, JobRunStatus } from '@neosync/sdk';
-
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import {
   CheckCircledIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CrossCircledIcon,
   MinusCircledIcon,
   MixerHorizontalIcon,
@@ -27,7 +29,7 @@ import {
   formatDuration,
   intervalToDuration,
 } from 'date-fns';
-import { ReactElement, useMemo, useState } from 'react';
+import React, { ReactElement, useMemo, useState } from 'react';
 import Spinner from '../Spinner';
 import TruncatedText from '../TruncatedText';
 import { Badge } from '../ui/badge';
@@ -38,11 +40,14 @@ interface Props {
   jobStatus?: JobRunStatusEnum;
 }
 
+const expandedRowHeight = 165;
+const defaultRowHeight = 40;
+
 type RunStatus = 'running' | 'completed' | 'failed' | 'canceled';
 
 export default function RunTimeline(props: Props): ReactElement {
   const { tasks, jobStatus } = props;
-
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<RunStatus[]>([
     'running',
     'completed',
@@ -56,9 +61,12 @@ export default function RunTimeline(props: Props): ReactElement {
     let endTime = -Infinity;
 
     tasks.forEach((t) => {
+      const scheduled = t.tasks.find(
+        (st) => st.type == 'ActivityTaskScheduled'
+      )?.eventTime;
       startTime = Math.min(
         startTime,
-        convertTimestampToDate(t.startTime).getTime()
+        convertTimestampToDate(scheduled).getTime()
       );
 
       const errorDate = getCloseOrErrorOrCancelDate(t);
@@ -108,6 +116,10 @@ export default function RunTimeline(props: Props): ReactElement {
     );
   }
 
+  function toggleExpandedRowBody(taskId: string) {
+    setExpandedTaskId((prevId) => (prevId === taskId ? null : taskId));
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between w-full">
@@ -117,31 +129,15 @@ export default function RunTimeline(props: Props): ReactElement {
           onStatusChange={handleStatusFilterChange}
         />
       </div>
-      <div className="w-full relative border border-gray-200 dark:border-gray-700 rounded overflow-y-auto max-h-[400px]">
+      <div className="w-full relative border border-gray-200 dark:border-gray-700 rounded overflow-y-scroll max-h-[400px]">
         <div className="flex flex-row h-full w-full">
-          {/* the left activity bar */}
           <div className="w-1/6">
-            <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-200 dark:border-gray-700" />
-            <div className="border-r border-gray-200 dark:border-gray-700 flex flex-col text-sm ">
-              {filteredTasks.map((task, index) => {
-                const isLastItem = index === tasks.length - 1;
-                return (
-                  <div
-                    key={task.id}
-                    className={cn(
-                      'px-2 h-10 items-center flex',
-                      !isLastItem &&
-                        'border-b border-gray-200 dark:border-gray-700'
-                    )}
-                  >
-                    <ActivityLabel
-                      task={task}
-                      getStatus={() => getTaskStatus(task, jobStatus)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            <LeftActivityBar
+              filteredTasks={filteredTasks}
+              toggleExpandedRowBody={toggleExpandedRowBody}
+              jobStatus={jobStatus}
+              expandedTaskId={expandedTaskId ?? ''}
+            />
           </div>
           <div className="relative w-5/6">
             <TableHeader
@@ -151,96 +147,42 @@ export default function RunTimeline(props: Props): ReactElement {
               timelineStart={timelineStart}
               totalDuration={totalDuration}
             />
-
-            {filteredTasks.map((_, index) => (
-              <div
-                key={`grid-line-${index}`}
-                className="absolute left-0 right-0 border-t border-gray-200 dark:border-gray-700"
-                style={{ top: `${index * 40 + 55}px` }}
-                id="grid-lines"
-              />
-            ))}
             {filteredTasks.map((task, index) => {
-              const failedTask = task.tasks.find((item) => item.error);
-
-              const left = getPositionPercentage(
-                convertTimestampToDate(task.startTime),
-                timelineStart,
-                totalDuration
-              );
-              const endTime = getCloseOrErrorOrCancelDate(task);
-              const width =
-                getPositionPercentage(endTime, timelineStart, totalDuration) -
-                left;
-              const status = getTaskStatus(task, jobStatus);
-
+              const isExpanded = expandedTaskId === String(task.id);
+              const isLastItem = index === filteredTasks.length - 1;
+              // calcs an offset for the other rows to slide down so everything stays aligned
+              const expandedOffset = filteredTasks
+                .slice(0, index)
+                .reduce(
+                  (acc, t) =>
+                    acc +
+                    (expandedTaskId === String(t.id)
+                      ? expandedRowHeight - defaultRowHeight
+                      : 0),
+                  0
+                );
+              // offset for the top header
+              const topOffset = index * defaultRowHeight + 55 + expandedOffset;
               return (
-                <div className="flex flex-row" key={task.id}>
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            status === 'failed'
-                              ? 'bg-red-400 dark:bg-red-700'
-                              : status === 'canceled'
-                                ? 'bg-yellow-400 dark:bg-yellow-700'
-                                : 'bg-blue-500',
-                            'absolute h-8 rounded hover:bg-opacity-80 cursor-pointer mx-6 flex items-center'
-                          )}
-                          style={{
-                            left: `${left}%`,
-                            width: `${width}%`,
-                            top: `${index * 40 + 60}px`,
-                          }}
-                        >
-                          <div className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center">
-                            <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
-                              {formatTaskDuration(task.startTime, endTime)}
-                            </span>
-                            <SyncLabel task={task} />
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        align="start"
-                        className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
-                      >
-                        {isSyncActivity(task) && (
-                          <div className="flex flex-row gap-2 items-center justify-between w-full">
-                            <strong>Table:</strong>{' '}
-                            <Badge variant="default" className="w-[180px]">
-                              {}
-                              <SyncLabel task={task} />
-                            </Badge>
-                          </div>
-                        )}
-                        <div className="flex flex-row gap-2 items-center justify-between w-full">
-                          <strong>Start:</strong>{' '}
-                          <Badge variant="default" className="w-[180px]">
-                            {formatFullDate(task.startTime)}
-                          </Badge>
-                        </div>
-                        <div className="flex flex-row gap-2 items-center justify-between w-full">
-                          <strong>Finish:</strong>{' '}
-                          <Badge variant="default" className="w-[180px]">
-                            {status == 'failed' || status == 'canceled'
-                              ? 'N/A'
-                              : formatFullDate(endTime)}
-                          </Badge>
-                        </div>
-                        {failedTask && (
-                          <div className="flex flex-row gap-2 justify-between w-full">
-                            <strong>Error:</strong>{' '}
-                            <Badge variant="destructive" className="w-[180px]">
-                              {failedTask.error?.message || 'Unknown error'}
-                            </Badge>
-                          </div>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <React.Fragment key={task.id}>
+                  <div
+                    className="absolute left-0 right-0 border-t border-gray-200 dark:border-gray-700"
+                    style={{ top: `${topOffset}px` }}
+                    id="grid-lines"
+                  />
+                  <TimelineBar
+                    task={task}
+                    index={index}
+                    jobStatus={jobStatus}
+                    timelineStart={timelineStart}
+                    totalDuration={totalDuration}
+                    topOffset={topOffset}
+                    expandedTaskId={expandedTaskId}
+                    toggleExpandedRowBody={toggleExpandedRowBody}
+                    isExpanded={isExpanded}
+                    isLastItem={isLastItem}
+                  />
+                </React.Fragment>
               );
             })}
           </div>
@@ -248,42 +190,206 @@ export default function RunTimeline(props: Props): ReactElement {
       </div>
     </div>
   );
+}
 
-  interface TableHeaderProps {
-    formatDate: (date: Date) => string;
-    getPositionPercentage: (
-      time: Date,
-      timelineStart: Date,
-      totalDuration: number
-    ) => number;
-    timeLabels: Date[];
-    timelineStart: Date;
-    totalDuration: number;
-  }
+interface LeftActivityBarProps {
+  filteredTasks: JobRunEvent[];
+  toggleExpandedRowBody: (val: string) => void;
+  jobStatus: JobRunStatus | undefined;
+  expandedTaskId: string;
+}
 
-  function TableHeader(props: TableHeaderProps): ReactElement {
-    const { formatDate, getPositionPercentage, timeLabels } = props;
-
-    return (
-      <div className="w-full sticky top-0 h-14 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 z-10 ">
-        <div className="relative w-full h-full">
-          {timeLabels.map((label, index) => (
+function LeftActivityBar(props: LeftActivityBarProps): ReactElement {
+  const { filteredTasks, toggleExpandedRowBody, jobStatus, expandedTaskId } =
+    props;
+  return (
+    <div>
+      <div className="sticky top-0 h-14 bg-gray-200 dark:bg-gray-800 z-10 px-6 border-b border-gray-200 dark:border-gray-700" />
+      <div className="border-r border-gray-200 dark:border-gray-700 flex flex-col text-sm">
+        {filteredTasks.map((task, index) => {
+          const isLastItem = index === filteredTasks.length - 1;
+          const isExpanded = expandedTaskId === String(task.id);
+          return (
             <div
-              key={index}
-              className="absolute top-0 text-xs text-gray-700 dark:text-gray-300"
+              className={cn(
+                'px-2 h-10 items-center flex cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700',
+                !isLastItem && 'border-b border-gray-200 dark:border-gray-700',
+                isExpanded && 'h-[165px]'
+              )}
+              onClick={() => toggleExpandedRowBody(String(task.id))}
+              key={task.id}
+            >
+              <ActivityLabel
+                task={task}
+                getStatus={() => getTaskStatus(task, jobStatus)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface TimelineBarProps {
+  index: number;
+  timelineStart: Date;
+  totalDuration: number;
+  task: JobRunEvent;
+  jobStatus: JobRunStatus | undefined;
+  topOffset: number;
+  expandedTaskId: string | null;
+  toggleExpandedRowBody: (val: string) => void;
+  isExpanded: boolean;
+  isLastItem: boolean;
+}
+
+function TimelineBar(props: TimelineBarProps) {
+  const {
+    task,
+    jobStatus,
+    timelineStart,
+    totalDuration,
+    topOffset,
+    toggleExpandedRowBody,
+    isExpanded,
+    isLastItem,
+  } = props;
+
+  const scheduled = task.tasks.find(
+    (st) => st.type == 'ActivityTaskScheduled'
+  )?.eventTime;
+
+  const failedTask = task.tasks.find((item) => item.error);
+  const left = getPositionPercentage(
+    convertTimestampToDate(scheduled),
+    timelineStart,
+    totalDuration
+  );
+  const endTime = getCloseOrErrorOrCancelDate(task);
+  const width =
+    getPositionPercentage(endTime, timelineStart, totalDuration) - left;
+  const status = getTaskStatus(task, jobStatus);
+
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <div
+              className={cn(
+                status === 'failed'
+                  ? 'bg-red-400 dark:bg-red-700'
+                  : status === 'canceled'
+                    ? 'bg-yellow-400 dark:bg-yellow-700'
+                    : 'bg-blue-500',
+                'absolute h-8 rounded hover:bg-opacity-80 cursor-pointer mx-6 flex items-center '
+              )}
               style={{
-                left: `${getPositionPercentage(label, timelineStart, totalDuration)}%`,
+                left: `${left}%`,
+                width: `${width}%`,
+                top: `${topOffset + 5}px`,
               }}
             >
-              <div className="whitespace-nowrap py-1">{formatDate(label)}</div>
-              <div className="whitespace-nowrap">{formatTime(label)}</div>
-              <div className="h-4 w-[1px] rounded-full bg-gray-500 mx-auto" />
+              <div
+                className="px-2 text-gray-900 dark:text-gray-200 text-sm w-full flex flex-row gap-4 items-center "
+                onClick={() => toggleExpandedRowBody(String(task.id))}
+              >
+                <span className="text-xs bg-black dark:bg-gray-700 text-white px-1 py-0.5 rounded text-nowrap">
+                  {formatTaskDuration(scheduled, endTime)}
+                </span>
+                <SyncLabel task={task} />
+              </div>
             </div>
-          ))}
-        </div>
+            <ExpandedRow
+              toggleExpandedRowBody={toggleExpandedRowBody}
+              isLastItem={isLastItem}
+              isExpanded={isExpanded}
+              task={task}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          align="center"
+          className="dark:bg-gray-800 shadow-lg border dark:border-gray-700 flex flex-col gap-1"
+        >
+          {isSyncActivity(task) && (
+            <div className="flex flex-row gap-2 items-center justify-between w-full">
+              <strong>Table:</strong>{' '}
+              <Badge variant="default" className="w-[180px]">
+                {}
+                <SyncLabel task={task} />
+              </Badge>
+            </div>
+          )}
+          <div className="flex flex-row gap-2 items-center justify-between w-full">
+            <strong>Start:</strong>{' '}
+            <Badge variant="default" className="w-[180px]">
+              {formatFullDate(scheduled)}
+            </Badge>
+          </div>
+          <div className="flex flex-row gap-2 items-center justify-between w-full">
+            <strong>Finish:</strong>{' '}
+            <Badge variant="default" className="w-[180px]">
+              {status == 'failed' || status == 'canceled'
+                ? 'N/A'
+                : formatFullDate(endTime)}
+            </Badge>
+          </div>
+          {failedTask && (
+            <div className="flex flex-row gap-2 justify-between w-full">
+              <strong>Error:</strong>{' '}
+              <Badge variant="destructive" className="w-[180px]">
+                {failedTask.error?.message || 'Unknown error'}
+              </Badge>
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+interface TableHeaderProps {
+  formatDate: (date: Date) => string;
+  getPositionPercentage: (
+    time: Date,
+    timelineStart: Date,
+    totalDuration: number
+  ) => number;
+  timeLabels: Date[];
+  timelineStart: Date;
+  totalDuration: number;
+}
+
+function TableHeader(props: TableHeaderProps): ReactElement {
+  const {
+    formatDate,
+    getPositionPercentage,
+    timeLabels,
+    timelineStart,
+    totalDuration,
+  } = props;
+
+  return (
+    <div className="w-full sticky top-0 h-14 border-b border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-800 z-10 ">
+      <div className="relative w-full h-full">
+        {timeLabels.map((label, index) => (
+          <div
+            key={index}
+            className="absolute top-0 text-xs text-gray-700 dark:text-gray-300"
+            style={{
+              left: `${getPositionPercentage(label, timelineStart, totalDuration)}%`,
+            }}
+          >
+            <div className="whitespace-nowrap py-1">{formatDate(label)}</div>
+            <div className="whitespace-nowrap">{formatTime(label)}</div>
+            <div className="h-4 w-[1px] rounded-full bg-gray-500 mx-auto" />
+          </div>
+        ))}
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 // converts a timestamp to a date and handles undefined values
@@ -465,6 +571,9 @@ function getTaskStatus(
       case 'ActivityTaskCancelRequested':
         isCanceled = true;
         break;
+      case 'ActivityTaskStarted':
+      case 'ActivityTaskScheduled':
+        break;
     }
 
     if (t.error) {
@@ -491,4 +600,94 @@ function getPositionPercentage(
   totalDuration: number
 ) {
   return ((time.getTime() - timelineStart.getTime()) / totalDuration) * 92;
+}
+
+interface ExpandedRowProps {
+  toggleExpandedRowBody: (val: string) => void;
+  isExpanded: boolean;
+  isLastItem: boolean;
+  task: JobRunEvent;
+}
+
+function ExpandedRow(props: ExpandedRowProps): ReactElement {
+  const { toggleExpandedRowBody, isExpanded, isLastItem, task } = props;
+
+  return (
+    <React.Fragment key={task.id}>
+      <div
+        className={cn(
+          'px-2 h-10 items-center flex cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 '
+        )}
+        onClick={() => toggleExpandedRowBody(String(task.id))}
+      >
+        {isExpanded ? (
+          <ChevronUpIcon className="ml-auto" />
+        ) : (
+          <ChevronDownIcon className="ml-auto" />
+        )}
+      </div>
+      {isExpanded && (
+        <div
+          className={cn(
+            'bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+            isLastItem && 'border-0'
+          )}
+        >
+          <ExpandedRowBody task={task} />
+        </div>
+      )}
+    </React.Fragment>
+  );
+}
+
+interface ExpandedRowBodyProps {
+  task: JobRunEvent;
+}
+
+function ExpandedRowBody(props: ExpandedRowBodyProps): ReactElement {
+  const { task } = props;
+  const getLabel = (type: string) => {
+    switch (type) {
+      case 'ActivityTaskScheduled':
+        return 'Scheduled';
+      case 'ActivityTaskStarted':
+        return 'Started';
+      case 'ActivityTaskCompleted':
+        return 'Completed';
+      case 'ActivityTaskFailed':
+        return 'Failed';
+      case 'ActivityTaskTimedOut':
+        return 'Timed Out';
+      case 'ActivityTaskCancelRequested':
+        return 'Cancel Requested';
+      default:
+        return type;
+    }
+  };
+
+  return (
+    <div className="flex flex-col w-full h-[124px] p-2  text-sm border-t border-gray-200 dark:border-gray-700 gap-2">
+      {task.tasks.map((subtask, index) => (
+        <div key={subtask.id} className="flex flex-row items-center py-1 gap-2">
+          <div className="font-semibold w-[90px]">
+            {getLabel(subtask.type)}:
+          </div>
+          <Badge>{formatFullDate(subtask.eventTime)}</Badge>
+          <div className="text-gray-500">
+            {index > 0
+              ? `+${formatTaskDuration(
+                  task.tasks[index - 1].eventTime,
+                  convertTimestampToDate(subtask.eventTime)
+                )}`
+              : '-'}
+          </div>
+          {subtask.error && (
+            <div className="text-red-500 ml-2">
+              Error: {subtask.error.message}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
