@@ -2,8 +2,6 @@ package integrationtests_test
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -37,7 +35,6 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
-	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/stretchr/testify/suite"
@@ -83,7 +80,7 @@ type mocks struct {
 	billingclient         *billing.MockInterface
 }
 
-type IntegrationTestSuite struct {
+type ApiIntegrationTestSuite struct {
 	suite.Suite
 
 	pgpool         *pgxpool.Pool
@@ -105,7 +102,7 @@ type IntegrationTestSuite struct {
 	mocks *mocks
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
+func (s *ApiIntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
 	pgcontainer, err := testpg.Run(
@@ -288,22 +285,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		httpsrv:  s.httpsrv,
 		basepath: "/ncauth",
 	}
-}
 
-// Runs before each test
-func (s *IntegrationTestSuite) SetupTest() {
-	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s *IntegrationTestSuite) TearDownTest() {
-	// Dropping here because 1) more efficient and 2) we have a bad down migration
-	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
-	// we should do something about that at some point. Running this single drop is easier though
-	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+	_, err = s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
 	if err != nil {
 		panic(err)
 	}
@@ -313,7 +296,38 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	}
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
+// Runs before each test
+// func (s *IntegrationTestSuite) SetupTest() {
+// 	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
+// 	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+
+// func (s *IntegrationTestSuite) TearDownTest() {
+// 	// Dropping here because 1) more efficient and 2) we have a bad down migration
+// 	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
+// 	// we should do something about that at some point. Running this single drop is easier though
+// 	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+
+func (s *ApiIntegrationTestSuite) TearDownSuite() {
+	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
+	if err != nil {
+		panic(err)
+	}
 	if s.pgpool != nil {
 		s.pgpool.Close()
 	}
@@ -323,6 +337,10 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 			panic(err)
 		}
 	}
+}
+
+func NewApiIntegrationTestSuite() *ApiIntegrationTestSuite {
+	return &ApiIntegrationTestSuite{}
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
