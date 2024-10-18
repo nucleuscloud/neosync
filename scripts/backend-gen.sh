@@ -1,7 +1,7 @@
 #!/bin/sh
 
 BUF_VERSION=$(cat BUF_VERSION)
-# SQLC_VERSION=$(cat SQLC_VERSION)
+SQLC_VERSION=$(cat SQLC_VERSION)
 
 # Get the current user ID and group ID
 USER_ID=$(id -u)
@@ -60,20 +60,18 @@ BUF_GENERATE_CMD="$BUF_GENERATE_CMD \
   --workdir \"/workspace\" \
   \"bufbuild/buf:${BUF_VERSION}\" generate &"
 
-echo $BUF_GENERATE_CMD
-
 eval $BUF_GENERATE_CMD
 
 # sqlc
-# docker run --rm -i \
-#   --user "${USER_ID}:${GROUP_ID}" \
-#   --volume "./backend/gen:/workspace/gen" \
-#   --volume "./backend/sql:/workspace/sql" \
-#   --volume "./backend/pkg/dbschemas/sql:/workspace/pkg/dbschemas/sql" \
-#   --volume "./backend/sqlc.yaml:/workspace/sqlc.yaml" \
-#   --workdir "/workspace" \
-#   "sqlc/sqlc:${SQLC_VERSION}" generate &
-# wait
+docker run --rm -i \
+  --user "${USER_ID}:${GROUP_ID}" \
+  --volume "./backend/gen:/workspace/backend/gen" \
+  --volume "./backend/sql:/workspace/backend/sql" \
+  --volume "./backend/pkg/dbschemas/sql:/workspace/backend/pkg/dbschemas/sql" \
+  --volume "./sqlc.yaml:/workspace/sqlc.yaml" \
+  --workdir "/workspace" \
+  "sqlc/sqlc:${SQLC_VERSION}" generate &
+wait
 
 # update_frontend_client &
 # update_docs &
