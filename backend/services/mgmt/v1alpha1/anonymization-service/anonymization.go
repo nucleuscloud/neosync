@@ -3,11 +3,13 @@ package v1alpha_anonymizationservice
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -27,9 +29,25 @@ func (s *Service) AnonymizeMany(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.AnonymizeManyRequest],
 ) (*connect.Response[mgmtv1alpha1.AnonymizeManyResponse], error) {
+	if !s.cfg.IsNeosyncCloud {
+		return nil, nucleuserrors.NewNotImplemented(
+			fmt.Sprintf("%s is not implemented in the OSS version of Neosync.", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
+		)
+	}
+
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
+		return nil, nucleuserrors.NewForbidden(
+			fmt.Sprintf("%s is not implemented for personal accounts", strings.TrimPrefix(mgmtv1alpha1connect.AnonymizationServiceAnonymizeManyProcedure, "/")),
+		)
 	}
 
 	requestedCount := uint64(len(req.Msg.InputData))
@@ -111,6 +129,24 @@ func (s *Service) AnonymizeSingle(
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	if !s.cfg.IsNeosyncCloud || account.AccountType == int16(neosyncdb.AccountType_Personal) {
+		for _, mapping := range req.Msg.GetTransformerMappings() {
+			if mapping.GetTransformer().GetTransformPiiTextConfig() != nil {
+				return nil, nucleuserrors.NewForbidden("TransformPiiText is not available for use. Please contact us to upgrade your account.")
+			}
+		}
+		defaultTransforms := req.Msg.GetDefaultTransformers()
+		if defaultTransforms.GetBoolean().GetTransformPiiTextConfig() != nil ||
+			defaultTransforms.GetN().GetTransformPiiTextConfig() != nil ||
+			defaultTransforms.GetS().GetTransformPiiTextConfig() != nil {
+			return nil, nucleuserrors.NewForbidden("TransformPiiText is not available for use. Please contact us to upgrade your account.")
+		}
 	}
 
 	requestedCount := uint64(len(req.Msg.InputData))

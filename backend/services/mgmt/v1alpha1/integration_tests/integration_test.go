@@ -64,6 +64,9 @@ type neosyncCloudClients struct {
 func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
 	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
+func (s *neosyncCloudClients) getAnonymizeClient(authUserId string) mgmtv1alpha1connect.AnonymizationServiceClient {
+	return mgmtv1alpha1connect.NewAnonymizationServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+}
 
 type authdClients struct {
 	httpsrv *httptest.Server
@@ -171,6 +174,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.prometheusclient,
 		s.mocks.billingclient,
 	)
+	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(
+		&v1alpha_anonymizationservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true, IsPresidioEnabled: false},
+		nil,
+		neoCloudAuthdUserService,
+		nil, // presidio
+		nil, // presidio
+		neosyncdb.New(pool, db_queries.New()),
+	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{},
@@ -211,6 +222,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		nil,
 		unauthdUserService,
 		presAnalyzeClient, presAnonClient,
+		neosyncdb.New(pool, db_queries.New()),
 	)
 
 	rootmux := http.NewServeMux()
@@ -265,6 +277,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	ncauthmux := http.NewServeMux()
 	ncauthmux.Handle(mgmtv1alpha1connect.NewUserAccountServiceHandler(
 		neoCloudAuthdUserService,
+		authinterceptors,
+	))
+	ncauthmux.Handle(mgmtv1alpha1connect.NewAnonymizationServiceHandler(
+		neoCloudAuthdAnonymizeService,
 		authinterceptors,
 	))
 	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
