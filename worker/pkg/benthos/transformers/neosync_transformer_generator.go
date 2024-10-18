@@ -97,6 +97,7 @@ const codeTemplate = `
 package {{.PackageName}}
 
 import (
+	"strings"
 	{{- if eq .ImportFmt true}}
 	"fmt"
 	{{ end }}
@@ -167,7 +168,11 @@ func New{{.StructName}}Opts(
 	}, nil
 }
 
-func (o *{{.StructName}}Opts) BuildBloblangString(valuePath string) string {
+func (o *{{.StructName}}Opts) BuildBloblangString(
+{{- if .FunctInfo.IsTransformer }}
+	valuePath string,
+{{- end }}	
+) string {
 	fnStr := []string{
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
@@ -189,6 +194,19 @@ func (o *{{.StructName}}Opts) BuildBloblangString(valuePath string) string {
 	{{- end }}
 	{{- end }}
 	}
+
+	{{- range $index, $param := .FunctInfo.Params }}
+	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
+	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
+	{{- if $param.IsOptional }}
+	if o.{{$param.Name}} != nil {
+		fnStr = append(fnStr, "{{$param.BloblangName}}:%v")
+	}
+	{{- end }}
+	{{- end }}
+
+	template := fmt.Sprintf("{{ .FunctInfo.BloblangFuncName }}(%s)", strings.Join(fnStr, ", "))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *{{.StructName}}) GetJsTemplateData() (*TemplateData, error) {
@@ -248,12 +266,13 @@ func (t *{{.StructName}}) ParseOptions(opts map[string]any) (any, error) {
 `
 
 type TemplateData struct {
-	SourceFile   string
-	PackageName  string
-	FunctInfo    transformers.BenthosSpec
-	StructName   string
-	ImportFmt    bool
-	HasSeedParam bool
+	SourceFile    string
+	PackageName   string
+	FunctInfo     transformers.BenthosSpec
+	StructName    string
+	ImportFmt     bool
+	HasSeedParam  bool
+	IsTransformer bool
 }
 
 func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, error) {
@@ -270,6 +289,9 @@ func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, e
 		}
 		if !p.IsOptional && !p.HasDefault {
 			data.ImportFmt = true
+		}
+		if p.Name == "value" {
+			data.IsTransformer = true
 		}
 	}
 	t := template.Must(template.New("neosyncTransformerImpl").Parse(codeTemplate))
