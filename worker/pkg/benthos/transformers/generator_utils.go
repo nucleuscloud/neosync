@@ -45,12 +45,13 @@ type BenthosSpecParam struct {
 }
 
 type BenthosSpec struct {
-	Name        string
-	Description string
-	Example     string
-	Params      []*BenthosSpecParam
-	Type        string
-	SourceFile  string
+	Name             string
+	BloblangFuncName string
+	Description      string
+	Example          string
+	Params           []*BenthosSpecParam
+	Type             string
+	SourceFile       string
 }
 
 type ParsedBenthosSpec struct {
