@@ -62,6 +62,8 @@ BUF_GENERATE_CMD="$BUF_GENERATE_CMD \
 
 eval $BUF_GENERATE_CMD
 
+# todo: write __init__.py file to neosync dir
+
 # sqlc
 docker run --rm -i \
   --user "${USER_ID}:${GROUP_ID}" \
@@ -72,8 +74,5 @@ docker run --rm -i \
   --workdir "/workspace" \
   "sqlc/sqlc:${SQLC_VERSION}" generate &
 wait
-
-# update_frontend_client &
-# update_docs &
 
 wait
