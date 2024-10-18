@@ -169,7 +169,7 @@ func New{{.StructName}}Opts(
 }
 
 func (o *{{.StructName}}Opts) BuildBloblangString(
-{{- if .FunctInfo.IsTransformer }}
+{{- if .IsTransformer }}
 	valuePath string,
 {{- end }}	
 ) string {
