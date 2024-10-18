@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "neosync"
+version = "0.0.6"
+authors = [
+  { name = "Neosync Dev Team", email="devops@nucleuscloud.com"}
+]
+description = "Neosync Python SDK"
+requires-python = ">=3.8"
+readme = "README.md"
+dependencies = [
+  "grpcio==1.67.*",
+  "protobuf==5.*",
+]
+
+[project.urls]
+Homepage = "https://github.com/nucleuscloud/neosync"
+Issues = "https://github.com/nucleuscloud/neosync/issues"
+
+

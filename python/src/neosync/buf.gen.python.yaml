@@ -1,0 +1,13 @@
+version: v2
+clean: false
+managed:
+  enabled: true
+plugins:
+  - remote: buf.build/protocolbuffers/python:v28.2 # generates messages and enums
+    out: .
+  - remote: buf.build/protocolbuffers/pyi:v28.2 # generates type hints
+    out: .
+  - remote: buf.build/grpc/python:v1.67.0 # generates grpc client
+    out: .
+inputs:
+  - directory: ../../../backend/protos

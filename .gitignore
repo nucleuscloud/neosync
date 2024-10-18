@@ -33,3 +33,5 @@ frontend/out
 env/
 
 tmp
+venv/
+venv2/
