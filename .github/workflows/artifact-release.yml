@@ -607,10 +607,7 @@ jobs:
         with:
           name: py-package
           path: dist/
-      - name: Publish on PyPi
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+
   py-sdk-publish:
     name: Python SDK Publish
     runs-on: ubuntu-latest
