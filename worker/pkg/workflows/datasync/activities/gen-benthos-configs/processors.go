@@ -569,9 +569,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
-		rMin := col.Transformer.Config.GetTransformFloat64Config().GetRandomizationRangeMin()
-		rMax := col.Transformer.Config.GetTransformFloat64Config().GetRandomizationRangeMax()
-
 		var precision *int64
 		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
 			newPrecision := int64(*colInfo.NumericPrecision)
@@ -583,20 +580,54 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}
-
-		fnStr := []string{"value:this.%s", "randomization_range_min:%f", "randomization_range_max:%f"}
-		params := []any{formattedColPath, rMin, rMax}
-
-		if precision != nil {
-			fnStr = append(fnStr, "precision:%d")
-			params = append(params, *precision)
+		opts, err := transformers.NewTransformFloat64OptsFromConfig(col.Transformer.Config.GetTransformFloat64Config(), scale, precision)
+		if err != nil {
+			return "", err
 		}
-		if scale != nil {
-			fnStr = append(fnStr, "scale:%d")
-			params = append(params, *scale)
-		}
-		template := fmt.Sprintf(`transform_float64(%s)`, strings.Join(fnStr, ", "))
-		return fmt.Sprintf(template, params...), nil
+		return opts.BuildBenthosString(formattedColPath), nil
+		// config := col.Transformer.Config.GetTransformFloat64Config()
+		// var randomMin *float64
+		// if config != nil && config.RandomizationRangeMin != nil {
+		// 	randomMin = config.RandomizationRangeMin
+		// }
+		// var randomMax *float64
+		// if config != nil && config.RandomizationRangeMax != nil {
+		// 	randomMax = config.RandomizationRangeMax
+		// }
+
+		// var precision *int64
+		// if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
+		// 	newPrecision := int64(*colInfo.NumericPrecision)
+		// 	precision = &newPrecision
+		// }
+
+		// var scale *int64
+		// if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
+		// 	newScale := int64(*colInfo.NumericScale)
+		// 	scale = &newScale
+		// }
+
+		// fnStr := []string{"value:this.%s"}
+		// params := []any{formattedColPath}
+
+		// if precision != nil {
+		// 	fnStr = append(fnStr, "precision:%d")
+		// 	params = append(params, *precision)
+		// }
+		// if scale != nil {
+		// 	fnStr = append(fnStr, "scale:%d")
+		// 	params = append(params, *scale)
+		// }
+		// if randomMin != nil {
+		// 	fnStr = append(fnStr, "randomization_range_min:%f")
+		// 	params = append(params, *randomMin)
+		// }
+		// if randomMax != nil {
+		// 	fnStr = append(fnStr, "randomization_range_max:%f")
+		// 	params = append(params, *randomMax)
+		// }
+		// template := fmt.Sprintf(`transform_float64(%s)`, strings.Join(fnStr, ", "))
+		// return fmt.Sprintf(template, params...), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
 		pl := col.Transformer.Config.GetTransformFullNameConfig().GetPreserveLength()
 		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t,max_length:%d)", formattedColPath, pl, maxLen), nil

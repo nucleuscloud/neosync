@@ -35,12 +35,13 @@ func toCamelCase(snake string) string {
 }
 
 type BenthosSpecParam struct {
-	Name        string
-	TypeStr     string
-	IsOptional  bool
-	HasDefault  bool
-	Default     string
-	Description string
+	Name         string
+	BloblangName string
+	TypeStr      string
+	IsOptional   bool
+	HasDefault   bool
+	Default      string
+	Description  string
 }
 
 type BenthosSpec struct {
@@ -53,8 +54,9 @@ type BenthosSpec struct {
 }
 
 type ParsedBenthosSpec struct {
-	Params          []*BenthosSpecParam
-	SpecDescription string
+	Params           []*BenthosSpecParam
+	BloblangFuncName string
+	SpecDescription  string
 }
 
 func ExtractBenthosSpec(fileSet *token.FileSet) ([]*BenthosSpec, error) {
@@ -139,22 +141,42 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 					}
 				}
 				param := &BenthosSpecParam{
-					TypeStr:     lowercaseFirst(matches[1]),
-					Name:        toCamelCase(matches[2]),
-					IsOptional:  strings.Contains(line, ".Optional()"),
-					HasDefault:  defaultVal != "",
-					Default:     defaultVal,
-					Description: description,
+					TypeStr:      lowercaseFirst(matches[1]),
+					Name:         toCamelCase(matches[2]),
+					BloblangName: matches[2],
+					IsOptional:   strings.Contains(line, ".Optional()"),
+					HasDefault:   defaultVal != "",
+					Default:      defaultVal,
+					Description:  description,
 				}
 				params = append(params, param)
 			}
 		}
 	}
 
+	bloblangFuncName, err := extractBloblangFunctionName(benthosSpecStr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ParsedBenthosSpec{
-		Params:          params,
-		SpecDescription: specDescription,
+		BloblangFuncName: bloblangFuncName,
+		Params:           params,
+		SpecDescription:  specDescription,
 	}, nil
+}
+
+func extractBloblangFunctionName(input string) (string, error) {
+	// Looks for bloblang.RegisterFunctionV2 and captures the function name in quotes
+	re := regexp.MustCompile(`bloblang\.RegisterFunctionV2\("([^"]+)"`)
+
+	matches := re.FindStringSubmatch(input)
+
+	if len(matches) > 1 {
+		return matches[1], nil
+	}
+
+	return "", fmt.Errorf("bloblang function name not found")
 }
 
 func lowercaseFirst(s string) string {
