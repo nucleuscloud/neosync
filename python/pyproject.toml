@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "neosync"
-version = "0.0.7"
+dynamic = ["version"]
 authors = [
   { name = "Neosync Dev Team", email="devops@nucleuscloud.com"}
 ]
@@ -21,3 +21,5 @@ Homepage = "https://github.com/nucleuscloud/neosync"
 Issues = "https://github.com/nucleuscloud/neosync/issues"
 
 
+[tool.hatch.version]
+source = "vcs"

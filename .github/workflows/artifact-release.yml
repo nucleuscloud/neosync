@@ -572,6 +572,49 @@ jobs:
           DISABLE_CHANGELOG: false
           NEOSYNC_BASE_URL: ${{ vars.DEFAULT_NEOSYNC_ENDPOINT }}
 
+  py-sdk:
+    name: Python SDK Release
+    runs-on: ubuntu-latest
+    #  for now, only build when we cut a new tag
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Package Version
+        id: package_version
+        run: |
+          V_PREFIX="v"
+          VERSION="${{ github.ref_name }}"
+          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+          echo "$TRIMMED_VERSION"
+          echo "PACKAGE_VERSION=$TRIMMED_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pypa/build
+        run: |
+          python -m pip install build
+          python -m build
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.package_version.outputs.PACKAGE_VERSION }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: dist/
+      - name: Publish on PyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
   ts-sdk:
     name: TypeScript SDK Release
     runs-on: ubuntu-latest
