@@ -148,7 +148,11 @@ func New{{.StructName}}Opts(
     return nil, fmt.Errorf("unable to generate seed: %w", err)
 	}
 	{{ else if $param.HasDefault }}
+	{{- if eq $param.TypeStr "any" }}
+	var {{$param.Name}} any 
+	{{- else}}
 	{{$param.Name}} := {{$param.TypeStr}}({{$param.Default}}) 
+	{{- end }}
 	if {{$param.Name}}Arg != nil {
 		{{$param.Name}} = *{{$param.Name}}Arg
 	}
@@ -175,9 +179,9 @@ func (o *{{.StructName}}Opts) BuildBloblangString(
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "value" }}
-	"value:this.%s",
-	{{- else }} 
-	"{{$param.BloblangName}}:%v",
+		"value:this.%s",
+	{{- else if not $param.IsOptional }} 
+		"{{$param.BloblangName}}:{{- if eq $param.TypeStr "string" }}%q{{else}}%v{{end}}",
 	{{- end }}
 	{{- end }}
 	}
@@ -186,24 +190,25 @@ func (o *{{.StructName}}Opts) BuildBloblangString(
 	{{- range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "value" }}
-	valuePath,
-	{{- else }}
-	 o.{{$param.Name}},
+		valuePath,
+	{{- else if not $param.IsOptional }}
+	 	o.{{$param.Name}},
 	{{- end }}
 	{{- end }}
 	}
 
-	{{- range $index, $param := .FunctInfo.Params }}
+	{{ range $index, $param := .FunctInfo.Params }}
 	{{- if eq $param.Name "value" }}{{ continue }}{{ end }}
 	{{- if eq $param.Name "seed" }}{{ continue }}{{ end }}
 	{{- if $param.IsOptional }}
 	if o.{{$param.Name}} != nil {
-		fnStr = append(fnStr, "{{$param.BloblangName}}:%v")
+		fnStr = append(fnStr, "{{$param.BloblangName}}:{{- if eq $param.TypeStr "string" }}%q{{else}}%v{{end}}")
+		params = append(params, *o.{{$param.Name}})
 	}
-	{{- end }}
+	{{- end -}}
 	{{- end }}
 
-	template := fmt.Sprintf("{{ .FunctInfo.BloblangFuncName }}(%s)", strings.Join(fnStr, ", "))
+	template := fmt.Sprintf("{{ .FunctInfo.BloblangFuncName }}(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

@@ -30,12 +30,12 @@ func NewGenerateRandomStringOpts(
 	maxArg *int64,
   seedArg *int64,
 ) (*GenerateRandomStringOpts, error) {
-	min := int64(1) 
+	min := int64(1)
 	if minArg != nil {
 		min = *minArg
 	}
 	
-	max := int64(100) 
+	max := int64(100)
 	if maxArg != nil {
 		max = *maxArg
 	}
@@ -55,16 +55,18 @@ func NewGenerateRandomStringOpts(
 func (o *GenerateRandomStringOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"min:%v", 
-	"max:%v",
+		"min:%v", 
+		"max:%v",
 	}
 
 	params := []any{
-	 o.min,
-	 o.max,
+	 	o.min,
+	 	o.max,
 	}
 
-	template := fmt.Sprintf("generate_string(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_string(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

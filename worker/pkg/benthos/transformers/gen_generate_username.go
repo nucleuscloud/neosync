@@ -28,7 +28,7 @@ func NewGenerateUsernameOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateUsernameOpts, error) {
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -47,14 +47,16 @@ func NewGenerateUsernameOpts(
 func (o *GenerateUsernameOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"max_length:%v",
+		"max_length:%v",
 	}
 
 	params := []any{
-	 o.maxLength,
+	 	o.maxLength,
 	}
 
-	template := fmt.Sprintf("generate_username(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_username(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

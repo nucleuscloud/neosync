@@ -28,7 +28,7 @@ func NewGenerateLastNameOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateLastNameOpts, error) {
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -47,14 +47,16 @@ func NewGenerateLastNameOpts(
 func (o *GenerateLastNameOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"max_length:%v",
+		"max_length:%v",
 	}
 
 	params := []any{
-	 o.maxLength,
+	 	o.maxLength,
 	}
 
-	template := fmt.Sprintf("generate_last_name(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_last_name(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

@@ -44,7 +44,9 @@ func (o *GenerateInt64PhoneNumberOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_int64_phone_number(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_int64_phone_number(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

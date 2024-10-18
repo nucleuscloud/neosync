@@ -431,3 +431,19 @@ func Test_fromAnyToStringSlice(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, output)
 }
+
+func Test_ConverStringSliceToStringEmptySlice(t *testing.T) {
+	slc := []string{}
+
+	res, err := convertStringSliceToString(slc)
+	require.NoError(t, err)
+	require.Equal(t, "[]", res)
+}
+
+func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
+	slc := []string{"gmail.com", "yahoo.com"}
+
+	res, err := convertStringSliceToString(slc)
+	require.NoError(t, err)
+	require.Equal(t, `["gmail.com","yahoo.com"]`, res)
+}

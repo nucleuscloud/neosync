@@ -1,27 +1,11 @@
 package genbenthosconfigs_activity
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
-
-func convertStringSliceToString(slc []string) (string, error) {
-	var returnStr string
-
-	if len(slc) == 0 {
-		returnStr = "[]"
-	} else {
-		sliceBytes, err := json.Marshal(slc)
-		if err != nil {
-			return "", err
-		}
-		returnStr = string(sliceBytes)
-	}
-	return returnStr, nil
-}
 
 func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	count := 0

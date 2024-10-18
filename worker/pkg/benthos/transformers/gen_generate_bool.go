@@ -44,7 +44,9 @@ func (o *GenerateBoolOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_bool(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_bool(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

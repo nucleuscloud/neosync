@@ -34,12 +34,12 @@ func NewTransformFloat64Opts(
 	scale *int64,
   seedArg *int64,
 ) (*TransformFloat64Opts, error) {
-	randomizationRangeMin := float64(1) 
+	randomizationRangeMin := float64(1)
 	if randomizationRangeMinArg != nil {
 		randomizationRangeMin = *randomizationRangeMinArg
 	}
 	
-	randomizationRangeMax := float64(10000) 
+	randomizationRangeMax := float64(10000)
 	if randomizationRangeMaxArg != nil {
 		randomizationRangeMax = *randomizationRangeMaxArg
 	}
@@ -62,28 +62,28 @@ func (o *TransformFloat64Opts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{
-	"value:this.%s", 
-	"randomization_range_min:%v", 
-	"randomization_range_max:%v", 
-	"precision:%v", 
-	"scale:%v",
+		"value:this.%s", 
+		"randomization_range_min:%v", 
+		"randomization_range_max:%v",
 	}
 
 	params := []any{
-	valuePath,
-	 o.randomizationRangeMin,
-	 o.randomizationRangeMax,
-	 o.precision,
-	 o.scale,
+		valuePath,
+	 	o.randomizationRangeMin,
+	 	o.randomizationRangeMax,
 	}
+
+	
 	if o.precision != nil {
 		fnStr = append(fnStr, "precision:%v")
+		params = append(params, *o.precision)
 	}
 	if o.scale != nil {
 		fnStr = append(fnStr, "scale:%v")
+		params = append(params, *o.scale)
 	}
 
-	template := fmt.Sprintf("transform_float64(%s)", strings.Join(fnStr, ", "))
+	template := fmt.Sprintf("transform_float64(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

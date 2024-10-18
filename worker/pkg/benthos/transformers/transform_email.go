@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -132,7 +133,8 @@ func init() {
 
 func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLength *int64) (*TransformEmailOpts, error) {
 	if config == nil {
-		return NewTransformEmailOpts(nil, nil, nil, nil, nil, nil, nil)
+		var excludedDomains any = "[]"
+		return NewTransformEmailOpts(nil, nil, &excludedDomains, nil, nil, nil, nil)
 	}
 	var emailType *string
 	if config.EmailType != nil {
@@ -144,7 +146,11 @@ func NewTransformEmailOptsFromConfig(config *mgmtv1alpha1.TransformEmail, maxLen
 		invalidEmailActionStr := dtoInvalidEmailActionToTransformerInvalidEmailAction(config.GetInvalidEmailAction()).String()
 		invalidEmailAction = &invalidEmailActionStr
 	}
-	var excludedDomains any = config.GetExcludedDomains()
+	excludedDomainsStr, err := convertStringSliceToString(config.GetExcludedDomains())
+	if err != nil {
+		return nil, err
+	}
+	var excludedDomains any = excludedDomainsStr
 	return NewTransformEmailOpts(
 		config.PreserveLength,
 		config.PreserveDomain,
@@ -178,6 +184,9 @@ func (t *TransformEmail) Transform(value, opts any) (any, error) {
 			excludedDomains = exDomainsStrs
 		case []string:
 			excludedDomains = v
+		case string:
+			css := strings.TrimSuffix(strings.TrimPrefix(v, "["), "]")
+			excludedDomains = strings.Split(css, ",")
 		default:
 			return nil, fmt.Errorf("excludedDomains is of type %T, not []any or []string", v)
 		}
@@ -344,4 +353,19 @@ func dtoInvalidEmailActionToTransformerInvalidEmailAction(dto mgmtv1alpha1.Inval
 	default:
 		return InvalidEmailAction_Reject
 	}
+}
+
+func convertStringSliceToString(slc []string) (string, error) {
+	var returnStr string
+
+	if len(slc) == 0 {
+		returnStr = "[]"
+	} else {
+		sliceBytes, err := json.Marshal(slc)
+		if err != nil {
+			return "", err
+		}
+		returnStr = string(sliceBytes)
+	}
+	return returnStr, nil
 }

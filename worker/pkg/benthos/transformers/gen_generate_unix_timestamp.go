@@ -44,7 +44,9 @@ func (o *GenerateUnixTimestampOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_unixtimestamp(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_unixtimestamp(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

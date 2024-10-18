@@ -32,17 +32,17 @@ func NewGenerateInt64Opts(
 	maxArg *int64,
   seedArg *int64,
 ) (*GenerateInt64Opts, error) {
-	randomizeSign := bool(false) 
+	randomizeSign := bool(false)
 	if randomizeSignArg != nil {
 		randomizeSign = *randomizeSignArg
 	}
 	
-	min := int64(1) 
+	min := int64(1)
 	if minArg != nil {
 		min = *minArg
 	}
 	
-	max := int64(10000) 
+	max := int64(10000)
 	if maxArg != nil {
 		max = *maxArg
 	}
@@ -63,18 +63,20 @@ func NewGenerateInt64Opts(
 func (o *GenerateInt64Opts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"randomize_sign:%v", 
-	"min:%v", 
-	"max:%v",
+		"randomize_sign:%v", 
+		"min:%v", 
+		"max:%v",
 	}
 
 	params := []any{
-	 o.randomizeSign,
-	 o.min,
-	 o.max,
+	 	o.randomizeSign,
+	 	o.min,
+	 	o.max,
 	}
 
-	template := fmt.Sprintf("generate_int64(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_int64(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

@@ -638,7 +638,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 						PreserveDomain:  gotypeutil.ToPtr(false),
 						PreserveLength:  gotypeutil.ToPtr(false),
-						ExcludedDomains: []string{},
+						ExcludedDomains: []string{"gmail", "yahoo"},
 						EmailType:       &uuidEmailType,
 					},
 				},
@@ -1023,6 +1023,195 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 	}
 }
 
+func Test_computeMutationFunction_Validate_Bloblang_Output_EmptyConfigs(t *testing.T) {
+	transformers := []*mgmtv1alpha1.SystemTransformer{
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+		{
+			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_COUNTRY,
+			Config: &mgmtv1alpha1.TransformerConfig{},
+		},
+	}
+
+	emailColInfo := &sqlmanager_shared.ColumnInfo{
+		OrdinalPosition:        2,
+		ColumnDefault:          "",
+		IsNullable:             true,
+		DataType:               "timestamptz",
+		CharacterMaximumLength: shared.Ptr(40),
+		NumericPrecision:       nil,
+		NumericScale:           nil,
+	}
+
+	for _, transformer := range transformers {
+		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
+			val, err := computeMutationFunction(
+				&mgmtv1alpha1.JobMapping{
+					Column: "email",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: transformer.Source,
+						Config: transformer.Config,
+					},
+				}, emailColInfo, false)
+			require.NoError(t, err)
+			ex, err := bloblang.Parse(val)
+			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			_, err = ex.Query(nil)
+			require.NoError(t, err)
+		})
+	}
+}
+
 func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	type testcase struct {
 		jm       *mgmtv1alpha1.JobMapping
@@ -1211,22 +1400,6 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
 	require.NoError(t, err)
 	require.Len(t, resp, 0)
-}
-
-func Test_ConverStringSliceToStringEmptySlice(t *testing.T) {
-	slc := []string{}
-
-	res, err := convertStringSliceToString(slc)
-	require.NoError(t, err)
-	require.Equal(t, "[]", res)
-}
-
-func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
-	slc := []string{"gmail.com", "yahoo.com"}
-
-	res, err := convertStringSliceToString(slc)
-	require.NoError(t, err)
-	require.Equal(t, `["gmail.com","yahoo.com"]`, res)
 }
 
 func Test_getPrimaryKeyDependencyMap(t *testing.T) {

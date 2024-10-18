@@ -43,19 +43,20 @@ func (o *TransformCharacterScrambleOpts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{
-	"value:this.%s", 
-	"user_provided_regex:%v",
+		"value:this.%s",
 	}
 
 	params := []any{
-	valuePath,
-	 o.userProvidedRegex,
-	}
-	if o.userProvidedRegex != nil {
-		fnStr = append(fnStr, "user_provided_regex:%v")
+		valuePath,
 	}
 
-	template := fmt.Sprintf("transform_character_scramble(%s)", strings.Join(fnStr, ", "))
+	
+	if o.userProvidedRegex != nil {
+		fnStr = append(fnStr, "user_provided_regex:%q")
+		params = append(params, *o.userProvidedRegex)
+	}
+
+	template := fmt.Sprintf("transform_character_scramble(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

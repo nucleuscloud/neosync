@@ -30,12 +30,12 @@ func NewGenerateInternationalPhoneNumberOpts(
 	maxArg *int64,
   seedArg *int64,
 ) (*GenerateInternationalPhoneNumberOpts, error) {
-	min := int64(9) 
+	min := int64(9)
 	if minArg != nil {
 		min = *minArg
 	}
 	
-	max := int64(15) 
+	max := int64(15)
 	if maxArg != nil {
 		max = *maxArg
 	}
@@ -55,16 +55,18 @@ func NewGenerateInternationalPhoneNumberOpts(
 func (o *GenerateInternationalPhoneNumberOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"min:%v", 
-	"max:%v",
+		"min:%v", 
+		"max:%v",
 	}
 
 	params := []any{
-	 o.min,
-	 o.max,
+	 	o.min,
+	 	o.max,
 	}
 
-	template := fmt.Sprintf("generate_e164_phone_number(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_e164_phone_number(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

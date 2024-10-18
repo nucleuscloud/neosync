@@ -30,12 +30,12 @@ func NewGenerateGenderOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateGenderOpts, error) {
-	abbreviate := bool(false) 
+	abbreviate := bool(false)
 	if abbreviateArg != nil {
 		abbreviate = *abbreviateArg
 	}
 	
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -55,16 +55,18 @@ func NewGenerateGenderOpts(
 func (o *GenerateGenderOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"abbreviate:%v", 
-	"max_length:%v",
+		"abbreviate:%v", 
+		"max_length:%v",
 	}
 
 	params := []any{
-	 o.abbreviate,
-	 o.maxLength,
+	 	o.abbreviate,
+	 	o.maxLength,
 	}
 
-	template := fmt.Sprintf("generate_gender(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_gender(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

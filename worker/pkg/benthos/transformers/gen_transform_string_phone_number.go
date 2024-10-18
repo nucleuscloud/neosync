@@ -30,12 +30,12 @@ func NewTransformStringPhoneNumberOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformStringPhoneNumberOpts, error) {
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -56,18 +56,20 @@ func (o *TransformStringPhoneNumberOpts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{
-	"value:this.%s", 
-	"preserve_length:%v", 
-	"max_length:%v",
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"max_length:%v",
 	}
 
 	params := []any{
-	valuePath,
-	 o.preserveLength,
-	 o.maxLength,
+		valuePath,
+	 	o.preserveLength,
+	 	o.maxLength,
 	}
 
-	template := fmt.Sprintf("transform_phone_number(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("transform_phone_number(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

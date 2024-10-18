@@ -28,7 +28,7 @@ func NewGenerateCardNumberOpts(
 	validLuhnArg *bool,
   seedArg *int64,
 ) (*GenerateCardNumberOpts, error) {
-	validLuhn := bool(false) 
+	validLuhn := bool(false)
 	if validLuhnArg != nil {
 		validLuhn = *validLuhnArg
 	}
@@ -47,14 +47,16 @@ func NewGenerateCardNumberOpts(
 func (o *GenerateCardNumberOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"valid_luhn:%v",
+		"valid_luhn:%v",
 	}
 
 	params := []any{
-	 o.validLuhn,
+	 	o.validLuhn,
 	}
 
-	template := fmt.Sprintf("generate_card_number(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_card_number(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

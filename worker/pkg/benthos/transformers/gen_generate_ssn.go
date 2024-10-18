@@ -44,7 +44,9 @@ func (o *GenerateSSNOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_ssn(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_ssn(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

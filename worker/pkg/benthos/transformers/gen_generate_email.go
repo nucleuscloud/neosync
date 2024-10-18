@@ -30,12 +30,12 @@ func NewGenerateEmailOpts(
 	emailTypeArg *string,
   seedArg *int64,
 ) (*GenerateEmailOpts, error) {
-	maxLength := int64(100000) 
+	maxLength := int64(100000)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	
-	emailType := string(GenerateEmailType_UuidV4.String()) 
+	emailType := string(GenerateEmailType_UuidV4.String())
 	if emailTypeArg != nil {
 		emailType = *emailTypeArg
 	}
@@ -55,16 +55,18 @@ func NewGenerateEmailOpts(
 func (o *GenerateEmailOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"max_length:%v", 
-	"email_type:%v",
+		"max_length:%v", 
+		"email_type:%q",
 	}
 
 	params := []any{
-	 o.maxLength,
-	 o.emailType,
+	 	o.maxLength,
+	 	o.emailType,
 	}
 
-	template := fmt.Sprintf("generate_email(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_email(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

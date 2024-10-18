@@ -28,7 +28,7 @@ func NewTransformInt64PhoneNumberOpts(
 	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformInt64PhoneNumberOpts, error) {
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
@@ -48,16 +48,18 @@ func (o *TransformInt64PhoneNumberOpts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{
-	"value:this.%s", 
-	"preserve_length:%v",
+		"value:this.%s", 
+		"preserve_length:%v",
 	}
 
 	params := []any{
-	valuePath,
-	 o.preserveLength,
+		valuePath,
+	 	o.preserveLength,
 	}
 
-	template := fmt.Sprintf("transform_int64_phone_number(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("transform_int64_phone_number(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

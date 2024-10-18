@@ -44,7 +44,9 @@ func (o *GenerateUTCTimestampOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_utctimestamp(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_utctimestamp(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

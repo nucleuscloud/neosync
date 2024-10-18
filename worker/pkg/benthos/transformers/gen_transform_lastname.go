@@ -30,12 +30,12 @@ func NewTransformLastNameOpts(
 	preserveLengthArg *bool,
   seedArg *int64,
 ) (*TransformLastNameOpts, error) {
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
 	
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
@@ -56,18 +56,20 @@ func (o *TransformLastNameOpts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{ 
-	"max_length:%v",
-	"value:this.%s", 
-	"preserve_length:%v",
+		"max_length:%v",
+		"value:this.%s", 
+		"preserve_length:%v",
 	}
 
 	params := []any{
-	 o.maxLength,
-	valuePath,
-	 o.preserveLength,
+	 	o.maxLength,
+		valuePath,
+	 	o.preserveLength,
 	}
 
-	template := fmt.Sprintf("transform_last_name(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("transform_last_name(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

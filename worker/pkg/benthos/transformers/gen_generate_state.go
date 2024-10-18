@@ -28,7 +28,7 @@ func NewGenerateStateOpts(
 	generateFullNameArg *bool,
   seedArg *int64,
 ) (*GenerateStateOpts, error) {
-	generateFullName := bool(false) 
+	generateFullName := bool(false)
 	if generateFullNameArg != nil {
 		generateFullName = *generateFullNameArg
 	}
@@ -47,14 +47,16 @@ func NewGenerateStateOpts(
 func (o *GenerateStateOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"generate_full_name:%v",
+		"generate_full_name:%v",
 	}
 
 	params := []any{
-	 o.generateFullName,
+	 	o.generateFullName,
 	}
 
-	template := fmt.Sprintf("generate_state(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_state(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

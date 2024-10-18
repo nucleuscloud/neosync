@@ -32,17 +32,17 @@ func NewTransformStringOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformStringOpts, error) {
-	preserveLength := bool(false) 
+	preserveLength := bool(false)
 	if preserveLengthArg != nil {
 		preserveLength = *preserveLengthArg
 	}
 	
-	minLength := int64(1) 
+	minLength := int64(1)
 	if minLengthArg != nil {
 		minLength = *minLengthArg
 	}
 	
-	maxLength := int64(100) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -64,20 +64,22 @@ func (o *TransformStringOpts) BuildBloblangString(
 	valuePath string,	
 ) string {
 	fnStr := []string{
-	"value:this.%s", 
-	"preserve_length:%v", 
-	"min_length:%v", 
-	"max_length:%v",
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"min_length:%v", 
+		"max_length:%v",
 	}
 
 	params := []any{
-	valuePath,
-	 o.preserveLength,
-	 o.minLength,
-	 o.maxLength,
+		valuePath,
+	 	o.preserveLength,
+	 	o.minLength,
+	 	o.maxLength,
 	}
 
-	template := fmt.Sprintf("transform_string(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("transform_string(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

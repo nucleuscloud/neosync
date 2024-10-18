@@ -22,7 +22,7 @@ func NewGenerateUUID() *GenerateUUID {
 func NewGenerateUUIDOpts(
 	includeHyphensArg *bool,
 ) (*GenerateUUIDOpts, error) {
-	includeHyphens := bool(true) 
+	includeHyphens := bool(true)
 	if includeHyphensArg != nil {
 		includeHyphens = *includeHyphensArg
 	}
@@ -35,14 +35,16 @@ func NewGenerateUUIDOpts(
 func (o *GenerateUUIDOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"include_hyphens:%v",
+		"include_hyphens:%v",
 	}
 
 	params := []any{
-	 o.includeHyphens,
+	 	o.includeHyphens,
 	}
 
-	template := fmt.Sprintf("generate_uuid(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_uuid(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

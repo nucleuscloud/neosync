@@ -28,7 +28,7 @@ func NewGenerateCategoricalOpts(
 	categoriesArg *string,
   seedArg *int64,
 ) (*GenerateCategoricalOpts, error) {
-	categories := string("ultimo,proximo,semper") 
+	categories := string("ultimo,proximo,semper")
 	if categoriesArg != nil {
 		categories = *categoriesArg
 	}
@@ -47,14 +47,16 @@ func NewGenerateCategoricalOpts(
 func (o *GenerateCategoricalOpts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"categories:%v",
+		"categories:%q",
 	}
 
 	params := []any{
-	 o.categories,
+	 	o.categories,
 	}
 
-	template := fmt.Sprintf("generate_categorical(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_categorical(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

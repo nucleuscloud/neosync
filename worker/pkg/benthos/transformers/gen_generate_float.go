@@ -36,17 +36,17 @@ func NewGenerateFloat64Opts(
 	scale *int64,
   seedArg *int64,
 ) (*GenerateFloat64Opts, error) {
-	randomizeSign := bool(false) 
+	randomizeSign := bool(false)
 	if randomizeSignArg != nil {
 		randomizeSign = *randomizeSignArg
 	}
 	
-	min := float64(1) 
+	min := float64(1)
 	if minArg != nil {
 		min = *minArg
 	}
 	
-	max := float64(10000) 
+	max := float64(10000)
 	if maxArg != nil {
 		max = *maxArg
 	}
@@ -69,28 +69,28 @@ func NewGenerateFloat64Opts(
 func (o *GenerateFloat64Opts) BuildBloblangString(	
 ) string {
 	fnStr := []string{ 
-	"randomize_sign:%v", 
-	"min:%v", 
-	"max:%v", 
-	"precision:%v", 
-	"scale:%v",
+		"randomize_sign:%v", 
+		"min:%v", 
+		"max:%v",
 	}
 
 	params := []any{
-	 o.randomizeSign,
-	 o.min,
-	 o.max,
-	 o.precision,
-	 o.scale,
+	 	o.randomizeSign,
+	 	o.min,
+	 	o.max,
 	}
+
+	
 	if o.precision != nil {
 		fnStr = append(fnStr, "precision:%v")
+		params = append(params, *o.precision)
 	}
 	if o.scale != nil {
 		fnStr = append(fnStr, "scale:%v")
+		params = append(params, *o.scale)
 	}
 
-	template := fmt.Sprintf("generate_float64(%s)", strings.Join(fnStr, ", "))
+	template := fmt.Sprintf("generate_float64(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 

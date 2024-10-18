@@ -32,7 +32,9 @@ func (o *GenerateSHA256HashOpts) BuildBloblangString(
 	params := []any{
 	}
 
-	template := fmt.Sprintf("generate_sha256hash(%s)", strings.Join(fnStr, ", "))
+	
+
+	template := fmt.Sprintf("generate_sha256hash(%s)", strings.Join(fnStr, ","))
 	return fmt.Sprintf(template, params...)
 }
 
