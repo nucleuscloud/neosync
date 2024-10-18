@@ -582,10 +582,12 @@ jobs:
       id-token: write
     defaults:
       run:
-        working-directory: frontend
+        working-directory: python
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Package Version
         id: package_version

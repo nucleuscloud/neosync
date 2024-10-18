@@ -2,9 +2,9 @@ on:
   pull_request:
     paths:
       - backend/protos/**
-      - backend/BUF_VERSION
-      - backend/buf.gen.yaml
-      - backend/buf.work.yaml
+      - BUF_VERSION
+      - buf.gen.yaml
+      - buf.work.yaml
 
 name: Buf
 
@@ -16,9 +16,6 @@ jobs:
   buf:
     name: buf
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +30,5 @@ jobs:
         with:
           version: ${{ steps.buf-version.outputs.version }}
           token: ${{ secrets.BUF_TOKEN }}
-          input: backend
           push: false # we don't want to push to the BSR
           push_disable_create: true
