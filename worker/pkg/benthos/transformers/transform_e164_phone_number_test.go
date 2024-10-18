@@ -68,3 +68,14 @@ func Test_TransformE164PhoneTransformerWithEmptyValue(t *testing.T) {
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
 }
+
+func Test_TransformE164PhoneTransformer_NoOptions(t *testing.T) {
+	nilE164Phone := "12323"
+	mapping := fmt.Sprintf(`root = transform_e164_phone_number(value:%q)`, nilE164Phone)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the e164 phone transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

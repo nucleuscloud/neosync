@@ -287,13 +287,14 @@ func Test_AnonymizeJSON_Largedata(t *testing.T) {
 	inputStrings, inputObjects, err := getTestData("./testdata/company.json")
 	require.NoError(t, err)
 
+	preserveLength := true
 	// Define transformer mappings
 	mappings := []*mgmtv1alpha1.TransformerMapping{
 		{
 			Expression: ".companyName",
 			Transformer: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
-					TransformStringConfig: &mgmtv1alpha1.TransformString{PreserveLength: true},
+					TransformStringConfig: &mgmtv1alpha1.TransformString{PreserveLength: &preserveLength},
 				},
 			},
 		},

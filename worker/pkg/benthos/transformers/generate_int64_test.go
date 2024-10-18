@@ -82,3 +82,13 @@ func Test_GenerateRandomInt_Benthos(t *testing.T) {
 	assert.GreaterOrEqual(t, res, minValue, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res, maxValue, "The result should be less or equal to the maximum")
 }
+
+func Test_GenerateRandomInt_Benthos_NoOptions(t *testing.T) {
+	mapping := `root = generate_int64()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the random int transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

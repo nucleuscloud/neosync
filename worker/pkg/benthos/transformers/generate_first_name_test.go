@@ -56,3 +56,18 @@ func Test_GenerateRandomFirstNameTransformer(t *testing.T) {
 	assert.NotEmpty(t, resStr)
 	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "output should be less than or equal to max char limit")
 }
+
+func Test_GenerateRandomFirstNameTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_first_name()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NotNil(t, ex)
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	resStr, ok := res.(string)
+	require.True(t, ok)
+
+	assert.NotEmpty(t, resStr)
+}

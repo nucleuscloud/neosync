@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -18,7 +18,7 @@ type TransformE164PhoneNumberOpts struct {
 	randomizer     rng.Rand
 	
 	preserveLength bool
-	maxLength *int64
+	maxLength int64
 }
 
 func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
@@ -26,10 +26,20 @@ func NewTransformE164PhoneNumber() *TransformE164PhoneNumber {
 }
 
 func NewTransformE164PhoneNumberOpts(
-	preserveLength bool,
-	maxLength *int64,
+	preserveLengthArg *bool,
+	maxLengthArg *int64,
   seedArg *int64,
 ) (*TransformE164PhoneNumberOpts, error) {
+	preserveLength := bool(false)
+	if preserveLengthArg != nil {
+		preserveLength = *preserveLengthArg
+	}
+	
+	maxLength := int64(15)
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -40,6 +50,27 @@ func NewTransformE164PhoneNumberOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *TransformE164PhoneNumberOpts) BuildBloblangString(
+	valuePath string,	
+) string {
+	fnStr := []string{
+		"value:this.%s", 
+		"preserve_length:%v", 
+		"max_length:%v",
+	}
+
+	params := []any{
+		valuePath,
+	 	o.preserveLength,
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("transform_e164_phone_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
@@ -53,15 +84,15 @@ func (t *TransformE164PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
 func (t *TransformE164PhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &TransformE164PhoneNumberOpts{}
 
-	if _, ok := opts["preserveLength"].(bool); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "transformE164PhoneNumber", "preserveLength")
+	preserveLength, ok := opts["preserveLength"].(bool)
+	if !ok {
+		preserveLength = false
 	}
-	preserveLength := opts["preserveLength"].(bool)
 	transformerOpts.preserveLength = preserveLength
 
-	var maxLength *int64
-	if arg, ok := opts["maxLength"].(int64); ok {
-		maxLength = &arg
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 15
 	}
 	transformerOpts.maxLength = maxLength
 

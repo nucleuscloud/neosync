@@ -395,6 +395,16 @@ func Test_TransformEmailTransformer_InvalidEmailArg(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_TransformEmailTransformer_NoOptions(t *testing.T) {
+	mapping := fmt.Sprintf(`root = transform_email(value:%q)`, "nick@neosync.dev")
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+}
+
 func Test_fromAnyToStringSlice(t *testing.T) {
 	var foo any = []any{"123", "456"}
 	output, err := fromAnyToStringSlice(foo)
@@ -420,4 +430,20 @@ func Test_fromAnyToStringSlice(t *testing.T) {
 	output, err = fromAnyToStringSlice(foo)
 	require.NoError(t, err)
 	require.Empty(t, output)
+}
+
+func Test_ConverStringSliceToStringEmptySlice(t *testing.T) {
+	slc := []string{}
+
+	res, err := convertStringSliceToString(slc)
+	require.NoError(t, err)
+	require.Equal(t, "[]", res)
+}
+
+func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
+	slc := []string{"gmail.com", "yahoo.com"}
+
+	res, err := convertStringSliceToString(slc)
+	require.NoError(t, err)
+	require.Equal(t, `["gmail.com","yahoo.com"]`, res)
 }

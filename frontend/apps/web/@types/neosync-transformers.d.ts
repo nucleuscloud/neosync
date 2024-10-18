@@ -27,7 +27,7 @@ declare namespace neosync {
 	
 	export interface TransformE164PhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
-		preserveLength: boolean;
+		preserveLength?: boolean;
 		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
 		/** An optional seed value used to generate deterministic outputs. */
@@ -80,9 +80,9 @@ declare namespace neosync {
 	
 	export interface TransformFloat64Options {
 		/** Specifies the minimum value for the range of the float. */
-		randomizationRangeMin: number;
+		randomizationRangeMin?: number;
 		/** Specifies the maximum value for the randomization range of the float. */
-		randomizationRangeMax: number;
+		randomizationRangeMax?: number;
 		/** An optional parameter that defines the number of significant digits for the float. */
 		precision?: number;
 		/** An optional parameter that defines the number of decimal places for the float. */
@@ -98,7 +98,7 @@ declare namespace neosync {
 
 	
 	export interface TransformFullNameOptions {
-		/**  */
+		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
 		maxLength?: number;
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
 		preserveLength?: boolean;
@@ -114,9 +114,9 @@ declare namespace neosync {
 	
 	export interface TransformInt64Options {
 		/** Specifies the minimum value for the range of the int. */
-		randomizationRangeMin: number;
+		randomizationRangeMin?: number;
 		/** Specifies the maximum value for the range of the int. */
-		randomizationRangeMax: number;
+		randomizationRangeMax?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -129,7 +129,7 @@ declare namespace neosync {
 	
 	export interface TransformInt64PhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
-		preserveLength: boolean;
+		preserveLength?: boolean;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -174,9 +174,9 @@ declare namespace neosync {
 	
 	export interface TransformStringPhoneNumberOptions {
 		/** Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data. */
-		preserveLength: boolean;
+		preserveLength?: boolean;
 		/** Specifies the maximum length for the transformed data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength: number;
+		maxLength?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -206,7 +206,7 @@ declare namespace neosync {
 	
 	export interface GenerateCardNumberOptions {
 		/** A boolean indicating whether the generated value should pass the Luhn algorithm check. */
-		validLuhn: boolean;
+		validLuhn?: boolean;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -219,7 +219,7 @@ declare namespace neosync {
 	
 	export interface GenerateCategoricalOptions {
 		/** A list of comma-separated string values to randomly select from. */
-		categories: string;
+		categories?: string;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -232,7 +232,7 @@ declare namespace neosync {
 	
 	export interface GenerateCityOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength: number;
+		maxLength?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -288,9 +288,9 @@ declare namespace neosync {
 		/** A boolean indicating whether the sign of the float should be randomized. */
 		randomizeSign?: boolean;
 		/** Specifies the minimum value for the generated float. */
-		min: number;
+		min?: number;
 		/** Specifies the maximum value for the generated float */
-		max: number;
+		max?: number;
 		/** An optional parameter that defines the number of significant digits for the generated float. */
 		precision?: number;
 		/** An optional parameter that defines the number of decimal places for the generated float. */
@@ -307,7 +307,7 @@ declare namespace neosync {
 	
 	export interface GenerateFullAddressOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength: number;
+		maxLength?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -350,9 +350,9 @@ declare namespace neosync {
 		/** A boolean indicating whether the sign of the float should be randomized. */
 		randomizeSign?: boolean;
 		/** Specifies the minimum value for the generated int. */
-		min: number;
+		min?: number;
 		/** Specifies the maximum value for the generated int. */
-		max: number;
+		max?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -376,9 +376,9 @@ declare namespace neosync {
 	
 	export interface GenerateInternationalPhoneNumberOptions {
 		/** Specifies the minimum value for the generated phone number. */
-		min: number;
+		min?: number;
 		/** Specifies the maximum value for the generated phone number. */
-		max: number;
+		max?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -404,9 +404,9 @@ declare namespace neosync {
 	
 	export interface GenerateRandomStringOptions {
 		/** Specifies the minimum length for the generated string. */
-		min: number;
+		min?: number;
 		/** Specifies the maximum length for the generated string. */
-		max: number;
+		max?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -452,7 +452,7 @@ declare namespace neosync {
 	
 	export interface GenerateStreetAddressOptions {
 		/** Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters. */
-		maxLength: number;
+		maxLength?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}
@@ -465,9 +465,9 @@ declare namespace neosync {
 	
 	export interface GenerateStringPhoneNumberOptions {
 		/** Specifies the minimum length for the generated phone number. */
-		min: number;
+		min?: number;
 		/** Specifies the maximum length for the generated phone number. */
-		max: number;
+		max?: number;
 		/** An optional seed value used to generate deterministic outputs. */
 		seed?: number;
 	}

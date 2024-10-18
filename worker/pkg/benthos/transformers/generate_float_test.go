@@ -91,3 +91,13 @@ func Test_GenerateRandomFloat_Benthos(t *testing.T) {
 	assert.GreaterOrEqual(t, res.(float64), minValue, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res.(float64), maxValue, "The result should be less or equal to the maximum")
 }
+
+func Test_GenerateRandomFloat_Benthos_NoOptions(t *testing.T) {
+	mapping := `root = generate_float64()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the generate float transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

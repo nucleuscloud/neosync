@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go/v79"
 )
@@ -105,8 +106,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 					N: &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 							GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-								Min: 18,
-								Max: 30,
+								Min: gotypeutil.ToPtr(int64(18)),
+								Max: gotypeutil.ToPtr(int64(30)),
 							},
 						},
 					},
@@ -179,8 +180,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
 				N: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 						GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-							Min: 18,
-							Max: 30,
+							Min: gotypeutil.ToPtr(int64(18)),
+							Max: gotypeutil.ToPtr(int64(30)),
 						},
 					},
 				},

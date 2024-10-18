@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -22,7 +23,7 @@ type Address struct {
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly generates a street address.").
-		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -53,6 +54,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateStreetAddressOptsFromConfig(config *mgmtv1alpha1.GenerateStreetAddress, maxLength *int64) (*GenerateStreetAddressOpts, error) {
+	if config == nil {
+		return NewGenerateStreetAddressOpts(nil, nil)
+	}
+	return NewGenerateStreetAddressOpts(
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateStreetAddress) Generate(opts any) (any, error) {
