@@ -114,7 +114,8 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 			start = true
 			benthosSpecStr += strings.TrimSpace(fileScanner.Text())
 		} else if start {
-			if strings.Contains(line, ":=") {
+			if strings.Contains(line, "bloblang.RegisterFunctionV2") {
+				benthosSpecStr += strings.TrimSpace(fileScanner.Text())
 				break
 			}
 			benthosSpecStr += strings.TrimSpace(fileScanner.Text())
