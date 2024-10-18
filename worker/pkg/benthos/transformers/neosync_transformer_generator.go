@@ -98,9 +98,7 @@ package {{.PackageName}}
 
 import (
 	"strings"
-	{{- if eq .ImportFmt true}}
 	"fmt"
-	{{ end }}
 	{{- if eq .HasSeedParam true}}
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -270,7 +268,6 @@ type TemplateData struct {
 	PackageName   string
 	FunctInfo     transformers.BenthosSpec
 	StructName    string
-	ImportFmt     bool
 	HasSeedParam  bool
 	IsTransformer bool
 }
@@ -285,10 +282,6 @@ func generateCode(pkgName string, funcInfo *transformers.BenthosSpec) (string, e
 	for _, p := range funcInfo.Params {
 		if p.Name == "seed" {
 			data.HasSeedParam = true
-			data.ImportFmt = true
-		}
-		if !p.IsOptional && !p.HasDefault {
-			data.ImportFmt = true
 		}
 		if p.Name == "value" {
 			data.IsTransformer = true
