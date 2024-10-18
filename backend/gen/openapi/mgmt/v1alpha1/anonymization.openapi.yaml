@@ -162,6 +162,11 @@ components:
           description: |-
             Flag to indicate whether to stop processing when an error occurs
              true: stops on first error encounter
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique account identifier
       title: AnonymizeManyRequest
       additionalProperties: false
     mgmt.v1alpha1.AnonymizeManyResponse:
@@ -214,6 +219,11 @@ components:
             - title: default_transformers
               description: Optional default transformations for any unmapped keys
             - $ref: '#/components/schemas/mgmt.v1alpha1.DefaultTransformersConfig'
+        accountId:
+          type: string
+          title: account_id
+          format: uuid
+          description: The unique account identifier
       title: AnonymizeSingleRequest
       additionalProperties: false
     mgmt.v1alpha1.AnonymizeSingleResponse:
