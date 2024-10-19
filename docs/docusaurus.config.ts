@@ -3,6 +3,7 @@
 
 import type { Config } from '@docusaurus/types';
 import { themes } from 'prism-react-renderer';
+import type * as Redocusaurus from 'redocusaurus';
 
 const config: Config = {
   title: 'Neosync',
@@ -63,6 +64,25 @@ const config: Config = {
         },
       };
     },
+    // [
+    //   'docusaurus-plugin-openapi-docs',
+    //   {
+    //     id: 'api',
+    //     docsPluginId: 'docusaurus-plugin-openapi-docs',
+    //     config: {
+    //       anonymizationapi: {
+    //         specPath:
+    //           '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+    //         outputDir: 'docs/openapi/anonymization',
+
+    //         sidebarOptions: {
+    //           // groupPathsBy: 'tag',
+    //         },
+    //         baseUrl: '/reference/',
+    //       } satisfies OpenApiPlugin.Options,
+    //     },
+    //   },
+    // ],
   ],
 
   presets: [
@@ -70,6 +90,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          id: 'default',
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
           // Remove this to remove the "edit this page" links.
@@ -106,6 +127,70 @@ const config: Config = {
         },
       },
     ],
+    [
+      'redocusaurus',
+      {
+        // Plugin Options for loading OpenAPI files
+        // openapi: {
+        //   path: '../backend/gen/openapi',
+        //   routeBasePath: '/reference',
+        // },
+        specs: [
+          // Pass it a path to a local OpenAPI YAML file
+          {
+            // Redocusaurus will automatically bundle your spec into a single file during the build
+            spec: '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+            route: '/reference/anonymization',
+          },
+          {
+            spec: '../backend/gen/openapi/mgmt/v1alpha1/job.openapi.yaml',
+            route: '/reference/job',
+          },
+          // You can also pass it a OpenAPI spec URL
+          // {
+          //   spec: 'https://redocly.github.io/redoc/openapi.yaml',
+          //   route: '/openapi/',
+          // },
+        ],
+        // Theme Options for modifying how redoc renders them
+        theme: {
+          // Change with your site colors
+          primaryColor: '#1890ff',
+        },
+      },
+    ] satisfies Redocusaurus.PresetEntry,
+    // [
+    //   'docusaurus-plugin-openapi-docs',
+    //   {
+    //     docs: {
+    //       id: 'reference',
+    //       path: 'reference',
+    //       routeBasePath: 'reference',
+    //       include: ['**/*.md', '**/*.mdx'],
+    //       // sidebarPath: './docs/reference/sidebar.ts',
+    //       docRootComponent: '@theme/DocRoot',
+    //       docItemComponent: '@theme/ApiItem',
+    //     },
+    //     theme: {
+    //       customCss: './src/css/custom.css',
+    //     },
+    //   },
+    // ],
+    // [
+    //   'classic-openapi',
+    //   {
+    //     docs: {
+    //       id: 'openapi',
+    //       routeBasePath: 'reference',
+    //       // sidebarPath: './openapi-sidebars.ts',
+    //       docItemComponent: '@theme/ApiItem',
+    //     },
+    //     blog: false,
+    //     theme: {
+    //       customCss: require.resolve('./src/css/custom.css'),
+    //     },
+    //   },
+    // ],
   ],
 
   themeConfig: {
@@ -145,6 +230,7 @@ const config: Config = {
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
+        { to: '/reference', label: 'Reference' },
         { to: '/changelog', label: 'Changelog' },
       ],
     },
@@ -164,6 +250,7 @@ const config: Config = {
       searchPagePath: 'search',
     },
   },
+  // themes: ['docusaurus-theme-openapi-docs'],
 };
 
 export default config;
