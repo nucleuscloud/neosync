@@ -63,16 +63,20 @@ func NewGenerateRandomStringOptsFromConfig(config *mgmtv1alpha1.GenerateString, 
 			nil,
 		)
 	}
-	minValue := config.GetMin()
-	maxValue := config.GetMax()
-	if maxLen != nil {
-		minValue = transformer_utils.MinInt(minValue, *maxLen) // ensure the min is not larger than the max allowed length
-		maxValue = transformer_utils.Ceil(maxValue, *maxLen)
+	minValue := config.Min
+	maxValue := config.Max
+	if maxLen != nil && maxValue != nil {
+		newMax := transformer_utils.Ceil(*maxValue, *maxLen)
+		maxValue = &newMax
+	}
+	if minValue != nil {
+		newMin := transformer_utils.MinInt(*minValue, *maxValue) // ensure the min is not larger than the max allowed length
+		minValue = &newMin
 	}
 
 	return NewGenerateRandomStringOpts(
-		&minValue,
-		&maxValue,
+		minValue,
+		maxValue,
 		nil,
 	)
 }
