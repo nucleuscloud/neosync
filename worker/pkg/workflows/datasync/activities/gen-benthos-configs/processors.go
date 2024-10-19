@@ -577,7 +577,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sqlmanager_s
 		return opts.BuildBloblangString(), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
 		// todo: we need to pull in the min from the database schema
-		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(config.GetGenerateStringConfig())
+		opts, err := transformers.NewGenerateRandomStringOptsFromConfig(config.GetGenerateStringConfig(), &maxLen)
 		if err != nil {
 			return "", err
 		}

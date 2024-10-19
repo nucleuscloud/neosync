@@ -275,6 +275,7 @@ func Test_InitializeTransformerByConfigType(t *testing.T) {
 					PreserveLength:     &preserve,
 					EmailType:          &emailType,
 					InvalidEmailAction: &invalidEmailAction,
+					ExcludedDomains:    []string{"gmail", "yahoo"},
 				},
 			},
 		}

@@ -377,7 +377,7 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		config := transformerConfig.GetGenerateStringConfig()
-		opts, err := NewGenerateRandomStringOptsFromConfig(config)
+		opts, err := NewGenerateRandomStringOptsFromConfig(config, &maxLength)
 		if err != nil {
 			return nil, err
 		}
