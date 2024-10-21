@@ -7,13 +7,14 @@ import (
 	"log/slog"
 	"os"
 	"testing"
-	"time"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go"
-	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
+)
+
+var (
+	testdataFolder = "testdata"
 )
 
 type IntegrationTestSuite struct {
@@ -22,12 +23,9 @@ type IntegrationTestSuite struct {
 	db      *sql.DB
 	querier pg_queries.Querier
 
-	setupSql    string
-	teardownSql string
-
 	ctx context.Context
 
-	pgcontainer *testpg.PostgresContainer
+	pgcontainer *tcpostgres.PostgresTestContainer
 
 	schema string
 }
@@ -40,36 +38,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.schema = "sqlmanagerpostgres@special"
 
-	pgcontainer, err := testpg.Run(
-		s.ctx,
-		"postgres:15",
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(5*time.Second),
-		),
-	)
+	pgcontainer, err := tcpostgres.NewPostgresTestContainer(s.ctx)
 	if err != nil {
 		panic(err)
 	}
 	s.pgcontainer = pgcontainer
-	connstr, err := pgcontainer.ConnectionString(s.ctx)
-	if err != nil {
-		panic(err)
-	}
 
-	setupSql, err := os.ReadFile("./testdata/setup.sql")
-	if err != nil {
-		panic(err)
-	}
-	s.setupSql = string(setupSql)
-
-	teardownSql, err := os.ReadFile("./testdata/teardown.sql")
-	if err != nil {
-		panic(err)
-	}
-	s.teardownSql = string(teardownSql)
-
-	db, err := sql.Open("pgx", connstr)
+	db, err := sql.Open("pgx", s.pgcontainer.URL)
 	if err != nil {
 		panic(err)
 	}
@@ -79,14 +54,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 // Runs before each test
 func (s *IntegrationTestSuite) SetupTest() {
-	_, err := s.db.ExecContext(s.ctx, s.setupSql)
+	err := s.pgcontainer.RunSqlFiles(s.ctx, &testdataFolder, []string{"setup.sql"})
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	_, err := s.db.ExecContext(s.ctx, s.teardownSql)
+	err := s.pgcontainer.RunSqlFiles(s.ctx, &testdataFolder, []string{"teardown.sql"})
 	if err != nil {
 		panic(err)
 	}
@@ -96,11 +71,9 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	if s.db != nil {
 		s.db.Close()
 	}
-	if s.pgcontainer != nil {
-		err := s.pgcontainer.Terminate(s.ctx)
-		if err != nil {
-			panic(err)
-		}
+	err := s.pgcontainer.TearDown(s.ctx)
+	if err != nil {
+		panic(err)
 	}
 }
 

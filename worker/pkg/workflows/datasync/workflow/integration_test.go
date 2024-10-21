@@ -19,13 +19,12 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
+	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testmongodb "github.com/testcontainers/testcontainers-go/modules/mongodb"
 	testmssql "github.com/testcontainers/testcontainers-go/modules/mssql"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,13 +37,13 @@ type postgresTestContainer struct {
 	url  string
 }
 type postgresTest struct {
-	pool          *pgxpool.Pool
-	testcontainer *testpg.PostgresContainer
+	// pool          *pgxpool.Pool
+	// testcontainer *testpg.PostgresContainer
 
-	source *postgresTestContainer
-	target *postgresTestContainer
+	source *tcpostgres.PostgresTestContainer
+	target *tcpostgres.PostgresTestContainer
 
-	databases []string
+	// databases []string
 }
 
 type mssqlTest struct {
@@ -214,67 +213,19 @@ func createMssqlTest(ctx context.Context, mssqlcontainer *testmssql.MSSQLServerC
 }
 
 func (s *IntegrationTestSuite) SetupPostgres() (*postgresTest, error) {
-	pgcontainer, err := testpg.Run(
-		s.ctx,
-		"postgres:15",
-		postgres.WithDatabase("postgres"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(20*time.Second),
-		),
-	)
+	pgTest := &postgresTest{}
+	sourcePgContainer, err := tcpostgres.NewPostgresTestContainer(s.ctx)
 	if err != nil {
 		return nil, err
 	}
-	postgresTest := &postgresTest{
-		testcontainer: pgcontainer,
-	}
-	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
-	if err != nil {
-		return nil, err
-	}
+	pgTest.source = sourcePgContainer
 
-	postgresTest.databases = []string{"datasync_source", "datasync_target"}
-	pool, err := pgxpool.New(s.ctx, connstr)
+	targetPgContainer, err := tcpostgres.NewPostgresTestContainer(s.ctx)
 	if err != nil {
 		return nil, err
 	}
-	postgresTest.pool = pool
-
-	s.T().Logf("creating databases. %+v \n", postgresTest.databases)
-	for _, db := range postgresTest.databases {
-		_, err = postgresTest.pool.Exec(s.ctx, fmt.Sprintf("CREATE DATABASE %s;", db))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	srcUrl, err := getDbPgUrl(connstr, "datasync_source", "disable")
-	if err != nil {
-		return nil, err
-	}
-	postgresTest.source = &postgresTestContainer{
-		url: srcUrl,
-	}
-	sourceConn, err := pgxpool.New(s.ctx, postgresTest.source.url)
-	if err != nil {
-		return nil, err
-	}
-	postgresTest.source.pool = sourceConn
-
-	targetUrl, err := getDbPgUrl(connstr, "datasync_target", "disable")
-	if err != nil {
-		return nil, err
-	}
-	postgresTest.target = &postgresTestContainer{
-		url: targetUrl,
-	}
-	targetConn, err := pgxpool.New(s.ctx, postgresTest.target.url)
-	if err != nil {
-		return nil, err
-	}
-	postgresTest.target.pool = targetConn
-	return postgresTest, nil
+	pgTest.target = targetPgContainer
+	return pgTest, nil
 }
 
 func (s *IntegrationTestSuite) SetupMysql() (*mysqlTest, error) {
@@ -662,23 +613,14 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
 	// postgres
 	if s.postgres != nil {
-		for _, db := range s.postgres.databases {
-			_, err := s.postgres.pool.Exec(s.ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s WITH (FORCE);", db))
+		if s.postgres.source != nil {
+			err := s.postgres.source.TearDown(s.ctx)
 			if err != nil {
 				panic(err)
 			}
 		}
-		if s.postgres.source.pool != nil {
-			s.postgres.source.pool.Close()
-		}
-		if s.postgres.target.pool != nil {
-			s.postgres.target.pool.Close()
-		}
-		if s.postgres.pool != nil {
-			s.postgres.pool.Close()
-		}
-		if s.postgres.testcontainer != nil {
-			err := s.postgres.testcontainer.Terminate(s.ctx)
+		if s.postgres.target != nil {
+			err := s.postgres.target.TearDown(s.ctx)
 			if err != nil {
 				panic(err)
 			}

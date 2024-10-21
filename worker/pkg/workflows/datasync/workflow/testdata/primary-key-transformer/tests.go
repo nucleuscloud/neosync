@@ -10,7 +10,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Circular Dependency primary key transformation",
-			Folder:          "primary-key-transformer",
+			Folder:          "testdata/primary-key-transformer",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create.sql"},
 			JobMappings:     getPkTransformerJobmappings(),

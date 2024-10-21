@@ -1,13 +1,10 @@
-package integrationtests_test
+package integrationtest
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
-	_ "github.com/go-sql-driver/mysql"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
@@ -25,6 +22,7 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
+	fmt.Println("HERE")
 	s.ctx = context.Background()
 
 	var neosyncApiTest *tcneosyncapi.NeosyncApiTestClient
@@ -57,7 +55,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.T().Log("tearing down test suite")
-	err := s.postgres.TearDown()
+	err := s.postgres.TearDown(s.ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -68,11 +66,12 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	evkey := "INTEGRATION_TESTS_ENABLED"
-	shouldRun := os.Getenv(evkey)
-	if shouldRun != "1" {
-		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
-		return
-	}
+	t.Log("Running integration tests")
+	// evkey := "INTEGRATION_TESTS_ENABLED"
+	// shouldRun := os.Getenv(evkey)
+	// if shouldRun != "1" {
+	// 	slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+	// 	return
+	// }
 	suite.Run(t, new(IntegrationTestSuite))
 }
