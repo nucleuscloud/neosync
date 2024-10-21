@@ -23,7 +23,7 @@ const (
 
 // The expected base64 decoded structure of the EE_LICENSE file
 type licenseFile struct {
-	Contents  string `json:"contents"`
+	License   string `json:"license"`
 	Signature string `json:"signature"`
 }
 
@@ -60,11 +60,14 @@ func newFromLicenseContents(contents *licenseContents) *EELicense {
 type licenseContents struct {
 	Version    string    `json:"version"`
 	Id         string    `json:"id"`
-	ExpiryDate time.Time `json:"expiry_date"`
+	IssuedTo   string    `json:"issued_to"`
+	CustomerId string    `json:"customer_id"`
+	IssuedAt   time.Time `json:"issued_at"`
+	ExpiresAt  time.Time `json:"expires_at"`
 }
 
 func (l *licenseContents) IsValid() bool {
-	return time.Now().UTC().Before(l.ExpiryDate)
+	return time.Now().UTC().Before(l.ExpiresAt)
 }
 
 // Retrieves the EE license from the environment
@@ -96,7 +99,7 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 	if err != nil {
 		return nil, fmt.Errorf("unable to unmarshal license data from input: %w", err)
 	}
-	contents, err := base64.StdEncoding.DecodeString(license.Contents)
+	contents, err := base64.StdEncoding.DecodeString(license.License)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode contents: %w", err)
 	}

@@ -27,7 +27,7 @@ func Test_parsePublicKey(t *testing.T) {
 }
 
 const (
-	validExpiredTestLicense = "eyJjb250ZW50cyI6ImV3b2dJQ0FnSW5abGNuTnBiMjRpT2lBaWRqRWlMQW9nSUNBZ0ltbGtJam9nSWpFeU15SXNDaUFnSUNBaVpYaHdhWEo1WDJSaGRHVWlPaUFpTWpBeU15MHhNaTB6TVZReE1qb3dNRG93TUZvaUNuMEsiLCJzaWduYXR1cmUiOiJuRVp3TFJqaHhtMXFsMHpNalBsRHkvV0gwN3RBeUsvUDBOejg5bjNkZ3ZXY3ZqWG5oVGFxZWcvazNaRTJKNlk0d3NyVzh2M2x6M2UxdmY5d3poZGNDQT09In0K"
+	validExpiredTestLicense = "eyJsaWNlbnNlIjoiZXdvZ0lDQWdJblpsY25OcGIyNGlPaUFpZGpFaUxBb2dJQ0FnSW1sa0lqb2dJakV5TXlJc0NpQWdJQ0FpWlhod2FYSmxjMTloZENJNklDSXlNREl6TFRFeUxUTXhWREV5T2pBd09qQXdXaUlzQ2lBZ0lDQWlhWE56ZFdWa1gyRjBJam9nSWpJd01qSXRNVEl0TXpGVU1USTZNREE2TURCYUlpd0tJQ0FnSUNKcGMzTjFaV1JmZEc4aU9pQWlRV050WlNCRGJ5NGlMQW9nSUNBZ0ltTjFjM1J2YldWeVgybGtJam9nSWpRMU5pSUtmUW89Iiwic2lnbmF0dXJlIjoiY21jM01ZNWYydmhFa3FveHluYVozb2lLYWFRSWdkREhZMkVnUHZ2ZUZwLzJSNHFidkxFVGdkMHhTcGlINVY5bGppb2FnQ1JWNnlZNE1yeEVqWG9oQ2c9PSJ9Cg=="
 )
 
 func Test_getLicense(t *testing.T) {
@@ -40,7 +40,10 @@ func Test_getLicense(t *testing.T) {
 
 		require.Equal(t, "123", contents.Id)
 		require.Equal(t, "v1", contents.Version)
-		require.Equal(t, time.Date(2023, 12, 31, 12, 0, 0, 0, time.UTC), contents.ExpiryDate)
+		require.Equal(t, time.Date(2023, 12, 31, 12, 0, 0, 0, time.UTC), contents.ExpiresAt)
+		require.Equal(t, time.Date(2022, 12, 31, 12, 0, 0, 0, time.UTC), contents.IssuedAt)
+		require.Equal(t, "456", contents.CustomerId)
+		require.Equal(t, "Acme Co.", contents.IssuedTo)
 	})
 }
 
