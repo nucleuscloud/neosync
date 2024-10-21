@@ -44,6 +44,7 @@ func Test_getLicense(t *testing.T) {
 		require.Equal(t, time.Date(2022, 12, 31, 12, 0, 0, 0, time.UTC), contents.IssuedAt)
 		require.Equal(t, "456", contents.CustomerId)
 		require.Equal(t, "Acme Co.", contents.IssuedTo)
+		require.False(t, contents.IsValid())
 	})
 }
 
