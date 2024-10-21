@@ -51,10 +51,22 @@ func Test_getLicense(t *testing.T) {
 }
 
 func Test_NewFromEnv(t *testing.T) {
-	viper.Set(eeLicenseEvKey, validExpiredTestLicense)
-	eelicense, err := NewFromEnv()
-	require.NoError(t, err)
-	require.NotNil(t, eelicense)
+	t.Run("present", func(t *testing.T) {
+		viper.Set(eeLicenseEvKey, validExpiredTestLicense)
+		eelicense, err := NewFromEnv()
+		require.NoError(t, err)
+		require.NotNil(t, eelicense)
 
-	require.False(t, eelicense.IsValid())
+		require.False(t, eelicense.IsValid())
+	})
+	t.Run("empty", func(t *testing.T) {
+		viper.Set(eeLicenseEvKey, "")
+
+		viper.Set(eeLicenseEvKey, validExpiredTestLicense)
+		eelicense, err := NewFromEnv()
+		require.NoError(t, err)
+		require.NotNil(t, eelicense)
+
+		require.False(t, eelicense.IsValid())
+	})
 }
