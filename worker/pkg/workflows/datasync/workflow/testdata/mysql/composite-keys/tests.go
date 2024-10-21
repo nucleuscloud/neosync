@@ -2,6 +2,7 @@ package mysql_compositekeys
 
 import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	workflow_testdata "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow/testdata"
 )
 
@@ -43,7 +44,7 @@ func getPkTransformerJobmappings() []*mgmtv1alpha1.JobMapping {
 					Config: &mgmtv1alpha1.TransformerConfig{
 						Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 							GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-								IncludeHyphens: true,
+								IncludeHyphens: gotypeutil.ToPtr(true),
 							},
 						},
 					},

@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -25,9 +25,14 @@ func NewGenerateFullAddress() *GenerateFullAddress {
 }
 
 func NewGenerateFullAddressOpts(
-	maxLength int64,
+	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateFullAddressOpts, error) {
+	maxLength := int64(100)
+	if maxLengthArg != nil {
+		maxLength = *maxLengthArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -37,6 +42,22 @@ func NewGenerateFullAddressOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateFullAddressOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"max_length:%v",
+	}
+
+	params := []any{
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_full_address(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {
@@ -50,10 +71,10 @@ func (t *GenerateFullAddress) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateFullAddress) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateFullAddressOpts{}
 
-	if _, ok := opts["maxLength"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateFullAddress", "maxLength")
+	maxLength, ok := opts["maxLength"].(int64)
+	if !ok {
+		maxLength = 100
 	}
-	maxLength := opts["maxLength"].(int64)
 	transformerOpts.maxLength = maxLength
 
 	var seedArg *int64

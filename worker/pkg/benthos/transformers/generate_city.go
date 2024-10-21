@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -14,7 +15,7 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Randomly selects a city from a list of predefined US cities.").
-		Param(bloblang.NewInt64Param("max_length").Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
+		Param(bloblang.NewInt64Param("max_length").Default(100).Description("Specifies the maximum length for the generated data. This field ensures that the output does not exceed a certain number of characters.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("generate_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -45,6 +46,18 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateCityOptsFromConfig(config *mgmtv1alpha1.GenerateCity, maxLength *int64) (*GenerateCityOpts, error) {
+	if config == nil {
+		return NewGenerateCityOpts(
+			nil,
+			nil,
+		)
+	}
+	return NewGenerateCityOpts(
+		maxLength, nil,
+	)
 }
 
 func (t *GenerateCity) Generate(opts any) (any, error) {

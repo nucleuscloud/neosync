@@ -49,3 +49,14 @@ func Test_UsernamelTransformer(t *testing.T) {
 
 	assert.IsType(t, "", res, "The expected username should have a valid username")
 }
+
+func Test_UsernamelTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_username()`
+	ex, err := bloblang.Parse(mapping)
+
+	assert.NoError(t, err, "failed to parse the realistic username transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

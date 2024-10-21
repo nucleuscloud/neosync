@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -25,9 +25,14 @@ func NewGenerateCategorical() *GenerateCategorical {
 }
 
 func NewGenerateCategoricalOpts(
-	categories string,
+	categoriesArg *string,
   seedArg *int64,
 ) (*GenerateCategoricalOpts, error) {
+	categories := string("ultimo,proximo,semper")
+	if categoriesArg != nil {
+		categories = *categoriesArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -37,6 +42,22 @@ func NewGenerateCategoricalOpts(
 		categories: categories,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateCategoricalOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"categories:%q",
+	}
+
+	params := []any{
+	 	o.categories,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_categorical(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
@@ -50,10 +71,10 @@ func (t *GenerateCategorical) GetJsTemplateData() (*TemplateData, error) {
 func (t *GenerateCategorical) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateCategoricalOpts{}
 
-	if _, ok := opts["categories"].(string); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateCategorical", "categories")
+	categories, ok := opts["categories"].(string)
+	if !ok {
+		categories = "ultimo,proximo,semper"
 	}
-	categories := opts["categories"].(string)
 	transformerOpts.categories = categories
 
 	var seedArg *int64

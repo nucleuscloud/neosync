@@ -51,3 +51,13 @@ func Test_FullAddressTransformer(t *testing.T) {
 	assert.IsType(t, "", res, "The returned full address should be a string")
 	assert.LessOrEqual(t, int64(len(res.(string))), faMaxLength, fmt.Sprintf("The city should be less than or equal to the max length. This is the error address:%s", res))
 }
+
+func Test_FullAddressTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_full_address()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the full address transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
