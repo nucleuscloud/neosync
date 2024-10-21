@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 )
 
@@ -31,6 +32,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateUUIDOptsFromConfig(config *mgmtv1alpha1.GenerateUuid) (*GenerateUUIDOpts, error) {
+	if config == nil {
+		return NewGenerateUUIDOpts(nil)
+	}
+	return NewGenerateUUIDOpts(config.IncludeHyphens)
 }
 
 func (t *GenerateUUID) Generate(opts any) (any, error) {

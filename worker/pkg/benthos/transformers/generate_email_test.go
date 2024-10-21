@@ -73,3 +73,20 @@ func Test_RandomEmailTransformer(t *testing.T) {
 
 	require.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
 }
+
+func Test_RandomEmailTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_email()`
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err)
+	require.NotEmpty(t, ex)
+
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+
+	resStr, ok := res.(string)
+	require.True(t, ok)
+	require.NotEmpty(t, resStr)
+
+	require.NotEmptyf(t, resStr, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
+}

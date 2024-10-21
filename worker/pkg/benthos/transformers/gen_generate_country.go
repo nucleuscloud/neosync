@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -28,7 +28,7 @@ func NewGenerateCountryOpts(
 	generateFullNameArg *bool,
   seedArg *int64,
 ) (*GenerateCountryOpts, error) {
-	generateFullName := bool(false) 
+	generateFullName := bool(false)
 	if generateFullNameArg != nil {
 		generateFullName = *generateFullNameArg
 	}
@@ -42,6 +42,22 @@ func NewGenerateCountryOpts(
 		generateFullName: generateFullName,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateCountryOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"generate_full_name:%v",
+	}
+
+	params := []any{
+	 	o.generateFullName,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_country(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateCountry) GetJsTemplateData() (*TemplateData, error) {

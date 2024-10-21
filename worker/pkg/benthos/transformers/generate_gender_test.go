@@ -42,3 +42,13 @@ func Test_GenderTransformer(t *testing.T) {
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
 	assert.Equal(t, int64(len(res.(string))), int64(1), "the length should be 1")
 }
+
+func Test_GenderTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_gender()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the gender transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

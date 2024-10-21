@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -16,7 +17,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Description("Anonymizes and transforms an existing int64 phone number.").
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
+		Param(bloblang.NewBoolParam("preserve_length").Default(false).Description("Whether the original length of the input data should be preserved during transformation. If set to true, the transformation logic will ensure that the output data has the same length as the input data.")).
 		Param(bloblang.NewInt64Param("seed").Optional().Description("An optional seed value used to generate deterministic outputs."))
 
 	err := bloblang.RegisterFunctionV2("transform_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -59,6 +60,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformInt64PhoneNumberOptsFromConfig(config *mgmtv1alpha1.TransformInt64PhoneNumber) (*TransformInt64PhoneNumberOpts, error) {
+	if config == nil {
+		return NewTransformInt64PhoneNumberOpts(nil, nil)
+	}
+	return NewTransformInt64PhoneNumberOpts(config.PreserveLength, nil)
 }
 
 func (t *TransformInt64PhoneNumber) Transform(value, opts any) (any, error) {

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unicode"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -66,6 +67,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewTransformCharacterScrambleOptsFromConfig(config *mgmtv1alpha1.TransformCharacterScramble) (*TransformCharacterScrambleOpts, error) {
+	if config == nil {
+		return NewTransformCharacterScrambleOpts(nil, nil)
+	}
+	return NewTransformCharacterScrambleOpts(config.UserProvidedRegex, nil)
 }
 
 func (t *TransformCharacterScramble) Transform(value, opts any) (any, error) {

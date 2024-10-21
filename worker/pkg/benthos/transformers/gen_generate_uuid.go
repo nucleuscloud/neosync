@@ -5,6 +5,8 @@
 package transformers
 
 import (
+	"strings"
+	"fmt"
 )
 
 type GenerateUUID struct{}
@@ -20,7 +22,7 @@ func NewGenerateUUID() *GenerateUUID {
 func NewGenerateUUIDOpts(
 	includeHyphensArg *bool,
 ) (*GenerateUUIDOpts, error) {
-	includeHyphens := bool(true) 
+	includeHyphens := bool(true)
 	if includeHyphensArg != nil {
 		includeHyphens = *includeHyphensArg
 	}
@@ -28,6 +30,22 @@ func NewGenerateUUIDOpts(
 	return &GenerateUUIDOpts{
 		includeHyphens: includeHyphens,	
 	}, nil
+}
+
+func (o *GenerateUUIDOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"include_hyphens:%v",
+	}
+
+	params := []any{
+	 	o.includeHyphens,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_uuid(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateUUID) GetJsTemplateData() (*TemplateData, error) {

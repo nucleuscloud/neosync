@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -26,10 +26,20 @@ func NewGenerateInternationalPhoneNumber() *GenerateInternationalPhoneNumber {
 }
 
 func NewGenerateInternationalPhoneNumberOpts(
-	min int64,
-	max int64,
+	minArg *int64,
+	maxArg *int64,
   seedArg *int64,
 ) (*GenerateInternationalPhoneNumberOpts, error) {
+	min := int64(9)
+	if minArg != nil {
+		min = *minArg
+	}
+	
+	max := int64(15)
+	if maxArg != nil {
+		max = *maxArg
+	}
+	
 	seed, err := transformer_utils.GetSeedOrDefault(seedArg)
   if err != nil {
     return nil, fmt.Errorf("unable to generate seed: %w", err)
@@ -40,6 +50,24 @@ func NewGenerateInternationalPhoneNumberOpts(
 		max: max,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateInternationalPhoneNumberOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"min:%v", 
+		"max:%v",
+	}
+
+	params := []any{
+	 	o.min,
+	 	o.max,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_e164_phone_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, error) {
@@ -53,16 +81,16 @@ func (t *GenerateInternationalPhoneNumber) GetJsTemplateData() (*TemplateData, e
 func (t *GenerateInternationalPhoneNumber) ParseOptions(opts map[string]any) (any, error) {
 	transformerOpts := &GenerateInternationalPhoneNumberOpts{}
 
-	if _, ok := opts["min"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInternationalPhoneNumber", "min")
+	min, ok := opts["min"].(int64)
+	if !ok {
+		min = 9
 	}
-	min := opts["min"].(int64)
 	transformerOpts.min = min
 
-	if _, ok := opts["max"].(int64); !ok {
-		return nil, fmt.Errorf("missing required argument. function: %s argument: %s", "generateInternationalPhoneNumber", "max")
+	max, ok := opts["max"].(int64)
+	if !ok {
+		max = 15
 	}
-	max := opts["max"].(int64)
 	transformerOpts.max = max
 
 	var seedArg *int64

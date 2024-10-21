@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -34,6 +34,20 @@ func NewGenerateInt64PhoneNumberOpts(
 	return &GenerateInt64PhoneNumberOpts{
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateInt64PhoneNumberOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{
+	}
+
+	params := []any{
+	}
+
+	
+
+	template := fmt.Sprintf("generate_int64_phone_number(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateInt64PhoneNumber) GetJsTemplateData() (*TemplateData, error) {
