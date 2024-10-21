@@ -507,7 +507,9 @@ func serve(ctx context.Context) error {
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
 		IsPresidioEnabled: getIsNeosyncCloud(),
-	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient)
+		IsAuthEnabled:     isAuthEnabled,
+		IsNeosyncCloud:    getIsNeosyncCloud(),
+	}, anonymizerMeter, useraccountService, presAnalyzeClient, presAnonClient, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 			anonymizationService,
