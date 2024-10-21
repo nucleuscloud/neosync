@@ -17,10 +17,43 @@ import (
 //go:embed neosync_ee_pub.pem
 var publicKeyPEM string
 
+const (
+	eeLicenseEvKey = "EE_LICENSE"
+)
+
 // The expected base64 decoded structure of the EE_LICENSE file
 type licenseFile struct {
 	Contents  string `json:"contents"`
 	Signature string `json:"signature"`
+}
+
+type EEInterface interface {
+	IsValid() bool
+}
+
+var _ EEInterface = (*EELicense)(nil)
+
+type EELicense struct {
+	contents *licenseContents
+}
+
+func (e *EELicense) IsValid() bool {
+	return e.contents != nil && e.contents.IsValid()
+}
+
+// Retrieves the EE license from the environment
+// If not enabled, will still return valid struct.
+// Errors if not able to properly parse a provided EE license from the environment
+func NewFromEnv() (*EELicense, error) {
+	lc, _, err := getLicenseFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	return newFromLicenseContents(lc), nil
+}
+
+func newFromLicenseContents(contents *licenseContents) *EELicense {
+	return &EELicense{contents: contents}
 }
 
 // The expecteed base64 decoded structure of the EE_LICENSE.contents file
@@ -30,9 +63,13 @@ type licenseContents struct {
 	ExpiryDate time.Time `json:"expiry_date"`
 }
 
+func (l *licenseContents) IsValid() bool {
+	return time.Now().UTC().Before(l.ExpiryDate)
+}
+
 // Retrieves the EE license from the environment
-func GetLicenseFromEnv() (*licenseContents, bool, error) {
-	input := viper.GetString("EE_LICENSE")
+func getLicenseFromEnv() (*licenseContents, bool, error) {
+	input := viper.GetString(eeLicenseEvKey)
 	if input == "" {
 		return nil, false, nil
 	}
@@ -47,9 +84,15 @@ func GetLicenseFromEnv() (*licenseContents, bool, error) {
 	return contents, true, nil
 }
 
+// Expected the license data to be a base64 encoded json string that matches the licenseFile structure.
 func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseContents, error) {
+	licenseDataContents, err := base64.StdEncoding.DecodeString(licenseData)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode license data: %w", err)
+	}
+
 	var license licenseFile
-	err := json.Unmarshal([]byte(licenseData), &license)
+	err = json.Unmarshal(licenseDataContents, &license)
 	if err != nil {
 		return nil, fmt.Errorf("unable to unmarshal license data from input: %w", err)
 	}
@@ -61,6 +104,7 @@ func getLicense(licenseData string, publicKey ed25519.PublicKey) (*licenseConten
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode signature: %w", err)
 	}
+
 	ok := ed25519.Verify(publicKey, contents, signature)
 	if !ok {
 		return nil, errors.New("unable to verify contents against public key")
