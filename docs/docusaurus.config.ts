@@ -64,25 +64,6 @@ const config: Config = {
         },
       };
     },
-    // [
-    //   'docusaurus-plugin-openapi-docs',
-    //   {
-    //     id: 'api',
-    //     docsPluginId: 'docusaurus-plugin-openapi-docs',
-    //     config: {
-    //       anonymizationapi: {
-    //         specPath:
-    //           '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
-    //         outputDir: 'docs/openapi/anonymization',
-
-    //         sidebarOptions: {
-    //           // groupPathsBy: 'tag',
-    //         },
-    //         baseUrl: '/reference/',
-    //       } satisfies OpenApiPlugin.Options,
-    //     },
-    //   },
-    // ],
   ],
 
   presets: [
@@ -130,27 +111,20 @@ const config: Config = {
     [
       'redocusaurus',
       {
-        // Plugin Options for loading OpenAPI files
-        // openapi: {
-        //   path: '../backend/gen/openapi',
-        //   routeBasePath: '/reference',
-        // },
         specs: [
-          // Pass it a path to a local OpenAPI YAML file
+          // we just pass in the final generated file
+          // from this package -> https://www.npmjs.com/package/openapi-merge-cli
+          // tried this with both the redocly cli and the this open-api merge cli and the page won't render
+          // once you add more than like 3 services, it just crashes
+          // the files look fine so im not sure why, it looks like it's throwing some javascript heap memory error
+          // then the javascript builds during npm run build
+          // so it might be a plugin issue with redocusaurus but the example repos have more APIs than we do and they work fine
+          // so im not sure why it's not working
+          // for example, the swagger editor is able to render it just fine -> https://editor.swagger.io/?_gl=1*139d7v5*_gcl_au*MTQ1ODQ5MDk5My4xNzI5MTk5NTc0
           {
-            // Redocusaurus will automatically bundle your spec into a single file during the build
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
-            route: '/reference/anonymization',
+            spec: './merged_openapi.yaml',
+            route: '/reference',
           },
-          {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/job.openapi.yaml',
-            route: '/reference/job',
-          },
-          // You can also pass it a OpenAPI spec URL
-          // {
-          //   spec: 'https://redocly.github.io/redoc/openapi.yaml',
-          //   route: '/openapi/',
-          // },
         ],
         // Theme Options for modifying how redoc renders them
         theme: {
@@ -159,38 +133,6 @@ const config: Config = {
         },
       },
     ] satisfies Redocusaurus.PresetEntry,
-    // [
-    //   'docusaurus-plugin-openapi-docs',
-    //   {
-    //     docs: {
-    //       id: 'reference',
-    //       path: 'reference',
-    //       routeBasePath: 'reference',
-    //       include: ['**/*.md', '**/*.mdx'],
-    //       // sidebarPath: './docs/reference/sidebar.ts',
-    //       docRootComponent: '@theme/DocRoot',
-    //       docItemComponent: '@theme/ApiItem',
-    //     },
-    //     theme: {
-    //       customCss: './src/css/custom.css',
-    //     },
-    //   },
-    // ],
-    // [
-    //   'classic-openapi',
-    //   {
-    //     docs: {
-    //       id: 'openapi',
-    //       routeBasePath: 'reference',
-    //       // sidebarPath: './openapi-sidebars.ts',
-    //       docItemComponent: '@theme/ApiItem',
-    //     },
-    //     blog: false,
-    //     theme: {
-    //       customCss: require.resolve('./src/css/custom.css'),
-    //     },
-    //   },
-    // ],
   ],
 
   themeConfig: {
@@ -250,7 +192,6 @@ const config: Config = {
       searchPagePath: 'search',
     },
   },
-  // themes: ['docusaurus-theme-openapi-docs'],
 };
 
 export default config;
