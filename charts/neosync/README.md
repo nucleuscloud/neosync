@@ -44,6 +44,7 @@ A Helm chart for Neosync that contains the api, app, and worker
 | api.db.port | int | `5432` | The database port |
 | api.db.username | string | `nil` | The username that will be used for authentication |
 | api.deploymentAnnotations | object | `{}` | Provide a map of deployment annotations that will be attached to the deployment's annotations |
+| api.ee.license | string | `nil` | Neosync Enterprise-Edition License Key |
 | api.extraEnvVars | list | `[]` | Provide extra environment variables that will be applied to the deployment's user-container. |
 | api.fullnameOverride | string | `nil` | Fully overrides the chart name |
 | api.host | string | `"0.0.0.0"` | Sets the host that the backend will listen on. 0.0.0.0 is common for Kubernetes workloads. |
