@@ -156,7 +156,7 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 		}
 	}
 
-	bloblangFuncName, err := extractBloblangFunctionName(benthosSpecStr)
+	bloblangFuncName, err := extractBloblangFunctionName(benthosSpecStr, benthosSpec.SourceFile)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func ParseBloblangSpec(benthosSpec *BenthosSpec) (*ParsedBenthosSpec, error) {
 	}, nil
 }
 
-func extractBloblangFunctionName(input string) (string, error) {
+func extractBloblangFunctionName(input, sourceFile string) (string, error) {
 	// Looks for bloblang.RegisterFunctionV2 and captures the function name in quotes
 	re := regexp.MustCompile(`bloblang\.RegisterFunctionV2\("([^"]+)"`)
 
@@ -178,7 +178,7 @@ func extractBloblangFunctionName(input string) (string, error) {
 		return matches[1], nil
 	}
 
-	return "", fmt.Errorf("bloblang function name not found")
+	return "", fmt.Errorf("bloblang function name not found: %s", sourceFile)
 }
 
 func lowercaseFirst(s string) string {
