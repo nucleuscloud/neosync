@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -39,6 +40,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateStateOptsFromConfig(config *mgmtv1alpha1.GenerateState) (*GenerateStateOpts, error) {
+	if config == nil {
+		return NewGenerateStateOpts(nil, nil)
+	}
+	return NewGenerateStateOpts(config.GenerateFullName, nil)
 }
 
 func (t *GenerateState) Generate(opts any) (any, error) {

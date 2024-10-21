@@ -56,3 +56,14 @@ func Test_GenerateRandomLastNameTransformer(t *testing.T) {
 	assert.NotEmpty(t, resStr)
 	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "The last name should be less than or equal to max char limit")
 }
+
+func Test_GenerateRandomLastNameTransformer_NoOptions(t *testing.T) {
+	mapping := `root = generate_last_name()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the last name transformer")
+	assert.NotNil(t, ex)
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}

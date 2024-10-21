@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	accountstatus_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/account-status"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
@@ -1072,7 +1073,7 @@ func getAllDynamoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
-								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: 10, RandomizationRangeMax: 1000},
+								TransformInt64Config: &mgmtv1alpha1.TransformInt64{RandomizationRangeMin: gotypeutil.ToPtr(int64(10)), RandomizationRangeMax: gotypeutil.ToPtr(int64(1000))},
 							},
 						},
 					},
@@ -1309,7 +1310,7 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 								TransformStringConfig: &mgmtv1alpha1.TransformString{
-									PreserveLength: true,
+									PreserveLength: gotypeutil.ToPtr(true),
 								},
 							},
 						},
@@ -1337,8 +1338,8 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 								TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
-									RandomizationRangeMin: 0,
-									RandomizationRangeMax: 300,
+									RandomizationRangeMin: gotypeutil.ToPtr(float64(0)),
+									RandomizationRangeMax: gotypeutil.ToPtr(float64(300)),
 								},
 							},
 						},
@@ -1353,8 +1354,8 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 								TransformInt64Config: &mgmtv1alpha1.TransformInt64{
-									RandomizationRangeMin: 0,
-									RandomizationRangeMax: 300,
+									RandomizationRangeMin: gotypeutil.ToPtr(int64(0)),
+									RandomizationRangeMax: gotypeutil.ToPtr(int64(300)),
 								},
 							},
 						},

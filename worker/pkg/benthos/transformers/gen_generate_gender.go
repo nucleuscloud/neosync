@@ -5,8 +5,8 @@
 package transformers
 
 import (
+	"strings"
 	"fmt"
-	
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
 	
@@ -30,12 +30,12 @@ func NewGenerateGenderOpts(
 	maxLengthArg *int64,
   seedArg *int64,
 ) (*GenerateGenderOpts, error) {
-	abbreviate := bool(false) 
+	abbreviate := bool(false)
 	if abbreviateArg != nil {
 		abbreviate = *abbreviateArg
 	}
 	
-	maxLength := int64(10000) 
+	maxLength := int64(100)
 	if maxLengthArg != nil {
 		maxLength = *maxLengthArg
 	}
@@ -50,6 +50,24 @@ func NewGenerateGenderOpts(
 		maxLength: maxLength,
 		randomizer: rng.New(seed),	
 	}, nil
+}
+
+func (o *GenerateGenderOpts) BuildBloblangString(	
+) string {
+	fnStr := []string{ 
+		"abbreviate:%v", 
+		"max_length:%v",
+	}
+
+	params := []any{
+	 	o.abbreviate,
+	 	o.maxLength,
+	}
+
+	
+
+	template := fmt.Sprintf("generate_gender(%s)", strings.Join(fnStr, ","))
+	return fmt.Sprintf(template, params...)
 }
 
 func (t *GenerateGender) GetJsTemplateData() (*TemplateData, error) {
@@ -71,7 +89,7 @@ func (t *GenerateGender) ParseOptions(opts map[string]any) (any, error) {
 
 	maxLength, ok := opts["maxLength"].(int64)
 	if !ok {
-		maxLength = 10000
+		maxLength = 100
 	}
 	transformerOpts.maxLength = maxLength
 

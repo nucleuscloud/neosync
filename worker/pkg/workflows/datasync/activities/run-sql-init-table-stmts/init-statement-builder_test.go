@@ -11,6 +11,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/internal/gotypeutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -56,7 +57,7 @@ func Test_InitStatementBuilder_Pg_Generate_InitSchema(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -204,7 +205,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -307,7 +308,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -335,7 +336,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -439,7 +440,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -467,7 +468,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -579,7 +580,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -607,7 +608,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},
@@ -722,7 +723,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
+										IncludeHyphens: gotypeutil.ToPtr(true),
 									},
 								},
 							},

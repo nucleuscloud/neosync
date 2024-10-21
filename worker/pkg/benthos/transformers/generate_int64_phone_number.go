@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/rng"
@@ -42,6 +43,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func NewGenerateInt64PhoneNumberOptsFromConfig(config *mgmtv1alpha1.GenerateInt64PhoneNumber) (*GenerateInt64PhoneNumberOpts, error) {
+	return NewGenerateInt64PhoneNumberOpts(nil)
 }
 
 func (t *GenerateInt64PhoneNumber) Generate(opts any) (any, error) {
