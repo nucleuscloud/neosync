@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "npm run proto-build && docusaurus build",
+    "build": "npm run proto-build && redocly-join && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -19,7 +19,7 @@
     "prettier:write": "prettier --write .",
     "proto-build": "docusaurus generate-proto-docs",
     "spellcheck": "cspell",
-    "redocly-join": "redocly join ../backend/gen/openapi/mgmt/v1alpha1/*.openapi.yaml -o final_openapi_spec.yaml"
+    "redocly-join": "redocly join ../backend/gen/openapi/mgmt/v1alpha1/*.openapi.yaml -o final_openapi.yaml"
   },
   "dependencies": {
     "@docusaurus/core": "^3.5.2",
@@ -29,7 +29,6 @@
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.0",
     "docusaurus-protobuffet": "^0.3.3",
-    "openapi-merge-cli": "^1.3.2",
     "postcss": "^8.4.47",
     "posthog-docusaurus": "^2.0.1",
     "prism-react-renderer": "^2.4.0",

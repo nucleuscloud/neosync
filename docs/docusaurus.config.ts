@@ -112,17 +112,8 @@ const config: Config = {
       'redocusaurus',
       {
         specs: [
-          // we just pass in the final generated file
-          // from this package -> https://www.npmjs.com/package/openapi-merge-cli
-          // tried this with both the redocly cli and the this open-api merge cli and the page won't render
-          // once you add more than like 3 services, it just crashes
-          // the files look fine so im not sure why, it looks like it's throwing some javascript heap memory error
-          // then the javascript builds during npm run build
-          // so it might be a plugin issue with redocusaurus but the example repos have more APIs than we do and they work fine
-          // so im not sure why it's not working
-          // for example, the swagger editor is able to render it just fine -> https://editor.swagger.io/?_gl=1*139d7v5*_gcl_au*MTQ1ODQ5MDk5My4xNzI5MTk5NTc0
           {
-            spec: './merged_openapi.yaml',
+            spec: './final_openapi.yaml',
             route: '/reference',
           },
         ],
