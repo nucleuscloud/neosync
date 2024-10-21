@@ -27,6 +27,8 @@ func Test_parsePublicKey(t *testing.T) {
 }
 
 const (
+	// generated using the gen-cust-license shell script with the neosync ee private key
+	// ./scripts/gen-cust-license.sh ./neosync_ee_ca.key license.json | pbcopy
 	validExpiredTestLicense = "eyJsaWNlbnNlIjoiZXdvZ0lDQWdJblpsY25OcGIyNGlPaUFpZGpFaUxBb2dJQ0FnSW1sa0lqb2dJakV5TXlJc0NpQWdJQ0FpWlhod2FYSmxjMTloZENJNklDSXlNREl6TFRFeUxUTXhWREV5T2pBd09qQXdXaUlzQ2lBZ0lDQWlhWE56ZFdWa1gyRjBJam9nSWpJd01qSXRNVEl0TXpGVU1USTZNREE2TURCYUlpd0tJQ0FnSUNKcGMzTjFaV1JmZEc4aU9pQWlRV050WlNCRGJ5NGlMQW9nSUNBZ0ltTjFjM1J2YldWeVgybGtJam9nSWpRMU5pSUtmUW89Iiwic2lnbmF0dXJlIjoiY21jM01ZNWYydmhFa3FveHluYVozb2lLYWFRSWdkREhZMkVnUHZ2ZUZwLzJSNHFidkxFVGdkMHhTcGlINVY5bGppb2FnQ1JWNnlZNE1yeEVqWG9oQ2c9PSJ9Cg=="
 )
 
