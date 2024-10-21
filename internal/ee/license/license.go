@@ -56,7 +56,7 @@ func newFromLicenseContents(contents *licenseContents) *EELicense {
 	return &EELicense{contents: contents}
 }
 
-// The expecteed base64 decoded structure of the EE_LICENSE.contents file
+// The expected base64 decoded structure of the EE_LICENSE.contents file
 type licenseContents struct {
 	Version    string    `json:"version"`
 	Id         string    `json:"id"`
