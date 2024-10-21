@@ -2,8 +2,10 @@
 
 ## Generate Neosync CA with ED25519
 
+This generates a private key with a password
+
 ```console
-openssl genpkey -algorithm ed25519 -out neosync_ee_ca.key
+openssl genpkey -algorithm ed25519 -out neosync_ee_ca.key -aes256
 ```
 
 ## Generate Neosync Pub Key
