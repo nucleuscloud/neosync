@@ -60,6 +60,7 @@ import (
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
+	"github.com/nucleuscloud/neosync/internal/ee/license"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
 	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	neosyncotel "github.com/nucleuscloud/neosync/internal/otel"
@@ -105,6 +106,12 @@ func serve(ctx context.Context) error {
 	}
 
 	slog.SetDefault(slogger) // set default logger for methods that can't easily access the configured logger
+
+	eelicense, err := license.NewFromEnv()
+	if err != nil {
+		return fmt.Errorf("unable to initialize ee license from env: %w", err)
+	}
+	slogger.Debug(fmt.Sprintf("ee license enabled: %t", eelicense.IsValid()))
 
 	mux := http.NewServeMux()
 
