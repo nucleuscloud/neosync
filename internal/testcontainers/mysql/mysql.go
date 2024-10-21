@@ -24,10 +24,10 @@ type MysqlTestContainer struct {
 	username      string
 }
 
-// Option is a functional option for configuring the Anonymizer
+// Option is a functional option for configuring the Mysql Test Container
 type Option func(*MysqlTestContainer)
 
-// NewAnonymizer initializes a new Anonymizer with functional options
+// NewMysqlTestContainer initializes a new MySQL Test Container with functional options
 func NewMysqlTestContainer(ctx context.Context, opts ...Option) (*MysqlTestContainer, error) {
 	m := &MysqlTestContainer{
 		database: "testdb",

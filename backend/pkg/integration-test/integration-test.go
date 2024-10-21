@@ -47,28 +47,50 @@ var (
 	validAuthUser = &authmgmt.User{Name: "foo", Email: "bar", Picture: "baz"}
 )
 
-type unauthdClients struct {
-	users        mgmtv1alpha1connect.UserAccountServiceClient
-	transformers mgmtv1alpha1connect.TransformersServiceClient
-	connections  mgmtv1alpha1connect.ConnectionServiceClient
-	jobs         mgmtv1alpha1connect.JobServiceClient
-	anonymize    mgmtv1alpha1connect.AnonymizationServiceClient
+type UnauthdClients struct {
+	Users        mgmtv1alpha1connect.UserAccountServiceClient
+	Transformers mgmtv1alpha1connect.TransformersServiceClient
+	Connections  mgmtv1alpha1connect.ConnectionServiceClient
+	Jobs         mgmtv1alpha1connect.JobServiceClient
+	Anonymize    mgmtv1alpha1connect.AnonymizationServiceClient
 }
 
-type neosyncCloudClients struct {
+type NeosyncApiTestClient struct {
+	UnathdClients           *UnauthdClients
+	AuthdClients            *AuthdClients
+	NeosyncCloudClients     *NeosyncCloudClients
+	apiIntegrationTestSuite *ApiIntegrationTestSuite
+}
+
+func NewNeosyncApiTestClient(ctx context.Context) *NeosyncApiTestClient {
+	t := &ApiIntegrationTestSuite{}
+	t.SetupSuite(ctx)
+	return &NeosyncApiTestClient{
+		UnathdClients:           t.unauthdClients,
+		AuthdClients:            t.authdClients,
+		NeosyncCloudClients:     t.neosyncCloudClients,
+		apiIntegrationTestSuite: t,
+	}
+}
+
+func (n *NeosyncApiTestClient) TearDown() error {
+	return n.apiIntegrationTestSuite.TearDownSuite()
+}
+
+type NeosyncCloudClients struct {
 	httpsrv  *httptest.Server
 	basepath string
 }
 
-func (s *neosyncCloudClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
+func (s *NeosyncCloudClients) GetUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
 	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
-type authdClients struct {
+type AuthdClients struct {
 	httpsrv *httptest.Server
 }
 
-func (s *authdClients) getUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
+func (s *AuthdClients) GetUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
 	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
@@ -95,15 +117,15 @@ type ApiIntegrationTestSuite struct {
 
 	httpsrv *httptest.Server
 
-	unauthdClients      *unauthdClients
-	neosyncCloudClients *neosyncCloudClients
-	authdClients        *authdClients
+	unauthdClients      *UnauthdClients
+	neosyncCloudClients *NeosyncCloudClients
+	authdClients        *AuthdClients
 
 	mocks *mocks
 }
 
-func (s *ApiIntegrationTestSuite) SetupSuite() {
-	s.ctx = context.Background()
+func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
+	s.ctx = ctx
 
 	pgcontainer, err := testpg.Run(
 		s.ctx,
@@ -170,6 +192,14 @@ func (s *ApiIntegrationTestSuite) SetupSuite() {
 		s.mocks.prometheusclient,
 		s.mocks.billingclient,
 	)
+	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(
+		&v1alpha_anonymizationservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true, IsPresidioEnabled: false},
+		nil,
+		neoCloudAuthdUserService,
+		nil, // presidio
+		nil, // presidio
+		neosyncdb.New(pool, db_queries.New()),
+	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
 		&v1alpha1_transformersservice.Config{},
@@ -210,6 +240,7 @@ func (s *ApiIntegrationTestSuite) SetupSuite() {
 		nil,
 		unauthdUserService,
 		presAnalyzeClient, presAnonClient,
+		neosyncdb.New(pool, db_queries.New()),
 	)
 
 	rootmux := http.NewServeMux()
@@ -266,67 +297,39 @@ func (s *ApiIntegrationTestSuite) SetupSuite() {
 		neoCloudAuthdUserService,
 		authinterceptors,
 	))
+	ncauthmux.Handle(mgmtv1alpha1connect.NewAnonymizationServiceHandler(
+		neoCloudAuthdAnonymizeService,
+		authinterceptors,
+	))
 	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
 
 	s.httpsrv = startHTTPServer(s.T(), rootmux)
 
-	s.unauthdClients = &unauthdClients{
-		users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		connections:  mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		jobs:         mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		anonymize:    mgmtv1alpha1connect.NewAnonymizationServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+	s.unauthdClients = &UnauthdClients{
+		Users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Connections:  mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Jobs:         mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Anonymize:    mgmtv1alpha1connect.NewAnonymizationServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 	}
 
-	s.authdClients = &authdClients{
+	s.authdClients = &AuthdClients{
 		httpsrv: s.httpsrv,
 	}
-	s.neosyncCloudClients = &neosyncCloudClients{
+	s.neosyncCloudClients = &NeosyncCloudClients{
 		httpsrv:  s.httpsrv,
 		basepath: "/ncauth",
 	}
-
-	_, err = s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
-	if err != nil {
-		panic(err)
-	}
-	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
-	if err != nil {
-		panic(err)
-	}
 }
 
-// Runs before each test
-// func (s *IntegrationTestSuite) SetupTest() {
-// 	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-// 	err := neomigrate.Up(s.ctx, s.connstr, s.migrationsDir, discardLogger)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
-
-// func (s *IntegrationTestSuite) TearDownTest() {
-// 	// Dropping here because 1) more efficient and 2) we have a bad down migration
-// 	// _jobs-connection-id-null.down that breaks due to having a null connection_id column.
-// 	// we should do something about that at some point. Running this single drop is easier though
-// 	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
-
-func (s *ApiIntegrationTestSuite) TearDownSuite() {
+func (s *ApiIntegrationTestSuite) TearDownSuite() error {
 	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
 	if err != nil {
-		panic(err)
+		return err
 	}
 	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if s.pgpool != nil {
 		s.pgpool.Close()
@@ -334,13 +337,10 @@ func (s *ApiIntegrationTestSuite) TearDownSuite() {
 	if s.pgcontainer != nil {
 		err := s.pgcontainer.Terminate(s.ctx)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
-}
-
-func NewApiIntegrationTestSuite() *ApiIntegrationTestSuite {
-	return &ApiIntegrationTestSuite{}
+	return nil
 }
 
 func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
