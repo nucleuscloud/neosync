@@ -597,7 +597,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install pypa/build
+      - name: Build SDK
         run: |
           python -m pip install build
           python -m build
@@ -606,7 +606,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: py-package
-          path: dist/
+          path: python/dist/
 
   py-sdk-publish:
     name: Python SDK Publish
@@ -615,17 +615,17 @@ jobs:
       - py-sdk-build
     permissions:
       id-token: write
-    defaults:
-      run:
-        working-directory: python
     steps:
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
         with:
           name: py-package
-          path: dist/
+          path: python/dist/
       - name: Publish release distributions to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
+          attestations: true
 
   ts-sdk:
     name: TypeScript SDK Release
