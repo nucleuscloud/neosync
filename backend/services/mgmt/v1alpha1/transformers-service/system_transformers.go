@@ -660,16 +660,15 @@ func (s *Service) GetSystemTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
-	transformers := []*mgmtv1alpha1.SystemTransformer{}
 	if s.cfg.IsNeosyncCloud {
-		transformers = append(transformers, allSystemTransformers...)
+		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
+			Transformers: allSystemTransformers,
+		}), nil
 	} else {
-		transformers = append(transformers, baseSystemTransformers...)
+		return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
+			Transformers: baseSystemTransformers,
+		}), nil
 	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-		Transformers: transformers,
-	}), nil
 }
 
 func (s *Service) GetSystemTransformerBySource(
