@@ -3,34 +3,33 @@ package integrationtest
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
-	"github.com/stretchr/testify/suite"
 	"golang.org/x/sync/errgroup"
 )
 
 type IntegrationTestSuite struct {
-	suite.Suite
-
-	ctx context.Context
-
 	neosyncApi *tcneosyncapi.NeosyncApiTestClient
-
-	postgres *tcpostgres.PostgresTestContainer
+	postgres   *tcpostgres.PostgresTestContainer
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
-	fmt.Println("HERE")
-	s.ctx = context.Background()
+func newCliIntegrationTest(ctx context.Context, t *testing.T) *IntegrationTestSuite {
+	suite := &IntegrationTestSuite{}
+	suite.SetupSuite(ctx, t)
+	return suite
+}
 
+func (s *IntegrationTestSuite) SetupSuite(ctx context.Context, t *testing.T) {
 	var neosyncApiTest *tcneosyncapi.NeosyncApiTestClient
 	var postgresTest *tcpostgres.PostgresTestContainer
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
-		p, err := tcpostgres.NewPostgresTestContainer(s.ctx)
+		p, err := tcpostgres.NewPostgresTestContainer(ctx)
 		if err != nil {
 			return err
 		}
@@ -39,7 +38,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	})
 
 	errgrp.Go(func() error {
-		api := tcneosyncapi.NewNeosyncApiTestClient(s.ctx)
+		api := tcneosyncapi.NewNeosyncApiTestClient(ctx, t)
 		neosyncApiTest = api
 		return nil
 	})
@@ -53,25 +52,23 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.neosyncApi = neosyncApiTest
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
-	s.T().Log("tearing down test suite")
-	err := s.postgres.TearDown(s.ctx)
+func (s *IntegrationTestSuite) TearDownSuite(ctx context.Context) {
+	err := s.postgres.TearDown(ctx)
 	if err != nil {
 		panic(err)
 	}
-	err = s.neosyncApi.TearDown()
+	err = s.neosyncApi.TearDown(ctx)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	t.Log("Running integration tests")
-	// evkey := "INTEGRATION_TESTS_ENABLED"
-	// shouldRun := os.Getenv(evkey)
-	// if shouldRun != "1" {
-	// 	slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
-	// 	return
-	// }
-	suite.Run(t, new(IntegrationTestSuite))
+func shouldRun() bool {
+	evkey := "INTEGRATION_TESTS_ENABLED"
+	shouldRun := os.Getenv(evkey)
+	if shouldRun != "1" {
+		slog.Warn(fmt.Sprintf("skipping integration tests, set %s=1 to enable", evkey))
+		return false
+	}
+	return true
 }

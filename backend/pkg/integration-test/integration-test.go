@@ -2,6 +2,8 @@ package integrationtests_test
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -35,9 +37,9 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/internal/aws"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	neomigrate "github.com/nucleuscloud/neosync/internal/migrate"
 	promapiv1mock "github.com/nucleuscloud/neosync/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
-	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -62,19 +64,20 @@ type NeosyncApiTestClient struct {
 	apiIntegrationTestSuite *ApiIntegrationTestSuite
 }
 
-func NewNeosyncApiTestClient(ctx context.Context) *NeosyncApiTestClient {
-	t := &ApiIntegrationTestSuite{}
-	t.SetupSuite(ctx)
+func NewNeosyncApiTestClient(ctx context.Context, t *testing.T) *NeosyncApiTestClient {
+	a := &ApiIntegrationTestSuite{}
+	a.SetupSuite(ctx, t)
 	return &NeosyncApiTestClient{
-		UnathdClients:           t.unauthdClients,
-		AuthdClients:            t.authdClients,
-		NeosyncCloudClients:     t.neosyncCloudClients,
-		apiIntegrationTestSuite: t,
+		UnathdClients:       a.unauthdClients,
+		AuthdClients:        a.authdClients,
+		NeosyncCloudClients: a.neosyncCloudClients,
+
+		apiIntegrationTestSuite: a,
 	}
 }
 
-func (n *NeosyncApiTestClient) TearDown() error {
-	return n.apiIntegrationTestSuite.TearDownSuite()
+func (n *NeosyncApiTestClient) TearDown(ctx context.Context) error {
+	return n.apiIntegrationTestSuite.TearDownSuite(ctx)
 }
 
 type NeosyncCloudClients struct {
@@ -86,12 +89,20 @@ func (s *NeosyncCloudClients) GetUserClient(authUserId string) mgmtv1alpha1conne
 	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
 }
 
+func (s *NeosyncCloudClients) GetConnectionClient(authUserId string) mgmtv1alpha1connect.ConnectionServiceClient {
+	return mgmtv1alpha1connect.NewConnectionServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+s.basepath)
+}
+
 type AuthdClients struct {
 	httpsrv *httptest.Server
 }
 
 func (s *AuthdClients) GetUserClient(authUserId string) mgmtv1alpha1connect.UserAccountServiceClient {
 	return mgmtv1alpha1connect.NewUserAccountServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
+}
+
+func (s *AuthdClients) GetConnectionClient(authUserId string) mgmtv1alpha1connect.ConnectionServiceClient {
+	return mgmtv1alpha1connect.NewConnectionServiceClient(http_client.WithBearerAuth(&http.Client{}, &authUserId), s.httpsrv.URL+"/auth")
 }
 
 type mocks struct {
@@ -103,13 +114,9 @@ type mocks struct {
 }
 
 type ApiIntegrationTestSuite struct {
-	suite.Suite
-
 	pgpool         *pgxpool.Pool
 	neosyncQuerier db_queries.Querier
 	systemQuerier  pg_queries.Querier
-
-	ctx context.Context
 
 	pgcontainer   *testpg.PostgresContainer
 	connstr       string
@@ -124,11 +131,9 @@ type ApiIntegrationTestSuite struct {
 	mocks *mocks
 }
 
-func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
-	s.ctx = ctx
-
+func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context, t *testing.T) {
 	pgcontainer, err := testpg.Run(
-		s.ctx,
+		ctx,
 		"postgres:15",
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
@@ -139,27 +144,28 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		panic(err)
 	}
 	s.pgcontainer = pgcontainer
-	connstr, err := pgcontainer.ConnectionString(s.ctx, "sslmode=disable")
+	connstr, err := pgcontainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
 	s.connstr = connstr
 
-	pool, err := pgxpool.New(s.ctx, connstr)
+	pool, err := pgxpool.New(ctx, connstr)
 	if err != nil {
 		panic(err)
 	}
 	s.pgpool = pool
 	s.neosyncQuerier = db_queries.New()
 	s.systemQuerier = pg_queries.New()
-	s.migrationsDir = "../../../../sql/postgresql/schema"
+	// TODO fix this or have it passed in
+	s.migrationsDir = "../../../../../backend/sql/postgresql/schema"
 
 	s.mocks = &mocks{
-		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(s.T()),
-		authclient:            auth_client.NewMockInterface(s.T()),
-		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
-		prometheusclient:      promapiv1mock.NewMockAPI(s.T()),
-		billingclient:         billing.NewMockInterface(s.T()),
+		temporalClientManager: clientmanager.NewMockTemporalClientManagerClient(t),
+		authclient:            auth_client.NewMockInterface(t),
+		authmanagerclient:     authmgmt.NewMockInterface(t),
+		prometheusclient:      promapiv1mock.NewMockAPI(t),
+		billingclient:         billing.NewMockInterface(t),
 	}
 
 	maxAllowed := int64(10000)
@@ -183,6 +189,18 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		nil,
 	)
 
+	authdConnectionService := v1alpha1_connectionservice.New(
+		&v1alpha1_connectionservice.Config{},
+		neosyncdb.New(pool, db_queries.New()),
+		authdUserService,
+		&sqlconnect.SqlOpenConnector{},
+		pg_queries.New(),
+		mysql_queries.New(),
+		mssql_queries.New(),
+		mongoconnect.NewConnector(),
+		awsmanager.New(),
+	)
+
 	neoCloudAuthdUserService := v1alpha1_useraccountservice.New(
 		&v1alpha1_useraccountservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true},
 		neosyncdb.New(pool, db_queries.New()),
@@ -199,6 +217,18 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		nil, // presidio
 		nil, // presidio
 		neosyncdb.New(pool, db_queries.New()),
+	)
+
+	neoCloudConnectionService := v1alpha1_connectionservice.New(
+		&v1alpha1_connectionservice.Config{},
+		neosyncdb.New(pool, db_queries.New()),
+		neoCloudAuthdUserService,
+		&sqlconnect.SqlOpenConnector{},
+		pg_queries.New(),
+		mysql_queries.New(),
+		mssql_queries.New(),
+		mongoconnect.NewConnector(),
+		awsmanager.New(),
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
@@ -218,6 +248,7 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		mongoconnect.NewConnector(),
 		awsmanager.New(),
 	)
+
 	unauthdJobsService := v1alpha1_jobservice.New(
 		&v1alpha1_jobservice.Config{},
 		neosyncdb.New(pool, db_queries.New()),
@@ -290,6 +321,10 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		authdUserService,
 		authinterceptors,
 	))
+	authmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(
+		authdConnectionService,
+		authinterceptors,
+	))
 	rootmux.Handle("/auth/", http.StripPrefix("/auth", authmux))
 
 	ncauthmux := http.NewServeMux()
@@ -301,9 +336,13 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		neoCloudAuthdAnonymizeService,
 		authinterceptors,
 	))
+	ncauthmux.Handle(mgmtv1alpha1connect.NewConnectionServiceHandler(
+		neoCloudConnectionService,
+		authinterceptors,
+	))
 	rootmux.Handle("/ncauth/", http.StripPrefix("/ncauth", ncauthmux))
 
-	s.httpsrv = startHTTPServer(s.T(), rootmux)
+	s.httpsrv = startHTTPServer(t, rootmux)
 
 	s.unauthdClients = &UnauthdClients{
 		Users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
@@ -320,14 +359,20 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context) {
 		httpsrv:  s.httpsrv,
 		basepath: "/ncauth",
 	}
+
+	discardLogger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
+	err = neomigrate.Up(ctx, s.connstr, s.migrationsDir, discardLogger)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func (s *ApiIntegrationTestSuite) TearDownSuite() error {
-	_, err := s.pgpool.Exec(s.ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
+func (s *ApiIntegrationTestSuite) TearDownSuite(ctx context.Context) error {
+	_, err := s.pgpool.Exec(ctx, "DROP SCHEMA IF EXISTS neosync_api CASCADE")
 	if err != nil {
 		return err
 	}
-	_, err = s.pgpool.Exec(s.ctx, "DROP TABLE IF EXISTS public.schema_migrations")
+	_, err = s.pgpool.Exec(ctx, "DROP TABLE IF EXISTS public.schema_migrations")
 	if err != nil {
 		return err
 	}
@@ -335,7 +380,7 @@ func (s *ApiIntegrationTestSuite) TearDownSuite() error {
 		s.pgpool.Close()
 	}
 	if s.pgcontainer != nil {
-		err := s.pgcontainer.Terminate(s.ctx)
+		err := s.pgcontainer.Terminate(ctx)
 		if err != nil {
 			return err
 		}

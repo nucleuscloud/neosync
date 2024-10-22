@@ -4,18 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"connectrpc.com/connect"
+	charmlog "github.com/charmbracelet/log"
 	"github.com/fatih/color"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 )
@@ -47,10 +45,19 @@ func listConnections(
 	ctx context.Context,
 	apiKey, accountIdFlag *string,
 ) error {
-	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
-	if err != nil {
-		return err
-	}
+	// httpclient := http_client.NewWithHeaders(version.Get().Headers())
+	// isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+	logLevel := charmlog.InfoLevel
+	// if cmd.Debug {
+	// 	logLevel = charmlog.DebugLevel
+	// }
+	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+		ReportTimestamp: true,
+		Level:           logLevel,
+	})
 
 	var accountId = accountIdFlag
 	if accountId == nil || *accountId == "" {
@@ -66,24 +73,45 @@ func listConnections(
 		return errors.New("Account Id not found. Please use account switch command to set account.")
 	}
 
-	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		http_client.NewWithHeaders(version.Get().Headers()),
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
-	)
-	res, err := connectionclient.GetConnections(ctx, connect.NewRequest[mgmtv1alpha1.GetConnectionsRequest](&mgmtv1alpha1.GetConnectionsRequest{
-		AccountId: *accountId,
-	}))
+	connectInterceptors := []connect.Interceptor{}
+	neosyncurl := auth.GetNeosyncUrl()
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
+	if err != nil {
+		return err
+	}
+	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
+	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+
+	// connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
+	// 	httpclient,
+	// 	serverconfig.GetApiBaseUrl(),
+	// 	connect.WithInterceptors(
+	// 		auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+	// 	),
+	// )
+	connections, err := GetConnections(ctx, connectionclient, *accountId)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println() //nolint:forbidigo
-	printConnectionsTable(res.Msg.Connections)
+	printConnectionsTable(connections)
 	fmt.Println() //nolint:forbidigo
 	return nil
+}
+
+func GetConnections(
+	ctx context.Context,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	accountId string,
+) ([]*mgmtv1alpha1.Connection, error) {
+	res, err := connectionclient.GetConnections(ctx, connect.NewRequest[mgmtv1alpha1.GetConnectionsRequest](&mgmtv1alpha1.GetConnectionsRequest{
+		AccountId: accountId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return res.Msg.GetConnections(), nil
 }
 
 func printConnectionsTable(
