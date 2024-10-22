@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testcontainers/postgres"
 	"github.com/stretchr/testify/suite"
 )
@@ -44,7 +45,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 	s.pgcontainer = pgcontainer
 
-	db, err := sql.Open("pgx", s.pgcontainer.URL)
+	db, err := sql.Open(sqlmanager_shared.PostgresDriver, s.pgcontainer.URL)
 	if err != nil {
 		panic(err)
 	}

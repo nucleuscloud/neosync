@@ -11,7 +11,58 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	testpg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/sync/errgroup"
 )
+
+type PostgresTestSyncContainer struct {
+	Source *PostgresTestContainer
+	Target *PostgresTestContainer
+}
+
+func NewPostgresTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*PostgresTestSyncContainer, error) {
+	tc := &PostgresTestSyncContainer{}
+	errgrp := errgroup.Group{}
+	errgrp.Go(func() error {
+		p, err := NewPostgresTestContainer(ctx, sourceOpts...)
+		if err != nil {
+			return err
+		}
+		tc.Source = p
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		p, err := NewPostgresTestContainer(ctx, destOpts...)
+		if err != nil {
+			return err
+		}
+		tc.Target = p
+		return nil
+	})
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return tc, nil
+}
+
+func (p *PostgresTestSyncContainer) TearDown(ctx context.Context) error {
+	if p.Source != nil {
+		err := p.Source.TearDown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	if p.Target != nil {
+		err := p.Target.TearDown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // Holds the PostgreSQL test container and connection pool.
 type PostgresTestContainer struct {
@@ -65,7 +116,9 @@ func (p *PostgresTestContainer) Setup(ctx context.Context) (*PostgresTestContain
 	pgContainer, err := postgres.Run(
 		ctx,
 		"postgres:15",
-		postgres.WithDatabase("postgres"),
+		postgres.WithDatabase(p.database),
+		postgres.WithUsername(p.username),
+		postgres.WithPassword(p.password),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(20*time.Second),

@@ -8,15 +8,67 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
 	testmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/sync/errgroup"
 )
+
+type MysqlTestSyncContainer struct {
+	Source *MysqlTestContainer
+	Target *MysqlTestContainer
+}
+
+func NewMysqlTestSyncContainer(ctx context.Context, sourceOpts, destOpts []Option) (*MysqlTestSyncContainer, error) {
+	tc := &MysqlTestSyncContainer{}
+	errgrp := errgroup.Group{}
+	errgrp.Go(func() error {
+		m, err := NewMysqlTestContainer(ctx, sourceOpts...)
+		if err != nil {
+			return err
+		}
+		tc.Source = m
+		return nil
+	})
+
+	errgrp.Go(func() error {
+		m, err := NewMysqlTestContainer(ctx, destOpts...)
+		if err != nil {
+			return err
+		}
+		tc.Target = m
+		return nil
+	})
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return tc, nil
+}
+
+func (m *MysqlTestSyncContainer) TearDown(ctx context.Context) error {
+	if m.Source != nil {
+		err := m.Source.TearDown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	if m.Target != nil {
+		err := m.Target.TearDown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // Holds the MySQL test container and connection pool.
 type MysqlTestContainer struct {
-	Pool          *sql.DB
+	DB            *sql.DB
 	URL           string
 	TestContainer *testmysql.MySQLContainer
 	database      string
@@ -82,22 +134,33 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 		return nil, err
 	}
 
-	pool, err := sql.Open("mysql", connStr)
+	db, err := sql.Open(sqlmanager_shared.MysqlDriver, connStr)
 	if err != nil {
 		return nil, err
 	}
 
+	containerPort, err := mysqlContainer.MappedPort(ctx, "3306/tcp")
+	if err != nil {
+		return nil, err
+	}
+	containerHost, err := mysqlContainer.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true&parseTime=true", m.username, m.password, containerHost, containerPort.Port(), m.database)
+
 	return &MysqlTestContainer{
-		Pool:          pool,
-		URL:           connStr,
+		DB:            db,
+		URL:           connUrl,
 		TestContainer: mysqlContainer,
 	}, nil
 }
 
 // Closes the connection pool and terminates the container.
 func (m *MysqlTestContainer) TearDown(ctx context.Context) error {
-	if m.Pool != nil {
-		m.Pool.Close()
+	if m.DB != nil {
+		m.DB.Close()
 	}
 
 	if m.TestContainer != nil {
@@ -111,13 +174,17 @@ func (m *MysqlTestContainer) TearDown(ctx context.Context) error {
 }
 
 // Executes SQL files within the test container
-func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, testFolder string, files []string) error {
+func (m *MysqlTestContainer) RunSqlFiles(ctx context.Context, folder *string, files []string) error {
 	for _, file := range files {
-		sqlStr, err := os.ReadFile(fmt.Sprintf("./testdata/%s/%s", testFolder, file))
+		filePath := file
+		if folder != nil && *folder != "" {
+			filePath = fmt.Sprintf("./%s/%s", *folder, file)
+		}
+		sqlStr, err := os.ReadFile(filePath)
 		if err != nil {
 			return err
 		}
-		_, err = m.Pool.ExecContext(ctx, string(sqlStr))
+		_, err = m.DB.ExecContext(ctx, string(sqlStr))
 		if err != nil {
 			return fmt.Errorf("unable to exec SQL when running MySQL SQL files: %w", err)
 		}

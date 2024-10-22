@@ -87,11 +87,9 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
-					// s.RunPostgresSqlFiles(s.postgres.source.pool, tt.Folder, tt.SourceFilePaths)
-					// s.RunPostgresSqlFiles(s.postgres.target.pool, tt.Folder, tt.TargetFilePaths)
-					err := s.postgres.source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
+					err := s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, tt.SourceFilePaths)
 					require.NoError(t, err)
-					err = s.postgres.target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, tt.TargetFilePaths)
 					require.NoError(t, err)
 
 					schemas := []*mgmtv1alpha1.PostgresSourceSchemaOption{}
@@ -183,7 +181,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-														Url: s.postgres.source.URL,
+														Url: s.postgres.Source.URL,
 													},
 												},
 											},
@@ -200,7 +198,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 											Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 												PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-														Url: s.postgres.target.URL,
+														Url: s.postgres.Target.URL,
 													},
 												},
 											},
@@ -224,7 +222,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
 
 					for table, expected := range tt.Expected {
-						rows, err := s.postgres.target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
+						rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s;", table))
 						require.NoError(t, err)
 						count := 0
 						for rows.Next() {
@@ -234,12 +232,12 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Postgres() {
 					}
 
 					// tear down
-					err = s.postgres.source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					err = s.postgres.Source.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
 					require.NoError(t, err)
-					err = s.postgres.target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
+					err = s.postgres.Target.RunSqlFiles(s.ctx, &tt.Folder, []string{"teardown.sql"})
 					require.NoError(t, err)
-					// s.RunPostgresSqlFiles(s.postgres.source.DB, tt.Folder, []string{"teardown.sql"})
-					// s.RunPostgresSqlFiles(s.postgres.target.DB, tt.Folder, []string{"teardown.sql"})
+					// s.RunPostgresSqlFiles(s.postgres.Source.DB, tt.Folder, []string{"teardown.sql"})
+					// s.RunPostgresSqlFiles(s.postgres.Target.DB, tt.Folder, []string{"teardown.sql"})
 				})
 			}
 		})
@@ -457,8 +455,8 @@ func toRunContextKeyString(id *mgmtv1alpha1.RunContextKey) string {
 func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 	testFolder := "postgres/virtual-foreign-keys"
 	// setup
-	// s.RunPostgresSqlFiles(s.postgres.source.DB, testFolder, []string{"source-setup.sql"})
-	s.RunPostgresSqlFiles(s.postgres.target.DB, testFolder, []string{"target-setup.sql"})
+	// s.RunPostgresSqlFiles(s.postgres.Source.DB, testFolder, []string{"source-setup.sql"})
+	s.RunPostgresSqlFiles(s.postgres.Target.DB, testFolder, []string{"target-setup.sql"})
 
 	virtualForeignKeys := testdata_virtualforeignkeys.GetVirtualForeignKeys()
 	jobmappings := testdata_virtualforeignkeys.GetDefaultSyncJobMappings()
@@ -523,7 +521,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.source.URL,
+										Url: s.postgres.Source.URL,
 									},
 								},
 							},
@@ -540,7 +538,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.target.URL,
+										Url: s.postgres.Target.URL,
 									},
 								},
 							},
@@ -562,7 +560,7 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 
 	tables := []string{"regions", "countries", "locations", "departments", "dependents", "jobs", "employees"}
 	for _, t := range tables {
-		rows, err := s.postgres.target.DB.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
+		rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from vfk_hr.%s;", t))
 		require.NoError(s.T(), err)
 		count := 0
 		for rows.Next() {
@@ -572,38 +570,36 @@ func (s *IntegrationTestSuite) Test_Workflow_VirtualForeignKeys_Transform() {
 		require.NoError(s.T(), err)
 	}
 
-	rows := s.postgres.source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows := s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	var rowCount int
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
+	rows = s.postgres.Source.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
-	rows = s.postgres.target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'US';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 0, rowCount)
 
-	rows = s.postgres.target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.countries where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, rowCount)
 
-	rows = s.postgres.target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
+	rows = s.postgres.Target.DB.QueryRow(s.ctx, "select count(*) from vfk_hr.locations where country_id = 'SU';")
 	err = rows.Scan(&rowCount)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), 3, rowCount)
 
 	// tear down
-	// s.RunPostgresSqlFiles(s.postgres.source.pool, testFolder, []string{"teardown.sql"})
-	// s.RunPostgresSqlFiles(s.postgres.target.pool, testFolder, []string{"teardown.sql"})
-	err = s.postgres.source.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	err = s.postgres.Source.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
 	require.NoError(s.T(), err)
-	err = s.postgres.target.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
+	err = s.postgres.Target.RunSqlFiles(s.ctx, &testFolder, []string{"teardown.sql"})
 	require.NoError(s.T(), err)
 }
 
@@ -630,8 +626,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 				t.Run(tt.Name, func(t *testing.T) {
 					t.Logf("running integration test: %s \n", tt.Name)
 					// setup
-					s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, tt.SourceFilePaths)
-					s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, tt.TargetFilePaths)
+					s.RunMysqlSqlFiles(s.mysql.Source.DB, tt.Folder, tt.SourceFilePaths)
+					s.RunMysqlSqlFiles(s.mysql.Target.DB, tt.Folder, tt.TargetFilePaths)
 
 					schemas := []*mgmtv1alpha1.MysqlSourceSchemaOption{}
 					subsetMap := map[string]*mgmtv1alpha1.MysqlSourceSchemaOption{}
@@ -722,7 +718,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-														Url: s.mysql.source.url,
+														Url: s.mysql.Source.URL,
 													},
 												},
 											},
@@ -739,7 +735,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 											Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
 												MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 													ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-														Url: s.mysql.target.url,
+														Url: s.mysql.Target.URL,
 													},
 												},
 											},
@@ -762,7 +758,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					require.NoError(t, err, "Received Temporal Workflow Error", "testName", tt.Name)
 
 					for table, expected := range tt.Expected {
-						rows, err := s.mysql.target.pool.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
+						rows, err := s.mysql.Target.DB.QueryContext(s.ctx, fmt.Sprintf("select * from %s;", table))
 						require.NoError(t, err)
 						count := 0
 						for rows.Next() {
@@ -772,8 +768,8 @@ func (s *IntegrationTestSuite) Test_Workflow_Sync_Mysql() {
 					}
 
 					// tear down
-					s.RunMysqlSqlFiles(s.mysql.source.pool, tt.Folder, []string{"teardown.sql"})
-					s.RunMysqlSqlFiles(s.mysql.target.pool, tt.Folder, []string{"teardown.sql"})
+					s.RunMysqlSqlFiles(s.mysql.Source.DB, tt.Folder, []string{"teardown.sql"})
+					s.RunMysqlSqlFiles(s.mysql.Target.DB, tt.Folder, []string{"teardown.sql"})
 				})
 			}
 		})
@@ -1399,7 +1395,7 @@ func getAllMongoDBSyncTests() map[string][]*workflow_testdata.IntegrationTest {
 func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	// setup
 	testName := "Generate Job"
-	s.RunPostgresSqlFiles(s.postgres.target.DB, "generate-job", []string{"setup.sql"})
+	s.RunPostgresSqlFiles(s.postgres.Target.DB, "generate-job", []string{"setup.sql"})
 
 	connectionId := "226add85-5751-4232-b085-a0ae93afc7ce"
 	schema := "generate_job"
@@ -1479,7 +1475,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 							Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 								PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 									ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-										Url: s.postgres.target.URL,
+										Url: s.postgres.Target.URL,
 									},
 								},
 							},
@@ -1498,7 +1494,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	err := env.GetWorkflowError()
 	require.NoError(s.T(), err, "Received Temporal Workflow Error", "testName", testName)
 
-	rows, err := s.postgres.target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
+	rows, err := s.postgres.Target.DB.Query(s.ctx, fmt.Sprintf("select * from %s.%s;", schema, table))
 	require.NoError(s.T(), err)
 	count := 0
 	for rows.Next() {
@@ -1507,7 +1503,7 @@ func (s *IntegrationTestSuite) Test_Workflow_Generate() {
 	require.Equalf(s.T(), 10, count, fmt.Sprintf("Test: %s Table: %s", testName, table))
 
 	// tear down
-	s.RunPostgresSqlFiles(s.postgres.target.DB, "generate-job", []string{"teardown.sql"})
+	s.RunPostgresSqlFiles(s.postgres.Target.DB, "generate-job", []string{"teardown.sql"})
 }
 
 func executeWorkflow(
