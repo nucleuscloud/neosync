@@ -47,3 +47,4 @@ jobs:
         with:
           attestations: true
           packages-dir: python/dist/
+          verbose: true
