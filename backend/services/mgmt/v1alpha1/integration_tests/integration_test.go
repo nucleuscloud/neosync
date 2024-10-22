@@ -82,6 +82,13 @@ type mocks struct {
 	authmanagerclient     *authmgmt.MockInterface
 	prometheusclient      *promapiv1mock.MockAPI
 	billingclient         *billing.MockInterface
+	presidio              presidiomocks
+}
+
+type presidiomocks struct {
+	analyzer   *presidioapi.MockAnalyzeInterface
+	anonymizer *presidioapi.MockAnonymizeInterface
+	recognizer *presidioapi.MockRecognizerInterface
 }
 
 type IntegrationTestSuite struct {
@@ -142,6 +149,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		authmanagerclient:     authmgmt.NewMockInterface(s.T()),
 		prometheusclient:      promapiv1mock.NewMockAPI(s.T()),
 		billingclient:         billing.NewMockInterface(s.T()),
+		presidio: presidiomocks{
+			analyzer:   presidioapi.NewMockAnalyzeInterface(s.T()),
+			anonymizer: presidioapi.NewMockAnonymizeInterface(s.T()),
+			recognizer: presidioapi.NewMockRecognizerInterface(s.T()),
+		},
 	}
 
 	maxAllowed := int64(10000)
@@ -178,16 +190,16 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		&v1alpha_anonymizationservice.Config{IsAuthEnabled: true, IsNeosyncCloud: true, IsPresidioEnabled: false},
 		nil,
 		neoCloudAuthdUserService,
-		nil, // presidio
-		nil, // presidio
+		s.mocks.presidio.analyzer,
+		s.mocks.presidio.anonymizer,
 		neosyncdb.New(pool, db_queries.New()),
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
-		&v1alpha1_transformersservice.Config{IsPresidioEnabled: false, IsNeosyncCloud: false},
+		&v1alpha1_transformersservice.Config{IsPresidioEnabled: true, IsNeosyncCloud: false},
 		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
-		nil,
+		s.mocks.presidio.recognizer,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(

@@ -26,6 +26,11 @@ func (s *Service) GetTransformPiiRecognizers(
 	if s.recognizerclient == nil {
 		return nil, nucleuserrors.NewInternalError("recognizer service is enabled but client was nil.")
 	}
+	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := s.recognizerclient.GetRecognizersWithResponse(ctx, &presidioapi.GetRecognizersParams{
 		Language: &enLanguage,
 	})
