@@ -574,7 +574,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 	return nil
 }
 
-func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.Logger) error {
+func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -605,7 +605,15 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 		}
 	}()
 
+	split := strings.Split(cfg.Name, ".")
+	var runType string
+	if len(split) != 0 {
+		runType = split[len(split)-1]
+	}
 	streambldr := env.NewStreamBuilder()
+	if outputType == output.PlainOutput {
+		streambldr.SetPrintLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType).StandardLog())
+	}
 
 	err = streambldr.SetYAML(string(configbits))
 	if err != nil {
