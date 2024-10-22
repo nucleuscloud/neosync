@@ -115,3 +115,4 @@ packages:
     interfaces:
       AnalyzeInterface:
       AnonymizeInterface:
+      RecognizerInterface:
