@@ -36,6 +36,7 @@ type model struct {
 	spinner          spinner.Model
 	done             bool
 	totalConfigCount int
+	outputType       output.OutputType
 }
 
 var (
@@ -49,7 +50,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) *model {
+func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -59,6 +60,7 @@ func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, lo
 		spinner:          s,
 		totalConfigCount: getConfigCount(groupedConfigs),
 		logger:           logger,
+		outputType:       outputType,
 	}
 }
 
@@ -143,7 +145,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 			errgrp.Go(func() error {
 				start := time.Now()
 				m.logger.Infof("Syncing table %s", cfg.Name)
-				err := syncData(errctx, cfg, m.logger)
+				err := syncData(errctx, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
@@ -198,7 +200,7 @@ func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [
 		// TUI mode, discard log output
 		logger.SetOutput(io.Discard)
 	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger, outputType), opts...).Run(); err != nil {
 		logger.Error("Error syncing data:", err)
 		os.Exit(1)
 	}
