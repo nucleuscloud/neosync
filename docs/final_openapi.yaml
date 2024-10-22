@@ -1,7 +1,6 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
   title: mgmt.v1alpha1
-  version: '1'
 tags:
   - name: mgmt.v1alpha1.AnonymizationService
     x-displayName: mgmt.v1alpha1.AnonymizationService
@@ -10776,7 +10775,7 @@ components:
         accountId:
           type: string
           title: account_id
-          description: "@deprecated - an account isn't required to validate js code"
+          description: '@deprecated - an account isn''t required to validate js code'
         code:
           type: string
           title: code
@@ -10797,7 +10796,7 @@ components:
         accountId:
           type: string
           title: account_id
-          description: "@deprecated - an account isn't required to validate js code"
+          description: '@deprecated - an account isn''t required to validate js code'
         userProvidedRegex:
           type: string
           title: user_provided_regex
