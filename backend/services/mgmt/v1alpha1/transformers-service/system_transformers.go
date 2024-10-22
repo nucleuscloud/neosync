@@ -10,7 +10,6 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	ee_transformers "github.com/nucleuscloud/neosync/internal/ee/transformers"
 	"github.com/nucleuscloud/neosync/internal/gotypeutil"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -18,7 +17,8 @@ var (
 
 	defaultInvalidEmailAction = mgmtv1alpha1.InvalidEmailAction_INVALID_EMAIL_ACTION_REJECT
 
-	systemTransformers = []*mgmtv1alpha1.SystemTransformer{
+	// base transformers
+	baseSystemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
 
 			Name:              "Generate Email",
@@ -628,21 +628,31 @@ var (
 		},
 	}
 
-	systemTransformerSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
+	// base transformers + ee transformers
+	allSystemTransformers = []*mgmtv1alpha1.SystemTransformer{}
+
+	baseSystemTransformerSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
+
+	allSystemTransformersSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}
 )
 
 func init() {
-	if viper.GetBool("NEOSYNC_CLOUD") {
-		systemTransformers = append(systemTransformers, ee_transformers.Transformers...)
-	}
+	allSystemTransformers = append(allSystemTransformers, baseSystemTransformers...)
+	allSystemTransformers = append(allSystemTransformers, ee_transformers.Transformers...)
 
-	slices.SortFunc(systemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
+	slices.SortFunc(baseSystemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
+		return cmp.Compare(t1.Name, t2.Name)
+	})
+	slices.SortFunc(allSystemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
 		return cmp.Compare(t1.Name, t2.Name)
 	})
 
 	// hydrate the system transformer map when the system boots up
-	for _, transformer := range systemTransformers {
-		systemTransformerSourceMap[transformer.Source] = transformer
+	for _, transformer := range baseSystemTransformers {
+		baseSystemTransformerSourceMap[transformer.Source] = transformer
+	}
+	for _, transformer := range allSystemTransformers {
+		allSystemTransformersSourceMap[transformer.Source] = transformer
 	}
 }
 
@@ -650,8 +660,15 @@ func (s *Service) GetSystemTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
+	transformers := []*mgmtv1alpha1.SystemTransformer{}
+	if s.cfg.IsNeosyncCloud {
+		transformers = append(transformers, allSystemTransformers...)
+	} else {
+		transformers = append(transformers, baseSystemTransformers...)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-		Transformers: systemTransformers,
+		Transformers: transformers,
 	}), nil
 }
 
@@ -659,7 +676,14 @@ func (s *Service) GetSystemTransformerBySource(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error) {
-	transformer, ok := systemTransformerSourceMap[req.Msg.Source]
+	var transformerMap map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer
+	if s.cfg.IsNeosyncCloud {
+		transformerMap = allSystemTransformersSourceMap
+	} else {
+		transformerMap = baseSystemTransformerSourceMap
+	}
+
+	transformer, ok := transformerMap[req.Msg.GetSource()]
 	if !ok {
 		return nil, nucleuserrors.NewNotFound("unable to find system transformer with provided source")
 	}

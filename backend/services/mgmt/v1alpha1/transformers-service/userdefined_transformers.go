@@ -33,7 +33,7 @@ func (s *Service) GetUserDefinedTransformers(
 	dtoTransformers := []*mgmtv1alpha1.UserDefinedTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
-		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
+		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, baseSystemTransformerSourceMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
 		}
@@ -66,7 +66,7 @@ func (s *Service) GetUserDefinedTransformerById(
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, baseSystemTransformerSourceMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(transformer.ID), transformer.Source)
 	}
@@ -107,7 +107,7 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, systemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, baseSystemTransformerSourceMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(ct.ID), ct.Source)
 	}
@@ -188,7 +188,7 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, systemTransformerSourceMap)
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, baseSystemTransformerSourceMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", neosyncdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source)
 	}

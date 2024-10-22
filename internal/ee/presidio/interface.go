@@ -1,6 +1,8 @@
 package presidioapi
 
-import "context"
+import (
+	"context"
+)
 
 // Slimmed down Presidio Analyze Interface for use in Neosync systems
 type AnalyzeInterface interface {
@@ -12,7 +14,7 @@ type AnonymizeInterface interface {
 	PostAnonymizeWithResponse(ctx context.Context, body PostAnonymizeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostAnonymizeResponse, error)
 }
 
-type PresidioClientInterface interface {
-	AnalyzeInterface
-	AnonymizeInterface
+// Slimmed down Presidio Recognizer Interface for use in Neosync systems
+type RecognizerInterface interface {
+	GetRecognizers(ctx context.Context, params *GetRecognizersParams, reqEditors ...RequestEditorFn) (*GetRecognizersResponse, error)
 }
