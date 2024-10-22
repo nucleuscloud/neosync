@@ -10775,7 +10775,7 @@ components:
         accountId:
           type: string
           title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
+          description: "@deprecated - an account isn't required to validate js code"
         code:
           type: string
           title: code
@@ -10796,7 +10796,7 @@ components:
         accountId:
           type: string
           title: account_id
-          description: '@deprecated - an account isn''t required to validate js code'
+          description: "@deprecated - an account isn't required to validate js code"
         userProvidedRegex:
           type: string
           title: user_provided_regex
