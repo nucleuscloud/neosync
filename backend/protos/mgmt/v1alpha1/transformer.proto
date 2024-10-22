@@ -232,6 +232,15 @@ message TransformPiiText {
 
   // Configure deny lists where each word is treated as PII.
   repeated PiiDenyRecognizer deny_recognizers = 3;
+
+  // Configure a list of recognizers to be used for PII analysis. If not provided or empty, all recognizers are used
+  // If this is specified, any ad-hoc, or deny_recognizers names must also be provided.
+  // To see available builtin recognizers, call the GetPiiTextRecognizers() RPC method to see what is available for your account.
+  repeated string allowed_recognizers = 4 [(buf.validate.field).repeated = {
+    items: {
+      string: {min_len: 1}
+    }
+  }];
 }
 
 message PiiDenyRecognizer {
@@ -490,6 +499,15 @@ message GenerateCountry {
   optional bool generate_full_name = 1;
 }
 
+message GetTransformPiiRecognizersRequest {
+  // The unique identifier of the account to return recognizers for.
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetTransformPiiRecognizersResponse {
+  // The list of built-in recognizers that are enabled for the provided account id.
+  repeated string recognizers = 1;
+}
+
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
   rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {}
@@ -501,4 +519,9 @@ service TransformersService {
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
   rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
   rpc ValidateUserRegexCode(ValidateUserRegexCodeRequest) returns (ValidateUserRegexCodeResponse) {}
+
+  // Retrieve a list of available Pii recognizers for use with the TransformPiiText transformer
+  rpc GetTransformPiiRecognizers(GetTransformPiiRecognizersRequest) returns (GetTransformPiiRecognizersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }

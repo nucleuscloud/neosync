@@ -3,8 +3,8 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse, ValidateUserRegexCodeRequest, ValidateUserRegexCodeResponse } from "./transformer_pb.js";
-import { MethodKind } from "@bufbuild/protobuf";
+import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetTransformPiiRecognizersRequest, GetTransformPiiRecognizersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse, ValidateUserRegexCodeRequest, ValidateUserRegexCodeResponse } from "./transformer_pb.js";
+import { MethodIdempotency, MethodKind } from "@bufbuild/protobuf";
 
 /**
  * @generated from service mgmt.v1alpha1.TransformersService
@@ -101,6 +101,18 @@ export const TransformersService = {
       I: ValidateUserRegexCodeRequest,
       O: ValidateUserRegexCodeResponse,
       kind: MethodKind.Unary,
+    },
+    /**
+     * Retrieve a list of available Pii recognizers for use with the TransformPiiText transformer
+     *
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetTransformPiiRecognizers
+     */
+    getTransformPiiRecognizers: {
+      name: "GetTransformPiiRecognizers",
+      I: GetTransformPiiRecognizersRequest,
+      O: GetTransformPiiRecognizersResponse,
+      kind: MethodKind.Unary,
+      idempotency: MethodIdempotency.NoSideEffects,
     },
   }
 } as const;

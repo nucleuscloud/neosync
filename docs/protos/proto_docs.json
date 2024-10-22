@@ -1215,6 +1215,54 @@
           ]
         },
         {
+          "name": "GetTransformPiiRecognizersRequest",
+          "longName": "GetTransformPiiRecognizersRequest",
+          "fullName": "mgmt.v1alpha1.GetTransformPiiRecognizersRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to return recognizers for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetTransformPiiRecognizersResponse",
+          "longName": "GetTransformPiiRecognizersResponse",
+          "fullName": "mgmt.v1alpha1.GetTransformPiiRecognizersResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "recognizers",
+              "description": "The list of built-in recognizers that are enabled for the provided account id.",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetUserDefinedTransformerByIdRequest",
           "longName": "GetUserDefinedTransformerByIdRequest",
           "fullName": "mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest",
@@ -2068,6 +2116,18 @@
               "type": "PiiDenyRecognizer",
               "longType": "PiiDenyRecognizer",
               "fullType": "mgmt.v1alpha1.PiiDenyRecognizer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "allowed_recognizers",
+              "description": "Configure a list of recognizers to be used for PII analysis. If not provided or empty, all recognizers are used\nIf this is specified, any ad-hoc, or deny_recognizers names must also be provided.\nTo see available builtin recognizers, call the GetPiiTextRecognizers() RPC method to see what is available for your account.",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3126,6 +3186,21 @@
               "responseLongType": "ValidateUserRegexCodeResponse",
               "responseFullType": "mgmt.v1alpha1.ValidateUserRegexCodeResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "GetTransformPiiRecognizers",
+              "description": "Retrieve a list of available Pii recognizers for use with the TransformPiiText transformer",
+              "requestType": "GetTransformPiiRecognizersRequest",
+              "requestLongType": "GetTransformPiiRecognizersRequest",
+              "requestFullType": "mgmt.v1alpha1.GetTransformPiiRecognizersRequest",
+              "requestStreaming": false,
+              "responseType": "GetTransformPiiRecognizersResponse",
+              "responseLongType": "GetTransformPiiRecognizersResponse",
+              "responseFullType": "mgmt.v1alpha1.GetTransformPiiRecognizersResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }

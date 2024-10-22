@@ -64,6 +64,11 @@ class TransformersServiceStub(object):
                 request_serializer=mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeRequest.SerializeToString,
                 response_deserializer=mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeResponse.FromString,
                 _registered_method=True)
+        self.GetTransformPiiRecognizers = channel.unary_unary(
+                '/mgmt.v1alpha1.TransformersService/GetTransformPiiRecognizers',
+                request_serializer=mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersRequest.SerializeToString,
+                response_deserializer=mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersResponse.FromString,
+                _registered_method=True)
 
 
 class TransformersServiceServicer(object):
@@ -129,6 +134,13 @@ class TransformersServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetTransformPiiRecognizers(self, request, context):
+        """Retrieve a list of available Pii recognizers for use with the TransformPiiText transformer
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_TransformersServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -181,6 +193,11 @@ def add_TransformersServiceServicer_to_server(servicer, server):
                     servicer.ValidateUserRegexCode,
                     request_deserializer=mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeRequest.FromString,
                     response_serializer=mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeResponse.SerializeToString,
+            ),
+            'GetTransformPiiRecognizers': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTransformPiiRecognizers,
+                    request_deserializer=mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersRequest.FromString,
+                    response_serializer=mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -453,6 +470,33 @@ class TransformersService(object):
             '/mgmt.v1alpha1.TransformersService/ValidateUserRegexCode',
             mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeRequest.SerializeToString,
             mgmt_dot_v1alpha1_dot_transformer__pb2.ValidateUserRegexCodeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetTransformPiiRecognizers(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/mgmt.v1alpha1.TransformersService/GetTransformPiiRecognizers',
+            mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersRequest.SerializeToString,
+            mgmt_dot_v1alpha1_dot_transformer__pb2.GetTransformPiiRecognizersResponse.FromString,
             options,
             channel_credentials,
             insecure,
