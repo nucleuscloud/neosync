@@ -36,9 +36,6 @@ jobs:
       - py-sdk-build
     permissions:
       id-token: write
-    defaults:
-      run:
-        working-directory: python
     steps:
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
@@ -47,3 +44,6 @@ jobs:
           path: python/dist/
       - name: Publish release distributions to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
+          packages-dir: python/dist/
