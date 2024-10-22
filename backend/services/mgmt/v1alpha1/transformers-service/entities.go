@@ -24,7 +24,7 @@ func (s *Service) GetTransformPiiEntities(
 		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.TransformersServiceGetTransformPiiEntitiesProcedure, "/")))
 	}
 	if s.entityclient == nil {
-		return nil, nucleuserrors.NewInternalError("recognizer service is enabled but client was nil.")
+		return nil, nucleuserrors.NewInternalError("entity service is enabled but client was nil.")
 	}
 	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
 	if err != nil {
@@ -35,10 +35,10 @@ func (s *Service) GetTransformPiiEntities(
 		Language: &enLanguage,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("was unable to retrieve available recognizers: %w", err)
+		return nil, fmt.Errorf("unable to retrieve available entities: %w", err)
 	}
 	if resp.JSON200 == nil {
-		return nil, fmt.Errorf("received non-200 response from recognizer api: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
+		return nil, fmt.Errorf("received non-200 response from entity api: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
 	}
 
 	entities := *resp.JSON200
