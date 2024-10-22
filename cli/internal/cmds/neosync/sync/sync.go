@@ -612,7 +612,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 	}
 	streambldr := env.NewStreamBuilder()
 	if outputType == output.PlainOutput {
-		streambldr.SetPrintLogger(logger.With("Benthos", "true", "Table", cfg.Table, "RunType", runType).StandardLog())
+		streambldr.SetPrintLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType).StandardLog())
 	}
 
 	err = streambldr.SetYAML(string(configbits))
