@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -587,9 +588,9 @@ func InitializeTransformerByConfigType(transformerConfig *mgmtv1alpha1.Transform
 		}, nil
 
 	case *mgmtv1alpha1.TransformerConfig_TransformPiiTextConfig:
-		// if execCfg.transformPiiText == nil {
-		// 	return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
-		// }
+		if execCfg.transformPiiText == nil {
+			return nil, fmt.Errorf("transformer: TransformPiiText is not enabled: %w", errors.ErrUnsupported)
+		}
 		config := transformerConfig.GetTransformPiiTextConfig()
 
 		return &TransformerExecutor{
