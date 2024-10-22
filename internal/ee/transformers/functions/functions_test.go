@@ -80,18 +80,19 @@ func Test_TransformPiiText(t *testing.T) {
 
 func Test_getDefaultAnonymizer(t *testing.T) {
 	t.Run("redact", func(t *testing.T) {
-		actual, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Redact_{
 				Redact: &mgmtv1alpha1.PiiAnonymizer_Redact{},
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, actual)
+		require.True(t, ok)
 	})
 
 	t.Run("replace", func(t *testing.T) {
 		newval := "newval"
-		actual, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Replace_{
 				Replace: &mgmtv1alpha1.PiiAnonymizer_Replace{
 					Value: &newval,
@@ -100,11 +101,12 @@ func Test_getDefaultAnonymizer(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, actual)
+		require.True(t, ok)
 	})
 
 	t.Run("hash", func(t *testing.T) {
 		sha256 := mgmtv1alpha1.PiiAnonymizer_Hash_HASH_TYPE_SHA512
-		actual, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Hash_{
 				Hash: &mgmtv1alpha1.PiiAnonymizer_Hash{
 					Algo: &sha256,
@@ -113,13 +115,14 @@ func Test_getDefaultAnonymizer(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, actual)
+		require.True(t, ok)
 	})
 
 	t.Run("mask", func(t *testing.T) {
 		maskingChar := "*"
 		charsTomask := int32(5)
 		fromend := false
-		actual, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
+		actual, ok, err := getDefaultAnonymizer(&mgmtv1alpha1.PiiAnonymizer{
 			Config: &mgmtv1alpha1.PiiAnonymizer_Mask_{
 				Mask: &mgmtv1alpha1.PiiAnonymizer_Mask{
 					MaskingChar: &maskingChar,
@@ -130,12 +133,14 @@ func Test_getDefaultAnonymizer(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, actual)
+		require.True(t, ok)
 	})
 
 	t.Run("default", func(t *testing.T) {
-		actual, err := getDefaultAnonymizer(nil)
+		actual, ok, err := getDefaultAnonymizer(nil)
 		require.NoError(t, err)
-		require.NotNil(t, actual)
+		require.Nil(t, actual)
+		require.False(t, ok)
 	})
 }
 
