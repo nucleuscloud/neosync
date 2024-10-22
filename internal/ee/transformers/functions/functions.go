@@ -24,11 +24,13 @@ func TransformPiiText(
 	}
 	threshold := float64(config.GetScoreThreshold())
 	adhocRecognizers := buildAdhocRecognizers(config.GetDenyRecognizers())
+	allowedEntities := config.GetAllowedEntities()
 	analyzeResp, err := analyzeClient.PostAnalyzeWithResponse(ctx, presidioapi.AnalyzeRequest{
 		Text:             value,
 		Language:         supportedLanguage,
 		ScoreThreshold:   &threshold,
 		AdHocRecognizers: &adhocRecognizers,
+		Entities:         &allowedEntities,
 	})
 	if err != nil {
 		return "", fmt.Errorf("unable to analyze input: %w", err)

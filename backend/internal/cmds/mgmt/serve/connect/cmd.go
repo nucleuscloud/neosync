@@ -481,18 +481,9 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db, useraccountService)
-	api.Handle(
-		mgmtv1alpha1connect.NewTransformersServiceHandler(
-			transformerService,
-			connect.WithInterceptors(stdInterceptors...),
-			connect.WithInterceptors(stdAuthInterceptors...),
-			connect.WithRecover(recoverHandler),
-		),
-	)
-
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
+	var presEntityClient presidioapi.EntityInterface
 	if getIsNeosyncCloud() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
@@ -501,6 +492,7 @@ func serve(ctx context.Context) error {
 		if ok {
 			slogger.Debug("presidio analyze client is enabled")
 			presAnalyzeClient = analyzeClient
+			presEntityClient = analyzeClient
 		}
 		anonClient, ok, err := getPresidioAnonymizeClient()
 		if err != nil {
@@ -511,6 +503,19 @@ func serve(ctx context.Context) error {
 			presAnonClient = anonClient
 		}
 	}
+
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
+		IsPresidioEnabled: getIsNeosyncCloud(),
+		IsNeosyncCloud:    getIsNeosyncCloud(),
+	}, db, useraccountService, presEntityClient)
+	api.Handle(
+		mgmtv1alpha1connect.NewTransformersServiceHandler(
+			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
+		),
+	)
 
 	anonymizationService := v1alpha1_anonymizationservice.New(&v1alpha1_anonymizationservice.Config{
 		IsPresidioEnabled: getIsNeosyncCloud(),

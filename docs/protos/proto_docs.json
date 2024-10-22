@@ -1215,6 +1215,54 @@
           ]
         },
         {
+          "name": "GetTransformPiiEntitiesRequest",
+          "longName": "GetTransformPiiEntitiesRequest",
+          "fullName": "mgmt.v1alpha1.GetTransformPiiEntitiesRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique identifier of the account to return entities for.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetTransformPiiEntitiesResponse",
+          "longName": "GetTransformPiiEntitiesResponse",
+          "fullName": "mgmt.v1alpha1.GetTransformPiiEntitiesResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "entities",
+              "description": "The list of built-in entities that are enabled for the provided account id.",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetUserDefinedTransformerByIdRequest",
           "longName": "GetUserDefinedTransformerByIdRequest",
           "fullName": "mgmt.v1alpha1.GetUserDefinedTransformerByIdRequest",
@@ -2068,6 +2116,18 @@
               "type": "PiiDenyRecognizer",
               "longType": "PiiDenyRecognizer",
               "fullType": "mgmt.v1alpha1.PiiDenyRecognizer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "allowed_entities",
+              "description": "Configure a list of entities to be used for PII analysis. If not provided or empty, all entities are considiered\nIf this is specified, any ad-hoc, or deny_recognizers entity names must also be provided.\nTo see available builtin entities, call the GetPiiTextEntities() RPC method to see what is available for your account.",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3126,6 +3186,21 @@
               "responseLongType": "ValidateUserRegexCodeResponse",
               "responseFullType": "mgmt.v1alpha1.ValidateUserRegexCodeResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "GetTransformPiiEntities",
+              "description": "Retrieve a list of available Pii entities for use with the TransformPiiText transformer",
+              "requestType": "GetTransformPiiEntitiesRequest",
+              "requestLongType": "GetTransformPiiEntitiesRequest",
+              "requestFullType": "mgmt.v1alpha1.GetTransformPiiEntitiesRequest",
+              "requestStreaming": false,
+              "responseType": "GetTransformPiiEntitiesResponse",
+              "responseLongType": "GetTransformPiiEntitiesResponse",
+              "responseFullType": "mgmt.v1alpha1.GetTransformPiiEntitiesResponse",
+              "responseStreaming": false,
+              "options": {
+                "idempotency_level": "NO_SIDE_EFFECTS"
+              }
             }
           ]
         }
