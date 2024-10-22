@@ -26,7 +26,7 @@ func (s *Service) GetTransformPiiRecognizers(
 	if s.recognizerclient == nil {
 		return nil, nucleuserrors.NewInternalError("recognizer service is enabled but client was nil.")
 	}
-	resp, err := s.recognizerclient.GetRecognizers(ctx, &presidioapi.GetRecognizersParams{
+	resp, err := s.recognizerclient.GetRecognizersWithResponse(ctx, &presidioapi.GetRecognizersParams{
 		Language: &enLanguage,
 	})
 	if err != nil {

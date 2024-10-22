@@ -184,9 +184,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	)
 
 	unauthdTransformersService := v1alpha1_transformersservice.New(
-		&v1alpha1_transformersservice.Config{},
+		&v1alpha1_transformersservice.Config{IsPresidioEnabled: false, IsNeosyncCloud: false},
 		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
+		nil,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(

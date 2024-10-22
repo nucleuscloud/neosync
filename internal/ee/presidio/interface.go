@@ -16,5 +16,5 @@ type AnonymizeInterface interface {
 
 // Slimmed down Presidio Recognizer Interface for use in Neosync systems
 type RecognizerInterface interface {
-	GetRecognizers(ctx context.Context, params *GetRecognizersParams, reqEditors ...RequestEditorFn) (*GetRecognizersResponse, error)
+	GetRecognizersWithResponse(ctx context.Context, params *GetRecognizersParams, reqEditors ...RequestEditorFn) (*GetRecognizersResponse, error)
 }
