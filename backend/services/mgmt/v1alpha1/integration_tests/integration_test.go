@@ -88,7 +88,7 @@ type mocks struct {
 type presidiomocks struct {
 	analyzer   *presidioapi.MockAnalyzeInterface
 	anonymizer *presidioapi.MockAnonymizeInterface
-	recognizer *presidioapi.MockRecognizerInterface
+	entities   *presidioapi.MockEntityInterface
 }
 
 type IntegrationTestSuite struct {
@@ -152,7 +152,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		presidio: presidiomocks{
 			analyzer:   presidioapi.NewMockAnalyzeInterface(s.T()),
 			anonymizer: presidioapi.NewMockAnonymizeInterface(s.T()),
-			recognizer: presidioapi.NewMockRecognizerInterface(s.T()),
+			entities:   presidioapi.NewMockEntityInterface(s.T()),
 		},
 	}
 
@@ -199,7 +199,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		&v1alpha1_transformersservice.Config{IsPresidioEnabled: true, IsNeosyncCloud: false},
 		neosyncdb.New(pool, db_queries.New()),
 		unauthdUserService,
-		s.mocks.presidio.recognizer,
+		s.mocks.presidio.entities,
 	)
 
 	unauthdConnectionsService := v1alpha1_connectionservice.New(

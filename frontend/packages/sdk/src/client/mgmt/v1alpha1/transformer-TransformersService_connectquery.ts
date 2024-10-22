@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { MethodIdempotency, MethodKind } from "@bufbuild/protobuf";
-import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetTransformPiiRecognizersRequest, GetTransformPiiRecognizersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse, ValidateUserRegexCodeRequest, ValidateUserRegexCodeResponse } from "./transformer_pb.js";
+import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetTransformPiiEntitiesRequest, GetTransformPiiEntitiesResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse, ValidateUserRegexCodeRequest, ValidateUserRegexCodeResponse } from "./transformer_pb.js";
 
 /**
  * @generated from rpc mgmt.v1alpha1.TransformersService.GetSystemTransformers
@@ -147,16 +147,16 @@ export const validateUserRegexCode = {
 } as const;
 
 /**
- * Retrieve a list of available Pii recognizers for use with the TransformPiiText transformer
+ * Retrieve a list of available Pii entities for use with the TransformPiiText transformer
  *
- * @generated from rpc mgmt.v1alpha1.TransformersService.GetTransformPiiRecognizers
+ * @generated from rpc mgmt.v1alpha1.TransformersService.GetTransformPiiEntities
  */
-export const getTransformPiiRecognizers = {
-  localName: "getTransformPiiRecognizers",
-  name: "GetTransformPiiRecognizers",
+export const getTransformPiiEntities = {
+  localName: "getTransformPiiEntities",
+  name: "GetTransformPiiEntities",
   kind: MethodKind.Unary,
-  I: GetTransformPiiRecognizersRequest,
-  O: GetTransformPiiRecognizersResponse,
+  I: GetTransformPiiEntitiesRequest,
+  O: GetTransformPiiEntitiesResponse,
       idempotency: MethodIdempotency.NoSideEffects,
   service: {
     typeName: "mgmt.v1alpha1.TransformersService"

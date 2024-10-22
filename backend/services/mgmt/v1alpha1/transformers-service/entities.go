@@ -16,14 +16,14 @@ var (
 	enLanguage = "en"
 )
 
-func (s *Service) GetTransformPiiRecognizers(
+func (s *Service) GetTransformPiiEntities(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest],
-) (*connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse], error) {
+	req *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest],
+) (*connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse], error) {
 	if !s.cfg.IsPresidioEnabled {
-		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.TransformersServiceGetTransformPiiRecognizersProcedure, "/")))
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("%s is not implemented", strings.TrimPrefix(mgmtv1alpha1connect.TransformersServiceGetTransformPiiEntitiesProcedure, "/")))
 	}
-	if s.recognizerclient == nil {
+	if s.entityclient == nil {
 		return nil, nucleuserrors.NewInternalError("recognizer service is enabled but client was nil.")
 	}
 	_, err := s.verifyUserInAccount(ctx, req.Msg.GetAccountId())
@@ -31,7 +31,7 @@ func (s *Service) GetTransformPiiRecognizers(
 		return nil, err
 	}
 
-	resp, err := s.recognizerclient.GetRecognizersWithResponse(ctx, &presidioapi.GetRecognizersParams{
+	resp, err := s.entityclient.GetSupportedentitiesWithResponse(ctx, &presidioapi.GetSupportedentitiesParams{
 		Language: &enLanguage,
 	})
 	if err != nil {
@@ -41,8 +41,8 @@ func (s *Service) GetTransformPiiRecognizers(
 		return nil, fmt.Errorf("received non-200 response from recognizer api: %s %d %s", resp.Status(), resp.StatusCode(), string(resp.Body))
 	}
 
-	recognizers := *resp.JSON200
-	return connect.NewResponse(&mgmtv1alpha1.GetTransformPiiRecognizersResponse{
-		Recognizers: recognizers,
+	entities := *resp.JSON200
+	return connect.NewResponse(&mgmtv1alpha1.GetTransformPiiEntitiesResponse{
+		Entities: entities,
 	}), nil
 }

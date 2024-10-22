@@ -1644,13 +1644,13 @@ export class TransformPiiText extends Message<TransformPiiText> {
   denyRecognizers: PiiDenyRecognizer[] = [];
 
   /**
-   * Configure a list of recognizers to be used for PII analysis. If not provided or empty, all recognizers are used
-   * If this is specified, any ad-hoc, or deny_recognizers names must also be provided.
-   * To see available builtin recognizers, call the GetPiiTextRecognizers() RPC method to see what is available for your account.
+   * Configure a list of entities to be used for PII analysis. If not provided or empty, all entities are considiered
+   * If this is specified, any ad-hoc, or deny_recognizers entity names must also be provided.
+   * To see available builtin entities, call the GetPiiTextEntities() RPC method to see what is available for your account.
    *
-   * @generated from field: repeated string allowed_recognizers = 4;
+   * @generated from field: repeated string allowed_entities = 4;
    */
-  allowedRecognizers: string[] = [];
+  allowedEntities: string[] = [];
 
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
@@ -1663,7 +1663,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
     { no: 1, name: "score_threshold", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 2, name: "default_anonymizer", kind: "message", T: PiiAnonymizer },
     { no: 3, name: "deny_recognizers", kind: "message", T: PiiDenyRecognizer, repeated: true },
-    { no: 4, name: "allowed_recognizers", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "allowed_entities", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
@@ -3762,80 +3762,80 @@ export class GenerateCountry extends Message<GenerateCountry> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GetTransformPiiRecognizersRequest
+ * @generated from message mgmt.v1alpha1.GetTransformPiiEntitiesRequest
  */
-export class GetTransformPiiRecognizersRequest extends Message<GetTransformPiiRecognizersRequest> {
+export class GetTransformPiiEntitiesRequest extends Message<GetTransformPiiEntitiesRequest> {
   /**
-   * The unique identifier of the account to return recognizers for.
+   * The unique identifier of the account to return entities for.
    *
    * @generated from field: string account_id = 1;
    */
   accountId = "";
 
-  constructor(data?: PartialMessage<GetTransformPiiRecognizersRequest>) {
+  constructor(data?: PartialMessage<GetTransformPiiEntitiesRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetTransformPiiRecognizersRequest";
+  static readonly typeName = "mgmt.v1alpha1.GetTransformPiiEntitiesRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformPiiRecognizersRequest {
-    return new GetTransformPiiRecognizersRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformPiiEntitiesRequest {
+    return new GetTransformPiiEntitiesRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformPiiRecognizersRequest {
-    return new GetTransformPiiRecognizersRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformPiiEntitiesRequest {
+    return new GetTransformPiiEntitiesRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformPiiRecognizersRequest {
-    return new GetTransformPiiRecognizersRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformPiiEntitiesRequest {
+    return new GetTransformPiiEntitiesRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetTransformPiiRecognizersRequest | PlainMessage<GetTransformPiiRecognizersRequest> | undefined, b: GetTransformPiiRecognizersRequest | PlainMessage<GetTransformPiiRecognizersRequest> | undefined): boolean {
-    return proto3.util.equals(GetTransformPiiRecognizersRequest, a, b);
+  static equals(a: GetTransformPiiEntitiesRequest | PlainMessage<GetTransformPiiEntitiesRequest> | undefined, b: GetTransformPiiEntitiesRequest | PlainMessage<GetTransformPiiEntitiesRequest> | undefined): boolean {
+    return proto3.util.equals(GetTransformPiiEntitiesRequest, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GetTransformPiiRecognizersResponse
+ * @generated from message mgmt.v1alpha1.GetTransformPiiEntitiesResponse
  */
-export class GetTransformPiiRecognizersResponse extends Message<GetTransformPiiRecognizersResponse> {
+export class GetTransformPiiEntitiesResponse extends Message<GetTransformPiiEntitiesResponse> {
   /**
-   * The list of built-in recognizers that are enabled for the provided account id.
+   * The list of built-in entities that are enabled for the provided account id.
    *
-   * @generated from field: repeated string recognizers = 1;
+   * @generated from field: repeated string entities = 1;
    */
-  recognizers: string[] = [];
+  entities: string[] = [];
 
-  constructor(data?: PartialMessage<GetTransformPiiRecognizersResponse>) {
+  constructor(data?: PartialMessage<GetTransformPiiEntitiesResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetTransformPiiRecognizersResponse";
+  static readonly typeName = "mgmt.v1alpha1.GetTransformPiiEntitiesResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "recognizers", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 1, name: "entities", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformPiiRecognizersResponse {
-    return new GetTransformPiiRecognizersResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformPiiEntitiesResponse {
+    return new GetTransformPiiEntitiesResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformPiiRecognizersResponse {
-    return new GetTransformPiiRecognizersResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformPiiEntitiesResponse {
+    return new GetTransformPiiEntitiesResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformPiiRecognizersResponse {
-    return new GetTransformPiiRecognizersResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformPiiEntitiesResponse {
+    return new GetTransformPiiEntitiesResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetTransformPiiRecognizersResponse | PlainMessage<GetTransformPiiRecognizersResponse> | undefined, b: GetTransformPiiRecognizersResponse | PlainMessage<GetTransformPiiRecognizersResponse> | undefined): boolean {
-    return proto3.util.equals(GetTransformPiiRecognizersResponse, a, b);
+  static equals(a: GetTransformPiiEntitiesResponse | PlainMessage<GetTransformPiiEntitiesResponse> | undefined, b: GetTransformPiiEntitiesResponse | PlainMessage<GetTransformPiiEntitiesResponse> | undefined): boolean {
+    return proto3.util.equals(GetTransformPiiEntitiesResponse, a, b);
   }
 }
 

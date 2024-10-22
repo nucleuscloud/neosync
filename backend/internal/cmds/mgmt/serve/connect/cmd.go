@@ -483,7 +483,7 @@ func serve(ctx context.Context) error {
 
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
-	var presRecognizerClient presidioapi.RecognizerInterface
+	var presEntityClient presidioapi.EntityInterface
 	if getIsNeosyncCloud() {
 		analyzeClient, ok, err := getPresidioAnalyzeClient()
 		if err != nil {
@@ -492,7 +492,7 @@ func serve(ctx context.Context) error {
 		if ok {
 			slogger.Debug("presidio analyze client is enabled")
 			presAnalyzeClient = analyzeClient
-			presRecognizerClient = analyzeClient
+			presEntityClient = analyzeClient
 		}
 		anonClient, ok, err := getPresidioAnonymizeClient()
 		if err != nil {
@@ -507,7 +507,7 @@ func serve(ctx context.Context) error {
 	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{
 		IsPresidioEnabled: getIsNeosyncCloud(),
 		IsNeosyncCloud:    getIsNeosyncCloud(),
-	}, db, useraccountService, presRecognizerClient)
+	}, db, useraccountService, presEntityClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,

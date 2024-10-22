@@ -41,18 +41,18 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetTransformPiiRecognize
 
 	t.Run("ok", func(t *testing.T) {
 		allowed := []string{"foo", "bar"}
-		s.mocks.presidio.recognizer.On("GetRecognizersWithResponse", mock.Anything, mock.Anything).
+		s.mocks.presidio.entities.On("GetSupportedEntitiesWithResponse", mock.Anything, mock.Anything).
 			Once().
-			Return(&presidioapi.GetRecognizersResponse{
+			Return(&presidioapi.GetSupportedentitiesResponse{
 				JSON200: &allowed,
 			}, nil)
 
 		accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
-		resp, err := s.unauthdClients.transformers.GetTransformPiiRecognizers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformPiiRecognizersRequest{
+		resp, err := s.unauthdClients.transformers.GetTransformPiiEntities(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformPiiEntitiesRequest{
 			AccountId: accountId,
 		}))
 		requireNoErrResp(t, resp, err)
-		recognizers := resp.Msg.GetRecognizers()
+		recognizers := resp.Msg.GetEntities()
 		require.Equal(t, allowed, recognizers)
 	})
 }

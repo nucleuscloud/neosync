@@ -260,28 +260,28 @@ func (_c *MockTransformersServiceClient_GetSystemTransformers_Call) RunAndReturn
 	return _c
 }
 
-// GetTransformPiiRecognizers provides a mock function with given fields: _a0, _a1
-func (_m *MockTransformersServiceClient) GetTransformPiiRecognizers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse], error) {
+// GetTransformPiiEntities provides a mock function with given fields: _a0, _a1
+func (_m *MockTransformersServiceClient) GetTransformPiiEntities(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetTransformPiiRecognizers")
+		panic("no return value specified for GetTransformPiiEntities")
 	}
 
-	var r0 *connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse]
+	var r0 *connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse]
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse], error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse], error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]) *connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse]); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]) *connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse]); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse])
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse])
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -290,31 +290,31 @@ func (_m *MockTransformersServiceClient) GetTransformPiiRecognizers(_a0 context.
 	return r0, r1
 }
 
-// MockTransformersServiceClient_GetTransformPiiRecognizers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTransformPiiRecognizers'
-type MockTransformersServiceClient_GetTransformPiiRecognizers_Call struct {
+// MockTransformersServiceClient_GetTransformPiiEntities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTransformPiiEntities'
+type MockTransformersServiceClient_GetTransformPiiEntities_Call struct {
 	*mock.Call
 }
 
-// GetTransformPiiRecognizers is a helper method to define mock.On call
+// GetTransformPiiEntities is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]
-func (_e *MockTransformersServiceClient_Expecter) GetTransformPiiRecognizers(_a0 interface{}, _a1 interface{}) *MockTransformersServiceClient_GetTransformPiiRecognizers_Call {
-	return &MockTransformersServiceClient_GetTransformPiiRecognizers_Call{Call: _e.mock.On("GetTransformPiiRecognizers", _a0, _a1)}
+//   - _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]
+func (_e *MockTransformersServiceClient_Expecter) GetTransformPiiEntities(_a0 interface{}, _a1 interface{}) *MockTransformersServiceClient_GetTransformPiiEntities_Call {
+	return &MockTransformersServiceClient_GetTransformPiiEntities_Call{Call: _e.mock.On("GetTransformPiiEntities", _a0, _a1)}
 }
 
-func (_c *MockTransformersServiceClient_GetTransformPiiRecognizers_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest])) *MockTransformersServiceClient_GetTransformPiiRecognizers_Call {
+func (_c *MockTransformersServiceClient_GetTransformPiiEntities_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest])) *MockTransformersServiceClient_GetTransformPiiEntities_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]))
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]))
 	})
 	return _c
 }
 
-func (_c *MockTransformersServiceClient_GetTransformPiiRecognizers_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse], _a1 error) *MockTransformersServiceClient_GetTransformPiiRecognizers_Call {
+func (_c *MockTransformersServiceClient_GetTransformPiiEntities_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse], _a1 error) *MockTransformersServiceClient_GetTransformPiiEntities_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockTransformersServiceClient_GetTransformPiiRecognizers_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiRecognizersRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiRecognizersResponse], error)) *MockTransformersServiceClient_GetTransformPiiRecognizers_Call {
+func (_c *MockTransformersServiceClient_GetTransformPiiEntities_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetTransformPiiEntitiesRequest]) (*connect.Response[mgmtv1alpha1.GetTransformPiiEntitiesResponse], error)) *MockTransformersServiceClient_GetTransformPiiEntities_Call {
 	_c.Call.Return(run)
 	return _c
 }

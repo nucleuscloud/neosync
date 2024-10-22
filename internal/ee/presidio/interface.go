@@ -14,7 +14,7 @@ type AnonymizeInterface interface {
 	PostAnonymizeWithResponse(ctx context.Context, body PostAnonymizeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostAnonymizeResponse, error)
 }
 
-// Slimmed down Presidio Recognizer Interface for use in Neosync systems
-type RecognizerInterface interface {
-	GetRecognizersWithResponse(ctx context.Context, params *GetRecognizersParams, reqEditors ...RequestEditorFn) (*GetRecognizersResponse, error)
+// Slimmed down Presidio Entity Interface for use in Neosync systems
+type EntityInterface interface {
+	GetSupportedentitiesWithResponse(ctx context.Context, params *GetSupportedentitiesParams, reqEditors ...RequestEditorFn) (*GetSupportedentitiesResponse, error)
 }

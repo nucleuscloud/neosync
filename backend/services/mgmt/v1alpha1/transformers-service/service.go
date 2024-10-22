@@ -10,7 +10,7 @@ type Service struct {
 	cfg                *Config
 	db                 *neosyncdb.NeosyncDb
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
-	recognizerclient   presidioapi.RecognizerInterface
+	entityclient       presidioapi.EntityInterface
 }
 
 type Config struct {
@@ -22,12 +22,12 @@ func New(
 	cfg *Config,
 	db *neosyncdb.NeosyncDb,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
-	recognizerclient presidioapi.RecognizerInterface,
+	recognizerclient presidioapi.EntityInterface,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
 		db:                 db,
 		useraccountService: useraccountService,
-		recognizerclient:   recognizerclient,
+		entityclient:       recognizerclient,
 	}
 }
