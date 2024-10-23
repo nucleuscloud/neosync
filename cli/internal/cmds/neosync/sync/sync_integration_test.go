@@ -2,9 +2,10 @@ package sync_cmd
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"testing"
 
+	charmlog "github.com/charmbracelet/log"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/internal/testutil"
@@ -45,8 +46,7 @@ func Test_Sync_Postgres(t *testing.T) {
 		panic(err)
 	}
 
-	// load data into source
-	testdataFolder := "../../../../../internal/testutil/testdata/postgres/humanresources"
+	testdataFolder := "../../../../../internal/testutil/testdata/postgres/alltypes"
 	err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
 	if err != nil {
 		panic(err)
@@ -55,19 +55,20 @@ func Test_Sync_Postgres(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("loaded data into source db")
 
 	connclient := neosyncApi.UnathdClients.Connections
 	conndataclient := neosyncApi.UnathdClients.ConnectionData
 
 	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
 
-	discardLogger := testutil.GetTestCharmLogger()
+	// discardLogger := testutil.GetTestCharmLogger()
+	discardLogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+		ReportTimestamp: true,
+		Level:           charmlog.DebugLevel,
+	})
 
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnathdClients.Users)
 	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "source", postgres.Source.URL)
-	fmt.Println("target url", postgres.Target.URL)
-
 	t.Run("sync_postgres", func(t *testing.T) {
 		cmdConfig := &cmdConfig{
 			Source: &sourceConfig{
@@ -81,7 +82,12 @@ func Test_Sync_Postgres(t *testing.T) {
 				TruncateCascade:      true,
 			},
 		}
-		err := configureAndRunSync(ctx, discardLogger, connclient, conndataclient, sqlmanagerclient, "plain", nil, &accountId, cmdConfig)
+		sync := &clisync{
+			connectiondataclient: conndataclient,
+			connectionclient:     connclient,
+			sqlmanagerclient:     sqlmanagerclient,
+		}
+		err := sync.configureAndRunSync(ctx, discardLogger, "plain", &accountId, cmdConfig)
 		require.NoError(t, err)
 	})
 

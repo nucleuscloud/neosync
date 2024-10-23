@@ -25,16 +25,16 @@ import (
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	cli_neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
-	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
+	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
-	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
@@ -278,6 +278,12 @@ func NewCmd() *cobra.Command {
 	return cmd
 }
 
+type clisync struct {
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
+	connectionclient     mgmtv1alpha1connect.ConnectionServiceClient
+	sqlmanagerclient     *sqlmanager.SqlManager
+}
+
 func sync(
 	ctx context.Context,
 	outputType output.OutputType,
@@ -312,12 +318,7 @@ func sync(
 	mssqlquerier := mssql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
-	token, err := auth.GetToken(ctx, apiKey, logger)
-	if err != nil {
-		return err
-	}
 
-	// if apikey == nil && token != nil
 	accountId := accountIdFlag
 	if accountId == nil || *accountId == "" {
 		aId, err := userconfig.GetAccountId()
@@ -332,20 +333,23 @@ func sync(
 		return errors.New("Account Id not found. Please use account switch command to set account.")
 	}
 
-	return configureAndRunSync(ctx, logger, connectionclient, connectiondataclient, sqlmanagerclient, outputType, token, accountId, cmd)
+	sync := &clisync{
+		connectiondataclient: connectiondataclient,
+		connectionclient:     connectionclient,
+		sqlmanagerclient:     sqlmanagerclient,
+	}
+
+	return sync.configureAndRunSync(ctx, logger, outputType, accountId, cmd)
 }
 
-func configureAndRunSync(
+func (c *clisync) configureAndRunSync(
 	ctx context.Context,
 	logger *charmlog.Logger,
-	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanagerclient *sqlmanager.SqlManager,
 	outputType output.OutputType,
-	token, accountId *string,
+	accountId *string,
 	cmd *cmdConfig,
 ) error {
-	groupedConfigs, err := configureSync(ctx, logger, connectionclient, connectiondataclient, sqlmanagerclient, token, accountId, cmd)
+	groupedConfigs, err := c.configureSync(ctx, logger, accountId, cmd)
 	if err != nil {
 		return err
 	}
@@ -353,20 +357,17 @@ func configureAndRunSync(
 		return nil
 	}
 
-	return runSync(ctx, outputType, groupedConfigs, logger)
+	return runSync(ctx, outputType, groupedConfigs, logger, c.connectiondataclient)
 }
 
-func configureSync(
+func (c *clisync) configureSync(
 	ctx context.Context,
 	logger *charmlog.Logger,
-	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanagerclient *sqlmanager.SqlManager,
-	token, accountId *string,
+	accountId *string,
 	cmd *cmdConfig,
 ) ([][]*benthosConfigResponse, error) {
 	logger.Debug("Retrieving neosync connection")
-	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+	connResp, err := c.connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
 	}))
 	if err != nil {
@@ -414,7 +415,6 @@ func configureSync(
 	}
 	logger.Debug("Validated config")
 
-	// if token != nil
 	if connection.AccountId != *accountId {
 		return nil, fmt.Errorf("Connection not found. AccountId: %s", *accountId)
 	}
@@ -441,7 +441,7 @@ func configureSync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config, logger)
+		schemaCfg, err := c.getDestinationSchemaConfig(ctx, connection, cmd, s3Config, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -464,7 +464,7 @@ func configureSync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, gcpConfig, logger)
+		schemaCfg, err := c.getDestinationSchemaConfig(ctx, connection, cmd, gcpConfig, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -480,7 +480,7 @@ func configureSync(
 				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
 			},
 		}
-		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, mysqlCfg)
+		schemaCfg, err := c.getConnectionSchemaConfig(ctx, logger, connection, cmd, mysqlCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -496,7 +496,7 @@ func configureSync(
 				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
 			},
 		}
-		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, postgresConfig)
+		schemaCfg, err := c.getConnectionSchemaConfig(ctx, logger, connection, cmd, postgresConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -511,7 +511,7 @@ func configureSync(
 				DynamodbConfig: &mgmtv1alpha1.DynamoDBSchemaConfig{},
 			},
 		}
-		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, dynamoConfig)
+		schemaCfg, err := c.getConnectionSchemaConfig(ctx, logger, connection, cmd, dynamoConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -525,7 +525,7 @@ func configureSync(
 		}
 		configs := []*benthosConfigResponse{}
 		for t := range tableMap {
-			benthosConfig := generateDynamoDbBenthosConfig(cmd, serverconfig.GetApiBaseUrl(), token, t)
+			benthosConfig := generateDynamoDbBenthosConfig(cmd, t)
 			configs = append(configs, benthosConfig)
 		}
 
@@ -540,7 +540,7 @@ func configureSync(
 		return nil, nil
 	}
 	logger.Info("Running table init statements...")
-	err = runDestinationInitStatements(ctx, logger, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
+	err = c.runDestinationInitStatements(ctx, logger, cmd, syncConfigs, schemaConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -549,7 +549,7 @@ func configureSync(
 	logger.Infof("Generating %d sync configs...", syncConfigCount)
 	configs := []*benthosConfigResponse{}
 	for _, cfg := range syncConfigs {
-		benthosConfig := generateBenthosConfig(cmd, connectionType, serverconfig.GetApiBaseUrl(), cfg, token)
+		benthosConfig := generateBenthosConfig(cmd, connectionType, cfg)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -576,7 +576,7 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 	return nil
 }
 
-func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.Logger) error {
+func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.Logger, connectionDataClient mgmtv1alpha1connect.ConnectionDataServiceClient) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -584,9 +584,26 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 
 	env := service.NewEnvironment()
 
+	err = neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, connectionDataClient)
+	if err != nil {
+		return fmt.Errorf("unable to register neosync connection data input to benthos instance: %w", err)
+	}
+
 	err = neosyncbenthos_dynamodb.RegisterDynamoDbOutput(env)
 	if err != nil {
 		return fmt.Errorf("unable to register dynamodb output to benthos instance: %w", err)
+	}
+
+	dbprovider := neosync_benthos_sql.NewDbPoolProvider()
+	isRetry := false
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(env, dbprovider, isRetry, nil)
+	if err != nil {
+		return fmt.Errorf("unable to register sql insert output to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(env, dbprovider)
+	if err != nil {
+		return fmt.Errorf("unable to register sql update output to benthos instance: %w", err)
 	}
 
 	var benthosStream *service.Stream
@@ -628,16 +645,15 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse, logger *charmlog.
 	return nil
 }
 
-func runDestinationInitStatements(
+func (c *clisync) runDestinationInitStatements(
 	ctx context.Context,
 	logger *charmlog.Logger,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
 	cmd *cmdConfig,
 	syncConfigs []*tabledependency.RunConfig,
 	schemaConfig *schemaConfig,
 ) error {
 	dependencyMap := buildDependencyMap(syncConfigs)
-	db, err := sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
+	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(ctx, string(cmd.Destination.Driver), cmd.Destination.ConnectionUrl)
 	if err != nil {
 		return err
 	}
@@ -818,7 +834,7 @@ func getTableColMap(schemas []*mgmtv1alpha1.DatabaseColumn) map[string][]string 
 type benthosConfigResponse struct {
 	Name      string
 	DependsOn []*tabledependency.DependsOn
-	Config    *cli_neosync_benthos.BenthosConfig
+	Config    *neosync_benthos.BenthosConfig
 	Table     string
 	Columns   []string
 }
@@ -826,9 +842,7 @@ type benthosConfigResponse struct {
 func generateBenthosConfig(
 	cmd *cmdConfig,
 	connectionType ConnectionType,
-	apiUrl string,
 	syncConfig *tabledependency.RunConfig,
-	authToken *string,
 ) *benthosConfigResponse {
 	schema, table := sqlmanager_shared.SplitTableKey(syncConfig.Table())
 
@@ -838,17 +852,16 @@ func generateBenthosConfig(
 		jobId = cmd.Source.ConnectionOpts.JobId
 	}
 
-	bc := &cli_neosync_benthos.BenthosConfig{
-		StreamConfig: cli_neosync_benthos.StreamConfig{
-			Logger: &cli_neosync_benthos.LoggerConfig{
+	directInsertMode := true
+	bc := &neosync_benthos.BenthosConfig{
+		StreamConfig: neosync_benthos.StreamConfig{
+			Logger: &neosync_benthos.LoggerConfig{
 				Level:        "ERROR",
 				AddTimestamp: true,
 			},
-			Input: &cli_neosync_benthos.InputConfig{
-				Inputs: cli_neosync_benthos.Inputs{
-					NeosyncConnectionData: &cli_neosync_benthos.NeosyncConnectionData{
-						ApiKey:         authToken,
-						ApiUrl:         apiUrl,
+			Input: &neosync_benthos.InputConfig{
+				Inputs: neosync_benthos.Inputs{
+					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
 						ConnectionId:   cmd.Source.ConnectionId,
 						ConnectionType: string(connectionType),
 						JobId:          jobId,
@@ -858,17 +871,17 @@ func generateBenthosConfig(
 					},
 				},
 			},
-			Pipeline: &cli_neosync_benthos.PipelineConfig{},
-			Output:   &cli_neosync_benthos.OutputConfig{},
+			Pipeline: &neosync_benthos.PipelineConfig{},
+			Output:   &neosync_benthos.OutputConfig{},
 		},
 	}
 
 	if syncConfig.RunType() == tabledependency.RunTypeUpdate {
 		args := syncConfig.InsertColumns()
 		args = append(args, syncConfig.PrimaryKeys()...)
-		bc.Output = &cli_neosync_benthos.OutputConfig{
-			Outputs: cli_neosync_benthos.Outputs{
-				PooledSqlUpdate: &cli_neosync_benthos.PooledSqlUpdate{
+		bc.Output = &neosync_benthos.OutputConfig{
+			Outputs: neosync_benthos.Outputs{
+				PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
 					Driver: string(cmd.Destination.Driver),
 					Dsn:    cmd.Destination.ConnectionUrl,
 
@@ -878,7 +891,7 @@ func generateBenthosConfig(
 					WhereColumns: syncConfig.PrimaryKeys(),
 					ArgsMapping:  buildPlainInsertArgs(args),
 
-					Batching: &cli_neosync_benthos.Batching{
+					Batching: &neosync_benthos.Batching{
 						Period: "5s",
 						Count:  100,
 					},
@@ -886,9 +899,9 @@ func generateBenthosConfig(
 			},
 		}
 	} else {
-		bc.Output = &cli_neosync_benthos.OutputConfig{
-			Outputs: cli_neosync_benthos.Outputs{
-				PooledSqlInsert: &cli_neosync_benthos.PooledSqlInsert{
+		bc.Output = &neosync_benthos.OutputConfig{
+			Outputs: neosync_benthos.Outputs{
+				PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 					Driver: string(cmd.Destination.Driver),
 					Dsn:    cmd.Destination.ConnectionUrl,
 
@@ -897,8 +910,9 @@ func generateBenthosConfig(
 					Columns:             syncConfig.SelectColumns(),
 					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
 					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns()),
+					DirectInsertMode:    &directInsertMode,
 
-					Batching: &cli_neosync_benthos.Batching{
+					Batching: &neosync_benthos.Batching{
 						Period: "5s",
 						Count:  100,
 					},
@@ -985,10 +999,9 @@ type schemaConfig struct {
 	InitSchemaStatements       []*mgmtv1alpha1.SchemaInitStatements
 }
 
-func getConnectionSchemaConfig(
+func (c *clisync) getConnectionSchemaConfig(
 	ctx context.Context,
 	logger *charmlog.Logger,
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
@@ -1001,7 +1014,7 @@ func getConnectionSchemaConfig(
 	var initSchemaStatements []*mgmtv1alpha1.SchemaInitStatements
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
-		schemaResp, err := connectiondataclient.GetConnectionSchema(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+		schemaResp, err := c.connectiondataclient.GetConnectionSchema(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 			ConnectionId: connection.Id,
 			SchemaConfig: sc,
 		}))
@@ -1013,7 +1026,7 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		constraintConnectionResp, err := connectiondataclient.GetConnectionTableConstraints(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionTableConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
+		constraintConnectionResp, err := c.connectiondataclient.GetConnectionTableConstraints(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionTableConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
 		if err != nil {
 			return err
 		}
@@ -1023,7 +1036,7 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		initStatementsResp, err := getTableInitStatementMap(errctx, logger, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
+		initStatementsResp, err := getTableInitStatementMap(errctx, logger, c.connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
 		if err != nil {
 			return err
 		}
@@ -1065,16 +1078,14 @@ func getConnectionSchemaConfig(
 	}, nil
 }
 
-func getDestinationSchemaConfig(
+func (c *clisync) getDestinationSchemaConfig(
 	ctx context.Context,
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
-	sqlmanagerclient sqlmanager.SqlManagerClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
 	logger *charmlog.Logger,
 ) (*schemaConfig, error) {
-	schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+	schemaResp, err := c.connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		ConnectionId: connection.Id,
 		SchemaConfig: sc,
 	}))
@@ -1098,7 +1109,7 @@ func getDestinationSchemaConfig(
 	}
 
 	logger.Info("Building table constraints...")
-	tableConstraints, err := getDestinationTableConstraints(ctx, sqlmanagerclient, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tableConstraints, err := c.getDestinationTableConstraints(ctx, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1144,10 +1155,10 @@ func getDestinationSchemaConfig(
 	}, nil
 }
 
-func getDestinationTableConstraints(ctx context.Context, sqlmanagerclient sqlmanager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (*sql_manager.TableConstraints, error) {
+func (c *clisync) getDestinationTableConstraints(ctx context.Context, connectionDriver DriverType, connectionUrl string, schemas []string) (*sql_manager.TableConstraints, error) {
 	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 	defer cancel()
-	db, err := sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	db, err := c.sqlmanagerclient.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
 	if err != nil {
 		return nil, err
 	}

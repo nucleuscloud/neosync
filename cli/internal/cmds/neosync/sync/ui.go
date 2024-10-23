@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -26,16 +26,17 @@ import (
 )
 
 type model struct {
-	ctx              context.Context
-	logger           *charmlog.Logger
-	groupedConfigs   [][]*benthosConfigResponse
-	tableSynced      int
-	index            int
-	width            int
-	height           int
-	spinner          spinner.Model
-	done             bool
-	totalConfigCount int
+	ctx                  context.Context
+	logger               *charmlog.Logger
+	groupedConfigs       [][]*benthosConfigResponse
+	tableSynced          int
+	index                int
+	width                int
+	height               int
+	spinner              spinner.Model
+	done                 bool
+	totalConfigCount     int
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
 }
 
 var (
@@ -49,16 +50,17 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) *model {
+func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
-		ctx:              ctx,
-		groupedConfigs:   groupedConfigs,
-		tableSynced:      0,
-		spinner:          s,
-		totalConfigCount: getConfigCount(groupedConfigs),
-		logger:           logger,
+		ctx:                  ctx,
+		groupedConfigs:       groupedConfigs,
+		tableSynced:          0,
+		spinner:              s,
+		totalConfigCount:     getConfigCount(groupedConfigs),
+		logger:               logger,
+		connectiondataclient: connectiondataclient,
 	}
 }
 
@@ -143,7 +145,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 			errgrp.Go(func() error {
 				start := time.Now()
 				m.logger.Infof("Syncing table %s", cfg.Name)
-				err := syncData(errctx, cfg, m.logger)
+				err := syncData(errctx, cfg, m.logger, m.connectiondataclient)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
@@ -188,7 +190,7 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
+func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient) error {
 	var opts []tea.ProgramOption
 	if outputType == output.PlainOutput {
 		// Plain mode don't render the TUI
@@ -198,7 +200,7 @@ func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [
 		// TUI mode, discard log output
 		logger.SetOutput(io.Discard)
 	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger), opts...).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger, connectiondataclient), opts...).Run(); err != nil {
 		logger.Error("Error syncing data:", err)
 		os.Exit(1)
 	}

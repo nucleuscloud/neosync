@@ -17,12 +17,18 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
+	Logger         *LoggerConfig          `json:"logger" yaml:"logger,omitempty"`
 	Input          *InputConfig           `json:"input" yaml:"input"`
 	Buffer         *BufferConfig          `json:"buffer,omitempty" yaml:"buffer,omitempty"`
 	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
 	Output         *OutputConfig          `json:"output" yaml:"output"`
 	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
 	Metrics        *Metrics               `json:"metrics,omitempty" yaml:"metrics,omitempty"`
+}
+
+type LoggerConfig struct {
+	Level        string `json:"level" yaml:"level"`
+	AddTimestamp bool   `json:"add_timestamp" yaml:"add_timestamp"`
 }
 
 type Metrics struct {
@@ -54,13 +60,25 @@ type InputConfig struct {
 }
 
 type Inputs struct {
-	SqlSelect      *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
-	PooledSqlRaw   *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
-	Generate       *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
-	OpenAiGenerate *OpenAiGenerate    `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
-	MongoDB        *InputMongoDb      `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
-	PooledMongoDB  *InputMongoDb      `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
-	AwsDynamoDB    *InputAwsDynamoDB  `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
+	SqlSelect             *SqlSelect             `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	PooledSqlRaw          *InputPooledSqlRaw     `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
+	Generate              *Generate              `json:"generate,omitempty" yaml:"generate,omitempty"`
+	OpenAiGenerate        *OpenAiGenerate        `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
+	MongoDB               *InputMongoDb          `json:"mongodb,omitempty" yaml:"mongodb,omitempty"`
+	PooledMongoDB         *InputMongoDb          `json:"pooled_mongodb,omitempty" yaml:"pooled_mongodb,omitempty"`
+	AwsDynamoDB           *InputAwsDynamoDB      `json:"aws_dynamodb,omitempty" yaml:"aws_dynamodb,omitempty"`
+	NeosyncConnectionData *NeosyncConnectionData `json:"neosync_connection_data,omitempty" yaml:"neosync_connection_data,omitempty"`
+}
+
+type NeosyncConnectionData struct {
+	ApiKey         *string `json:"api_key,omitempty" yaml:"api_key,omitempty"`
+	ApiUrl         string  `json:"api_url" yaml:"api_url"`
+	ConnectionId   string  `json:"connection_id" yaml:"connection_id"`
+	ConnectionType string  `json:"connection_type" yaml:"connection_type"`
+	JobId          *string `json:"job_id,omitempty" yaml:"job_id,omitempty"`
+	JobRunId       *string `json:"job_run_id,omitempty" yaml:"job_run_id,omitempty"`
+	Schema         string  `json:"schema" yaml:"schema"`
+	Table          string  `json:"table" yaml:"table"`
 }
 
 type InputAwsDynamoDB struct {
@@ -388,6 +406,7 @@ type PooledSqlInsert struct {
 	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
+	DirectInsertMode         *bool                               `json:"direct_insert_mode,omitempty" yaml:"direct_insert_mode,omitempty"`
 }
 
 type SqlInsert struct {

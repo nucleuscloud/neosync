@@ -24,5 +24,7 @@ func GetTestSlogger() *slog.Logger {
 }
 
 func GetTestCharmLogger() *charmlog.Logger {
-	return charmlog.NewWithOptions(io.Discard, charmlog.Options{})
+	return charmlog.NewWithOptions(io.Discard, charmlog.Options{
+		Level: charmlog.DebugLevel,
+	})
 }

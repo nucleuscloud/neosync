@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"sync"
 
@@ -38,7 +37,8 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional())
+		Field(service.NewStringField("suffix").Optional()).
+		Field(service.NewBoolField("direct_insert_mode").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -64,32 +64,6 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 	)
 }
 
-func init() {
-	dbprovider := NewDbPoolProvider()
-	err := service.RegisterBatchOutput(
-		"pooled_sql_insert", sqlInsertOutputSpec(),
-		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
-			batchPolicy, err := conf.FieldBatchPolicy("batching")
-			if err != nil {
-				return nil, batchPolicy, -1, err
-			}
-
-			maxInFlight, err := conf.FieldInt("max_in_flight")
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-			out, err := newInsertOutput(conf, mgr, dbprovider, false, logger)
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			return out, batchPolicy, maxInFlight, nil
-		})
-	if err != nil {
-		panic(err)
-	}
-}
-
 var _ service.BatchOutput = &pooledInsertOutput{}
 
 type pooledInsertOutput struct {
@@ -111,6 +85,8 @@ type pooledInsertOutput struct {
 	truncateOnRetry          bool
 	prefix                   *string
 	suffix                   *string
+
+	directInsertMode bool
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -211,6 +187,15 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
+	directInsertMode := false
+	if conf.Contains("direct_insert_mode") {
+		dim, err := conf.FieldBool("direct_insert_mode")
+		if err != nil {
+			return nil, err
+		}
+		directInsertMode = dim
+	}
+
 	output := &pooledInsertOutput{
 		driver:                   driver,
 		dsn:                      dsn,
@@ -230,6 +215,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		prefix:                   prefix,
 		suffix:                   suffix,
 		isRetry:                  isRetry,
+		directInsertMode:         directInsertMode,
 	}
 	return output, nil
 }
@@ -321,9 +307,19 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		}
 	}
 
-	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
-	if err != nil {
-		return err
+	var insertQuery string
+	var args []any
+	var err error
+	if s.directInsertMode {
+		insertQuery, args, err = querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
+		if err != nil {
+			return err
+		}
+	} else {
+		insertQuery, args, err = querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
+		if err != nil {
+			return err
+		}
 	}
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {

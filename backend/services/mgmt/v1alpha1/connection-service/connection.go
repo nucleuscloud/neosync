@@ -319,11 +319,13 @@ func (s *Service) GetConnection(
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("GET CONNECTION ID", req.Msg.Id)
 
 	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, idUuid)
 	if err != nil && !neosyncdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && neosyncdb.IsNoRows(err) {
+		fmt.Println("FAILED GET CONNECTION ID", req.Msg.Id)
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 

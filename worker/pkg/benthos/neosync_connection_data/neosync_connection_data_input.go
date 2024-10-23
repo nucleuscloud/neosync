@@ -1,4 +1,4 @@
-package input
+package neosync_benthos_connectiondata
 
 import (
 	"context"
@@ -8,12 +8,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/cli/internal/auth"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
 	neosync_dynamodb "github.com/nucleuscloud/neosync/internal/dynamodb"
 	neosync_metadata "github.com/nucleuscloud/neosync/worker/pkg/benthos/metadata"
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -28,21 +24,7 @@ var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Field(service.NewStringField("job_id").Optional()).
 	Field(service.NewStringField("job_run_id").Optional())
 
-func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, error) {
-	var apiKey *string
-	if conf.Contains("api_key") {
-		apiKeyStr, err := conf.FieldString("api_key")
-		if err != nil {
-			return nil, err
-		}
-		apiKey = &apiKeyStr
-	}
-
-	apiUrl, err := conf.FieldString("api_url")
-	if err != nil {
-		return nil, err
-	}
-
+func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) (service.Input, error) {
 	connectionId, err := conf.FieldString("connection_id")
 	if err != nil {
 		return nil, err
@@ -80,8 +62,8 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, e
 	}
 
 	return service.AutoRetryNacks(&neosyncInput{
-		apiKey:         apiKey,
-		apiUrl:         apiUrl,
+		// apiKey:         apiKey,
+		// apiUrl:         apiUrl,
 		connectionId:   connectionId,
 		connectionType: connectionType,
 		schema:         schema,
@@ -90,18 +72,17 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, e
 			jobId:    jobId,
 			jobRunId: jobRunId,
 		},
+		neosyncConnectApi: neosyncConnectApi,
 	}), nil
 }
 
-func init() {
-	err := service.RegisterInput(
+func RegisterNeosyncConnectionDataInput(env *service.Environment, neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient) error {
+	return env.RegisterInput(
 		"neosync_connection_data", neosyncConnectionDataConfigSpec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			return newNeosyncConnectionDataInput(conf)
-		})
-	if err != nil {
-		panic(err)
-	}
+			return newNeosyncConnectionDataInput(conf, neosyncConnectApi)
+		},
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -112,8 +93,8 @@ type connOpts struct {
 }
 
 type neosyncInput struct {
-	apiKey *string
-	apiUrl string
+	// apiKey *string
+	// apiUrl string
 
 	connectionId   string
 	connectionType string
@@ -129,12 +110,6 @@ type neosyncInput struct {
 }
 
 func (g *neosyncInput) Connect(ctx context.Context) error {
-	g.neosyncConnectApi = mgmtv1alpha1connect.NewConnectionDataServiceClient(
-		http_client.NewWithHeaders(version.Get().Headers()),
-		g.apiUrl,
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(g.apiKey != nil, auth.AuthHeader, auth.GetAuthHeaderTokenFn(g.apiKey))),
-	)
-
 	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
 
 	if g.connectionType == "awsS3" {

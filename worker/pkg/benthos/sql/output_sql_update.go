@@ -92,31 +92,6 @@ func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider DbPoolPr
 	)
 }
 
-func init() {
-	dbprovider := NewDbPoolProvider()
-	err := service.RegisterBatchOutput(
-		"pooled_sql_update", sqlUpdateOutputSpec(),
-		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
-			batchPolicy, err := conf.FieldBatchPolicy("batching")
-			if err != nil {
-				return nil, batchPolicy, -1, err
-			}
-
-			maxInFlight, err := conf.FieldInt("max_in_flight")
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			out, err := newUpdateOutput(conf, mgr, dbprovider)
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			return out, batchPolicy, maxInFlight, nil
-		})
-	if err != nil {
-		panic(err)
-	}
-}
-
 var _ service.BatchOutput = &pooledUpdateOutput{}
 
 type pooledUpdateOutput struct {
