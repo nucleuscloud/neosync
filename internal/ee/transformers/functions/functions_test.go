@@ -43,6 +43,60 @@ func Test_TransformPiiText(t *testing.T) {
 	})
 }
 
+func Test_removeAllowedPhrases(t *testing.T) {
+	t.Run("exact", func(t *testing.T) {
+		actual := removeAllowedPhrases(
+			[]presidioapi.RecognizerResultWithAnaysisExplanation{
+				{
+					Start:               11,
+					End:                 24,
+					Score:               0.85,
+					EntityType:          "person",
+					RecognitionMetadata: &presidioapi.RecognizedMetadata{},
+				},
+			},
+			"My name is Inigo Montoya prepare to die",
+			[]string{"Inigo Montoya"},
+		)
+		require.Empty(t, actual)
+	})
+
+	t.Run("invalid_range_skip", func(t *testing.T) {
+		actual := removeAllowedPhrases(
+			[]presidioapi.RecognizerResultWithAnaysisExplanation{
+				{
+					Start:               500,
+					End:                 600,
+					Score:               0.85,
+					EntityType:          "person",
+					RecognitionMetadata: &presidioapi.RecognizedMetadata{},
+				},
+			},
+			"My name is Inigo Montoya prepare to die",
+			[]string{"Inigo Montoya"},
+		)
+		require.Empty(t, actual)
+	})
+
+	t.Run("not_found", func(t *testing.T) {
+		input := []presidioapi.RecognizerResultWithAnaysisExplanation{
+			{
+				Start:               11,
+				End:                 24,
+				Score:               0.85,
+				EntityType:          "person",
+				RecognitionMetadata: &presidioapi.RecognizedMetadata{},
+			},
+		}
+		actual := removeAllowedPhrases(
+			input,
+			"My name is Inigo Montoya prepare to die",
+			[]string{"Inigo"},
+		)
+		require.Equal(t, input, actual)
+	})
+}
+
 // func Test_TransformBloblPiiText(t *testing.T) {
 // 	env := bloblang.NewEmptyEnvironment()
 // 	mockanalyze := presidioapi.NewMockAnalyzeInterface(t)

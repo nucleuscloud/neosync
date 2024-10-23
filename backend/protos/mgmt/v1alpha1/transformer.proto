@@ -241,6 +241,9 @@ message TransformPiiText {
       string: {min_len: 1}
     }
   }];
+
+  // Exact match of PII phrases identified by the analysis engine.
+  repeated string allowed_phrases = 5;
 }
 
 message PiiDenyRecognizer {
