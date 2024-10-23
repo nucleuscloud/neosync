@@ -41,7 +41,7 @@ func (s *IntegrationTestSuite) Test_TransformersService_GetTransformPiiRecognize
 
 	t.Run("ok", func(t *testing.T) {
 		allowed := []string{"foo", "bar"}
-		s.mocks.presidio.entities.On("GetSupportedEntitiesWithResponse", mock.Anything, mock.Anything).
+		s.mocks.presidio.entities.On("GetSupportedentitiesWithResponse", mock.Anything, mock.Anything).
 			Once().
 			Return(&presidioapi.GetSupportedentitiesResponse{
 				JSON200: &allowed,
