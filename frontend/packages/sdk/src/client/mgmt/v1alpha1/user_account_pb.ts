@@ -61,12 +61,28 @@ export enum BillingStatus {
    * @generated from enum value: BILLING_STATUS_EXPIRED = 2;
    */
   EXPIRED = 2,
+
+  /**
+   * The account does not have an active subscription and is in a valid trial period
+   *
+   * @generated from enum value: BILLING_STATUS_TRIAL_ACTIVE = 3;
+   */
+  TRIAL_ACTIVE = 3,
+
+  /**
+   * The account does not have an active subscription and the trial period has ended
+   *
+   * @generated from enum value: BILLING_STATUS_TRIAL_EXPIRED = 4;
+   */
+  TRIAL_EXPIRED = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(BillingStatus)
 proto3.util.setEnumType(BillingStatus, "mgmt.v1alpha1.BillingStatus", [
   { no: 0, name: "BILLING_STATUS_UNSPECIFIED" },
   { no: 1, name: "BILLING_STATUS_ACTIVE" },
   { no: 2, name: "BILLING_STATUS_EXPIRED" },
+  { no: 3, name: "BILLING_STATUS_TRIAL_ACTIVE" },
+  { no: 4, name: "BILLING_STATUS_TRIAL_EXPIRED" },
 ]);
 
 /**
@@ -81,14 +97,14 @@ export enum AccountStatus {
   REASON_UNSPECIFIED = 0,
 
   /**
-   * Current usage exceeds allowed limit
+   * @deprecated - Current usage exceeds allowed limit
    *
    * @generated from enum value: ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT = 1;
    */
   EXCEEDS_ALLOWED_LIMIT = 1,
 
   /**
-   * Adding requested records exceeds the allowed limit
+   * @deprecated - Adding requested records exceeds the allowed limit
    *
    * @generated from enum value: ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
    */
@@ -100,6 +116,20 @@ export enum AccountStatus {
    * @generated from enum value: ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
    */
   ACCOUNT_IN_EXPIRED_STATE = 3,
+
+  /**
+   * The account is currently in an active trial period
+   *
+   * @generated from enum value: ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE = 4;
+   */
+  ACCOUNT_TRIAL_ACTIVE = 4,
+
+  /**
+   * The account is past the active trial period
+   *
+   * @generated from enum value: ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED = 5;
+   */
+  ACCOUNT_TRIAL_EXPIRED = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(AccountStatus)
 proto3.util.setEnumType(AccountStatus, "mgmt.v1alpha1.AccountStatus", [
@@ -107,6 +137,8 @@ proto3.util.setEnumType(AccountStatus, "mgmt.v1alpha1.AccountStatus", [
   { no: 1, name: "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT" },
   { no: 2, name: "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT" },
   { no: 3, name: "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE" },
+  { no: 4, name: "ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE" },
+  { no: 5, name: "ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED" },
 ]);
 
 /**
@@ -1979,6 +2011,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
   /**
    * A count of the currently used records for the current billing period.
    * This may go over the allowed record count depending on when the record count is polled by the metric system.
+   * @deprecated
    *
    * @generated from field: uint64 used_record_count = 4;
    */
@@ -1986,6 +2019,7 @@ export class IsAccountStatusValidResponse extends Message<IsAccountStatusValidRe
 
   /**
    * The allowed record count. It will be null if there is no limit.
+   * @deprecated
    *
    * @generated from field: optional uint64 allowed_record_count = 5;
    */

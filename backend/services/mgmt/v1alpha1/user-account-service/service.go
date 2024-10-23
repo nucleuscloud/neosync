@@ -6,7 +6,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/internal/billing"
-	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 type Service struct {
@@ -15,7 +14,6 @@ type Service struct {
 	temporalClientManager clientmanager.TemporalClientManagerClient
 	authclient            auth_client.Interface
 	authadminclient       authmgmt.Interface
-	prometheusclient      promv1.API
 	billingclient         billing.Interface
 }
 
@@ -31,7 +29,6 @@ func New(
 	temporalClientManager clientmanager.TemporalClientManagerClient,
 	authclient auth_client.Interface,
 	authadminclient authmgmt.Interface,
-	prometheusclient promv1.API,
 	billingclient billing.Interface,
 ) *Service {
 	return &Service{
@@ -40,7 +37,6 @@ func New(
 		temporalClientManager: temporalClientManager,
 		authclient:            authclient,
 		authadminclient:       authadminclient,
-		prometheusclient:      prometheusclient,
 		billingclient:         billingclient,
 	}
 }

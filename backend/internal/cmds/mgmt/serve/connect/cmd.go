@@ -411,7 +411,7 @@ func serve(ctx context.Context) error {
 		IsAuthEnabled:            isAuthEnabled,
 		IsNeosyncCloud:           getIsNeosyncCloud(),
 		DefaultMaxAllowedRecords: getDefaultMaxAllowedRecords(),
-	}, db, tfwfmgr, authclient, authadminclient, promv1.NewAPI(promclient), billingClient)
+	}, db, tfwfmgr, authclient, authadminclient, billingClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

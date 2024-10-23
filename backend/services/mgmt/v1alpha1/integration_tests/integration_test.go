@@ -163,7 +163,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
-		s.mocks.prometheusclient,
 		nil,
 	)
 
@@ -173,7 +172,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
-		s.mocks.prometheusclient,
 		nil,
 	)
 
@@ -183,7 +181,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		s.mocks.temporalClientManager,
 		s.mocks.authclient,
 		s.mocks.authmanagerclient,
-		s.mocks.prometheusclient,
 		s.mocks.billingclient,
 	)
 	neoCloudAuthdAnonymizeService := v1alpha_anonymizationservice.New(

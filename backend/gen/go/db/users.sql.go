@@ -737,20 +737,20 @@ func (q *Queries) RemoveAccountUser(ctx context.Context, db DBTX, arg RemoveAcco
 	return err
 }
 
-const setAccountMaxAllowedRecords = `-- name: SetAccountMaxAllowedRecords :one
+const setAccountCreatedAt = `-- name: SetAccountCreatedAt :one
 UPDATE neosync_api.accounts
-SET max_allowed_records = $1
+SET created_at = $1
 WHERE id = $2
 RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config, max_allowed_records, stripe_customer_id
 `
 
-type SetAccountMaxAllowedRecordsParams struct {
-	MaxAllowedRecords pgtype.Int8
-	AccountId         pgtype.UUID
+type SetAccountCreatedAtParams struct {
+	CreatedAt pgtype.Timestamp
+	AccountId pgtype.UUID
 }
 
-func (q *Queries) SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error) {
-	row := db.QueryRow(ctx, setAccountMaxAllowedRecords, arg.MaxAllowedRecords, arg.AccountId)
+func (q *Queries) SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, setAccountCreatedAt, arg.CreatedAt, arg.AccountId)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,

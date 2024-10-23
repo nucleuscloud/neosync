@@ -78,7 +78,7 @@ type Querier interface {
 	RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
-	SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error)
+	SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error)
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams) (NeosyncApiJob, error)
 	SetJobWorkflowOptions(ctx context.Context, db DBTX, arg SetJobWorkflowOptionsParams) (NeosyncApiJob, error)
