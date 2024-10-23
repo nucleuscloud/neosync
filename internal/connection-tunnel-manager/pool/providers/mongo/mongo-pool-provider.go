@@ -1,4 +1,4 @@
-package sync_activity
+package pool_mongo_provider
 
 import (
 	"errors"
@@ -7,38 +7,40 @@ import (
 	"sync"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
-	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
 )
 
-type sqlConnectionGetter = func(dsn string) (neosync_benthos_sql.SqlDbtx, error)
+type Getter = func(url string) (neosync_benthos_mongodb.MongoClient, error)
 
-// wrapper used for benthos sql-based connections to retrieve the connection they need
-type sqlPoolProvider struct {
-	getter sqlConnectionGetter
+// wrapper used for benthos mongo-based connections to retrieve the connection they need
+type Provider struct {
+	getter Getter
 }
 
-func newSqlPoolProvider(getter sqlConnectionGetter) *sqlPoolProvider {
-	return &sqlPoolProvider{getter: getter}
+var _ neosync_benthos_mongodb.MongoPoolProvider = (*Provider)(nil)
+
+func NewProvider(getter Getter) *Provider {
+	return &Provider{getter: getter}
 }
 
-func (p *sqlPoolProvider) GetDb(driver, dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-	return p.getter(dsn)
+func (p *Provider) GetClient(url string) (neosync_benthos_mongodb.MongoClient, error) {
+	return p.getter(url)
 }
 
 // Returns a function that converts a raw DSN directly to the relevant pooled sql client.
 // Allows sharing connections across activities for effective pooling and SSH tunnel management.
-func getSqlPoolProviderGetter(
+func GetMongoPoolProviderGetter(
 	tunnelmanager connectiontunnelmanager.Interface[any],
 	dsnToConnectionIdMap *sync.Map,
 	connectionMap map[string]*mgmtv1alpha1.Connection,
 	session string,
 	slogger *slog.Logger,
-) sqlConnectionGetter {
-	return func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-		connid, ok := dsnToConnectionIdMap.Load(dsn)
+) Getter {
+	return func(url string) (neosync_benthos_mongodb.MongoClient, error) {
+		connid, ok := dsnToConnectionIdMap.Load(url)
 		if !ok {
-			return nil, errors.New("unable to find connection id by dsn when getting db pool")
+			return nil, errors.New("unable to find connection id by dsn when getting mongo pool")
 		}
 		connectionId, ok := connid.(string)
 		if !ok {
@@ -54,9 +56,9 @@ func getSqlPoolProviderGetter(
 		}
 		// tunnel manager is generic and can return all different kinda of database clients.
 		// Due to this, we have to make sure it is of the correct type as we expect this to be SQL connections
-		dbclient, ok := connclient.(neosync_benthos_sql.SqlDbtx)
+		dbclient, ok := connclient.(neosync_benthos_mongodb.MongoClient)
 		if !ok {
-			return nil, fmt.Errorf("unable to convert connection client to neosync_benthos_sql.SqlDbtx. Type was %T", connclient)
+			return nil, fmt.Errorf("unable to convert connection client to neosync_benthos_mongodb.MongoClient. Type was %T", connclient)
 		}
 		return dbclient, nil
 	}

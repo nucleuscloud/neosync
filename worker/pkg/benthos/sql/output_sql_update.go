@@ -27,34 +27,6 @@ type DbPoolProvider interface {
 	GetDb(driver, dsn string) (SqlDbtx, error)
 }
 
-type dbPoolProvider struct {
-	pools map[string]*sql.DB
-	mu    sync.Mutex
-}
-
-func NewDbPoolProvider() *dbPoolProvider {
-	return &dbPoolProvider{
-		pools: make(map[string]*sql.DB),
-	}
-}
-func (p *dbPoolProvider) GetDb(driver, dsn string) (SqlDbtx, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	if db, exists := p.pools[dsn]; exists {
-		return db, nil
-	}
-
-	db, err := sql.Open(driver, dsn)
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxOpenConns(10)
-
-	p.pools[dsn] = db
-	return db, nil
-}
-
 func sqlUpdateOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("driver")).
@@ -90,31 +62,6 @@ func RegisterPooledSqlUpdateOutput(env *service.Environment, dbprovider DbPoolPr
 			return out, batchPolicy, maxInFlight, nil
 		},
 	)
-}
-
-func init() {
-	dbprovider := NewDbPoolProvider()
-	err := service.RegisterBatchOutput(
-		"pooled_sql_update", sqlUpdateOutputSpec(),
-		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
-			batchPolicy, err := conf.FieldBatchPolicy("batching")
-			if err != nil {
-				return nil, batchPolicy, -1, err
-			}
-
-			maxInFlight, err := conf.FieldInt("max_in_flight")
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			out, err := newUpdateOutput(conf, mgr, dbprovider)
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			return out, batchPolicy, maxInFlight, nil
-		})
-	if err != nil {
-		panic(err)
-	}
 }
 
 var _ service.BatchOutput = &pooledUpdateOutput{}

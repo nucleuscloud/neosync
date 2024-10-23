@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"sync"
 
@@ -62,32 +61,6 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 			return out, batchPolicy, maxInFlight, nil
 		},
 	)
-}
-
-func init() {
-	dbprovider := NewDbPoolProvider()
-	err := service.RegisterBatchOutput(
-		"pooled_sql_insert", sqlInsertOutputSpec(),
-		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
-			batchPolicy, err := conf.FieldBatchPolicy("batching")
-			if err != nil {
-				return nil, batchPolicy, -1, err
-			}
-
-			maxInFlight, err := conf.FieldInt("max_in_flight")
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-			out, err := newInsertOutput(conf, mgr, dbprovider, false, logger)
-			if err != nil {
-				return nil, service.BatchPolicy{}, -1, err
-			}
-			return out, batchPolicy, maxInFlight, nil
-		})
-	if err != nil {
-		panic(err)
-	}
 }
 
 var _ service.BatchOutput = &pooledInsertOutput{}

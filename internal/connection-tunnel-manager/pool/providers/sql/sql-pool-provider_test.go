@@ -1,4 +1,4 @@
-package sync_activity
+package pool_sql_provider
 
 import (
 	"testing"
@@ -8,11 +8,11 @@ import (
 )
 
 func Test_newPoolProvider(t *testing.T) {
-	assert.NotNil(t, newSqlPoolProvider(nil))
+	assert.NotNil(t, NewProvider(nil))
 }
 
 func Test_newPoolProvider_GetDb(t *testing.T) {
-	provider := newSqlPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
+	provider := NewProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 		return neosync_benthos_sql.NewMockSqlDbtx(t), nil
 	})
 	assert.NotNil(t, provider)
