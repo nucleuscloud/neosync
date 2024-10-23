@@ -29,7 +29,14 @@ import {
 import { BsFunnel } from 'react-icons/bs';
 import { CiFilter, CiMicrochip, CiViewTable } from 'react-icons/ci';
 import { DiMongodb } from 'react-icons/di';
-import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
+import {
+  FaAws,
+  FaDocker,
+  FaFolder,
+  FaKey,
+  FaLaptop,
+  FaPython,
+} from 'react-icons/fa';
 import { GoDatabase, GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
@@ -197,7 +204,8 @@ export function IconHandler(name: string): ReactElement {
       return <HiOutlineDocumentSearch />;
     case 'Microsoft SQL Server':
       return <SiMicrosoftsqlserver />;
-
+    case 'Python':
+      return <FaPython />;
     default:
       return <LayersIcon />;
   }
