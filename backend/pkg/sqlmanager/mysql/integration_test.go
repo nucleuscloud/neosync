@@ -10,7 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	tcmysql "github.com/nucleuscloud/neosync/internal/testcontainers/mysql"
+	tcmysql "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/mysql"
 	"github.com/stretchr/testify/suite"
 )
 

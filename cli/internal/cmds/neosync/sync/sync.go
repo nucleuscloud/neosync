@@ -26,11 +26,9 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	cli_neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
-	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
-	"github.com/nucleuscloud/neosync/cli/internal/version"
 	neosyncbenthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -43,8 +41,6 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
 
-	http_client "github.com/nucleuscloud/neosync/worker/pkg/http/client"
-
 	"github.com/warpstreamlabs/bento/public/service"
 )
 
@@ -52,7 +48,7 @@ type ConnectionType string
 type DriverType string
 
 const (
-	postgresDriver DriverType = "postgres"
+	postgresDriver DriverType = "pgx"
 	mysqlDriver    DriverType = "mysql"
 
 	awsS3Connection           ConnectionType = "awsS3"
@@ -256,8 +252,6 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("debug", false, "Run in debug mode")
-
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
 	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-run-id instead.")
 	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with [AWS S3, GCP Cloud Storage] connections. Can use job-id instead.")
@@ -299,27 +293,16 @@ func sync(
 		Level:           logLevel,
 	})
 	logger.Info("Starting sync")
-	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+
+	connectInterceptors := []connect.Interceptor{}
+	neosyncurl := auth.GetNeosyncUrl()
+	httpclient, err := auth.GetNeosyncHttpClient(ctx, apiKey, logger)
 	if err != nil {
 		return err
 	}
-
-	httpclient := http_client.NewWithHeaders(version.Get().Headers())
-	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpclient,
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
-	)
-
-	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(
-		httpclient,
-		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-		),
-	)
+	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
+	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
+	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 
 	pgpoolmap := &syncmap.Map{}
 	mysqlpoolmap := &syncmap.Map{}
@@ -329,95 +312,117 @@ func sync(
 	mssqlquerier := mssql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
+	token, err := auth.GetToken(ctx, apiKey, logger)
+	if err != nil {
+		return err
+	}
 
+	// if apikey == nil && token != nil
+	accountId := accountIdFlag
+	if accountId == nil || *accountId == "" {
+		aId, err := userconfig.GetAccountId()
+		if err != nil {
+			logger.Error("Unable to retrieve account id. Please use account switch command to set account.")
+			return err
+		}
+		accountId = &aId
+	}
+
+	if accountId == nil || *accountId == "" {
+		return errors.New("Account Id not found. Please use account switch command to set account.")
+	}
+
+	return configureAndRunSync(ctx, logger, connectionclient, connectiondataclient, sqlmanagerclient, outputType, token, accountId, cmd)
+}
+
+func configureAndRunSync(
+	ctx context.Context,
+	logger *charmlog.Logger,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanagerclient *sqlmanager.SqlManager,
+	outputType output.OutputType,
+	token, accountId *string,
+	cmd *cmdConfig,
+) error {
+	groupedConfigs, err := configureSync(ctx, logger, connectionclient, connectiondataclient, sqlmanagerclient, token, accountId, cmd)
+	if err != nil {
+		return err
+	}
+	if groupedConfigs == nil {
+		return nil
+	}
+
+	return runSync(ctx, outputType, groupedConfigs, logger)
+}
+
+func configureSync(
+	ctx context.Context,
+	logger *charmlog.Logger,
+	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
+	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanagerclient *sqlmanager.SqlManager,
+	token, accountId *string,
+	cmd *cmdConfig,
+) ([][]*benthosConfigResponse, error) {
 	logger.Debug("Retrieving neosync connection")
 	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
 	}))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	connection := connResp.Msg.GetConnection()
 	connectionType, err := getConnectionType(connection)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	logger.Debug(fmt.Sprintf("Source connection type: %s", connectionType))
 
 	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("S3 source connection type requires job-id or job-run-id.")
+		return nil, errors.New("S3 source connection type requires job-id or job-run-id.")
 	}
 	if connectionType == gcpCloudStorageConnection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
-		return errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
+		return nil, errors.New("GCP Cloud Storage source connection type requires job-id or job-run-id")
 	}
 
 	if cmd.Destination.TruncateCascade && cmd.Destination.Driver == mysqlDriver {
-		return fmt.Errorf("truncate cascade is only supported in postgres")
+		return nil, fmt.Errorf("truncate cascade is only supported in postgres")
 	}
 
 	if connectionType == mysqlConnection || connectionType == postgresConnection {
 		if cmd.Destination.Driver == "" {
-			return fmt.Errorf("must provide destination-driver")
+			return nil, fmt.Errorf("must provide destination-driver")
 		}
 		if cmd.Destination.ConnectionUrl == "" {
-			return fmt.Errorf("must provide destination-connection-url")
+			return nil, fmt.Errorf("must provide destination-connection-url")
 		}
 
 		if cmd.Destination.Driver != mysqlDriver && cmd.Destination.Driver != postgresDriver {
-			return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
+			return nil, errors.New("unsupported destination driver. only pgx (postgres) and mysql are currently supported")
 		}
 	}
 
 	if connectionType == awsDynamoDBConnection {
 		if cmd.AwsDynamoDbDestination == nil {
-			return fmt.Errorf("must provide destination aws credentials")
+			return nil, fmt.Errorf("must provide destination aws credentials")
 		}
 
 		if cmd.AwsDynamoDbDestination.AwsCredConfig.Region == "" {
-			return fmt.Errorf("must provide destination aws region")
+			return nil, fmt.Errorf("must provide destination aws region")
 		}
 	}
 	logger.Debug("Validated config")
 
-	var token *string
-	if isAuthEnabled {
-		logger.Debug("Auth Enabled")
-		if apiKey != nil && *apiKey != "" {
-			logger.Debug("found API Key")
-			token = apiKey
-		} else {
-			logger.Debug("Retrieving Access Token")
-			accessToken, err := userconfig.GetAccessToken()
-			if err != nil {
-				logger.Error("Unable to retrieve access token. Please use neosync login command and try again.")
-				return err
-			}
-			token = &accessToken
-			logger.Debug("Setting account id")
-			var accountId = accountIdFlag
-			if accountId == nil || *accountId == "" {
-				aId, err := userconfig.GetAccountId()
-				if err != nil {
-					logger.Error("Unable to retrieve account id. Please use account switch command to set account.")
-					return err
-				}
-				accountId = &aId
-			}
-
-			if accountId == nil || *accountId == "" {
-				return errors.New("Account Id not found. Please use account switch command to set account.")
-			}
-
-			if connection.AccountId != *accountId {
-				return fmt.Errorf("Connection not found. AccountId: %s", *accountId)
-			}
-		}
+	// if token != nil
+	if connection.AccountId != *accountId {
+		return nil, fmt.Errorf("Connection not found. AccountId: %s", *accountId)
 	}
 
 	logger.Debug("Checking if source and destination are compatible")
 	err = areSourceAndDestCompatible(connection, cmd.Destination.Driver)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	logger.Info("Retrieving connection schema...")
@@ -438,11 +443,11 @@ func sync(
 
 		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, s3Config, logger)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
 			logger.Warn("No tables found.")
-			return nil
+			return nil, nil
 		}
 		schemaConfig = schemaCfg
 	case gcpCloudStorageConnection:
@@ -461,11 +466,11 @@ func sync(
 
 		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanagerclient, connection, cmd, gcpConfig, logger)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
 			logger.Warn("No tables found.")
-			return nil
+			return nil, nil
 		}
 		schemaConfig = schemaCfg
 	case mysqlConnection:
@@ -477,11 +482,11 @@ func sync(
 		}
 		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, mysqlCfg)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
 			logger.Warn("No tables found.")
-			return nil
+			return nil, nil
 		}
 		schemaConfig = schemaCfg
 	case postgresConnection:
@@ -493,11 +498,11 @@ func sync(
 		}
 		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, postgresConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
 			logger.Warn("No tables found.")
-			return nil
+			return nil, nil
 		}
 		schemaConfig = schemaCfg
 	case awsDynamoDBConnection:
@@ -508,11 +513,11 @@ func sync(
 		}
 		schemaCfg, err := getConnectionSchemaConfig(ctx, logger, connectiondataclient, connection, cmd, dynamoConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(schemaCfg.Schemas) == 0 {
 			logger.Warn("No tables found.")
-			return nil
+			return nil, nil
 		}
 		tableMap := map[string]struct{}{}
 		for _, s := range schemaCfg.Schemas {
@@ -524,20 +529,20 @@ func sync(
 			configs = append(configs, benthosConfig)
 		}
 
-		return runSync(ctx, outputType, [][]*benthosConfigResponse{configs}, logger)
+		return [][]*benthosConfigResponse{configs}, nil
 	default:
-		return fmt.Errorf("this connection type is not currently supported")
+		return nil, fmt.Errorf("this connection type is not currently supported")
 	}
 
 	logger.Debug("Building sync configs")
 	syncConfigs := buildSyncConfigs(schemaConfig, logger)
 	if syncConfigs == nil {
-		return nil
+		return nil, nil
 	}
 	logger.Info("Running table init statements...")
 	err = runDestinationInitStatements(ctx, logger, sqlmanagerclient, cmd, syncConfigs, schemaConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	syncConfigCount := len(syncConfigs)
@@ -550,11 +555,8 @@ func sync(
 
 	// order configs in run order by dependency
 	groupedConfigs := groupConfigsByDependency(configs, logger)
-	if groupedConfigs == nil {
-		return nil
-	}
 
-	return runSync(ctx, outputType, groupedConfigs, logger)
+	return groupedConfigs, nil
 }
 
 func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {

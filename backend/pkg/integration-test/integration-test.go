@@ -22,6 +22,7 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	neosync_gcp "github.com/nucleuscloud/neosync/backend/internal/gcp"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
@@ -30,6 +31,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	v1alpha_anonymizationservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/anonymization-service"
+	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformersservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
@@ -50,11 +52,12 @@ var (
 )
 
 type UnauthdClients struct {
-	Users        mgmtv1alpha1connect.UserAccountServiceClient
-	Transformers mgmtv1alpha1connect.TransformersServiceClient
-	Connections  mgmtv1alpha1connect.ConnectionServiceClient
-	Jobs         mgmtv1alpha1connect.JobServiceClient
-	Anonymize    mgmtv1alpha1connect.AnonymizationServiceClient
+	Users          mgmtv1alpha1connect.UserAccountServiceClient
+	Transformers   mgmtv1alpha1connect.TransformersServiceClient
+	Connections    mgmtv1alpha1connect.ConnectionServiceClient
+	ConnectionData mgmtv1alpha1connect.ConnectionDataServiceClient
+	Jobs           mgmtv1alpha1connect.JobServiceClient
+	Anonymize      mgmtv1alpha1connect.AnonymizationServiceClient
 }
 
 type NeosyncApiTestClient struct {
@@ -263,6 +266,25 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context, t *testing.T) 
 		),
 	)
 
+	unauthdConnectionDataService := v1alpha1_connectiondataservice.New(
+		&v1alpha1_connectiondataservice.Config{},
+		unauthdUserService,
+		unauthdConnectionsService,
+		unauthdJobsService,
+		awsmanager.New(),
+		&sqlconnect.SqlOpenConnector{},
+		pg_queries.New(),
+		mysql_queries.New(),
+		mongoconnect.NewConnector(),
+		sqlmanager.NewSqlManager(
+			&sync.Map{}, pg_queries.New(),
+			&sync.Map{}, mysql_queries.New(),
+			&sync.Map{}, mssql_queries.New(),
+			&sqlconnect.SqlOpenConnector{},
+		),
+		neosync_gcp.NewManager(),
+	)
+
 	var presAnalyzeClient presidioapi.AnalyzeInterface
 	var presAnonClient presidioapi.AnonymizeInterface
 
@@ -289,9 +311,11 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context, t *testing.T) 
 	unauthmux.Handle(mgmtv1alpha1connect.NewJobServiceHandler(
 		unauthdJobsService,
 	))
-
 	unauthmux.Handle(mgmtv1alpha1connect.NewAnonymizationServiceHandler(
 		unauthdAnonymizationService,
+	))
+	unauthmux.Handle(mgmtv1alpha1connect.NewConnectionDataServiceHandler(
+		unauthdConnectionDataService,
 	))
 	rootmux.Handle("/unauth/", http.StripPrefix("/unauth", unauthmux))
 
@@ -345,11 +369,12 @@ func (s *ApiIntegrationTestSuite) SetupSuite(ctx context.Context, t *testing.T) 
 	s.httpsrv = startHTTPServer(t, rootmux)
 
 	s.unauthdClients = &UnauthdClients{
-		Users:        mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		Transformers: mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		Connections:  mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		Jobs:         mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
-		Anonymize:    mgmtv1alpha1connect.NewAnonymizationServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Users:          mgmtv1alpha1connect.NewUserAccountServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Transformers:   mgmtv1alpha1connect.NewTransformersServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Connections:    mgmtv1alpha1connect.NewConnectionServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		ConnectionData: mgmtv1alpha1connect.NewConnectionDataServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Jobs:           mgmtv1alpha1connect.NewJobServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
+		Anonymize:      mgmtv1alpha1connect.NewAnonymizationServiceClient(s.httpsrv.Client(), s.httpsrv.URL+"/unauth"),
 	}
 
 	s.authdClients = &AuthdClients{
@@ -395,4 +420,13 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 	srv.Start()
 	tb.Cleanup(srv.Close)
 	return srv
+}
+
+func NewTestSqlManagerClient() *sqlmanager.SqlManager {
+	return sqlmanager.NewSqlManager(
+		&sync.Map{}, pg_queries.New(),
+		&sync.Map{}, mysql_queries.New(),
+		&sync.Map{}, mssql_queries.New(),
+		&sqlconnect.SqlOpenConnector{},
+	)
 }

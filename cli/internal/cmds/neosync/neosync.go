@@ -66,6 +66,8 @@ func Execute() {
 	)
 	rootCmd.PersistentFlags().String(apiKeyFlag, "", fmt.Sprintf("Neosync API Key. Takes precedence over $%s", apiKeyEnvVarName))
 
+	rootCmd.PersistentFlags().Bool("debug", false, "Run in debug mode")
+
 	rootCmd.AddCommand(jobs_cmd.NewCmd())
 	rootCmd.AddCommand(version_cmd.NewCmd())
 	rootCmd.AddCommand(whoami_cmd.NewCmd())

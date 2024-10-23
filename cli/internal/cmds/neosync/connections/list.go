@@ -33,8 +33,13 @@ func newListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			debugMode, err := cmd.Flags().GetBool("debug")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return listConnections(cmd.Context(), &apiKey, &accountId)
+			return listConnections(cmd.Context(), debugMode, &apiKey, &accountId)
 		},
 	}
 	cmd.Flags().String("account-id", "", "Account to list connections for. Defaults to account id in cli context")
@@ -43,17 +48,13 @@ func newListCmd() *cobra.Command {
 
 func listConnections(
 	ctx context.Context,
+	debugMode bool,
 	apiKey, accountIdFlag *string,
 ) error {
-	// httpclient := http_client.NewWithHeaders(version.Get().Headers())
-	// isAuthEnabled, err := auth.IsAuthEnabled(ctx)
-	// if err != nil {
-	// 	return err
-	// }
 	logLevel := charmlog.InfoLevel
-	// if cmd.Debug {
-	// 	logLevel = charmlog.DebugLevel
-	// }
+	if debugMode {
+		logLevel = charmlog.DebugLevel
+	}
 	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
 		ReportTimestamp: true,
 		Level:           logLevel,
@@ -63,7 +64,7 @@ func listConnections(
 	if accountId == nil || *accountId == "" {
 		aId, err := userconfig.GetAccountId()
 		if err != nil {
-			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") //nolint:forbidigo
+			logger.Error("Unable to retrieve account id. Please use account switch command to set account.")
 			return err
 		}
 		accountId = &aId
@@ -82,14 +83,7 @@ func listConnections(
 	connectInterceptorOption := connect.WithInterceptors(connectInterceptors...)
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl, connectInterceptorOption)
 
-	// connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-	// 	httpclient,
-	// 	serverconfig.GetApiBaseUrl(),
-	// 	connect.WithInterceptors(
-	// 		auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
-	// 	),
-	// )
-	connections, err := GetConnections(ctx, connectionclient, *accountId)
+	connections, err := getConnections(ctx, connectionclient, *accountId)
 	if err != nil {
 		return err
 	}
@@ -100,7 +94,7 @@ func listConnections(
 	return nil
 }
 
-func GetConnections(
+func getConnections(
 	ctx context.Context,
 	connectionclient mgmtv1alpha1connect.ConnectionServiceClient,
 	accountId string,
