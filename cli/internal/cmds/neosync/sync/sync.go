@@ -45,6 +45,7 @@ import (
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/warpstreamlabs/bento/public/bloblang"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
 	_ "github.com/warpstreamlabs/bento/public/components/io"
@@ -717,6 +718,9 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 							ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
 							},
+							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+								MaxConnectionLimit: shared.Ptr(int32(25)),
+							},
 						},
 					},
 				},
@@ -731,6 +735,9 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 							ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
 							},
+							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+								MaxConnectionLimit: shared.Ptr(int32(25)),
+							},
 						},
 					},
 				},
@@ -744,6 +751,9 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 						MssqlConfig: &mgmtv1alpha1.MssqlConnectionConfig{
 							ConnectionConfig: &mgmtv1alpha1.MssqlConnectionConfig_Url{
 								Url: cmd.Destination.ConnectionUrl,
+							},
+							ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+								MaxConnectionLimit: shared.Ptr(int32(25)),
 							},
 						},
 					},
