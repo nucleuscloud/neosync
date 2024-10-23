@@ -208,6 +208,10 @@ enum BillingStatus {
   BILLING_STATUS_ACTIVE = 1;
   // If the system could not find any active subscriptions
   BILLING_STATUS_EXPIRED = 2;
+  // The account does not have an active subscription and is in a valid trial period
+  BILLING_STATUS_TRIAL_ACTIVE = 3;
+  // The account does not have an active subscription and the trial period has ended
+  BILLING_STATUS_TRIAL_EXPIRED = 4;
 }
 
 message GetAccountStatusResponse {
@@ -251,6 +255,10 @@ enum AccountStatus {
   ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT = 2;
   // Account is currently in an expired state
   ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE = 3;
+  // The account is currently in an active trial period
+  ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE = 4;
+  // The account is past the active trial period
+  ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED = 5;
 }
 
 message GetAccountBillingCheckoutSessionRequest {

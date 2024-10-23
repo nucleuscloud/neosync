@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"math"
 	"strings"
 	"time"
@@ -17,9 +16,13 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
-	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/internal/billing"
 	"github.com/stripe/stripe-go/v79"
+)
+
+var (
+	// 14 days duration
+	trialDuration = 14 * 24 * time.Hour
 )
 
 func (s *Service) GetAccountStatus(
@@ -33,70 +36,70 @@ func (s *Service) GetAccountStatus(
 		return nil, err
 	}
 	logger = logger.With("accountId", accountId)
+	if !s.cfg.IsNeosyncCloud {
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
+	}
 
 	account, err := s.db.Q.GetAccount(ctx, s.db.Db, *accountId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve account: %w", err)
 	}
 
-	if s.cfg.IsNeosyncCloud {
-		if account.AccountType == int16(neosyncdb.AccountType_Personal) {
-			allowedRecordCount := getAllowedRecordCount(account.MaxAllowedRecords)
-			var usedRecordCount uint64
-			if allowedRecordCount != nil && *allowedRecordCount > 0 {
-				count, err := s.getUsedRecordCountForMonth(ctx, req.Msg.GetAccountId(), logger)
-				if err != nil {
-					return nil, fmt.Errorf("unable to retrieve used record count for month: %w", err)
-				}
-				usedRecordCount = count
-			}
+	trialOver := account.CreatedAt.Time.Add(trialDuration).After(time.Now().UTC())
+	subscriptionStatus := mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE
+	if trialOver {
+		subscriptionStatus = mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_EXPIRED
+	}
+
+	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: subscriptionStatus,
+		}), nil
+	} else if s.billingclient != nil {
+		if !account.StripeCustomerID.Valid {
+			logger.Warn("stripe is enabled but team account does not have stripe customer id")
 			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-				UsedRecordCount:    usedRecordCount,
-				AllowedRecordCount: allowedRecordCount,
-				SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_UNSPECIFIED,
-			}), nil
-		} else if s.billingclient != nil {
-			if !account.StripeCustomerID.Valid {
-				logger.Warn("stripe is enabled but team account does not have stripe customer id")
-				return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-					SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_UNSPECIFIED,
-				}), nil
-			}
-			logger.Debug("attempting to find active stripe subscription")
-			subscription, err := s.findActiveStripeSubscription(account.StripeCustomerID.String)
-			if err != nil {
-				return nil, err
-			}
-			if subscription == nil {
-				return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-					SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED,
-				}), nil
-			}
-			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-				SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE,
+				SubscriptionStatus: subscriptionStatus,
 			}), nil
 		}
-		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
+		logger.Debug("attempting to find active stripe subscription")
+		subscriptions, err := s.getStripeSubscriptions(account.StripeCustomerID.String)
+		if err != nil {
+			return nil, err
+		}
+		if _, ok := findActiveStripeSubscription(subscriptions); !ok {
+			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+				SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED,
+			}), nil
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE,
+		}), nil
 	}
-	return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
+	return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+		SubscriptionStatus: subscriptionStatus,
+	}), nil
 }
 
-func (s *Service) findActiveStripeSubscription(customerId string) (*stripe.Subscription, error) {
+func (s *Service) getStripeSubscriptions(customerId string) ([]*stripe.Subscription, error) {
 	subIter := s.billingclient.GetSubscriptions(customerId)
-	var validSubscription *stripe.Subscription
-
+	output := []*stripe.Subscription{}
 	for subIter.Next() {
-		subscription := subIter.Subscription()
-		if isSubscriptionActive(subscription.Status) {
-			validSubscription = subscription
-			break
-		}
+		output = append(output, subIter.Subscription())
 	}
-	// this could be bad, we may want to cache the stripe subscriptions to prevent any issues with stripe outages
 	if subIter.Err() != nil {
 		return nil, fmt.Errorf("encountered error when retrieving stripe subscriptions: %w", subIter.Err())
 	}
-	return validSubscription, nil
+	return output, nil
+}
+
+func findActiveStripeSubscription(subs []*stripe.Subscription) (*stripe.Subscription, bool) {
+	for _, sub := range subs {
+		if isSubscriptionActive(sub.Status) {
+			return sub, true
+		}
+	}
+	return nil, false
 }
 
 func isSubscriptionActive(status stripe.SubscriptionStatus) bool {
@@ -120,22 +123,6 @@ func isSubscriptionActive(status stripe.SubscriptionStatus) bool {
 	}
 }
 
-func getAllowedRecordCount(maxAllowed pgtype.Int8) *uint64 {
-	if maxAllowed.Valid {
-		val := toUint64(maxAllowed.Int64)
-		return &val
-	}
-	return nil
-}
-
-// Returns the int64 as a uint64, or if int64 is negative, returns 0
-func toUint64(val int64) uint64 {
-	if val >= 0 {
-		return uint64(val)
-	}
-	return 0
-}
-
 func (s *Service) IsAccountStatusValid(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsAccountStatusValidRequest],
@@ -147,100 +134,34 @@ func (s *Service) IsAccountStatusValid(
 		return nil, err
 	}
 
-	if !s.cfg.IsNeosyncCloud {
+	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
 	}
 
-	accountUuid, err := neosyncdb.ToUuid(req.Msg.GetAccountId())
-	if err != nil {
-		return nil, err
+	accountStatus := mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED
+	var description string
+	isValid := false
+
+	switch accountStatusResp.Msg.GetSubscriptionStatus() {
+	case mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED:
+		accountStatus = mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE
+		description = "Account is currently in expired state, visit the billing page to activate your subscription."
+	case mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_EXPIRED:
+		accountStatus = mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED
+		description = "The trial period has ended, visit the billing page to activate your subscription."
+	case mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE:
+		accountStatus = mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE
+		isValid = true
+	case mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE:
+		accountStatus = mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED
+		isValid = true
 	}
 
-	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountUuid)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve account: %w", err)
-	}
-
-	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
-		if accountStatusResp.Msg.AllowedRecordCount == nil {
-			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
-		}
-
-		currentUsed := accountStatusResp.Msg.GetUsedRecordCount()
-		allowed := accountStatusResp.Msg.GetAllowedRecordCount()
-
-		if currentUsed >= allowed {
-			description := fmt.Sprintf("Current used record count (%d) exceeds the allowed limit (%d).", currentUsed, allowed)
-			return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-				IsValid:            false,
-				Reason:             &description,
-				AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT,
-				UsedRecordCount:    currentUsed,
-				AllowedRecordCount: &allowed,
-			}), nil
-		}
-
-		if req.Msg.GetRequestedRecordCount() > 0 {
-			requested := req.Msg.GetRequestedRecordCount()
-			totalUsed := currentUsed + requested
-			if totalUsed > allowed {
-				description := fmt.Sprintf("Adding requested record count (%d) would exceed the allowed limit (%d). Current used: %d.", requested, allowed, currentUsed)
-				return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-					IsValid:            false,
-					AccountStatus:      mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT,
-					Reason:             &description,
-					UsedRecordCount:    currentUsed,
-					AllowedRecordCount: &allowed,
-				}), nil
-			}
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-			IsValid:    true,
-			ShouldPoll: true, // Is active free account that is currently under their usage limit
-		}), nil
-	}
-
-	billingStatus := accountStatusResp.Msg.GetSubscriptionStatus()
-
-	if s.billingclient == nil || billingStatus == mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE {
-		return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{IsValid: true}), nil
-	}
-
-	description := "Account is currently in expired state, visit the billing page to activate your subscription."
 	return connect.NewResponse(&mgmtv1alpha1.IsAccountStatusValidResponse{
-		IsValid:       false,
-		AccountStatus: mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE,
+		IsValid:       isValid,
+		AccountStatus: accountStatus,
 		Reason:        &description,
 	}), nil
-}
-
-func (s *Service) getUsedRecordCountForMonth(
-	ctx context.Context,
-	accountId string,
-	logger *slog.Logger,
-) (uint64, error) {
-	today := time.Now().UTC()
-	promWindow := fmt.Sprintf("%dd", today.Day())
-
-	queryLabels := metrics.MetricLabels{
-		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
-		metrics.NewEqLabel(metrics.AccountIdLabel, accountId),
-	}
-
-	query, err := metrics.GetPromQueryFromMetric(mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED, queryLabels, promWindow)
-	if err != nil {
-		return 0, err
-	}
-	totalCount, err := metrics.GetTotalUsageFromProm(ctx, s.prometheusclient, query, today, logger)
-	if err != nil {
-		return 0, err
-	}
-	if totalCount < 0 {
-		logger.Warn("the response from prometheus returned a negative count when computing used records")
-		totalCount = 0
-	}
-	return uint64(totalCount), nil
 }
 
 func (s *Service) GetAccountBillingCheckoutSession(

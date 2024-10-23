@@ -14411,6 +14411,16 @@
               "name": "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE",
               "number": "3",
               "description": "Account is currently in an expired state"
+            },
+            {
+              "name": "ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE",
+              "number": "4",
+              "description": "The account is currently in an active trial period"
+            },
+            {
+              "name": "ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED",
+              "number": "5",
+              "description": "The account is past the active trial period"
             }
           ]
         },
@@ -14434,6 +14444,16 @@
               "name": "BILLING_STATUS_EXPIRED",
               "number": "2",
               "description": "If the system could not find any active subscriptions"
+            },
+            {
+              "name": "BILLING_STATUS_TRIAL_ACTIVE",
+              "number": "3",
+              "description": "The account does not have an active subscription and is in a valid trial period"
+            },
+            {
+              "name": "BILLING_STATUS_TRIAL_EXPIRED",
+              "number": "4",
+              "description": "The account does not have an active subscription and the trial period has ended"
             }
           ]
         },
