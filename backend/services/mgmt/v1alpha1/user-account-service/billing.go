@@ -36,7 +36,7 @@ func (s *Service) GetAccountStatus(
 		return nil, err
 	}
 	logger = logger.With("accountId", accountId)
-	if !s.cfg.IsNeosyncCloud {
+	if !s.cfg.IsNeosyncCloud || s.billingclient == nil {
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{}), nil
 	}
 
@@ -45,40 +45,63 @@ func (s *Service) GetAccountStatus(
 		return nil, fmt.Errorf("unable to retrieve account: %w", err)
 	}
 
-	trialOver := account.CreatedAt.Time.Add(trialDuration).After(time.Now().UTC())
-	subscriptionStatus := mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE
-	if trialOver {
-		subscriptionStatus = mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_EXPIRED
-	}
+	trialStatus := getTrialStatus(account.CreatedAt)
 
 	if account.AccountType == int16(neosyncdb.AccountType_Personal) {
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-			SubscriptionStatus: subscriptionStatus,
+			SubscriptionStatus: trialStatus,
 		}), nil
-	} else if s.billingclient != nil {
-		if !account.StripeCustomerID.Valid {
-			logger.Warn("stripe is enabled but team account does not have stripe customer id")
-			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-				SubscriptionStatus: subscriptionStatus,
-			}), nil
-		}
-		logger.Debug("attempting to find active stripe subscription")
-		subscriptions, err := s.getStripeSubscriptions(account.StripeCustomerID.String)
-		if err != nil {
-			return nil, err
-		}
-		if _, ok := findActiveStripeSubscription(subscriptions); !ok {
-			return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-				SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED,
-			}), nil
-		}
+	}
+	if !account.StripeCustomerID.Valid {
+		logger.Warn("stripe is enabled but team account does not have stripe customer id")
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: trialStatus,
+		}), nil
+	}
+
+	logger.Debug("attempting to find active stripe subscription")
+	subscriptions, err := s.getStripeSubscriptions(account.StripeCustomerID.String)
+	if err != nil {
+		return nil, err
+	}
+	logger.Debug(fmt.Sprintf("found %d stripe subscriptions for account", len(subscriptions)))
+	_, hasActiveSub := findActiveStripeSubscription(subscriptions)
+	if hasActiveSub {
+		logger.Debug("account has active billing subscription")
 		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
 			SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE,
 		}), nil
 	}
+	if len(subscriptions) == 0 {
+		logger.Debug("account has no subscriptions, returning trial status")
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: trialStatus,
+		}), nil
+	}
+	if trialStatus == mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE {
+		logger.Debug("account has no active subscriptions but trial is still active")
+		return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
+			SubscriptionStatus: trialStatus,
+		}), nil
+	}
+	logger.Debug("account has no active subscriptions and trial is expired")
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountStatusResponse{
-		SubscriptionStatus: subscriptionStatus,
+		SubscriptionStatus: mgmtv1alpha1.BillingStatus_BILLING_STATUS_EXPIRED,
 	}), nil
+}
+
+func getTrialStatus(ts pgtype.Timestamp) mgmtv1alpha1.BillingStatus {
+	if !ts.Valid || ts.Time.IsZero() {
+		return mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_EXPIRED
+	}
+
+	trialEndTime := ts.Time.Add(trialDuration)
+	trialActive := time.Now().UTC().Before(trialEndTime)
+
+	if trialActive {
+		return mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE
+	}
+	return mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_EXPIRED
 }
 
 func (s *Service) getStripeSubscriptions(customerId string) ([]*stripe.Subscription, error) {

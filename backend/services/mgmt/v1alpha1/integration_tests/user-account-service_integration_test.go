@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -13,9 +14,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -377,38 +375,12 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
-	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
-	require.NoError(s.T(), err)
-
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
-		Once().
-		Return(model.Vector{{
-			Value:     2,
-			Timestamp: 0,
-		}}, promv1.Warnings{}, nil)
-
 	resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
 
-	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(2))
-	require.NotNil(s.T(), resp.Msg.AllowedRecordCount)
-	require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal_Unlimited() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
-
-	resp, err := userclient.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
-		AccountId: accountId,
-	}))
-	requireNoErrResp(s.T(), resp, err)
-
-	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(0))
-	require.Nil(s.T(), resp.Msg.AllowedRecordCount)
+	require.Equal(s.T(), mgmtv1alpha1.BillingStatus_BILLING_STATUS_TRIAL_ACTIVE, resp.Msg.GetSubscriptionStatus())
 }
 
 type testSubscriptionIter struct {
@@ -434,7 +406,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 
 	t := s.T()
 
-	t.Run("active sub", func(t *testing.T) {
+	t.Run("active_sub", func(t *testing.T) {
 		custId := "cust_id1"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team", custId)
 		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
@@ -450,7 +422,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 		require.Equal(s.T(), mgmtv1alpha1.BillingStatus_BILLING_STATUS_ACTIVE, resp.Msg.GetSubscriptionStatus())
 	})
 
-	t.Run("no active subscriptions", func(t *testing.T) {
+	t.Run("no_active_subscriptions", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team1", custId)
 		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
@@ -475,24 +447,13 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Pers
 	}))
 	requireNoErrResp(s.T(), resp, err)
 
-	require.Equal(s.T(), resp.Msg.GetUsedRecordCount(), uint64(0))
-	require.Nil(s.T(), resp.Msg.AllowedRecordCount)
+	require.Equal(s.T(), mgmtv1alpha1.BillingStatus_BILLING_STATUS_UNSPECIFIED, resp.Msg.GetSubscriptionStatus())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal() {
 	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
-
-	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
-	require.NoError(s.T(), err)
-
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
-		Once().
-		Return(model.Vector{{
-			Value:     2,
-			Timestamp: 0,
-		}}, promv1.Warnings{}, nil)
 
 	resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 		AccountId: accountId,
@@ -501,80 +462,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 
 	require.True(s.T(), resp.Msg.GetIsValid())
 	require.Empty(s.T(), resp.Msg.GetReason())
-	require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
-	require.True(s.T(), resp.Msg.GetShouldPoll())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
-
-	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
-	require.NoError(s.T(), err)
-
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
-		Once().
-		Return(model.Vector{{
-			Value:     100,
-			Timestamp: 0,
-		}}, promv1.Warnings{}, nil)
-
-	resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-		AccountId: accountId,
-	}))
-	requireNoErrResp(s.T(), resp, err)
-
-	require.False(s.T(), resp.Msg.GetIsValid())
-	require.NotEmpty(s.T(), resp.Msg.GetReason())
-	require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT, resp.Msg.GetAccountStatus())
-	require.Equal(s.T(), uint64(100), resp.Msg.GetUsedRecordCount())
-	require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
-	require.False(s.T(), resp.Msg.GetShouldPoll())
-}
-
-func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-	s.setUser(s.ctx, userclient)
-	accountId := s.createPersonalAccount(s.ctx, userclient)
-
-	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
-	require.NoError(s.T(), err)
-
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
-		Twice().
-		Return(model.Vector{{
-			Value:     50,
-			Timestamp: 0,
-		}}, promv1.Warnings{}, nil)
-
-	t := s.T()
-	t.Run("over the limit", func(t *testing.T) {
-		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-			AccountId:            accountId,
-			RequestedRecordCount: shared.Ptr(uint64(51)), // puts the user one over the limit
-		}))
-		requireNoErrResp(s.T(), resp, err)
-
-		require.False(s.T(), resp.Msg.GetIsValid())
-		require.NotEmpty(s.T(), resp.Msg.GetReason())
-		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT, resp.Msg.GetAccountStatus())
-		require.Equal(s.T(), uint64(50), resp.Msg.GetUsedRecordCount())
-		require.Equal(s.T(), uint64(100), resp.Msg.GetAllowedRecordCount())
-		require.False(s.T(), resp.Msg.GetShouldPoll())
-	})
-	t.Run("under the limit", func(t *testing.T) {
-		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
-			AccountId:            accountId,
-			RequestedRecordCount: shared.Ptr(uint64(50)),
-		}))
-		requireNoErrResp(s.T(), resp, err)
-
-		require.True(s.T(), resp.Msg.GetIsValid())
-		require.Empty(s.T(), resp.Msg.GetReason())
-		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
-		require.True(s.T(), resp.Msg.GetShouldPoll())
-	})
+	require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE, resp.Msg.GetAccountStatus())
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Billed() {
@@ -591,16 +479,18 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 			AccountId: accountId,
 		}))
-		requireNoErrResp(s.T(), resp, err)
+		requireNoErrResp(t, resp, err)
 
-		assert.True(s.T(), resp.Msg.GetIsValid())
-		assert.Empty(s.T(), resp.Msg.GetReason())
-		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
-		require.False(s.T(), resp.Msg.GetShouldPoll())
+		assert.True(t, resp.Msg.GetIsValid())
+		assert.Empty(t, resp.Msg.GetReason())
+		require.Equal(t, mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED, resp.Msg.GetAccountStatus())
+		require.False(t, resp.Msg.GetShouldPoll())
 	})
-	t.Run("inactive", func(t *testing.T) {
+	t.Run("no_active_subs", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test2", custId)
+		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		assert.NoError(t, err)
 		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 		}}, nil)
@@ -608,12 +498,59 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
 			AccountId: accountId,
 		}))
-		requireNoErrResp(s.T(), resp, err)
+		requireNoErrResp(t, resp, err)
 
-		assert.False(s.T(), resp.Msg.GetIsValid())
-		assert.NotEmpty(s.T(), resp.Msg.GetReason())
-		require.Equal(s.T(), mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE, resp.Msg.GetAccountStatus())
-		require.False(s.T(), resp.Msg.GetShouldPoll())
+		assert.False(t, resp.Msg.GetIsValid())
+		assert.NotEmpty(t, resp.Msg.GetReason())
+		assert.Equal(t, mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE, resp.Msg.GetAccountStatus())
+		assert.False(t, resp.Msg.GetShouldPoll())
+	})
+	t.Run("no_subs_active_trial", func(t *testing.T) {
+		custId := "cust_id3"
+		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test3", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{}}, nil)
+
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		assert.True(t, resp.Msg.GetIsValid())
+		assert.Empty(t, resp.Msg.GetReason())
+		assert.Equal(t, mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE, resp.Msg.GetAccountStatus())
+		assert.False(t, resp.Msg.GetShouldPoll())
+	})
+	t.Run("no_subs_expired_trial", func(t *testing.T) {
+		custId := "cust_id4"
+		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test4", custId)
+		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		assert.NoError(t, err)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{}}, nil)
+
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+
+		assert.False(t, resp.Msg.GetIsValid())
+		assert.NotEmpty(t, resp.Msg.GetReason())
+		assert.Equal(t, mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_EXPIRED, resp.Msg.GetAccountStatus())
+		assert.False(t, resp.Msg.GetShouldPoll())
+	})
+	t.Run("no_active_subs_active_trial", func(t *testing.T) {
+		custId := "cust_id5"
+		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test5", custId)
+		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+			{Status: stripe.SubscriptionStatusIncompleteExpired},
+		}}, nil)
+
+		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
+			AccountId: accountId,
+		}))
+		requireNoErrResp(t, resp, err)
+		assert.True(t, resp.Msg.GetIsValid())
+		assert.Empty(t, resp.Msg.GetReason())
+		assert.Equal(t, mgmtv1alpha1.AccountStatus_ACCOUNT_STATUS_ACCOUNT_TRIAL_ACTIVE, resp.Msg.GetAccountStatus())
+		assert.False(t, resp.Msg.GetShouldPoll())
 	})
 }
 

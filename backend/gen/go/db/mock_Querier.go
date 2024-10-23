@@ -3771,26 +3771,26 @@ func (_c *MockQuerier_RemoveJobConnectionDestinations_Call) RunAndReturn(run fun
 	return _c
 }
 
-// SetAccountMaxAllowedRecords provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) SetAccountMaxAllowedRecords(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error) {
+// SetAccountCreatedAt provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetAccountCreatedAt(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, arg)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SetAccountMaxAllowedRecords")
+		panic("no return value specified for SetAccountCreatedAt")
 	}
 
 	var r0 NeosyncApiAccount
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountCreatedAtParams) (NeosyncApiAccount, error)); ok {
 		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountMaxAllowedRecordsParams) NeosyncApiAccount); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetAccountCreatedAtParams) NeosyncApiAccount); ok {
 		r0 = rf(ctx, db, arg)
 	} else {
 		r0 = ret.Get(0).(NeosyncApiAccount)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetAccountMaxAllowedRecordsParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetAccountCreatedAtParams) error); ok {
 		r1 = rf(ctx, db, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -3799,32 +3799,32 @@ func (_m *MockQuerier) SetAccountMaxAllowedRecords(ctx context.Context, db DBTX,
 	return r0, r1
 }
 
-// MockQuerier_SetAccountMaxAllowedRecords_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAccountMaxAllowedRecords'
-type MockQuerier_SetAccountMaxAllowedRecords_Call struct {
+// MockQuerier_SetAccountCreatedAt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAccountCreatedAt'
+type MockQuerier_SetAccountCreatedAt_Call struct {
 	*mock.Call
 }
 
-// SetAccountMaxAllowedRecords is a helper method to define mock.On call
+// SetAccountCreatedAt is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - arg SetAccountMaxAllowedRecordsParams
-func (_e *MockQuerier_Expecter) SetAccountMaxAllowedRecords(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetAccountMaxAllowedRecords_Call {
-	return &MockQuerier_SetAccountMaxAllowedRecords_Call{Call: _e.mock.On("SetAccountMaxAllowedRecords", ctx, db, arg)}
+//   - arg SetAccountCreatedAtParams
+func (_e *MockQuerier_Expecter) SetAccountCreatedAt(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetAccountCreatedAt_Call {
+	return &MockQuerier_SetAccountCreatedAt_Call{Call: _e.mock.On("SetAccountCreatedAt", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_SetAccountMaxAllowedRecords_Call) Run(run func(ctx context.Context, db DBTX, arg SetAccountMaxAllowedRecordsParams)) *MockQuerier_SetAccountMaxAllowedRecords_Call {
+func (_c *MockQuerier_SetAccountCreatedAt_Call) Run(run func(ctx context.Context, db DBTX, arg SetAccountCreatedAtParams)) *MockQuerier_SetAccountCreatedAt_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetAccountMaxAllowedRecordsParams))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetAccountCreatedAtParams))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_SetAccountMaxAllowedRecords_Call) Return(_a0 NeosyncApiAccount, _a1 error) *MockQuerier_SetAccountMaxAllowedRecords_Call {
+func (_c *MockQuerier_SetAccountCreatedAt_Call) Return(_a0 NeosyncApiAccount, _a1 error) *MockQuerier_SetAccountCreatedAt_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_SetAccountMaxAllowedRecords_Call) RunAndReturn(run func(context.Context, DBTX, SetAccountMaxAllowedRecordsParams) (NeosyncApiAccount, error)) *MockQuerier_SetAccountMaxAllowedRecords_Call {
+func (_c *MockQuerier_SetAccountCreatedAt_Call) RunAndReturn(run func(context.Context, DBTX, SetAccountCreatedAtParams) (NeosyncApiAccount, error)) *MockQuerier_SetAccountCreatedAt_Call {
 	_c.Call.Return(run)
 	return _c
 }
