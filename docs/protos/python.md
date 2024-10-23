@@ -39,6 +39,7 @@ If you are using Neosync locally in `auth mode` or using Neosync Cloud, you can 
 ```python
 import grpc
 import json
+import os
 
 from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
 from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
@@ -50,7 +51,7 @@ def main():
     channel_credentials = grpc.ssl_channel_credentials()
 
     # Opens a secure channel to communication to the GRPC endpoint
-    channel = grpc.secure_channel("neosync-api.svcs.neosync.dev", channel_credentials)
+    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
 
     # Creates an client stub that we can use to invoke the AnonymizationService
     stub = AnonymizationServiceStub(channel)
@@ -83,7 +84,7 @@ def main():
                 AnonymizeSingleRequest(
                     input_data=input_data,
                     transformer_mappings=[transformer_mapping],
-                    account_id="<neosync-api-url>"
+                    account_id="<neosync-aaccount-id>"
                 ),
                 metadata=metadata
             )
@@ -152,6 +153,8 @@ Here's how you do it:
 
 import grpc
 import json
+import os
+
 from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
 from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
 from neosync.mgmt.v1alpha1.transformer_pb2 import TransformerConfig, TransformCharacterScramble, TransformFullName, TransformEmail
@@ -160,7 +163,7 @@ def main():
 
     channel_credentials = grpc.ssl_channel_credentials()
 
-    channel = grpc.secure_channel("neosync-api.svcs.neosync.dev", channel_credentials)
+    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
     stub = AnonymizationServiceStub(channel)
 
     transformer_mapping = [TransformerMapping(
@@ -271,6 +274,8 @@ Our input object is a transcription from a call from a doctor's office. In this 
 ```python
 import grpc
 import json
+import os
+
 from neosync.mgmt.v1alpha1.anonymization_pb2_grpc import AnonymizationServiceStub
 from neosync.mgmt.v1alpha1.anonymization_pb2 import AnonymizeSingleRequest,TransformerMapping
 from neosync.mgmt.v1alpha1.transformer_pb2 import TransformerConfig, TransformPiiText
@@ -279,7 +284,7 @@ def main():
 
     channel_credentials = grpc.ssl_channel_credentials()
 
-    channel = grpc.secure_channel("neosync-api.svcs.neosync.dev", channel_credentials)
+    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
     stub = AnonymizationServiceStub(channel)
 
     transformer_mapping = TransformerMapping(
@@ -304,7 +309,7 @@ def main():
                 AnonymizeSingleRequest(
                     input_data=input_data,
                     transformer_mappings=[transformer_mapping],
-                    account_id="<neosync-api-url>"
+                    account_id="<neosync-account-id>"
                 ),
                 metadata=metadata
             )
@@ -348,6 +353,7 @@ Let's augment our code from above to call the `CreateJobRun` API.
 ```python
 import grpc
 import json
+import os
 
 from neosync.mgmt.v1alpha1.job_pb2_grpc import JobServiceStub
 from neosync.mgmt.v1alpha1.job_pb2 import CreateJobRunRequest
@@ -358,7 +364,7 @@ def main():
 
     channel_credentials = grpc.ssl_channel_credentials()
 
-    channel = grpc.secure_channel("neosync-api.svcs.neosync.dev", channel_credentials)
+    channel = grpc.secure_channel(os.getenv('NEOSYNC_API_URL'), channel_credentials)
     stub = JobServiceStub(channel)
 
     access_token = '<neosync-api-token>'
