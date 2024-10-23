@@ -1652,6 +1652,13 @@ export class TransformPiiText extends Message<TransformPiiText> {
    */
   allowedEntities: string[] = [];
 
+  /**
+   * Exact match of PII phrases identified by the analysis engine.
+   *
+   * @generated from field: repeated string allowed_phrases = 5;
+   */
+  allowedPhrases: string[] = [];
+
   constructor(data?: PartialMessage<TransformPiiText>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1664,6 +1671,7 @@ export class TransformPiiText extends Message<TransformPiiText> {
     { no: 2, name: "default_anonymizer", kind: "message", T: PiiAnonymizer },
     { no: 3, name: "deny_recognizers", kind: "message", T: PiiDenyRecognizer, repeated: true },
     { no: 4, name: "allowed_entities", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "allowed_phrases", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPiiText {
