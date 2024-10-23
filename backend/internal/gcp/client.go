@@ -235,7 +235,8 @@ func getFirstRecordFromReader(reader io.Reader) (map[string]any, error) {
 	defer gzipReader.Close()
 
 	decoder := json.NewDecoder(gzipReader)
-	if err := decoder.Decode(&result); err == io.EOF {
+	err = decoder.Decode(&result)
+	if err != nil && err == io.EOF {
 		return result, nil
 	} else if err != nil {
 		return nil, err
@@ -254,11 +255,13 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 	decoder := json.NewDecoder(gzipReader)
 	for {
 		var result map[string]any
-		if err := decoder.Decode(&result); err == io.EOF {
+		err = decoder.Decode(&result)
+		if err != nil && err == io.EOF {
 			break // End of file, stop the loop
 		} else if err != nil {
 			return err
 		}
+
 		record, err := valToRecord(result)
 		if err != nil {
 			return fmt.Errorf("unable to convert record from map[string]any to map[string][]byte: %w", err)

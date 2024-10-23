@@ -288,7 +288,8 @@ func (s *Service) GetConnectionDataStream(
 					var data map[string]any
 
 					// Decode the next JSON object
-					if err := decoder.Decode(&data); err == io.EOF {
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
 						result.Body.Close()
@@ -650,7 +651,8 @@ func (s *Service) GetConnectionSchema(
 				for {
 					var data map[string]any
 					// Decode the next JSON object
-					if err := decoder.Decode(&data); err == io.EOF {
+					err = decoder.Decode(&data)
+					if err != nil && err == io.EOF {
 						break // End of file, stop the loop
 					} else if err != nil {
 						result.Body.Close()
