@@ -81,7 +81,7 @@ type Option func(*PostgresTestContainer)
 func NewPostgresTestContainer(ctx context.Context, opts ...Option) (*PostgresTestContainer, error) {
 	p := &PostgresTestContainer{
 		database: "testdb",
-		username: "postrgres",
+		username: "postgres",
 		password: "pass",
 	}
 	for _, opt := range opts {

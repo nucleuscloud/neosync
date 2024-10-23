@@ -2,6 +2,7 @@ package sync_cmd
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
@@ -45,10 +46,16 @@ func Test_Sync_Postgres(t *testing.T) {
 	}
 
 	// load data into source
-	err = postgres.Source.RunSqlFiles(ctx, nil, []string{})
+	testdataFolder := "../../../../../internal/testutil/testdata/postgres/humanresources"
+	err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
 	if err != nil {
 		panic(err)
 	}
+	err = postgres.Target.RunSqlFiles(ctx, &testdataFolder, []string{"create-schema.sql"})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("loaded data into source db")
 
 	connclient := neosyncApi.UnathdClients.Connections
 	conndataclient := neosyncApi.UnathdClients.ConnectionData
@@ -59,6 +66,7 @@ func Test_Sync_Postgres(t *testing.T) {
 
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnathdClients.Users)
 	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "source", postgres.Source.URL)
+	fmt.Println("target url", postgres.Target.URL)
 
 	t.Run("sync_postgres", func(t *testing.T) {
 		cmdConfig := &cmdConfig{
