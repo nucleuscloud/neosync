@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	syncmap "sync"
 	"time"
@@ -205,7 +204,7 @@ func runSync(ctx context.Context, outputType output.OutputType, benv *service.En
 	}
 	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, logger, outputType), opts...).Run(); err != nil {
 		logger.Error("Error syncing data:", err)
-		os.Exit(1)
+		return fmt.Errorf("unable to finish syncing data: %w", err)
 	}
 	return nil
 }
