@@ -6,6 +6,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	presidioapi "github.com/nucleuscloud/neosync/internal/ee/presidio"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers/utils"
 )
 
 var (
@@ -40,6 +41,8 @@ func TransformPiiText(
 		return "", fmt.Errorf("received non-200 response from analyzer: %s %d %s", analyzeResp.Status(), analyzeResp.StatusCode(), string(analyzeResp.Body))
 	}
 
+	analysisResults := removeAllowedPhrases(*analyzeResp.JSON200, value, config.GetAllowedPhrases())
+
 	defaultAnon, ok, err := getDefaultAnonymizer(config.GetDefaultAnonymizer())
 	if err != nil {
 		return "", fmt.Errorf("unable to build default anonymizer: %w", err)
@@ -49,7 +52,7 @@ func TransformPiiText(
 		anonymizers["DEFAULT"] = *defaultAnon
 	}
 	anonResp, err := anonymizeClient.PostAnonymizeWithResponse(ctx, presidioapi.AnonymizeRequest{
-		AnalyzerResults: presidioapi.ToAnonymizeRecognizerResults(*analyzeResp.JSON200),
+		AnalyzerResults: presidioapi.ToAnonymizeRecognizerResults(analysisResults),
 		Text:            value,
 		Anonymizers:     &anonymizers,
 	})
@@ -61,6 +64,28 @@ func TransformPiiText(
 		return "", err
 	}
 	return *anonResp.JSON200.Text, nil
+}
+
+func removeAllowedPhrases(
+	results []presidioapi.RecognizerResultWithAnaysisExplanation,
+	text string,
+	allowedPhrases []string,
+) []presidioapi.RecognizerResultWithAnaysisExplanation {
+	output := []presidioapi.RecognizerResultWithAnaysisExplanation{}
+	uniquePhrases := transformer_utils.ToSet(allowedPhrases)
+	textLen := len(text)
+	for _, result := range results {
+		if result.Start < 0 || result.End > textLen {
+			continue // Skip invalid ranges
+		}
+
+		phrase := text[result.Start:result.End]
+		if _, ok := uniquePhrases[phrase]; !ok {
+			output = append(output, result)
+		}
+	}
+
+	return output
 }
 
 func buildAdhocRecognizers(dtos []*mgmtv1alpha1.PiiDenyRecognizer) []presidioapi.PatternRecognizer {
