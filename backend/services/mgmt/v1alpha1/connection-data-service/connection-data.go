@@ -300,8 +300,11 @@ func (s *Service) GetConnectionDataStream(
 						var byteValue []byte
 						switch v := value.(type) {
 						case string:
+							// try converting string directly to []byte
+							// prevents quoted strings
 							byteValue = []byte(v)
 						default:
+							// if not a string use JSON encoding
 							byteValue, err = json.Marshal(v)
 							if err != nil {
 								result.Body.Close()
