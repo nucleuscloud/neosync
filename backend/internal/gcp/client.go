@@ -1,7 +1,6 @@
 package neosync_gcp
 
 import (
-	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -235,16 +234,11 @@ func getFirstRecordFromReader(reader io.Reader) (map[string]any, error) {
 	}
 	defer gzipReader.Close()
 
-	scanner := bufio.NewScanner(gzipReader)
-	if scanner.Scan() {
-		line := scanner.Text()
-		if err := json.Unmarshal([]byte(line), &result); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading from gzip reader: %w", err)
+	decoder := json.NewDecoder(gzipReader)
+	if err := decoder.Decode(&result); err == io.EOF {
+		return result, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	return result, nil
@@ -257,12 +251,13 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 	}
 	defer gzipReader.Close()
 
-	scanner := bufio.NewScanner(gzipReader)
-	if scanner.Scan() {
-		line := scanner.Bytes()
+	decoder := json.NewDecoder(gzipReader)
+	for {
 		var result map[string]any
-		if err := json.Unmarshal(line, &result); err != nil {
-			return fmt.Errorf("failed to unmarshal JSON: %w", err)
+		if err := decoder.Decode(&result); err == io.EOF {
+			break // End of file, stop the loop
+		} else if err != nil {
+			return err
 		}
 		record, err := valToRecord(result)
 		if err != nil {
@@ -272,9 +267,6 @@ func streamRecordsFromReader(reader io.Reader, onRecord func(record map[string][
 		if err != nil {
 			return err
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading from gzip reader: %w", err)
 	}
 
 	return nil
