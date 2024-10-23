@@ -1,10 +1,10 @@
 package sync_cmd
 
 import (
-	"os"
+	"io"
+	"log/slog"
 	"testing"
 
-	charmlog "github.com/charmbracelet/log"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
 )
@@ -103,9 +103,7 @@ func Test_groupConfigsByDependency(t *testing.T) {
 		},
 	}
 
-	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-	})
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -133,10 +131,7 @@ func Test_groupConfigsByDependency_Error(t *testing.T) {
 		{Name: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}, Table: "public.b", Columns: []string{"id", "c_id"}},
 		{Name: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, Table: "public.c", Columns: []string{"id", "a_id"}},
 	}
-	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
-		ReportTimestamp: true,
-	})
-	groups := groupConfigsByDependency(configs, logger)
+	groups := groupConfigsByDependency(configs, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	require.Nil(t, groups)
 }
 

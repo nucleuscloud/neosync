@@ -304,10 +304,12 @@ func sync(
 	if cmd.Debug {
 		logLevel = charmlog.DebugLevel
 	}
-	logger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
+	charmlogger := charmlog.NewWithOptions(os.Stderr, charmlog.Options{
 		ReportTimestamp: true,
 		Level:           logLevel,
 	})
+	logger := slog.New(charmlogger)
+
 	logger.Info("Starting sync")
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
@@ -463,7 +465,7 @@ func sync(
 		}
 	}()
 	benv, err := benthos_environment.NewEnvironment(
-		slog.Default(),
+		logger,
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
 			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(
 				tunnelmanager,
@@ -472,7 +474,7 @@ func sync(
 					destConnection.Id: destConnection,
 				},
 				session,
-				slog.Default(),
+				logger,
 			)),
 			IsRetry: false,
 		}),
@@ -604,7 +606,7 @@ func sync(
 	}
 
 	syncConfigCount := len(syncConfigs)
-	logger.Infof("Generating %d sync configs...", syncConfigCount)
+	logger.Info(fmt.Sprintf("Generating %d sync configs...", syncConfigCount))
 	configs := []*benthosConfigResponse{}
 	for _, cfg := range syncConfigs {
 		benthosConfig := generateBenthosConfig(cmd, sourceConnectionType, serverconfig.GetApiBaseUrl(), cfg, token)
@@ -642,7 +644,7 @@ var (
 	streamBuilderMu syncmap.Mutex
 )
 
-func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) error {
+func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -677,7 +679,7 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfig
 	streamBuilderMu.Lock()
 	streambldr := benv.NewStreamBuilder()
 	if outputType == output.PlainOutput {
-		streambldr.SetPrintLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType).StandardLog())
+		streambldr.SetLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType))
 	}
 
 	err = streambldr.SetYAML(string(configbits))
@@ -788,7 +790,7 @@ func cmdConfigToDestinationConnection(cmd *cmdConfig) *mgmtv1alpha1.Connection {
 
 func runDestinationInitStatements(
 	ctx context.Context,
-	logger *charmlog.Logger,
+	logger *slog.Logger,
 	sqlmanagerclient sqlmanager.SqlManagerClient,
 	cmd *cmdConfig,
 	syncConfigs []*tabledependency.RunConfig,
@@ -803,13 +805,13 @@ func runDestinationInitStatements(
 	if cmd.Destination.InitSchema {
 		if len(schemaConfig.InitSchemaStatements) != 0 {
 			for _, block := range schemaConfig.InitSchemaStatements {
-				logger.Infof("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements))
+				logger.Info(fmt.Sprintf("[%s] found %d statements to execute during schema initialization", block.Label, len(block.Statements)))
 				if len(block.Statements) == 0 {
 					continue
 				}
 				err = db.Db.BatchExec(ctx, batchSize, block.Statements, &sql_manager.BatchExecOpts{})
 				if err != nil {
-					logger.Error("Error creating tables:", err)
+					logger.Error(fmt.Sprintf("Error creating tables: %v", err))
 					return fmt.Errorf("unable to exec pg %s statements: %w", block.Label, err)
 				}
 			}
@@ -829,7 +831,7 @@ func runDestinationInitStatements(
 
 			err = db.Db.BatchExec(ctx, batchSize, orderedInitStatements, &sql_manager.BatchExecOpts{})
 			if err != nil {
-				logger.Error("Error creating tables:", err)
+				logger.Error(fmt.Sprintf("Error creating tables: %v", err))
 				return err
 			}
 		}
@@ -845,7 +847,7 @@ func runDestinationInitStatements(
 			}
 			err = db.Db.BatchExec(ctx, batchSize, truncateCascadeStmts, &sql_manager.BatchExecOpts{})
 			if err != nil {
-				logger.Error("Error truncate cascade tables:", err)
+				logger.Error(fmt.Sprintf("Error truncate cascade tables: %v", err))
 				return err
 			}
 		} else if cmd.Destination.TruncateBeforeInsert {
@@ -859,7 +861,7 @@ func runDestinationInitStatements(
 			}
 			err = db.Db.Exec(ctx, orderedTruncateStatement)
 			if err != nil {
-				logger.Error("Error truncating tables:", err)
+				logger.Error(fmt.Sprintf("Error truncating tables: %v", err))
 				return err
 			}
 		}
@@ -875,7 +877,7 @@ func runDestinationInitStatements(
 		disableFkChecks := sql_manager.DisableForeignKeyChecks
 		err = db.Db.BatchExec(ctx, batchSize, orderedTableTruncateStatements, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
 		if err != nil {
-			logger.Error("Error truncating tables:", err)
+			logger.Error(fmt.Sprintf("Error truncating tables: %v", err))
 			return err
 		}
 	}
@@ -884,7 +886,7 @@ func runDestinationInitStatements(
 
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
-	logger *charmlog.Logger,
+	logger *slog.Logger,
 ) []*tabledependency.RunConfig {
 	tableColMap := getTableColMap(schemaConfig.Schemas)
 	if len(tableColMap) == 0 {
@@ -921,7 +923,7 @@ func buildDependencyMap(syncConfigs []*tabledependency.RunConfig) map[string][]s
 
 func getTableInitStatementMap(
 	ctx context.Context,
-	logger *charmlog.Logger,
+	logger *slog.Logger,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	connectionId string,
 	opts *sqlDestinationConfig,
@@ -1073,7 +1075,7 @@ func generateBenthosConfig(
 		Columns:   syncConfig.InsertColumns(),
 	}
 }
-func groupConfigsByDependency(configs []*benthosConfigResponse, logger *charmlog.Logger) [][]*benthosConfigResponse {
+func groupConfigsByDependency(configs []*benthosConfigResponse, logger *slog.Logger) [][]*benthosConfigResponse {
 	groupedConfigs := [][]*benthosConfigResponse{}
 	configMap := map[string]*benthosConfigResponse{}
 	queuedMap := map[string][]string{} // map -> table to cols
@@ -1145,7 +1147,7 @@ type schemaConfig struct {
 
 func getConnectionSchemaConfig(
 	ctx context.Context,
-	logger *charmlog.Logger,
+	logger *slog.Logger,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
@@ -1230,7 +1232,7 @@ func getDestinationSchemaConfig(
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
-	logger *charmlog.Logger,
+	logger *slog.Logger,
 ) (*schemaConfig, error) {
 	schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		ConnectionId: connection.Id,

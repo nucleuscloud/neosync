@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 	syncmap "sync"
 	"time"
@@ -22,12 +23,11 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	charmlog "github.com/charmbracelet/log"
 )
 
 type model struct {
 	ctx              context.Context
-	logger           *charmlog.Logger
+	logger           *slog.Logger
 	benv             *service.Environment
 	groupedConfigs   [][]*benthosConfigResponse
 	tableSynced      int
@@ -51,7 +51,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) *model {
+func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -87,7 +87,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.totalConfigCount == m.tableSynced {
 			m.done = true
-			m.logger.Infof("Done! Completed %d tables.", m.tableSynced)
+			m.logger.Info(fmt.Sprintf("Done! Completed %d tables.", m.tableSynced))
 			return m, tea.Sequence(
 				tea.Println(strings.Join(successStrs, " \n")),
 				tea.Quit,
@@ -146,7 +146,7 @@ func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, conf
 			cfg := cfg
 			errgrp.Go(func() error {
 				start := time.Now()
-				m.logger.Infof("Syncing table %s", cfg.Name)
+				m.logger.Info(fmt.Sprintf("Syncing table %s", cfg.Name))
 				err := syncData(errctx, benv, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
@@ -154,7 +154,7 @@ func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, conf
 				}
 				duration := time.Since(start)
 				messageMap.Store(cfg.Name, duration)
-				m.logger.Infof("Finished syncing table %s %s", cfg.Name, duration.String())
+				m.logger.Info(fmt.Sprintf("Finished syncing table %s %s", cfg.Name, duration.String()))
 				return nil
 			})
 		}
@@ -192,18 +192,19 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
+func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger) error {
 	var opts []tea.ProgramOption
+	var synclogger = logger
 	if outputType == output.PlainOutput {
 		// Plain mode don't render the TUI
 		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
 	} else {
 		fmt.Println(bold.Render(" \n Completed Tables")) //nolint:forbidigo
 		// TUI mode, discard log output
-		logger.SetOutput(io.Discard)
+		synclogger = slog.New(slog.NewJSONHandler(io.Discard, nil))
 	}
-	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, logger, outputType), opts...).Run(); err != nil {
-		logger.Error("Error syncing data:", err)
+	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, synclogger, outputType), opts...).Run(); err != nil {
+		logger.Error(fmt.Sprintf("Error syncing data: %v", err))
 		return fmt.Errorf("unable to finish syncing data: %w", err)
 	}
 	return nil
