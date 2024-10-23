@@ -1507,12 +1507,15 @@ components:
           description: |-
             A count of the currently used records for the current billing period.
              This may go over the allowed record count depending on when the record count is polled by the metric system.
+             @deprecated
         allowedRecordCount:
           oneOf:
             - type: string
             - type: number
           title: allowed_record_count
-          description: The allowed record count. It will be null if there is no limit.
+          description: |-
+            The allowed record count. It will be null if there is no limit.
+             @deprecated
         accountStatus:
           allOf:
             - title: account_status

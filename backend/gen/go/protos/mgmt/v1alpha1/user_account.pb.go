@@ -139,9 +139,9 @@ type AccountStatus int32
 const (
 	// Default value, should be used when no reason is specified
 	AccountStatus_ACCOUNT_STATUS_REASON_UNSPECIFIED AccountStatus = 0
-	// Current usage exceeds allowed limit
+	// @deprecated - Current usage exceeds allowed limit
 	AccountStatus_ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT AccountStatus = 1
-	// Adding requested records exceeds the allowed limit
+	// @deprecated - Adding requested records exceeds the allowed limit
 	AccountStatus_ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT AccountStatus = 2
 	// Account is currently in an expired state
 	AccountStatus_ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE AccountStatus = 3
@@ -2432,8 +2432,10 @@ type IsAccountStatusValidResponse struct {
 	ShouldPoll bool `protobuf:"varint,3,opt,name=should_poll,json=shouldPoll,proto3" json:"should_poll,omitempty"`
 	// A count of the currently used records for the current billing period.
 	// This may go over the allowed record count depending on when the record count is polled by the metric system.
+	// @deprecated
 	UsedRecordCount uint64 `protobuf:"varint,4,opt,name=used_record_count,json=usedRecordCount,proto3" json:"used_record_count,omitempty"`
 	// The allowed record count. It will be null if there is no limit.
+	// @deprecated
 	AllowedRecordCount *uint64 `protobuf:"varint,5,opt,name=allowed_record_count,json=allowedRecordCount,proto3,oneof" json:"allowed_record_count,omitempty"`
 	// The current status of the account. Default is valid.
 	AccountStatus AccountStatus `protobuf:"varint,6,opt,name=account_status,json=accountStatus,proto3,enum=mgmt.v1alpha1.AccountStatus" json:"account_status,omitempty"`

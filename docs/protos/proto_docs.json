@@ -14400,12 +14400,12 @@
             {
               "name": "ACCOUNT_STATUS_EXCEEDS_ALLOWED_LIMIT",
               "number": "1",
-              "description": "Current usage exceeds allowed limit"
+              "description": "@deprecated - Current usage exceeds allowed limit"
             },
             {
               "name": "ACCOUNT_STATUS_REQUESTED_EXCEEDS_LIMIT",
               "number": "2",
-              "description": "Adding requested records exceeds the allowed limit"
+              "description": "@deprecated - Adding requested records exceeds the allowed limit"
             },
             {
               "name": "ACCOUNT_STATUS_ACCOUNT_IN_EXPIRED_STATE",
@@ -15685,7 +15685,7 @@
             },
             {
               "name": "used_record_count",
-              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.",
+              "description": "A count of the currently used records for the current billing period.\nThis may go over the allowed record count depending on when the record count is polled by the metric system.\n@deprecated",
               "label": "",
               "type": "uint64",
               "longType": "uint64",
@@ -15697,7 +15697,7 @@
             },
             {
               "name": "allowed_record_count",
-              "description": "The allowed record count. It will be null if there is no limit.",
+              "description": "The allowed record count. It will be null if there is no limit.\n@deprecated",
               "label": "optional",
               "type": "uint64",
               "longType": "uint64",
