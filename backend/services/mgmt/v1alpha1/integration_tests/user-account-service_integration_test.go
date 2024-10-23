@@ -425,6 +425,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("no_active_subscriptions", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team1", custId)
+		err := s.setAccountCreatedAt(s.ctx, accountId, time.Now().UTC().Add(-30*24*time.Hour))
+		assert.NoError(s.T(), err)
+
 		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
