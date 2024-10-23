@@ -62,8 +62,6 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig, neosyncConnectApi
 	}
 
 	return service.AutoRetryNacks(&neosyncInput{
-		// apiKey:         apiKey,
-		// apiUrl:         apiUrl,
 		connectionId:   connectionId,
 		connectionType: connectionType,
 		schema:         schema,
@@ -93,9 +91,6 @@ type connOpts struct {
 }
 
 type neosyncInput struct {
-	// apiKey *string
-	// apiUrl string
-
 	connectionId   string
 	connectionType string
 	connectionOpts *connOpts

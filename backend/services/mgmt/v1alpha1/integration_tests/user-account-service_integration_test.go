@@ -29,9 +29,9 @@ var (
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
+	resp, err := s.UnauthdClients.Users.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: accountId}))
 	requireNoErrResp(s.T(), resp, err)
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
@@ -40,21 +40,21 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfi
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.unauthdClients.users.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.GetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountOnboardingConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig_NoAccount() {
-	resp, err := s.unauthdClients.users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: uuid.NewString(), Config: &mgmtv1alpha1.AccountOnboardingConfig{}}))
+	resp, err := s.UnauthdClients.Users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: uuid.NewString(), Config: &mgmtv1alpha1.AccountOnboardingConfig{}}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig_NoConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
+	resp, err := s.UnauthdClients.Users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{AccountId: accountId, Config: nil}))
 	requireNoErrResp(s.T(), resp, err)
 	onboardingConfig := resp.Msg.GetConfig()
 	require.NotNil(s.T(), onboardingConfig)
@@ -63,9 +63,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfi
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountOnboardingConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
+	resp, err := s.UnauthdClients.Users.SetAccountOnboardingConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountOnboardingConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountOnboardingConfig{
 			HasCompletedOnboarding: true,
 		}},
@@ -87,12 +87,12 @@ var (
 )
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.mocks.temporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
-	resp, err := s.unauthdClients.users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
+	resp, err := s.UnauthdClients.Users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: accountId}))
 	requireNoErrResp(s.T(), resp, err)
 
 	tc := resp.Msg.GetConfig()
@@ -104,13 +104,13 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig(
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NoAccount() {
-	resp, err := s.unauthdClients.users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.GetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_NeosyncCloud() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
@@ -120,13 +120,13 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoAccount() {
-	resp, err := s.unauthdClients.users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NeosyncCloud() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
@@ -136,12 +136,12 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_NoConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	s.mocks.temporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
-	resp, err := s.unauthdClients.users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId, Config: nil}))
+	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{AccountId: accountId, Config: nil}))
 	requireNoErrResp(s.T(), resp, err)
 
 	tc := resp.Msg.GetConfig()
@@ -153,13 +153,13 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig_
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
 	// kind of a bad test since we are mocking this client wholesale, but it at least verifies we can write the config
-	s.mocks.temporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+	s.Mocks.TemporalClientManager.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
 		Return(validTemporalConfigModel, nil)
 
-	resp, err := s.unauthdClients.users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
+	resp, err := s.UnauthdClients.Users.SetAccountTemporalConfig(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
 		AccountId: accountId, Config: &mgmtv1alpha1.AccountTemporalConfig{
 			Url:              "test",
 			Namespace:        "test",
@@ -176,7 +176,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetAccountTemporalConfig(
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {
-	client := s.authdClients.getUserClient("test-user1")
+	client := s.AuthdClients.GetUserClient("test-user1")
 	userId := s.setUser(s.ctx, client)
 
 	resp, err := client.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
@@ -185,21 +185,21 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser_Auth_NotFound() {
-	client := s.authdClients.getUserClient(testAuthUserId)
+	client := s.AuthdClients.GetUserClient(testAuthUserId)
 	resp, err := client.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeNotFound)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetUser_Auth() {
-	client := s.authdClients.getUserClient(testAuthUserId)
+	client := s.AuthdClients.GetUserClient(testAuthUserId)
 	userId := s.setUser(s.ctx, client)
 	require.NotEmpty(s.T(), userId)
 	require.NotEqual(s.T(), "00000000-0000-0000-0000-000000000000", userId)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Auth() {
-	client := s.authdClients.getUserClient(testAuthUserId)
+	client := s.AuthdClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, client)
 
 	resp, err := client.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
@@ -208,12 +208,12 @@ func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Auth() 
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NeosyncCloud() {
-	client := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	client := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, client)
 
-	s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+	s.Mocks.Billingclient.On("NewCustomer", mock.Anything).Once().
 		Return(&stripe.Customer{ID: "test-stripe-id"}, nil)
-	s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+	s.Mocks.Billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
 		Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
 
 	resp, err := client.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
@@ -223,11 +223,11 @@ func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_Neosync
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_Auth() {
-	client := s.authdClients.getUserClient(testAuthUserId)
+	client := s.AuthdClients.GetUserClient(testAuthUserId)
 	userId := s.setUser(s.ctx, client)
 	accountId := s.createTeamAccount(s.ctx, client, "test-team")
 
-	s.mocks.authmanagerclient.On("GetUserBySub", mock.Anything, testAuthUserId).
+	s.Mocks.Authmanagerclient.On("GetUserBySub", mock.Anything, testAuthUserId).
 		Return(validAuthUser, nil)
 
 	resp, err := client.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
@@ -257,7 +257,7 @@ func (s *IntegrationTestSuite) createTeamAccount(ctx context.Context, client mgm
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetUser() {
-	resp, err := s.unauthdClients.users.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	resp, err := s.UnauthdClients.Users.GetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
 	userId := resp.Msg.GetUserId()
@@ -265,7 +265,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetUser() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetUser() {
-	resp, err := s.unauthdClients.users.SetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
+	resp, err := s.UnauthdClients.Users.SetUser(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
 	userId := resp.Msg.UserId
@@ -274,7 +274,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetUser() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_Empty() {
-	resp, err := s.unauthdClients.users.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
+	resp, err := s.UnauthdClients.Users.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
 	accounts := resp.Msg.GetAccounts()
@@ -282,7 +282,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_Empty() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_SetPersonalAccount() {
-	resp, err := s.unauthdClients.users.SetPersonalAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
+	resp, err := s.UnauthdClients.Users.SetPersonalAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 
 	accountId := resp.Msg.GetAccountId()
@@ -290,9 +290,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_SetPersonalAccount() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_NotEmpty() {
-	s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	accResp, err := s.unauthdClients.users.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
+	accResp, err := s.UnauthdClients.Users.GetUserAccounts(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
 	requireNoErrResp(s.T(), accResp, err)
 
 	accounts := accResp.Msg.GetAccounts()
@@ -301,15 +301,15 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccounts_NotEmpty() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsUserInAccount() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
+	resp, err := s.UnauthdClients.Users.IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
 	require.True(s.T(), resp.Msg.GetOk())
 
-	resp, err = s.unauthdClients.users.IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
+	resp, err = s.UnauthdClients.Users.IsUserInAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{
 		AccountId: uuid.NewString(),
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -317,70 +317,70 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsUserInAccount() {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_CreateTeamAccount_NoAuth() {
-	s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
+	resp, err := s.UnauthdClients.Users.CreateTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.CreateTeamAccountRequest{Name: "test-name"}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountMembers_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
+	resp, err := s.UnauthdClients.Users.GetTeamAccountMembers(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: accountId}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountMember_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.RemoveTeamAccountMember(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: accountId, UserId: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.RemoveTeamAccountMember(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: accountId, UserId: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_InviteUserToTeamAccount_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.InviteUserToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: accountId, Email: "test@example.com"}))
+	resp, err := s.UnauthdClients.Users.InviteUserToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: accountId, Email: "test@example.com"}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetTeamAccountInvites_NoAuth_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.GetTeamAccountInvites(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: accountId}))
+	resp, err := s.UnauthdClients.Users.GetTeamAccountInvites(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: accountId}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodePermissionDenied)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_RemoveTeamAccountInvite_NoAuth_Personal() {
-	resp, err := s.unauthdClients.users.RemoveTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.RemoveTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: uuid.NewString()}))
 	requireNoErrResp(s.T(), resp, err)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_AcceptTeamAccountInvite_NoAuth_Personal() {
-	resp, err := s.unauthdClients.users.AcceptTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.AcceptTeamAccountInviteRequest{Token: uuid.NewString()}))
+	resp, err := s.UnauthdClients.Users.AcceptTeamAccountInvite(s.ctx, connect.NewRequest(&mgmtv1alpha1.AcceptTeamAccountInviteRequest{Token: uuid.NewString()}))
 	requireErrResp(s.T(), resp, err)
 	requireConnectError(s.T(), err, connect.CodeUnauthenticated)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetSystemInformation() {
-	resp, err := s.unauthdClients.users.GetSystemInformation(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
+	resp, err := s.UnauthdClients.Users.GetSystemInformation(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
 	requireNoErrResp(s.T(), resp, err)
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
 
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+	s.Mocks.Prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Once().
 		Return(model.Vector{{
 			Value:     2,
@@ -398,7 +398,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Personal_Unlimited() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
@@ -429,7 +429,7 @@ func (t *testSubscriptionIter) Err() error {
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncCloud_Billed() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 
 	t := s.T()
@@ -437,7 +437,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("active sub", func(t *testing.T) {
 		custId := "cust_id1"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusActive},
 		}}, nil)
@@ -453,7 +453,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 	t.Run("no active subscriptions", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team1", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 		}}, nil)
@@ -468,9 +468,9 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_NeosyncC
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Personal() {
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
-	resp, err := s.unauthdClients.users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
+	resp, err := s.UnauthdClients.Users.GetAccountStatus(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountStatusRequest{
 		AccountId: accountId,
 	}))
 	requireNoErrResp(s.T(), resp, err)
@@ -480,14 +480,14 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountStatus_OSS_Pers
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
 
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+	s.Mocks.Prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Once().
 		Return(model.Vector{{
 			Value:     2,
@@ -506,14 +506,14 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_Overprovisioned() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
 
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+	s.Mocks.Prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Once().
 		Return(model.Vector{{
 			Value:     100,
@@ -534,14 +534,14 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Personal_RequestedRecords() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 	accountId := s.createPersonalAccount(s.ctx, userclient)
 
 	err := s.setMaxAllowedRecords(s.ctx, accountId, 100)
 	require.NoError(s.T(), err)
 
-	s.mocks.prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+	s.Mocks.Prometheusclient.On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Twice().
 		Return(model.Vector{{
 			Value:     50,
@@ -578,14 +578,14 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_NeosyncCloud_Billed() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 
 	t := s.T()
 	t.Run("active", func(t *testing.T) {
 		custId := "cust_id1"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test1", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusActive},
 		}}, nil)
 		resp, err := userclient.IsAccountStatusValid(s.ctx, connect.NewRequest(&mgmtv1alpha1.IsAccountStatusValidRequest{
@@ -601,7 +601,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 	t.Run("inactive", func(t *testing.T) {
 		custId := "cust_id2"
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "test2", custId)
-		s.mocks.billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.Mocks.Billingclient.On("GetSubscriptions", custId).Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 		}}, nil)
 
@@ -618,7 +618,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_IsAccountStatusValid_Neos
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckoutSession() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 
 	t := s.T()
@@ -626,7 +626,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckout
 	t.Run("billed account - allowed", func(t *testing.T) {
 		teamAccountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team", "test-stripe-id")
 
-		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
 			Return(&stripe.CheckoutSession{URL: "new-test-url"}, nil)
 
 		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
@@ -645,7 +645,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckout
 	})
 
 	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+		personalAccountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 		resp, err := userclient.GetAccountBillingCheckoutSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingCheckoutSessionRequest{
 			AccountId: personalAccountId,
 		}))
@@ -654,7 +654,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingCheckout
 }
 
 func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSession() {
-	userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient)
 
 	t := s.T()
@@ -662,7 +662,7 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSe
 	t.Run("billed account - allowed", func(t *testing.T) {
 		teamAccountId := s.createBilledTeamAccount(s.ctx, userclient, "test-team", "test-stripe-id")
 
-		s.mocks.billingclient.On("NewBillingPortalSession", mock.Anything, mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewBillingPortalSession", mock.Anything, mock.Anything).Once().
 			Return(&stripe.BillingPortalSession{URL: "new-test-url"}, nil)
 
 		resp, err := userclient.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
@@ -681,8 +681,8 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSe
 	})
 
 	t.Run("non-neosynccloud - disallowed", func(t *testing.T) {
-		personalAccountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
-		resp, err := s.unauthdClients.users.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
+		personalAccountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+		resp, err := s.UnauthdClients.Users.GetAccountBillingPortalSession(s.ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountBillingPortalSessionRequest{
 			AccountId: personalAccountId,
 		}))
 		requireErrResp(s.T(), resp, err)
@@ -690,22 +690,22 @@ func (s *IntegrationTestSuite) Test_UserAccountService_GetAccountBillingPortalSe
 }
 
 func (s *IntegrationTestSuite) createBilledTeamAccount(ctx context.Context, client mgmtv1alpha1connect.UserAccountServiceClient, name, stripeCustomerId string) string {
-	s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+	s.Mocks.Billingclient.On("NewCustomer", mock.Anything).Once().
 		Return(&stripe.Customer{ID: stripeCustomerId}, nil)
-	s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+	s.Mocks.Billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
 		Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
 	return s.createTeamAccount(ctx, client, name)
 }
 
 func (s *IntegrationTestSuite) Test_GetBillingAccounts() {
-	userclient1 := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient1 := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient1)
 
-	userclient2 := s.neosyncCloudClients.getUserClient(testAuthUserId2)
+	userclient2 := s.NeosyncCloudClients.GetUserClient(testAuthUserId2)
 	s.setUser(s.ctx, userclient2)
 
 	workerapikey := apikey.NewV1WorkerKey()
-	workeruserclient := s.neosyncCloudClients.getUserClient(workerapikey)
+	workeruserclient := s.NeosyncCloudClients.GetUserClient(workerapikey)
 
 	t := s.T()
 
@@ -751,8 +751,8 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	t := s.T()
 
 	t.Run("OSS unauth", func(t *testing.T) {
-		s.setUser(s.ctx, s.unauthdClients.users)
-		resp, err := s.unauthdClients.users.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
+		s.setUser(s.ctx, s.UnauthdClients.Users)
+		resp, err := s.UnauthdClients.Users.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
 			Name: "unauthteamname",
 		}))
 		requireErrResp(t, resp, err)
@@ -760,7 +760,7 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	})
 
 	t.Run("OSS auth success", func(t *testing.T) {
-		userclient := s.authdClients.getUserClient(testAuthUserId)
+		userclient := s.AuthdClients.GetUserClient(testAuthUserId)
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
 
@@ -773,14 +773,14 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	})
 
 	t.Run("cloud billing success", func(t *testing.T) {
-		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
 
 		stripeCustomerId := "foo"
-		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewCustomer", mock.Anything).Once().
 			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
-		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
 			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
 		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
 			Name:      "newname2",
@@ -791,13 +791,13 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 	})
 
 	t.Run("cloud success unspecified account", func(t *testing.T) {
-		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
+		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 		s.setUser(s.ctx, userclient)
 
 		stripeCustomerId := "foo"
-		s.mocks.billingclient.On("NewCustomer", mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewCustomer", mock.Anything).Once().
 			Return(&stripe.Customer{ID: stripeCustomerId}, nil)
-		s.mocks.billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
+		s.Mocks.Billingclient.On("NewCheckoutSession", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Once().
 			Return(&stripe.CheckoutSession{URL: "test-url"}, nil)
 		resp, err := userclient.ConvertPersonalToTeamAccount(s.ctx, connect.NewRequest(&mgmtv1alpha1.ConvertPersonalToTeamAccountRequest{
 			Name: "newname3",
@@ -807,11 +807,11 @@ func (s *IntegrationTestSuite) Test_ConvertPersonalToTeamAccount() {
 }
 
 func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
-	userclient1 := s.neosyncCloudClients.getUserClient(testAuthUserId)
+	userclient1 := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
 	s.setUser(s.ctx, userclient1)
 
 	workerapikey := apikey.NewV1WorkerKey()
-	workeruserclient := s.neosyncCloudClients.getUserClient(workerapikey)
+	workeruserclient := s.NeosyncCloudClients.GetUserClient(workerapikey)
 
 	t := s.T()
 
@@ -819,7 +819,7 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 	au1TeamAccountId1 := s.createBilledTeamAccount(s.ctx, userclient1, "test-team", "test-stripe-id")
 
 	t.Run("new event", func(t *testing.T) {
-		s.mocks.billingclient.On("NewMeterEvent", mock.Anything).Once().Return(&stripe.BillingMeterEvent{}, nil)
+		s.Mocks.Billingclient.On("NewMeterEvent", mock.Anything).Once().Return(&stripe.BillingMeterEvent{}, nil)
 		ts := uint64(1)
 		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
 			AccountId: au1TeamAccountId1,
@@ -855,7 +855,7 @@ func (s *IntegrationTestSuite) Test_SetBillingMeterEvent() {
 	t.Run("squashes meter already existing", func(t *testing.T) {
 		eventId := "test-event-id"
 		stripeerr := &stripe.Error{Type: stripe.ErrorTypeInvalidRequest, Msg: fmt.Sprintf("An event already exists with identifier %s", eventId)}
-		s.mocks.billingclient.On("NewMeterEvent", mock.Anything).Once().Return(nil, stripeerr)
+		s.Mocks.Billingclient.On("NewMeterEvent", mock.Anything).Once().Return(nil, stripeerr)
 		ts := uint64(1)
 		resp, err := workeruserclient.SetBillingMeterEvent(s.ctx, connect.NewRequest(&mgmtv1alpha1.SetBillingMeterEventRequest{
 			AccountId: au1TeamAccountId1,

@@ -15,6 +15,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const neosyncDbMigrationsPath = "../../../../../backend/sql/postgresql/schema"
+
 func Test_Sync_Postgres(t *testing.T) {
 	t.Parallel()
 	ok := testutil.ShouldRunIntegrationTest()
@@ -37,7 +39,10 @@ func Test_Sync_Postgres(t *testing.T) {
 	})
 
 	errgrp.Go(func() error {
-		api := tcneosyncapi.NewNeosyncApiTestClient(ctx, t)
+		api, err := tcneosyncapi.NewNeosyncApiTestClient(ctx, t, tcneosyncapi.WithMigrationsDirectory(neosyncDbMigrationsPath))
+		if err != nil {
+			return err
+		}
 		neosyncApi = api
 		return nil
 	})
@@ -57,8 +62,8 @@ func Test_Sync_Postgres(t *testing.T) {
 		panic(err)
 	}
 
-	connclient := neosyncApi.UnathdClients.Connections
-	conndataclient := neosyncApi.UnathdClients.ConnectionData
+	connclient := neosyncApi.UnauthdClients.Connections
+	conndataclient := neosyncApi.UnauthdClients.ConnectionData
 
 	sqlmanagerclient := tcneosyncapi.NewTestSqlManagerClient()
 
@@ -68,8 +73,8 @@ func Test_Sync_Postgres(t *testing.T) {
 		Level:           charmlog.DebugLevel,
 	})
 
-	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnathdClients.Users)
-	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "source", postgres.Source.URL)
+	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
+	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "source", postgres.Source.URL)
 	t.Run("sync_postgres", func(t *testing.T) {
 		outputType := output.PlainOutput
 		cmdConfig := &cmdConfig{

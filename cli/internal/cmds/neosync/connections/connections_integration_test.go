@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const neosyncDbMigrationsPath = "../../../../../backend/sql/postgresql/schema"
+
 func Test_Connections(t *testing.T) {
 	t.Parallel()
 	ok := testutil.ShouldRunIntegrationTest()
@@ -18,15 +20,18 @@ func Test_Connections(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	neosyncApi := tcneosyncapi.NewNeosyncApiTestClient(ctx, t)
+	neosyncApi, err := tcneosyncapi.NewNeosyncApiTestClient(ctx, t, tcneosyncapi.WithMigrationsDirectory(neosyncDbMigrationsPath))
+	if err != nil {
+		panic(err)
+	}
 	postgresUrl := "postgresql://postgres:foofar@localhost:5434/neosync"
 
 	t.Run("list_unauthed", func(t *testing.T) {
-		accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnathdClients.Users)
-		conn1 := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "conn1", postgresUrl)
-		conn2 := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "conn2", postgresUrl)
+		accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnauthdClients.Users)
+		conn1 := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "conn1", postgresUrl)
+		conn2 := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnauthdClients.Connections, accountId, "conn2", postgresUrl)
 		conns := []*mgmtv1alpha1.Connection{conn1, conn2}
-		connections, err := getConnections(ctx, neosyncApi.UnathdClients.Connections, accountId)
+		connections, err := getConnections(ctx, neosyncApi.UnauthdClients.Connections, accountId)
 		require.NoError(t, err)
 		require.Len(t, connections, len(conns))
 	})
@@ -59,7 +64,7 @@ func Test_Connections(t *testing.T) {
 		require.Len(t, connections, len(conns))
 	})
 
-	err := neosyncApi.TearDown(ctx)
+	err = neosyncApi.TearDown(ctx)
 	if err != nil {
 		panic(err)
 	}
