@@ -8,6 +8,7 @@ import (
 	charmlog "github.com/charmbracelet/log"
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
+	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
 	"github.com/stretchr/testify/require"
@@ -46,7 +47,7 @@ func Test_Sync_Postgres(t *testing.T) {
 		panic(err)
 	}
 
-	testdataFolder := "../../../../../internal/testutil/testdata/postgres/alltypes"
+	testdataFolder := "../../../../../internal/testutil/testdata/postgres/humanresources"
 	err = postgres.Source.RunSqlFiles(ctx, &testdataFolder, []string{"create-tables.sql"})
 	if err != nil {
 		panic(err)
@@ -70,6 +71,7 @@ func Test_Sync_Postgres(t *testing.T) {
 	accountId := tcneosyncapi.CreatePersonalAccount(ctx, t, neosyncApi.UnathdClients.Users)
 	sourceConn := tcneosyncapi.CreatePostgresConnection(ctx, t, neosyncApi.UnathdClients.Connections, accountId, "source", postgres.Source.URL)
 	t.Run("sync_postgres", func(t *testing.T) {
+		outputType := output.PlainOutput
 		cmdConfig := &cmdConfig{
 			Source: &sourceConfig{
 				ConnectionId: sourceConn.Id,
@@ -81,13 +83,18 @@ func Test_Sync_Postgres(t *testing.T) {
 				TruncateBeforeInsert: true,
 				TruncateCascade:      true,
 			},
+			OutputType: &outputType,
+			AccountId:  &accountId,
 		}
 		sync := &clisync{
 			connectiondataclient: conndataclient,
 			connectionclient:     connclient,
 			sqlmanagerclient:     sqlmanagerclient,
+			ctx:                  ctx,
+			logger:               discardLogger,
+			cmd:                  cmdConfig,
 		}
-		err := sync.configureAndRunSync(ctx, discardLogger, "plain", &accountId, cmdConfig)
+		err := sync.configureAndRunSync()
 		require.NoError(t, err)
 	})
 
