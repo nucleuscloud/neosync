@@ -18,6 +18,7 @@ import (
 	_ "github.com/warpstreamlabs/bento/public/components/io"
 	_ "github.com/warpstreamlabs/bento/public/components/pure"
 	_ "github.com/warpstreamlabs/bento/public/components/pure/extended"
+	"github.com/warpstreamlabs/bento/public/service"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -28,6 +29,7 @@ import (
 type model struct {
 	ctx              context.Context
 	logger           *charmlog.Logger
+	benv             *service.Environment
 	groupedConfigs   [][]*benthosConfigResponse
 	tableSynced      int
 	index            int
@@ -50,7 +52,7 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) *model {
+func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
@@ -61,11 +63,12 @@ func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse, lo
 		totalConfigCount: getConfigCount(groupedConfigs),
 		logger:           logger,
 		outputType:       outputType,
+		benv:             benv,
 	}
 }
 
 func (m *model) Init() tea.Cmd {
-	return tea.Batch(m.syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
+	return tea.Batch(m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]), m.spinner.Tick)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -95,7 +98,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.index++
 		return m, tea.Batch(
 			tea.Println(strings.Join(successStrs, " \n")),
-			m.syncConfigs(m.ctx, m.groupedConfigs[m.index]),
+			m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]),
 		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -135,7 +138,7 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, configs []*benthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -145,7 +148,7 @@ func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigRespons
 			errgrp.Go(func() error {
 				start := time.Now()
 				m.logger.Infof("Syncing table %s", cfg.Name)
-				err := syncData(errctx, cfg, m.logger, m.outputType)
+				err := syncData(errctx, benv, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
@@ -190,7 +193,7 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
+func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *charmlog.Logger) error {
 	var opts []tea.ProgramOption
 	if outputType == output.PlainOutput {
 		// Plain mode don't render the TUI
@@ -200,7 +203,7 @@ func runSync(ctx context.Context, outputType output.OutputType, groupedConfigs [
 		// TUI mode, discard log output
 		logger.SetOutput(io.Discard)
 	}
-	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs, logger, outputType), opts...).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, logger, outputType), opts...).Run(); err != nil {
 		logger.Error("Error syncing data:", err)
 		os.Exit(1)
 	}

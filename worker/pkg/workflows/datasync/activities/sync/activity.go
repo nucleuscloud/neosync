@@ -21,10 +21,12 @@ import (
 	neosynclogger "github.com/nucleuscloud/neosync/backend/pkg/logger"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	connectiontunnelmanager "github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/mongoprovider"
-	"github.com/nucleuscloud/neosync/worker/internal/connection-tunnel-manager/providers/sqlprovider"
+	connectiontunnelmanager "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager"
+	pool_mongo_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/mongo"
+	pool_sql_provider "github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/pool/providers/sql"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/mongoprovider"
+	"github.com/nucleuscloud/neosync/internal/connection-tunnel-manager/providers/sqlprovider"
 	benthos_environment "github.com/nucleuscloud/neosync/worker/pkg/benthos/environment"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/transformers"
@@ -266,11 +268,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		slogger,
 		benthos_environment.WithMeter(a.meter),
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
-			Provider: newSqlPoolProvider(getSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 			IsRetry:  isRetry,
 		}),
 		benthos_environment.WithMongoConfig(&benthos_environment.MongoConfig{
-			Provider: newMongoPoolProvider(getMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
+			Provider: pool_mongo_provider.NewProvider(pool_mongo_provider.GetMongoPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger)),
 		}),
 		benthos_environment.WithStopChannel(stopActivityChan),
 		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
