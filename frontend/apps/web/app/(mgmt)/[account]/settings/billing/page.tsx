@@ -7,9 +7,9 @@ import { CreateNewTeamDialog } from '@/components/site-header/CreateNewTeamDialo
 import Spinner from '@/components/Spinner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
+import { cn } from '@/libs/utils';
 import { getErrorMessage, toTitleCase } from '@/util/util';
 import { CreateTeamFormValues } from '@/yup-validations/account-switcher';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
@@ -20,7 +20,7 @@ import {
   getAccountBillingPortalSession,
   isAccountStatusValid,
 } from '@neosync/sdk/connectquery';
-import { CheckCircledIcon, DiscordLogoIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -28,56 +28,67 @@ import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-type PlanName = 'Personal' | 'Team' | 'Enterprise';
-
 interface Plan {
-  name: PlanName;
-  features: string[];
+  name: string;
+  description: string;
   price: string;
+  buttonText: string;
+  features: string[];
   planType: UserAccountType;
 }
 
 const ALL_PLANS: Plan[] = [
   {
-    name: 'Personal',
+    name: 'Trial',
+    description:
+      'The easiest way to try out Neosync and see if it is right for your organization.',
+    price: 'Free 14-day Trial',
+    buttonText: 'Start free trial',
     features: [
-      '20k records/month',
+      'Unlimited Records',
       'Unlimited Jobs',
       '1 user',
+      'All Integrations',
+      'Data Anonymization',
+      'Synthetic Data Generation',
       'US Region',
-      'Social Login',
       'Neosync Infrastructure',
       'Community Discord',
     ],
-    price: 'Free',
     planType: UserAccountType.PERSONAL,
   },
   {
     name: 'Team',
+    description:
+      'The simplest and fastest way to get started with Neosync for Teams.',
+    price: 'Pay-as-you-go',
+    buttonText: 'Get Started',
     features: [
       'Volume-based pricing',
       'Unlimited Jobs',
       'Unlimited Users',
-      'US and EU Regions',
-      'Social, SSO',
-      'Neosync Infrastructure',
+      'US or EU Region',
+      'Free-form text PII anonymization',
       'Private Discord/Slack',
     ],
-    price: 'Pay as you go',
     planType: UserAccountType.TEAM,
   },
   {
     name: 'Enterprise',
+    description:
+      'Best for organizations who want to self-host Neosync and are operating at scale.',
+    price: 'Custom',
+    buttonText: `Let's talk`,
     features: [
       'Unlimited Records',
-      'Unlimited Jobs',
-      'Unlimited Users',
-      'Dedicated Infrastructure',
-      'Hybrid Deployment',
-      'Social, SSO',
-      'Private Discord/Slack',
+      'SSO',
+      'RBAC',
+      'Webhooks',
+      'Self-hosted or Neosync Infrastructure',
+      'Audit Logs',
+      'Streaming Mode',
+      'White-glove implementation',
     ],
-    price: 'Contact Us',
     planType: UserAccountType.ENTERPRISE,
   },
 ];
@@ -91,7 +102,7 @@ export default function Billing(): ReactElement {
     return <Skeleton />;
   }
 
-  if (!systemAppConfigData?.isNeosyncCloud) {
+  if (systemAppConfigData?.isNeosyncCloud) {
     return <Error statusCode={404} />;
   }
 
@@ -101,9 +112,6 @@ export default function Billing(): ReactElement {
         header="Billing"
         description="Manage your workspace's plan and billing information"
       />
-      <div className="py-4">
-        <NeedHelp />
-      </div>
       <Plans
         account={account}
         upgradeHref={systemAppConfigData?.calendlyUpgradeLink ?? ''}
@@ -196,37 +204,12 @@ function ManageSubscription(props: ManageSubscriptionProps): ReactElement {
   }
 
   return (
-    <div>
-      <Button type="button" onClick={() => onManageSubscriptionClick()}>
-        <ButtonText
-          leftIcon={isGeneratingUrl ? <Spinner /> : null}
-          text="Manage Subscription"
-        />
-      </Button>
-    </div>
-  );
-}
-
-function NeedHelp(): ReactElement {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="text-md">Need help?</div>
-      <div className="text-lg">
-        <div className="flex flex-row items-center gap-2">
-          <div className="text-sm">Ask us on</div>
-          <Link
-            href="https://discord.com/invite/MFAMgnp4HF"
-            className="flex flex-row items-center text-sm gap-2 underline"
-          >
-            <DiscordLogoIcon className="w-4 h-4" />
-            <div>Discord</div>
-          </Link>
-          <div className="text-sm">
-            or send an email to <u>support@neosync.dev</u>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Button type="button" onClick={() => onManageSubscriptionClick()}>
+      <ButtonText
+        leftIcon={isGeneratingUrl ? <Spinner /> : null}
+        text="Manage Subscription"
+      />
+    </Button>
   );
 }
 
@@ -244,107 +227,113 @@ function Plans({
   isStripeEnabled,
 }: PlansProps): ReactElement {
   return (
-    <div className="border border-gray-200 rounded-xl">
-      <div className="flex flex-col gap-3">
-        <div>
-          <div className="flex flex-row gap-3 justify-between items-center px-6">
-            <div className="flex flex-row items-center gap-2 text-sm py-6">
-              <p className="font-semibold">Current Plan:</p>
-              <Badge>{toTitleCase(UserAccountType[account.type])} Plan</Badge>
-            </div>
-            {isStripeEnabled && (
-              <div>
-                <ManageSubscription account={account} />
-              </div>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-row gap-3 justify-between items-center ">
+        <div className="flex flex-row items-center gap-2 text-sm py-6">
+          <p className="font-semibold">Current Plan:</p>
+          <Badge>{toTitleCase(UserAccountType[account.type])} Plan</Badge>
+        </div>
+        {isStripeEnabled && (
+          <div>
+            <ManageSubscription account={account} />
+          </div>
+        )}
+      </div>
+      <div className="grid grid-cols1 md:grid-cols-3 grid-rows-1 w-full border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg mt-4 h-full shadow-lg">
+        {plans.map((plan, index) => (
+          <div
+            className={cn(
+              index == 1 && 'bg-gray-100 dark:bg-gray-800',
+              'flex flex-col'
             )}
-          </div>
-          <Separator className="dark:bg-gray-600" />
-        </div>
-        <div className="flex flex-col xl:flex-row gap-2 justify-center p-6">
-          {plans.map((plan) => (
-            <PlanInfo
-              key={plan.name}
-              plan={plan}
-              activePlan={account.type}
-              upgradeHref={upgradeHref}
-              accountSlug={account.name}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface PlanInfoProps {
-  plan: Plan;
-  activePlan: UserAccountType;
-  upgradeHref: string;
-  accountSlug: string;
-}
-function PlanInfo(props: PlanInfoProps): ReactElement {
-  const { plan, activePlan, upgradeHref, accountSlug } = props;
-  const isCurrentPlan = activePlan === plan.planType;
-  return (
-    <div>
-      {isCurrentPlan && <CurrentPlan />}
-      <div
-        className={
-          isCurrentPlan
-            ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl xl:w-[350px] h-[459px]`
-            : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl xl:w-[350px] mt-[56px] h-[459px]`
-        }
-      >
-        <div className="flex flex-col gap-6">
-          <div className="flex justify-center">
-            <Badge variant="outline">{plan.name}</Badge>
-          </div>
-          <div className="flex justify-center flex-row gap-2">
-            <div className="text-3xl">{plan.price}</div>
-          </div>
-          <div className="flex flex-col gap-2">
-            {plan.features.map((feat) => (
-              <div key={feat} className="flex flex-row items-center gap-2">
-                <CheckCircledIcon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
-                <div>{feat}</div>
+            key={plan.name}
+          >
+            <div
+              className={cn(
+                index == 1 && 'border-x border-gray-300 dark:border-gray-700',
+                'h-1/2 px-6 pt-6 flex flex-col justify-between gap-20 w-full'
+              )}
+            >
+              <div className="space-y-2">
+                <div className=" items-center flex flex-row gap-4">
+                  <div className="text-2xl font-semibold">{plan.name}</div>
+                  {plan.name == 'Team' && (
+                    <Badge className="bg-blue-700 hover:bg-blue-700">
+                      Most Popular
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-foreground">
+                  {plan.description}
+                </div>
               </div>
-            ))}
+              <div className="flex flex-col gap-6 w-full">
+                <div className="text-2xl md:text-3xl flex flex-row gap-2 items-end">
+                  {plan.price}{' '}
+                  {plan.name == 'Team' && (
+                    <div className="text-sm  text-foreground">per month</div>
+                  )}
+                </div>
+                <div></div>
+                <div className={cn(plan.name !== 'Trial' && 'pb-6', 'w-full')}>
+                  <PlanButton
+                    plan={plan.name}
+                    planType={account.type}
+                    upgradeHref={upgradeHref}
+                    accountSlug={account.name}
+                    buttonText={plan.buttonText}
+                  />
+                  <div className="text-md flex">
+                    {plan.name == 'Personal' && '*No credit card required'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className={cn(
+                index == 1 && 'border-x border-gray-300 dark:border-gray-700',
+                'border-t border-gray-300 dark:border-gray-700 h-1/2 p-6 flex flex-col gap-6'
+              )}
+            >
+              <div className="font-bold">
+                {plan.name == 'Team'
+                  ? 'Everything in Individual + '
+                  : plan.name == 'Enterprise' && 'Everything in Team + '}
+              </div>
+              <div className="flex flex-col gap-2">
+                {plan.features.map((item, index) => (
+                  <div key={index}>
+                    <div className="flex flex-row items-center gap-2">
+                      <CheckIcon className="w-6 h-6" />
+                      <div>{item}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <PlanButton
-            plan={plan.name}
-            planType={activePlan}
-            upgradeHref={upgradeHref}
-            accountSlug={accountSlug}
-          />
-        </div>
+        ))}
       </div>
-    </div>
-  );
-}
-
-function CurrentPlan(): ReactElement {
-  return (
-    <div className="flex justify-center bg-gradient-to-t from-[#191919] to-[#484848] text-white p-4 shadow-lg rounded-t-xl">
-      <p>Current Plan</p>
     </div>
   );
 }
 
 interface PlanButtonProps {
-  plan: PlanName;
+  plan: string;
   planType: UserAccountType;
   upgradeHref: string;
   accountSlug: string;
+  buttonText: string;
 }
 
-function PlanButton(props: PlanButtonProps): ReactElement {
+function PlanButton(props: PlanButtonProps) {
   const { plan, planType, upgradeHref, accountSlug } = props;
   switch (plan) {
-    case 'Personal':
+    case 'Trial':
       if (planType == UserAccountType.PERSONAL) {
         return <GetStartedButton accountSlug={accountSlug} />;
       } else {
-        return <></>;
+        return <div id="empty-personal-button" />;
       }
     case 'Team':
       if (planType == UserAccountType.TEAM) {
@@ -374,7 +363,7 @@ interface GetStartedButtonProps {
 function GetStartedButton(props: GetStartedButtonProps): ReactElement {
   const { accountSlug } = props;
   return (
-    <Button type="button">
+    <Button type="button" className="w-full">
       <Link href={`/${accountSlug}/new/job`}>Get Started</Link>
     </Button>
   );
@@ -412,7 +401,9 @@ function CreateNewTeamButton(): ReactElement {
         form.reset();
       }}
       trigger={
-        <Button onClick={() => setShowNewTeamDialog(true)}>Create Team</Button>
+        <Button className="w-full" onClick={() => setShowNewTeamDialog(true)}>
+          Create Team
+        </Button>
       }
       showSubscriptionInfo={true} // This is only rendered in neosync cloud
       showConvertPersonalToTeamOption={
