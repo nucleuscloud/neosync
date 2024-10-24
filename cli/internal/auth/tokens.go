@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -90,4 +91,42 @@ func IsAuthEnabled(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return isEnabledResp.Msg.IsEnabled, nil
+}
+
+// Returns the neosync url found in the environment, otherwise defaults to localhost
+func GetNeosyncUrl() string {
+	return serverconfig.GetApiBaseUrl()
+}
+
+// Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
+func GetNeosyncHttpClient(ctx context.Context, apiKey *string, logger *slog.Logger) (*http.Client, error) {
+	token, err := GetToken(ctx, apiKey, logger)
+	if err != nil {
+		return nil, err
+	}
+	return http_client.NewWithBearerAuth(token), nil
+}
+
+func GetToken(ctx context.Context, apiKey *string, logger *slog.Logger) (*string, error) {
+	isAuthEnabled, err := IsAuthEnabled(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var token *string
+	if isAuthEnabled {
+		logger.Debug("Auth Enabled")
+		if apiKey != nil && *apiKey != "" {
+			logger.Debug("found API Key")
+			token = apiKey
+		} else {
+			logger.Debug("Retrieving Access Token")
+			accessToken, err := userconfig.GetAccessToken()
+			if err != nil {
+				logger.Error("Unable to retrieve access token. Please use neosync login command and try again.")
+				return nil, err
+			}
+			token = &accessToken
+		}
+	}
+	return token, nil
 }

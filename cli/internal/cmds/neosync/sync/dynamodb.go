@@ -2,7 +2,7 @@ package sync_cmd
 
 import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	cli_neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/pkg/benthos"
 	"github.com/spf13/cobra"
 )
 
@@ -62,21 +62,19 @@ func buildAwsCredConfig(cmd *cobra.Command, config *cmdConfig) (*cmdConfig, erro
 
 func generateDynamoDbBenthosConfig(
 	cmd *cmdConfig,
-	apiUrl string,
-	authToken *string,
 	table string,
 ) *benthosConfigResponse {
-	bc := &cli_neosync_benthos.BenthosConfig{
-		StreamConfig: cli_neosync_benthos.StreamConfig{
-			Logger: &cli_neosync_benthos.LoggerConfig{
+	bc := &neosync_benthos.BenthosConfig{
+		StreamConfig: neosync_benthos.StreamConfig{
+			Logger: &neosync_benthos.LoggerConfig{
 				Level:        "ERROR",
 				AddTimestamp: true,
 			},
-			Input: &cli_neosync_benthos.InputConfig{
-				Inputs: cli_neosync_benthos.Inputs{
-					NeosyncConnectionData: &cli_neosync_benthos.NeosyncConnectionData{
-						ApiKey:         authToken,
-						ApiUrl:         apiUrl,
+			Input: &neosync_benthos.InputConfig{
+				Inputs: neosync_benthos.Inputs{
+					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
+						// ApiKey:         authToken,
+						// ApiUrl:         apiUrl,
 						ConnectionId:   cmd.Source.ConnectionId,
 						ConnectionType: string(awsDynamoDBConnection),
 						Schema:         "dynamodb",
@@ -84,16 +82,16 @@ func generateDynamoDbBenthosConfig(
 					},
 				},
 			},
-			Pipeline: &cli_neosync_benthos.PipelineConfig{},
-			Output: &cli_neosync_benthos.OutputConfig{
-				Outputs: cli_neosync_benthos.Outputs{
-					AwsDynamoDB: &cli_neosync_benthos.OutputAwsDynamoDB{
+			Pipeline: &neosync_benthos.PipelineConfig{},
+			Output: &neosync_benthos.OutputConfig{
+				Outputs: neosync_benthos.Outputs{
+					AwsDynamoDB: &neosync_benthos.OutputAwsDynamoDB{
 						Table: table,
 						JsonMapColumns: map[string]string{
 							"": ".",
 						},
 
-						Batching: &cli_neosync_benthos.Batching{
+						Batching: &neosync_benthos.Batching{
 							// https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 							// A single call to BatchWriteItem can transmit up to 16MB of data over the network, consisting of up to 25 item put or delete operations
 							// Specifying the count here may not be enough if the overall data is above 16MB.
@@ -119,12 +117,12 @@ func generateDynamoDbBenthosConfig(
 	}
 }
 
-func buildBenthosAwsCredentials(cmd *cmdConfig) *cli_neosync_benthos.AwsCredentials {
+func buildBenthosAwsCredentials(cmd *cmdConfig) *neosync_benthos.AwsCredentials {
 	if cmd.AwsDynamoDbDestination == nil || cmd.AwsDynamoDbDestination.AwsCredConfig == nil {
 		return nil
 	}
 	cc := cmd.AwsDynamoDbDestination.AwsCredConfig
-	creds := &cli_neosync_benthos.AwsCredentials{}
+	creds := &neosync_benthos.AwsCredentials{}
 	if cc.Profile != nil {
 		creds.Profile = *cc.Profile
 	}

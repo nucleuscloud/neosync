@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Complex subsetting",
-			Folder:          "postgres/subsetting",
+			Folder:          "testdata/postgres/subsetting",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

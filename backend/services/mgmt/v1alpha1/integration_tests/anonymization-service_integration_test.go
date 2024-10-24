@@ -17,10 +17,10 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	t := s.T()
 
 	t.Run("OSS-fail", func(t *testing.T) {
-		userclient := s.unauthdClients.users
+		userclient := s.UnauthdClients.Users
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
-		resp, err := s.unauthdClients.anonymize.AnonymizeMany(
+		resp, err := s.UnauthdClients.Anonymize.AnonymizeMany(
 			s.ctx,
 			connect.NewRequest(&mgmtv1alpha1.AnonymizeManyRequest{
 				AccountId:           accountId,
@@ -35,8 +35,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 	})
 
 	t.Run("cloud-personal-fail", func(t *testing.T) {
-		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-		anonclient := s.neosyncCloudClients.getAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
+		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)
 		resp, err := anonclient.AnonymizeMany(
@@ -87,12 +87,12 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeMany() {
 }`,
 		}
 
-		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-		anonclient := s.neosyncCloudClients.getAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
+		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
 
 		s.setUser(s.ctx, userclient)
 		accountId := s.createBilledTeamAccount(s.ctx, userclient, "team1", "foo")
-		s.mocks.billingclient.On("GetSubscriptions", "foo").Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
+		s.Mocks.Billingclient.On("GetSubscriptions", "foo").Once().Return(&testSubscriptionIter{subscriptions: []*stripe.Subscription{
 			{Status: stripe.SubscriptionStatusIncompleteExpired},
 			{Status: stripe.SubscriptionStatusActive},
 		}}, nil)
@@ -170,8 +170,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle() {
   "sports": ["basketball", "golf", "swimming"]
 }`
 
-	accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
-	resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+	accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
+	resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
 		s.ctx,
 		connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 			AccountId: accountId,
@@ -228,11 +228,11 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 	t := s.T()
 
 	t.Run("OSS", func(t *testing.T) {
-		accountId := s.createPersonalAccount(s.ctx, s.unauthdClients.users)
+		accountId := s.createPersonalAccount(s.ctx, s.UnauthdClients.Users)
 
 		t.Run("transformpiitext", func(t *testing.T) {
 			t.Run("mappings", func(t *testing.T) {
-				resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+				resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
 					s.ctx,
 					connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 						AccountId: accountId,
@@ -252,7 +252,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 
 			t.Run("defaults", func(t *testing.T) {
 				t.Run("Bool", func(t *testing.T) {
-					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -268,7 +268,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 					requireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("S", func(t *testing.T) {
-					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -284,7 +284,7 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 					requireConnectError(t, err, connect.CodePermissionDenied)
 				})
 				t.Run("N", func(t *testing.T) {
-					resp, err := s.unauthdClients.anonymize.AnonymizeSingle(
+					resp, err := s.UnauthdClients.Anonymize.AnonymizeSingle(
 						s.ctx,
 						connect.NewRequest(&mgmtv1alpha1.AnonymizeSingleRequest{
 							AccountId: accountId,
@@ -304,8 +304,8 @@ func (s *IntegrationTestSuite) Test_AnonymizeService_AnonymizeSingle_ForbiddenTr
 	})
 
 	t.Run("cloud-personal", func(t *testing.T) {
-		userclient := s.neosyncCloudClients.getUserClient(testAuthUserId)
-		anonclient := s.neosyncCloudClients.getAnonymizeClient(testAuthUserId)
+		userclient := s.NeosyncCloudClients.GetUserClient(testAuthUserId)
+		anonclient := s.NeosyncCloudClients.GetAnonymizeClient(testAuthUserId)
 
 		s.setUser(s.ctx, userclient)
 		accountId := s.createPersonalAccount(s.ctx, userclient)

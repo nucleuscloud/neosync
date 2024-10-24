@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "All Postgres types",
-			Folder:          "postgres/all-types",
+			Folder:          "testdata/postgres/all-types",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql", "setup.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),
@@ -23,7 +23,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 		},
 		{
 			Name:            "All Postgres types + init schema",
-			Folder:          "postgres/all-types",
+			Folder:          "testdata/postgres/all-types",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

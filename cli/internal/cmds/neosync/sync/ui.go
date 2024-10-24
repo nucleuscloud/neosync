@@ -11,7 +11,6 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -67,7 +66,7 @@ func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][
 }
 
 func (m *model) Init() tea.Cmd {
-	return tea.Batch(m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]), m.spinner.Tick)
+	return tea.Batch(m.syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -97,7 +96,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.index++
 		return m, tea.Batch(
 			tea.Println(strings.Join(successStrs, " \n")),
-			m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]),
+			m.syncConfigs(m.ctx, m.groupedConfigs[m.index]),
 		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -137,7 +136,7 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, configs []*benthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -147,7 +146,7 @@ func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, conf
 			errgrp.Go(func() error {
 				start := time.Now()
 				m.logger.Info(fmt.Sprintf("Syncing table %s", cfg.Name))
-				err := syncData(errctx, benv, cfg, m.logger, m.outputType)
+				err := syncData(errctx, m.benv, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err

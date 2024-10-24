@@ -6,7 +6,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "Circular Dependency sync + init schema",
-			Folder:          "postgres/circular-dependencies",
+			Folder:          "testdata/postgres/circular-dependencies",
 			SourceFilePaths: []string{"setup.sql"},
 			TargetFilePaths: []string{"schema-create.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

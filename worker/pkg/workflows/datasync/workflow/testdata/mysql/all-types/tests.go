@@ -8,7 +8,7 @@ func GetSyncTests() []*workflow_testdata.IntegrationTest {
 	return []*workflow_testdata.IntegrationTest{
 		{
 			Name:            "All datatypes passthrough",
-			Folder:          "mysql/all-types",
+			Folder:          "testdata/mysql/all-types",
 			SourceFilePaths: []string{"create.sql", "insert.sql"},
 			TargetFilePaths: []string{"create-dbs.sql"},
 			JobMappings:     GetDefaultSyncJobMappings(),

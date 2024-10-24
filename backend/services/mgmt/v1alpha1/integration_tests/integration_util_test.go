@@ -12,6 +12,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/neosyncdb"
+	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,9 +21,7 @@ func (s *IntegrationTestSuite) createPersonalAccount(
 	userclient mgmtv1alpha1connect.UserAccountServiceClient,
 ) string {
 	s.T().Helper()
-	resp, err := userclient.SetPersonalAccount(ctx, connect.NewRequest(&mgmtv1alpha1.SetPersonalAccountRequest{}))
-	requireNoErrResp(s.T(), resp, err)
-	return resp.Msg.AccountId
+	return tcneosyncapi.CreatePersonalAccount(ctx, s.T(), userclient)
 }
 
 func requireNoErrResp[T any](t testing.TB, resp *connect.Response[T], err error) {
@@ -53,7 +52,7 @@ func (s *IntegrationTestSuite) setAccountCreatedAt(
 	if err != nil {
 		return err
 	}
-	_, err = s.neosyncQuerier.SetAccountCreatedAt(ctx, s.pgpool, db_queries.SetAccountCreatedAtParams{
+	_, err = s.NeosyncQuerier.SetAccountCreatedAt(ctx, s.Pgcontainer.DB, db_queries.SetAccountCreatedAtParams{
 		CreatedAt: pgtype.Timestamp{Time: createdAt, Valid: true},
 		AccountId: accountUuid,
 	})
