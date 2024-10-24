@@ -28,8 +28,10 @@ import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+type PlanName = 'Trial' | 'Team' | 'Enterprise';
+
 interface Plan {
-  name: string;
+  name: PlanName;
   description: string;
   price: string;
   buttonText: string;
@@ -284,7 +286,7 @@ function Plans({
                     buttonText={plan.buttonText}
                   />
                   <div className="text-md flex">
-                    {plan.name == 'Personal' && '*No credit card required'}
+                    {plan.name == 'Trial' && '*No credit card required'}
                   </div>
                 </div>
               </div>
