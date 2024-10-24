@@ -138,20 +138,9 @@ func (m *MysqlTestContainer) setup(ctx context.Context) (*MysqlTestContainer, er
 		return nil, err
 	}
 
-	containerPort, err := mysqlContainer.MappedPort(ctx, "3306/tcp")
-	if err != nil {
-		return nil, err
-	}
-	containerHost, err := mysqlContainer.Host(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	connUrl := fmt.Sprintf("mysql://%s:%s@%s:%s/%s?multiStatements=true&parseTime=true", m.username, m.password, containerHost, containerPort.Port(), m.database)
-
 	return &MysqlTestContainer{
 		DB:            db,
-		URL:           connUrl,
+		URL:           connStr,
 		TestContainer: mysqlContainer,
 	}, nil
 }
