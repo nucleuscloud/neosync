@@ -40,7 +40,7 @@ plugins:
   - local: protoc-gen-connect-openapi
     out: docs/openapi
     opt:
-      - content-types=json
+      - content-types=json,base=neosync.openapi.template.yaml
 
   - remote: buf.build/protocolbuffers/python:v28.2 # generates messages and enums
     out: python/src/neosync
