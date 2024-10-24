@@ -11,11 +11,17 @@ import (
 )
 
 type pgConnectConfig struct {
-	url string
+	url  string
+	user string
 }
+
+var _ DbConnectConfig = (*pgConnectConfig)(nil)
 
 func (m *pgConnectConfig) String() string {
 	return m.url
+}
+func (m *pgConnectConfig) GetUser() string {
+	return m.user
 }
 
 func NewFromPostgresConnection(
@@ -54,7 +60,7 @@ func NewFromPostgresConnection(
 		}
 		pgurl.RawQuery = query.Encode()
 
-		return &pgConnectConfig{url: pgurl.String()}, nil
+		return &pgConnectConfig{url: pgurl.String(), user: getUserFromInfo(pgurl.User)}, nil
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 		pgurl := cc.Url
 
@@ -75,7 +81,7 @@ func NewFromPostgresConnection(
 			query = setPgClientTlsQueryParams(query, config.PgConfig.GetClientTls())
 		}
 		uriconfig.RawQuery = query.Encode()
-		return &pgConnectConfig{url: uriconfig.String()}, nil
+		return &pgConnectConfig{url: uriconfig.String(), user: getUserFromInfo(uriconfig.User)}, nil
 	default:
 		return nil, fmt.Errorf("unsupported pg connection config: %T", cc)
 	}
@@ -94,4 +100,11 @@ func setPgClientTlsQueryParams(
 		query.Set("sslkey", *filenames.ClientKey)
 	}
 	return query
+}
+
+func getUserFromInfo(u *url.Userinfo) string {
+	if u == nil {
+		return ""
+	}
+	return u.Username()
 }

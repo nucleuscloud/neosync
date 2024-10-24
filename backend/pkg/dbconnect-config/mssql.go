@@ -10,11 +10,17 @@ import (
 )
 
 type mssqlConnectConfig struct {
-	url string
+	url  string
+	user string
 }
+
+var _ *mssqlConnectConfig = (*mssqlConnectConfig)(nil)
 
 func (m *mssqlConnectConfig) String() string {
 	return m.url
+}
+func (m *mssqlConnectConfig) GetUser() string {
+	return m.user
 }
 
 func NewFromMssqlConnection(
@@ -39,7 +45,7 @@ func NewFromMssqlConnection(
 		}
 		uriconfig.RawQuery = query.Encode()
 
-		return &mssqlConnectConfig{url: uriconfig.String()}, nil
+		return &mssqlConnectConfig{url: uriconfig.String(), user: getUserFromInfo(uriconfig.User)}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest(fmt.Sprintf("must provide valid mssql connection: %T", cc))
 	}

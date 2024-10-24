@@ -13,11 +13,17 @@ import (
 )
 
 type mysqlConnectConfig struct {
-	dsn string
+	dsn  string
+	user string
 }
+
+var _ DbConnectConfig = (*mysqlConnectConfig)(nil)
 
 func (m *mysqlConnectConfig) String() string {
 	return m.dsn
+}
+func (m *mysqlConnectConfig) GetUser() string {
+	return m.user
 }
 
 func NewFromMysqlConnection(
@@ -42,7 +48,7 @@ func NewFromMysqlConnection(
 		cfg.MultiStatements = true
 		cfg.ParseTime = true
 
-		return &mysqlConnectConfig{dsn: cfg.FormatDSN()}, nil
+		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 		mysqlurl := cc.Url
 
@@ -76,7 +82,7 @@ func NewFromMysqlConnection(
 					cfg.Params[k] = value
 				}
 			}
-			return &mysqlConnectConfig{dsn: cfg.FormatDSN()}, nil
+			return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 		}
 
 		if cfg.Timeout == 0 && connectionTimeout != nil {
@@ -84,7 +90,7 @@ func NewFromMysqlConnection(
 		}
 		cfg.MultiStatements = true
 		cfg.ParseTime = true
-		return &mysqlConnectConfig{dsn: cfg.FormatDSN()}, nil
+		return &mysqlConnectConfig{dsn: cfg.FormatDSN(), user: cfg.User}, nil
 	default:
 		return nil, fmt.Errorf("unsupported mysql connection config: %T", cc)
 	}
