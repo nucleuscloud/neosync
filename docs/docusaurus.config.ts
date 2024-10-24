@@ -3,6 +3,7 @@
 
 import type { Config } from '@docusaurus/types';
 import { themes } from 'prism-react-renderer';
+import type * as Redocusaurus from 'redocusaurus';
 
 const config: Config = {
   title: 'Neosync',
@@ -70,6 +71,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          id: 'default',
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
           // Remove this to remove the "edit this page" links.
@@ -106,6 +108,54 @@ const config: Config = {
         },
       },
     ],
+    [
+      'redocusaurus',
+      {
+        specs: [
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+            route: '/reference/anonymization',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/api_key.openapi.yaml',
+            route: '/reference/api_key',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/auth.openapi.yaml',
+            route: '/reference/auth',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/connection_data.openapi.yaml',
+            route: '/reference/connection_data',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/connection.openapi.yaml',
+            route: '/reference/connection',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/job.openapi.yaml',
+            route: '/reference/job',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/metrics.openapi.yaml',
+            route: '/reference/metrics',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/transformer.openapi.yaml',
+            route: '/reference/transformer',
+          },
+          {
+            spec: './../backend/gen/openapi/mgmt/v1alpha1/user_account.openapi.yaml',
+            route: '/reference/user_account',
+          },
+        ],
+        // Theme Options for modifying how redoc renders them
+        theme: {
+          // Change with your site colors
+          primaryColor: '#1890ff',
+        },
+      },
+    ] satisfies Redocusaurus.PresetEntry,
   ],
 
   themeConfig: {
@@ -144,7 +194,7 @@ const config: Config = {
           'aria-label': 'Discord Server',
         },
         { to: '/', label: 'Docs' },
-        { to: '/api', label: 'API' },
+        { to: '/api', label: 'SDK' },
         { to: '/changelog', label: 'Changelog' },
       ],
     },
