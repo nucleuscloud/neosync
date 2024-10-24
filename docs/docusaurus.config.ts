@@ -113,39 +113,39 @@ const config: Config = {
       {
         specs: [
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/anonymization.openapi.yaml',
             route: '/reference/anonymization',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/api_key.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/api_key.openapi.yaml',
             route: '/reference/api_key',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/auth.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/auth.openapi.yaml',
             route: '/reference/auth',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/connection_data.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/connection_data.openapi.yaml',
             route: '/reference/connection_data',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/connection.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/connection.openapi.yaml',
             route: '/reference/connection',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/job.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/job.openapi.yaml',
             route: '/reference/job',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/metrics.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/metrics.openapi.yaml',
             route: '/reference/metrics',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/transformer.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/transformer.openapi.yaml',
             route: '/reference/transformer',
           },
           {
-            spec: '../backend/gen/openapi/mgmt/v1alpha1/user_account.openapi.yaml',
+            spec: 'openapi/mgmt/v1alpha1/user_account.openapi.yaml',
             route: '/reference/user_account',
           },
         ],
