@@ -55,7 +55,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				return nil, fmt.Errorf("unable to upsert client tls files: %w", err)
 			}
 		}
-		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
+		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}

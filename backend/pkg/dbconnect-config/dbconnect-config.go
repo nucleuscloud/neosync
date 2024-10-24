@@ -11,6 +11,10 @@ const (
 	mssqlDriver    = "sqlserver"
 )
 
+type DbConnectConfig interface {
+	String() string
+}
+
 type GeneralDbConnectConfig struct {
 	driver string
 

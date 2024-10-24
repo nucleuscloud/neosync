@@ -12,10 +12,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-type DbConnectConfig interface {
-	String() string
-}
-
 type mysqlConnectConfig struct {
 	dsn string
 }
@@ -55,8 +51,11 @@ func NewFromMysqlConnection(
 			logger.Warn(fmt.Sprintf("failed to parse mysql url as DSN: %v", err))
 			uriConfig, err := url.Parse(mysqlurl)
 			if err != nil {
-				logger.Warn(fmt.Sprintf("failed to parse mysql url as URI: %v", err))
-				return nil, errors.New("unable to parse mysql url as valid DSN or URI")
+				var urlErr *url.Error
+				if errors.As(err, &urlErr) {
+					return nil, fmt.Errorf("unable to parse mysql url [%s]: %w", urlErr.Op, urlErr.Err)
+				}
+				return nil, fmt.Errorf("unable to parse mysql url: %w", err)
 			}
 			cfg = mysql.NewConfig()
 			cfg.Net = "tcp"
