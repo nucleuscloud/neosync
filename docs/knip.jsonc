@@ -23,6 +23,7 @@
     "tailwind-merge",
     "docusaurus-protobuffet",
     "posthog-docusaurus",
+    "redocusaurus",
   ],
   "ignoreBinaries": [],
 }
