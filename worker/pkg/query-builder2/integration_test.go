@@ -23,7 +23,6 @@ type mssqlTest struct {
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	// pgpool  *pgxpool.Pool
 	querier pg_queries.Querier
 
 	setupSql    string
