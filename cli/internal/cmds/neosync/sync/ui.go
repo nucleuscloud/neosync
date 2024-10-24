@@ -11,7 +11,6 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	_ "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	_ "github.com/warpstreamlabs/bento/public/components/aws"
@@ -26,19 +25,18 @@ import (
 )
 
 type model struct {
-	ctx                  context.Context
-	logger               *slog.Logger
-	benv                 *service.Environment
-	groupedConfigs       [][]*benthosConfigResponse
-	tableSynced          int
-	index                int
-	width                int
-	height               int
-	spinner              spinner.Model
-	done                 bool
-	totalConfigCount     int
-	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
-	outputType           output.OutputType
+	ctx              context.Context
+	logger           *slog.Logger
+	benv             *service.Environment
+	groupedConfigs   [][]*benthosConfigResponse
+	tableSynced      int
+	index            int
+	width            int
+	height           int
+	spinner          spinner.Model
+	done             bool
+	totalConfigCount int
+	outputType       output.OutputType
 }
 
 var (
@@ -52,24 +50,23 @@ var (
 	durationStyle       = dotStyle
 )
 
-func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, outputType output.OutputType) *model {
+func newModel(ctx context.Context, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger, outputType output.OutputType) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
-		ctx:                  ctx,
-		groupedConfigs:       groupedConfigs,
-		tableSynced:          0,
-		spinner:              s,
-		totalConfigCount:     getConfigCount(groupedConfigs),
-		logger:               logger,
-		connectiondataclient: connectiondataclient,
-		outputType:           outputType,
-		benv:                 benv,
+		ctx:              ctx,
+		groupedConfigs:   groupedConfigs,
+		tableSynced:      0,
+		spinner:          s,
+		totalConfigCount: getConfigCount(groupedConfigs),
+		logger:           logger,
+		outputType:       outputType,
+		benv:             benv,
 	}
 }
 
 func (m *model) Init() tea.Cmd {
-	return tea.Batch(m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]), m.spinner.Tick)
+	return tea.Batch(m.syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -99,7 +96,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.index++
 		return m, tea.Batch(
 			tea.Println(strings.Join(successStrs, " \n")),
-			m.syncConfigs(m.ctx, m.benv, m.groupedConfigs[m.index]),
+			m.syncConfigs(m.ctx, m.groupedConfigs[m.index]),
 		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -139,7 +136,7 @@ func (m *model) View() string {
 
 type syncedDataMsg map[string]string
 
-func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, configs []*benthosConfigResponse) tea.Cmd {
+func (m *model) syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
 		messageMap := syncmap.Map{}
 		errgrp, errctx := errgroup.WithContext(ctx)
@@ -149,7 +146,7 @@ func (m *model) syncConfigs(ctx context.Context, benv *service.Environment, conf
 			errgrp.Go(func() error {
 				start := time.Now()
 				m.logger.Info(fmt.Sprintf("Syncing table %s", cfg.Name))
-				err := syncData(errctx, benv, cfg, m.logger, m.connectiondataclient, m.outputType)
+				err := syncData(errctx, m.benv, cfg, m.logger, m.outputType)
 				if err != nil {
 					fmt.Printf("Error syncing table: %s", err.Error()) //nolint:forbidigo
 					return err
@@ -194,7 +191,7 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient) error {
+func runSync(ctx context.Context, outputType output.OutputType, benv *service.Environment, groupedConfigs [][]*benthosConfigResponse, logger *slog.Logger) error {
 	var opts []tea.ProgramOption
 	var synclogger = logger
 	if outputType == output.PlainOutput {
@@ -205,7 +202,9 @@ func runSync(ctx context.Context, outputType output.OutputType, benv *service.En
 		// TUI mode, discard log output
 		synclogger = slog.New(slog.NewJSONHandler(io.Discard, nil))
 	}
-	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, synclogger, connectiondataclient, outputType), opts...).Run(); err != nil {
+	if benv == nil {
+	}
+	if _, err := tea.NewProgram(newModel(ctx, benv, groupedConfigs, synclogger, outputType), opts...).Run(); err != nil {
 		logger.Error(fmt.Sprintf("Error syncing data: %v", err))
 		return fmt.Errorf("unable to finish syncing data: %w", err)
 	}

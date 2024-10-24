@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos_defaulttransform "github.com/nucleuscloud/neosync/worker/pkg/benthos/default_transform"
 	neosync_benthos_dynamodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/dynamodb"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/pkg/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/pkg/benthos/metrics"
 	neosync_benthos_mongodb "github.com/nucleuscloud/neosync/worker/pkg/benthos/mongodb"
+	neosync_benthos_connectiondata "github.com/nucleuscloud/neosync/worker/pkg/benthos/neosync_connection_data"
 	openaigenerate "github.com/nucleuscloud/neosync/worker/pkg/benthos/openai_generate"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/pkg/benthos/sql"
 	"github.com/warpstreamlabs/bento/public/bloblang"
@@ -23,6 +25,8 @@ type RegisterConfig struct {
 	sqlConfig *SqlConfig // nil to disable
 
 	mongoConfig *MongoConfig // nil to disable
+
+	connectionDataConfig *ConnectionDataConfig // nil to diable
 
 	stopChannel chan<- error
 
@@ -52,6 +56,11 @@ func WithMongoConfig(mongocfg *MongoConfig) Option {
 		cfg.mongoConfig = mongocfg
 	}
 }
+func WithConnectionDataConfig(connectionDataCfg *ConnectionDataConfig) Option {
+	return func(cfg *RegisterConfig) {
+		cfg.connectionDataConfig = connectionDataCfg
+	}
+}
 func WithBlobEnv(b *bloblang.Environment) Option {
 	return func(cfg *RegisterConfig) {
 		cfg.blobEnv = b
@@ -65,6 +74,10 @@ type SqlConfig struct {
 
 type MongoConfig struct {
 	Provider neosync_benthos_mongodb.MongoPoolProvider
+}
+
+type ConnectionDataConfig struct {
+	NeosyncConnectionDataApi mgmtv1alpha1connect.ConnectionDataServiceClient
 }
 
 func NewEnvironment(logger *slog.Logger, opts ...Option) (*service.Environment, error) {
@@ -115,6 +128,13 @@ func NewWithEnvironment(env *service.Environment, logger *slog.Logger, opts ...O
 		err = neosync_benthos_mongodb.RegisterPooledMongoDbOutput(env, config.mongoConfig.Provider)
 		if err != nil {
 			return nil, fmt.Errorf("unable to register pooled_mongodb output to benthos instance: %w", err)
+		}
+	}
+
+	if config.connectionDataConfig != nil {
+		err := neosync_benthos_connectiondata.RegisterNeosyncConnectionDataInput(env, config.connectionDataConfig.NeosyncConnectionDataApi)
+		if err != nil {
+			return nil, fmt.Errorf("unable to register neosync_connection_data input: %w", err)
 		}
 	}
 

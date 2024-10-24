@@ -15,6 +15,7 @@ import (
 
 const neosyncDbMigrationsPath = "../../../../../backend/sql/postgresql/schema"
 
+// TODO fix types then this will pass
 func Test_Sync_Postgres(t *testing.T) {
 	t.Parallel()
 	ok := testutil.ShouldRunIntegrationTest()

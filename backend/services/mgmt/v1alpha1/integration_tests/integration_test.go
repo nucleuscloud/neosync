@@ -17,6 +17,7 @@ type IntegrationTestSuite struct {
 	ctx context.Context
 }
 
+// TODO update service integration tests to not use testify suite
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	api, err := tcneosyncapi.NewNeosyncApiTestClient(s.ctx, s.T())

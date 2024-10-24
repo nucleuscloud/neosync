@@ -406,7 +406,6 @@ type PooledSqlInsert struct {
 	Batching                 *Batching                           `json:"batching,omitempty" yaml:"batching,omitempty"`
 	Prefix                   *string                             `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 	Suffix                   *string                             `json:"suffix,omitempty" yaml:"suffix,omitempty"`
-	DirectInsertMode         *bool                               `json:"direct_insert_mode,omitempty" yaml:"direct_insert_mode,omitempty"`
 }
 
 type SqlInsert struct {

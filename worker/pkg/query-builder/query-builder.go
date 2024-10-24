@@ -178,39 +178,6 @@ func getPgGoquVals(logger *slog.Logger, row []any, columnDataTypes []string, col
 	return gval
 }
 
-func BuildPlainInsertQuery(
-	logger *slog.Logger,
-	driver, schema, table string,
-	columns []string,
-	values [][]any,
-	onConflictDoNothing *bool,
-) (sql string, args []any, err error) {
-	builder := getGoquDialect(driver)
-	sqltable := goqu.S(schema).Table(table)
-	insertCols := make([]any, len(columns))
-	for i, col := range columns {
-		insertCols[i] = col
-	}
-	insert := builder.Insert(sqltable).Prepared(true).Cols(insertCols...)
-	for _, row := range values {
-		gval := goqu.Vals{}
-		for _, a := range row {
-			gval = append(gval, a)
-		}
-		insert = insert.Vals(gval)
-	}
-	// adds on conflict do nothing to insert query
-	if *onConflictDoNothing {
-		insert = insert.OnConflict(goqu.DoNothing())
-	}
-
-	query, args, err := insert.ToSQL()
-	if err != nil {
-		return "", nil, err
-	}
-	return query, args, nil
-}
-
 func BuildInsertQuery(
 	logger *slog.Logger,
 	driver, schema, table string,

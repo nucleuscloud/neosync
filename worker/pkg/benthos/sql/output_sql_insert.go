@@ -37,8 +37,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("prefix").Optional()).
-		Field(service.NewStringField("suffix").Optional()).
-		Field(service.NewBoolField("direct_insert_mode").Optional())
+		Field(service.NewStringField("suffix").Optional())
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -85,8 +84,6 @@ type pooledInsertOutput struct {
 	truncateOnRetry          bool
 	prefix                   *string
 	suffix                   *string
-
-	directInsertMode bool
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -187,15 +184,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
-	directInsertMode := false
-	if conf.Contains("direct_insert_mode") {
-		dim, err := conf.FieldBool("direct_insert_mode")
-		if err != nil {
-			return nil, err
-		}
-		directInsertMode = dim
-	}
-
 	output := &pooledInsertOutput{
 		driver:                   driver,
 		dsn:                      dsn,
@@ -215,7 +203,6 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		prefix:                   prefix,
 		suffix:                   suffix,
 		isRetry:                  isRetry,
-		directInsertMode:         directInsertMode,
 	}
 	return output, nil
 }
@@ -307,19 +294,9 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		}
 	}
 
-	var insertQuery string
-	var args []any
-	var err error
-	if s.directInsertMode {
-		insertQuery, args, err = querybuilder.BuildPlainInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, processedRows, &s.onConflictDoNothing)
-		if err != nil {
-			return err
-		}
-	} else {
-		insertQuery, args, err = querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
-		if err != nil {
-			return err
-		}
+	insertQuery, args, err := querybuilder.BuildInsertQuery(s.slogger, s.driver, s.schema, s.table, processedCols, s.columnDataTypes, processedRows, &s.onConflictDoNothing, columnDefaults)
+	if err != nil {
+		return err
 	}
 
 	if s.driver == sqlmanager_shared.MssqlDriver && len(processedCols) == 0 {
@@ -333,13 +310,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	if s.driver != sqlmanager_shared.PostgresDriver {
 		insertQuery = s.buildQuery(insertQuery)
 	}
-
-	fmt.Println()
-	fmt.Println()
-	fmt.Println(insertQuery)
-	fmt.Println(args)
-	fmt.Println()
-	fmt.Println()
 
 	if _, err := s.db.ExecContext(ctx, insertQuery, args...); err != nil {
 		if !s.skipForeignKeyViolations || !neosync_benthos.IsForeignKeyViolationError(err.Error()) {

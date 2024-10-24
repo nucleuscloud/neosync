@@ -174,6 +174,7 @@ type clisync struct {
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient
 	connectionclient     mgmtv1alpha1connect.ConnectionServiceClient
 	sqlmanagerclient     *sqlmanager.SqlManager
+	sqlconnector         *sqlconnect.SqlOpenConnector
 	benv                 *service.Environment
 	cmd                  *cmdConfig
 	logger               *slog.Logger
@@ -216,9 +217,23 @@ func sync(
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
 	sqlmanagerclient := sqlmanager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, mssqlpoolmap, mssqlquerier, sqlConnector)
 
+	sync := &clisync{
+		connectiondataclient: connectiondataclient,
+		connectionclient:     connectionclient,
+		sqlmanagerclient:     sqlmanagerclient,
+		sqlconnector:         sqlConnector,
+		cmd:                  cmd,
+		logger:               logger,
+		ctx:                  ctx,
+	}
+
+	return sync.configureAndRunSync()
+}
+
+func (c *clisync) configureAndRunSync() error {
 	connectionprovider := providers.NewProvider(
 		mongoprovider.NewProvider(),
-		sqlprovider.NewProvider(sqlConnector),
+		sqlprovider.NewProvider(c.sqlconnector),
 	)
 	tunnelmanager := connectiontunnelmanager.NewConnectionTunnelManager(connectionprovider)
 	session := uuid.NewString()
@@ -227,15 +242,15 @@ func sync(
 		tunnelmanager.ReleaseSession(session)
 	}()
 
-	destConnection := cmdConfigToDestinationConnection(cmd)
+	destConnection := cmdConfigToDestinationConnection(c.cmd)
 	dsnToConnIdMap := &syncmap.Map{}
 	var sqlDsn string
-	if cmd.Destination != nil {
-		sqlDsn = cmd.Destination.ConnectionUrl
+	if c.cmd.Destination != nil {
+		sqlDsn = c.cmd.Destination.ConnectionUrl
 	}
 	dsnToConnIdMap.Store(sqlDsn, destConnection.Id)
 	stopChan := make(chan error, 3)
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(c.ctx)
 	defer cancel()
 	go func() {
 		for {
@@ -248,8 +263,8 @@ func sync(
 			}
 		}
 	}()
-	benv, err := benthos_environment.NewEnvironment(
-		logger,
+	benthosEnv, err := benthos_environment.NewEnvironment(
+		c.logger,
 		benthos_environment.WithSqlConfig(&benthos_environment.SqlConfig{
 			Provider: pool_sql_provider.NewProvider(pool_sql_provider.GetSqlPoolProviderGetter(
 				tunnelmanager,
@@ -258,9 +273,12 @@ func sync(
 					destConnection.Id: destConnection,
 				},
 				session,
-				logger,
+				c.logger,
 			)),
 			IsRetry: false,
+		}),
+		benthos_environment.WithConnectionDataConfig(&benthos_environment.ConnectionDataConfig{
+			NeosyncConnectionDataApi: c.connectiondataclient,
 		}),
 		benthos_environment.WithStopChannel(stopChan),
 		benthos_environment.WithBlobEnv(bloblang.NewEnvironment()),
@@ -268,21 +286,8 @@ func sync(
 	if err != nil {
 		return err
 	}
+	c.benv = benthosEnv
 
-	sync := &clisync{
-		connectiondataclient: connectiondataclient,
-		connectionclient:     connectionclient,
-		sqlmanagerclient:     sqlmanagerclient,
-		cmd:                  cmd,
-		logger:               logger,
-		ctx:                  ctx,
-		benv:                 benv,
-	}
-
-	return sync.configureAndRunSync()
-}
-
-func (c *clisync) configureAndRunSync() error {
 	groupedConfigs, err := c.configureSync()
 	if err != nil {
 		return err
@@ -291,7 +296,7 @@ func (c *clisync) configureAndRunSync() error {
 		return nil
 	}
 
-	return runSync(c.ctx, *c.cmd.OutputType, c.benv, groupedConfigs, c.logger, c.connectiondataclient)
+	return runSync(c.ctx, *c.cmd.OutputType, c.benv, groupedConfigs, c.logger)
 }
 
 func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
@@ -319,6 +324,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 	var schemaConfig *schemaConfig
 	switch sourceConnectionType {
 	case awsS3Connection:
+		c.logger.Info("Building schema and table constraints...")
 		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
 		if c.cmd.Source.ConnectionOpts.JobRunId != nil && *c.cmd.Source.ConnectionOpts.JobRunId != "" {
 			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *c.cmd.Source.ConnectionOpts.JobRunId}}
@@ -443,6 +449,7 @@ func (c *clisync) configureSync() ([][]*benthosConfigResponse, error) {
 	}
 
 	// order configs in run order by dependency
+	c.logger.Debug("Ordering configs by dependency")
 	groupedConfigs := groupConfigsByDependency(configs, c.logger)
 
 	return groupedConfigs, nil
@@ -453,7 +460,7 @@ var (
 	streamBuilderMu syncmap.Mutex
 )
 
-func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfigResponse, logger *slog.Logger, connectionDataClient mgmtv1alpha1connect.ConnectionDataServiceClient, outputType output.OutputType) error {
+func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfigResponse, logger *slog.Logger, outputType output.OutputType) error {
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -487,8 +494,14 @@ func syncData(ctx context.Context, benv *service.Environment, cfg *benthosConfig
 	}
 	streamBuilderMu.Lock()
 	streambldr := benv.NewStreamBuilder()
+	if streambldr == nil {
+		return fmt.Errorf("failed to create StreamBuilder")
+	}
 	if outputType == output.PlainOutput {
 		streambldr.SetLogger(logger.With("benthos", "true", "table", cfg.Table, "runType", runType))
+	}
+	if benv == nil {
+		return fmt.Errorf("benthos env is nil")
 	}
 
 	err = streambldr.SetYAML(string(configbits))
@@ -765,7 +778,6 @@ func generateBenthosConfig(
 		jobId = cmd.Source.ConnectionOpts.JobId
 	}
 
-	directInsertMode := true
 	bc := &neosync_benthos.BenthosConfig{
 		StreamConfig: neosync_benthos.StreamConfig{
 			Logger: &neosync_benthos.LoggerConfig{
@@ -823,7 +835,6 @@ func generateBenthosConfig(
 					Columns:             syncConfig.SelectColumns(),
 					OnConflictDoNothing: cmd.Destination.OnConflict.DoNothing,
 					ArgsMapping:         buildPlainInsertArgs(syncConfig.SelectColumns()),
-					DirectInsertMode:    &directInsertMode,
 
 					Batching: &neosync_benthos.Batching{
 						Period: "5s",

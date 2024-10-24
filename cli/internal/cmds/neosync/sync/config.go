@@ -185,7 +185,6 @@ func isConfigValid(cmd *cmdConfig, logger *slog.Logger, sourceConnection *mgmtv1
 			return fmt.Errorf("must provide destination aws region")
 		}
 	}
-	logger.Debug("Validated config")
 
 	if sourceConnection.AccountId != *cmd.AccountId {
 		return fmt.Errorf("Connection not found. AccountId: %s", *cmd.AccountId)
