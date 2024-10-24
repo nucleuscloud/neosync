@@ -50,6 +50,7 @@ BUF_GENERATE_CMD="$BUF_GENERATE_CMD \
   --volume \"./backend/gen:/workspace/backend/gen\" \
   --volume \"./frontend/packages/sdk/src/client:/workspace/frontend/packages/sdk/src/client\" \
   --volume \"./docs/protos:/workspace/docs/protos\" \
+  --volume \"./docs/openapi:/workspace/docs/openapi\" \
   --volume \"./python/src/neosync:/workspace/python/src/neosync\" \
   --volume \"./buf.yaml:/workspace/buf.yaml\" \
   --volume \"./buf.lock:/workspace/buf.lock\" \

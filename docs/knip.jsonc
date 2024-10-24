@@ -9,6 +9,7 @@
     "static/sync-dark-mode.js",
     "src/**",
     "src/theme/**",
+    "redocusaurus",
   ],
   "ignoreDependencies": [
     "@docusaurus/preset-classic",
@@ -22,6 +23,7 @@
     "tailwind-merge",
     "docusaurus-protobuffet",
     "posthog-docusaurus",
+    "redocusaurus",
   ],
   "ignoreBinaries": [],
 }
