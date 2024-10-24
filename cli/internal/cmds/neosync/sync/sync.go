@@ -53,7 +53,7 @@ type ConnectionType string
 type DriverType string
 
 const (
-	postgresDriver DriverType = "pgx"
+	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 	mssqlDriver    DriverType = "mssql"
 

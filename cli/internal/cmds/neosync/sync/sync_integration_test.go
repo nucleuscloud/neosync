@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	tcneosyncapi "github.com/nucleuscloud/neosync/backend/pkg/integration-test"
-	sqlmanager_shared "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager/shared"
 	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/internal/testutil"
 	tcpostgres "github.com/nucleuscloud/neosync/internal/testutil/testcontainers/postgres"
@@ -78,7 +77,7 @@ func Test_Sync_Postgres(t *testing.T) {
 			},
 			Destination: &sqlDestinationConfig{
 				ConnectionUrl:        postgres.Target.URL,
-				Driver:               sqlmanager_shared.PostgresDriver,
+				Driver:               postgresDriver,
 				InitSchema:           true,
 				TruncateBeforeInsert: true,
 				TruncateCascade:      true,
