@@ -317,7 +317,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 <FormDescription>Your connection URL</FormDescription>
                 <FormControl>
                   <Input
-                    placeholder="mysql://username:password@hostname:port/database"
+                    placeholder="username:password@tcp(hostname:port)/database"
                     {...field}
                   />
                 </FormControl>

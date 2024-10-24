@@ -55,7 +55,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 				return nil, fmt.Errorf("unable to upsert client tls files: %w", err)
 			}
 		}
-		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout)
+		connDetails, err := dbconnectconfig.NewFromPostgresConnection(config, connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 			return newStdlibContainer("pgx", dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -330,12 +330,12 @@ func (s *stdlibContainer) Close() error {
 }
 
 type ConnectionDetails struct {
-	dbconnectconfig.GeneralDbConnectConfig
+	dbconnectconfig.DbConnectConfig
 	MaxConnectionLimit *int32
 }
 
 func (c *ConnectionDetails) String() string {
-	return c.GeneralDbConnectConfig.String()
+	return c.DbConnectConfig.String()
 }
 
 type ClientCertConfig struct {
