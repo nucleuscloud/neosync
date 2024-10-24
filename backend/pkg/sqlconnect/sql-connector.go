@@ -76,7 +76,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(cc *mgmtv1alpha1.Connectio
 			return newStdlibContainer("pgx", dsn, dbconnopts), nil
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout)
+		connDetails, err := dbconnectconfig.NewFromMysqlConnection(config, connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
